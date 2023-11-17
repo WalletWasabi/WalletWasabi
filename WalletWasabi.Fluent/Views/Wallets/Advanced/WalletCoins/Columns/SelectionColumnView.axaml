@@ -10,8 +10,8 @@
   <!-- Temporarily enable the selection no matter what. -->
   <!-- Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented. -->
   <!-- IsVisible="{Binding !CoinJoinInProgress}" -->
-  <Border CornerRadius="30" HorizontalAlignment="Right" Margin="0 0 2 0" Background="{DynamicResource Layer2BackgroundBrush}">
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20 0">
+  <Border CornerRadius="30" HorizontalAlignment="Right" Margin="20 0 2 0" Background="{DynamicResource Layer2BackgroundBrush}">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="15 0">
       <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Padding="0" />
     </StackPanel>
   </Border>

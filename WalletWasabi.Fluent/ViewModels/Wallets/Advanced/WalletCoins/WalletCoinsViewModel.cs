@@ -8,10 +8,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -22,7 +20,7 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(
-	Title = "Wallet Coins (UTXOs)",
+	Title = "Wallet Coins",
 	Caption = "Display wallet coins",
 	IconName = "nav_wallet_24_regular",
 	Order = 0,
