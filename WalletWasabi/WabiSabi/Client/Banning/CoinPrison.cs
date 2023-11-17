@@ -70,7 +70,7 @@ public class CoinPrison
 		ToFile();
 	}
 
-	private void ToFile()
+	public void ToFile()
 	{
 		if (string.IsNullOrWhiteSpace(FilePath))
 		{
