@@ -1,7 +1,7 @@
 {
   description = "Wasabi wallet coordinator";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.nixpkgs.url = "github:mdarocha/nixpkgs?ref=dotnet-update"; #"github:NixOS/nixpkgs/nixpkgs-unstable";
   outputs = { self, nixpkgs }:
     let
         pkgs = import nixpkgs { system = "x86_64-linux"; }; #nixpkgs.legacyPackages.x86_64-linux;
@@ -51,7 +51,7 @@
            shellHook = ''
              export DOTNET_CLI_TELEMETRY_OPTOUT=1
              export DOTNET_NOLOGO=1
-             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_7_0}
+             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_8_0}
              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
            '';
         };
