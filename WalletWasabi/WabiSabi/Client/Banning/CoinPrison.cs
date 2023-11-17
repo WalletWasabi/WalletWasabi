@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison
 {
-	private readonly int _maxDaysToTrustLocalPrison = 4;
+	private static readonly int MaxDaysToTrustLocalPrison = 4;
 
 	public CoinPrison(string filePath)
 	{
@@ -82,14 +82,14 @@ public class CoinPrison
 		File.WriteAllText(FilePath, json);
 	}
 
-	private DateTimeOffset ReduceBanningTimeIfNeeded(DateTimeOffset bannedUntil)
+	private static DateTimeOffset ReduceBanningTimeIfNeeded(DateTimeOffset bannedUntil)
 	{
 		var currentDate = DateTimeOffset.UtcNow;
-		if (bannedUntil > currentDate.AddDays(_maxDaysToTrustLocalPrison))
+		if (bannedUntil > currentDate.AddDays(MaxDaysToTrustLocalPrison))
 		{
 			Random random = new();
-			int minHours = (_maxDaysToTrustLocalPrison * 24 - 1) / 2;
-			int maxHours = _maxDaysToTrustLocalPrison * 24 - 1;
+			int minHours = (MaxDaysToTrustLocalPrison * 24 - 1) / 2;
+			int maxHours = MaxDaysToTrustLocalPrison * 24 - 1;
 			int randomHours = random.Next(minHours, maxHours);
 			int randomMinutes = random.Next(0, 60);
 			int randomSeconds = random.Next(0, 60);
@@ -122,6 +122,12 @@ public class CoinPrison
 			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Deleting corrupt file.", exc);
 			File.Delete(prisonFilePath);
 		}
+
+		foreach (var item in prisonedCoinRecords)
+		{
+			item.BannedUntil = ReduceBanningTimeIfNeeded(item.BannedUntil);
+		}
+
 		return new(prisonFilePath) { BannedCoins = prisonedCoinRecords };
 	}
 
