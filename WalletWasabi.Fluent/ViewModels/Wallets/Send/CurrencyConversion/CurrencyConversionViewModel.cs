@@ -1,4 +1,3 @@
-using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Models.Currency;
@@ -9,7 +8,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 
 public partial class CurrencyConversionViewModel : ViewModelBase
 {
-	[AutoNotify] private Money? _amount;
+	private bool _isUpdating;
+	[AutoNotify] private Amount? _amount;
 	[AutoNotify] private CurrencyViewModel _left;
 	[AutoNotify] private CurrencyViewModel _right;
 	[AutoNotify] private bool _isConversionReversed;
@@ -49,11 +49,33 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			})
 			.Subscribe();
 
-		btc.WhenAnyValue(x => x.Amount)
-		   .BindTo(usd, x => x.Amount);
+		// Bind BTC
+		btc.WhenAnyValue(x => x.Value)
+		   .Where(_ => !_isUpdating)
+		   .Do(btcValue =>
+		   {
+			   _isUpdating = true;
 
-		usd.WhenAnyValue(x => x.Amount)
-		   .BindTo(btc, x => x.Amount);
+			   Amount = wallet.AmountProvider.CreateFromBtc(btcValue);
+			   usd.Value = Amount.UsdValue;
+
+			   _isUpdating = false;
+		   })
+		   .Subscribe();
+
+		// Bind USD
+		usd.WhenAnyValue(x => x.Value)
+		   .Where(_ => !_isUpdating)
+		   .Do(usdValue =>
+		   {
+			   _isUpdating = true;
+
+			   Amount = wallet.AmountProvider.CreateFromUsd(usdValue);
+			   btc.Value = Amount.BtcValue;
+
+			   _isUpdating = false;
+		   })
+		   .Subscribe();
 
 		IsConversionReversed = UiContext.ApplicationSettings.SendAmountConversionReversed;
 	}

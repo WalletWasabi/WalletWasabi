@@ -24,4 +24,25 @@ public partial class AmountProvider : ReactiveObject
 	{
 		return new Amount(money ?? Money.Zero, this);
 	}
+
+	public Amount CreateFromBtc(decimal? btcAmount)
+	{
+		if (btcAmount is null)
+		{
+			return Create(Money.Zero);
+		}
+
+		return Create(new Money(btcAmount.Value, MoneyUnit.BTC));
+	}
+
+	public Amount CreateFromUsd(decimal? usdAmount)
+	{
+		if (usdAmount is null || UsdExchangeRate == 0)
+		{
+			return Create(Money.Zero);
+		}
+
+		var btcAmount = usdAmount.Value / UsdExchangeRate;
+		return CreateFromBtc(btcAmount);
+	}
 }

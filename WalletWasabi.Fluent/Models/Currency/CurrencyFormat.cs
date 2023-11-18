@@ -47,7 +47,7 @@ public partial class CurrencyFormat : ReactiveObject
 	/// <returns></returns>
 	public static string FormatBtcWithExactFractionals(decimal amount)
 	{
-		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), CurrencyFormat.Btc.MaxFractionalDigits ?? 0);
+		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Btc.MaxFractionalDigits ?? 0);
 		var fractionalString = "";
 		for (var i = 0; i < fractionalDigits; i++)
 		{
@@ -69,7 +69,7 @@ public partial class CurrencyFormat : ReactiveObject
 	/// <returns></returns>
 	public static string FormatFiatWithExactFractionals(decimal amount)
 	{
-		var fractionalDigits = amount.CountFractionalDigits();
+		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Usd.MaxFractionalDigits ?? 0);
 		return amount.FormattedFiat($"N{fractionalDigits}");
 	}
 

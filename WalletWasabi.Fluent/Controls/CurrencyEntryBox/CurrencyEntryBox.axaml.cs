@@ -39,11 +39,21 @@ public partial class CurrencyEntryBox : TextBox
 			.Where(x => CurrencyFormat is { })
 			.Do(x =>
 			{
+				_isUpdating = true;
+
 				// Validate that value can be parsed with current CurrencyFormat
 				var value = CurrencyFormat.Parse(x ?? "");
 				SetCurrentValue(ValueProperty, value);
 				Format();
+
+				_isUpdating = false;
 			})
+			.Subscribe();
+
+		this.GetObservable(ValueProperty)
+			.Where(x => !_isUpdating)
+			.Where(x => CurrencyFormat is { })
+			.Do(x => Format())
 			.Subscribe();
 	}
 
