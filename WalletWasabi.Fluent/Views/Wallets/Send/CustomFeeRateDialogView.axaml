@@ -18,13 +18,13 @@
                  IsBusy="{Binding IsBusy}">
     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Top">
       <Label Content="_Transaction fee rate:" Target="CustomFee" />
-      <c:CurrencyEntryBox Text="{Binding CustomFee}" CurrencyCode="sat/vByte"
+      <!--<c:CurrencyEntryBox Text="{Binding CustomFee}" CurrencyCode="sat/vByte"
                           Width="220" MaxDecimals="2" Classes="standalone"
                           Watermark="1 sat/vByte" x:Name="CustomFee">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
         </i:Interaction.Behaviors>
-      </c:CurrencyEntryBox>
+      </c:CurrencyEntryBox>-->
     </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -25,6 +25,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Userfacing.Bip21;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -54,18 +55,18 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
-	[AutoNotify] private bool _conversionReversed;
 
 	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
 		UiContext = uiContext;
 		WalletVm = walletVm;
+
+		CurrencyConversion = new CurrencyConversionViewModel(uiContext, walletVm.WalletModel);
+
 		_to = "";
 
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
-
-		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
@@ -137,21 +138,13 @@ public partial class SendViewModel : RoutableViewModel
 				Navigate().To().TransactionPreview(walletVm, transactionInfo);
 			},
 			nextCommandCanExecute);
-
-		this.WhenAnyValue(x => x.ConversionReversed)
-			.Skip(1)
-			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
-
-		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
 	public IObservable<Amount> Balance { get; }
 
+	public CurrencyConversionViewModel CurrencyConversion { get; }
+
 	public WalletViewModel WalletVm { get; }
-
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
-
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 

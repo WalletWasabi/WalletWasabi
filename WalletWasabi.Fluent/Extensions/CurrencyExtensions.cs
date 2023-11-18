@@ -74,7 +74,7 @@ public static class CurrencyExtensions
 
 	public static decimal WithFriendlyDecimals(this double n)
 	{
-		return WithFriendlyDecimals((decimal) n);
+		return WithFriendlyDecimals((decimal)n);
 	}
 
 	public static decimal WithFriendlyDecimals(this decimal n)
@@ -132,4 +132,33 @@ public static class CurrencyExtensions
 			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
 			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
 		};
+
+	public static int CountIntegralDigits(this decimal value)
+	{
+		if (value == 0m)
+		{
+			return 0;
+		}
+
+		// Truncate the fractional part
+		decimal absoluteValue = decimal.Truncate(value);
+
+		// Take the absolute value to handle negative numbers
+		absoluteValue = Math.Abs(absoluteValue);
+
+		int integralDigits = 1; // Start with one digit for the units place
+
+		while (absoluteValue >= 10)
+		{
+			absoluteValue /= 10;
+			integralDigits++;
+		}
+
+		return integralDigits;
+	}
+
+	public static int CountFractionalDigits(this decimal n)
+	{
+		return BitConverter.GetBytes(decimal.GetBits(n)[3])[2];
+	}
 }

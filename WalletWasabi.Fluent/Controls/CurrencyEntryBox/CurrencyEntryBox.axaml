@@ -82,7 +82,7 @@
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
                           <TextBlock Text="≈"
-                                     IsVisible="{TemplateBinding IsApproximate}"
+                                     IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}"
                                      Margin="0 0 5 0"
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -93,7 +93,7 @@
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
                                      Margin="5 0 0 0"
-                                     Text="{TemplateBinding CurrencyCode}"
+                                     Text="{Binding CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
                                      IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -113,7 +113,6 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-
                         </DockPanel>
                       </Panel>
                     </DockPanel>
@@ -153,7 +152,7 @@
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Margin="0 0 5 0"
                                  Text="≈"
-                                 IsVisible="{TemplateBinding IsFiat}"
+                                 IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}"
                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       <TextPresenter Name="PART_TextPresenter"
@@ -171,7 +170,7 @@
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       <TextBlock Margin="5 0 0 0"
-                                 Text="{TemplateBinding CurrencyCode}"
+                                 Text="{Binding CurrencyFormat.CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
                                  IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
@@ -249,7 +248,5 @@
     <Style Selector="^/template/ DataValidationErrors#PART_DataValidationErrors">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-
   </ControlTheme>
-
 </ResourceDictionary>

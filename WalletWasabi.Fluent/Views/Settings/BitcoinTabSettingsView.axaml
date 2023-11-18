@@ -49,7 +49,7 @@
     <StackPanel Spacing="10"
                 ToolTip.Tip="Coins under the dust threshold won't appear.">
       <TextBlock Text="Dust Threshold" />
-      <controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+      <!--<controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />-->
     </StackPanel>
   </StackPanel>
 </UserControl>
