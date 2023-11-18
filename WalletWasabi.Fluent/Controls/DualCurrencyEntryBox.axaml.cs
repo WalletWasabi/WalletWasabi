@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -13,7 +14,7 @@ public class DualCurrencyEntryBox : ContentControl
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox>(nameof(RightEntryBox));
 
 	public static readonly StyledProperty<bool> IsConversionReversedProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsConversionReversed));
+		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsConversionReversed), defaultBindingMode: BindingMode.TwoWay);
 
 	public static readonly StyledProperty<bool> IsConversionAvailableProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsConversionAvailable));

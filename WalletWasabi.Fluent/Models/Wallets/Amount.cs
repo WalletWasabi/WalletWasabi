@@ -1,12 +1,16 @@
 using System.Reactive.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class Amount
+public partial class Amount : ReactiveObject
 {
 	public static readonly Amount Zero = new Amount();
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _btcValue;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _usdValue;
 
 	/// <summary>
 	/// Private constructor to initialize Zero value
@@ -21,6 +25,9 @@ public class Amount
 	{
 		Btc = money;
 		Usd = exchangeRateProvider.BtcToUsdExchangeRates.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
+
+		BtcValue = money.ToDecimal(MoneyUnit.BTC);
+		Usd.BindTo(this, x => x.UsdValue);
 	}
 
 	public Money Btc { get; }

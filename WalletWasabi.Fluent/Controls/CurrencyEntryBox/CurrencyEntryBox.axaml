@@ -25,6 +25,9 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource CurrencyEntryBoxThemePadding}" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
+
+    <Setter Property="Watermark" Value="{Binding $self.CurrencyFormat.Watermark}" />
+
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
@@ -42,14 +45,6 @@
       <ControlTemplate>
         <DockPanel>
           <DataValidationErrors DockPanel.Dock="Bottom" x:Name="PART_DataValidationErrors" />
-
-          <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
-          <ContentPresenter x:Name="PART_HeaderContentPresenter"
-                            DockPanel.Dock="Top"
-                            TextElement.FontWeight="Normal"
-                            TextElement.Foreground="{DynamicResource TextControlHeaderForeground}"
-                            IsVisible="False"
-                            Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
           <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}">
             <Border
@@ -93,7 +88,7 @@
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
                                      Margin="5 0 0 0"
-                                     Text="{Binding CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
+                                     Text="{Binding CurrencyFormat.CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
                                      IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"

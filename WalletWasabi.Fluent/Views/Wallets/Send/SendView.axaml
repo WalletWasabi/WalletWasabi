@@ -40,6 +40,10 @@
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
+
+    <Style Selector="c|CurrencyEntryBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
   </UserControl.Styles>
 
   <c:ContentArea
@@ -129,16 +133,19 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
           <c:DualCurrencyEntryBox DataContext="{Binding CurrencyConversion}"
+                                  IsConversionReversed="{Binding IsConversionReversed}"
                                   IsConversionAvailable="{Binding IsConversionAvailable}">
             <c:DualCurrencyEntryBox.LeftEntryBox>
               <c:CurrencyEntryBox CurrencyFormat="{Binding Left.Format}"
                                   Value="{Binding Left.Value}"
-                                  MaxValue="{Binding Left.MaxValue}" />
+                                  MaxValue="{Binding Left.MaxValue}"
+                                  HorizontalContentAlignment="Left" />
             </c:DualCurrencyEntryBox.LeftEntryBox>
             <c:DualCurrencyEntryBox.RightEntryBox>
               <c:CurrencyEntryBox CurrencyFormat="{Binding Right.Format}"
                                   Value="{Binding Right.Value}"
-                                  MaxValue="{Binding Right.MaxValue}" />
+                                  MaxValue="{Binding Right.MaxValue}"
+                                  HorizontalContentAlignment="Right" />
             </c:DualCurrencyEntryBox.RightEntryBox>
 
             <!--<c:DualCurrencyEntryBox.Resources>

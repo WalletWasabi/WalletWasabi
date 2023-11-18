@@ -31,9 +31,11 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			.Do(x => IsConversionAvailable = x > 0)
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.UiContext.ApplicationSettings.SendAmountConversionReversed)
+		this.WhenAnyValue(x => x.IsConversionReversed)
 			.Do(reversed =>
 			{
+				UiContext.ApplicationSettings.SendAmountConversionReversed = reversed;
+
 				if (reversed)
 				{
 					Left = usd;
@@ -46,6 +48,14 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 				}
 			})
 			.Subscribe();
+
+		btc.WhenAnyValue(x => x.Amount)
+		   .BindTo(usd, x => x.Amount);
+
+		usd.WhenAnyValue(x => x.Amount)
+		   .BindTo(btc, x => x.Amount);
+
+		IsConversionReversed = UiContext.ApplicationSettings.SendAmountConversionReversed;
 	}
 
 	public IWalletModel Wallet { get; }

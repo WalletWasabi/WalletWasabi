@@ -37,6 +37,8 @@ public partial class CurrencyFormat : ReactiveObject
 	public int? MaxFractionalDigits { get; init; }
 	public Func<decimal, string> Format { get; init; }
 
+	public string Watermark => $"{ZeroWatermarkFormat} {CurrencyCode}";
+
 	/// <summary>
 	/// Formats BTC values using as many fractional digits as they currently have.
 	/// This is to avoid adding trailing zeros when typing values in the CurrencyEntryBox
