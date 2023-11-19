@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 public partial class CurrencyConversionViewModel : ViewModelBase
 {
 	private bool _isUpdating;
-	[AutoNotify] private Amount? _amount;
+	[AutoNotify] private Amount _amount;
 	[AutoNotify] private CurrencyViewModel _left;
 	[AutoNotify] private CurrencyViewModel _right;
 	[AutoNotify] private bool _isConversionReversed;
@@ -19,6 +19,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 		Wallet = wallet;
+
+		_amount = Amount.Zero;
 
 		// TODO: this could be used to show conversion to currencies other than USD
 		var btc = new CurrencyViewModel(wallet, CurrencyFormat.Btc);

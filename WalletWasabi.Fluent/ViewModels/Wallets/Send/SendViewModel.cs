@@ -48,7 +48,7 @@ public partial class SendViewModel : RoutableViewModel
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
-	[AutoNotify] private decimal? _amountBtc;
+	[AutoNotify] private Amount _amount;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
@@ -61,6 +61,7 @@ public partial class SendViewModel : RoutableViewModel
 		CurrencyConversion = new CurrencyConversionViewModel(uiContext, walletVm.WalletModel);
 
 		_to = "";
+		_amount = Amount.Zero;
 
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
@@ -68,15 +69,14 @@ public partial class SendViewModel : RoutableViewModel
 		Balance = walletVm.WalletModel.Balances;
 
 		this.WhenAnyValue(x => x.CurrencyConversion.Amount)
-			.Select(x => x.Btc.ToDecimal(MoneyUnit.BTC))
-			.BindTo(this, x => x.AmountBtc);
+			.BindTo(this, x => x.Amount);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
 
 		this.ValidateProperty(x => x.To, ValidateToField);
-		this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
+		this.ValidateProperty(x => x.Amount, ValidateAmount);
 
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
@@ -99,11 +99,11 @@ public partial class SendViewModel : RoutableViewModel
 		});
 
 		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
+			this.WhenAnyValue(x => x.Amount, x => x.To)
 				.Select(tup =>
 				{
-					var (amountBtc, to) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
+					var (amount, to) = tup;
+					var allFilled = !string.IsNullOrEmpty(to) && amount.Btc > Money.Zero;
 					var hasError = Validations.Any;
 
 					return allFilled && !hasError;
@@ -119,7 +119,7 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
-				var amount = new Money(AmountBtc ?? 0m, MoneyUnit.BTC);
+				var amount = Amount.Btc;
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
 					Amount = amount,
@@ -211,15 +211,15 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateAmount(IValidationErrors errors)
 	{
-		if (AmountBtc > Constants.MaximumNumberOfBitcoins)
+		if (Amount.BtcValue > Constants.MaximumNumberOfBitcoins)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
 		}
-		else if (AmountBtc > _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC))
+		else if (Amount.BtcValue > _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC))
 		{
 			errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the amount requested.");
 		}
-		else if (AmountBtc <= 0)
+		else if (Amount.BtcValue <= 0m)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
 		}
@@ -281,7 +281,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (parserResult.Amount is { })
 			{
-				AmountBtc = parserResult.Amount.ToDecimal(MoneyUnit.BTC);
+				Amount = WalletVm.WalletModel.AmountProvider.Create(parserResult.Amount);
 				IsFixedAmount = true;
 			}
 			else
@@ -306,7 +306,7 @@ public partial class SendViewModel : RoutableViewModel
 		if (!inHistory)
 		{
 			To = "";
-			AmountBtc = 0;
+			Amount = Amount.Zero;
 			ClearValidations();
 
 			if (_coinJoinManager is { } coinJoinManager)
