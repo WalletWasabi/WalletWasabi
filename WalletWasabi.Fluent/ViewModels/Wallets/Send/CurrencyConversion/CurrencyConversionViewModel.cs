@@ -82,7 +82,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 				usd.Value = amnt?.UsdValue;
 
 				_isUpdating = false;
-			});
+			})
+			.Subscribe();
 
 		IsConversionReversed = UiContext.ApplicationSettings.SendAmountConversionReversed;
 
