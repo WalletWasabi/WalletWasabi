@@ -83,7 +83,7 @@ public partial class CurrencyFormat : ReactiveObject
 		var parsable = CleanInvalidCharacters().Replace(preComposedText, "");
 
 		// Parse string value to decimal using Invariant Localization
-		if (!decimal.TryParse(parsable, NumberStyles.Number, CurrencyLocalization.InvariantNumberFormat, out var value))
+		if (CurrencyLocalization.TryParse(parsable) is not { } value)
 		{
 			return null;
 		}

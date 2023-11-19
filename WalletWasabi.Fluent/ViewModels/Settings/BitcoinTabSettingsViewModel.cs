@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinP2PEndPoint;
-	[AutoNotify] private string _dustThreshold;
+	[AutoNotify] private decimal? _dustThreshold;
 
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
 	{
@@ -33,7 +33,9 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
-		_dustThreshold = settings.DustThreshold;
+		_dustThreshold =
+
+			settings.DustThreshold;
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;

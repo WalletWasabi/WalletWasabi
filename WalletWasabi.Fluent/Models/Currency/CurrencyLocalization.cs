@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 
 namespace WalletWasabi.Fluent.Models.Currency;
@@ -15,4 +16,9 @@ public static class CurrencyLocalization
 		NumberGroupSeparator = GroupSeparator,
 		NumberDecimalSeparator = DecimalSeparator
 	};
+
+	public static decimal? TryParse(string str) =>
+		decimal.TryParse(str, NumberStyles.Number, InvariantNumberFormat, out var value)
+			? value
+			: null;
 }
