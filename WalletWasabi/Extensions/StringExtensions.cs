@@ -76,9 +76,6 @@ public static class StringExtensions
 	/// <summary>
 	/// Counts the occurrences of subText inside of text using Regex.Match()
 	/// </summary>
-	/// <param name="text"></param>
-	/// <param name="subText"></param>
-	/// <returns></returns>
 	public static int CountOccurrencesOf(this string text, string subText)
 	{
 		return Regex.Matches(text, Regex.Escape(subText)).Count;
