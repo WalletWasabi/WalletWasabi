@@ -1,11 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using ReactiveUI;
 using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class DualCurrencyEntryBox : ContentControl
+public class DualCurrencyEntryBox : TemplatedControl
 {
 	public static readonly StyledProperty<CurrencyEntryBox> LeftEntryBoxProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox>(nameof(LeftEntryBox));
@@ -22,8 +24,14 @@ public class DualCurrencyEntryBox : ContentControl
 	public DualCurrencyEntryBox()
 	{
 		this.GetObservable(IsConversionReversedProperty)
+			.Throttle(TimeSpan.FromMilliseconds(50))
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => LeftEntryBox?.Focus())
 			.Subscribe();
+
+		this.GetObservable(IsConversionAvailableProperty)
+			.Where(x => !x)
+			.BindTo(this, x => x.IsConversionReversed);
 	}
 
 	public CurrencyEntryBox LeftEntryBox

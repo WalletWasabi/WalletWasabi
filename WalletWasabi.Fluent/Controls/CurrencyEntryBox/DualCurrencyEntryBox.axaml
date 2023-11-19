@@ -19,7 +19,6 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="0 1 0 0" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
 
     <Setter Property="Template">
       <ControlTemplate>

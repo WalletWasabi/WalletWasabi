@@ -131,23 +131,30 @@
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-          <c:DualCurrencyEntryBox DataContext="{Binding CurrencyConversion}"
-                                  IsConversionReversed="{Binding IsConversionReversed}"
-                                  IsConversionAvailable="{Binding IsConversionAvailable}"
-                                  x:Name="amountTb">
-            <c:DualCurrencyEntryBox.LeftEntryBox>
-              <c:CurrencyEntryBox CurrencyFormat="{Binding Left.Format}"
-                                  Value="{Binding Left.Value}"
-                                  MaxValue="{Binding Left.MaxValue}"
-                                  HorizontalContentAlignment="Left" />
-            </c:DualCurrencyEntryBox.LeftEntryBox>
-            <c:DualCurrencyEntryBox.RightEntryBox>
-              <c:CurrencyEntryBox CurrencyFormat="{Binding Right.Format}"
-                                  Value="{Binding Right.Value}"
-                                  MaxValue="{Binding Right.MaxValue}"
-                                  HorizontalContentAlignment="Right" />
-            </c:DualCurrencyEntryBox.RightEntryBox>
-          </c:DualCurrencyEntryBox>
+          <Panel>
+            <!-- HACK: I couldn't get DataValidationErrors to work without this :-( -->
+            <TextBox Text="{Binding AmountBtc}" x:Name="AmountTxt" Opacity="0" />
+
+            <c:DualCurrencyEntryBox IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
+                                    IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
+                                    x:Name="amountTb"
+                                    DataValidationErrors.Errors="{Binding (DataValidationErrors.Errors), ElementName=AmountTxt}">
+              <c:DualCurrencyEntryBox.LeftEntryBox>
+                <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"
+                                    CurrencyFormat="{Binding Format}"
+                                    Value="{Binding Value}"
+                                    MaxValue="{Binding MaxValue}"
+                                    HorizontalContentAlignment="Left" />
+              </c:DualCurrencyEntryBox.LeftEntryBox>
+              <c:DualCurrencyEntryBox.RightEntryBox>
+                <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Right}"
+                                    CurrencyFormat="{Binding Format}"
+                                    Value="{Binding Value}"
+                                    MaxValue="{Binding MaxValue}"
+                                    HorizontalContentAlignment="Right" />
+              </c:DualCurrencyEntryBox.RightEntryBox>
+            </c:DualCurrencyEntryBox>
+          </Panel>
         </DockPanel>
       </DockPanel>
     </DockPanel>
