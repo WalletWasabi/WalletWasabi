@@ -31,7 +31,7 @@ public partial class CurrencyEntryBox : TextBox
 	public CurrencyEntryBox()
 	{
 		Text = "";
-		
+
 		// Set Value and Format Text after Text changes
 		// this fires when copying text from clipboard, hitting backspace or delete, etc
 		this.GetObservable(TextProperty)
@@ -241,7 +241,7 @@ public partial class CurrencyEntryBox : TextBox
 	/// <summary>
 	/// Formats Text according to CurrencyFormat
 	/// </summary>
-	/// <returns>the number of group separator characters added.</returns>
+	/// <returns>The number of group separator characters added.</returns>
 	private int Format()
 	{
 		if (Value is null || Text is null)
