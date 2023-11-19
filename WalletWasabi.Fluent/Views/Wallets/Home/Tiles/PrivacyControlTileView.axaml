@@ -14,7 +14,11 @@
   <c:TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <privacyBar:PrivacyBarView IsVisible="{Binding PrivacyBar.HasProgress}" DockPanel.Dock="Bottom" />
+      <c:NewPrivacyBar
+        PrivateAmount="{Binding PrivateAmount^}"
+        SemiPrivateAmount="{Binding SemiPrivateAmount^}"
+        TotalAmount="{Binding TotalAmount^}"
+        IsVisible="{Binding PrivacyBar.HasProgress}" DockPanel.Dock="Bottom" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"

@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="20"
+             x:Class="WalletWasabi.Fluent.Controls.NewPrivacyBar">
+  <Panel>
+
+    <Panel.Styles>
+      <Style Selector="ProgressBar">
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="CornerRadius" Value="10" />
+      </Style>
+    </Panel.Styles>
+
+    <ProgressBar />
+    <ProgressBar Maximum="{Binding $parent[controls:NewPrivacyBar].TotalAmount}" Background="{x:Null}"
+                 Value="{Binding $parent[controls:NewPrivacyBar].SemiPrivateOverlay}" ToolTip.Tip="Semiprivate funds"  Foreground="#41493C" />
+    <ProgressBar Maximum="{Binding $parent[controls:NewPrivacyBar].TotalAmount}" Background="{x:Null}"
+                 Value="{Binding $parent[controls:NewPrivacyBar].PrivateAmount}" ToolTip.Tip="Private funds" Foreground="#587246" />
+  </Panel>
+</UserControl>

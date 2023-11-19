@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Aggregation;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
@@ -35,6 +36,10 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		{
 			PrivacyBar = new PrivacyBarViewModel(wallet);
 		}
+
+		TotalAmount = _wallet.Coins.List.Connect().Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		PrivateAmount = _wallet.Coins.List.Connect().Filter(x => x.IsSemiPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		SemiPrivateAmount = _wallet.Coins.List.Connect().Filter(x => x.IsPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 	}
 
 	public ICommand ShowDetailsCommand { get; }
@@ -59,6 +64,12 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		PrivacyBar?.Activate(disposables);
 	}
+
+	public IObservable<decimal> SemiPrivateAmount { get; }
+
+	public IObservable<decimal> PrivateAmount { get; }
+
+	public IObservable<decimal> TotalAmount { get; }
 
 	private void ShowDetails()
 	{
