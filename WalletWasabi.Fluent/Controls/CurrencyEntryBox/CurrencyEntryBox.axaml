@@ -57,8 +57,9 @@
           <DataValidationErrors DockPanel.Dock="Bottom" x:Name="PART_DataValidationErrors" />
 
           <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}">
-            <Border
-              Name="PART_BorderElement"
+
+            <!-- Main Border -->
+            <Border Name="PART_BorderElement"
               Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
               BorderThickness="{TemplateBinding BorderThickness}"
@@ -68,6 +69,8 @@
             <Panel
               Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- InnerLeftContent -->
                 <ContentPresenter Grid.Column="0"
                                   Content="{TemplateBinding InnerLeftContent}" />
                 <Panel x:Name="PART_InnerDockPanel" Grid.Column="1"
@@ -77,6 +80,8 @@
                     VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                     <DockPanel>
                       <Panel>
+
+                        <!-- Watermark -->
                         <TextBlock Name="PART_Watermark"
                                    Opacity="0.5"
                                    Text="{TemplateBinding Watermark}"
@@ -85,9 +90,11 @@
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
                         <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-                          <Panel
-                                 DockPanel.Dock="Left"
+
+                          <!-- Approx symbol -->
+                          <Panel DockPanel.Dock="Left"
                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                  IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}">
@@ -96,7 +103,8 @@
                                        Opacity="0.5"
                                        Margin="0 0 5 0" />
                           </Panel>
-                          <!-- Current Currency Code -->
+
+                          <!-- Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
                                      Margin="5 0 0 0"
@@ -106,6 +114,7 @@
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                      DockPanel.Dock="Right" />
 
+                          <!-- Main TextPresenter -->
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"
