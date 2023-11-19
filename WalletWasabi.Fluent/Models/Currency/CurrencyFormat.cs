@@ -83,7 +83,7 @@ public partial class CurrencyFormat : ReactiveObject
 	/// Parses the text according to the format rules, and validates that it doesn't exceed the MaxIntegralDigits and MaxFractionalDigits, if specified.
 	/// </summary>
 	/// <param name="preComposedText"></param>
-	/// <returns>the decimal value resulting from the parse</returns>
+	/// <returns>The decimal value resulting from the parse</returns>
 	public decimal? Parse(string preComposedText)
 	{
 		var parsable = CleanInvalidCharacters().Replace(preComposedText, "");
