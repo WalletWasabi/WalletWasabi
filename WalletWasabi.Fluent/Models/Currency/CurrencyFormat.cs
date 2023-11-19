@@ -38,11 +38,11 @@ public partial class CurrencyFormat : ReactiveObject
 		Format = FormatBtcWithExactFractionals
 	};
 
-	public string CurrencyCode { get; init; }
+	public required string CurrencyCode { get; init; }
 	public bool IsApproximate { get; init; }
 	public int? MaxIntegralDigits { get; init; }
 	public int? MaxFractionalDigits { get; init; }
-	public Func<decimal, string> Format { get; init; }
+	public required Func<decimal, string> Format { get; init; }
 	public string? DefaultWatermark { get; set; }
 
 	/// <summary>
