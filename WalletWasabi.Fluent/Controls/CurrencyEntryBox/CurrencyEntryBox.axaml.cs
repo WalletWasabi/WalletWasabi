@@ -252,6 +252,12 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (formatted != Text)
 		{
+			// Edge case: hitting backspace in "0.1", leaving "0.", in this case we don't want to change the text to "0", because it worsens UX
+			if (Text == "0.")
+			{
+				return 0;
+			}
+
 			var difference = formatted.CountOccurrencesOf(CurrencyLocalization.GroupSeparator) - Text.CountOccurrencesOf(CurrencyLocalization.GroupSeparator);
 			SetCurrentValue(TextProperty, formatted);
 			return difference;
