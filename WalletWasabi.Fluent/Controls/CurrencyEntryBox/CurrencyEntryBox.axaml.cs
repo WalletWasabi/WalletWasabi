@@ -32,6 +32,8 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		Text = "";
 
+		// Set Value and Format Text after Text changes
+		// this fires when copying text from clipboard, hitting backspace or delete, etc
 		this.GetObservable(TextProperty)
 			.Where(x => !_isUpdating)
 			.Where(x => CurrencyFormat is { })
@@ -48,6 +50,8 @@ public partial class CurrencyEntryBox : TextBox
 			})
 			.Subscribe();
 
+		// Format Text after Value changes
+		// this fires when Value is set via Binding e.g: SendViewModel
 		this.GetObservable(ValueProperty)
 			.Where(x => !_isUpdating)
 			.Where(x => CurrencyFormat is { })
