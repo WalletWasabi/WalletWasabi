@@ -38,16 +38,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			{
 				UiContext.ApplicationSettings.SendAmountConversionReversed = reversed;
 
-				if (reversed)
-				{
-					Left = usd;
-					Right = btc;
-				}
-				else
-				{
-					Left = btc;
-					Right = usd;
-				}
+				Left = reversed ? usd : btc;
+				Right = reversed ? btc : usd;
 			})
 			.Subscribe();
 
