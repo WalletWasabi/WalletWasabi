@@ -44,7 +44,6 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager? _coinJoinManager;
-	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
