@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -18,6 +18,13 @@ public class DualCurrencyEntryBox : ContentControl
 
 	public static readonly StyledProperty<bool> IsConversionAvailableProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsConversionAvailable));
+
+	public DualCurrencyEntryBox()
+	{
+		this.GetObservable(IsConversionReversedProperty)
+			.Do(_ => LeftEntryBox?.Focus())
+			.Subscribe();
+	}
 
 	public CurrencyEntryBox LeftEntryBox
 	{
@@ -41,21 +48,5 @@ public class DualCurrencyEntryBox : ContentControl
 	{
 		get => GetValue(IsConversionAvailableProperty);
 		set => SetValue(IsConversionAvailableProperty, value);
-	}
-
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-	{
-		base.OnApplyTemplate(e);
-
-		var swapButton = e.NameScope.Find<Button>("PART_SwapButton");
-
-		if (swapButton is { })
-		{
-			swapButton.Click += (s, e) =>
-			{
-				SetCurrentValue(IsConversionReversedProperty, !IsConversionReversed);
-				LeftEntryBox.Focus();
-			};
-		}
 	}
 }

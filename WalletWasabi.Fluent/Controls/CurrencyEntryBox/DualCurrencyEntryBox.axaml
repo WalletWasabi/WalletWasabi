@@ -41,9 +41,12 @@
                                     Grid.Column="1" />
 
                   <!-- Swap Button -->
-                  <Button x:Name="PART_SwapButton" Grid.Column="2" IsVisible="{TemplateBinding IsConversionAvailable}" Classes="plain">
+                  <ToggleButton x:Name="PART_SwapButton" Grid.Column="2"
+                                IsVisible="{TemplateBinding IsConversionAvailable}"
+                                IsChecked="{Binding IsConversionReversed, RelativeSource={RelativeSource TemplatedParent}}"
+                                Classes="plain">
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
-                  </Button>
+                  </ToggleButton>
 
                   <!-- Right Content -->
                   <ContentPresenter Content="{TemplateBinding RightEntryBox}"
@@ -97,10 +100,6 @@
     <Style Selector="^/template/ Button#PART_SwapButton:pointerover">
       <Setter Property="Opacity" Value="1" />
     </Style>
-
-    <!--<Style Selector="^/template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>-->
 
     <Style Selector="^:focus-within /template/ Border#PART_BorderElement">
       <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />

@@ -92,4 +92,12 @@
   <Style Selector="Button.plainHyperlink:pointerover AccessText">
     <Setter Property="TextDecorations" Value="Underline" />
   </Style>
+
+  <Style Selector="ToggleButton.plain">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ToggleButton.plain:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
 </Styles>
