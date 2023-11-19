@@ -167,7 +167,7 @@ public partial class CurrencyEntryBox : TextBox
 	/// Combines newly entered text input and places it in the correct place, accounting for caret index and selected text.
 	/// </summary>
 	/// <param name="input">the newly entered text input, as received by the OnTextInput() method.</param>
-	/// <returns>a string that contains the final text including the newly entered input, replacing any existing selected text.</returns>
+	/// <returns>A string that contains the final text including the newly entered input, replacing any existing selected text.</returns>
 	/// <remarks>An event in Avalonia's TextBox with this function should be implemented there for brevity.</remarks>
 	private string PreComposeText(string input)
 	{
