@@ -41,7 +41,7 @@
                                     Grid.Column="1" />
 
                   <!-- Swap Button -->
-                  <Button x:Name="PART_SwapButton" Grid.Column="2" IsVisible="{TemplateBinding IsConversionAvailable}">
+                  <Button x:Name="PART_SwapButton" Grid.Column="2" IsVisible="{TemplateBinding IsConversionAvailable}" Classes="plain">
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
                   </Button>
 

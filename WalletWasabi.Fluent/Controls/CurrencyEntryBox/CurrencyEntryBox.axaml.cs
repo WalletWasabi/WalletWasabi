@@ -244,6 +244,7 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		if (Value is null || Text is null)
 		{
+			SetCurrentValue(TextProperty, "");
 			return 0;
 		}
 
