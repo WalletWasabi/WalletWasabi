@@ -29,14 +29,14 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
-	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private decimal? _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
 	private CoinJoinSettingsViewModel(IWalletModel walletModel)
 	{
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
-		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
+		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC);
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -75,9 +75,9 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 			.Subscribe(
 				x =>
 				{
-					if (Money.TryParse(x, out var result) && result != _wallet.Settings.PlebStopThreshold)
+					if (x is { } value && value != _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC))
 					{
-						_wallet.Settings.PlebStopThreshold = result;
+						_wallet.Settings.PlebStopThreshold = new Money(value, MoneyUnit.BTC);
 						_wallet.Settings.Save();
 					}
 				});
@@ -90,7 +90,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
-		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
+		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC);
 		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;

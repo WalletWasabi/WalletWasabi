@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -14,7 +13,7 @@ public partial class CurrencyFormat : ReactiveObject
 	{
 		CurrencyCode = "BTC",
 		IsApproximate = false,
-		ZeroWatermarkFormat = "0",
+		DefaultWatermark = "0 BTC",
 		MaxFractionalDigits = 8,
 		MaxIntegralDigits = 8,
 		Format = FormatBtcWithExactFractionals
@@ -24,20 +23,27 @@ public partial class CurrencyFormat : ReactiveObject
 	{
 		CurrencyCode = "USD",
 		IsApproximate = true,
-		ZeroWatermarkFormat = "0.00",
+		DefaultWatermark = "0.00 USD",
 		MaxFractionalDigits = 2,
 		MaxIntegralDigits = 12,
 		Format = FormatFiatWithExactFractionals,
 	};
 
+	public static readonly CurrencyFormat SatsvByte = new()
+	{
+		CurrencyCode = "sat/vByte",
+		IsApproximate = false,
+		MaxFractionalDigits = 2,
+		MaxIntegralDigits = 8,
+		Format = FormatBtcWithExactFractionals
+	};
+
 	public string CurrencyCode { get; init; }
 	public bool IsApproximate { get; init; }
-	public string ZeroWatermarkFormat { get; init; }
 	public int? MaxIntegralDigits { get; init; }
 	public int? MaxFractionalDigits { get; init; }
 	public Func<decimal, string> Format { get; init; }
-
-	public string Watermark => $"{ZeroWatermarkFormat} {CurrencyCode}";
+	public string? DefaultWatermark { get; set; }
 
 	/// <summary>
 	/// Formats BTC values using as many fractional digits as they currently have.

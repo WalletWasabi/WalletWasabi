@@ -40,8 +40,13 @@
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
 
-    <Style Selector="c|CurrencyEntryBox">
+    <Style Selector="c|DualCurrencyEntryBox c|CurrencyEntryBox">
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Hide DataValidationErrors -->
+    <Style Selector="c|DualCurrencyEntryBox c|CurrencyEntryBox /template/ DataValidationErrors#PART_DataValidationErrors">
+      <Setter Property="IsVisible" Value="False" />
     </Style>
   </UserControl.Styles>
 

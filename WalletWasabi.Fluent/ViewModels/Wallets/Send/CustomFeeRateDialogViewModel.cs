@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -15,15 +14,16 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
 
-	[AutoNotify] private string _customFee;
+	[AutoNotify] private decimal? _customFee;
 
 	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
 		_transactionInfo = transactionInfo;
 
-		_customFee = transactionInfo.IsCustomFeeUsed
-			? transactionInfo.FeeRate.SatoshiPerByte.ToString("0.00", CultureInfo.InvariantCulture)
-			: "";
+		_customFee =
+			transactionInfo.IsCustomFeeUsed
+			? transactionInfo.FeeRate.SatoshiPerByte
+			: null;
 
 		EnableBack = false;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -35,7 +35,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 				.Select(_ =>
 				{
 					var noError = !Validations.Any;
-					var somethingFilled = CustomFee is not null or "";
+					var somethingFilled = CustomFee is not null;
 
 					return noError && somethingFilled;
 				});
@@ -45,7 +45,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 	private void OnNext()
 	{
-		if (decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var feeRate))
+		if (CustomFee is { } feeRate)
 		{
 			_transactionInfo.IsCustomFeeUsed = true;
 			Close(DialogResultKind.Normal, new FeeRate(feeRate));
@@ -59,16 +59,8 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 	private void ValidateCustomFee(IValidationErrors errors)
 	{
-		var customFeeString = CustomFee;
-
-		if (customFeeString is "")
+		if (CustomFee is not { } value)
 		{
-			return;
-		}
-
-		if (!decimal.TryParse(customFeeString, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value))
-		{
-			errors.Add(ErrorSeverity.Error, "The entered fee is not valid.");
 			return;
 		}
 

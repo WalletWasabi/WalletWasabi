@@ -17,10 +17,10 @@ public partial class CurrencyEntryBox : TextBox
 	private bool _isUpdating;
 
 	public static readonly StyledProperty<CurrencyFormat> CurrencyFormatProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyFormat>(nameof(CurrencyFormat));
+		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyFormat>(nameof(CurrencyFormat), defaultValue: CurrencyFormat.Btc);
 
 	public static readonly StyledProperty<decimal?> ValueProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
 
 	public static readonly StyledProperty<decimal?> MaxValueProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(MaxValue));
@@ -31,7 +31,7 @@ public partial class CurrencyEntryBox : TextBox
 	public CurrencyEntryBox()
 	{
 		Text = "";
-
+		
 		// Set Value and Format Text after Text changes
 		// this fires when copying text from clipboard, hitting backspace or delete, etc
 		this.GetObservable(TextProperty)

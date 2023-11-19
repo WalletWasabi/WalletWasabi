@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -30,12 +33,12 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		Settings = settings;
 
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
-		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
-		_dustThreshold =
+		_dustThreshold = CurrencyLocalization.TryParse(settings.DustThreshold);
 
-			settings.DustThreshold;
+		this.WhenAnyValue(x => x.DustThreshold)
+			.BindTo(settings, x => x.DustThreshold);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
@@ -57,34 +60,6 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			else
 			{
 				Settings.BitcoinP2PEndPoint = BitcoinP2PEndPoint;
-			}
-		}
-	}
-
-	private void ValidateDustThreshold(IValidationErrors errors)
-	{
-		var dustThreshold = DustThreshold;
-		if (!string.IsNullOrWhiteSpace(dustThreshold))
-		{
-			bool error = false;
-
-			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
-				',',
-				StringComparison.InvariantCultureIgnoreCase))
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-			}
-
-			if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
-			}
-
-			if (!error)
-			{
-				Settings.DustThreshold = dustThreshold;
 			}
 		}
 	}
