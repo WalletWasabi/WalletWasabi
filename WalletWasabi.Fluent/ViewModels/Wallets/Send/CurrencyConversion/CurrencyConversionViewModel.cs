@@ -85,6 +85,11 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			});
 
 		IsConversionReversed = UiContext.ApplicationSettings.SendAmountConversionReversed;
+
+		// Disable ConversionReversed if Conversion not available
+		this.WhenAnyValue(x => x.IsConversionAvailable)
+			.Where(x => !x)
+			.BindTo(this, x => x.IsConversionReversed);
 	}
 
 	public IWalletModel Wallet { get; }

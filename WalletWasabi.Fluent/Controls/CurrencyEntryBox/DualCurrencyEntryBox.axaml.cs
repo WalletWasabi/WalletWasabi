@@ -30,11 +30,6 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => LeftEntryBox?.Focus())
 			.Subscribe();
-
-		// Disable ConversionReversed if Conversion not available
-		this.GetObservable(IsConversionAvailableProperty)
-			.Where(x => !x)
-			.BindTo(this, x => x.IsConversionReversed);
 	}
 
 	public CurrencyEntryBox LeftEntryBox
