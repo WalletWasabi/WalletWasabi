@@ -65,8 +65,12 @@
     </Style>
 
     <Style Selector="^:disabled /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="^:disabled /template/ ToggleButton#PART_SwapButton">
+      <Setter Property="IsVisible" Value="False" />
     </Style>
 
     <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
