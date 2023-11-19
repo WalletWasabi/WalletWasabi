@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -32,7 +33,7 @@ public static class CurrencyEntryBoxClipboardListener
 		}
 
 		PollingTimer
-			.Select(_ => Observable.FromAsync(() => GetClipboardTextAsync(clipboard))
+			.Select(_ => Observable.FromAsync(() => GetClipboardTextAsync(clipboard)))
 			.Merge(1)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -70,6 +71,7 @@ public static class CurrencyEntryBoxClipboardListener
 		}
 		catch (Exception ex)
 		{
+			Logger.LogError(ex);
 			return null;
 		}
 	}
