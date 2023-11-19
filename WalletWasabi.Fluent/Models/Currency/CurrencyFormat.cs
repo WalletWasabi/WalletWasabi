@@ -118,7 +118,6 @@ public partial class CurrencyFormat : ReactiveObject
 	/// <summary>
 	/// Used to clean any character except digits and decimal separator
 	/// </summary>
-	/// <returns></returns>
 	[GeneratedRegex($"[^0-9{CurrencyLocalization.DecimalSeparator}]")]
 	private static partial Regex CleanInvalidCharacters();
 }
