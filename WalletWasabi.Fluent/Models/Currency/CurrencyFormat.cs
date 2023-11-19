@@ -50,7 +50,6 @@ public partial class CurrencyFormat : ReactiveObject
 	/// This is to avoid adding trailing zeros when typing values in the CurrencyEntryBox
 	/// </summary>
 	/// <param name="amount"></param>
-	/// <returns></returns>
 	public static string FormatBtcWithExactFractionals(decimal amount)
 	{
 		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Btc.MaxFractionalDigits ?? 0);
