@@ -1,6 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
+                    xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+                    xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
   <Design.PreviewWith>
     <c:CurrencyEntryBox IsReadOnly="True" />
   </Design.PreviewWith>
@@ -118,6 +120,12 @@
               </Grid>
             </Panel>
           </Panel>
+
+          <Interaction.Behaviors>
+            <behaviors:FlyoutSuggestionBehavior Target="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                                Content="{Binding ClipboardSuggestion, RelativeSource={RelativeSource TemplatedParent}}"
+                                                x:Name="SuggestionBehavior" />
+          </Interaction.Behaviors>
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -220,9 +228,13 @@
       <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
     </Style>
 
-    <Style Selector="^:isrightside">
-      <Setter Property="TextAlignment" Value="Right" />
-      <Setter Property="HorizontalContentAlignment" Value="Right" />
+    <!-- Move Suggestion Behavior Flyout Placement -->
+    <Style Selector="^[HorizontalContentAlignment=Left] /template/ behaviors|FlyoutSuggestionBehavior#SuggestionBehavior">
+      <Setter Property="PlacementMode" Value="BottomEdgeAlignedLeft" />
+    </Style>
+
+    <Style Selector="^[HorizontalContentAlignment=Right] /template/ behaviors|FlyoutSuggestionBehavior#SuggestionBehavior">
+      <Setter Property="PlacementMode" Value="BottomEdgeAlignedRight" />
     </Style>
 
     <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->

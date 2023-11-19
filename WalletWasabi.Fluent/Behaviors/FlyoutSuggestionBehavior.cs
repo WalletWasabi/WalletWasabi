@@ -12,6 +12,8 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 {
+	public static readonly StyledProperty<string> NameProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, string>(nameof(Name));
+
 	public static readonly StyledProperty<string> ContentProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, string>(nameof(Content));
 
 	public static readonly StyledProperty<IDataTemplate> HintTemplateProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, IDataTemplate>(nameof(HintTemplate));
@@ -25,6 +27,12 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 	public FlyoutSuggestionBehavior()
 	{
 		_flyout = new Flyout { ShowMode = FlyoutShowMode.Transient };
+	}
+
+	public string Name
+	{
+		get => GetValue(NameProperty);
+		set => SetValue(NameProperty, value);
 	}
 
 	public PlacementMode PlacementMode
@@ -106,6 +114,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 				if (textBox != null)
 				{
 					textBox.Text = content;
+					textBox.CaretIndex = content.Length;
 				}
 
 				_flyout.Hide();
