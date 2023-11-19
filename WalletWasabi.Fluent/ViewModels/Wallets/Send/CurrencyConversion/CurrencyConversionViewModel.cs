@@ -77,6 +77,19 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 		   })
 		   .Subscribe();
 
+		// Bind Amount
+		this.WhenAnyValue(x => x.Amount)
+			.Where(_ => !_isUpdating)
+			.Do(amnt =>
+			{
+				_isUpdating = true;
+
+				btc.Value = amnt?.BtcValue;
+				usd.Value = amnt?.UsdValue;
+
+				_isUpdating = false;
+			});
+
 		IsConversionReversed = UiContext.ApplicationSettings.SendAmountConversionReversed;
 	}
 

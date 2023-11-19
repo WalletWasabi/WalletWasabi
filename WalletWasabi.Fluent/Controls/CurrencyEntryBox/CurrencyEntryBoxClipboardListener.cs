@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 
@@ -30,7 +32,7 @@ public static class CurrencyEntryBoxClipboardListener
 		}
 
 		PollingTimer
-			.Select(_ => Observable.FromAsync(() => clipboard.GetTextAsync()))
+			.Select(_ => Observable.FromAsync(() => GetClipboardTextAsync(clipboard))
 			.Merge(1)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -58,5 +60,17 @@ public static class CurrencyEntryBoxClipboardListener
 				}
 			})
 			.Subscribe();
+	}
+
+	private static async Task<string?> GetClipboardTextAsync(IClipboard clipboard)
+	{
+		try
+		{
+			return await clipboard.GetTextAsync();
+		}
+		catch (Exception ex)
+		{
+			return null;
+		}
 	}
 }

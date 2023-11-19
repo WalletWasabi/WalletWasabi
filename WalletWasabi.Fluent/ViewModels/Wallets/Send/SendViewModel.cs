@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -49,8 +48,7 @@ public partial class SendViewModel : RoutableViewModel
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
-	[AutoNotify] private decimal _amountBtc;
-	[AutoNotify] private decimal _exchangeRate;
+	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
@@ -67,9 +65,11 @@ public partial class SendViewModel : RoutableViewModel
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
-		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-
 		Balance = walletVm.WalletModel.Balances;
+
+		this.WhenAnyValue(x => x.CurrencyConversion.Amount)
+			.Select(x => x.Btc.ToDecimal(MoneyUnit.BTC))
+			.BindTo(this, x => x.AmountBtc);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -87,7 +87,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		InsertMaxCommand = ReactiveCommand.Create(() => CurrencyConversion.Amount = walletVm.WalletModel.AmountProvider.Create(_wallet.Coins.TotalAmount()));
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(UiContext, _wallet.Network);
@@ -119,7 +119,7 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
-				var amount = new Money(AmountBtc, MoneyUnit.BTC);
+				var amount = new Money(AmountBtc ?? 0m, MoneyUnit.BTC);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
 					Amount = amount,
@@ -314,11 +314,6 @@ public partial class SendViewModel : RoutableViewModel
 				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
 			}
 		}
-
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => ExchangeRate = x)
-			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
