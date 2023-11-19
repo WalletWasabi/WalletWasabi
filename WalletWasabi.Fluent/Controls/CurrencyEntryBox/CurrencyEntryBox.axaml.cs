@@ -31,7 +31,6 @@ public partial class CurrencyEntryBox : TextBox
 	public CurrencyEntryBox()
 	{
 		Text = "";
-		CurrencyEntryBoxClipboardListener.Start(this);
 
 		this.GetObservable(TextProperty)
 			.Where(x => !_isUpdating)

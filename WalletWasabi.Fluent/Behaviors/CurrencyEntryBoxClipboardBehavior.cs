@@ -1,15 +1,17 @@
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public static class CurrencyEntryBoxClipboardListener
+public class CurrencyEntryBoxClipboardBehavior : AttachedToVisualTreeBehavior<CurrencyEntryBox>
 {
 	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 
@@ -17,16 +19,13 @@ public static class CurrencyEntryBoxClipboardListener
 		Observable.Timer(PollingInterval)
 				  .Repeat();
 
-	public static void Start(CurrencyEntryBox box)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		Observable.FromEventPattern(box, nameof(CurrencyEntryBox.AttachedToVisualTree))
-				  .Do(_ => OnAttachedToVisualTree(box))
-				  .Take(1)
-				  .Subscribe();
-	}
+		if (AssociatedObject is not CurrencyEntryBox box)
+		{
+			return;
+		}
 
-	private static void OnAttachedToVisualTree(CurrencyEntryBox box)
-	{
 		if (TopLevel.GetTopLevel(box)?.Clipboard is not { } clipboard)
 		{
 			return;
@@ -60,7 +59,8 @@ public static class CurrencyEntryBoxClipboardListener
 					box.ClipboardSuggestion = null;
 				}
 			})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(disposable);
 	}
 
 	private static async Task<string?> GetClipboardTextAsync(IClipboard clipboard)
