@@ -49,7 +49,6 @@ public partial class CurrencyFormat : ReactiveObject
 	/// Formats BTC values using as many fractional digits as they currently have.
 	/// This is to avoid adding trailing zeros when typing values in the CurrencyEntryBox
 	/// </summary>
-	/// <param name="amount"></param>
 	public static string FormatBtcWithExactFractionals(decimal amount)
 	{
 		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Btc.MaxFractionalDigits ?? 0);
