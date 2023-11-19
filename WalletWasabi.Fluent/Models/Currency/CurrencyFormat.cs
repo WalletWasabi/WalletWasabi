@@ -70,8 +70,6 @@ public partial class CurrencyFormat : ReactiveObject
 	/// Formats fiat values using as many fractional digits as they currently have.
 	/// This is to avoid adding trailing zeros when typing values in the CurrencyEntryBox
 	/// </summary>
-	/// <param name="amount"></param>
-	/// <returns></returns>
 	public static string FormatFiatWithExactFractionals(decimal amount)
 	{
 		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Usd.MaxFractionalDigits ?? 0);
