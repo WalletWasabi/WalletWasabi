@@ -24,6 +24,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public DualCurrencyEntryBox()
 	{
 		this.GetObservable(IsConversionReversedProperty)
+			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(50))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => LeftEntryBox?.Focus())
