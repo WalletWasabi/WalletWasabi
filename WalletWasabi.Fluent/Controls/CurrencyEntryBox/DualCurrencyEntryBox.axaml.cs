@@ -23,6 +23,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public DualCurrencyEntryBox()
 	{
+		// Place focus on left box after toggling conversion reverse
 		this.GetObservable(IsConversionReversedProperty)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(50))
@@ -30,6 +31,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.Do(_ => LeftEntryBox?.Focus())
 			.Subscribe();
 
+		// Disable ConversionReversed if Conversion not available
 		this.GetObservable(IsConversionAvailableProperty)
 			.Where(x => !x)
 			.BindTo(this, x => x.IsConversionReversed);
