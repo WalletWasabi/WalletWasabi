@@ -78,14 +78,16 @@
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-                          <TextBlock Text="≈"
-                                     IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}"
-                                     Margin="0 0 5 0"
-                                     Opacity="0.5"
-                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Left" />
-
+                          <Panel
+                                 DockPanel.Dock="Left"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                 IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}">
+                            <TextBlock Text="≈"
+                                       IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       Opacity="0.5"
+                                       Margin="0 0 5 0" />
+                          </Panel>
                           <!-- Current Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
@@ -238,17 +240,8 @@
     </Style>
 
     <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
-    <Style Selector="^:empty /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 0 0" />
-    </Style>
-    <Style Selector="^:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="13 0 0 0" />
-    </Style>
-    <Style Selector="^:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 40 0" />
-    </Style>
-    <Style Selector="^:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 63 0" />
+    <Style Selector="^:empty[HorizontalContentAlignment=Right] /template/ TextPresenter#PART_TextPresenter">
+      <Setter Property="Margin" Value="0 0 35 0" />
     </Style>
 
     <!-- Hide DataValidationErrors by default -->
