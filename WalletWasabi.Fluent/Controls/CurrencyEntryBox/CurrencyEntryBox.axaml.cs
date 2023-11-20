@@ -286,6 +286,9 @@ public partial class CurrencyEntryBox : TextBox
 		return 0;
 	}
 
+	/// <summary>
+	/// Specialized copy to clipboard that copies the Value, formatted according to localization rules
+	/// </summary>
 	private async Task OnCopyingToClipboardAsync(RoutedEventArgs e)
 	{
 		if (ApplicationHelper.Clipboard is not { } clipboard || Value is not { } value)
