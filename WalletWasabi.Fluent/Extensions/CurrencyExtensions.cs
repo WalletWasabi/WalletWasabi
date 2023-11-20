@@ -50,16 +50,21 @@ public static class CurrencyExtensions
 
 	public static string ToUsd(this decimal n)
 	{
-		return n.WithFriendlyDecimals() + " USD";
+		return n.WithFriendlyDecimalsFormatted() + " USD";
 	}
 
 	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsd(n)}" : "";
 
 	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
 
-	public static decimal WithFriendlyDecimals(this double n)
+	private static string WithFriendlyDecimalsFormatted(this decimal n)
 	{
-		return WithFriendlyDecimals((decimal) n);
+		return Math.Abs(n) switch
+		{
+			>= 10 => n.ToString("N0", FormatInfo),
+			>= 1 => n.ToString("N1", FormatInfo),
+			_ => n.ToString("N2", FormatInfo)
+		};
 	}
 
 	public static decimal WithFriendlyDecimals(this decimal n)

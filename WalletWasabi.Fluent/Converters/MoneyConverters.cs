@@ -11,8 +11,8 @@ public static class MoneyConverters
 	public static readonly IValueConverter ToUsdNumber =
 		new FuncValueConverter<decimal, string>(n => n.WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
 
-	public static readonly IValueConverter ToFormattedUsd =
-		new FuncValueConverter<decimal, string>(n => n.FormattedFiat());
+	public static readonly IValueConverter ToUsd =
+		new FuncValueConverter<decimal, string>(n => n.ToUsd());
 
 	public static readonly IValueConverter ToUsdApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());

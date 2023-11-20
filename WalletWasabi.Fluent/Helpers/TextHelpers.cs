@@ -104,7 +104,7 @@ public static partial class TextHelpers
 	public static string FormatPercentageDiff(double n)
 	{
 		var precision = 0.01m;
-		var withFriendlyDecimals = (n*100).WithFriendlyDecimals();
+		var withFriendlyDecimals = CurrencyExtensions.WithFriendlyDecimals((decimal) (n*100));
 
 		if (Math.Abs(withFriendlyDecimals) < precision)
 		{
