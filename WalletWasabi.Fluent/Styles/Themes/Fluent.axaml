@@ -3,7 +3,6 @@
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Common.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CaptionButtons.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
