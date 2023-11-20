@@ -44,6 +44,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(model);
 	}
 
+	public FeeRate? FeeRate { get; set; }
+
 	public uint256 TransactionId { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
@@ -56,7 +58,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Confirmations = model.Confirmations;
 
 		Fee = UiContext.AmountProvider.Create(model.Fee);
-		IsFeeVisible = Fee != null && Fee.HasBalance;
+        FeeRate = model.FeeRate;
+        IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })
