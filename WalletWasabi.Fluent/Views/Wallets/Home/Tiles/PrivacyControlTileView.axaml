@@ -14,6 +14,7 @@
   <c:TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
+      <!--<privacyBar:PrivacyBarView IsVisible="{Binding PrivacyBar.HasProgress}" DockPanel.Dock="Bottom" />-->
       <c:NewPrivacyBar
         PrivateAmount="{Binding PrivateAmount^}"
         SemiPrivateAmount="{Binding SemiPrivateAmount^}"
