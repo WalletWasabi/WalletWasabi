@@ -2,14 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using Constants = WalletWasabi.Helpers.Constants;
-using System.Text.Json;
 
 namespace WalletWasabi.Daemon;
 
