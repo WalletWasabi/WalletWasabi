@@ -406,7 +406,7 @@ public class Global
 				UpdateManager.Dispose();
 				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
 
-				CoinPrison.ToFile();
+				CoinPrison.Dispose();
 
 				if (RpcServer is { } rpcServer)
 				{

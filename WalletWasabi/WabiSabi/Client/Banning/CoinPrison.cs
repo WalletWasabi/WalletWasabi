@@ -10,7 +10,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
-public class CoinPrison
+public class CoinPrison : IDisposable
 {
 	private static readonly int MaxDaysToTrustLocalPrison = 4;
 
@@ -70,7 +70,7 @@ public class CoinPrison
 		ToFile();
 	}
 
-	public void ToFile()
+	private void ToFile()
 	{
 		if (string.IsNullOrWhiteSpace(FilePath))
 		{
@@ -140,5 +140,10 @@ public class CoinPrison
 				coin.BannedUntilUtc = bannedUntil;
 			}
 		}
+	}
+
+	public void Dispose()
+	{
+		ToFile();
 	}
 }
