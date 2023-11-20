@@ -65,7 +65,7 @@ public partial class CurrencyEntryBox : TextBox
 			  .Select(x => x.EventArgs)
 			  .Where(_ => Value is { })
 			  .Where(_ => SelectedText == Text)
-			  .DoAsync(OnCopyingToClipboardAsync)
+			  .DoAsync(OnCopyingFullTextToClipboardAsync)
 			  .Subscribe();
 	}
 
@@ -289,7 +289,7 @@ public partial class CurrencyEntryBox : TextBox
 	/// <summary>
 	/// Specialized copy to clipboard that copies the Value, formatted according to localization rules
 	/// </summary>
-	private async Task OnCopyingToClipboardAsync(RoutedEventArgs e)
+	private async Task OnCopyingFullTextToClipboardAsync(RoutedEventArgs e)
 	{
 		if (ApplicationHelper.Clipboard is not { } clipboard || Value is not { } value)
 		{
