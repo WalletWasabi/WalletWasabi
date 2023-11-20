@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Android.App;
 using Android.Content.PM;
@@ -24,75 +25,39 @@ namespace WalletWasabi.Fluent.Android;
 public class MainActivity : AvaloniaMainActivity<App>
 {
 	private WasabiApplication _app;
-	private UiConfig _uiConfig;
 
 	private void Program_Main()
 	{
 		_app = WasabiAppBuilder
 			.Create("Wasabi GUI", System.Array.Empty<string>())
-			.EnsureSingleInstance()
+			// TODO:
+			//.EnsureSingleInstance()
+			// TODO:
 			// .OnUnhandledExceptions(LogUnhandledException)
+			// // TODO:
 			// .OnUnobservedTaskExceptions(LogUnobservedTaskException)
+			// // TODO:
 			// .OnTermination(TerminateApplication)
 			.Build();
 	}
 
-	private void Program_RunAsGuiAsync()
-	{
-		_uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-		Services.Initialize(_app.Global!, _uiConfig, _app.SingleInstanceChecker, _app.TerminateService);
-	}
-
-	public static UiConfig LoadOrCreateUiConfig(string dataDir)
-	{
-		Directory.CreateDirectory(dataDir);
-
-		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadFile(createIfMissing: true);
-
-		return uiConfig;
-	}
-
-	public MainActivity()
-	{
-		App.LogError = Log.Error;
-		Log.Error("WASABI", "MainActivity");
-	}
-
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
-        builder.WithInterFont();
         Log.Error("WASABI", "CustomizeAppBuilder");
+
         try
         {
 	        Program_Main();
 
-	        // _app.RunAsync(afterStarting: () =>
-	        // {
-		    //
-	        // });
-	        _app.Global = _app.CreateGlobal();
+	        // WasabiAppExtensions.RunAsDesktopGuiAsync
+	        // await _app.RunAsync(afterStarting: () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder));
+	        // _app.RunAsync(afterStarting: () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder)).RunSynchronously();
 
-	        Program_RunAsGuiAsync();
+	        // TODO: Pass builder to AfterStarting
+	        _app.RunAsyncMobile(afterStarting:
+		        () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder, builder));
 
-	        var backendInitialiseAsync = async () =>
-	        {
-		        using CancellationTokenSource stopLoadingCts = new();
-
-		        // macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-		        await _app.Global!.InitializeNoWalletAsync(_app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
-
-		        // Make sure that wallet startup set correctly regarding RunOnSystemStartup
-		        // await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-	        };
-
-	        //var app = (builder.Instance as App);
-	        App._backendInitialiseAsync = backendInitialiseAsync;
-
-	        builder.AfterSetup(_ =>
-	        {
-		        ThemeHelper.ApplyTheme(_uiConfig.DarkModeEnabled ? WalletWasabi.Fluent.Helpers.Theme.Dark : WalletWasabi.Fluent.Helpers.Theme.Light);
-	        });
+	       // App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder).RunSynchronously();
         }
         catch (Exception e)
         {

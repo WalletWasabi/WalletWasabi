@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
+using WalletWasabi.Fluent.Views.Shell;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
@@ -50,18 +51,28 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					if (lifetime is IControlledApplicationLifetime controlled)
+					switch (_lifetime)
 					{
-						controlled.Shutdown();
+						case IClassicDesktopStyleApplicationLifetime desktop:
+							desktop.Shutdown();
+							break;
+						case ISingleViewApplicationLifetime single:
+							// TODO:
+							break;
 					}
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
 				() =>
 				{
-					if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					switch (_lifetime)
 					{
-						desktop.MainWindow.BringToFront();
+						case IClassicDesktopStyleApplicationLifetime desktop:
+							desktop.MainWindow.BringToFront();
+							break;
+						case ISingleViewApplicationLifetime single:
+							// TODO:
+							break;
 					}
 					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 					_restartRequest = false; // reset the value.
@@ -71,26 +82,53 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				switch (_lifetime)
 				{
-					desktop.MainWindow?.Close();
-					desktop.MainWindow = null;
+					case IClassicDesktopStyleApplicationLifetime desktop:
+						desktop.MainWindow?.Close();
+						desktop.MainWindow = null;
+						break;
+					case ISingleViewApplicationLifetime single:
+						// TODO:
+						break;
 				}
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
 			.Permit(Trigger.ShutdownPrevented, State.Open);
 
-		_stateMachine.Configure(State.Open)
-			.SubstateOf(State.InitialState)
-			.OnEntry(CreateAndShowMainWindow)
-			.Permit(Trigger.Hide, State.Closed)
-			.Permit(Trigger.MainWindowClosed, State.Closed)
-			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
-
-		if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		switch (_lifetime)
 		{
-			desktop.ShutdownRequested += LifetimeOnShutdownRequested;
+			case IClassicDesktopStyleApplicationLifetime:
+			{
+				_stateMachine.Configure(State.Open)
+					.SubstateOf(State.InitialState)
+					.OnEntry(CreateAndShowMainWindow)
+					.Permit(Trigger.Hide, State.Closed)
+					.Permit(Trigger.MainWindowClosed, State.Closed)
+					.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
+				break;
+			}
+			case ISingleViewApplicationLifetime single:
+			{
+				_stateMachine.Configure(State.Open)
+					.SubstateOf(State.InitialState)
+					.OnEntry(CreateAndShowMainView)
+					.Permit(Trigger.Hide, State.Closed)
+					.Permit(Trigger.MainWindowClosed, State.Closed)
+					.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
+				break;
+			}
+		}
+
+		switch (_lifetime)
+		{
+			case IClassicDesktopStyleApplicationLifetime desktop:
+				desktop.ShutdownRequested += LifetimeOnShutdownRequested;
+				break;
+			case ISingleViewApplicationLifetime single:
+				// TODO:
+				break;
 		}
 
 		_stateMachine.Start();
@@ -129,12 +167,12 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
-		if (_lifetime is ISingleViewApplicationLifetime)
+		if (_lifetime is not IClassicDesktopStyleApplicationLifetime desktop)
 		{
 			return;
 		}
 
-		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is { })
+		if (desktop.MainWindow is { })
 		{
 			return;
 		}
@@ -179,10 +217,7 @@ public class ApplicationStateManager : IMainWindowService
 			})
 			.DisposeWith(_compositeDisposable);
 
-		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop1)
-		{
-			desktop1.MainWindow = result;
-		}
+		desktop.MainWindow = result;
 
 		if (result.WindowState != WindowState.Maximized)
 		{
@@ -192,6 +227,35 @@ public class ApplicationStateManager : IMainWindowService
 		ObserveWindowSize(result, _compositeDisposable);
 
 		result.Show();
+
+		ApplicationViewModel.IsMainWindowShown = true;
+	}
+
+	private void CreateAndShowMainView()
+	{
+		if (_lifetime is not ISingleViewApplicationLifetime single)
+		{
+			return;
+		}
+
+		if (single.MainView is { })
+		{
+			return;
+		}
+
+		var result = new Shell
+		{
+			DataContext = MainViewModel.Instance
+		};
+
+		// TODO: Handle Closing event from Android/iOS.
+
+		// TODO: Handle Close event from Android/iOS.
+
+		// This needs to be somehow wired up in mobile projects
+		// as avalonia single lifetime and main view does not support this
+
+		single.MainView = result;
 
 		ApplicationViewModel.IsMainWindowShown = true;
 	}
