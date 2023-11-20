@@ -26,6 +26,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		_wallet = wallet;
 		Title = $"{wallet.Name} - Wallet Settings";
+		_walletName = wallet.Name;
 		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
 		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsWatchOnly = wallet.IsWatchOnlyWallet;
