@@ -1,10 +1,12 @@
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -57,6 +59,14 @@ public partial class CurrencyEntryBox : TextBox
 			.Where(x => CurrencyFormat is { })
 			.Do(x => Format())
 			.Subscribe();
+
+		// Handle copying full text to the clipboard
+		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(CopyingToClipboard))
+			  .Select(x => x.EventArgs)
+			  .Where(_ => Value is { })
+			  .Where(_ => SelectedText == Text)
+			  .DoAsync(OnCopyingToClipboardAsync)
+			  .Subscribe();
 	}
 
 	public CurrencyFormat CurrencyFormat
@@ -274,5 +284,17 @@ public partial class CurrencyEntryBox : TextBox
 		}
 
 		return 0;
+	}
+
+	private async Task OnCopyingToClipboardAsync(RoutedEventArgs e)
+	{
+		if (ApplicationHelper.Clipboard is not { } clipboard || Value is not { } value)
+		{
+			return;
+		}
+
+		await clipboard.SetTextAsync(CurrencyLocalization.LocalizedFormat(value));
+
+		e.Handled = true;
 	}
 }

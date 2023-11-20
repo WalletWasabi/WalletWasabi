@@ -21,4 +21,16 @@ public static class CurrencyLocalization
 		decimal.TryParse(str, NumberStyles.Number, InvariantNumberFormat, out var value)
 			? value
 			: null;
+
+	/// <summary>
+	/// Formats the value in a way that is compatible with the current localization settings.
+	/// </summary>
+	/// <remarks>Right now Wasabi uses .NET invariant localization settings, but if we remove that, then this method should return a string compatible with whatever the user's settings are.</remarks>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	public static string LocalizedFormat(decimal value)
+	{
+		// TODO: use CurrentUICulture here
+		return value.ToString(InvariantNumberFormat);
+	}
 }
