@@ -44,7 +44,7 @@
                   <ToggleButton x:Name="PART_SwapButton" Grid.Column="2"
                                 IsVisible="{TemplateBinding IsConversionAvailable}"
                                 IsChecked="{Binding IsConversionReversed, RelativeSource={RelativeSource TemplatedParent}}"
-                                Classes="plain">
+                                Classes="plain" Margin="5">
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
                   </ToggleButton>
 
@@ -88,21 +88,10 @@
       <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
 
-    <Style Selector="^/template/ Button#PART_SwapButton">
+    <Style Selector="^/template/ ToggleButton#PART_SwapButton">
       <Setter Property="Focusable" Value="False" />
-      <Setter Property="Opacity" Value="0.5" />
-      <Setter Property="Cursor" Value="Hand" />
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="Margin" Value="5" />
-    </Style>
-
-    <Style Selector="^/template/ Button#PART_SwapButton:pointerover">
-      <Setter Property="Opacity" Value="1" />
     </Style>
 
     <Style Selector="^:focus-within /template/ Border#PART_BorderElement">

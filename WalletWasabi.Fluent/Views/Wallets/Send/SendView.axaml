@@ -39,21 +39,6 @@
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
-
-    <Style Selector="c|DualCurrencyEntryBox c|CurrencyEntryBox">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="c|DualCurrencyEntryBox c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-    </Style>
-
-    <!-- Hide DataValidationErrors -->
-    <Style Selector="c|DualCurrencyEntryBox c|CurrencyEntryBox /template/ DataValidationErrors#PART_DataValidationErrors">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
   </UserControl.Styles>
 
   <c:ContentArea
