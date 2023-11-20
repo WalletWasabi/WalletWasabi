@@ -32,7 +32,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
 	private string _title = "";
-	[AutoNotify] private string _walletName = "";
 
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
@@ -102,7 +101,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
-		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.WalletName);
 	}
 
 	// TODO: Remove this
@@ -167,8 +165,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return new ActionableItem("Send", "Display wallet send dialog", () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
-
-	public override string ToString() => WalletName;
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
