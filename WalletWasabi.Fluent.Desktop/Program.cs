@@ -1,18 +1,12 @@
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System.IO;
-using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using ReactiveUI;
-using System.Linq;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +15,6 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
-using System.Threading;
 
 namespace WalletWasabi.Fluent.Desktop;
 
