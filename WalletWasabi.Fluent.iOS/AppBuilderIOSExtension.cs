@@ -13,7 +13,8 @@ public static class AppBuilderIOSExtension
 
 		return appBuilder
 			.WithInterFont()
-			.With(new FontManagerOptions {DefaultFamilyName = "fonts:Inter#Inter, $Default"})
+			// TODO: This crashes the app!?
+			//.With(new FontManagerOptions {DefaultFamilyName = "fonts:Inter#Inter, $Default"})
 			.With(new SkiaOptions {MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12});
 		// TODO:
 		// .With(new ???PlatformOptions
