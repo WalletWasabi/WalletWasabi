@@ -79,28 +79,45 @@ public class CoordinatorTests
 		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient(), coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
 
 		// Receive a tx that is not spending coins registered in any round.
-		var tx = CreateTransaction(Money.Coins(0.1m));
-		coordinator.BanDoubleSpenders(this, tx);
-		var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
-		Assert.False(isOutputBanned); // Not banned
+		{
+			var tx1 = CreateTransaction(Money.Coins(0.1m));
+			coordinator.BanDoubleSpenders(this, tx1);
+			var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx1, 0), dosConfig, DateTimeOffset.UtcNow);
+			Assert.False(isOutputBanned); // Not banned.
+		}
+
+		Transaction tx2;
 
 		// Receive a tx that is spending coins registered in a round.
-		var round = WabiSabiFactory.CreateRound(cfg);
-		using Key key = new();
-		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
-		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
-		coordinator.Arena.Rounds.Add(round);
-		tx = CreateTransaction(Money.Coins(0.1m), alice.Coin.Outpoint);
-		coordinator.BanDoubleSpenders(this, tx);
-		isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
-		Assert.True(isOutputBanned); // Banned
+		{
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Key key = new();
+			Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
+
+			// Register our coin..
+			round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+			coordinator.Arena.Rounds.Add(round);
+
+			// .. spend it also in another transaction (tx2).
+			tx2 = CreateTransaction(Money.Coins(0.1m), alice.Coin.Outpoint);
+			coordinator.BanDoubleSpenders(this, tx2);
+			var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
+			Assert.True(isOutputBanned); // Banned.
+		}
 
 		// Receive a tx that is spending coins registered in a round but the tx is a Wasabi coinjoin
-		tx.Outputs[0].ScriptPubKey = BitcoinFactory.CreateScript(); // Make it a completely different tx.
-		coinJoinIdStore.TryAdd(tx.GetHash());
-		coordinator.BanDoubleSpenders(this, tx);
-		isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx, 0), dosConfig, DateTimeOffset.UtcNow);
-		Assert.False(isOutputBanned);
+		{
+			tx2.Outputs[0].ScriptPubKey = BitcoinFactory.CreateScript(); // Make it a completely different tx.
+
+			// Make the transaction look like a Wasabi coinjoin tx.
+			Assert.True(coinJoinIdStore.TryAdd(tx2.GetHash()));
+
+			// Attempt to ban Wasabi coinjoin tx.
+			coordinator.BanDoubleSpenders(this, tx2);
+
+			var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
+			Assert.False(isOutputBanned); // Not banned.
+		}
 	}
 
 	private static Transaction CreateTransaction(Money amount, OutPoint? outPoint = default)
