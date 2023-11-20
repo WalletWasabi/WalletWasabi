@@ -27,8 +27,7 @@ public class ConfigManagerNgTests
 		JsonSerializerOptions options = new() { WriteIndented = true };
 
 		// Create config and store it.
-		PersistentConfig actualConfig = new();
-		actualConfig = actualConfig with { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
+		PersistentConfig actualConfig = new() { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
 
 		string storedJson = ConfigManagerNg.ToFile(configPath, actualConfig, options);
 		PersistentConfig readConfig = ConfigManagerNg.LoadFile<PersistentConfig>(configPath, options: options);
