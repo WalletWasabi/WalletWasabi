@@ -65,7 +65,7 @@
 
       <Separator IsVisible="{Binding IsFeeVisible}" />
 
-      <!-- Fee -->
+      <!-- Fee Rate-->
       <c:PreviewItem IsVisible="{Binding !!FeeRate}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee Rate"
