@@ -37,10 +37,15 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 			PrivacyBar = new PrivacyBarViewModel(wallet);
 		}
 
-		TotalAmount = _wallet.Coins.List.Connect().Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
-		PrivateAmount = _wallet.Coins.List.Connect().Filter(x => x.IsSemiPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
-		SemiPrivateAmount = _wallet.Coins.List.Connect().Filter(x => x.IsPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		var coinList = _wallet.Coins.List.Connect();
+
+		TotalAmount = coinList.Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		PrivateAmount = coinList.Filter(x => x.IsPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		SemiPrivateAndPrivateAmount = coinList.Filter(x => x.IsPrivate || x.IsSemiPrivate).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		HasPrivacyProgress = coinList.Filter(x => x.IsNonPrivate).CountChanged().Select(x => x.Count > 0);
 	}
+
+	public IObservable<bool> HasPrivacyProgress { get; }
 
 	public ICommand ShowDetailsCommand { get; }
 
@@ -65,7 +70,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		PrivacyBar?.Activate(disposables);
 	}
 
-	public IObservable<decimal> SemiPrivateAmount { get; }
+	public IObservable<decimal> SemiPrivateAndPrivateAmount { get; }
 
 	public IObservable<decimal> PrivateAmount { get; }
 
