@@ -83,6 +83,14 @@ public partial class CurrencyEntryBox : TextBox
 		set => SetValue(ClipboardSuggestionProperty, value);
 	}
 
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
+	{
+		if (property == ValueProperty)
+		{
+			DataValidationErrors.SetError(this, error);
+		}
+	}
+
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
 		try
