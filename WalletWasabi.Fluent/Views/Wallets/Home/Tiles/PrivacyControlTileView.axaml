@@ -14,7 +14,7 @@
 
     <DockPanel>
       <!--<privacyBar:PrivacyBarView IsVisible="{Binding PrivacyBar.HasProgress}" DockPanel.Dock="Bottom" />-->
-      <Panel IsVisible="{Binding HasPrivacyProgress^}" DockPanel.Dock="Bottom" Height="6">
+      <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}" DockPanel.Dock="Bottom" Height="6">
 
         <Panel.Styles>
           <Style Selector="ProgressBar">
