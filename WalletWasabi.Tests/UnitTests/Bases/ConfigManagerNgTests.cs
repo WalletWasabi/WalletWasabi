@@ -24,13 +24,11 @@ public class ConfigManagerNgTests
 
 		string expectedLocalBitcoinCoreDataDir = nameof(ConfigManagerNgTests);
 
-		JsonSerializerOptions options = new() { WriteIndented = true };
-
 		// Create config and store it.
 		PersistentConfig actualConfig = new() { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
 
-		string storedJson = ConfigManagerNg.ToFile(configPath, actualConfig, options);
-		PersistentConfig readConfig = ConfigManagerNg.LoadFile<PersistentConfig>(configPath, options: options);
+		string storedJson = ConfigManagerNg.ToFile(configPath, actualConfig);
+		PersistentConfig readConfig = ConfigManagerNg.LoadFile<PersistentConfig>(configPath);
 
 		// Is the content of each config the same?
 		Assert.Equal(expectedLocalBitcoinCoreDataDir, readConfig.LocalBitcoinCoreDataDir);
@@ -41,7 +39,7 @@ public class ConfigManagerNgTests
 		// Check that JSON strings are equal as well.
 		{
 			string expected = GetConfigString(expectedLocalBitcoinCoreDataDir);
-			string actual = JsonSerializer.Serialize(readConfig, options);
+			string actual = JsonSerializer.Serialize(readConfig, ConfigManagerNg.DefaultOptions);
 
 			AssertJsonStringsEqual(expected, actual);
 			AssertJsonStringsEqual(expected, storedJson);

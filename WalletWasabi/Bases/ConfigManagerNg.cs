@@ -8,8 +8,12 @@ namespace WalletWasabi.Bases;
 
 public class ConfigManagerNg
 {
+	public static JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
+
 	public static string ToFile<T>(string filePath, T obj, JsonSerializerOptions? options = null)
 	{
+		options ??= DefaultOptions;
+
 		string jsonString = JsonSerializer.Serialize(obj, options);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 		return jsonString;
@@ -21,12 +25,16 @@ public class ConfigManagerNg
 	public static bool CheckFileChange<T>(string filePath, T current, JsonSerializerOptions? options = null)
 		where T : IConfigNg, IDeepEqual<T>, new()
 	{
+		options ??= DefaultOptions;
+
 		T diskVersion = LoadFile<T>(filePath, options);
 		return !diskVersion.DeepEquals(current);
 	}
 
 	private static TResponse LoadFile<TResponse>(string filePath, JsonSerializerOptions? options = null)
 	{
+		options ??= DefaultOptions;
+
 		if (!File.Exists(filePath))
 		{
 			throw new FileNotFoundException($"File '{filePath}' does not exist.");
@@ -43,6 +51,8 @@ public class ConfigManagerNg
 	public static TResponse LoadFile<TResponse>(string filePath, bool createIfMissing = false, JsonSerializerOptions? options = null)
 		where TResponse : IConfigNg, new()
 	{
+		options ??= DefaultOptions;
+
 		TResponse result;
 
 		if (!createIfMissing)
