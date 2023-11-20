@@ -57,7 +57,7 @@ public partial class CurrencyEntryBox : TextBox
 		this.GetObservable(ValueProperty)
 			.Where(x => !_isUpdating)
 			.Where(x => CurrencyFormat is { })
-			.Do(x => Format())
+			.Do(_ => OnValueUpdated())
 			.Subscribe();
 
 		// Handle copying full text to the clipboard
@@ -296,5 +296,23 @@ public partial class CurrencyEntryBox : TextBox
 		await clipboard.SetTextAsync(CurrencyLocalization.LocalizedFormat(value));
 
 		e.Handled = true;
+	}
+
+	/// <summary>
+	/// Fired when the Value property is updated by means other than user input (e.g Databinding)
+	/// </summary>
+	private void OnValueUpdated()
+	{
+		if (Text is null)
+		{
+			return;
+		}
+
+		Format();
+		SetCurrentValue(CaretIndexProperty, Text.Length);
+		if (!string.IsNullOrWhiteSpace(SelectedText))
+		{
+			SelectAll();
+		}
 	}
 }
