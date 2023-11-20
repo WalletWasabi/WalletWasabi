@@ -33,7 +33,7 @@ public class WasabiApplication
 
 		ConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
 		Directory.CreateDirectory(Config.DataDir);
-		Config = new Config(LoadOrCreateConfigs(ConfigFilePath), wasabiAppBuilder.Arguments);
+		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
@@ -108,14 +108,14 @@ public class WasabiApplication
 	private Global CreateGlobal()
 		=> new(Config.DataDir, ConfigFilePath, Config);
 
-	private PersistentConfig LoadOrCreateConfigs(string filePath)
+	private PersistentConfig LoadOrCreateConfigs()
 	{
-		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(filePath, createIfMissing: true);
+		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
 			persistentConfig = newConfig;
-			ConfigManagerNg.ToFile(filePath, persistentConfig);
+			ConfigManagerNg.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;
