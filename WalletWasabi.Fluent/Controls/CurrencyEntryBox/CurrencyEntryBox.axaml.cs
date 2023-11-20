@@ -7,6 +7,8 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -67,6 +69,15 @@ public partial class CurrencyEntryBox : TextBox
 			  .Where(_ => SelectedText == Text)
 			  .DoAsync(OnCopyingFullTextToClipboardAsync)
 			  .Subscribe();
+
+		// Handle pasting full text from clipboard
+		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(PastingFromClipboard))
+			.Select(x => x.EventArgs)
+			.Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
+			.Throttle(TimeSpan.FromMilliseconds(50))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ => SelectAll())
+			.Subscribe();
 	}
 
 	public CurrencyFormat CurrencyFormat
