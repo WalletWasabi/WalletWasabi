@@ -20,7 +20,7 @@ public class CoinPrison : IDisposable
 	}
 
 	private HashSet<PrisonedCoinRecord> BannedCoins { get; set; } = new();
-	public string FilePath { get; set; }
+	private string FilePath { get; }
 	private object Lock { get; set; } = new();
 
 	public bool TryGetOrRemoveBannedCoin(SmartCoin coin, [NotNullWhen(true)] out DateTimeOffset? bannedUntil)
