@@ -12,11 +12,14 @@
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Padding" Value="9 7" />
       <Style Selector="^:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource FadedAccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      </Style>
+      <Style Selector="^:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       </Style>
     </ControlTheme>
-
   </Styles.Resources>
 
   <Design.PreviewWith>
