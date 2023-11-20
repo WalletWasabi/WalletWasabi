@@ -148,7 +148,6 @@ public class TransactionTreeBuilder
 			Type = itemType,
 			Status = status,
 			Confirmations = confirmations,
-			Fee = transactionSummary.GetFee(),
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
