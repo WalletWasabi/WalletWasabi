@@ -43,8 +43,8 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
-        builder.WithInterFont();
         Log.Error("WASABI", "CustomizeAppBuilder");
+
         try
         {
 	        Program_Main();
