@@ -21,12 +21,8 @@
       <Label Content="_Transaction fee rate:" Target="CustomFee" />
 
       <Panel>
-        <!-- HACK: I couldn't get DataValidationErrors to work without this :-( -->
-        <TextBox Text="{Binding CustomFee, Mode=OneWay}" x:Name="AmountTxt" Opacity="0" />
-
         <c:CurrencyEntryBox Value="{Binding CustomFee}" CurrencyFormat="{x:Static currency:CurrencyFormat.SatsvByte}"
-                            Width="220" Watermark="1 sat/vByte" x:Name="CustomFee"
-                            DataValidationErrors.Errors="{Binding (DataValidationErrors.Errors), ElementName=AmountTxt}">
+                            Width="220" Watermark="1 sat/vByte" x:Name="CustomFee">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>

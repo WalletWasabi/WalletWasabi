@@ -137,13 +137,9 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
           <Panel>
-            <!-- HACK: I couldn't get DataValidationErrors to work without this :-( -->
-            <TextBox Text="{Binding Amount, Mode=OneWay}" x:Name="AmountTxt" Opacity="0" IsEnabled="False" Focusable="False" />
-
-            <c:DualCurrencyEntryBox IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
+            <c:DualCurrencyEntryBox x:Name="amountTb" Amount="{Binding Amount}"
+                                    IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
                                     IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
-                                    x:Name="amountTb"
-                                    DataValidationErrors.Errors="{Binding (DataValidationErrors.Errors), ElementName=AmountTxt}"
                                     IsVisible="{Binding !IsFixedAmount}">
               <c:DualCurrencyEntryBox.LeftEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"

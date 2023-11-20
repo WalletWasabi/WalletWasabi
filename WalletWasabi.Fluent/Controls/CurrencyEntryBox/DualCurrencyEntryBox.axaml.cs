@@ -4,11 +4,15 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using ReactiveUI;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public class DualCurrencyEntryBox : TemplatedControl
 {
+	public static readonly StyledProperty<Amount?> AmountProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, Amount?>(nameof(Amount), enableDataValidation: true);
+
 	public static readonly StyledProperty<CurrencyEntryBox> LeftEntryBoxProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox>(nameof(LeftEntryBox));
 
@@ -30,6 +34,12 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => LeftEntryBox?.Focus())
 			.Subscribe();
+	}
+
+	public Amount? Amount
+	{
+		get => GetValue(AmountProperty);
+		set => SetValue(AmountProperty, value);
 	}
 
 	public CurrencyEntryBox LeftEntryBox
@@ -54,5 +64,13 @@ public class DualCurrencyEntryBox : TemplatedControl
 	{
 		get => GetValue(IsConversionAvailableProperty);
 		set => SetValue(IsConversionAvailableProperty, value);
+	}
+
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
+	{
+		if (property == AmountProperty)
+		{
+			DataValidationErrors.SetError(this, error);
+		}
 	}
 }
