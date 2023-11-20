@@ -18,7 +18,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		_walletSettings = walletSettings;
 
-		WalletName = options.WalletName;
+		WalletName = options!.WalletName;
 		WalletType = walletSettings.WalletType;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
@@ -29,9 +29,9 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	public WalletType WalletType { get; }
 
-	public string WalletName { get; }
+	public string? WalletName { get; }
 
-	private async Task OnNextAsync(WalletCreationOptions? options)
+	private async Task OnNextAsync(WalletCreationOptions options)
 	{
 		if (_wallet is not { })
 		{
