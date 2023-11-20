@@ -103,7 +103,7 @@ public class App : Application
 
 				// TODO: Handle Exit command in iOS/Android projects.
 				// OnExit(uiContext);
-
+/*
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
@@ -113,9 +113,9 @@ public class App : Application
 
 						MainViewModel.Instance.Initialize();
 					});
-
+*/
 				// Not available on mobile, only supported on Desktop
-				InitializeTrayIcons();
+				// TODO: InitializeTrayIcons();
 			}
 		}
 
@@ -130,7 +130,8 @@ public class App : Application
 
 	public static Task AfterStarting(
 		WasabiApplication app,
-		Func<AppBuilder, AppBuilder> setupAppBuilder)
+		Func<AppBuilder, AppBuilder> setupAppBuilder,
+		AppBuilder? builder)
 	{
 		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 		{
@@ -150,7 +151,9 @@ public class App : Application
 		UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 		Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-		using CancellationTokenSource stopLoadingCts = new();
+		// TOOD: Move to caller in mobile ?
+		//using CancellationTokenSource stopLoadingCts = new();
+		CancellationTokenSource stopLoadingCts = new();
 
 		async Task BackendInitialise()
 		{
@@ -165,14 +168,44 @@ public class App : Application
 		void AfterSetup()
 		{
 			ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+			if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+			{
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						// TODO: Handle AppBuilder.Configure to initialize App from ctor to run _backendInitialiseAsync
+						// TODO: Use WasabiAppExtensions.AfterStarting and not WasabiAppExtensions.RunAsGuiAsync
+						await BackendInitialise(); // Guaranteed not to be null when not in designer.
+
+						MainViewModel.Instance.Initialize();
+					});
+			}
 		}
 
-		AppBuilder appBuilder = AppBuilder
-			.Configure(() => new App(
-				backendInitialiseAsync: BackendInitialise,
-				startInBg: runGuiInBackground))
-			.AfterSetup(_ => AfterSetup())
-			.UseReactiveUI();
+		AppBuilder? appBuilder;
+
+		// TODO: Do not create appBuilder if called from CustomizeAppBuilder (Android/iOS)
+		if (builder is null)
+		{
+			appBuilder = AppBuilder
+				.Configure(() => new App(
+					backendInitialiseAsync: BackendInitialise,
+					startInBg: runGuiInBackground))
+				.AfterSetup(_ => AfterSetup())
+				.UseReactiveUI();
+		}
+		else
+		{
+			appBuilder = builder;
+
+			appBuilder
+				.AfterSetup(_ => AfterSetup())
+				.UseReactiveUI();
+
+			// TODO:
+			//	backendInitialiseAsync: BackendInitialise,
+			//	startInBg: runGuiInBackground))
+		}
 
 		appBuilder = setupAppBuilder(appBuilder);
 

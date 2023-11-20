@@ -140,6 +140,6 @@ public static class WasabiAppExtensions
 {
 	public static async Task<ExitCode> RunAsDesktopGuiAsync(this WasabiApplication app)
 	{
-		return await app.RunAsync(afterStarting: () => App.AfterStarting(app, AppBuilderDesktopExtension.SetupAppBuilder));
+		return await app.RunAsync(afterStarting: () => App.AfterStarting(app, AppBuilderDesktopExtension.SetupAppBuilder, null));
 	}
 }
