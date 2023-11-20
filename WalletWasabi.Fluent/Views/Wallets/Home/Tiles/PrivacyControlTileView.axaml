@@ -6,7 +6,6 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:privacyBar="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="140"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
