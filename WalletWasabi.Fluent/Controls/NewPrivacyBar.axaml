@@ -16,7 +16,7 @@
 
     <ProgressBar />
     <ProgressBar Maximum="{Binding $parent[controls:NewPrivacyBar].TotalAmount}" Background="{x:Null}"
-                 Value="{Binding $parent[controls:NewPrivacyBar].SemiPrivateOverlay}" ToolTip.Tip="Semiprivate funds"  Foreground="#41493C" />
+                 Value="{Binding $parent[controls:NewPrivacyBar].PrivateAndSemiPrivateAmount}" ToolTip.Tip="Semiprivate funds"  Foreground="#41493C" />
     <ProgressBar Maximum="{Binding $parent[controls:NewPrivacyBar].TotalAmount}" Background="{x:Null}"
                  Value="{Binding $parent[controls:NewPrivacyBar].PrivateAmount}" ToolTip.Tip="Private funds" Foreground="#587246" />
   </Panel>
