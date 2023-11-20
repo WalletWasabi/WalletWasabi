@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -51,6 +50,12 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	public PrivacyBarViewModel? PrivacyBar { get; }
 
+	public IObservable<decimal> SemiPrivateAndPrivateAmount { get; }
+
+	public IObservable<decimal> PrivateAmount { get; }
+
+	public IObservable<decimal> TotalAmount { get; }
+
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
@@ -69,12 +74,6 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		PrivacyBar?.Activate(disposables);
 	}
-
-	public IObservable<decimal> SemiPrivateAndPrivateAmount { get; }
-
-	public IObservable<decimal> PrivateAmount { get; }
-
-	public IObservable<decimal> TotalAmount { get; }
 
 	private void ShowDetails()
 	{
