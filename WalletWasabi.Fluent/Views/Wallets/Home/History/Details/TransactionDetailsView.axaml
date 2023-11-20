@@ -71,7 +71,7 @@
                      Label="Fee Rate"
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding FeeRate}" />
+          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0} sats/vByte'}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
