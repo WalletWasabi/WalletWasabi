@@ -247,6 +247,12 @@
       <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
     </Style>
 
+    <Style Selector="^:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
+
     <!-- Error state -->
     <Style Selector="^:error /template/ Border#PART_BorderElement">
       <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
