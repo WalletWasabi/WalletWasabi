@@ -184,7 +184,10 @@ public class App : Application
 		else
 		{
 			// TODO: Refactor as on mobile we do not run Desktop lifetime.
-			appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+			if (!OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS())
+			{
+				appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+			}
 		}
 
 		return Task.CompletedTask;
