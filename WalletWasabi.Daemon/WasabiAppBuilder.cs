@@ -129,7 +129,7 @@ public class WasabiApplication
 		Logger.LogSoftwareStopped(AppConfig.AppName);
 	}
 
-	public Global CreateGlobal()
+	private Global CreateGlobal()
 		=> new(Config.DataDir, ConfigFilePath, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
