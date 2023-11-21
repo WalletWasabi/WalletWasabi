@@ -14,6 +14,12 @@ jobs:
     inputs:
       version: 7.0.x
   - task: DotNetCoreCLI@2
+    displayName: 'Workloads'
+    inputs:
+      command: 'custom'
+      custom: 'workload'
+      arguments: 'install android ios'
+  - task: DotNetCoreCLI@2
     displayName: 'Restore'
     inputs:
       command: 'restore'
