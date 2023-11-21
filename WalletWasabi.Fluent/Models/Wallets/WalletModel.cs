@@ -33,7 +33,7 @@ public partial class WalletModel : ReactiveObject
 
 		Auth = new WalletAuthModel(this, Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
-		Settings = new WalletSettingsModel(wallet.Id, Wallet.KeyManager);
+		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
 		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
 		_coins = new(() => new WalletCoinsModel(wallet, this));

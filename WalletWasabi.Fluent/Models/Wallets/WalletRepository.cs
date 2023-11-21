@@ -1,5 +1,4 @@
 using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -78,8 +77,8 @@ public partial class WalletRepository : ReactiveObject
 
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
-		walletSettings.Save();
-		var result = GetById(walletSettings.Id);
+		var id = walletSettings.Save();
+		var result = GetById(id);
 		result.Settings.IsCoinJoinPaused = walletSettings.IsCoinJoinPaused;
 		return result;
 	}
@@ -118,10 +117,8 @@ public partial class WalletRepository : ReactiveObject
 					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
 				});
 
-		return new WalletSettingsModel(NextWalletId(), keyManager, true);
+		return new WalletSettingsModel(keyManager, true);
 	}
-
-	private static int NextWalletId() => Services.WalletManager.GetWallets().Count() + 1;
 
 	private async Task<IWalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
 	{
@@ -135,7 +132,7 @@ public partial class WalletRepository : ReactiveObject
 		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, cancelToken.Value);
 		keyManager.SetIcon(device.WalletType);
 
-		var result = new WalletSettingsModel(NextWalletId(), keyManager, true);
+		var result = new WalletSettingsModel(keyManager, true);
 		return result;
 	}
 
@@ -147,7 +144,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
 		var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-		return new WalletSettingsModel(NextWalletId(), keyManager, true);
+		return new WalletSettingsModel(keyManager, true);
 	}
 
 	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
@@ -180,7 +177,7 @@ public partial class WalletRepository : ReactiveObject
 			return result;
 		});
 
-		return new WalletSettingsModel(NextWalletId(), keyManager, true, true);
+		return new WalletSettingsModel(keyManager, true, true);
 	}
 
 	private IWalletModel GetById(int id)
