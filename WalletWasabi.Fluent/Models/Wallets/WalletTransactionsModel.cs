@@ -57,13 +57,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		_wallet.TransactionFeeProvider.RequestedFeeArrived += UpdateTransactionFee;
 	}
 
+	public event EventHandler<uint256>? ModelUpdated;
+
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }
 
 	public IObservable<bool> IsEmpty { get; }
 
 	public IObservable<Unit> TransactionProcessed { get; }
-
-	public event EventHandler<uint256>? ModelUpdated;
 
 	public IObservable<Unit> ModelUpdatedObservable { get; }
 

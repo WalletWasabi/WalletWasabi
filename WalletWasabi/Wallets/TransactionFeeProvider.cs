@@ -47,9 +47,11 @@ public class TransactionFeeProvider : BackgroundService
 				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
 				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-				var response = await HttpClient.SendAsync(HttpMethod.Get,
+				var response = await HttpClient.SendAsync(
+					HttpMethod.Get,
 					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}",
-					null, linkedCts.Token).ConfigureAwait(false);
+					null,
+					linkedCts.Token).ConfigureAwait(false);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
