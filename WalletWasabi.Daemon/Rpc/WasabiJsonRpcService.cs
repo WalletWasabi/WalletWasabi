@@ -273,13 +273,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return payments.Select(x =>
 		{
 			var paymentResult = new JsonRpcResult();
+			paymentResult["id"] = x.Id;
 			paymentResult["amount"] = x.Amount;
 			paymentResult["destination"] = x.Destination.ScriptPubKey;
-			switch (x)
+
+			switch (x.State)
 			{
 				case PendingPayment pending:
 					paymentResult["status"] = "Pending";
-					paymentResult["paymentId"] = pending.Id;
 					break;
 				case InProgressPayment inProgress:
 					paymentResult["status"] = "In progress";
@@ -293,6 +294,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 					paymentResult["status"] = "Unknown";
 					break;
 			}
+
 			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
 			{
 				paymentResult["address"] = address;

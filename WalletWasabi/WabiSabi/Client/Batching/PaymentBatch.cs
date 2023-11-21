@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using NBitcoin;
+using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -22,12 +23,12 @@ public class PaymentBatch
 {
 	private readonly List<Payment> _payments = new();
 	private readonly object _syncObj = new();
-	private IEnumerable<PendingPayment> PendingPayments => GetPayments().OfType<PendingPayment>();
-	private IEnumerable<InProgressPayment> InProgressPayments => GetPayments().OfType<InProgressPayment>();
+	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
+	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
-		var payment = new PendingPayment(destination, amount);
+		var payment = new Payment(destination, amount);
 		lock (_syncObj)
 		{
 			_payments.Add(payment);
@@ -63,17 +64,17 @@ public class PaymentBatch
 		return bestPaymentSet;
 	}
 
-	public IEnumerable<InProgressPayment> MovePaymentsToInProgress(IEnumerable<PendingPayment> payments, uint256 roundId)
+	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
-		MovePaymentsTo(payments, p => p.ToInProgressPayment(roundId));
+		MovePaymentsTo(payments, payment => payment with{ State = new InProgressPayment(payment.State, roundId)});
 		return InProgressPayments;
 	}
 
 	public void MovePaymentsToFinished(uint256 txId) =>
-		MovePaymentsTo(InProgressPayments, p => p.ToFinished(txId));
+		MovePaymentsTo(InProgressPayments, payment => payment with {State = new FinishedPayment(payment.State, txId)});
 
 	public void MovePaymentsToPending() =>
-		MovePaymentsTo(InProgressPayments, p => p.ToPending());
+		MovePaymentsTo(InProgressPayments, payment => payment with {State = new PendingPayment(payment.State)});
 
 	public bool AreTherePendingPayments => PendingPayments.Any();
 
@@ -99,6 +100,8 @@ public class PaymentBatch
 			return _payments.AsReadOnly();
 		}
 	}
+
+
 
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)
 	{
