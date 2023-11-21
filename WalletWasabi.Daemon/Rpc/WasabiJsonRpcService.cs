@@ -272,35 +272,32 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payments = activeWallet.BatchedPayments.GetPayments();
 		return payments.Select(x =>
 		{
-			var result = new JsonRpcResult
+			var paymentResult = new JsonRpcResult();
+			paymentResult["amount"] = x.Amount;
+			paymentResult["destination"] = x.Destination.ScriptPubKey;
+			switch (x)
 			{
-				["amount"] = x.Amount,
-				["destination"] = x.Destination.ScriptPubKey,
-				["details"] = x switch
-				{
-					PendingPayment pending => new JsonRpcResult
-					{
-						["status"] = "Pending",
-						["paymentId"] = pending.Id
-					},
-					InProgressPayment inProgress => new JsonRpcResult
-					{
-						["status"] = "In progress",
-						["round"] = inProgress.RoundId
-					},
-					FinishedPayment finished => new JsonRpcResult
-					{
-						["status"] = "Finished",
-						["txid"] = finished.TransactionId
-					},
-					_ => "Unknown"
-				}
-			};
+				case PendingPayment pending:
+					paymentResult["status"] = "Pending";
+					paymentResult["paymentId"] = pending.Id;
+					break;
+				case InProgressPayment inProgress:
+					paymentResult["status"] = "In progress";
+					paymentResult["round"] = inProgress.RoundId;
+					break;
+				case FinishedPayment finished:
+					paymentResult["status"] = "Finished";
+					paymentResult["txid"] = finished.TransactionId;
+					break;
+				default:
+					paymentResult["status"] = "Unknown";
+					break;
+			}
 			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
 			{
-				result["address"] = address;
+				paymentResult["address"] = address;
 			}
-			return result;
+			return paymentResult;
 		}).ToImmutableArray();
 	}
 
