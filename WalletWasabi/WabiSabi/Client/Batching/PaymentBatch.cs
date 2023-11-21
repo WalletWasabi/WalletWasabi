@@ -37,6 +37,17 @@ public class PaymentBatch
 		return payment.Id;
 	}
 
+	public void AbortPayment(Guid id)
+	{
+		lock (_syncObj)
+		{
+			if (_payments.FirstOrDefault(p => p.Id == id) is {State: PendingPayment pendingPayment} payment)
+			{
+				_payments.Remove(payment);
+			}
+		}
+	}
+
 	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters)
 	{
 		// Not all payments are allowed. Wasabi coordinator only supports P2WPKH and Taproot

@@ -303,6 +303,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}).ToImmutableArray();
 	}
 
+	[JsonRpcMethod("cancelpayment")]
+	public void CancelPayment(Guid paymentId)
+	{
+		AssertWalletIsLoaded();
+		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
+	}
+
 	[JsonRpcMethod("send")]
 	public async Task<JsonRpcResult> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{
