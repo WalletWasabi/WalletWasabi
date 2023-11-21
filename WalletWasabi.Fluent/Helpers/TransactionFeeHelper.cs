@@ -61,7 +61,7 @@ public static class TransactionFeeHelper
 		}
 		else if (feeEstimates is not null)
 		{
-			Money fee = feeFetcher.GetFee(tx.GetHash());
+			feeFetcher.TryGetFeeFromCache(tx.GetHash(), out Money? fee);
 			int vSize = tx.Transaction.GetVirtualSize();
 			FeeRate feeRate = new(fee, vSize);
 

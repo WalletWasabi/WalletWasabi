@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -77,14 +78,9 @@ public class TransactionFeeProvider : BackgroundService
 		}
 	}
 
-	public Money GetFee(uint256 txid)
+	public bool TryGetFeeFromCache(uint256 txid, [NotNullWhen(true)] out Money? fee)
 	{
-		if (FeeCache.TryGetValue(txid, out var fee))
-		{
-			return fee;
-		}
-
-		return Money.Zero;
+		return FeeCache.TryGetValue(txid, out fee));
 	}
 
 	public void WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
