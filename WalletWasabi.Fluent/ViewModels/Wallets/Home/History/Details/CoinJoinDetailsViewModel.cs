@@ -39,6 +39,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 							.Connect()
 							.Subscribe(_ => Update())
 							.DisposeWith(disposables);
+
+		_wallet.Transactions.ModelUpdatedObservable
+							.Subscribe(_ => Update())
+							.DisposeWith(disposables);
 	}
 
 	private void Update()

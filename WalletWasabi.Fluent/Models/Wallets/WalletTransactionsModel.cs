@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -48,6 +49,9 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
 								.DisposeWith(_disposable);
 
+		ModelUpdatedObservable = Observable.FromEventPattern(this, nameof(ModelUpdated)).ToSignal()
+			.ObserveOn(RxApp.MainThreadScheduler);
+
 		IsEmpty = Cache.Empty();
 
 		_wallet.TransactionFeeProvider.RequestedFeeArrived += UpdateTransactionFee;
@@ -59,6 +63,10 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
+	public event EventHandler<uint256>? ModelUpdated;
+
+	public IObservable<Unit> ModelUpdatedObservable { get; }
+
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
 	public void UpdateTransactionFee(object? sender, (uint256 txid, Money fee) eventArgs)
@@ -66,6 +74,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		if (TryGetById(eventArgs.txid, false, out TransactionModel? transaction))
 		{
 			transaction.Fee = eventArgs.fee;
+			ModelUpdated.SafeInvoke(sender!, eventArgs.txid);
 		}
 	}
 

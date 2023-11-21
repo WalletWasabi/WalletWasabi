@@ -58,8 +58,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Confirmations = model.Confirmations;
 
 		Fee = UiContext.AmountProvider.Create(model.Fee);
-        FeeRate = model.FeeRate;
-        IsFeeVisible = Fee != null && Fee.HasBalance;
+		FeeRate = model.FeeRate;
+		IsFeeVisible = Fee != null && Fee.HasBalance;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })
@@ -99,6 +99,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 							.Connect()
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
+							.DisposeWith(disposables);
+
+		_wallet.Transactions.ModelUpdatedObservable
+							.Subscribe(_ => UpdateCurrentTransaction())
 							.DisposeWith(disposables);
 	}
 
