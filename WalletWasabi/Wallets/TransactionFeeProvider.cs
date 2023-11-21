@@ -37,30 +37,43 @@ public class TransactionFeeProvider : BackgroundService
 
 	private async Task FetchTransactionFeeAsync(uint256 txid, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+		const int MaxAttempts = 3;
 
-		try
+		for (int i = 0; i < MaxAttempts; i++)
 		{
-			var response = await HttpClient.SendAsync(HttpMethod.Get, $"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}", null, linkedCts.Token).ConfigureAwait(false);
-
-			if (response.StatusCode != HttpStatusCode.OK)
+			try
 			{
-				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+				var response = await HttpClient.SendAsync(HttpMethod.Get,
+					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}",
+					null, linkedCts.Token).ConfigureAwait(false);
+
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+				}
+
+				Money fee = await response.Content.ReadAsJsonAsync<Money>().ConfigureAwait(false);
+
+				if (!FeeCache.TryAdd(txid, fee))
+				{
+					throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
+				}
+
+				RequestedFeeArrived?.Invoke(this, (txid, fee));
+				return;
 			}
-
-			Money fee = await response.Content.ReadAsJsonAsync<Money>().ConfigureAwait(false);
-
-			if (!FeeCache.TryAdd(txid, fee))
+			catch (Exception ex)
 			{
-				throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
-			}
+				if (cancellationToken.IsCancellationRequested)
+				{
+					return;
+				}
 
-			RequestedFeeArrived?.Invoke(this, (txid, fee));
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning($"Failed to fetch transaction fee. {ex}");
+				Logger.LogWarning($"Attempt: {i}. Failed to fetch transaction fee. {ex}");
+			}
 		}
 	}
 
