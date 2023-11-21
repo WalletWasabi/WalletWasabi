@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -5,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -16,11 +18,11 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
-public class TransactionFeeProvider : PeriodicRunner
+public class TransactionFeeProvider : BackgroundService
 {
 	private readonly TimeSpan _maximumDelay = TimeSpan.FromMinutes(2);
 
-	public TransactionFeeProvider(WasabiHttpClientFactory httpClientFactory) : base(TimeSpan.FromSeconds(10))
+	public TransactionFeeProvider(WasabiHttpClientFactory httpClientFactory)
 	{
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
@@ -29,6 +31,7 @@ public class TransactionFeeProvider : PeriodicRunner
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
+	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0);
 
 	private IHttpClient HttpClient { get; }
 
@@ -61,42 +64,6 @@ public class TransactionFeeProvider : PeriodicRunner
 		}
 	}
 
-	protected override Task ActionAsync(CancellationToken cancel)
-	{
-		var idsToFetch = new List<uint256>();
-
-		while (!Queue.IsEmpty)
-		{
-			if (Queue.TryDequeue(out var txid))
-			{
-				idsToFetch.Add(txid);
-			}
-		}
-
-		if (idsToFetch.Count > 0)
-		{
-			var endTime = DateTimeOffset.UtcNow + _maximumDelay;
-
-			var scheduledDates = endTime.GetScheduledDates(idsToFetch.Count);
-
-			var scheduledTasks = idsToFetch.Zip(
-				scheduledDates,
-				async (txid, date) =>
-				{
-					var delay = date - DateTimeOffset.UtcNow;
-					if (delay > TimeSpan.Zero)
-					{
-						await Task.Delay(delay, cancel).ConfigureAwait(false);
-					}
-					await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
-				});
-
-			Task.WhenAll(scheduledTasks).ConfigureAwait(false);
-		}
-
-		return Task.CompletedTask;
-	}
-
 	public Money GetFee(uint256 txid)
 	{
 		if (FeeCache.TryGetValue(txid, out var fee))
@@ -112,6 +79,36 @@ public class TransactionFeeProvider : PeriodicRunner
 		if (!e.Transaction.Confirmed && e.Transaction.ForeignInputs.Any())
 		{
 			Queue.Enqueue(e.Transaction.GetHash());
+			Semaphore.Release(1);
+		}
+	}
+
+	protected override async Task ExecuteAsync(CancellationToken cancel)
+	{
+		while (!cancel.IsCancellationRequested)
+		{
+			await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
+
+			if (!Queue.TryDequeue(out var txidToFetch))
+			{
+				continue;
+			}
+
+			var endTime = DateTimeOffset.UtcNow + _maximumDelay;
+			var scheduledDate = endTime.GetScheduledDates(1).First();
+
+			// We are not observing the result, because it cannot throw and we are retrying within the function
+			_ = ScheduledTask(txidToFetch, scheduledDate);
+		}
+
+		async Task ScheduledTask(uint256 txid, DateTimeOffset date)
+		{
+			var delay = date - DateTimeOffset.UtcNow;
+			if (delay > TimeSpan.Zero)
+			{
+				await Task.Delay(delay, cancel).ConfigureAwait(false);
+			}
+			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
 		}
 	}
 }
