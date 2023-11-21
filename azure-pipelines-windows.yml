@@ -9,6 +9,11 @@ jobs:
   pool:
     vmImage: 'windows-2022'
   steps:
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '11'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
   - task: UseDotNet@2
     displayName: 'Install .NET'
     inputs:
