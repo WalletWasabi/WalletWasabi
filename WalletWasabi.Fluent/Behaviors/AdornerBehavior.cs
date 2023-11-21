@@ -8,6 +8,12 @@ using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
+public enum Alignment
+{
+	MiddleRight,
+	BottomRight
+}
+
 public class AdornerBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisualTreeBehavior<Control>
 {
     public static readonly StyledProperty<Alignment> PlacementModeProperty = AvaloniaProperty.Register<AdornerBehavior, Alignment>(nameof(PlacementMode));
@@ -86,10 +92,4 @@ public class AdornerBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisua
                 throw new ArgumentOutOfRangeException();
         }
     }
-}
-
-public enum Alignment
-{
-    MiddleRight,
-    BottomRight
 }
