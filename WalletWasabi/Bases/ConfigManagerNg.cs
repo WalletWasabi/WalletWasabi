@@ -8,7 +8,7 @@ namespace WalletWasabi.Bases;
 
 public class ConfigManagerNg
 {
-	public static JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
+	public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
 
 	public static string ToFile<T>(string filePath, T obj, JsonSerializerOptions? options = null)
 	{
@@ -17,18 +17,6 @@ public class ConfigManagerNg
 		string jsonString = JsonSerializer.Serialize(obj, options);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 		return jsonString;
-	}
-
-	/// <summary>
-	/// Check if the config file differs from the config if the file path of the config file is set, otherwise throw exception.
-	/// </summary>
-	public static bool CheckFileChange<T>(string filePath, T current, JsonSerializerOptions? options = null)
-		where T : IConfigNg, IDeepEqual<T>, new()
-	{
-		options ??= DefaultOptions;
-
-		T diskVersion = LoadFile<T>(filePath, options);
-		return !diskVersion.DeepEquals(current);
 	}
 
 	private static TResponse LoadFile<TResponse>(string filePath, JsonSerializerOptions? options = null)
