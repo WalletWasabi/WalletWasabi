@@ -44,7 +44,6 @@
         <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
           <c:QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
         </c:PrivacyContentControl>
-
         <Interaction.Behaviors>
           <b:AdornerBehavior PlacementMode="BottomRight">
             <b:AdornerBehavior.Adorner>
@@ -55,7 +54,6 @@
             </b:AdornerBehavior.Adorner>
           </b:AdornerBehavior>
         </Interaction.Behaviors>
-
       </Viewbox>
     </DockPanel>
   </c:ContentArea>
