@@ -16,7 +16,7 @@ public class Application
 	    }
 	    catch (Exception e)
         {
-	        Log.Error("WASABI",$"{e}");
+	        Log.Error("WASABI", $"{e}");
         }
     }
 }
