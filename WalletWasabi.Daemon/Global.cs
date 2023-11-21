@@ -47,9 +47,7 @@ public class Global
 		DataDir = dataDir;
 		ConfigFilePath = configFilePath;
 		Config = config;
-		// TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
-		TorSettings = null;
-
+		TorSettings = IsTorEnabled() ? null : new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -157,6 +155,12 @@ public class Global
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
+
+	private bool IsTorEnabled()
+	{
+		return !OperatingSystem.IsAndroid()
+		       && !OperatingSystem.IsIOS();
+	}
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
