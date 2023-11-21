@@ -80,7 +80,7 @@ public class TransactionFeeProvider : BackgroundService
 
 	public bool TryGetFeeFromCache(uint256 txid, [NotNullWhen(true)] out Money? fee)
 	{
-		return FeeCache.TryGetValue(txid, out fee));
+		return FeeCache.TryGetValue(txid, out fee);
 	}
 
 	public void WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
