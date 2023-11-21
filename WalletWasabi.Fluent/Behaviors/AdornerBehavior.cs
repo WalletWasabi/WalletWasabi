@@ -4,56 +4,92 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
+#pragma warning disable CA2000
+
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class AdornerBehavior : AttachedToVisualTreeBehavior<Control>
+public class AdornerBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisualTreeBehavior<Control>
 {
-	public Control? Adorner { get; set; }
+    public static readonly StyledProperty<Alignment> PlacementModeProperty = AvaloniaProperty.Register<AdornerBehavior, Alignment>(nameof(PlacementMode));
+    public Control? Adorner { get; set; }
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
-	{
-		if (AssociatedObject is null)
-		{
-			return;
-		}
+    public Alignment PlacementMode
+    {
+        get => GetValue(PlacementModeProperty);
+        set => SetValue(PlacementModeProperty, value);
+    }
 
-		var layer = AdornerLayer.GetAdornerLayer(AssociatedObject);
+    protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
+    {
+        if (AssociatedObject is null)
+        {
+            return;
+        }
 
-		if (layer is null || Adorner is null)
-		{
-			return;
-		}
+        var layer = AdornerLayer.GetAdornerLayer(AssociatedObject);
 
-		Adorner.DataContext = AssociatedObject.TemplatedParent;
+        if (layer is null || Adorner is null)
+        {
+            return;
+        }
 
-		layer.Children.Add(Adorner);
+        Adorner.DataContext = AssociatedObject.TemplatedParent;
 
-		Observable.FromEventPattern(
-				handler => AssociatedObject.LayoutUpdated += handler,
-				handler =>
-				{
-					if (AssociatedObject != null)
-					{
-						AssociatedObject.LayoutUpdated -= handler;
-					}
-				})
-			.Do(_ => ArrangeAdorner(layer, AssociatedObject))
-			.Subscribe()
-			.DisposeWith(disposables);
+        layer.Children.Add(Adorner);
 
-		ArrangeAdorner(layer, AssociatedObject);
-	}
+        Observable.FromEventPattern(
+                handler => AssociatedObject.LayoutUpdated += handler,
+                handler =>
+                {
+                    if (AssociatedObject != null)
+                    {
+                        AssociatedObject.LayoutUpdated -= handler;
+                    }
+                })
+            .Do(_ => ArrangeAdorner(AssociatedObject, layer))
+            .Subscribe()
+            .DisposeWith(disposables);
 
-	private void ArrangeAdorner(Visual layer, Visual associatedObject)
-	{
-		var translated = associatedObject.TranslatePoint(associatedObject.Bounds.TopLeft, layer);
-		if (!translated.HasValue)
-		{
-			return;
-		}
+        Disposable
+            .Create(() => layer.Children.Remove(Adorner))
+            .DisposeWith(disposables);
 
-		var finalRect = associatedObject.Bounds.Translate(translated.Value);
-		Canvas.SetLeft(Adorner!, finalRect.Right);
-		Canvas.SetTop(Adorner!, finalRect.Y + (finalRect.Height / 2 - Adorner!.Bounds.Height / 2));
-	}
+        ArrangeAdorner(AssociatedObject, layer);
+    }
+
+    private void ArrangeAdorner(Visual adorned, Visual layer)
+    {
+        var translatePoint = adorned.TranslatePoint(new Point(), layer);
+
+        if (translatePoint is not { } point)
+        {
+            return;
+        }
+
+        var finalBounds = new Rect(point.X, point.Y, adorned.Bounds.Width, adorned.Bounds.Height);
+        AlignTo(finalBounds);
+    }
+
+    private void AlignTo(Rect finalBounds)
+    {
+        switch (PlacementMode)
+        {
+            case Alignment.MiddleRight:
+                Canvas.SetLeft(Adorner!, finalBounds.Right);
+                Canvas.SetTop(Adorner!, finalBounds.Y + (finalBounds.Height / 2 - Adorner!.Bounds.Height / 2));
+                break;
+            case Alignment.BottomRight:
+                Canvas.SetLeft(Adorner!, finalBounds.Right);
+                Canvas.SetTop(Adorner!, finalBounds.Y + (finalBounds.Height - Adorner!.Bounds.Height));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+}
+
+public enum Alignment
+{
+    MiddleRight,
+    BottomRight
 }

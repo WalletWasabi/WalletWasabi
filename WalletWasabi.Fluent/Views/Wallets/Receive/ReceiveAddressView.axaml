@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
@@ -39,21 +40,23 @@
         </c:PrivacyContentControl>
       </StackPanel>
 
-      <c:AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
-        <c:AdorningContentControl.Adornment>
-          <Panel Margin="5 0 -5 20">
-            <Button Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
-                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
-              <PathIcon Data="{StaticResource save_regular}" />
-            </Button>
-          </Panel>
-        </c:AdorningContentControl.Adornment>
-        <Viewbox Margin="20" MaxHeight="270" MinHeight="100">
-          <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
-            <c:QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
-          </c:PrivacyContentControl>
-        </Viewbox>
-      </c:AdorningContentControl>
+      <Viewbox Margin="20" MaxHeight="270" MinHeight="100" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
+          <c:QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
+        </c:PrivacyContentControl>
+
+        <Interaction.Behaviors>
+          <b:AdornerBehavior PlacementMode="BottomRight">
+            <b:AdornerBehavior.Adorner>
+              <Button Margin="6 0 0 0" Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
+                      HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <PathIcon Data="{StaticResource save_regular}" />
+              </Button>
+            </b:AdornerBehavior.Adorner>
+          </b:AdornerBehavior>
+        </Interaction.Behaviors>
+
+      </Viewbox>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
