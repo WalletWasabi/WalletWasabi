@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
+using Nito.AsyncEx.Synchronous;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -47,6 +48,9 @@ public class BlockchainController : ControllerBase
 
 	public Dictionary<uint256, Money> TransactionFeeCache { get; } = new();
 	public object TransactionFeeCacheLock { get; } = new();
+
+	public Dictionary<uint256, Transaction> ParentTransactions { get; } = new();
+	public object ParentTransactionsLock { get; } = new();
 
 	public IdempotencyRequestCache Cache { get; }
 
@@ -437,20 +441,25 @@ public class BlockchainController : ControllerBase
 		}
 
 		List<Coin> inputs = new();
-		Dictionary<uint256, Transaction> parentTransactions = new();
 
 		var tx = await RpcClient.GetRawTransactionAsync(txID, true, cancellationToken);
 
-		foreach (var input in tx.Inputs)
+		lock (ParentTransactionsLock)
 		{
-			if (!parentTransactions.ContainsKey(input.PrevOut.Hash))
+			foreach (var input in tx.Inputs)
 			{
-				var parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken).ConfigureAwait(false);
-				parentTransactions.Add(input.PrevOut.Hash, parentTx);
-			}
+				if (!ParentTransactions.ContainsKey(input.PrevOut.Hash))
+				{
+					var parentTx = RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken).WaitAndUnwrapException();
+					if (ParentTransactions.TryAdd(input.PrevOut.Hash, parentTx) && ParentTransactions.Count > 1000)
+					{
+						ParentTransactions.Remove(ParentTransactions.Keys.First());
+					}
+				}
 
-			TxOut txOut = parentTransactions[input.PrevOut.Hash].Outputs[input.PrevOut.N];
-			inputs.Add(new Coin(input.PrevOut, txOut));
+				TxOut txOut = ParentTransactions[input.PrevOut.Hash].Outputs[input.PrevOut.N];
+				inputs.Add(new Coin(input.PrevOut, txOut));
+			}
 		}
 
 		Money fee = tx.GetFee(inputs.ToArray());
