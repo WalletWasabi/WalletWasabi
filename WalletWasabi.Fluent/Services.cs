@@ -57,7 +57,7 @@ public static class Services
 	public static void Initialize(Global global, UiConfig uiConfig, SingleInstanceChecker singleInstanceChecker, TerminateService terminateService)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
-		//Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
+		// Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
 		Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
 		Guard.NotNull(nameof(global.HttpClientFactory), global.HttpClientFactory);
 		Guard.NotNull(nameof(global.LegalChecker), global.LegalChecker);

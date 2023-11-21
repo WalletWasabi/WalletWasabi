@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 
-namespace WalletWasabi.Fluent.iOS;
+namespace WalletWasabi.Fluent.IOS;
 
 public static class AppBuilderIOSExtension
 {
@@ -14,8 +14,8 @@ public static class AppBuilderIOSExtension
 		return appBuilder
 			.WithInterFont()
 			// TODO: This crashes the app!?
-			//.With(new FontManagerOptions {DefaultFamilyName = "fonts:Inter#Inter, $Default"})
-			.With(new SkiaOptions {MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12});
+			// .With(new FontManagerOptions { DefaultFamilyName = "fonts:Inter#Inter, $Default" })
+			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 });
 		// TODO:
 		// .With(new ???PlatformOptions
 		// {

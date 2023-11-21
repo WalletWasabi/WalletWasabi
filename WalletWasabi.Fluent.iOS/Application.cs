@@ -1,7 +1,7 @@
 using System;
 using UIKit;
 
-namespace WalletWasabi.Fluent.iOS;
+namespace WalletWasabi.Fluent.IOS;
 
 public class Application
 {

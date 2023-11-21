@@ -103,7 +103,9 @@ public class App : Application
 
 				// TODO: Handle Exit command in iOS/Android projects.
 				// OnExit(uiContext);
-/*
+
+				// TODO: Moved to AfterStarting method.
+				/*
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
@@ -113,7 +115,8 @@ public class App : Application
 
 						MainViewModel.Instance.Initialize();
 					});
-*/
+				*/
+
 				// Not available on mobile, only supported on Desktop
 				// TODO: InitializeTrayIcons();
 			}
@@ -152,7 +155,7 @@ public class App : Application
 		Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
 		// TOOD: Move to caller in mobile ?
-		//using CancellationTokenSource stopLoadingCts = new();
+		// using CancellationTokenSource stopLoadingCts = new();
 		CancellationTokenSource stopLoadingCts = new();
 
 		async Task BackendInitialise()

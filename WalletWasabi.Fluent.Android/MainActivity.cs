@@ -31,12 +31,12 @@ public class MainActivity : AvaloniaMainActivity<App>
 		_app = WasabiAppBuilder
 			.Create("Wasabi GUI", System.Array.Empty<string>())
 			// TODO:
-			//.EnsureSingleInstance()
+			// .EnsureSingleInstance()
 			// TODO:
 			// .OnUnhandledExceptions(LogUnhandledException)
-			// // TODO:
+			// TODO:
 			// .OnUnobservedTaskExceptions(LogUnobservedTaskException)
-			// // TODO:
+			// TODO:
 			// .OnTermination(TerminateApplication)
 			.Build();
 	}
@@ -61,7 +61,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         catch (Exception e)
         {
-	        Log.Error("WASABI",$"{e}");
+	        Log.Error("WASABI", $"{e}");
         }
 
         return base.CustomizeAppBuilder(builder);

@@ -7,16 +7,7 @@ using Foundation;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Helpers;
 
-namespace WalletWasabi.Fluent.iOS;
-
-public static class Log
-{
-	public static int Error(string? tag, string msg)
-	{
-		Console.WriteLine($"[{tag}] {msg}");
-		return 0;
-	}
-}
+namespace WalletWasabi.Fluent.IOS;
 
 // The UIApplicationDelegate for the application. This class is responsible for launching the
 // User Interface of the application, as well as listening (and optionally responding) to
@@ -31,12 +22,12 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 		_app = WasabiAppBuilder
 			.Create("Wasabi GUI", System.Array.Empty<string>())
 			// TODO:
-			//.EnsureSingleInstance()
+			// .EnsureSingleInstance()
 			// TODO:
 			// .OnUnhandledExceptions(LogUnhandledException)
-			// // TODO:
+			// TODO:
 			// .OnUnobservedTaskExceptions(LogUnobservedTaskException)
-			// // TODO:
+			// TODO:
 			// .OnTermination(TerminateApplication)
 			.Build();
 	}
