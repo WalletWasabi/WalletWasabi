@@ -28,6 +28,8 @@ public class MainActivity : AvaloniaMainActivity<App>
 
 	private void Program_Main()
 	{
+		Global.IsTorEnabled = false;
+
 		_app = WasabiAppBuilder
 			.Create("Wasabi GUI", System.Array.Empty<string>())
 			// TODO:

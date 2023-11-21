@@ -47,7 +47,9 @@ public class Global
 		DataDir = dataDir;
 		ConfigFilePath = configFilePath;
 		Config = config;
-		TorSettings = IsTorEnabled() ? null : new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = IsTorEnabled
+			? new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId)
+			: null;
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -121,6 +123,8 @@ public class Global
 	/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
 	private CancellationTokenSource StoppingCts { get; } = new();
 
+	public static bool IsTorEnabled = true;
+
 	public string DataDir { get; }
 	public TorSettings? TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
@@ -155,12 +159,6 @@ public class Global
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
-
-	private bool IsTorEnabled()
-	{
-		return !OperatingSystem.IsAndroid()
-		       && !OperatingSystem.IsIOS();
-	}
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
