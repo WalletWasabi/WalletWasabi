@@ -122,4 +122,10 @@ public class TransactionFeeProvider : BackgroundService
 			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
 		}
 	}
+
+	public override void Dispose()
+	{
+		Semaphore.Dispose();
+		base.Dispose();
+	}
 }
