@@ -9,7 +9,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: macos-latest
+    runs-on: macos-13
     permissions:
       actions: read
       contents: read
@@ -26,6 +26,9 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
+
+    - name: 'Select Xcode version'
+      run:   sudo xcode-select -s /Applications/Xcode_14.3.app
 
     - name: 'Install dotnet'
       uses: actions/setup-dotnet@v3
