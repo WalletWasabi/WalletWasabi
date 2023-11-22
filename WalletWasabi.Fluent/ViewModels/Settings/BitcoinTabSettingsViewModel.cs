@@ -35,7 +35,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
-		_dustThreshold = CurrencyLocalization.TryParse(settings.DustThreshold);
+		_dustThreshold = CurrencyInput.TryParse(settings.DustThreshold);
 
 		this.WhenAnyValue(x => x.DustThreshold)
 			.BindTo(settings, x => x.DustThreshold);

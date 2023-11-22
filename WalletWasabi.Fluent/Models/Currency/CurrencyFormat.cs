@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Models.Currency;
 
@@ -62,7 +63,7 @@ public partial class CurrencyFormat : ReactiveObject
 			}
 		}
 		var fullString = $"{{0:### ### ### ##0.{fractionalString}}}";
-		return string.Format(CurrencyLocalization.InvariantNumberFormat, fullString, amount).Trim();
+		return string.Format(CurrencyInput.InvariantNumberFormat, fullString, amount).Trim();
 	}
 
 	/// <summary>
@@ -85,7 +86,7 @@ public partial class CurrencyFormat : ReactiveObject
 		var parsable = CleanInvalidCharacters().Replace(preComposedText, "");
 
 		// Parse string value to decimal using Invariant Localization
-		if (CurrencyLocalization.TryParse(parsable) is not { } value)
+		if (CurrencyInput.TryParse(parsable) is not { } value)
 		{
 			return null;
 		}
@@ -114,6 +115,6 @@ public partial class CurrencyFormat : ReactiveObject
 	/// <summary>
 	/// Used to clean any character except digits and decimal separator
 	/// </summary>
-	[GeneratedRegex($"[^0-9{CurrencyLocalization.DecimalSeparator}]")]
+	[GeneratedRegex($"[^0-9{CurrencyInput.DecimalSeparator}]")]
 	private static partial Regex CleanInvalidCharacters();
 }

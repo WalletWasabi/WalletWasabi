@@ -19,6 +19,13 @@ public static class CurrencyInput
 		NumberDecimalSeparator = DecimalSeparator
 	};
 
+	public static decimal? TryParse(string str)
+	{
+		return decimal.TryParse(str, NumberStyles.Number, InvariantNumberFormat, out var value)
+			? value
+			: null;
+	}
+
 	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
 	{
 		var corrected = original;

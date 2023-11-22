@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Currency;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -129,18 +130,18 @@ public partial class CurrencyEntryBox : TextBox
 			var preComposedText = PreComposeText(input);
 
 			// Reject multiple Decimal Separators
-			if (preComposedText.CountOccurrencesOf(CurrencyLocalization.DecimalSeparator) > 1)
+			if (preComposedText.CountOccurrencesOf(CurrencyInput.DecimalSeparator) > 1)
 			{
 				return;
 			}
 
 			// Allow appending dot, do not parse
-			if (input == CurrencyLocalization.DecimalSeparator && Text is { } && CaretIndex == Text.Length)
+			if (input == CurrencyInput.DecimalSeparator && Text is { } && CaretIndex == Text.Length)
 			{
-				var finalText = Text + CurrencyLocalization.DecimalSeparator;
+				var finalText = Text + CurrencyInput.DecimalSeparator;
 
 				// Add trailing zero if it's just the dot
-				if (finalText == CurrencyLocalization.DecimalSeparator)
+				if (finalText == CurrencyInput.DecimalSeparator)
 				{
 					finalText = "0" + finalText;
 				}
@@ -189,7 +190,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	[GeneratedRegex($"^[0-9{CurrencyLocalization.DecimalSeparator}]+$")]
+	[GeneratedRegex($"^[0-9{CurrencyInput.DecimalSeparator}]+$")]
 	private static partial Regex RegexValidCharacters();
 
 	/// <summary>
@@ -283,10 +284,10 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (formatted != Text)
 		{
-			var difference = formatted.CountOccurrencesOf(CurrencyLocalization.GroupSeparator) - Text.CountOccurrencesOf(CurrencyLocalization.GroupSeparator);
+			var difference = formatted.CountOccurrencesOf(CurrencyInput.GroupSeparator) - Text.CountOccurrencesOf(CurrencyInput.GroupSeparator);
 
 			// Edge case: hitting backspace in for example "45.1", leaving "45.", in this case we don't want to change the text to "45", because it worsens UX
-			if (!Text.EndsWith(CurrencyLocalization.DecimalSeparator))
+			if (!Text.EndsWith(CurrencyInput.DecimalSeparator))
 			{
 				SetCurrentValue(TextProperty, formatted);
 			}
@@ -307,7 +308,7 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
-		await clipboard.SetTextAsync(CurrencyLocalization.LocalizedFormat(value));
+		await clipboard.SetTextAsync(value.ToString(CurrencyInput.InvariantNumberFormat));
 
 		e.Handled = true;
 	}
