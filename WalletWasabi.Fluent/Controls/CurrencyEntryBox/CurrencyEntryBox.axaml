@@ -30,14 +30,6 @@
 
     <Setter Property="Watermark" Value="{Binding $self.CurrencyFormat.DefaultWatermark}" />
 
-    <Setter Property="(Interaction.Behaviors)">
-      <BehaviorCollectionTemplate>
-        <BehaviorCollection>
-          <behaviors:TextBoxAutoSelectTextBehavior />
-        </BehaviorCollection>
-      </BehaviorCollectionTemplate>
-    </Setter>
-
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"

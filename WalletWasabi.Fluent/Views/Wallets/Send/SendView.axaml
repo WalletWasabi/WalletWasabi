@@ -6,9 +6,8 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
+             xmlns:currencyConversion="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -132,27 +131,31 @@
                                     IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
                                     IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
                                     IsVisible="{Binding !IsFixedAmount}">
+              <c:DualCurrencyEntryBox.Styles>
+                <Style Selector="c|CurrencyEntryBox" x:DataType="currencyConversion:CurrencyViewModel">
+                  <Setter Property="(Interaction.Behaviors)">
+                    <BehaviorCollectionTemplate>
+                      <BehaviorCollection>
+                        <behaviors:TextBoxAutoSelectTextBehavior />
+                        <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
+                      </BehaviorCollection>
+                    </BehaviorCollectionTemplate>
+                  </Setter>
+                </Style>
+              </c:DualCurrencyEntryBox.Styles>
               <c:DualCurrencyEntryBox.LeftEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"
                                     CurrencyFormat="{Binding Format}"
                                     Value="{Binding Value}"
                                     MaxValue="{Binding MaxValue}"
-                                    HorizontalContentAlignment="Left">
-                  <i:Interaction.Behaviors>
-                    <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
-                  </i:Interaction.Behaviors>
-                </c:CurrencyEntryBox>
+                                    HorizontalContentAlignment="Left" />
               </c:DualCurrencyEntryBox.LeftEntryBox>
               <c:DualCurrencyEntryBox.RightEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Right}"
                                     CurrencyFormat="{Binding Format}"
                                     Value="{Binding Value}"
                                     MaxValue="{Binding MaxValue}"
-                                    HorizontalContentAlignment="Right">
-                  <i:Interaction.Behaviors>
-                    <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
-                  </i:Interaction.Behaviors>
-                </c:CurrencyEntryBox>
+                                    HorizontalContentAlignment="Right" />
               </c:DualCurrencyEntryBox.RightEntryBox>
             </c:DualCurrencyEntryBox>
 
