@@ -35,7 +35,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotConfirming = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotConfirming.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotConfirming.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotConfirm, disruptionNotConfirming.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotConfirming.Value);
 
@@ -44,7 +44,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotSignallingReadyToSign = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotSignallingReadyToSign.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotSignallingReadyToSign.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotSignalReadyToSign, disruptionNotSignallingReadyToSign.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotSignallingReadyToSign.Value);
 
@@ -53,7 +53,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotSigning = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotSigning.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotSigning.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotSign, disruptionNotSigning.Method);
 		Assert.Equal(Money.Coins(2m), disruptionNotSigning.Value);
 
@@ -62,7 +62,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var doubleSpending = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, doubleSpending.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(doubleSpending.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DoubleSpent, doubleSpending.Method);
 		Assert.Equal(Money.Coins(3m), doubleSpending.Value);
 

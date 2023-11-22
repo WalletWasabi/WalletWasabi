@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.Linq;
 using System.Threading;
@@ -5,15 +6,12 @@ using System.Threading.Tasks;
 using WalletWasabi.Affiliation;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : IWabiSabiApiRequestHandler
@@ -400,6 +398,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		}).ToArray();
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
 	}
+
+	public uint256[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
+		Rounds
+		.Where(r => r.Phase != Phase.Ended)
+		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
+		.Select(x => x.RoundId)
+		.Distinct()
+		.ToArray();
 
 	private void CheckCoinIsNotBanned(OutPoint input, Round round)
 	{
