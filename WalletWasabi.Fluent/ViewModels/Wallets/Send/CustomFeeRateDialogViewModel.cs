@@ -31,14 +31,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 		this.ValidateProperty(x => x.CustomFee, ValidateCustomFee);
 
 		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.CustomFee)
-				.Select(_ =>
-				{
-					var noError = !Validations.Any;
-					var somethingFilled = CustomFee is not null;
-
-					return noError && somethingFilled;
-				});
+			this.WhenAnyValue(x => x.CustomFee).Select(_ => !Validations.Any);
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 	}
