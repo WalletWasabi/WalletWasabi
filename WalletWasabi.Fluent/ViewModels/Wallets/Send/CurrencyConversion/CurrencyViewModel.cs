@@ -11,10 +11,6 @@ public partial class CurrencyViewModel : ViewModelBase
 	[AutoNotify] private decimal _maxValue;
 	[AutoNotify] private decimal? _value;
 
-	public CurrencyViewModel(IWalletModel wallet) : this(wallet, CurrencyFormat.Btc)
-	{
-	}
-
 	public CurrencyViewModel(IWalletModel wallet, CurrencyFormat format)
 	{
 		// TODO: hardcoded exchange rate selection,
