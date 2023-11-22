@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -71,7 +72,7 @@ public class AdornerBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisua
         ArrangeAdorner(Adorner, AssociatedObject, layer);
     }
 
-    private void ArrangeAdorner(Control adorner, Visual adorned, Visual layer)
+    private void ArrangeAdorner(Visual adorner, Visual adorned, Visual layer)
     {
         var translatePoint = adorned.TranslatePoint(new Point(), layer);
 
@@ -97,7 +98,7 @@ public class AdornerBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisua
                 Canvas.SetTop(target, bounds.Y + (bounds.Height - target.Bounds.Height));
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(placementMode));
         }
     }
 }
