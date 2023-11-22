@@ -13,7 +13,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public record PersistentConfig : IConfigNg, IDeepEqual<PersistentConfig>
+public record PersistentConfig : IConfigNg
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);

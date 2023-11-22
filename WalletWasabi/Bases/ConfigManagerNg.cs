@@ -6,7 +6,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
 
-public class ConfigManagerNg
+public static class ConfigManagerNg
 {
 	public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
 
