@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -7,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
@@ -40,7 +38,7 @@ public partial class CurrencyEntryBox : TextBox
 		// Set Value and Format Text after Text changes
 		// this fires when copying text from clipboard, hitting backspace or delete, etc
 		this.GetObservable(TextProperty)
-			.Where(x => !_isUpdating)
+			.Where(_ => !_isUpdating)
 			.Do(x =>
 			{
 				_isUpdating = true;
@@ -57,7 +55,7 @@ public partial class CurrencyEntryBox : TextBox
 		// Format Text after Value changes
 		// this fires when Value is set via Binding e.g: SendViewModel
 		this.GetObservable(ValueProperty)
-			.Where(x => !_isUpdating)
+			.Where(_ => !_isUpdating)
 			.Do(_ => OnValueUpdated())
 			.Subscribe();
 
@@ -151,7 +149,7 @@ public partial class CurrencyEntryBox : TextBox
 			}
 
 			// Validate that value can be parsed with current CurrencyFormat
-			var value = CurrencyFormat?.Parse(preComposedText);
+			var value = CurrencyFormat.Parse(preComposedText);
 
 			// reject input otherwise.
 			if (value is null)

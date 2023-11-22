@@ -13,11 +13,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<Amount?> AmountProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, Amount?>(nameof(Amount), enableDataValidation: true);
 
-	public static readonly StyledProperty<CurrencyEntryBox> LeftEntryBoxProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox>(nameof(LeftEntryBox));
+	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
 
-	public static readonly StyledProperty<CurrencyEntryBox> RightEntryBoxProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox>(nameof(RightEntryBox));
+	public static readonly StyledProperty<CurrencyEntryBox?> RightEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(RightEntryBox));
 
 	public static readonly StyledProperty<bool> IsConversionReversedProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsConversionReversed), defaultBindingMode: BindingMode.TwoWay);
@@ -42,13 +42,13 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set => SetValue(AmountProperty, value);
 	}
 
-	public CurrencyEntryBox LeftEntryBox
+	public CurrencyEntryBox? LeftEntryBox
 	{
 		get => GetValue(LeftEntryBoxProperty);
 		set => SetValue(LeftEntryBoxProperty, value);
 	}
 
-	public CurrencyEntryBox RightEntryBox
+	public CurrencyEntryBox? RightEntryBox
 	{
 		get => GetValue(RightEntryBoxProperty);
 		set => SetValue(RightEntryBoxProperty, value);
