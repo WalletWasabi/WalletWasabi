@@ -16,10 +16,10 @@ namespace WalletWasabi.Fluent.Android;
 
 [Activity(
 	Label = "Wasabi Wallet",
-	Theme = "@style/MyTheme.Main",
+	Theme = "@style/MyTheme.NoActionBar",
 	Icon = "@drawable/icon",
 	MainLauncher = true,
-	LaunchMode = LaunchMode.SingleTop,
+	LaunchMode = LaunchMode.SingleInstance,
 	ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode,
 	WindowSoftInputMode = SoftInput.AdjustResize)]
 public class MainActivity : AvaloniaMainActivity<App>
