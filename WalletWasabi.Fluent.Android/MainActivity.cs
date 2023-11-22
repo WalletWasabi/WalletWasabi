@@ -1,71 +1,102 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.Sockets;
 using Android.App;
 using Android.Content.PM;
 using Android.Util;
 using Android.Views;
 using Avalonia;
 using Avalonia.Android;
+using Avalonia.ReactiveUI;
 using WalletWasabi.Daemon;
-using WalletWasabi.Fluent.Helpers;
-using Config = WalletWasabi.Daemon.Config;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Android;
 
 [Activity(
-    Label = "Wasabi Wallet",
-    Theme = "@style/MyTheme.Main",
-    Icon = "@drawable/icon",
-    MainLauncher = true,
-    LaunchMode = LaunchMode.SingleTop,
-    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode,
-    WindowSoftInputMode = SoftInput.AdjustResize)]
+	Label = "Wasabi Wallet",
+	Theme = "@style/MyTheme.Main",
+	Icon = "@drawable/icon",
+	MainLauncher = true,
+	LaunchMode = LaunchMode.SingleTop,
+	ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode,
+	WindowSoftInputMode = SoftInput.AdjustResize)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
-	private WasabiApplication _app;
+	private WasabiApplication? _app;
 
-	private void Program_Main()
+	protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
 	{
-		Global.IsTorEnabled = false;
+		// TODO: Crash reporting
 
-		_app = WasabiAppBuilder
-			.Create("Wasabi GUI", System.Array.Empty<string>())
+		Log.Error("WASABI", "CustomizeAppBuilder");
+
+		try
+		{
+			Global.IsTorEnabled = false;
+
+			// TODO: Do we need on Android EnsureSingleInstance with true?
+			_app = WasabiAppBuilder
+				.Create("Wasabi GUI", System.Array.Empty<string>())
+				.EnsureSingleInstance(false)
+				.OnUnhandledExceptions(LogUnhandledException)
+				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+				.OnTermination(TerminateApplication)
+				.Build();
+
+			// TODO: WasabiAppExtensions.RunAsDesktopGuiAsync
+			_app.RunAsyncMobile(afterStarting:
+				() => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder, builder));
+		}
+		catch (Exception ex)
+		{
 			// TODO:
-			// .EnsureSingleInstance()
-			// TODO:
-			// .OnUnhandledExceptions(LogUnhandledException)
-			// TODO:
-			// .OnUnobservedTaskExceptions(LogUnobservedTaskException)
-			// TODO:
-			// .OnTermination(TerminateApplication)
-			.Build();
+			// CrashReporter.Invoke(ex);
+
+			Logger.LogCritical(ex);
+
+			Log.Error("WASABI", $"{ex}");
+		}
+
+		return base.CustomizeAppBuilder(builder);
 	}
 
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-    {
-        Log.Error("WASABI", "CustomizeAppBuilder");
+	/// <summary>
+	/// Do not call this method it should only be called by TerminateService.
+	/// </summary>
+	private static void TerminateApplication()
+	{
+		// TODO:
+		// Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+	}
 
-        try
-        {
-	        Program_Main();
+	private static void LogUnobservedTaskException(object? sender, AggregateException e)
+	{
+		ReadOnlyCollection<Exception> innerExceptions = e.Flatten().InnerExceptions;
 
-	        // WasabiAppExtensions.RunAsDesktopGuiAsync
-	        // await _app.RunAsync(afterStarting: () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder));
-	        // _app.RunAsync(afterStarting: () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder)).RunSynchronously();
+		switch (innerExceptions)
+		{
+			case [SocketException { SocketErrorCode: SocketError.OperationAborted }]:
+			// Source of this exception is NBitcoin library.
+			case [OperationCanceledException { Message: "The peer has been disconnected" }]:
+				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+				Logger.LogTrace(e);
+				break;
 
-	        // TODO: Pass builder to AfterStarting
-	        _app.RunAsyncMobile(afterStarting:
-		        () => App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder, builder));
+			default:
+				Logger.LogDebug(e);
+				break;
+		}
+	}
 
-	       // App.AfterStarting(_app, AppBuilderAndroidExtension.SetupAppBuilder).RunSynchronously();
-        }
-        catch (Exception e)
-        {
-	        Log.Error("WASABI", $"{e}");
-        }
+	private static void LogUnhandledException(object? sender, Exception e) =>
+		Logger.LogWarning(e);
 
-        return base.CustomizeAppBuilder(builder);
-    }
+	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members",
+		Justification = "Required to bootstrap Avalonia's Visual Previewer")]
+	private static AppBuilder BuildAvaloniaApp()
+	{
+		return AppBuilderAndroidExtension.SetupAppBuilder(AppBuilder.Configure(() => new App()).UseReactiveUI());
+	}
 }
