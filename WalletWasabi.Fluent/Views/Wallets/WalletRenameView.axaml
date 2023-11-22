@@ -9,7 +9,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletRenameView"
              x:DataType="wallets:WalletRenameViewModel" >
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Type in a wallet name"
+                 Caption="You can modify the name of your wallet"
                  EnableBack="{Binding EnableBack}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableNext="True" NextContent="Save"
