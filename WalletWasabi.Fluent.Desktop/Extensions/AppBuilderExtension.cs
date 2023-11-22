@@ -39,8 +39,7 @@ public static class AppBuilderDesktopExtension
 				RenderingMode = enableGpu
 					? new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Software }
 					: new[] { Win32RenderingMode.Software },
-				CompositionMode = new[]
-					{ Win32CompositionMode.WinUIComposition, Win32CompositionMode.RedirectionSurface }
+				CompositionMode = new[] { Win32CompositionMode.WinUIComposition, Win32CompositionMode.RedirectionSurface }
 			})
 			.With(new X11PlatformOptions
 			{
