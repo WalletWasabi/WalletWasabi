@@ -52,7 +52,7 @@ public class WasabiApplication
 		try
 		{
 			// TODO:
-			//TerminateService.Activate();
+			// TerminateService.Activate();
 
 			BeforeStarting();
 
