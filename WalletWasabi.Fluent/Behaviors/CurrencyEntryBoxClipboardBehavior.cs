@@ -1,17 +1,16 @@
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
-using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.Controls;
+namespace WalletWasabi.Fluent.Behaviors;
 
-public class CurrencyEntryBoxClipboardBehavior : AttachedToVisualTreeBehavior<CurrencyEntryBox>
+public class CurrencyEntryBoxClipboardBehavior : Avalonia.Xaml.Interactions.Custom.AttachedToVisualTreeBehavior<CurrencyEntryBox>
 {
 	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 
@@ -19,9 +18,18 @@ public class CurrencyEntryBoxClipboardBehavior : AttachedToVisualTreeBehavior<Cu
 		Observable.Timer(PollingInterval)
 				  .Repeat();
 
+	public static readonly StyledProperty<decimal> MinValueProperty =
+		AvaloniaProperty.Register<CurrencyEntryBoxClipboardBehavior, decimal>(nameof(MinValue));
+
+	public decimal MinValue
+	{
+		get => GetValue(MinValueProperty);
+		set => SetValue(MinValueProperty, value);
+	}
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is not CurrencyEntryBox box)
+		if (AssociatedObject is not { } box)
 		{
 			return;
 		}
@@ -36,7 +44,6 @@ public class CurrencyEntryBoxClipboardBehavior : AttachedToVisualTreeBehavior<Cu
 			.Merge(1)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Where(x => box.CurrencyFormat is { })
 			.DistinctUntilChanged()
 			.Do(x =>
 			{
@@ -49,7 +56,7 @@ public class CurrencyEntryBoxClipboardBehavior : AttachedToVisualTreeBehavior<Cu
 					return;
 				}
 
-				var isValidValue = value > 0 && (box.MaxValue is null || box.MaxValue >= value);
+				var isValidValue = value >= MinValue && (box.MaxValue is null || box.MaxValue >= value);
 				if (isValidValue)
 				{
 					box.ClipboardSuggestion = box.CurrencyFormat.Format(value.Value);

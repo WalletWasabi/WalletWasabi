@@ -9,6 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 public partial class CurrencyViewModel : ViewModelBase
 {
 	[AutoNotify] private decimal _maxValue;
+	[AutoNotify] private decimal _minSuggestionValue;
 	[AutoNotify] private decimal? _value;
 
 	public CurrencyViewModel(IWalletModel wallet, CurrencyFormat format)
@@ -29,6 +30,8 @@ public partial class CurrencyViewModel : ViewModelBase
 				  .Select(x => x.Usd)
 				  .Switch()
 				  .BindTo(this, x => x.MaxValue);
+
+			MinSuggestionValue = 1;
 		}
 
 		Format = format;

@@ -41,7 +41,6 @@ public partial class CurrencyEntryBox : TextBox
 		// this fires when copying text from clipboard, hitting backspace or delete, etc
 		this.GetObservable(TextProperty)
 			.Where(x => !_isUpdating)
-			.Where(x => CurrencyFormat is { })
 			.Do(x =>
 			{
 				_isUpdating = true;
@@ -59,7 +58,6 @@ public partial class CurrencyEntryBox : TextBox
 		// this fires when Value is set via Binding e.g: SendViewModel
 		this.GetObservable(ValueProperty)
 			.Where(x => !_isUpdating)
-			.Where(x => CurrencyFormat is { })
 			.Do(_ => OnValueUpdated())
 			.Subscribe();
 

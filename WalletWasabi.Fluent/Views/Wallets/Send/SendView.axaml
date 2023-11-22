@@ -137,14 +137,22 @@
                                     CurrencyFormat="{Binding Format}"
                                     Value="{Binding Value}"
                                     MaxValue="{Binding MaxValue}"
-                                    HorizontalContentAlignment="Left" />
+                                    HorizontalContentAlignment="Left">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
+                  </i:Interaction.Behaviors>
+                </c:CurrencyEntryBox>
               </c:DualCurrencyEntryBox.LeftEntryBox>
               <c:DualCurrencyEntryBox.RightEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Right}"
                                     CurrencyFormat="{Binding Format}"
                                     Value="{Binding Value}"
                                     MaxValue="{Binding MaxValue}"
-                                    HorizontalContentAlignment="Right" />
+                                    HorizontalContentAlignment="Right">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
+                  </i:Interaction.Behaviors>
+                </c:CurrencyEntryBox>
               </c:DualCurrencyEntryBox.RightEntryBox>
             </c:DualCurrencyEntryBox>
 
