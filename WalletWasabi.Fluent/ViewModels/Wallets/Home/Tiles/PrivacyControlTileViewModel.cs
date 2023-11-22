@@ -70,7 +70,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		PrivacyBar?.Activate(disposables);
 	}
 
-	private bool IsProgressVisible(decimal privateAndSemiPrivateBalance, decimal totalBalance)
+	private static bool IsProgressVisible(decimal privateAndSemiPrivateBalance, decimal totalBalance)
 	{
 		var hasPrivacy = privateAndSemiPrivateBalance > 0;
 		var hasBalance = totalBalance > 0;
