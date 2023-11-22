@@ -47,12 +47,13 @@
         <Interaction.Behaviors>
           <b:AdornerBehavior PlacementMode="BottomRight">
             <b:AdornerBehavior.Adorner>
-              <Button Margin="6 0 0 0" Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
+              <Button Margin="6 0 0 0" x:Name="SaveButton" Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
                       HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <PathIcon Data="{StaticResource save_regular}" />
               </Button>
             </b:AdornerBehavior.Adorner>
           </b:AdornerBehavior>
+          <b:ProximityRevealBehavior InflateHitBoxesBy="16" Target="SaveButton" />
         </Interaction.Behaviors>
       </Viewbox>
     </DockPanel>

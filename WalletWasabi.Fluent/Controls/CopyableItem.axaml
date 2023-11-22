@@ -20,26 +20,14 @@
           <Interaction.Behaviors>
             <b:AdornerBehavior>
               <b:AdornerBehavior.Adorner>
-                <Panel>
-                  <Border Margin="-5 -5" x:Name="Hitbox" Background="Transparent" />
-                  <c:ClipboardCopyButton x:Name="CopyButton" x:DataType="c:CopyableItem" Text="{Binding ContentToCopy}">
-                    <c:ClipboardCopyButton.IsVisible>
-                      <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                        <Binding Path="#ContentPresenter.IsPointerOver" />
-                        <Binding Path="#CopyButton.IsPointerOver" />
-                        <Binding Path="#Hitbox.IsPointerOver" />
-                        <Binding Path="#CopyButton.CopyCommand.IsExecuting^" />
-                      </MultiBinding>
-                    </c:ClipboardCopyButton.IsVisible>
-                  </c:ClipboardCopyButton>
-                </Panel>
+                <c:ClipboardCopyButton x:Name="CopyButton" x:DataType="c:CopyableItem" Text="{Binding ContentToCopy}" />
               </b:AdornerBehavior.Adorner>
             </b:AdornerBehavior>
+            <b:ProximityRevealBehavior InflateHitBoxesBy="16" Target="CopyButton" ForceVisible="{Binding #CopyButton.CopyCommand.IsExecuting^}" />
           </Interaction.Behaviors>
         </ContentPresenter>
       </ControlTemplate>
     </Setter>
-
   </ControlTheme>
 
 </ResourceDictionary>
