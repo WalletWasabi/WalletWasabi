@@ -39,17 +39,8 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		IsPrivacyProgressDisplayed = SemiPrivateAndPrivateAmount.CombineLatest(TotalAmount, resultSelector: IsProgressVisible);
 	}
 
-	private bool IsProgressVisible(decimal privateAndSemiPrivateBalance, decimal totalBalance)
-	{
-		var hasPrivacy = privateAndSemiPrivateBalance > 0;
-		var hasBalance = totalBalance > 0;
-		var everythingIsPrivate = privateAndSemiPrivateBalance == totalBalance;
-		var isProgressVisible = hasPrivacy && hasBalance && !everythingIsPrivate;
-		return isProgressVisible;
-	}
-
 	public IObservable<bool> IsPrivacyProgressDisplayed { get; }
-	
+
 	public ICommand ShowDetailsCommand { get; }
 
 	public PrivacyBarViewModel? PrivacyBar { get; }
@@ -77,6 +68,15 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 					   .DisposeWith(disposables);
 
 		PrivacyBar?.Activate(disposables);
+	}
+
+	private bool IsProgressVisible(decimal privateAndSemiPrivateBalance, decimal totalBalance)
+	{
+		var hasPrivacy = privateAndSemiPrivateBalance > 0;
+		var hasBalance = totalBalance > 0;
+		var everythingIsPrivate = privateAndSemiPrivateBalance == totalBalance;
+		var isProgressVisible = hasPrivacy && hasBalance && !everythingIsPrivate;
+		return isProgressVisible;
 	}
 
 	private void ShowDetails()
