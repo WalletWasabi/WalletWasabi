@@ -378,6 +378,8 @@ public class Global
 					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
 				}
 
+				CoinPrison.Dispose();
+
 				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
