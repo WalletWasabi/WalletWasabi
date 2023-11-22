@@ -40,8 +40,8 @@ public partial class CurrencyFormat : ReactiveObject
 
 	public required string CurrencyCode { get; init; }
 	public bool IsApproximate { get; init; }
-	public required int MaxIntegralDigits { get; init; }
-	public required int MaxFractionalDigits { get; init; }
+	public int? MaxIntegralDigits { get; init; }
+	public int? MaxFractionalDigits { get; init; }
 	public required Func<decimal, string> Format { get; init; }
 	public string? DefaultWatermark { get; set; }
 
@@ -51,7 +51,7 @@ public partial class CurrencyFormat : ReactiveObject
 	/// </summary>
 	public static string FormatBtcWithExactFractionals(decimal amount)
 	{
-		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Btc.MaxFractionalDigits);
+		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Btc.MaxFractionalDigits ?? 0);
 		var fractionalString = "";
 		for (var i = 0; i < fractionalDigits; i++)
 		{
@@ -71,7 +71,7 @@ public partial class CurrencyFormat : ReactiveObject
 	/// </summary>
 	public static string FormatFiatWithExactFractionals(decimal amount)
 	{
-		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Usd.MaxFractionalDigits);
+		var fractionalDigits = Math.Min(amount.CountFractionalDigits(), Usd.MaxFractionalDigits ?? 0);
 		return amount.FormattedFiat($"N{fractionalDigits}");
 	}
 
