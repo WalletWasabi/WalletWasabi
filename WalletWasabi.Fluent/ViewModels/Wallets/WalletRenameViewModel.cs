@@ -30,7 +30,7 @@ public partial class WalletRenameViewModel : RoutableViewModel
 			});
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		var canRename = this.WhenAnyValue(model => model.NewWalletName, selector: newName => !Equals(newName, wallet.Name) && !Validations.Any);
+		var canRename = this.WhenAnyValue(model => model.NewWalletName, selector: _ => !Validations.Any);
 		NextCommand = ReactiveCommand.Create(() => OnRename(wallet), canRename);
 	}
 

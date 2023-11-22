@@ -81,6 +81,11 @@ public partial class WalletModel : ReactiveObject
 		get => Wallet.WalletName;
 		set
 		{
+			if (value == Wallet.WalletName)
+			{
+				return;
+			}
+
 			RenameWallet(value, Wallet.WalletName);
 			this.RaisePropertyChanged();
 		}
