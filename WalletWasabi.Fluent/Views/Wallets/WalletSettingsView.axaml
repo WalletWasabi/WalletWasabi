@@ -18,14 +18,15 @@
       <StackPanel Classes="settingsLayout">
         <DockPanel>
           <TextBlock Text="Name" />
-          <Button
+          <Button MaxWidth="150"
             Command="{Binding RenameCommand}"
             Theme="{StaticResource AccentButton}"
+            ToolTip.Tip="{Binding WalletName}"
             DockPanel.Dock="Right">
             <Button.Content>
               <DockPanel>
                 <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
-                <TextBlock VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
+                <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
               </DockPanel>
             </Button.Content>
           </Button>
