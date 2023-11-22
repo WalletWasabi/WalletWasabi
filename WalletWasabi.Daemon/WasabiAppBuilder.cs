@@ -61,7 +61,7 @@ public class WasabiApplication
 		finally
 		{
 			// TODO:
-			//BeforeStopping();
+			// BeforeStopping();
 		}
 	}
 
