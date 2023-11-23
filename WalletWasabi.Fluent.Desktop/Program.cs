@@ -83,6 +83,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
+		// This calls MainWindow.CancelPressed() from the UI thread, otherwise "System.InvalidOperationException: Call from invalid thread" is thrown.
 		Dispatcher.UIThread.Post(() => ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow)?.CancelPressed());
 	}
 
