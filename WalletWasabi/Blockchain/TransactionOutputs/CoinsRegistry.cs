@@ -429,8 +429,6 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
 
-	public SmartCoin[] ToArray() => AsCoinsView().ToArray();
-
 	public Money TotalAmount() => AsCoinsView().TotalAmount();
 
 	public ICoinsView Unconfirmed() => AsCoinsView().Unconfirmed();

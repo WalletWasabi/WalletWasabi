@@ -48,8 +48,6 @@ public class CoinsView : ICoinsView
 
 	public Money TotalAmount() => Coins.Sum(x => x.Amount);
 
-	public SmartCoin[] ToArray() => Coins.ToArray();
-
 	public IEnumerator<SmartCoin> GetEnumerator() => Coins.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => Coins.GetEnumerator();

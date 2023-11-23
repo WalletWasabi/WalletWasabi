@@ -19,8 +19,6 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView SpentBy(uint256 txid);
 
-	SmartCoin[] ToArray();
-
 	Money TotalAmount();
 
 	ICoinsView Unconfirmed();
