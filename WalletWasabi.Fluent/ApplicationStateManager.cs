@@ -146,14 +146,20 @@ public class ApplicationStateManager : IMainWindowService
 						_hideRequest = false; // request processed, set it back to the default.
 						return;
 					}
+
+					var (e, preventShutdown) = tup;
+
+					_isShuttingDown = !preventShutdown;
+					e.Cancel = preventShutdown;
+
+					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 				}
-
-				var (e, preventShutdown) = tup;
-
-				_isShuttingDown = !preventShutdown;
-				e.Cancel = preventShutdown;
-
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				else
+				{
+					_isShuttingDown = true;
+					tup.EventArgs.Cancel = false;
+					_stateMachine.Fire(Trigger.ShutdownRequested);
+				}
 			})
 			.DisposeWith(_compositeDisposable);
 
