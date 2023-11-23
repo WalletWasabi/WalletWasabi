@@ -10,8 +10,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsView : ICoinsView
 {
-	private static readonly ICoinsView EmptyCoinsView = new CoinsView(Array.Empty<SmartCoin>());
-
 	public CoinsView(IEnumerable<SmartCoin> coins)
 	{
 		Coins = coins;
