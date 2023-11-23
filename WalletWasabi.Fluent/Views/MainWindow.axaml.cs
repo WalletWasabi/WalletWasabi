@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Rendering;
+using System.ComponentModel;
 using WalletWasabi.Fluent.Diagnostics;
 using WalletWasabi.Fluent.Screenshot;
 
@@ -17,6 +18,13 @@ public class MainWindow : Window
 #if DEBUG
 		AddHandler(KeyDownEvent, KeyDownHandler, RoutingStrategies.Tunnel);
 #endif
+	}
+
+	public event EventHandler<CancelEventArgs>? CancelButtonPressedEvent;
+
+	public void CancelPressed()
+	{
+		CancelButtonPressedEvent?.Invoke(this, new CancelEventArgs(false));
 	}
 
 	private void KeyDownHandler(object? sender, KeyEventArgs e)
