@@ -149,10 +149,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.CancelButtonPressedEvent))
 			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
-			.Subscribe(tup =>
-			{
-				ShutdownIfNotPrevented(tup);
-			})
+			.Subscribe(ShutdownIfNotPrevented)
 			.DisposeWith(_compositeDisposable);
 
 		Observable.FromEventPattern(result, nameof(result.Closed))
