@@ -83,7 +83,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow)?.CancelPressed();
+		Dispatcher.UIThread.Post(() => ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow)?.CancelPressed());
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
