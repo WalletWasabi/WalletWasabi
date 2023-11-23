@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent;
 
@@ -135,12 +136,16 @@ public class ApplicationStateManager : IMainWindowService
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
-				// _hideRequest flag is used to distinguish what is the user's intent.
-				// It is only true when the request comes from the Tray.
-				if ((Services.UiConfig.HideOnClose || _hideRequest) && App.EnableFeatureHide)
+				// Check if Wasabi was forcefully terminated from terminal with Ctrl-C.
+				if (!Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully)
 				{
-					_hideRequest = false; // request processed, set it back to the default.
-					return;
+					// _hideRequest flag is used to distinguish what is the user's intent.
+					// It is only true when the request comes from the Tray.
+					if ((Services.UiConfig.HideOnClose || _hideRequest) && App.EnableFeatureHide)
+					{
+						_hideRequest = false; // request processed, set it back to the default.
+						return;
+					}
 				}
 
 				var (e, preventShutdown) = tup;
