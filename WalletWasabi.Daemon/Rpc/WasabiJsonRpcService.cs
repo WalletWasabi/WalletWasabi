@@ -274,26 +274,40 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			var paymentResult = new JsonRpcResult();
 			paymentResult["id"] = x.Id;
-			paymentResult["amount"] = x.Amount;
-			paymentResult["destination"] = x.Destination.ScriptPubKey;
+			paymentResult["amount"] = x.Amount.Satoshi;
+			paymentResult["destination"] = x.Destination.ScriptPubKey.ToHex();
 
-			switch (x.State)
+			var state = x.State;
+			var stateHistory = new List<JsonRpcResult>();
+			while (state != null)
 			{
-				case PendingPayment pending:
-					paymentResult["status"] = "Pending";
-					break;
-				case InProgressPayment inProgress:
-					paymentResult["status"] = "In progress";
-					paymentResult["round"] = inProgress.RoundId;
-					break;
-				case FinishedPayment finished:
-					paymentResult["status"] = "Finished";
-					paymentResult["txid"] = finished.TransactionId;
-					break;
-				default:
-					paymentResult["status"] = "Unknown";
-					break;
+				switch (state)
+				{
+					case PendingPayment pending:
+						stateHistory.Add(new JsonRpcResult {
+							["status"] = "Pending"
+						});
+						break;
+					case InProgressPayment inProgress:
+						stateHistory.Add(new JsonRpcResult {
+							["status"] = "In progress",
+							["round"] = inProgress.RoundId.ToString()
+						});
+						break;
+					case FinishedPayment finished:
+						stateHistory.Add(new JsonRpcResult {
+							["status"] = "Finished",
+							["txid"] = finished.TransactionId.ToString()
+						});
+						break;
+					default:
+						throw new NotSupportedException($"Unrecognized state: {state.GetType().Name}.");
+				}
+
+				state = state.PreviousState;
 			}
+
+			paymentResult["state"] = stateHistory;
 
 			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
 			{
