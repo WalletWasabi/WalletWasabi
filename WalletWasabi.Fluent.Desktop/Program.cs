@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
+using WalletWasabi.Fluent.Views;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -82,7 +83,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow)?.CancelPressed();
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
