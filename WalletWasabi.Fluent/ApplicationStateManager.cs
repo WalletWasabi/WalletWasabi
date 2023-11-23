@@ -152,6 +152,19 @@ public class ApplicationStateManager : IMainWindowService
 			})
 			.DisposeWith(_compositeDisposable);
 
+		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.CancelButtonPressedEvent))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
+			.Subscribe(tup =>
+			{
+				var (e, preventShutdown) = tup;
+
+				_isShuttingDown = !preventShutdown;
+				e.Cancel = preventShutdown;
+
+				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+			})
+			.DisposeWith(_compositeDisposable);
+
 		Observable.FromEventPattern(result, nameof(result.Closed))
 			.Take(1)
 			.Subscribe(_ =>
