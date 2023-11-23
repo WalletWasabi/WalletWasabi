@@ -143,12 +143,7 @@ public class ApplicationStateManager : IMainWindowService
 					return;
 				}
 
-				var (e, preventShutdown) = tup;
-
-				_isShuttingDown = !preventShutdown;
-				e.Cancel = preventShutdown;
-
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				ShutdownIfNotPrevented(tup);
 			})
 			.DisposeWith(_compositeDisposable);
 
@@ -156,12 +151,7 @@ public class ApplicationStateManager : IMainWindowService
 			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
 			.Subscribe(tup =>
 			{
-				var (e, preventShutdown) = tup;
-
-				_isShuttingDown = !preventShutdown;
-				e.Cancel = preventShutdown;
-
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				ShutdownIfNotPrevented(tup);
 			})
 			.DisposeWith(_compositeDisposable);
 
@@ -187,6 +177,16 @@ public class ApplicationStateManager : IMainWindowService
 		result.Show();
 
 		ApplicationViewModel.IsMainWindowShown = true;
+	}
+
+	private void ShutdownIfNotPrevented((CancelEventArgs EventArgs, bool) tup)
+	{
+		var (e, preventShutdown) = tup;
+
+		_isShuttingDown = !preventShutdown;
+		e.Cancel = preventShutdown;
+
+		_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 	}
 
 	private void SetWindowSize(Window window)
