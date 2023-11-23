@@ -1,9 +1,8 @@
+using NBitcoin;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using NBitcoin;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
