@@ -98,11 +98,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown(bool restart)
 	{
-		if (Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully)
-		{
-			return true;
-		}
-
 		if (!MainViewCanShutdown() && !restart)
 		{
 			return false;
@@ -117,6 +112,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		// - no open dialog
 		// - or no wallets available
 		return !MainViewModel.Instance.IsDialogOpen()
-		       || !MainViewModel.Instance.NavBar.Wallets.Any();
+			   || !MainViewModel.Instance.NavBar.Wallets.Any();
 	}
 }
