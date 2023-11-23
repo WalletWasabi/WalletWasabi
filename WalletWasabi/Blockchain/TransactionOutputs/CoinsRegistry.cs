@@ -423,8 +423,6 @@ public class CoinsRegistry : ICoinsView
 		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
 	}
 
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
-
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
