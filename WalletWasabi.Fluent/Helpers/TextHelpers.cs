@@ -103,7 +103,7 @@ public static partial class TextHelpers
 			return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
 		}
 
-		return $"Pending";
+		return "Pending";
 	}
 
 	public static string FormatPercentageDiff(double n)
