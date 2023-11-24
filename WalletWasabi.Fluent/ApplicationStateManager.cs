@@ -109,12 +109,12 @@ public class ApplicationStateManager : IMainWindowService
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
-		e.Cancel = !ApplicationViewModel.CanShutdown(false, out bool isShutdownEnforced);
+		bool shouldShutdown = ApplicationViewModel.CanShutdown(_restartRequest, out bool isShutdownEnforced) || isShutdownEnforced;
 
-		bool shouldPrevent = !isShutdownEnforced && e.Cancel;
+		e.Cancel = !shouldShutdown;
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
-		_stateMachine.Fire(shouldPrevent ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+		_stateMachine.Fire(shouldShutdown ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 
 	private void CreateAndShowMainWindow()
