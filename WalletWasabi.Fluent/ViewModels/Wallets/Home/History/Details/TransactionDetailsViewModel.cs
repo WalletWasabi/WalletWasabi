@@ -100,10 +100,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
-
-		_wallet.Transactions.ModelUpdatedObservable
-							.Subscribe(_ => UpdateCurrentTransaction())
-							.DisposeWith(disposables);
 	}
 
 	private void UpdateCurrentTransaction()

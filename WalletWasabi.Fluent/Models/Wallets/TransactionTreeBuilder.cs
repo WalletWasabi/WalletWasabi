@@ -150,7 +150,7 @@ public class TransactionTreeBuilder
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
-			Fee = transactionSummary.GetFee(),
+			Fee = transactionSummary.GetFee() ?? transactionSummary.FetchedFee,
 			FeeRate = transactionSummary.FeeRate(),
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 		};
@@ -174,7 +174,7 @@ public class TransactionTreeBuilder
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
 			Status = status,
-			Fee = transactionSummary.GetFee()
+			Fee = transactionSummary.GetFee() ?? transactionSummary.FetchedFee
 		};
 	}
 
@@ -196,7 +196,7 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
-			Fee = transactionSummary.GetFee(),
+			Fee = transactionSummary.GetFee() ?? transactionSummary.FetchedFee,
 
 			Type = GetItemType(transactionSummary),
 			Status =
@@ -274,7 +274,7 @@ public class TransactionTreeBuilder
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
-			Fee = transactionSummary.GetFee()
+			Fee = transactionSummary.GetFee() ?? transactionSummary.FetchedFee
 		};
 	}
 

@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -45,16 +44,17 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache =
-			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
-								.DisposeWith(_disposable);
+		RequestedFeeArrived =
+			Observable.FromEventPattern<EventArgs?>(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
+				.ObserveOn(RxApp.MainThreadScheduler);
 
-		ModelUpdatedObservable = Observable.FromEventPattern(this, nameof(ModelUpdated)).ToSignal()
-			.ObserveOn(RxApp.MainThreadScheduler);
+		Cache =
+			TransactionProcessed
+				.Merge(RequestedFeeArrived)
+				.Fetch(BuildSummary, model => model.Id)
+				.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
-
-		_wallet.TransactionFeeProvider.RequestedFeeArrived += UpdateTransactionFee;
 	}
 
 	public event EventHandler<uint256>? ModelUpdated;
@@ -65,18 +65,9 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
-	public IObservable<Unit> ModelUpdatedObservable { get; }
-
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
-	public void UpdateTransactionFee(object? sender, (uint256 txid, Money fee) eventArgs)
-	{
-		if (TryGetById(eventArgs.txid, false, out TransactionModel? transaction))
-		{
-			transaction.Fee = eventArgs.fee;
-			ModelUpdated.SafeInvoke(sender!, eventArgs.txid);
-		}
-	}
+	public IObservable<Unit> RequestedFeeArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -234,9 +225,5 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return foreignOutputs.Select(x => x.DestinationAddress);
 	}
 
-	public void Dispose()
-	{
-		_wallet.TransactionFeeProvider.RequestedFeeArrived -= UpdateTransactionFee;
-		_disposable.Dispose();
-	}
+	public void Dispose() => _disposable.Dispose();
 }

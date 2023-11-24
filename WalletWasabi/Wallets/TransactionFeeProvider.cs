@@ -28,7 +28,7 @@ public class TransactionFeeProvider : BackgroundService
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
-	public event EventHandler<(uint256 TxID, Money Fee)>? RequestedFeeArrived;
+	public event EventHandler<EventArgs>? RequestedFeeArrived;
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
@@ -65,7 +65,7 @@ public class TransactionFeeProvider : BackgroundService
 					throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
 				}
 
-				RequestedFeeArrived?.Invoke(this, (txid, fee));
+				RequestedFeeArrived?.Invoke(this, EventArgs.Empty);
 				return;
 			}
 			catch (Exception ex)
