@@ -96,8 +96,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		UiContext.Navigate().To().ShuttingDown(this, restartRequest);
 	}
 
-	public bool CanShutdown(bool restart)
+	public bool CanShutdown(bool restart, out bool isShutdownEnforced)
 	{
+		isShutdownEnforced = Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully;
+
 		if (!MainViewCanShutdown() && !restart)
 		{
 			return false;
