@@ -74,6 +74,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !WalletModel.IsWatchOnlyWallet;
 				});
 
+		BuyCommand = ReactiveCommand.Create(() => Navigate().To().Buy(this));
+
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(this));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
@@ -129,6 +131,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
+
+	public ICommand BuyCommand { get; private set; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
 
