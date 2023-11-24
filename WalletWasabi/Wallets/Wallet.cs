@@ -28,7 +28,7 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-	private static int WalletCount;
+	private static int WalletCount = 1;
 	
 	public Wallet(
 		string dataDir,
@@ -63,7 +63,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
-		Id = ++WalletCount;
+		Id = Interlocked.Increment(ref WalletCount);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
