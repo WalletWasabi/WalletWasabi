@@ -13,24 +13,12 @@ using Moq;
 using WalletWasabi.Tor.Http;
 using System.Threading;
 using System.Net.Mime;
+using System.Security.Cryptography;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
 public class PayjoinTests
 {
-	public static PSBT GenerateRandomTransaction()
-	{
-		var key = new Key();
-		var tx =
-			Network.Main.CreateTransactionBuilder()
-			.AddCoins(Coin(0.5m, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)))
-			.AddKeys(key)
-			.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
-			.BuildPSBT(true);
-		tx.Finalize();
-		return tx;
-	}
-
 	private static ICoin Coin(decimal amount, Script scriptPubKey)
 	{
 		return new Coin(GetRandomOutPoint(), new TxOut(Money.Coins(amount), scriptPubKey));
@@ -94,7 +82,11 @@ public class PayjoinTests
 		using Key key = new();
 		PaymentIntent payment = new(key.PubKey, amount);
 
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.True(tx.Signed);
@@ -144,7 +136,11 @@ public class PayjoinTests
 
 		var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.True(tx.Signed);
@@ -163,7 +159,11 @@ public class PayjoinTests
 			watchOnly: true);
 		allowedCoins = transactionFactory.Coins.ToArray();
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint), payjoinClient);
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: payjoinClient);
 
 		Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 		Assert.False(tx.Signed);
@@ -198,7 +198,12 @@ public class PayjoinTests
 			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		///////
 
@@ -220,7 +225,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -243,7 +252,11 @@ public class PayjoinTests
 			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -256,7 +269,11 @@ public class PayjoinTests
 				return psbt;
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -269,7 +286,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -282,7 +303,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -296,7 +321,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -309,7 +338,11 @@ public class PayjoinTests
 				return psbt;
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -322,7 +355,11 @@ public class PayjoinTests
 				return psbt;
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -335,7 +372,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 		////////
 
@@ -348,7 +389,11 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -373,7 +418,11 @@ public class PayjoinTests
 			});
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
 
@@ -391,9 +440,16 @@ public class PayjoinTests
 			PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error");
 
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
-		var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.Outpoint), NewPayjoinClient(mockHttpClient));
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
 	}
+
+	private static TransactionParametersBuilder CreateBuilder()
+		=> TransactionParametersBuilder.CreateDefault().SetFeeRate(2).SetAllowUnconfirmed(true);
 
 	private static PayjoinClient NewPayjoinClient(IHttpClient client)
 		=> new(new Uri("http://localhost"), client);
