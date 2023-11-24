@@ -109,7 +109,7 @@ public class ApplicationStateManager : IMainWindowService
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
-		e.Cancel = !ApplicationViewModel.CanShutdown(false);
+		e.Cancel = !ApplicationViewModel.CanShutdown(false, out _);
 
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
@@ -132,34 +132,32 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false, out bool isShutdownEnforced), isShutdownEnforced))
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
+				var (e, preventShutdown, isShutdownEnforced) = tup;
+
 				// Check if Wasabi was forcefully terminated from terminal with Ctrl-C.
-				if (!Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully)
-				{
-					// _hideRequest flag is used to distinguish what is the user's intent.
-					// It is only true when the request comes from the Tray.
-					if ((Services.UiConfig.HideOnClose || _hideRequest) && App.EnableFeatureHide)
-					{
-						_hideRequest = false; // request processed, set it back to the default.
-						return;
-					}
-
-					var (e, preventShutdown) = tup;
-
-					_isShuttingDown = !preventShutdown;
-					e.Cancel = preventShutdown;
-
-					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
-				}
-				else
+				if (isShutdownEnforced)
 				{
 					_isShuttingDown = true;
 					tup.EventArgs.Cancel = false;
 					_stateMachine.Fire(Trigger.ShutdownRequested);
 				}
+
+				// _hideRequest flag is used to distinguish what is the user's intent.
+				// It is only true when the request comes from the Tray.
+				if ((Services.UiConfig.HideOnClose || _hideRequest) && App.EnableFeatureHide)
+				{
+					_hideRequest = false; // request processed, set it back to the default.
+					return;
+				}
+
+				_isShuttingDown = !preventShutdown;
+				e.Cancel = preventShutdown;
+
+				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 			})
 			.DisposeWith(_compositeDisposable);
 
@@ -236,6 +234,6 @@ public class ApplicationStateManager : IMainWindowService
 	void IMainWindowService.Shutdown(bool restart)
 	{
 		_restartRequest = restart;
-		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
+		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest, out _) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }
