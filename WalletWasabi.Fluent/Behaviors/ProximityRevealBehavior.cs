@@ -59,7 +59,7 @@ public class ProximityRevealBehavior : Avalonia.Xaml.Interactions.Custom.Attache
         var isVisibilityForced = this.WhenAnyValue(x => x.ForceVisible);
 
         hits.CombineLatest(isVisibilityForced, (isHit, isForced) => (isHit, isForced))
-            .Do(tuple => Target!.IsVisible = tuple.isHit || tuple.isForced)
+            .Do(tuple => Target!.IsVisible = tuple.isHit && AssociatedObject.IsEffectivelyEnabled || tuple.isForced)
             .Subscribe()
             .DisposeWith(disposable);
     }
