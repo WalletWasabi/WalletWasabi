@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using WalletWasabi.BuyAnything.Models;
 using WalletWasabi.Logging;
 
 public record BuyAnythingConfig(
@@ -14,16 +15,6 @@ public record BuyAnythingConfig(
 	string SenderPassword,
 	string EmailDomain,
 	string MessageInboxFolder);
-
-public class BuyAnythingMessage
-{
-	[Required(ErrorMessage = "RequestId is required.")]
-	public string RequestId { get; set; }
-
-	[Required(ErrorMessage = "Message is required.")]
-	[MinLength(200, ErrorMessage = "Message must be at least 200 characters long.")]
-	public string Message { get; set; }
-}
 
 [ApiController]
 [Route("api/[controller]")]
