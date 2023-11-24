@@ -264,8 +264,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
-	[JsonRpcMethod("listpayments")]
-	public JsonRpcResultList ListPayments()
+	[JsonRpcMethod("listpaymentsincoinjoin")]
+	public JsonRpcResultList ListPaymentsInCoinJoin()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
@@ -317,7 +317,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}).ToImmutableArray();
 	}
 
-	[JsonRpcMethod("cancelpayment")]
+	[JsonRpcMethod("cancelpaymentincoinjoin")]
 	public void CancelPayment(Guid paymentId)
 	{
 		AssertWalletIsLoaded();

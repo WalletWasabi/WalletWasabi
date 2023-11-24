@@ -33,7 +33,7 @@ public class PaymentBatch
 		{
 			_payments.Add(payment);
 		}
-		Logger.LogInfo($"Payment for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
+		Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
 		return payment.Id;
 	}
 
@@ -41,9 +41,23 @@ public class PaymentBatch
 	{
 		lock (_syncObj)
 		{
-			if (_payments.FirstOrDefault(p => p.Id == id) is {State: PendingPayment pendingPayment} payment)
+			if (_payments.FirstOrDefault(p => p.Id == id) is {} payment)
 			{
-				_payments.Remove(payment);
+				if (payment.State is PendingPayment)
+				{
+					_payments.Remove(payment);
+					Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey} was canceled.");
+				}
+				else
+				{
+					Logger.LogInfo($"Payment {payment.Id} could not be canceled because it is not pending.");
+					throw new InvalidOperationException("Payment could not be canceled because it is not pending.");
+				}
+			}
+			else
+			{
+				Logger.LogInfo($"Payment {id} was not found.");
+				throw new InvalidOperationException("Payment was not found.");
 			}
 		}
 	}
