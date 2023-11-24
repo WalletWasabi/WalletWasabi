@@ -28,7 +28,7 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-	private static int WalletCount = 1;
+	private static int WalletCount;
 	
 	public Wallet(
 		string dataDir,
