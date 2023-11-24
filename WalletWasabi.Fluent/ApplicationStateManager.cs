@@ -139,7 +139,7 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				var (e, preventShutdown, isShutdownEnforced) = tup;
 
-				// Check if Wasabi was forcefully terminated from terminal with Ctrl-C.
+				// Check if Ctrl-C was used to forcefully terminate the app.
 				if (isShutdownEnforced)
 				{
 					_isShuttingDown = true;
