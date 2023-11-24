@@ -105,6 +105,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
+		BuyCommand = ReactiveCommand.Create(() => Navigate().To().Buy(this));
+
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -171,6 +173,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
+
+	public ICommand BuyCommand { get; private set; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
 
