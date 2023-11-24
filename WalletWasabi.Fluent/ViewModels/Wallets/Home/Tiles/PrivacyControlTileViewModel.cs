@@ -74,8 +74,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	{
 		var hasPrivacy = privateAndSemiPrivateBalance > 0;
 		var hasBalance = totalBalance > 0;
-		var everythingIsPrivate = privateAndSemiPrivateBalance == totalBalance;
-		var isProgressVisible = hasPrivacy && hasBalance && !everythingIsPrivate;
+		var isProgressVisible = hasPrivacy && hasBalance;
 		return isProgressVisible;
 	}
 
