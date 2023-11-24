@@ -11,12 +11,15 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView" ClipToBounds="False">
 
   <c:TileControl Title="BALANCE" IsBottomContentVisible="{Binding Amounts^.HasBalance}" SeparatorMargin="0 0 0 6">
-    <c:CopyableItem HorizontalAlignment="Center" ContentToCopy="{Binding Amounts^.Btc}" HorizontalContentAlignment="Center">
+    <c:CopyableItem HorizontalAlignment="Center" ContentToCopy="{Binding Amounts^.Btc}"
+                    HorizontalContentAlignment="Center">
       <c:PrivacyContentControl Classes="h3 monoSpaced" Margin="4" HorizontalContentAlignment="Center"
+                               VerticalAlignment="Center"
                                Content="{Binding Amounts^.Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
     </c:CopyableItem>
     <c:TileControl.BottomContent>
-      <c:CopyableItem HorizontalAlignment="Center" ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdNumber}}">
+      <c:CopyableItem HorizontalAlignment="Center"
+                      ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdNumber}}">
         <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                  Opacity="0.8"
                                  Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />

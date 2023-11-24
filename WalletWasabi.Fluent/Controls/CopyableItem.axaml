@@ -23,7 +23,7 @@
                 <c:ClipboardCopyButton x:Name="CopyButton" x:DataType="c:CopyableItem" Text="{Binding ContentToCopy}" />
               </b:AdornerBehavior.Adorner>
             </b:AdornerBehavior>
-            <b:ProximityRevealBehavior InflateHitBoxesBy="16" Target="CopyButton" ForceVisible="{Binding #CopyButton.CopyCommand.IsExecuting^}" />
+            <b:ProximityRevealBehavior InflateHitBoxesBy="2" Target="CopyButton" ForceVisible="{Binding #CopyButton.CopyCommand.IsExecuting^}" />
           </Interaction.Behaviors>
         </ContentPresenter>
       </ControlTemplate>

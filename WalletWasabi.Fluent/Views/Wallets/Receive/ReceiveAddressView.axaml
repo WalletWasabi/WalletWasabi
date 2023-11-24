@@ -53,7 +53,7 @@
               </Button>
             </b:AdornerBehavior.Adorner>
           </b:AdornerBehavior>
-          <b:ProximityRevealBehavior InflateHitBoxesBy="16" Target="SaveButton" />
+          <b:ProximityRevealBehavior InflateHitBoxesBy="6" Target="SaveButton" />
         </Interaction.Behaviors>
       </Viewbox>
     </DockPanel>
