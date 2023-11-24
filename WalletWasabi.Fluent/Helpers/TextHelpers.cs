@@ -98,13 +98,18 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+		if (confirmations > 0)
+		{
+			return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+		}
+
+		return $"Pending";
 	}
 
 	public static string FormatPercentageDiff(double n)
 	{
 		var precision = 0.01m;
-		var withFriendlyDecimals = (n*100).WithFriendlyDecimals();
+		var withFriendlyDecimals = (n * 100).WithFriendlyDecimals();
 
 		if (Math.Abs(withFriendlyDecimals) < precision)
 		{
