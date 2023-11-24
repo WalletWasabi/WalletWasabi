@@ -114,7 +114,7 @@ public class ApplicationStateManager : IMainWindowService
 		bool shouldPrevent = !isShutdownEnforced && e.Cancel;
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
-		_stateMachine.Fire(shouldPrevent ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested); // if e.Cancel true, prevent, otherwise shutdown.
+		_stateMachine.Fire(shouldPrevent ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 	}
 
 	private void CreateAndShowMainWindow()
