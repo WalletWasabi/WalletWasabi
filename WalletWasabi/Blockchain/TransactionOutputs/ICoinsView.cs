@@ -15,13 +15,9 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView Confirmed();
 
-	ICoinsView FilterBy(Func<SmartCoin, bool> expression);
-
 	ICoinsView CreatedBy(uint256 txid);
 
 	ICoinsView SpentBy(uint256 txid);
-
-	SmartCoin[] ToArray();
 
 	Money TotalAmount();
 
