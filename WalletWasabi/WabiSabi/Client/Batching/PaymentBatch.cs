@@ -91,7 +91,7 @@ public class PaymentBatch
 
 	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
-		MovePaymentsTo(payments, payment => payment with{ State = new InProgressPayment(payment.State, roundId)});
+		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId)});
 		return InProgressPayments;
 	}
 
@@ -125,8 +125,6 @@ public class PaymentBatch
 			return _payments.AsReadOnly();
 		}
 	}
-
-
 
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)
 	{
