@@ -47,7 +47,13 @@ public class Global
 		DataDir = dataDir;
 		ConfigFilePath = configFilePath;
 		Config = config;
-		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = new TorSettings(
+			DataDir,
+			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			Config.TerminateTorOnExit,
+			socksPort: config.TorSocksPort,
+			controlPort: config.TorControlPort,
+			owningProcessId: Environment.ProcessId);
 
 		HostedServices = new HostedServices();
 

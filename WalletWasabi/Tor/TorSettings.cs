@@ -16,15 +16,31 @@ public class TorSettings
 	/// <summary>Tor binary file name without extension.</summary>
 	public const string TorBinaryFileName = "tor";
 
+	/// <summary>Default port assigned to Tor SOCKS5 for the Wasabi's bundled Tor.</summary>
+	public const int DefaultSocksPort = 37150;
+
+	/// <summary>Default port assigned to Tor control for the Wasabi's bundled Tor.</summary>
+	public const int DefaultControlPort = 37151;
+
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
+	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? socksPort = null, int? controlPort = null, int? owningProcessId = null)
 	{
+		socksPort ??= DefaultSocksPort;
+		controlPort ??= DefaultControlPort;
+
 		TorBinaryFilePath = GetTorBinaryFilePath();
 		TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
-		CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
+		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort.Value);
+		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort.Value);
+
+		bool defaultWasabiTorPorts = socksPort.Value == DefaultSocksPort && controlPort.Value == DefaultControlPort;
+		CookieAuthFilePath = defaultWasabiTorPorts
+			? Path.Combine(dataDir, $"control_auth_cookie")
+			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort.Value}_{controlPort.Value}");
+
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 		DistributionFolder = distributionFolderPath;
@@ -59,10 +75,10 @@ public class TorSettings
 	public string CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public EndPoint SocksEndpoint { get; } = new IPEndPoint(IPAddress.Loopback, 37150);
+	public EndPoint SocksEndpoint { get; }
 
 	/// <summary>Tor control endpoint.</summary>
-	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
+	public EndPoint ControlEndpoint { get; }
 	public int RpcVirtualPort => 80;
 	public int RpcOnionPort => 37129;
 
