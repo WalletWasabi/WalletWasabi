@@ -24,7 +24,7 @@ public record Payment(IDestination Destination, Money Amount)
 	public Guid Id { get; } = Guid.NewGuid();
 	public PaymentState State { get; init; } = new PendingPayment(null);
 
-	public TxOut ToTxOut() => new (Amount, Destination.ScriptPubKey);
+	public TxOut ToTxOut() => new(Amount, Destination.ScriptPubKey);
 
 	public Money EffectiveCost(FeeRate feeRate) =>
 		Amount + feeRate.GetFee(Destination.ScriptPubKey.EstimateOutputVsize());

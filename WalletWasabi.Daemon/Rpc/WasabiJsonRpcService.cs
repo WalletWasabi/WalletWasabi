@@ -139,7 +139,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isRedCoinIsolation"] = activeWallet.KeyManager.RedCoinIsolation,
-			["accounts"] = new [] { segwit }
+			["accounts"] = new[] { segwit }
 		};
 
 		if (km.TaprootExtPubKey is { } taprootExtPubKey)
@@ -158,11 +158,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		if (activeWallet.State == WalletState.Started)
 		{
-				// The following elements are valid only after the wallet is fully synchronized
-				info["balance"] = activeWallet.Coins
-					.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-					.Sum(c => c.Amount.Satoshi);
-				info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
+			// The following elements are valid only after the wallet is fully synchronized
+			info["balance"] = activeWallet.Coins
+				.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
+				.Sum(c => c.Amount.Satoshi);
+			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
 		}
 
 		return info;
@@ -272,10 +272,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payments = activeWallet.BatchedPayments.GetPayments();
 		return payments.Select(x =>
 		{
-			var paymentResult = new JsonRpcResult();
-			paymentResult["id"] = x.Id;
-			paymentResult["amount"] = x.Amount.Satoshi;
-			paymentResult["destination"] = x.Destination.ScriptPubKey.ToHex();
+			var paymentResult = new JsonRpcResult
+			{
+				["id"] = x.Id,
+				["amount"] = x.Amount.Satoshi,
+				["destination"] = x.Destination.ScriptPubKey.ToHex()
+			};
 
 			var state = x.State;
 			var stateHistory = new List<JsonRpcResult>();
@@ -284,22 +286,28 @@ public class WasabiJsonRpcService : IJsonRpcService
 				switch (state)
 				{
 					case PendingPayment pending:
-						stateHistory.Add(new JsonRpcResult {
+						stateHistory.Add(new JsonRpcResult
+						{
 							["status"] = "Pending"
 						});
 						break;
+
 					case InProgressPayment inProgress:
-						stateHistory.Add(new JsonRpcResult {
+						stateHistory.Add(new JsonRpcResult
+						{
 							["status"] = "In progress",
 							["round"] = inProgress.RoundId.ToString()
 						});
 						break;
+
 					case FinishedPayment finished:
-						stateHistory.Add(new JsonRpcResult {
+						stateHistory.Add(new JsonRpcResult
+						{
 							["status"] = "Finished",
 							["txid"] = finished.TransactionId.ToString()
 						});
 						break;
+
 					default:
 						throw new NotSupportedException($"Unrecognized state: {state.GetType().Name}.");
 				}

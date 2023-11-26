@@ -41,7 +41,7 @@ public class PaymentBatch
 	{
 		lock (_syncObj)
 		{
-			if (_payments.FirstOrDefault(p => p.Id == id) is {} payment)
+			if (_payments.FirstOrDefault(p => p.Id == id) is { } payment)
 			{
 				if (payment.State is PendingPayment)
 				{
@@ -81,7 +81,7 @@ public class PaymentBatch
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
 			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount
 				? paymentSet.TotalVSize <= availableVsize
-				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize )
+				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize)
 			.DefaultIfEmpty(PaymentSet.Empty)
 			.MaxBy(x => x.PaymentCount)!;
 
@@ -91,15 +91,15 @@ public class PaymentBatch
 
 	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
-		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId)});
+		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId) });
 		return InProgressPayments;
 	}
 
 	public void MovePaymentsToFinished(uint256 txId) =>
-		MovePaymentsTo(InProgressPayments, payment => payment with {State = new FinishedPayment(payment.State, txId)});
+		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
 	public void MovePaymentsToPending() =>
-		MovePaymentsTo(InProgressPayments, payment => payment with {State = new PendingPayment(payment.State)});
+		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
 	public bool AreTherePendingPayments => PendingPayments.Any();
 
