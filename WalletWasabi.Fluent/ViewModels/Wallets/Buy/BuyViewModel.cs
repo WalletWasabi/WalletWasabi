@@ -73,11 +73,11 @@ public partial class BuyViewModel : RoutableViewModel
 			},
 			new OrderViewModel(Guid.NewGuid())
 			{
-				Title = "Order 001",
+				Title = "Order 002",
 			},
 			new OrderViewModel(Guid.NewGuid())
 			{
-				Title = "Order 001",
+				Title = "Order 003",
 			}
 		};
 
