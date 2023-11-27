@@ -29,7 +29,10 @@ public partial class BuyViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+		Conversation = new ConversationViewModel();
 	}
+
+	public ConversationViewModel Conversation { get; set; }
 
 	public WalletViewModel WalletVm { get; }
 

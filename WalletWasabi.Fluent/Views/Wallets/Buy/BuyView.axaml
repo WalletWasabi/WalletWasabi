@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
              mc:Ignorable="d"
              x:DataType="vm:BuyViewModel"
              x:CompileBindings="True"
@@ -17,8 +18,7 @@
     IsBusy="{Binding IsBusy}"
     ScrollViewer.VerticalScrollBarVisibility="Auto" Title="{Binding Title}">
 
-
-    <!-- TODO: -->
+    <buy:ConversationView DataContext="{Binding Conversation}" />
 
   </c:ContentArea>
 </UserControl>
