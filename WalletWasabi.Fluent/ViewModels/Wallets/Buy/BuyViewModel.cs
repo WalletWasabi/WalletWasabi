@@ -2,12 +2,11 @@ using System.Reactive.Disposables;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
 [NavigationMetaData(
-	Title = "Buy",
+	Title = "Buy Anything",
 	Caption = "Display wallet buy dialog",
 	IconName = "wallet_action_buy",
 	Order = 7,
