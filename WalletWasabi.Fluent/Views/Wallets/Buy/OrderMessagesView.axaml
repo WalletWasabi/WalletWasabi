@@ -23,7 +23,8 @@
                 Classes="action" />
         <TextBox VerticalAlignment="Center"
                  Background="#232932"
-                 Text="{Binding SelectedOrder.Message}">
+                 Text="{Binding SelectedOrder.Message}"
+                 Watermark="Type here...">
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
