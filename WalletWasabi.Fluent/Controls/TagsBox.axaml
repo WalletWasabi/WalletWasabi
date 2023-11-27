@@ -27,7 +27,6 @@
 
   <Style Selector="c|TagsBox">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
@@ -142,6 +141,10 @@
       </ControlTemplate>
     </Setter>
     <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
+  </Style>
+
+  <Style Selector="c|TagsBox">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
   </Style>
 
   <Style Selector="c|TagsBox /template/ Border#PART_Border">

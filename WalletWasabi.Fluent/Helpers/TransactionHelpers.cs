@@ -46,6 +46,32 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
+	public static BuildTransactionResult BuildTransactionForSIB(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
+	{
+		if (transactionInfo.IsOptimized)
+		{
+			return wallet.BuildChangelessTransaction(
+				transactionInfo.Destination,
+				transactionInfo.Recipient,
+				transactionInfo.FeeRate,
+				transactionInfo.ChangelessCoins,
+				tryToSign: tryToSign);
+		}
+
+		if (isPayJoin && transactionInfo.SubtractFee)
+		{
+			throw new InvalidOperationException("Not possible to subtract the fee.");
+		}
+
+		return wallet.BuildTransactionForSIB(
+			transactionInfo.Destination,
+			transactionInfo.Amount,
+			transactionInfo.Recipient,
+			transactionInfo.SubtractFee,
+			isPayJoin ? transactionInfo.PayJoinClient : null,
+			tryToSign: tryToSign);
+	}
+
 	public static bool TryBuildTransactionWithoutPrevTx(
 		KeyManager keyManager,
 		TransactionInfo transactionInfo,

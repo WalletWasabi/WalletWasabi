@@ -42,4 +42,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TileButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PreviewItem.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TagsBox.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SelectingItemsControl.axaml" />
+  <!--TODO Convert to control?-->
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewMessageItem.axaml" />
 </Styles>

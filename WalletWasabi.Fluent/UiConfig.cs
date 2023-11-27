@@ -7,6 +7,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent;
 
@@ -28,6 +29,7 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
+	private bool _showBuyAnythingInfo;
 
 	public UiConfig() : base()
 	{
@@ -49,6 +51,7 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			.CombineLatest(this.WhenAnyValue(config => config.ShowBuyAnythingInfo))
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -186,6 +189,14 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "ShowBuyAnythingInfo", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool ShowBuyAnythingInfo
+	{
+		get => _showBuyAnythingInfo;
+		internal set => RaiseAndSetIfChanged(ref _showBuyAnythingInfo, value);
 	}
 
 	[OnDeserialized]
