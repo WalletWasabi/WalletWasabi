@@ -127,6 +127,7 @@ public class ShopWareApiClient
 			RemoteAction.RegisterCustomer => (HttpMethod.Post, "account/register"),
 			RemoteAction.GetOrCreateShoppingCart => (HttpMethod.Post, "checkout/cart"),
 			RemoteAction.AddItemToShoppingCart => (HttpMethod.Post, "checkout/cart/line-item"),
+			RemoteAction.GenerateOrder => (HttpMethod.Post, "checkout/order"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ namespace WalletWasabi.Tests.IntegrationTests;
 
 public class ShopWareClientTests
 {
+	[Fact]
 	public async Task GenerateOrderAsync()
 	{
 		using var httpClient = new HttpClient();
@@ -18,7 +18,7 @@ public class ShopWareClientTests
 		var customer = await shopWareClient.RegisterCustomerAsync("none", new CustomerRegistrationRequest(
 			SalutationId: "018b6635785b70679f479eadf50330f3",
 			FirstName: "Mariela",
-			LastName: "CArranza",
+			LastName: "Carranza",
 			Email: "emilia.carranza@me.com",
 			Guest: true,
 			AffiliateCode: "WASABI",
@@ -40,7 +40,7 @@ public class ShopWareClientTests
 				{
 					new ShoppingCartItem(
 						Id: "0",
-						ReferencedId: "0",
+						ReferencedId: "018c0cec5299719f9458dba04f88eb8c",
 						Label: "The label",
 						Quantity: 1,
 						Type: "product",
@@ -50,11 +50,11 @@ public class ShopWareClientTests
 						Removable: false,
 						Modified: false)
 				}), CancellationToken.None);
-		var order = await shopWareClient.GenerateOrderAsync(customer.ContextTokens[0], new OrderGenerationRequest(
+		var order = await shopWareClient.GenerateOrderAsync(shoppingCartx.Token, new OrderGenerationRequest(
 			CustomerComment: "Customer comment",
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI"), CancellationToken.None);
 
-		Assert.Equal(order.OrderNumber, "12345");
+		Assert.StartsWith("SIB-", order.OrderNumber);
 	}
 }
