@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="buy:BuyViewModel"
@@ -40,8 +41,10 @@
                       CornerRadius="12"
                       HorizontalAlignment="Right"
                       Background="#6591EC">
-                <TextBlock TextWrapping="Wrap"
-                           Text="{Binding Message}" />
+                <c:PreviewItem CopyableContent="{Binding Message}">
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
+                </c:PreviewItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
@@ -50,8 +53,10 @@
                       CornerRadius="12"
                       HorizontalAlignment="Left"
                       Background="#21252D">
-                <TextBlock TextWrapping="Wrap"
-                           Text="{Binding Message}" />
+                <c:PreviewItem CopyableContent="{Binding Message}">
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
+                </c:PreviewItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
@@ -60,8 +65,10 @@
                       CornerRadius="12"
                       HorizontalAlignment="Left"
                       Background="#FF0000">
-                <TextBlock TextWrapping="Wrap"
-                           Text="{Binding Message}" />
+                <c:PreviewItem CopyableContent="{Binding Message}">
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
+                </c:PreviewItem>
               </Border>
             </DataTemplate>
           </ItemsControl.DataTemplates>
