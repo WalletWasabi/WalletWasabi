@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrdersListView"
+             x:DataType="vm:BuyViewModel"
+             x:CompileBindings="True">
+  <UserControl.Styles>
+    <Style Selector="PathIcon.CompletedIcon">
+      <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="ToolTip.Tip" Value="Completed" />
+    </Style>
+    <Style Selector="PathIcon.UnreadMessagesIcon">
+      <Setter Property="Data" Value="{StaticResource mail_unread}" />
+      <Setter Property="Height" Value="13" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+      <Setter Property="ToolTip.Tip" Value="Unread" />
+    </Style>
+    <Style Selector="PathIcon.RemoveOrderIcon">
+      <Setter Property="Data" Value="{StaticResource delete_regular}" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="ToolTip.Tip" Value="Remove order" />
+    </Style>
+    <Style Selector="PathIcon.ResetOrderIcon">
+      <Setter Property="Data" Value="{StaticResource arrow_reset}" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="ToolTip.Tip" Value="Reset order" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+
+    <TextBlock Background="Transparent" Text="CONVERSATIONS" Opacity="0.6" Margin="0 10" DockPanel.Dock="Top"
+               TextAlignment="Center" FontWeight="Bold" />
+
+    <ListBox Background="Transparent"
+             Margin="10"
+             ItemsSource="{Binding Orders}"
+             SelectedItem="{Binding SelectedOrder}"
+             DockPanel.Dock="Left">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <DockPanel ToolTip.Tip="{Binding SibId}">
+            <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Right">
+              <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
+                        Classes.UnreadMessagesIcon="{Binding HasUnreadMessagesObs^}" />
+              <Button Classes="plain"
+                      Command="{Binding RemoveOrderCommand}"
+                      Name="RemoveOrderButton">
+                <Button.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="CanRemoveObs^" />
+                    <Binding Path="!CanResetObs^" />
+                  </MultiBinding>
+                </Button.IsVisible>
+                <PathIcon Classes="RemoveOrderIcon" />
+              </Button>
+              <Button Classes="plain"
+                      Command="{Binding ResetOrderCommand}">
+                <Button.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="CanResetObs^" />
+                    <Binding Path="!IsBusy" />
+                  </MultiBinding>
+                </Button.IsVisible>
+                <PathIcon Classes="ResetOrderIcon" />
+              </Button>
+            </StackPanel>
+            <TextBlock Text="{Binding Title}"
+                       VerticalAlignment="Center" />
+          </DockPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Margin" Value="0 2.5" />
+          <Setter Property="Padding" Value="10" />
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Border x:Name="PART_Container" CornerRadius="5">
+                <ContentPresenter Background="Transparent" Padding="{TemplateBinding Padding}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+              </Border>
+            </ControlTemplate>
+          </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{DynamicResource ConversationPointerOverBackground}" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{DynamicResource ConversationSelectedBackground}" />
+        </Style>
+        <Style Selector="ListBoxItem:pressed /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{DynamicResource ConversationPressedBackground}" />
+        </Style>
+      </ListBox.Styles>
+    </ListBox>
+  </DockPanel>
+</UserControl>

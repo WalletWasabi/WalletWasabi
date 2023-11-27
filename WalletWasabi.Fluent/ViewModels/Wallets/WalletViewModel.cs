@@ -1,21 +1,26 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
+using DynamicData.Aggregation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -42,6 +47,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
+        BuyViewModel = new BuyViewModel(UiContext, this);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -63,6 +69,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
+		CanBuy = walletModel.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
+
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
@@ -75,6 +83,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(this));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
+		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -96,12 +105,49 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
+		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x._uiConfig.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
+
+		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
+
+		HasUnreadConversations = BuyViewModel.Orders
+			.ToObservableChangeSet(x => x.OrderNumber)
+			.AutoRefresh(x => x.HasUnreadMessages)
+			.Filter(model => model.HasUnreadMessages)
+			.AsObservableCache()
+			.CountChanged
+			.Select(x => x > 0);
+
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
+
+	public ICommand BuyCommand { get; set; }
+
+	public IObservable<bool> IsBuyInfoDisplayed { get; }
+
+	private static bool GetIsBuyButtonVisible(bool hasBalance)
+	{
+		// TODO: Replace this with proper UI Decoupling abstraction.
+		var network = Services.PersistentConfig.Network;
+
+		if (network == Network.Main && hasBalance)
+		{
+			return true;
+		}
+
+#if DEBUG
+		if (hasBalance)
+		{
+			return true;
+		}
+#endif
+		return false;
+	}
+
+	private readonly UiConfig _uiConfig;
 
 	// TODO: Remove this
 	public Wallet Wallet { get; }
@@ -123,6 +169,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
+
+	public BuyViewModel BuyViewModel { get; }
+
+	public IObservable<bool> CanBuy { get; }
 
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
@@ -185,9 +235,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletModel.State
 				   .BindTo(this, x => x.WalletState)
 				   .DisposeWith(disposables);
+
+        BuyViewModel.Activate(disposables);
 	}
 
-	public void SelectTransaction(uint256 txid)
+	
+    public ICommand DismissBuyInfoCommand { get; }
+
+    public IObservable<bool> HasUnreadConversations { get; }
+
+    public void SelectTransaction(uint256 txid)
 	{
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
