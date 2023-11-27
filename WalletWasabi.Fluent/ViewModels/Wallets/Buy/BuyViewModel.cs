@@ -27,14 +27,10 @@ public partial class BuyViewModel : RoutableViewModel
 
 		_wallet = walletVm.Wallet;
 
-		Balance = walletVm.WalletModel.Balances;
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
 	}
-
-	public IObservable<Amount> Balance { get; }
 
 	public WalletViewModel WalletVm { get; }
 
