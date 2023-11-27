@@ -1,4 +1,7 @@
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Disposables;
+using DynamicData;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
@@ -18,6 +21,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 public partial class BuyViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
+	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
+	private readonly SourceCache<OrderViewModel,Guid> _ordersCache;
+
+	[AutoNotify] private OrderViewModel? _selectedOrder;
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -29,10 +36,20 @@ public partial class BuyViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
-		Conversation = new ConversationViewModel();
+
+		_ordersCache = new SourceCache<OrderViewModel, Guid>(x => x.Id);
+
+		_ordersCache
+			.Connect()
+			.Bind(out _orders)
+			.Subscribe();
+
+		Demo();
+
+		SelectedOrder = _orders.FirstOrDefault();
 	}
 
-	public ConversationViewModel Conversation { get; set; }
+	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
 	public WalletViewModel WalletVm { get; }
 
@@ -44,5 +61,26 @@ public partial class BuyViewModel : RoutableViewModel
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
 		base.OnNavigatedFrom(isInHistory);
+	}
+
+	private void Demo()
+	{
+		var demoOrders = new[]
+		{
+			new OrderViewModel(Guid.NewGuid())
+			{
+				Title = "Order 001",
+			},
+			new OrderViewModel(Guid.NewGuid())
+			{
+				Title = "Order 001",
+			},
+			new OrderViewModel(Guid.NewGuid())
+			{
+				Title = "Order 001",
+			}
+		};
+
+		_ordersCache.AddOrUpdate(demoOrders);
 	}
 }

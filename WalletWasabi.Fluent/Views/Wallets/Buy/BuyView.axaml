@@ -10,15 +10,23 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.BuyView"
              d:DesignWidth="600" d:DesignHeight="600">
-  <c:ContentArea
-    EnableBack="{Binding EnableBack}"
-    EnableNext="False"
-    NextContent="Continue"
-    EnableCancel="{Binding EnableCancel}"
-    IsBusy="{Binding IsBusy}"
-    ScrollViewer.VerticalScrollBarVisibility="Auto" Title="{Binding Title}">
+  <c:ContentArea EnableBack="{Binding EnableBack}"
+                 EnableNext="False"
+                 NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-    <buy:ConversationView DataContext="{Binding Conversation}" />
+    <c:ContentArea.Title>
+      <DockPanel>
+        <TextBlock Text="{Binding Title}" />
+      </DockPanel>
+    </c:ContentArea.Title>
+
+    <DockPanel Background="#21252D">
+      <buy:OrdersListView DockPanel.Dock="Left" />
+      <buy:OrderMessagesView></buy:OrderMessagesView>
+    </DockPanel>
 
   </c:ContentArea>
 </UserControl>

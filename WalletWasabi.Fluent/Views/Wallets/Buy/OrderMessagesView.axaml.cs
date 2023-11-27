@@ -2,9 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Buy;
-public partial class ConversationView : UserControl
+
+public partial class OrderMessagesView : UserControl
 {
-	public ConversationView()
+	public OrderMessagesView()
 	{
 		InitializeComponent();
 	}

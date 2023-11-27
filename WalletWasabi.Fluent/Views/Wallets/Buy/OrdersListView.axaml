@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrdersListView"
+             x:DataType="buy:BuyViewModel"
+             x:CompileBindings="True">
+
+  <DockPanel>
+
+    <TextBlock Background="Transparent"
+               Text="CONVERSATIONS"
+               Foreground="#A5A7AA"
+               Margin="10"
+               TextAlignment="Center"
+               FontWeight="Bold"
+               DockPanel.Dock="Top"  />
+
+    <ListBox Background="Transparent"
+             Width="200"
+             Items="{Binding Orders}"
+             SelectedItem="{Binding SelectedOrder}"
+             DockPanel.Dock="Left" >
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Border Background="#343A47"
+                  Padding="8"
+                  CornerRadius="8">
+            <TextBlock Text="{Binding Title}" />
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="8"></Setter>
+        </Style>
+      </ListBox.Styles>
+    </ListBox>
+
+  </DockPanel>
+
+</UserControl>

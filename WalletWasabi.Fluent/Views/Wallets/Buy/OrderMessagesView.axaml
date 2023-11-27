@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
+             x:DataType="buy:BuyViewModel"
+             x:CompileBindings="True">
+
+  <Border Background="#343A47">
+
+    <DockPanel x:Name="RightSide" Margin="8">
+
+      <DockPanel Dock="Bottom">
+        <Button DockPanel.Dock="Right"
+                Margin="8 0 0 0"
+                Content="Request"
+                Classes="action" />
+        <TextBox VerticalAlignment="Center" Background="#232932">
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DockPanel>
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl Items="{Binding SelectedOrder.Messages}">
+          <ItemsControl.DataTemplates>
+            <DataTemplate DataType="buyMessage:UserMessageViewModel">
+              <Border Padding="8"
+                      Margin="8"
+                      CornerRadius="12"
+                      HorizontalAlignment="Right"
+                      Background="#6591EC">
+                <TextBlock TextWrapping="Wrap"
+                           Text="{Binding Message}" />
+              </Border>
+            </DataTemplate>
+            <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
+              <Border Padding="8"
+                      Margin="8"
+                      CornerRadius="12"
+                      HorizontalAlignment="Left"
+                      Background="#21252D">
+                <TextBlock TextWrapping="Wrap"
+                           Text="{Binding Message}" />
+              </Border>
+            </DataTemplate>
+            <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
+              <Border Padding="8"
+                      Margin="8"
+                      CornerRadius="12"
+                      HorizontalAlignment="Left"
+                      Background="#FF0000">
+                <TextBlock TextWrapping="Wrap"
+                           Text="{Binding Message}" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.DataTemplates>
+        </ItemsControl>
+      </ScrollViewer>
+
+    </DockPanel>
+
+  </Border>
+
+</UserControl>
