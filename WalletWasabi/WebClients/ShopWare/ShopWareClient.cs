@@ -6,36 +6,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
-public record BillingAddress
-(
-	string Street,
-	string AdditionalAddressLine1,
-	string Zipcode,
-	string City,
-	string CountryId
-);
-
-public record CustomerRegistrationRequest
-(
-	string SalutationId,
-	string FirstName,
-	string LastName,
-	string Email,
-	bool Guest,
-	string AffiliateCode,
-	bool AcceptedDataProtection,
-	string StorefrontUrl,
-	BillingAddress BillingAddress
-);
-
-public record CustomerRegistrationResponse
-(
-	string Id,
-	string CustomerNumber
-);
 
 public record ApiResponse<TResponse>
 (
@@ -49,7 +23,7 @@ public class ShopWareApiClient
 	private readonly string apiUrl;
 	private readonly string apiKey;
 
-	public ShopWareApiClient(HttpClient client, string apiKey, string? ctxToken = null)
+	public ShopWareApiClient(HttpClient client, string apiKey)
 	{
 		this.apiUrl = apiUrl;
 		this.apiKey = apiKey;
