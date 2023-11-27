@@ -4,18 +4,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.WebClients.ShopWare;
-
-
-public record ApiResponse<TResponse>
-(
-	string[] ContextToken,
-	TResponse Response
-);
 
 public class ShopWareApiClient
 {
@@ -41,11 +35,11 @@ public class ShopWareApiClient
 		RegisterCustomer
 	}
 
-	public Task<ApiResponse<CustomerRegistrationResponse>> RegisterCustomerAsync(CustomerRegistrationRequest request,
+	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(CustomerRegistrationRequest request,
 		CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(RemoteAction.RegisterCustomer, request, cancellationToken);
 
-	private async Task<(string[], string)> SendAsync<TRequest>(RemoteAction action, TRequest request,
+	private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request,
 		CancellationToken cancellationToken) where TRequest : class
 	{
 		using var content = Serialize(request);
@@ -60,7 +54,13 @@ public class ShopWareApiClient
 
 		var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		var ctxTokens = response.Headers.GetValues("sw-context-token").ToArray();
-		return (ctxTokens, responseBody);
+		if (JsonConvert.DeserializeObject(responseBody) is JObject jObject)
+		{
+			jObject.Add("ContextTokens", JArray.FromObject(ctxTokens));
+			return JsonConvert.SerializeObject(jObject);
+		}
+
+		return responseBody;
 	}
 
 	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request,
@@ -69,11 +69,11 @@ public class ShopWareApiClient
 		await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<ApiResponse<TResponse>> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request,
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request,
 		CancellationToken cancellationToken) where TRequest : class
 	{
-		var (ctxTokens, jsonString) = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
-		return new ApiResponse<TResponse>(ctxTokens, Deserialize<TResponse>(jsonString));
+		var jsonString = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+		return Deserialize<TResponse>(jsonString);
 	}
 
 	private static StringContent Serialize<T>(T obj)

@@ -25,5 +25,6 @@ public record CustomerRegistrationRequest
 public record CustomerRegistrationResponse
 (
 	string Id,
-	string CustomerNumber
+	string CustomerNumber,
+	string[] ContextToken
 );
