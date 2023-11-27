@@ -15,6 +15,8 @@
 
       <DockPanel Dock="Bottom">
         <Button DockPanel.Dock="Right"
+                Command="{Binding SelectedOrder.SendCommand}"
+                CommandParameter="{Binding SelectedOrder.Message}"
                 Margin="8 0 0 0"
                 Content="Request"
                 Classes="action" />

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
@@ -10,6 +12,8 @@ public partial class OrderViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
+
+	[AutoNotify] private string? _message;
 
 	public OrderViewModel(Guid id)
 	{
@@ -22,6 +26,11 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
+		var canSend = this.WhenAnyValue(x => x.Message)
+			.Select(x => !string.IsNullOrWhiteSpace(x));
+
+		SendCommand = ReactiveCommand.Create<string>(Send, canSend);
+
 		Demo();
 	}
 
@@ -30,6 +39,20 @@ public partial class OrderViewModel : ReactiveObject
 	public required string Title { get; init; }
 
 	public IReadOnlyCollection<MessageViewModel> Messages => _messages;
+
+	public ICommand SendCommand { get; set; }
+
+	private void Send(string message)
+	{
+		_messagesList.Edit(x =>
+		{
+			x.Add(
+				new UserMessageViewModel
+				{
+					Message = message
+				});
+		});
+	}
 
 	private void Demo()
 	{
