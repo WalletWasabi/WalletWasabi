@@ -1,5 +1,10 @@
 namespace WalletWasabi.WebClients.ShopWare.Models;
 
+public record ShoppingCartCreationRequest
+(
+	string Name
+);
+
 public record ShoppingCartResponse(string Token);
 
 public record ShoppingCartItem
@@ -8,7 +13,7 @@ public record ShoppingCartItem
 	string ReferencedId,
 	string Label,
 	int Quantity,
-	string Type,
+	string? Type,
 	bool Good,
 	string Description,
 	bool Removable,
@@ -18,8 +23,7 @@ public record ShoppingCartItem
 
 public record ShoppingCartItemsRequest
 (
-	ShoppingCartItem[] Items,
-	string ApiAlias
+	ShoppingCartItem[] Items
 );
 
 

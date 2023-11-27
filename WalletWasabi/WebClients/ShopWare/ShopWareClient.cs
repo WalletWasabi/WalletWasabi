@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
@@ -25,7 +26,6 @@ public class ShopWareApiClient
 		_client = client;
 		// Initialize HttpClient with required headers
 		_client.DefaultRequestHeaders.Add("Accept", "application/json");
-		_client.DefaultRequestHeaders.Add("Content-Type", "application/json");
 		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey);
 	}
 
@@ -43,9 +43,8 @@ public class ShopWareApiClient
 		CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, RemoteAction.RegisterCustomer, request, cancellationToken);
 
-	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartRequest request,
-		CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ShoppingCartRequest, ShoppingCartResponse>(ctxToken, RemoteAction.GetOrCreateShoppingCart, request, cancellationToken);
+	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartCreationRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<ShoppingCartCreationRequest, ShoppingCartResponse>(ctxToken, RemoteAction.GetOrCreateShoppingCart, request, cancellationToken);
 
 	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, ShoppingCartItemsRequest request,
 		CancellationToken cancellationToken) =>
@@ -61,11 +60,19 @@ public class ShopWareApiClient
 		var (httpMethod, path) = GetUriEndPoint(action);
 		using var httpRequest = new HttpRequestMessage(httpMethod, path);
 		httpRequest.Headers.Add("sw-context-token", ctxToken);
+		using var content = Serialize(request);
 		if (httpMethod == HttpMethod.Post || httpMethod == HttpMethod.Put)
 		{
-			using var content = Serialize(request);
 			httpRequest.Content = content;
 		}
+
+		//if (action == RemoteAction.AddItemToShoppingCart)
+		//{
+		//	var client = new HttpClient();
+		//	client.BaseAddress = new Uri("http://127.0.0.1:9090/");
+		//	client.DefaultRequestHeaders.Add("sw-access-key", _client.DefaultRequestHeaders.GetValues("sw-access-key"));
+		//	_client = client;
+		//}
 		using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
@@ -99,7 +106,11 @@ public class ShopWareApiClient
 
 	private static StringContent Serialize<T>(T obj)
 	{
-		string jsonString = JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
+		string jsonString = JsonConvert.SerializeObject(obj,
+			new JsonSerializerSettings
+			{
+				ContractResolver = new CamelCasePropertyNamesContractResolver()
+			});
 		return new StringContent(jsonString, Encoding.UTF8, "application/json");
 	}
 
@@ -114,7 +125,7 @@ public class ShopWareApiClient
 		action switch
 		{
 			RemoteAction.RegisterCustomer => (HttpMethod.Post, "account/register"),
-			RemoteAction.GetOrCreateShoppingCart => (HttpMethod.Get, "checkout/cart"),
+			RemoteAction.GetOrCreateShoppingCart => (HttpMethod.Post, "checkout/cart"),
 			RemoteAction.AddItemToShoppingCart => (HttpMethod.Post, "checkout/cart/line-item"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};

@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace WalletWasabi.WebClients.ShopWare.Models;
 
 public record BillingAddress
@@ -26,5 +28,5 @@ public record CustomerRegistrationResponse
 (
 	string Id,
 	string CustomerNumber,
-	string[] ContextToken
+	string[] ContextTokens
 );
