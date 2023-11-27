@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.ConversationView"
+             x:DataType="buy:ConversationViewModel"
+             x:CompileBindings="True">
+  <DockPanel Background="#21252D">
+    <DockPanel>
+      <TextBlock Background="Transparent" Text="CONVERSATIONS" Foreground="#A5A7AA" Margin="10" DockPanel.Dock="Top" TextAlignment="Center" FontWeight="Bold"  />
+      <ListBox Background="Transparent" DockPanel.Dock="Left" Width="200" Items="{Binding Conversations}"
+               SelectedItem="{Binding CurrentConversation}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Border Background="#343A47" Padding="8" CornerRadius="8">
+              <TextBlock Text="{Binding Title}" />
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="8"></Setter>
+          </Style>
+        </ListBox.Styles>
+      </ListBox>
+    </DockPanel>
+    <Border Background="#343A47">
+      <DockPanel x:Name="RightSide" Margin="8">
+        <DockPanel Dock="Bottom">
+          <Button DockPanel.Dock="Right" Margin="8 0 0 0" Content="Request" Classes="action"></Button>
+          <TextBox VerticalAlignment="Center" Background="#232932">
+            <TextBox.Styles>
+              <Style Selector="TextBox /template/ DataValidationErrors">
+                <Setter Property="IsVisible" Value="False" />
+              </Style>
+            </TextBox.Styles>
+          </TextBox>
+        </DockPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl Items="{Binding CurrentConversation.Messages}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Padding="8" Margin="8" CornerRadius="12">
+                  <TextBlock TextWrapping="Wrap" Text="{Binding Text}" />
+
+                  <Interaction.Behaviors>
+                    <DataTriggerBehavior Binding="{Binding Sender}" Value="User">
+                      <AddClassAction ClassName="User" />
+                    </DataTriggerBehavior>
+                    <DataTriggerBehavior Binding="{Binding Sender}" Value="Backend">
+                      <AddClassAction ClassName="Backend" />
+                    </DataTriggerBehavior>
+                  </Interaction.Behaviors>
+                  <Border.Styles>
+                    <Style Selector="Border.User">
+                      <Setter Property="HorizontalAlignment" Value="Right" />
+                      <Setter Property="Background" Value="#6591EC" />
+                    </Style>
+                    <Style Selector="Border.Backend">
+                      <Setter Property="HorizontalAlignment" Value="Left" />
+                      <Setter Property="Background" Value="#21252D" />
+                    </Style>
+                  </Border.Styles>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+  </DockPanel>
+</UserControl>

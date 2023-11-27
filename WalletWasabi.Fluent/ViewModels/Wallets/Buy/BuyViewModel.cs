@@ -2,12 +2,11 @@ using System.Reactive.Disposables;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
 [NavigationMetaData(
-	Title = "Buy",
+	Title = "Buy Anything",
 	Caption = "Display wallet buy dialog",
 	IconName = "wallet_action_buy",
 	Order = 7,
@@ -30,7 +29,10 @@ public partial class BuyViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+		Conversation = new ConversationViewModel();
 	}
+
+	public ConversationViewModel Conversation { get; set; }
 
 	public WalletViewModel WalletVm { get; }
 
