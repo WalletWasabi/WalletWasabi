@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
+using ShoppingCartRequest = WalletWasabi.WebClients.ShopWare.Models.Unit;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
@@ -32,19 +33,39 @@ public class ShopWareApiClient
 
 	private enum RemoteAction
 	{
-		RegisterCustomer
+		RegisterCustomer,
+		GetOrCreateShoppingCart,
+		AddItemToShoppingCart,
+		GenerateOrder
 	}
 
-	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(CustomerRegistrationRequest request,
+	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request,
 		CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(RemoteAction.RegisterCustomer, request, cancellationToken);
+		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, RemoteAction.RegisterCustomer, request, cancellationToken);
 
-	private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request,
+	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartRequest request,
+		CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<ShoppingCartRequest, ShoppingCartResponse>(ctxToken, RemoteAction.GetOrCreateShoppingCart, request, cancellationToken);
+
+	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, ShoppingCartItemsRequest request,
+		CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<ShoppingCartItemsRequest, ShoppingCartItemsResponse>(ctxToken, RemoteAction.AddItemToShoppingCart, request, cancellationToken);
+
+	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request,
+		CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, RemoteAction.GenerateOrder, request, cancellationToken);
+
+	private async Task<string> SendAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request,
 		CancellationToken cancellationToken) where TRequest : class
 	{
-		using var content = Serialize(request);
-		using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetUriEndPoint(action));
-		httpRequest.Content = content;
+		var (httpMethod, path) = GetUriEndPoint(action);
+		using var httpRequest = new HttpRequestMessage(httpMethod, path);
+		httpRequest.Headers.Add("sw-context-token", ctxToken);
+		if (httpMethod == HttpMethod.Post || httpMethod == HttpMethod.Put)
+		{
+			using var content = Serialize(request);
+			httpRequest.Content = content;
+		}
 		using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
@@ -63,16 +84,16 @@ public class ShopWareApiClient
 		return responseBody;
 	}
 
-	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request,
+	private async Task SendAndReceiveAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request,
 		CancellationToken cancellationToken) where TRequest : class
 	{
-		await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+		await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request,
-		CancellationToken cancellationToken) where TRequest : class
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action,
+		TRequest request, CancellationToken cancellationToken) where TRequest : class
 	{
-		var jsonString = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+		var jsonString = await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
 		return Deserialize<TResponse>(jsonString);
 	}
 
@@ -89,10 +110,12 @@ public class ShopWareApiClient
 	}
 
 
-	private static string GetUriEndPoint(RemoteAction action) =>
-		"store-api/" + action switch
+	private static (HttpMethod, string) GetUriEndPoint(RemoteAction action) =>
+		action switch
 		{
-			RemoteAction.RegisterCustomer => "account/register",
+			RemoteAction.RegisterCustomer => (HttpMethod.Post, "account/register"),
+			RemoteAction.GetOrCreateShoppingCart => (HttpMethod.Get, "checkout/cart"),
+			RemoteAction.AddItemToShoppingCart => (HttpMethod.Post, "checkout/cart/line-item"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }
