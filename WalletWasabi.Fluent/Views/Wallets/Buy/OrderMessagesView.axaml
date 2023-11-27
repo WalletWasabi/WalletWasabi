@@ -20,7 +20,9 @@
                 Margin="8 0 0 0"
                 Content="Request"
                 Classes="action" />
-        <TextBox VerticalAlignment="Center" Background="#232932">
+        <TextBox VerticalAlignment="Center"
+                 Background="#232932"
+                 Text="{Binding SelectedOrder.Message}">
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
