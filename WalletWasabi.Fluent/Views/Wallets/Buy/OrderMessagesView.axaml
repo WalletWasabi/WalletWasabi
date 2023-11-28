@@ -24,7 +24,8 @@
         <TextBox VerticalAlignment="Center"
                  Background="#232932"
                  Text="{Binding SelectedOrder.Message}"
-                 Watermark="Type here...">
+                 Watermark="Type here..."
+                 MaxLength="5000">
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
