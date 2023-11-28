@@ -1,13 +1,27 @@
+using System.Collections.Generic;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class PackageWorkflowViewModel : WorkflowViewModel
 {
-	// TODO:
+	private readonly PackageWorkflowRequest _request;
 
-	// Assistant: "Here you can track the package: www.trackmypackage.com/trcknmbr0000001"
-
-	public override WorkflowRequest GetResult()
+	public PackageWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
-		throw new NotImplementedException();
+		_request = new PackageWorkflowRequest();
+
+		// TODO:
+		var trackingUrl = "www.trackmypackage.com/trcknmbr0000001";
+
+		Steps = new List<WorkflowStepViewModel>
+		{
+			// Info
+			new (false,
+				new NoInputWorkflowInputValidatorViewModel(
+					workflowValidator,
+					$"Here you can track the package: {trackingUrl}")),
+		};
 	}
+
+	public override WorkflowRequest GetResult() => _request;
 }

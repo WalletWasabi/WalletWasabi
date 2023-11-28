@@ -94,7 +94,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			case PaymentWorkflowViewModel paymentWorkflowViewModel:
 			{
 				// TODO:
-				CurrentWorkflow = new PackageWorkflowViewModel();
+				CurrentWorkflow = new PackageWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
 			case PackageWorkflowViewModel packageWorkflowViewModel:
