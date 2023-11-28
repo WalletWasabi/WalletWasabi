@@ -32,7 +32,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, "PussyCat89");
+		SelectNextWorkflow(null);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowValidator.IsValidObservable);
 
@@ -70,48 +70,116 @@ public partial class OrderViewModel : ReactiveObject
 		AddUserMessage(message);
 
 		var nextStep = _currentWorkflow.ExecuteNextStep();
-		if (nextStep is not null)
+		if (nextStep is null)
 		{
-			if (!nextStep.RequiresUserInput)
+			// TODO: Handle error?
+			return;
+		}
+
+		if (!nextStep.RequiresUserInput)
+		{
+			var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
+			if (nextMessage is not null)
 			{
-				var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
-				if (nextMessage is not null)
-				{
-					AddAssistantMessage(nextMessage);
-				}
+				AddAssistantMessage(nextMessage);
 			}
+		}
 
-			if (nextStep.IsCompleted)
+		if (nextStep.IsCompleted)
+		{
+			RunNoInputWorkflowSteps();
+		}
+
+		if (_currentWorkflow.IsCompleted)
+		{
+			// TODO: Send request to api service.
+			SendApiRequest(_currentWorkflow);
+
+			// TODO: Select next workflow or wait for api service response.
+			SelectNextWorkflow(_currentWorkflow);
+		}
+	}
+
+	private void SendApiRequest(WorkflowViewModel workflowViewModel)
+	{
+		var request = workflowViewModel.GetResult();
+
+		switch (request)
+		{
+			case DeliveryWorkflowRequest deliveryWorkflowRequest:
 			{
-				RunNoInputWorkflowSteps();
-			}
-
-			if (_currentWorkflow.IsCompleted)
-			{
-				var request = _currentWorkflow.GetResult();
-
 				// TODO:
-				switch (request)
-				{
-					case DeliveryWorkflowRequest deliveryWorkflowRequest:
-						break;
-					case InitialWorkflowRequest initialWorkflowRequest:
-						break;
-					case PackageWorkflowRequest packageWorkflowRequest:
-						break;
-					case PaymentWorkflowRequest paymentWorkflowRequest:
-						break;
-					case SupportChatWorkflowRequest supportChatWorkflowRequest:
-						break;
-					case WorkflowRequestError workflowRequestError:
-						break;
-					default:
-						throw new ArgumentOutOfRangeException(nameof(request));
-				}
+				break;
+			}
+			case InitialWorkflowRequest initialWorkflowRequest:
+			{
+				// TODO:
+				break;
+			}
+			case PackageWorkflowRequest packageWorkflowRequest:
+			{
+				// TODO:
+				break;
+			}
+			case PaymentWorkflowRequest paymentWorkflowRequest:
+			{
+				// TODO:
+				break;
+			}
+			case SupportChatWorkflowRequest supportChatWorkflowRequest:
+			{
+				// TODO:
+				break;
+			}
+			case WorkflowRequestError workflowRequestError:
+			{
+				// TODO:
+				break;
+			}
+			default:
+			{
+				throw new ArgumentOutOfRangeException(nameof(request));
+			}
+		}
+	}
 
-				// TODO: Send request to api service.
-
-				// TODO: Select next workflow or wait for api service response.
+	private void SelectNextWorkflow(WorkflowViewModel? workflowViewModel)
+	{
+		switch (workflowViewModel)
+		{
+			case null:
+			{
+				_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, "PussyCat89");
+				break;
+			}
+			case InitialWorkflowViewModel initialWorkflowViewModel:
+			{
+				// TODO:
+				_currentWorkflow = new DeliveryWorkflowViewModel();
+				break;
+			}
+			case DeliveryWorkflowViewModel deliveryWorkflowViewModel:
+			{
+				// TODO:
+				_currentWorkflow = new PaymentWorkflowViewModel();
+				break;
+			}
+			case PaymentWorkflowViewModel paymentWorkflowViewModel:
+			{
+				// TODO:
+				_currentWorkflow = new PackageWorkflowViewModel();
+				break;
+			}
+			case PackageWorkflowViewModel packageWorkflowViewModel:
+			{
+				// TODO: After receiving package info switch to final workflow with chat support.
+				_currentWorkflow = new SupportChatWorkflowViewModel();
+				break;
+			}
+			case SupportChatWorkflowViewModel supportChatWorkflowViewModel:
+			{
+				// TODO: Order is complete do nothing?
+				break;
 			}
 		}
 	}
