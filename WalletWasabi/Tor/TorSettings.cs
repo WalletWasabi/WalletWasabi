@@ -14,7 +14,7 @@ namespace WalletWasabi.Tor;
 public class TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
-	public const string TorBinaryFileName = "tor";
+	private const string TorBinaryFileName = "tor";
 
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
@@ -72,7 +72,15 @@ public class TorSettings
 	{
 		platform ??= MicroserviceHelpers.GetCurrentPlatform();
 
-		return MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
+		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
+		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
+	}
+
+	/// <returns>Tor binary file name for selected <paramref name="platform"/>.</returns>
+	public static string GetTorBinaryFileName(OSPlatform? platform = null)
+	{
+		platform ??= MicroserviceHelpers.GetCurrentPlatform();
+		return platform == OSPlatform.OSX ? $"{TorBinaryFileName}.real" : TorBinaryFileName;
 	}
 
 	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>
