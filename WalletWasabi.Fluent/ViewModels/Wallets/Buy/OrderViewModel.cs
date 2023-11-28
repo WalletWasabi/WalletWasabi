@@ -150,7 +150,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void AddErrorMessage(string message)
 	{
-		var assistantMessage = new ErrorMessageViewModel()
+		var assistantMessage = new ErrorMessageViewModel
 		{
 			Message = message
 		};

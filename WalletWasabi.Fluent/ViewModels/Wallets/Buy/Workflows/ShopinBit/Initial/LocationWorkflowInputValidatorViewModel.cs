@@ -18,7 +18,7 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 		_initialWorkflowRequest = initialWorkflowRequest;
 
 		// TODO: Get from service.
-		_countries = new ObservableCollection<string>()
+		_countries = new ObservableCollection<string>
 		{
 			"Austria",
 			"Belgium",
