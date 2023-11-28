@@ -10,6 +10,7 @@ using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
 using GetOrderListRequest = WalletWasabi.WebClients.ShopWare.Models.Unit;
+using CancelOrderResponse = WalletWasabi.WebClients.ShopWare.Models.StateMachineState;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
@@ -24,7 +25,8 @@ public class ShopWareApiClient
 		AddItemToShoppingCart,
 		GenerateOrder,
 		GetCountry,
-		GetOrderList
+		GetOrderList,
+		CancelOrder
 	}
 
 	public ShopWareApiClient(HttpClient client, string apiKey)
@@ -51,6 +53,9 @@ public class ShopWareApiClient
 	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<Unit, GetOrderListResponse>(ctxToken, RemoteAction.GetOrderList, Unit.Instance, cancellationToken);
 
+	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken, CancelOrderRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CancelOrderRequest, CancelOrderResponse>(ctxToken, RemoteAction.CancelOrder, request, cancellationToken);
+
 	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, RemoteAction.GetCountry, request, cancellationToken);
 
@@ -73,13 +78,6 @@ public class ShopWareApiClient
 			httpRequest.Content = content;
 		}
 
-		//if (action == RemoteAction.AddItemToShoppingCart)
-		//{
-		//	var client = new HttpClient();
-		//	client.BaseAddress = new Uri("http://127.0.0.1:9090/");
-		//	client.DefaultRequestHeaders.Add("sw-access-key", _client.DefaultRequestHeaders.GetValues("sw-access-key"));
-		//	_client = client;
-		//}
 		using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
@@ -123,6 +121,7 @@ public class ShopWareApiClient
 			RemoteAction.GenerateOrder => (HttpMethod.Post, "checkout/order"),
 			RemoteAction.GetCountry => (HttpMethod.Post, "country"),
 			RemoteAction.GetOrderList => (HttpMethod.Post, "order"),
+			RemoteAction.CancelOrder => (HttpMethod.Post, "order/state/cancel"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }

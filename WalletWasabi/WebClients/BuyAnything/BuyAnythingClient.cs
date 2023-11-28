@@ -20,7 +20,7 @@ public class BuyAnythingClient
 		var customerRegistrationRequest = CreateRandomCustomer();
 		var shoppingCartCreationRequest = new ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = CreateShoppingCartItemAdditionRequest();
-		var orderGenerationRequest = CreateOrderGenerationRequest();
+		var orderGenerationRequest = CreateOrderGenerationRequest(comment);
 		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context",customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(customerRegistrationResponse.ContextTokens[0], shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(shoppingCartCreationResponse.Token, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
@@ -69,9 +69,9 @@ public class BuyAnythingClient
 					Modified: false)
 				});
 
-	private OrderGenerationRequest CreateOrderGenerationRequest() =>
+	private OrderGenerationRequest CreateOrderGenerationRequest(string comment) =>
 		new (
-			CustomerComment: "no comment",
+			CustomerComment: comment,
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
 }

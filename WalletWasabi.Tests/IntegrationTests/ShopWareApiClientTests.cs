@@ -61,6 +61,11 @@ public class ShopWareApiClientTests
 		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token, CancellationToken.None);
 		var uniqueOrder = Assert.Single(orderList.Orders.Elements);
 		Assert.Equal(uniqueOrder.OrderNumber, order.OrderNumber);
+
+		var cancelledOrder = await shopWareApiClient.CancelOrderAsync(shoppingCartx.Token, new CancelOrderRequest(uniqueOrder.Id),
+			CancellationToken.None);
+
+		Assert.Equal("Cancelled", cancelledOrder.Name);
 	}
 
 	[Fact]

@@ -165,6 +165,7 @@ public record ShippingCosts
     object[] TaxRules
 );
 
+
 public record StateMachineState
 (
 	TranslatedState Translated,
@@ -181,3 +182,5 @@ public record TranslatedState
 	string Name,
 	object CustomFields
 );
+
+public record CancelOrderRequest(string OrderId);
