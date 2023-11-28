@@ -157,7 +157,7 @@ public class TransactionProcessorTests
 		Assert.Empty(res4.NewlyConfirmedReceivedCoins);
 		Assert.Single(res4.NewlyConfirmedSpentCoins);
 		Assert.Empty(res4.NewlyReceivedCoins);
-		Assert.Single(res4.NewlySpentCoins);
+		Assert.Empty(res4.NewlySpentCoins);
 		Assert.Empty(res4.ReceivedCoins);
 		Assert.Single(res4.SpentCoins);
 		Assert.Empty(res4.ReceivedDusts);
