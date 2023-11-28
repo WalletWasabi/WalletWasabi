@@ -31,7 +31,7 @@
                 <TextBox VerticalAlignment="Center"
                          Background="#232932"
                          Text="{Binding Message}"
-                         Watermark="Type here..."
+                         Watermark="{Binding Watermark}"
                          MaxLength="5000">
                   <TextBox.Styles>
                     <Style Selector="TextBox /template/ DataValidationErrors">
@@ -41,11 +41,26 @@
                 </TextBox>
             </DataTemplate>
 
+            <DataTemplate DataType="shopinBit:NoInputWorkflowInputValidatorViewModel">
+              <TextBox VerticalAlignment="Center"
+                       Background="#232932"
+                       Text=""
+                       Watermark=""
+                       MaxLength="5000"
+                       IsEnabled="False">
+                <TextBox.Styles>
+                  <Style Selector="TextBox /template/ DataValidationErrors">
+                    <Setter Property="IsVisible" Value="False" />
+                  </Style>
+                </TextBox.Styles>
+              </TextBox>
+            </DataTemplate>
+
             <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
                        Background="#232932"
                        Text="{Binding Message}"
-                       Watermark="Type here..."
+                       Watermark="{Binding Watermark}"
                        MaxLength="5000">
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
@@ -60,7 +75,7 @@
               <c:TagsBox VerticalAlignment="Center"
                          Background="#232932"
                          RestrictInputToSuggestions="True"
-                         Watermark="Type here..."
+                         Watermark="{Binding Watermark}"
                          MaxTextLength="5000"
                          ItemCountLimit="1"
                          Items="{Binding Country}"

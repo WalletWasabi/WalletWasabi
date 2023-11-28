@@ -7,7 +7,8 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 	[AutoNotify] private ObservableCollection<string> _countries;
 	[AutoNotify] private ObservableCollection<string> _country;
 
-	public LocationWorkflowInputValidatorViewModel() : base(null)
+	public LocationWorkflowInputValidatorViewModel()
+		: base(null, "Enter your location...")
 	{
 		// TODO: Get from service.
 		_countries = new ObservableCollection<string>()

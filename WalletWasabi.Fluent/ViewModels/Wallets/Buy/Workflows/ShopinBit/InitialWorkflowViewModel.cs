@@ -24,7 +24,7 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 			new (requiresUserInput: true,
 				userInputValidator: new RequestWorkflowInputValidatorViewModel()),
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new NoInputWorkflowInputValidatorViewModel(
 					"We have received you request, We will get back to you in a couple of days."))
 		};
 	}
