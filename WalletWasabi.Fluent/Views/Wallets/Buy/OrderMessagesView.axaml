@@ -88,10 +88,13 @@
 
       </DockPanel>
 
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <!-- TODO: Add scrolling to last item when new message is added -->
-        <ItemsControl Items="{Binding SelectedOrder.Messages}">
-          <ItemsControl.DataTemplates>
+      <ScrollViewer Name="MessagesScrollViewer"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+        <SelectingItemsControl Name="MessagesItemsControl"
+                               Items="{Binding SelectedOrder.Messages}"
+                               SelectedItem="{Binding SelectedOrder.SelectedMessage}">
+          <SelectingItemsControl.DataTemplates>
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
               <Border Padding="8"
                       Margin="8"
@@ -128,8 +131,8 @@
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
-          </ItemsControl.DataTemplates>
-        </ItemsControl>
+          </SelectingItemsControl.DataTemplates>
+        </SelectingItemsControl>
       </ScrollViewer>
 
     </DockPanel>
