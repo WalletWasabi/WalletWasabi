@@ -26,7 +26,7 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 		return _steps[_nextStepIndex];
 	}
 
-	public WorkflowStepViewModel? ExecuteNextStep(string userMessage)
+	public WorkflowStepViewModel? ExecuteNextStep()
 	{
 		if (_steps is null)
 		{
@@ -44,7 +44,7 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 		var step = _steps[_nextStepIndex];
 		if (step.RequiresUserInput)
 		{
-			result = step.UserInputValidator.IsValid(userMessage);
+			result = step.UserInputValidator.IsValid();
 		}
 
 		if (result)

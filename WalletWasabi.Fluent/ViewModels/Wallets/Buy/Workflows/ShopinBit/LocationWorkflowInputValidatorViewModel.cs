@@ -47,9 +47,19 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 		_country = new ObservableCollection<string>();
 	}
 
-	public override bool IsValid(string message)
+	public override bool IsValid()
 	{
 		// TODO: Validate location.
-		return !string.IsNullOrWhiteSpace(message);
+		return _country.Count == 1 && !string.IsNullOrWhiteSpace(_country[0]);
+	}
+
+	public override string? GetFinalMessage()
+	{
+		if (IsValid())
+		{
+			return _country[0];
+		}
+
+		return null;
 	}
 }

@@ -62,7 +62,7 @@ public partial class OrderViewModel : ReactiveObject
 			return;
 		}
 
-		var message = _currentWorkflow.CurrentStep.UserInputValidator.Message;
+		var message = _currentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
 		if (message is null)
 		{
 			return;
@@ -70,12 +70,13 @@ public partial class OrderViewModel : ReactiveObject
 
 		AddUserMessage(message);
 
-		var nextStep = _currentWorkflow.ExecuteNextStep(message);
+		var nextStep = _currentWorkflow.ExecuteNextStep();
 		if (nextStep is not null)
 		{
-			if (nextStep.UserInputValidator.Message is not null)
+			var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
+			if (nextMessage is not null)
 			{
-				AddAssistantMessage(nextStep.UserInputValidator.Message);
+				AddAssistantMessage(nextMessage);
 			}
 
 			if (nextStep.IsCompleted)
@@ -83,8 +84,6 @@ public partial class OrderViewModel : ReactiveObject
 				RunNoInputWorkflowSteps();
 			}
 		}
-
-		Message = "";
 	}
 
 	private void AddAssistantMessage(string message)
@@ -126,7 +125,7 @@ public partial class OrderViewModel : ReactiveObject
 				break;
 			}
 
-			var nextStep = _currentWorkflow.ExecuteNextStep(string.Empty);
+			var nextStep = _currentWorkflow.ExecuteNextStep();
 			if (nextStep is not null)
 			{
 				if (nextStep.UserInputValidator.Message is not null)

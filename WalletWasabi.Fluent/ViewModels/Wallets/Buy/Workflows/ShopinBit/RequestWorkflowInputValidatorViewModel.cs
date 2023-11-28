@@ -6,9 +6,19 @@ public partial class RequestWorkflowInputValidatorViewModel : WorkflowInputValid
 	{
 	}
 
-	public override bool IsValid(string message)
+	public override bool IsValid()
 	{
 		// TODO: Validate request.
-		return !string.IsNullOrWhiteSpace(message);
+		return !string.IsNullOrWhiteSpace(Message);
+	}
+
+	public override string? GetFinalMessage()
+	{
+		if (IsValid())
+		{
+			return Message;
+		}
+
+		return null;
 	}
 }
