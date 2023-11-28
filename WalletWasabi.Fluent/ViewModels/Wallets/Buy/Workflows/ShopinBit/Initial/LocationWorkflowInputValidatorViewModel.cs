@@ -5,12 +5,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
 {
-	[AutoNotify] private ObservableCollection<string> _countries;
-	[AutoNotify] private ObservableCollection<string> _country;
+	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
-	public LocationWorkflowInputValidatorViewModel(IWorkflowValidator workflowValidator)
+	[AutoNotify] private ObservableCollection<string> _countries;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _country;
+
+	public LocationWorkflowInputValidatorViewModel(
+		IWorkflowValidator workflowValidator,
+		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Enter your location...")
 	{
+		_initialWorkflowRequest = initialWorkflowRequest;
+
 		// TODO: Get from service.
 		_countries = new ObservableCollection<string>()
 		{
@@ -46,6 +52,7 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 			"United Kingdom",
 			"United States of America",
 		};
+
 		_country = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.Country.Count)
@@ -62,7 +69,11 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 	{
 		if (IsValid())
 		{
-			return _country[0];
+			var location = _country[0];
+
+			_initialWorkflowRequest.Location = location;
+
+			return location;
 		}
 
 		return null;

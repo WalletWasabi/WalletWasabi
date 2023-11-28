@@ -85,6 +85,34 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				RunNoInputWorkflowSteps();
 			}
+
+			if (_currentWorkflow.IsCompleted)
+			{
+				var request = _currentWorkflow.GetResult();
+
+				// TODO:
+				switch (request)
+				{
+					case DeliveryWorkflowRequest deliveryWorkflowRequest:
+						break;
+					case InitialWorkflowRequest initialWorkflowRequest:
+						break;
+					case PackageWorkflowRequest packageWorkflowRequest:
+						break;
+					case PaymentWorkflowRequest paymentWorkflowRequest:
+						break;
+					case SupportChatWorkflowRequest supportChatWorkflowRequest:
+						break;
+					case WorkflowRequestError workflowRequestError:
+						break;
+					default:
+						throw new ArgumentOutOfRangeException(nameof(request));
+				}
+
+				// TODO: Send request to api service.
+
+				// TODO: Select next workflow or wait for api service response.
+			}
 		}
 	}
 

@@ -9,4 +9,9 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 	// Assistant: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
 
 	// Assistant: "We have received you payment! Delivery is in progress."
+
+	public override WorkflowRequest GetResult()
+	{
+		throw new NotImplementedException();
+	}
 }

@@ -25,4 +25,9 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 	// User: "State of Berlin"
 
 	// Assistant: "Thank you! I have everything to deliver the product to you."
+
+	public override WorkflowRequest GetResult()
+	{
+		throw new NotImplementedException();
+	}
 }

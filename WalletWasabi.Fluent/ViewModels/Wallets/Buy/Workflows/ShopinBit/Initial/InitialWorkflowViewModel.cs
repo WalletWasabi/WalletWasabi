@@ -6,8 +6,12 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 {
 	private const string AssistantName = "Clippy";
 
+	private readonly InitialWorkflowRequest _request;
+
 	public InitialWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
+		_request = new InitialWorkflowRequest();
+
 		Steps = new List<WorkflowStepViewModel>
 		{
 			new (false,
@@ -20,18 +24,22 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 					"First, tell me where do you want to order?")),
 			new (requiresUserInput: true,
 				userInputValidator: new LocationWorkflowInputValidatorViewModel(
-					workflowValidator)),
+					workflowValidator,
+					_request)),
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
 					"What do you need?")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestWorkflowInputValidatorViewModel(
-					workflowValidator)),
+					workflowValidator,
+					_request)),
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
 					workflowValidator,
 					"We have received you request, We will get back to you in a couple of days."))
 		};
 	}
+
+	public override WorkflowRequest GetResult() => _request;
 }

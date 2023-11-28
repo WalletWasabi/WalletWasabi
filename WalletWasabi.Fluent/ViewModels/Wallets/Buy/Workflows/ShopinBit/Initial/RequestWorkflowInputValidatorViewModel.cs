@@ -4,9 +4,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class RequestWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
 {
-	public RequestWorkflowInputValidatorViewModel(IWorkflowValidator workflowValidator)
+	private readonly InitialWorkflowRequest _initialWorkflowRequest;
+
+	public RequestWorkflowInputValidatorViewModel(
+		IWorkflowValidator workflowValidator,
+		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Type here...")
 	{
+		_initialWorkflowRequest = initialWorkflowRequest;
+
 		this.WhenAnyValue(x => x.Message)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
 	}
@@ -21,7 +27,11 @@ public partial class RequestWorkflowInputValidatorViewModel : WorkflowInputValid
 	{
 		if (IsValid())
 		{
-			return Message;
+			var message = Message;
+
+			_initialWorkflowRequest.Request = message;
+
+			return message;
 		}
 
 		return null;

@@ -6,8 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 public abstract partial class WorkflowViewModel : ReactiveObject
 {
 	[AutoNotify] private List<WorkflowStepViewModel>? _steps;
-	[AutoNotify] private WorkflowStepViewModel? _currentStep;
-	[AutoNotify] private bool _isCompleted;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowStepViewModel? _currentStep;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCompleted;
 
 	private int _nextStepIndex = 0;
 
@@ -67,4 +67,6 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 		CurrentStep = step;
 		return step;
 	}
+
+	public abstract WorkflowRequest GetResult();
 }
