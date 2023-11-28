@@ -26,6 +26,15 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new FirstNameWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Lastname
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"What is your Lastname?")),
+			new (requiresUserInput: true,
+				userInputValidator: new LastNameWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
 			// Streetname
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
