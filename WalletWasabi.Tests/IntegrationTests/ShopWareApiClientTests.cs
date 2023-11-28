@@ -7,7 +7,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
-public class ShopWareClientTests
+public class ShopWareApiClientTests
 {
 	[Fact]
 	public async Task GenerateOrderAsync()
@@ -15,6 +15,7 @@ public class ShopWareClientTests
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
 		var shopWareClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
 		var customer = await shopWareClient.RegisterCustomerAsync("none", new CustomerRegistrationRequest(
 			SalutationId: "018b6635785b70679f479eadf50330f3",
 			FirstName: "Mariela",
@@ -34,6 +35,7 @@ public class ShopWareClientTests
 
 		var shoppingCart =
 			await shopWareClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0], new ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
+
 		var shoppingCartx = await shopWareClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
 			new ShoppingCartItemsRequest(
 				Items: new[]

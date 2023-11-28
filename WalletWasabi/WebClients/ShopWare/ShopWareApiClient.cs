@@ -9,26 +9,11 @@ using Newtonsoft.Json.Serialization;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
-using ShoppingCartRequest = WalletWasabi.WebClients.ShopWare.Models.Unit;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
 public class ShopWareApiClient
 {
-	private readonly HttpClient httpClient;
-	private readonly string apiUrl;
-	private readonly string apiKey;
-
-	public ShopWareApiClient(HttpClient client, string apiKey)
-	{
-		this.apiUrl = apiUrl;
-		this.apiKey = apiKey;
-		_client = client;
-		// Initialize HttpClient with required headers
-		_client.DefaultRequestHeaders.Add("Accept", "application/json");
-		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey);
-	}
-
 	private HttpClient _client;
 
 	private enum RemoteAction
@@ -37,6 +22,15 @@ public class ShopWareApiClient
 		GetOrCreateShoppingCart,
 		AddItemToShoppingCart,
 		GenerateOrder
+	}
+
+	public ShopWareApiClient(HttpClient client, string apiKey)
+	{
+		_client = client;
+
+		// Initialize HttpClient with required headers
+		_client.DefaultRequestHeaders.Add("Accept", "application/json");
+		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey);
 	}
 
 	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request,
@@ -53,6 +47,13 @@ public class ShopWareApiClient
 	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request,
 		CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, RemoteAction.GenerateOrder, request, cancellationToken);
+
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action,
+		TRequest request, CancellationToken cancellationToken) where TRequest : class
+	{
+		var jsonString = await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
+		return Deserialize<TResponse>(jsonString);
+	}
 
 	private async Task<string> SendAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request,
 		CancellationToken cancellationToken) where TRequest : class
@@ -91,19 +92,6 @@ public class ShopWareApiClient
 		return responseBody;
 	}
 
-	private async Task SendAndReceiveAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request,
-		CancellationToken cancellationToken) where TRequest : class
-	{
-		await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
-	}
-
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action,
-		TRequest request, CancellationToken cancellationToken) where TRequest : class
-	{
-		var jsonString = await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
-		return Deserialize<TResponse>(jsonString);
-	}
-
 	private static StringContent Serialize<T>(T obj)
 	{
 		string jsonString = JsonConvert.SerializeObject(obj,
@@ -117,9 +105,8 @@ public class ShopWareApiClient
 	private static TResponse Deserialize<TResponse>(string jsonString)
 	{
 		return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-		       ?? throw new InvalidOperationException("Deserialization error");
+			   ?? throw new InvalidOperationException("Deserialization error");
 	}
-
 
 	private static (HttpMethod, string) GetUriEndPoint(RemoteAction action) =>
 		action switch
