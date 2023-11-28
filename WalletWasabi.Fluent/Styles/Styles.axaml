@@ -36,4 +36,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToggleSwitch.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollViewer.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CuedScrollViewer.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SelectingItemsControl.axaml" />
 </Styles>
