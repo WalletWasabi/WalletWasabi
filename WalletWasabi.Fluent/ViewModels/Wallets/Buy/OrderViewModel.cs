@@ -14,16 +14,16 @@ public partial class OrderViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
-	private readonly IWorkflowValidator _workflowValidator;
+	private readonly IWorkflowManager _workflowManager;
 
-	[AutoNotify] private WorkflowViewModel? _currentWorkflow;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(Guid id)
 	{
 		Id = id;
 
-		_workflowValidator = new WorkflowValidatorViewModel();
+		// TODO: For now we have only one workflow manager.
+		_workflowManager = new ShopinBitWorkflowManagerViewModel();
 
 		_messagesList = new SourceList<MessageViewModel>();
 
@@ -32,9 +32,9 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		SelectNextWorkflow(null);
+		_workflowManager.SelectNextWorkflow();
 
-		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowValidator.IsValidObservable);
+		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
 		RunNoInputWorkflowSteps();
 
@@ -47,21 +47,23 @@ public partial class OrderViewModel : ReactiveObject
 
 	public IReadOnlyCollection<MessageViewModel> Messages => _messages;
 
+	public IWorkflowManager WorkflowManager => _workflowManager;
+
 	public ICommand SendCommand { get; set; }
 
 	private async Task SendAsync()
 	{
-		_workflowValidator.Signal(false);
+		_workflowManager.WorkflowValidator.Signal(false);
 
 		// TODO: Only for form messages and not api calls.
 		await Task.Delay(200);
 
-		if (_currentWorkflow?.CurrentStep is null)
+		if (_workflowManager.CurrentWorkflow?.CurrentStep is null)
 		{
 			return;
 		}
 
-		var message = _currentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
+		var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
 		if (message is null)
 		{
 			return;
@@ -69,7 +71,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		AddUserMessage(message);
 
-		var nextStep = _currentWorkflow.ExecuteNextStep();
+		var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 		if (nextStep is null)
 		{
 			// TODO: Handle error?
@@ -90,96 +92,43 @@ public partial class OrderViewModel : ReactiveObject
 			RunNoInputWorkflowSteps();
 		}
 
-		if (_currentWorkflow.IsCompleted)
+		if (_workflowManager.CurrentWorkflow.IsCompleted)
 		{
 			// TODO: Send request to api service.
-			SendApiRequest(_currentWorkflow);
+			_workflowManager.SendApiRequest();
 
 			// TODO: Select next workflow or wait for api service response.
-			SelectNextWorkflow(_currentWorkflow);
+			_workflowManager.SelectNextWorkflow();
 		}
 	}
 
-	private void SendApiRequest(WorkflowViewModel workflowViewModel)
+	private void RunNoInputWorkflowSteps()
 	{
-		var request = workflowViewModel.GetResult();
-
-		switch (request)
+		if (_workflowManager.CurrentWorkflow is null)
 		{
-			case DeliveryWorkflowRequest deliveryWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
-			case InitialWorkflowRequest initialWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
-			case PackageWorkflowRequest packageWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
-			case PaymentWorkflowRequest paymentWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
-			case SupportChatWorkflowRequest supportChatWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
-			case WorkflowRequestError workflowRequestError:
-			{
-				// TODO:
-				break;
-			}
-			default:
-			{
-				throw new ArgumentOutOfRangeException(nameof(request));
-			}
+			return;
 		}
-	}
 
-	private void SelectNextWorkflow(WorkflowViewModel? workflowViewModel)
-	{
-		switch (workflowViewModel)
+		while (true)
 		{
-			case null:
+			var peekStep = _workflowManager.CurrentWorkflow.PeekNextStep();
+			if (peekStep is null)
 			{
-				_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, "PussyCat89");
 				break;
 			}
-			case InitialWorkflowViewModel initialWorkflowViewModel:
+
+			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
+			if (nextStep is not null)
 			{
-				// TODO:
-				_currentWorkflow = new DeliveryWorkflowViewModel();
-				break;
-			}
-			case DeliveryWorkflowViewModel deliveryWorkflowViewModel:
-			{
-				// TODO:
-				_currentWorkflow = new PaymentWorkflowViewModel();
-				break;
-			}
-			case PaymentWorkflowViewModel paymentWorkflowViewModel:
-			{
-				// TODO:
-				_currentWorkflow = new PackageWorkflowViewModel();
-				break;
-			}
-			case PackageWorkflowViewModel packageWorkflowViewModel:
-			{
-				// TODO: After receiving package info switch to final workflow with chat support.
-				_currentWorkflow = new SupportChatWorkflowViewModel();
-				break;
-			}
-			case SupportChatWorkflowViewModel supportChatWorkflowViewModel:
-			{
-				// TODO: Order is complete do nothing?
-				break;
+				if (nextStep.UserInputValidator.Message is not null)
+				{
+					AddAssistantMessage(nextStep.UserInputValidator.Message);
+				}
+
+				if (nextStep.RequiresUserInput)
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -212,37 +161,6 @@ public partial class OrderViewModel : ReactiveObject
 		});
 
 		SelectedMessage = userMessage;
-	}
-
-	private void RunNoInputWorkflowSteps()
-	{
-		if (_currentWorkflow is null)
-		{
-			return;
-		}
-
-		while (true)
-		{
-			var peekStep = _currentWorkflow.PeekNextStep();
-			if (peekStep is null)
-			{
-				break;
-			}
-
-			var nextStep = _currentWorkflow.ExecuteNextStep();
-			if (nextStep is not null)
-			{
-				if (nextStep.UserInputValidator.Message is not null)
-				{
-					AddAssistantMessage(nextStep.UserInputValidator.Message);
-				}
-
-				if (nextStep.RequiresUserInput)
-				{
-					break;
-				}
-			}
-		}
 	}
 
 	private void Demo()

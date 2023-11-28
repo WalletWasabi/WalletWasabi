@@ -24,7 +24,7 @@
                 Content="Request"
                 Classes="action" />
 
-        <ContentControl Content="{Binding SelectedOrder.CurrentWorkflow.CurrentStep.UserInputValidator}">
+        <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
           <ContentControl.DataTemplates>
 
             <DataTemplate DataType="shopinBit:DefaultWorkflowInputValidatorViewModel">
