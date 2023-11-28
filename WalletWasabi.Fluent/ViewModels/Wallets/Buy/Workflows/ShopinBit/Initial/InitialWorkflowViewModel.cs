@@ -14,10 +14,12 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 
 		Steps = new List<WorkflowStepViewModel>
 		{
+			// Welcome
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
 					$"Hi {userName}, I am {AssistantName}, I can get you anything. Just tell me what you want, I will order it for you. Flights, cars...")),
+			// Location
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -26,6 +28,7 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new LocationWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// What
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -34,6 +37,7 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new RequestWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Final
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
 					workflowValidator,
