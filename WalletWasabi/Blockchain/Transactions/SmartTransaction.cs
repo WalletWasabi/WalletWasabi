@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
@@ -13,6 +14,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
+[DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
