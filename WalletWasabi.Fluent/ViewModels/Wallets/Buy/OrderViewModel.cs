@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -15,6 +14,7 @@ public partial class OrderViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
+	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify] private WorkflowViewModel? _currentWorkflow;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
@@ -23,6 +23,8 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		Id = id;
 
+		_workflowValidator = new WorkflowValidatorViewModel();
+
 		_messagesList = new SourceList<MessageViewModel>();
 
 		_messagesList
@@ -30,14 +32,9 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		_currentWorkflow = new InitialWorkflowViewModel("PussyCat89");
+		_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, "PussyCat89");
 
-		// TODO: Fix canExecute based on current step
-		// var canSend = this.WhenAnyValue(x => x.Message)
-		// 	.Select(x => !string.IsNullOrWhiteSpace(x));
-		// SendCommand = ReactiveCommand.Create<string>(Send, canSend);
-
-		SendCommand = ReactiveCommand.CreateFromTask(SendAsync);
+		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowValidator.IsValidObservable);
 
 		RunNoInputWorkflowSteps();
 
@@ -54,6 +51,8 @@ public partial class OrderViewModel : ReactiveObject
 
 	private async Task SendAsync()
 	{
+		_workflowValidator.Signal(false);
+
 		// TODO: Only for form messages and not api calls.
 		await Task.Delay(200);
 

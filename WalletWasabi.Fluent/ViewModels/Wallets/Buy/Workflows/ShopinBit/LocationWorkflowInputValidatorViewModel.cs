@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -7,8 +8,8 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 	[AutoNotify] private ObservableCollection<string> _countries;
 	[AutoNotify] private ObservableCollection<string> _country;
 
-	public LocationWorkflowInputValidatorViewModel()
-		: base(null, "Enter your location...")
+	public LocationWorkflowInputValidatorViewModel(IWorkflowValidator workflowValidator)
+		: base(workflowValidator, null, "Enter your location...")
 	{
 		// TODO: Get from service.
 		_countries = new ObservableCollection<string>()
@@ -46,6 +47,9 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 			"United States of America",
 		};
 		_country = new ObservableCollection<string>();
+
+		this.WhenAnyValue(x => x.Country.Count)
+			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
 	}
 
 	public override bool IsValid()
