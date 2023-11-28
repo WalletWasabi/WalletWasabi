@@ -1,33 +1,83 @@
+using System.Collections.Generic;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 {
-	// TODO:
+	private readonly DeliveryWorkflowRequest _request;
 
-	// Assistant: "Dear PussyCat89, I can deliver a Green Lambo to Germany the latest by 2023.12.24. for 300,000 USD which is approx 10.5 BTC."
-
-	// Assistant: "What is your Firstname?"
-	// User: "Satoshi"
-
-	// Assistant: "Streetname"
-	// User: "Top secret street"
-
-	// Assistant: "Housenumber?"
-	// User: "25"
-
-	// Assistant: "ZIP/Postalcode?"
-	// User: "10115"
-
-	// Assistant: "City?"
-	// User: "Berlin"
-
-	// Assistant: "State?"
-	// User: "State of Berlin"
-
-	// Assistant: "Thank you! I have everything to deliver the product to you."
-
-	public override WorkflowRequest GetResult()
+	public DeliveryWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
-		throw new NotImplementedException();
+		_request = new DeliveryWorkflowRequest();
+
+		Steps = new List<WorkflowStepViewModel>
+		{
+			// Info
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					$"Dear {userName}, I can deliver a Green Lambo to Germany the latest by 2023.12.24. for 300,000 USD which is approx 10.5 BTC.")),
+			// Firstname
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"What is your Firstname?")),
+			new (requiresUserInput: true,
+				userInputValidator: new FirstNameWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// Streetname
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"Streetname?")),
+			new (requiresUserInput: true,
+				userInputValidator: new StreetNameWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// Housenumber
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"Housenumber?")),
+			new (requiresUserInput: true,
+				userInputValidator: new HouseNumberWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// ZIP/Postalcode
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"ZIP/Postalcode?")),
+			new (requiresUserInput: true,
+				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// City
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"City?")),
+			new (requiresUserInput: true,
+				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// State
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"State?")),
+			new (requiresUserInput: true,
+				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			// Final
+			new (false,
+				new NoInputWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"Thank you! I have everything to deliver the product to you."))
+		};
 	}
+
+	public override WorkflowRequest GetResult() => _request;
 }
