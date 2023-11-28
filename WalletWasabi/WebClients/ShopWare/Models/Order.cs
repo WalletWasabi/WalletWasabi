@@ -1,5 +1,6 @@
 namespace WalletWasabi.WebClients.ShopWare.Models;
 
+
 public record OrderGenerationRequest
 (
 	string CustomerComment,
@@ -51,3 +52,132 @@ public record OrderGenerationResponse
 	string ApiAlias
 );
 
+
+public record GetOrderListResponse
+(
+	string ApiAlias,
+	OrderList Orders,
+	object[] PaymentChangeable
+);
+
+public record OrderList
+(
+	Order[] Elements,
+	object[] Aggregations,
+	int Page,
+	int Limit,
+	string Entity,
+	int Total,
+	object[] States,
+	string ApiAlias
+);
+
+public record Order
+(
+	Extensions Extensions,
+	string VersionId,
+	object[] Translated,
+	DateTime CreatedAt,
+	object UpdatedAt,
+	StateMachineState StateMachineState,
+	string OrderNumber,
+	string CurrencyId,
+	int CurrencyFactor,
+	string SalesChannelId,
+	string BillingAddressId,
+	string BillingAddressVersionId,
+	DateTime OrderDateTime,
+	DateTime OrderDate,
+	OrderPrice Price,
+	int AmountTotal,
+	int AmountNet,
+	int PositionPrice,
+	string TaxStatus,
+	ShippingCosts ShippingCosts,
+	int ShippingTotal,
+	OrderCustomer OrderCustomer,
+	object Currency,
+	string LanguageId,
+	object Language,
+	object Addresses,
+	BillingAddress BillingAddress,
+	object Deliveries,
+	object LineItems,
+	object Transactions,
+	string DeepLinkCode,
+	object[] Documents,
+	object Tags,
+	string AffiliateCode,
+	string CampaignCode,
+	string CustomerComment,
+	object CreatedById,
+	object UpdatedById,
+	object Source,
+	object CustomFields,
+	string Id,
+	string ApiAlias
+);
+
+public record OrderCustomer
+(
+	string VersionId,
+	object[] Translated,
+	DateTime CreatedAt,
+	object UpdatedAt,
+	string Email,
+	string SalutationId,
+	string FirstName,
+	string LastName,
+	object Title,
+	object VatIds,
+	object Company,
+	string CustomerNumber,
+	object Salutation,
+	object CustomFields,
+	string Id,
+	string ApiAlias
+);
+
+public record Extensions
+(
+	Search Search,
+	string VersionId,
+	object[] Translated,
+	int AutoIncrement,
+	string OrderNumber
+);
+
+public record Search
+(
+	object[] Extensions,
+	object UniqueIdentifier,
+	object[] Translated,
+	int AutoIncrement,
+	string OrderNumber
+);
+
+public record ShippingCosts
+(
+    int UnitPrice,
+    int Quantity,
+    int TotalPrice,
+    object[] CalculatedTaxes,
+    object[] TaxRules
+);
+
+public record StateMachineState
+(
+	TranslatedState Translated,
+	DateTime CreatedAt,
+	object UpdatedAt,
+	string Name,
+	string TechnicalName,
+	object CustomFields,
+	string ApiAlias
+);
+
+public record TranslatedState
+(
+	string Name,
+	object CustomFields
+);

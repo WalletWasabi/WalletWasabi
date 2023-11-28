@@ -58,7 +58,9 @@ public class ShopWareApiClientTests
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI"), CancellationToken.None);
 
-		Assert.StartsWith("SIB-", order.OrderNumber);
+		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token, CancellationToken.None);
+		var uniqueOrder = Assert.Single(orderList.Orders.Elements);
+		Assert.Equal(uniqueOrder.OrderNumber, order.OrderNumber);
 	}
 
 	[Fact]

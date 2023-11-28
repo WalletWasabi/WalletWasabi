@@ -9,6 +9,7 @@ using Newtonsoft.Json.Serialization;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
+using GetOrderListRequest = WalletWasabi.WebClients.ShopWare.Models.Unit;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
@@ -22,7 +23,8 @@ public class ShopWareApiClient
 		GetOrCreateShoppingCart,
 		AddItemToShoppingCart,
 		GenerateOrder,
-		GetCountry
+		GetCountry,
+		GetOrderList
 	}
 
 	public ShopWareApiClient(HttpClient client, string apiKey)
@@ -45,6 +47,9 @@ public class ShopWareApiClient
 
 	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, RemoteAction.GenerateOrder, request, cancellationToken);
+
+	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<Unit, GetOrderListResponse>(ctxToken, RemoteAction.GetOrderList, Unit.Instance, cancellationToken);
 
 	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, RemoteAction.GetCountry, request, cancellationToken);
@@ -117,6 +122,7 @@ public class ShopWareApiClient
 			RemoteAction.AddItemToShoppingCart => (HttpMethod.Post, "checkout/cart/line-item"),
 			RemoteAction.GenerateOrder => (HttpMethod.Post, "checkout/order"),
 			RemoteAction.GetCountry => (HttpMethod.Post, "country"),
+			RemoteAction.GetOrderList => (HttpMethod.Post, "order"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }

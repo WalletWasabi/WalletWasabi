@@ -20,7 +20,7 @@ public class BuyAnythingClient
 		var customerRegistrationRequest = CreateRandomCustomer();
 		var shoppingCartCreationRequest = new ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = CreateShoppingCartItemAdditionRequest();
-		var orderGenerationRequest = CreateOrderGenerationRequest(comment);
+		var orderGenerationRequest = CreateOrderGenerationRequest();
 		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context",customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(customerRegistrationResponse.ContextTokens[0], shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(shoppingCartCreationResponse.Token, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
@@ -28,6 +28,12 @@ public class BuyAnythingClient
 		return orderGenerationResponse.OrderNumber;
 	}
 
+
+	public async Task GetUpdatesAsync(string conversationId, CancellationToken cancellationToken)
+	{
+
+		//var countryResponse = await apiClient.GetCountryByNameAsync(countryName, cancellationToken).ConfigureAwait(false);
+	}
 
 	private CustomerRegistrationRequest CreateRandomCustomer() =>
 		new CustomerRegistrationRequest(
@@ -63,9 +69,9 @@ public class BuyAnythingClient
 					Modified: false)
 				});
 
-	private OrderGenerationRequest CreateOrderGenerationRequest(string comment) =>
+	private OrderGenerationRequest CreateOrderGenerationRequest() =>
 		new (
-			CustomerComment: comment,
+			CustomerComment: "no comment",
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
 }
