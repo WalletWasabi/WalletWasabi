@@ -68,7 +68,7 @@ public class BuyAnythingClient
 	}
 
 
-	public async Task<Order[]> GetUpdatesAsync(string ctxToken, DateTimeOffset lastUpdate,  CancellationToken cancellationToken)
+	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate,  CancellationToken cancellationToken)
 	{
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
 		var updatedOrders = orderList.Orders.Elements
