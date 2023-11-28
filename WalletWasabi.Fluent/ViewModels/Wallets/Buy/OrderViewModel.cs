@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
