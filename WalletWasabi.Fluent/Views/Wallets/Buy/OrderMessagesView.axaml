@@ -70,6 +70,21 @@
               </TextBox>
             </DataTemplate>
 
+            <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
+              <TextBox VerticalAlignment="Center"
+                       Background="#232932"
+                       Text=""
+                       Watermark=""
+                       MaxLength="5000"
+                       IsEnabled="False">
+                <TextBox.Styles>
+                  <Style Selector="TextBox /template/ DataValidationErrors">
+                    <Setter Property="IsVisible" Value="False" />
+                  </Style>
+                </TextBox.Styles>
+              </TextBox>
+            </DataTemplate>
+
             <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
                        Background="#232932"
