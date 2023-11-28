@@ -88,6 +88,12 @@
 
       </DockPanel>
 
+      <ProgressBar IsIndeterminate="{Binding SelectedOrder.IsBusy}"
+                   IsVisible="{Binding SelectedOrder.IsBusy}"
+                   Margin="0,10,0,10"
+                   Value="50"
+                   DockPanel.Dock="Bottom"/>
+
       <ScrollViewer Name="MessagesScrollViewer"
                     HorizontalScrollBarVisibility="Disabled"
                     VerticalScrollBarVisibility="Auto">

@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowManager
@@ -6,7 +8,7 @@ public interface IWorkflowManager
 
 	WorkflowViewModel? CurrentWorkflow { get; }
 
-	void SendApiRequest();
+	Task SendApiRequestAsync();
 
 	void SelectNextWorkflow();
 }

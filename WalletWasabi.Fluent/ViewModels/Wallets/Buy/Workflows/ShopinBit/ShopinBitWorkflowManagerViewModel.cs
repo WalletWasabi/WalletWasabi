@@ -1,6 +1,5 @@
+using System.Threading.Tasks;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -17,8 +16,11 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
 
-	public void SendApiRequest()
+	public async Task SendApiRequestAsync()
 	{
+		// TODO: Just for testing, remove when api service is implemented.
+		await Task.Delay(3000);
+
 		if (_currentWorkflow is null)
 		{
 			return;
