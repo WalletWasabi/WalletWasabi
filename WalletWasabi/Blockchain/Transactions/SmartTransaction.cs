@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,13 +8,11 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-[JsonObject(MemberSerialization.OptIn)]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
@@ -159,36 +156,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	[JsonProperty]
-	[JsonConverter(typeof(TransactionJsonConverter))]
 	public Transaction Transaction { get; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(HeightJsonConverter))]
 	public Height Height { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(Uint256JsonConverter))]
 	public uint256? BlockHash { get; private set; }
 
-	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty(PropertyName = "Label")]
-	[JsonConverter(typeof(LabelsArrayJsonConverter))]
 	public LabelsArray Labels { get; set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	[JsonProperty]
 	public bool IsReplacement { get; private set; }
 
-	[JsonProperty]
 	public bool IsSpeedup { get; private set; }
 
-	[JsonProperty]
 	public bool IsCancellation { get; private set; }
 
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
