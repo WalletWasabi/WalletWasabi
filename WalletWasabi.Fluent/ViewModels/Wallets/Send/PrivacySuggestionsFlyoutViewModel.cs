@@ -1,3 +1,5 @@
+using DynamicData;
+using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -40,16 +42,16 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
+		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
+
+		await foreach (var warning in result.GetAllWarningsAsync())
 		{
-			if (item is PrivacyWarning warning)
-			{
-				Warnings.Add(warning);
-			}
-			if (item is PrivacySuggestion suggestion)
-			{
-				Suggestions.Add(suggestion);
-			}
+			Warnings.Add(warning);
+		}
+
+		await foreach (var suggestion in result.GetAllSuggestionsAsync())
+		{
+			Suggestions.Add(suggestion);
 		}
 
 		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
