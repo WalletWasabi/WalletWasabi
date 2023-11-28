@@ -104,6 +104,7 @@
               <c:TagsBox VerticalAlignment="Center"
                          Background="#232932"
                          RestrictInputToSuggestions="True"
+                         SuggestionsAreCaseSensitive="False"
                          Watermark="{Binding Watermark}"
                          MaxTextLength="5000"
                          ItemCountLimit="1"
