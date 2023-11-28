@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
@@ -46,8 +49,6 @@ public partial class BuyViewModel : RoutableViewModel
 			.Subscribe();
 
 		Demo();
-
-		SelectedOrder = _orders.FirstOrDefault();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -57,6 +58,20 @@ public partial class BuyViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(inHistory, disposables);
+
+		// TODO: For testing.
+		this.WhenAnyValue(x => x.SelectedOrder)
+			.Subscribe(x =>
+			{
+				Task.Run(async () =>
+				{
+					await Task.Delay(1000);
+					Dispatcher.UIThread.Post(() => x?.Update());
+				});
+			})
+			.DisposeWith(disposables);
+
+		SelectedOrder = _orders.FirstOrDefault();
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
@@ -68,18 +83,9 @@ public partial class BuyViewModel : RoutableViewModel
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
-			{
-				Title = "Order 001",
-			},
-			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
-			{
-				Title = "Order 002",
-			},
-			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
-			{
-				Title = "Order 003",
-			}
+			new OrderViewModel(Guid.NewGuid(), "Order 001", new ShopinBitWorkflowManagerViewModel()),
+			new OrderViewModel(Guid.NewGuid(), "Order 002", new ShopinBitWorkflowManagerViewModel()),
+			new OrderViewModel(Guid.NewGuid(), "Order 003", new ShopinBitWorkflowManagerViewModel()),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);

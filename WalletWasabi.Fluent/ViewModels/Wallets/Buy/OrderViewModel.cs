@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -19,9 +19,10 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
-	public OrderViewModel(Guid id, IWorkflowManager workflowManager)
+	public OrderViewModel(Guid id, string title, IWorkflowManager workflowManager)
 	{
 		Id = id;
+		Title = title;
 
 		// TODO: For now we have only one workflow manager.
 		_workflowManager = workflowManager;
@@ -37,12 +38,13 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		RunNoInputWorkflowSteps();
+		// TODO: Run initial workflow steps if any.
+		// RunNoInputWorkflowSteps();
 	}
 
 	public Guid Id { get; }
 
-	public required string Title { get; init; }
+	public string Title { get; }
 
 	public IReadOnlyCollection<MessageViewModel> Messages => _messages;
 
@@ -102,6 +104,9 @@ public partial class OrderViewModel : ReactiveObject
 
 				// TODO: Select next workflow or wait for api service response.
 				_workflowManager.SelectNextWorkflow();
+
+				// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
+				RunNoInputWorkflowSteps();
 			}
 		}
 		catch (Exception exception)
@@ -189,5 +194,11 @@ public partial class OrderViewModel : ReactiveObject
 		});
 
 		SelectedMessage = userMessage;
+	}
+
+	public void Update()
+	{
+		// TODO: For testing
+		RunNoInputWorkflowSteps();
 	}
 }
