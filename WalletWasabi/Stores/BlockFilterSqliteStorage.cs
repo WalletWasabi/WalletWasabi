@@ -81,10 +81,10 @@ public class BlockFilterSqliteStorage : IDisposable
 			if (startingFilter is not null)
 			{
 				using SqliteCommand isEmptyCommand = connection.CreateCommand();
-				isEmptyCommand.CommandText = "SELECT EXISTS (SELECT 1 FROM filter)";
-				int existRows = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
+				isEmptyCommand.CommandText = "SELECT COUNT(*) FROM filter";
+				int count = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
 
-				if (existRows == 0)
+				if (count == 0)
 				{
 					if (!storage.TryAppend(startingFilter))
 					{
