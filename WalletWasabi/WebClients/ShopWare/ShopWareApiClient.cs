@@ -33,30 +33,27 @@ public class ShopWareApiClient
 		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey);
 	}
 
-	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request,
-		CancellationToken cancellationToken) =>
+	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, RemoteAction.RegisterCustomer, request, cancellationToken);
 
 	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartCreationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartCreationRequest, ShoppingCartResponse>(ctxToken, RemoteAction.GetOrCreateShoppingCart, request, cancellationToken);
 
-	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, ShoppingCartItemsRequest request,
-		CancellationToken cancellationToken) =>
+	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, ShoppingCartItemsRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartItemsRequest, ShoppingCartItemsResponse>(ctxToken, RemoteAction.AddItemToShoppingCart, request, cancellationToken);
 
-	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request,
-		CancellationToken cancellationToken) =>
+	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, RemoteAction.GenerateOrder, request, cancellationToken);
 
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action,
-		TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action, TRequest request, CancellationToken cancellationToken)
+		where TRequest : class
 	{
 		var jsonString = await SendAsync(ctxToken, action, request, cancellationToken).ConfigureAwait(false);
 		return Deserialize<TResponse>(jsonString);
 	}
 
-	private async Task<string> SendAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request,
-		CancellationToken cancellationToken) where TRequest : class
+	private async Task<string> SendAsync<TRequest>(string ctxToken, RemoteAction action, TRequest request, CancellationToken cancellationToken)
+		where TRequest : class
 	{
 		var (httpMethod, path) = GetUriEndPoint(action);
 		using var httpRequest = new HttpRequestMessage(httpMethod, path);
