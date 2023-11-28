@@ -7,11 +7,14 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 {
 	private readonly IWorkflowValidator _workflowValidator;
 
+	private readonly string _userName;
+
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowViewModel? _currentWorkflow;
 
 	public ShopinBitWorkflowManagerViewModel()
 	{
 		_workflowValidator = new WorkflowValidatorViewModel();
+		_userName = "PussyCat89";
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
@@ -73,7 +76,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			case null:
 			{
-				_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, "PussyCat89");
+				_currentWorkflow = new InitialWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
 			case InitialWorkflowViewModel initialWorkflowViewModel:
