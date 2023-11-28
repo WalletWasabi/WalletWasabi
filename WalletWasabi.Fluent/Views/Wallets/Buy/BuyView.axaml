@@ -26,7 +26,7 @@
 
     <DockPanel Background="#21252D">
       <buy:OrdersListView DockPanel.Dock="Left" />
-      <buy:OrderMessagesView></buy:OrderMessagesView>
+      <buy:OrderMessagesView />
     </DockPanel>
 
   </c:ContentArea>
