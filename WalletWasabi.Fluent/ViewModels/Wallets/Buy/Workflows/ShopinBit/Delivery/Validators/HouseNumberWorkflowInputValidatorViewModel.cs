@@ -2,7 +2,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class HouseNumberWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class HouseNumberWorkflowInputValidatorViewModel : TextInputWorkflowInputValidatorViewModel
 {
 	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 
