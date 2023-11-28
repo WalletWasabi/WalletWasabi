@@ -104,6 +104,8 @@ public partial class OrderViewModel : ReactiveObject
 				// TODO: Select next workflow or wait for api service response.
 				_workflowManager.SelectNextWorkflow();
 
+				_workflowManager.WorkflowValidator.Signal(false);
+
 				// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
 				RunNoInputWorkflowSteps();
 			}
