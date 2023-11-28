@@ -108,8 +108,8 @@
                       HorizontalAlignment="Right"
                       Background="#6591EC">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBox Classes="selectableTextBlock wrap"
-                           Text="{Binding Message}" />
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
@@ -120,8 +120,8 @@
                       HorizontalAlignment="Left"
                       Background="#21252D">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBox Classes="selectableTextBlock wrap"
-                           Text="{Binding Message}" />
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
@@ -132,8 +132,8 @@
                       HorizontalAlignment="Left"
                       Background="#FF0000">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBox Classes="selectableTextBlock wrap"
-                           Text="{Binding Message}" />
+                  <TextBlock TextWrapping="Wrap"
+                             Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
