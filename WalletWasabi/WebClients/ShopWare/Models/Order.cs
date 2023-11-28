@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WalletWasabi.WebClients.ShopWare.Models;
 
 
@@ -77,8 +79,8 @@ public record Order
 	Extensions Extensions,
 	string VersionId,
 	object[] Translated,
-	DateTime CreatedAt,
-	object UpdatedAt,
+	DateTimeOffset CreatedAt,
+	DateTimeOffset? UpdatedAt,
 	StateMachineState StateMachineState,
 	string OrderNumber,
 	string CurrencyId,
@@ -86,8 +88,8 @@ public record Order
 	string SalesChannelId,
 	string BillingAddressId,
 	string BillingAddressVersionId,
-	DateTime OrderDateTime,
-	DateTime OrderDate,
+	DateTimeOffset OrderDateTime,
+	DateTimeOffset OrderDate,
 	OrderPrice Price,
 	int AmountTotal,
 	int AmountNet,
@@ -122,7 +124,7 @@ public record OrderCustomer
 (
 	string VersionId,
 	object[] Translated,
-	DateTime CreatedAt,
+	DateTimeOffset CreatedAt,
 	object UpdatedAt,
 	string Email,
 	string SalutationId,
@@ -169,7 +171,7 @@ public record ShippingCosts
 public record StateMachineState
 (
 	TranslatedState Translated,
-	DateTime CreatedAt,
+	DateTimeOffset CreatedAt,
 	object UpdatedAt,
 	string Name,
 	string TechnicalName,
@@ -190,3 +192,15 @@ public record UpdateOrderRequest
 	string OrderId,
 	string CustomerComment
 );
+
+public class GetOrderListRequest
+{
+	public GetOrderListRequest(DateTimeOffset lastUpdate)
+	{
+		Parameters = new() { { "gt", lastUpdate } };
+	}
+
+	public string Type { get; } = "range";
+	public string Field { get; } = "updatedAt";
+	public Dictionary<string, DateTimeOffset> Parameters { get; }
+}

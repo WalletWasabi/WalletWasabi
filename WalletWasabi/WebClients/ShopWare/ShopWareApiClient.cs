@@ -10,7 +10,6 @@ using Newtonsoft.Json.Serialization;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
-using GetOrderListRequest = WalletWasabi.WebClients.ShopWare.Models.Unit;
 using CancelOrderResponse = WalletWasabi.WebClients.ShopWare.Models.StateMachineState;
 
 namespace WalletWasabi.WebClients.ShopWare;

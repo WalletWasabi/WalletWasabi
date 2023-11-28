@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.ShopWare;
@@ -67,10 +68,14 @@ public class BuyAnythingClient
 	}
 
 
-	public async Task GetUpdatesAsync(string ctxToken, CancellationToken cancellationToken)
+	public async Task<Order[]> GetUpdatesAsync(string ctxToken, DateTimeOffset lastUpdate,  CancellationToken cancellationToken)
 	{
-		//ApiClient.GetOrderListAsync()
-		//var countryResponse = await apiClient.GetCountryByNameAsync(countryName, cancellationToken).ConfigureAwait(false);
+		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+		var updatedOrders = orderList.Orders.Elements
+			.Where(o => o.UpdatedAt is not null)
+			.Where(o => o.UpdatedAt > lastUpdate)
+			.ToArray();
+		return updatedOrders;
 	}
 
 	// Creates a non-random customer creation request.
