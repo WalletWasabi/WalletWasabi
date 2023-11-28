@@ -5,6 +5,7 @@ using DynamicData;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -67,15 +68,15 @@ public partial class BuyViewModel : RoutableViewModel
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(Guid.NewGuid())
+			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
 			{
 				Title = "Order 001",
 			},
-			new OrderViewModel(Guid.NewGuid())
+			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
 			{
 				Title = "Order 002",
 			},
-			new OrderViewModel(Guid.NewGuid())
+			new OrderViewModel(Guid.NewGuid(), new ShopinBitWorkflowManagerViewModel())
 			{
 				Title = "Order 003",
 			}

@@ -19,12 +19,12 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
-	public OrderViewModel(Guid id)
+	public OrderViewModel(Guid id, IWorkflowManager workflowManager)
 	{
 		Id = id;
 
 		// TODO: For now we have only one workflow manager.
-		_workflowManager = new ShopinBitWorkflowManagerViewModel();
+		_workflowManager = workflowManager;
 
 		_messagesList = new SourceList<MessageViewModel>();
 
