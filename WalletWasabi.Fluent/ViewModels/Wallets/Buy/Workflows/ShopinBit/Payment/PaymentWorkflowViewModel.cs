@@ -6,8 +6,6 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 {
 	private readonly PaymentWorkflowRequest _request;
 
-	// Assistant: "We have received you payment! Delivery is in progress."
-
 	public PaymentWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
 		_request = new PaymentWorkflowRequest();
@@ -42,5 +40,4 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 	}
 
 	public override WorkflowRequest GetResult() => _request;
-
 }
