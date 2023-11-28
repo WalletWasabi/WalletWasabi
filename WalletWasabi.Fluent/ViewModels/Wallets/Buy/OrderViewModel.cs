@@ -38,8 +38,6 @@ public partial class OrderViewModel : ReactiveObject
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
 		RunNoInputWorkflowSteps();
-
-		// Demo();
 	}
 
 	public Guid Id { get; }
@@ -191,32 +189,5 @@ public partial class OrderViewModel : ReactiveObject
 		});
 
 		SelectedMessage = userMessage;
-	}
-
-	private void Demo()
-	{
-		_messagesList.Edit(x =>
-		{
-			x.AddRange(
-				new MessageViewModel[]
-				{
-					new UserMessageViewModel
-					{
-						Message = "I want my Lambo ASAP"
-					},
-					new AssistantMessageViewModel
-					{
-						Message = "OK, which color do you like it more?"
-					},
-					new UserMessageViewModel
-					{
-						Message = "Wasabi colors is right"
-					},
-					new AssistantMessageViewModel
-					{
-						Message = "Cool. Your Lamborguini Aventador is about to arrive. Be ready to open your garage's door."
-					}
-				});
-		});
 	}
 }
