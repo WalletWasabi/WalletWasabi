@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -18,13 +19,21 @@ public class ShopWareApiClient
 {
 	private HttpClient _client;
 
+	// Initializes a new instance of the ShopWareApiClient class.
+	//
+	// Parameters:
+	//   client:
+	//     The HttpClient to use for making API requests.
+	//
+	//   apiKey:
+	//     The API key to authenticate the requests.
 	public ShopWareApiClient(HttpClient client, string apiKey)
 	{
 		_client = client;
 
 		// Initialize HttpClient with required headers
 		_client.DefaultRequestHeaders.Add("Accept", "application/json");
-		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey);
+		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey); // API key. Must be in every single request.
 	}
 
 	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -45,6 +54,7 @@ public class ShopWareApiClient
 	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken, CancelOrderRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CancelOrderRequest, CancelOrderResponse>(ctxToken, HttpMethod.Post, "order/state/cancel", request, cancellationToken);
 
+	// This method doesn't work. It seems there is no way to update an order.
 	public Task UpdateOrderAsync(string ctxToken, UpdateOrderRequest request, CancellationToken cancellationToken) =>
 		SendAsync(ctxToken, HttpMethod.Patch, $"order/{request.OrderId}", request, cancellationToken);
 
@@ -69,6 +79,9 @@ public class ShopWareApiClient
 			httpRequest.Content = content;
 		}
 #if false
+		// This is only for testing. And sends the request to the localhost so we can see exacty what is being sent.
+		// to the network without needing to spy on it.
+		// In a terminal use: nc -l 9090
 		if (path.StartsWith("order/"))
 		{
 			var client = new HttpClient();
@@ -85,6 +98,10 @@ public class ShopWareApiClient
 		}
 
 		var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+		// Here we read the context tokens from the response headers.
+		// and add them to the request json body such that they can be deserialized transparently for those
+		// types that include a `string[] ContextTokens` property.
 		var ctxTokens = response.Headers.GetValues("sw-context-token").ToArray();
 		if (JsonConvert.DeserializeObject(responseBody) is JObject jObject)
 		{

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,11 @@ public class ShopWareApiClientTests
 	[Fact]
 	public async Task GenerateOrderAsync()
 	{
+		//using var handler = new HttpClientHandler
+		//{
+		//	Proxy = new WebProxy("socks5://127.0.0.1", 9050)
+		//};
+		//using var httpClient = new HttpClient(handler);
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");

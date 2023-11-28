@@ -21,7 +21,7 @@ public record CustomerRegistrationRequest
 	string AffiliateCode,
 	bool AcceptedDataProtection,
 	string StorefrontUrl,
-	BillingAddress BillingAddress
+	BillingAddress? BillingAddress
 );
 
 public record CustomerRegistrationResponse
