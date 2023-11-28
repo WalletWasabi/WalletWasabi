@@ -21,7 +21,8 @@ public class ShopWareApiClient
 		RegisterCustomer,
 		GetOrCreateShoppingCart,
 		AddItemToShoppingCart,
-		GenerateOrder
+		GenerateOrder,
+		GetCountry
 	}
 
 	public ShopWareApiClient(HttpClient client, string apiKey)
@@ -44,6 +45,9 @@ public class ShopWareApiClient
 
 	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, RemoteAction.GenerateOrder, request, cancellationToken);
+
+	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, RemoteAction.GetCountry, request, cancellationToken);
 
 	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, RemoteAction action, TRequest request, CancellationToken cancellationToken)
 		where TRequest : class
@@ -112,6 +116,7 @@ public class ShopWareApiClient
 			RemoteAction.GetOrCreateShoppingCart => (HttpMethod.Post, "checkout/cart"),
 			RemoteAction.AddItemToShoppingCart => (HttpMethod.Post, "checkout/cart/line-item"),
 			RemoteAction.GenerateOrder => (HttpMethod.Post, "checkout/order"),
+			RemoteAction.GetCountry => (HttpMethod.Post, "country"),
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }
