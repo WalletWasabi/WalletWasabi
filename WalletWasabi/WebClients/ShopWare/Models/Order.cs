@@ -184,3 +184,9 @@ public record TranslatedState
 );
 
 public record CancelOrderRequest(string OrderId);
+
+public record UpdateOrderRequest
+(
+	string OrderId,
+	string CustomerComment
+);
