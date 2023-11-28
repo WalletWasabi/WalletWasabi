@@ -17,7 +17,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly SourceList<MessageViewModel> _messagesList;
 
 	[AutoNotify] private WorkflowViewModel? _currentWorkflow;
-	[AutoNotify] private string? _message;
+	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(Guid id)
 	{
@@ -91,26 +91,32 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void AddAssistantMessage(string message)
 	{
+		var assistantMessage = new AssistantMessageViewModel
+		{
+			Message = message
+		};
+
 		_messagesList.Edit(x =>
 		{
-			x.Add(
-				new AssistantMessageViewModel()
-				{
-					Message = message
-				});
+			x.Add(assistantMessage);
 		});
+
+		SelectedMessage = assistantMessage;
 	}
 
 	private void AddUserMessage(string message)
 	{
+		var userMessage = new UserMessageViewModel
+		{
+			Message = message
+		};
+
 		_messagesList.Edit(x =>
 		{
-			x.Add(
-				new UserMessageViewModel
-				{
-					Message = message
-				});
+			x.Add(userMessage);
 		});
+
+		SelectedMessage = userMessage;
 	}
 
 	private void RunNoInputWorkflowSteps()
