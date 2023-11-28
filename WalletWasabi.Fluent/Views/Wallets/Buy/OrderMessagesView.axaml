@@ -60,9 +60,12 @@
               <!-- TODO: Text="{Binding Message}" -->
               <c:TagsBox VerticalAlignment="Center"
                          Background="#232932"
-                         RestrictInputToSuggestions="False"
+                         RestrictInputToSuggestions="True"
                          Watermark="Type here..."
-                         MaxTextLength="5000">
+                         MaxTextLength="5000"
+                         ItemCountLimit="1"
+                         Items="{Binding Country}"
+                         Suggestions="{Binding Countries}">
               </c:TagsBox>
             </DataTemplate>
 
