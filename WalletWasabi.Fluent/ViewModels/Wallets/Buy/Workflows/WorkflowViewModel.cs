@@ -6,6 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 public abstract partial class WorkflowViewModel : ReactiveObject
 {
 	[AutoNotify] private List<WorkflowStepViewModel>? _steps;
+	[AutoNotify] private WorkflowStepViewModel? _currentStep;
 	[AutoNotify] private bool _isCompleted;
 
 	private int _nextStepIndex = 0;
@@ -29,11 +30,13 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 	{
 		if (_steps is null)
 		{
+			CurrentStep = null;
 			return null;
 		}
 
 		if (_nextStepIndex >= _steps.Count || IsCompleted)
 		{
+			CurrentStep = null;
 			return null;
 		}
 
@@ -41,7 +44,7 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 		var step = _steps[_nextStepIndex];
 		if (step.RequiresUserInput)
 		{
-			result = step.UserInputValidator?.IsValid(userMessage) ?? false;
+			result = step.UserInputValidator.IsValid(userMessage);
 		}
 
 		if (result)
@@ -61,6 +64,7 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 			}
 		}
 
+		CurrentStep = step;
 		return step;
 	}
 }

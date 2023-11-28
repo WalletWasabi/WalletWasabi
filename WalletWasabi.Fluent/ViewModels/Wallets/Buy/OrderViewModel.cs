@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
@@ -15,8 +16,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 
-	private WorkflowViewModel? _currentWorkflow;
-
+	[AutoNotify] private WorkflowViewModel? _currentWorkflow;
 	[AutoNotify] private string? _message;
 
 	public OrderViewModel(Guid id)
@@ -32,10 +32,12 @@ public partial class OrderViewModel : ReactiveObject
 
 		_currentWorkflow = new InitialWorkflowViewModel("PussyCat89");
 
-		var canSend = this.WhenAnyValue(x => x.Message)
-			.Select(x => !string.IsNullOrWhiteSpace(x));
+		// TODO: Fix canExecute based on current step
+		// var canSend = this.WhenAnyValue(x => x.Message)
+		// 	.Select(x => !string.IsNullOrWhiteSpace(x));
+		// SendCommand = ReactiveCommand.Create<string>(Send, canSend);
 
-		SendCommand = ReactiveCommand.Create<string>(Send, canSend);
+		SendCommand = ReactiveCommand.CreateFromTask(SendAsync);
 
 		RunNoInputWorkflowSteps();
 
@@ -50,24 +52,35 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand SendCommand { get; set; }
 
-	private void Send(string message)
+	private async Task SendAsync()
 	{
+		// TODO: Only for form messages and not api calls.
+		await Task.Delay(200);
+
+		if (_currentWorkflow?.CurrentStep is null)
+		{
+			return;
+		}
+
+		var message = _currentWorkflow.CurrentStep.UserInputValidator.Message;
+		if (message is null)
+		{
+			return;
+		}
+
 		AddUserMessage(message);
 
-		if (_currentWorkflow is not null)
+		var nextStep = _currentWorkflow.ExecuteNextStep(message);
+		if (nextStep is not null)
 		{
-			var nextStep = _currentWorkflow.ExecuteNextStep(message);
-			if (nextStep is not null)
+			if (nextStep.UserInputValidator.Message is not null)
 			{
-				if (nextStep.Message is not null)
-				{
-					AddAssistantMessage(nextStep.Message);
-				}
+				AddAssistantMessage(nextStep.UserInputValidator.Message);
+			}
 
-				if (nextStep.IsCompleted)
-				{
-					RunNoInputWorkflowSteps();
-				}
+			if (nextStep.IsCompleted)
+			{
+				RunNoInputWorkflowSteps();
 			}
 		}
 
@@ -116,9 +129,9 @@ public partial class OrderViewModel : ReactiveObject
 			var nextStep = _currentWorkflow.ExecuteNextStep(string.Empty);
 			if (nextStep is not null)
 			{
-				if (nextStep.Message is not null)
+				if (nextStep.UserInputValidator.Message is not null)
 				{
-					AddAssistantMessage(nextStep.Message);
+					AddAssistantMessage(nextStep.UserInputValidator.Message);
 				}
 
 				if (nextStep.RequiresUserInput)

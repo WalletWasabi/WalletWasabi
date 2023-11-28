@@ -5,6 +5,8 @@
              xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:workflows="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows"
+             xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="buy:BuyViewModel"
@@ -14,24 +16,59 @@
 
     <DockPanel x:Name="RightSide" Margin="8">
 
-      <DockPanel Dock="Bottom">
+      <DockPanel DockPanel.Dock="Bottom">
+
         <Button DockPanel.Dock="Right"
                 Command="{Binding SelectedOrder.SendCommand}"
                 CommandParameter="{Binding SelectedOrder.Message}"
                 Margin="8 0 0 0"
                 Content="Request"
                 Classes="action" />
-        <TextBox VerticalAlignment="Center"
-                 Background="#232932"
-                 Text="{Binding SelectedOrder.Message}"
-                 Watermark="Type here..."
-                 MaxLength="5000">
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ DataValidationErrors">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-          </TextBox.Styles>
-        </TextBox>
+
+        <ContentControl Content="{Binding SelectedOrder.CurrentWorkflow.CurrentStep.UserInputValidator}">
+          <ContentControl.DataTemplates>
+
+            <DataTemplate DataType="shopinBit:DefaultWorkflowInputValidatorViewModel">
+                <TextBox VerticalAlignment="Center"
+                         Background="#232932"
+                         Text="{Binding Message}"
+                         Watermark="Type here..."
+                         MaxLength="5000">
+                  <TextBox.Styles>
+                    <Style Selector="TextBox /template/ DataValidationErrors">
+                      <Setter Property="IsVisible" Value="False" />
+                    </Style>
+                  </TextBox.Styles>
+                </TextBox>
+            </DataTemplate>
+
+            <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
+              <TextBox VerticalAlignment="Center"
+                       Background="#232932"
+                       Text="{Binding Message}"
+                       Watermark="Type here..."
+                       MaxLength="5000">
+                <TextBox.Styles>
+                  <Style Selector="TextBox /template/ DataValidationErrors">
+                    <Setter Property="IsVisible" Value="False" />
+                  </Style>
+                </TextBox.Styles>
+              </TextBox>
+            </DataTemplate>
+
+            <DataTemplate DataType="shopinBit:LocationWorkflowInputValidatorViewModel">
+              <!-- TODO: Text="{Binding Message}" -->
+              <c:TagsBox VerticalAlignment="Center"
+                         Background="#232932"
+                         RestrictInputToSuggestions="False"
+                         Watermark="Type here..."
+                         MaxTextLength="5000">
+              </c:TagsBox>
+            </DataTemplate>
+
+          </ContentControl.DataTemplates>
+        </ContentControl>
+
       </DockPanel>
 
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
