@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +15,9 @@ public class ShopWareApiClientTests
 	{
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
-		var shopWareClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
-		var customer = await shopWareClient.RegisterCustomerAsync("none", new CustomerRegistrationRequest(
+		var customer = await shopWareApiClient.RegisterCustomerAsync("none", new CustomerRegistrationRequest(
 			SalutationId: "018b6635785b70679f479eadf50330f3",
 			FirstName: "Mariela",
 			LastName: "Carranza",
@@ -34,9 +35,9 @@ public class ShopWareApiClientTests
 			)), CancellationToken.None);
 
 		var shoppingCart =
-			await shopWareClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0], new ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
+			await shopWareApiClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0], new ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
 
-		var shoppingCartx = await shopWareClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
+		var shoppingCartx = await shopWareApiClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
 			new ShoppingCartItemsRequest(
 				Items: new[]
 				{
@@ -52,11 +53,54 @@ public class ShopWareApiClientTests
 						Removable: false,
 						Modified: false)
 				}), CancellationToken.None);
-		var order = await shopWareClient.GenerateOrderAsync(shoppingCartx.Token, new OrderGenerationRequest(
+		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token, new OrderGenerationRequest(
 			CustomerComment: "Customer comment",
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI"), CancellationToken.None);
 
 		Assert.StartsWith("SIB-", order.OrderNumber);
+	}
+
+	[Fact]
+	public async Task CanFetchCountriesAsync()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		var countryResponse = await shopWareApiClient.GetCountryByNameAsync("none", new GetCountryRequest(
+			Page: 1,
+			Limit: 10,
+			Filter: new[]
+				{
+				new Filter(
+					Type: "equals",
+					Field: "name",
+					Value: "Sudan"
+					)
+				}
+			), CancellationToken.None);
+		var country = countryResponse.Elements.FirstOrDefault();
+		Assert.NotNull(country);
+		Assert.Equal("Sudan", country.Name);
+		Assert.Equal("094d0bb402e542d7b71ff016c10aff7f", country.Id);
+
+		countryResponse = await shopWareApiClient.GetCountryByNameAsync("none", new GetCountryRequest(
+			Page: 1,
+			Limit: 10,
+			Filter: new[]
+				{
+				new Filter(
+					Type: "equals",
+					Field: "name",
+					Value: "Hungary"
+					)
+				}
+			), CancellationToken.None);
+
+		country = countryResponse.Elements.FirstOrDefault();
+		Assert.NotNull(country);
+		Assert.Equal("Hungary", country.Name);
+		Assert.Equal("6ab3247e27174ee898a2479071754912", country.Id);
 	}
 }
