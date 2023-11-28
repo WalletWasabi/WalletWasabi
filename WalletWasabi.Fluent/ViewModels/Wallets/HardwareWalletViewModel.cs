@@ -16,7 +16,7 @@ public class HardwareWalletViewModel : WalletViewModel
 		{
 			try
 			{
-				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "txn", "*" });
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
 					var txn = await TransactionHelpers.ParseTransactionAsync(path, parent.Wallet.Network);
