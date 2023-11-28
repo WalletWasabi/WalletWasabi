@@ -111,7 +111,7 @@ public static class TransactionHelpers
 			{
 				psbt = PSBT.Parse(text, network);
 			}
-			catch (Exception exc)
+			catch
 			{
 				return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
 			}
