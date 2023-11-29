@@ -77,6 +77,21 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
+	[Obsolete("Use the async version and delete this one")]
+	public Conversation[] GetConversations(Wallet wallet)
+	{
+		if (!IsConversationsLoaded)
+		{
+			throw new InvalidOperationException("Conversations are not loaded.");
+		}
+
+		var walletId = GetWalletId(wallet);
+		return Conversations
+			.Where(c => c.Conversation.Id.WalletId == walletId)
+			.Select(c => c.Conversation)
+			.ToArray();
+	}
+
 	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
