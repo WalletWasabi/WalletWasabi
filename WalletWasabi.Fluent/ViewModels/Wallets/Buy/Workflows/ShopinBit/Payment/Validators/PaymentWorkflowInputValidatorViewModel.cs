@@ -25,5 +25,8 @@ public partial class PaymentWorkflowInputValidatorViewModel : WorkflowInputValid
 	public override void OnActivation()
 	{
 		WorkflowValidator.Signal(true);
+
+		// TODO: Remove step after implementing backend interaction
+		WorkflowValidator.NextStep();
 	}
 }
