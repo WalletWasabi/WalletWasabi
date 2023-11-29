@@ -17,7 +17,7 @@ public partial class PackageWorkflowViewModel : WorkflowViewModel
 		{
 			// Info
 			new (false,
-				new NoInputWorkflowInputValidatorViewModel(
+				new PackageWorkflowInputValidatorViewModel(
 					workflowValidator,
 					$"Here you can track the package: {trackingUrl}")),
 		};
