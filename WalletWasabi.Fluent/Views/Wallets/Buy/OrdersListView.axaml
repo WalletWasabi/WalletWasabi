@@ -8,6 +8,12 @@
              x:DataType="buy:BuyViewModel"
              x:CompileBindings="True">
 
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="MildGray" Color="#343A47" />
+    <SolidColorBrush x:Key="MildGraySemi" Color="#343A47" Opacity="0.5" />
+    <SolidColorBrush x:Key="MildGrayHigh" Color="#343A47" Opacity="0.8" />
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <Style Selector="PathIcon.CompletedIcon">
       <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
@@ -24,48 +30,57 @@
       <Setter Property="Height" Value="15" />
     </Style>
   </UserControl.Styles>
+
   <DockPanel>
 
-    <TextBlock Background="Transparent"
-               Text="CONVERSATIONS"
-               Foreground="#A5A7AA"
-               Margin="10"
-               TextAlignment="Center"
-               FontWeight="Bold"
-               DockPanel.Dock="Top"  />
+    <TextBlock Background="Transparent" Text="CONVERSATIONS" Foreground="#A5A7AA" Margin="0 14 0 10" DockPanel.Dock="Top"
+               TextAlignment="Center" FontWeight="Bold" />
 
     <ListBox Background="Transparent"
-             Width="200"
+             Margin="10"
              Items="{Binding Orders}"
              SelectedItem="{Binding SelectedOrder}"
              DockPanel.Dock="Left" >
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Border Background="#343A47"
-                  Padding="8"
-                  CornerRadius="8">
-            <DockPanel>
-              <Button Classes="plain addressActionButton"
-                      Margin="0"
-                      Command="{Binding RemoveOrderCommand}"
-                      ToolTip.Tip="Remove order"
-                      DockPanel.Dock="Right">
-                <PathIcon Classes="RemoveOrderIcon" />
-              </Button>
-              <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
-                        Classes.UnreadMessagesIcon="{Binding HasUnreadMessages}"
-                        Opacity="0.6"
-                        Margin="8,0,8,0"
-                        DockPanel.Dock="Right" />
-              <TextBlock Text="{Binding Title}"
-                         VerticalAlignment="Center"/>
-            </DockPanel>
-          </Border>
+          <DockPanel>
+            <Button Classes="plain addressActionButton"
+                    Margin="0"
+                    Command="{Binding RemoveOrderCommand}"
+                    ToolTip.Tip="Remove order"
+                    DockPanel.Dock="Right">
+              <PathIcon Classes="RemoveOrderIcon" />
+            </Button>
+            <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
+                      Classes.UnreadMessagesIcon="{Binding HasUnreadMessages}"
+                      Opacity="0.6"
+                      Margin="8,0,8,0"
+                      DockPanel.Dock="Right" />
+            <TextBlock Text="{Binding Title}"
+                       VerticalAlignment="Center"/>
+          </DockPanel>
         </DataTemplate>
       </ListBox.ItemTemplate>
       <ListBox.Styles>
         <Style Selector="ListBoxItem">
-          <Setter Property="Padding" Value="8"></Setter>
+          <Setter Property="Margin" Value="4" />
+          <Setter Property="Padding" Value="14, 14" />
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Border x:Name="PART_Container" CornerRadius="10">
+                <ContentPresenter Background="Transparent" Padding="{TemplateBinding Padding}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+              </Border>
+            </ControlTemplate>
+          </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{StaticResource MildGraySemi}"></Setter>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{StaticResource MildGray}"></Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pressed /template/ Border#PART_Container">
+          <Setter Property="Background" Value="{StaticResource MildGrayHigh}"></Setter>
         </Style>
       </ListBox.Styles>
     </ListBox>
