@@ -96,7 +96,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void InitializeOrders()
 	{
-		// TODO: Move to OnNavigatedTo ?
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
 			// TODO: Fill up the UI with the conversations.
@@ -114,7 +113,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				{
 					// e.ConversationId
 					// e.ChatMessages
-					// TODO: Where is the Code? Update the conversations.
+					// TODO: Update the conversations.
 
 					// Notify that conversation updated.
 					_updateTriggerSubject.OnNext(e.ConversationId);
