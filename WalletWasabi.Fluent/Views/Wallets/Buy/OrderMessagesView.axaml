@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
@@ -28,7 +30,12 @@
                 Command="{Binding SelectedOrder.SendCommand}"
                 Margin="8 0 0 0"
                 Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
-                Classes="action" />
+                Classes="action"
+                IsDefault="True">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </Button>
 
         <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
           <ContentControl.Styles>
@@ -43,6 +50,9 @@
                        Background="{StaticResource Background}"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -56,6 +66,9 @@
                          Background="{StaticResource Background}"
                          Text="{Binding Message}"
                          Watermark="{Binding Watermark}">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                  </i:Interaction.Behaviors>
                   <TextBox.Styles>
                     <Style Selector="TextBox /template/ DataValidationErrors">
                       <Setter Property="IsVisible" Value="False" />
@@ -70,6 +83,9 @@
                        Text=""
                        Watermark=""
                        IsEnabled="False">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -92,6 +108,9 @@
                        Text=""
                        Watermark=""
                        IsEnabled="False">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -105,6 +124,9 @@
                        Background="{StaticResource Background}"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -123,6 +145,9 @@
                          ItemCountLimit="1"
                          Items="{Binding Country}"
                          Suggestions="{Binding Countries}">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
               </c:TagsBox>
             </DataTemplate>
 
