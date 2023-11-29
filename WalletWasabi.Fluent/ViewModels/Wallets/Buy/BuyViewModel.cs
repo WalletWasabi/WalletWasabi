@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
+using System.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
@@ -61,7 +62,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		Demo();
 
-		// InitializeOrders();
+		// TODO:
+		// var cts = new CancellationTokenSource();
+		// InitializeOrders(cts.Token);
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -94,12 +97,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedFrom(isInHistory);
 	}
 
-	private void InitializeOrders()
+	private async Task InitializeOrders(CancellationToken cancel)
 	{
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
 			// TODO: Fill up the UI with the conversations.
-			var currentConversations = buyAnythingManager.GetConversations(_wallet);
+			var currentConversations = await buyAnythingManager.GetConversationsAsync(_wallet, cancel);
 
 			// // TODO: Create new conversation if we have none.
 			// if (currentConversations.Count() == 0)
