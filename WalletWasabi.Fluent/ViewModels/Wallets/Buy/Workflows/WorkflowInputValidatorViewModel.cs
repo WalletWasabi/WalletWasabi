@@ -19,4 +19,8 @@ public abstract partial class WorkflowInputValidatorViewModel : ReactiveObject
 	public abstract bool IsValid();
 
 	public abstract string? GetFinalMessage();
+
+	public virtual void OnActivation()
+	{
+	}
 }
