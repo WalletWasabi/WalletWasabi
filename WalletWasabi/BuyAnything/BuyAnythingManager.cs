@@ -68,7 +68,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			var orders = track.ContextToken != "myDebugConversation"
 				? await Client.GetConversationsUpdateSinceAsync(track.ContextToken, track.LastUpdate, cancel).ConfigureAwait(false)
-				: new[] { MyDummyOrder };
+				: GetDummyOrders();
 
 			foreach (var order in orders.Where(o => o.UpdatedAt!.Value > track.LastUpdate))
 			{
@@ -161,13 +161,141 @@ public class BuyAnythingManager : PeriodicRunner
 		Conversations.Add(new ConversationUpdateTrack("myDebugConversation", wallet));
 	}
 
-	public void ToFile()
-	{
-		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(Conversations, Formatting.Indented);
-		File.WriteAllText(FilePath, json);
-	}
+	private Order OrderUntilCountry { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
+		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
+		"||#SIB#Let's begin by selecting your country." +
+		"||#WASABI#Germany", null, null, null, null, null, null);
 
-	private Order MyDummyOrder { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-		"||#WASABI#I need a boat to become King of the Pirates||#SIB#Aye Aye Sencho!||", null, null, null, null, null, null);
+	private Order OrderUntilProduct { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
+		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
+		"||#SIB#Let's begin by selecting your country." +
+		"||#WASABI#Germany" +
+		"||#SIB#What would you like to buy?" +
+		"||#WASABI#I would like to have a Lambo with manual transmission." +
+		"||#SIB#We've received your request, we will be in touch with you within the next couple of days." +
+		"||#SIB#What color would you prefer?" +
+		"||#WASABI#Wasabi Green please!" +
+		"||#WASABI#Ohh and sorry, I changed my mind, I would like to have one with a automatic transmission." +
+		"||#SIB#Recorded your modifications, thank you!", null, null, null, null, null, null);
+
+	private Order OrderUntilShipping { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
+		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
+		"||#SIB#Let's begin by selecting your country." +
+		"||#WASABI#Germany" +
+		"||#SIB#What would you like to buy?" +
+		"||#WASABI#I would like to have a Lambo with manual transmission." +
+		"||#SIB#We've received your request, we will be in touch with you within the next couple of days." +
+		"||#SIB#What color would you prefer?" +
+		"||#WASABI#Wasabi Green please!" +
+		"||#WASABI#Ohh and sorry, I changed my mind, I would like to have one with a automatic transmission." +
+		"||#SIB#Recorded your modifications, thank you!" +
+		"||#SIB#I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC." +
+		"||#SIB#To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:" +
+		"||#SIB#Your First Name:" +
+		"||#WASABI#Satoshi" +
+		"||#SIB#Your Last Name:" +
+		"||#WASABI#Nakamoto" +
+		"||#SIB#Street Name:" +
+		"||#WASABI#Top secret street" +
+		"||#SIB#House Number:" +
+		"||#WASABI#25" +
+		"||#SIB#ZIP/Postal Code:" +
+		"||#WASABI#10115" +
+		"||#SIB#City:" +
+		"||#WASABI#Berlin" +
+		"||#SIBState:#" +
+		"||#WASABI#State of Berlin" +
+		"||#SIB#Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions." +
+		"||#WASABI#www.termsandconditions.com", null, null, null, null, null, null);
+
+	private Order OrderUntilPayment { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
+		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
+		"||#SIB#Let's begin by selecting your country." +
+		"||#WASABI#Germany" +
+		"||#SIB#What would you like to buy?" +
+		"||#WASABI#I would like to have a Lambo with manual transmission." +
+		"||#SIB#We've received your request, we will be in touch with you within the next couple of days." +
+		"||#SIB#What color would you prefer?" +
+		"||#WASABI#Wasabi Green please!" +
+		"||#WASABI#Ohh and sorry, I changed my mind, I would like to have one with a automatic transmission." +
+		"||#SIB#Recorded your modifications, thank you!" +
+		"||#SIB#I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC." +
+		"||#SIB#To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:" +
+		"||#SIB#Your First Name:" +
+		"||#WASABI#Satoshi" +
+		"||#SIB#Your Last Name:" +
+		"||#WASABI#Nakamoto" +
+		"||#SIB#Street Name:" +
+		"||#WASABI#Top secret street" +
+		"||#SIB#House Number:" +
+		"||#WASABI#25" +
+		"||#SIB#ZIP/Postal Code:" +
+		"||#WASABI#10115" +
+		"||#SIB#City:" +
+		"||#WASABI#Berlin" +
+		"||#SIBState:#" +
+		"||#WASABI#State of Berlin" +
+		"||#SIB#Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions." +
+		"||#WASABI#www.termsandconditions.com" +
+		"||#WASABI#Everything is correct and I accept the terms and conditions." +
+		"||#SIB#To finalize your order, kindly transfer 10.5 BTC to the following address:" +
+		"||#SIB#bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfixOwlh" +
+		"||#SIB#Once your payment is confirmed, we'll initiate the delivery process." +
+		"||#SIB#", null, null, null, null, null, null);
+
+	private Order FullOrder { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
+		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
+		"||#SIB#Let's begin by selecting your country." +
+		"||#WASABI#Germany" +
+		"||#SIB#What would you like to buy?" +
+		"||#WASABI#I would like to have a Lambo with manual transmission." +
+		"||#SIB#We've received your request, we will be in touch with you within the next couple of days." +
+		"||#SIB#What color would you prefer?" +
+		"||#WASABI#Wasabi Green please!" +
+		"||#WASABI#Ohh and sorry, I changed my mind, I would like to have one with a automatic transmission." +
+		"||#SIB#Recorded your modifications, thank you!" +
+		"||#SIB#I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC." +
+		"||#SIB#To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:" +
+		"||#SIB#Your First Name:" +
+		"||#WASABI#Satoshi" +
+		"||#SIB#Your Last Name:" +
+		"||#WASABI#Nakamoto" +
+		"||#SIB#Street Name:" +
+		"||#WASABI#Top secret street" +
+		"||#SIB#House Number:" +
+		"||#WASABI#25" +
+		"||#SIB#ZIP/Postal Code:" +
+		"||#WASABI#10115" +
+		"||#SIB#City:" +
+		"||#WASABI#Berlin" +
+		"||#SIBState:#" +
+		"||#WASABI#State of Berlin" +
+		"||#SIB#Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions." +
+		"||#WASABI#www.termsandconditions.com" +
+		"||#WASABI#Everything is correct and I accept the terms and conditions." +
+		"||#SIB#To finalize your order, kindly transfer 10.5 BTC to the following address:" +
+		"||#SIB#bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfixOwlh" +
+		"||#SIB#Once your payment is confirmed, we'll initiate the delivery process." +
+		"||#SIB#Great news! Your order is complete." +
+		"||#SIB#Download your files:" +
+		"||#SIB#www.invoice.com/lamboincoice" +
+		"||#SIB#For shipping updates:" +
+		"||#SIB#www.deliverycompany.com/trcknmbr0000000001" +
+		"||#SIB#This conversation will vanish in 30 days, make sure to save all the important info beforehand.", null, null, null, null, null, null);
+
+	private Order[] GetDummyOrders()
+	{
+		return new[]
+		{
+			OrderUntilCountry,
+			OrderUntilProduct,
+			OrderUntilPayment,
+			FullOrder
+		};
+	}
 }
