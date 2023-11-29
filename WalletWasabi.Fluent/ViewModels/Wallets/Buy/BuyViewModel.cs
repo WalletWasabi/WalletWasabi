@@ -11,6 +11,8 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
+using WalletWasabi.BuyAnything;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -28,10 +30,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel,Guid> _ordersCache;
+	private readonly SourceCache<OrderViewModel, Guid> _ordersCache;
 	private readonly BehaviorSubject<Unit> _updateTriggerSubject;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
+
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
 		UiContext = uiContext;
@@ -56,6 +59,22 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		UpdateTrigger = _updateTriggerSubject;
 
 		Demo();
+
+		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			// TODO: Fill up the UI with the conversations.
+			var currentConversations = buyAnythingManager.GetConversations(_wallet);
+
+			Observable
+				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
+				.Select(args => args.EventArgs)
+				.Where(e => e.Wallet == _wallet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e =>
+				{
+					// TODO: Where is the Code? Update the conversations.
+				});
+		}
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;

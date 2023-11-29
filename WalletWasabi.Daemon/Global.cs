@@ -33,6 +33,9 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.BuyAnything;
+using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare;
 
 namespace WalletWasabi.Daemon;
 
@@ -203,6 +206,16 @@ public class Global
 				{
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
+
+				// TODO: we should use Tor by using HttpClientFactory.
+#pragma warning disable CA2000 // Dispose objects before losing scope
+				ShopWareApiClient shopWareApiClient = new(new System.Net.Http.HttpClient(), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(TimeSpan.FromSeconds(10), buyAnythingClient), "BuyAnythingManager");
+				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Synchronizer.Start();
@@ -339,6 +352,9 @@ public class Global
 
 		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
 		CoinPrison.UpdateWallet(wallet);
+
+		var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
+		buyAnythingManager.AddConversationsFromWallet(wallet);
 	}
 
 	public async Task DisposeAsync()

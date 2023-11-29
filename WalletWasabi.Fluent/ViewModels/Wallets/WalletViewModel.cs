@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -64,6 +65,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, walletModel);
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(UiContext, this);
+		BuyViewModel = new BuyViewModel(UiContext, this);
 
 		UiTriggers.TransactionsUpdateTrigger
 			.Subscribe(_ => IsWalletBalanceZero = Wallet.Coins.TotalAmount() == Money.Zero)
@@ -169,7 +171,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
-
+	public BuyViewModel BuyViewModel { get; }
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
