@@ -81,10 +81,13 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 					workflowValidator,
 					_request)),
 			// Confirm
-			new (requiresUserInput: true,
-				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
+			new (false,
+				new DeliverySummaryWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
+					workflowValidator)),
 			// Final
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
