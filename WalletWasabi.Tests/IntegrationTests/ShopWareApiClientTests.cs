@@ -1,8 +1,12 @@
 using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
@@ -115,5 +119,47 @@ public class ShopWareApiClientTests
 		Assert.NotNull(country);
 		Assert.Equal("Hungary", country.Name);
 		Assert.Equal("6ab3247e27174ee898a2479071754912", country.Id);
+	}
+
+	[Fact]
+	public async Task FetchAllCountriesAsync()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		var toSerialize = new List<object>();
+		var currentPage = 0;
+		while(true)
+		{
+			currentPage++;
+
+			var countryResponse = await shopWareApiClient.GetCountriesAsync("none", new GetCountriesRequest(
+				Page: currentPage,
+				Limit: 100
+			), CancellationToken.None);
+
+			var cachedCountries = countryResponse.Elements
+				.Where(x => x.Active)
+				.Select(x => new CachedCountry(
+					Id: x.Id,
+					Name: x.Name)
+				);
+
+			toSerialize.AddRange(cachedCountries);
+
+			if (countryResponse.Total != countryResponse.Limit)
+			{
+				break;
+			}
+		}
+
+		// If a country is added or removed, test will fail and we will be notified.
+		// We could go further and verify equality.
+		Assert.Equal(246, toSerialize.Count);
+
+		// Save the new file if it changed
+		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
+		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
 	}
 }

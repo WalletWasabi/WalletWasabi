@@ -60,6 +60,9 @@ public class ShopWareApiClient
 	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
 
+	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, GetCountriesRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<GetCountriesRequest, GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
+
 	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, HttpMethod httpMethod, string path, TRequest request, CancellationToken cancellationToken)
 		where TRequest : class
 	{

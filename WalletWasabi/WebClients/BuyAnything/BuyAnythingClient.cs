@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 
@@ -25,6 +27,7 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
 
+	private static readonly string CountriesPath = "./Data/Countries.json";
 
 	public BuyAnythingClient(ShopWareApiClient apiClient)
 	{
@@ -32,6 +35,7 @@ public class BuyAnythingClient
 	}
 
 	private ShopWareApiClient ApiClient { get; }
+	private List<CachedCountry>? _countries { get; set; }
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
@@ -40,7 +44,7 @@ public class BuyAnythingClient
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
 	public async Task<(string, string)> CreateNewConversationAsync(string countryId, Product product,  string comment, CancellationToken cancellationToken)
 	{
-		//var countryResponse = await apiClient.GetCountryByNameAsync(countryName, cancellationToken).ConfigureAwait(false);
+		var countries = await GetCountryListAsync(cancellationToken).ConfigureAwait(false);
 
 		// Messages to use
 		var customerRegistrationRequest = CreateRandomCustomer();
@@ -127,4 +131,22 @@ public class BuyAnythingClient
 			CustomerComment: comment,
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
+
+	private async Task<List<CachedCountry>> GetCountryListAsync(CancellationToken cancellationToken)
+	{
+		if (_countries is not null)
+		{
+			return _countries;
+		}
+
+		_countries =  JsonConvert.DeserializeObject<List<CachedCountry>>(
+			await File.ReadAllTextAsync(CountriesPath, cancellationToken).ConfigureAwait(false));
+
+		if (_countries is null)
+		{
+			throw new InvalidOperationException("Couldn't read cached countries values.");
+		}
+
+		return _countries;
+	}
 }

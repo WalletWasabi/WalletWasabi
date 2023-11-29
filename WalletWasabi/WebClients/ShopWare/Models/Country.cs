@@ -8,6 +8,12 @@ public record GetCountryRequest
    Filter[] Filter
 );
 
+public record GetCountriesRequest
+(
+	int Page,
+	int Limit
+);
+
 public record Filter
 (
    string Type,
@@ -67,6 +73,12 @@ public record Country
 	object CustomFields,
 	string Id,
 	string ApiAlias
+);
+
+public record CachedCountry
+(
+	string Id,
+	string Name
 );
 
 public record GetCountryResponse
