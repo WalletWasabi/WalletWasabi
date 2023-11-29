@@ -92,13 +92,14 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, CancellationToken cancellationToken)
+	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, object metadata, CancellationToken cancellationToken)
 	{
 		if (Conversations.FirstOrDefault(c => c.Conversation.Id == conversationId) is { } track)
 		{
 			track.Conversation = track.Conversation with
 			{
-				Messages = track.Conversation.Messages.Append(new ChatMessage(false, newMessage)).ToArray()
+				Messages = track.Conversation.Messages.Append(new ChatMessage(false, newMessage)).ToArray(),
+				Metadata = metadata
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
