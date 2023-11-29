@@ -114,7 +114,8 @@ public class BuyAnythingManager : PeriodicRunner
 			track.Conversation = track.Conversation with
 			{
 				Messages = track.Conversation.Messages.Append(new ChatMessage(false, newMessage)).ToArray(),
-				Metadata = metadata
+				Metadata = metadata,
+				Status = ConversationStatus.WaitingForUpdates
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
