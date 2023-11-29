@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -33,6 +35,11 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: For now we have only one workflow manager.
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
+
+		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
+		{
+			await SendAsync();
+		});
 
 		_messagesList = new SourceList<MessageViewModel>();
 

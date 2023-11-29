@@ -20,6 +20,7 @@ public partial class ConfirmDeliveryWorkflowInputValidatorViewModel : WorkflowIn
 		{
 			_isConfirmed = true;
 			WorkflowValidator.Signal(IsValid());
+			WorkflowValidator.NextStep();
 		});
 	}
 
