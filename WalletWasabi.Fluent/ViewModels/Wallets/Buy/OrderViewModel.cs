@@ -38,7 +38,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
-			await SendAsync();
+			SendCommand?.Execute(null);
 		});
 
 		_messagesList = new SourceList<MessageViewModel>();
