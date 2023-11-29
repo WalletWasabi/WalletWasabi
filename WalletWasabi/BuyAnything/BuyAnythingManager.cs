@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin.Protocol;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -14,11 +13,6 @@ using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.BuyAnything;
 
-public record ConversationId(string WalletId, string ContextToken)
-{
-	public static readonly ConversationId Empty = new(string.Empty, string.Empty);
-}
-public record Conversation(ConversationId Id, ChatMessage[] Messages);
 
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
@@ -35,6 +29,9 @@ public class ConversationUpdateTrack
 
 	public DateTimeOffset LastUpdate { get; set; }
 	public Conversation Conversation { get; set; }
+	public bool IsUpdatable =>
+		Conversation.Status == ConversationStatus.WaitingForUpdates ||
+		Conversation.Status == ConversationStatus.Started;
 }
 
 // Class to manage the conversation updates
@@ -54,7 +51,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		foreach (var track in Conversations)
+		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
 				.GetConversationsUpdateSinceAsync(track.Conversation.Id.ContextToken, track.LastUpdate, cancel)
@@ -88,7 +85,8 @@ public class BuyAnythingManager : PeriodicRunner
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
 				new ConversationId(walletId, ctxToken),
-				new []{ new ChatMessage(true, message) })));
+				new []{ new ChatMessage(true, message) },
+				ConversationStatus.Started)));
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
