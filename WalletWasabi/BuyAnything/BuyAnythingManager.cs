@@ -134,10 +134,10 @@ public class BuyAnythingManager : PeriodicRunner
 		conversationToUpdate.LastUpdate = DateTimeOffset.Now;
 
 		// Convert conversation messages to customer comment.
-		var sendableCunstomerComment = ConvertToCustomerComment(conversationToUpdate.Conversation.Messages);
+		var sendableCustomerComment = ConvertToCustomerComment(conversationToUpdate.Conversation.Messages);
 
 		// Send whole conversation to SIB.
-		//Client.SendNewMessage(sendableCunstomerComment, customerEmail, customerPassword);
+		//Client.SendNewMessage(sendableCustomerComment, customerEmail, customerPassword);
 	}
 
 	public IEnumerable<Conversation> GetConversations(Wallet wallet)
