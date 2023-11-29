@@ -59,9 +59,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		UpdateTrigger = _updateTriggerSubject;
 
-		// Demo();
+		Demo();
 
-		InitializeOrders();
+		// InitializeOrders();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
