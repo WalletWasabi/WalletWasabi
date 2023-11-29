@@ -79,31 +79,31 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				CurrentWorkflow = new InitialWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
-			case InitialWorkflowViewModel initialWorkflowViewModel:
+			case InitialWorkflowViewModel:
 			{
 				// TODO:
 				CurrentWorkflow = new DeliveryWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
-			case DeliveryWorkflowViewModel deliveryWorkflowViewModel:
+			case DeliveryWorkflowViewModel:
 			{
 				// TODO:
 				CurrentWorkflow = new PaymentWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
-			case PaymentWorkflowViewModel paymentWorkflowViewModel:
+			case PaymentWorkflowViewModel:
 			{
 				// TODO:
 				CurrentWorkflow = new PackageWorkflowViewModel(_workflowValidator, _userName);
 				break;
 			}
-			case PackageWorkflowViewModel packageWorkflowViewModel:
+			case PackageWorkflowViewModel:
 			{
 				// TODO: After receiving package info switch to final workflow with chat support.
 				CurrentWorkflow = new SupportChatWorkflowViewModel();
 				break;
 			}
-			case SupportChatWorkflowViewModel supportChatWorkflowViewModel:
+			case SupportChatWorkflowViewModel:
 			{
 				// TODO: Order is complete do nothing?
 				break;
