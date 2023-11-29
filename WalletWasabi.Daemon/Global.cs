@@ -352,9 +352,6 @@ public class Global
 
 		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
 		CoinPrison.UpdateWallet(wallet);
-
-		var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
-		buyAnythingManager.AddConversationsFromWallet(wallet);
 	}
 
 	public async Task DisposeAsync()

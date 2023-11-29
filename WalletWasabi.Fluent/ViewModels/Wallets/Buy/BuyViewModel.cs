@@ -32,7 +32,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, string> _ordersCache;
-	private readonly BehaviorSubject<string> _updateTriggerSubject;
+	private readonly BehaviorSubject<ConversationId> _updateTriggerSubject;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
@@ -55,7 +55,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Subscribe();
 
 		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<string>(string.Empty);
+		_updateTriggerSubject = new BehaviorSubject<ConversationId>(ConversationId.Empty);
 
 		UpdateTrigger = _updateTriggerSubject;
 
@@ -68,7 +68,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	public WalletViewModel WalletVm { get; }
 
-	public IObservable<string> UpdateTrigger { get; }
+	public IObservable<ConversationId> UpdateTrigger { get; }
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
@@ -107,7 +107,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager,
 					nameof(BuyAnythingManager.ConversationUpdated))
 				.Select(args => args.EventArgs)
-				.Where(e => e.Wallet == _wallet)
+				.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
@@ -116,7 +116,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					// TODO: Update the conversations.
 
 					// Notify that conversation updated.
-					_updateTriggerSubject.OnNext(e.ConversationId);
+					_updateTriggerSubject.OnNext(e.Conversation.Id);
 				});
 		}
 	}
@@ -160,7 +160,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		{
 			// TODO: Conversation needs name/title?
 			var order = new OrderViewModel(
-				conversation.ContextToken,
+				conversation.Id.ContextToken,
 				"Order ??",
 				new ShopinBitWorkflowManagerViewModel(),
 				this);

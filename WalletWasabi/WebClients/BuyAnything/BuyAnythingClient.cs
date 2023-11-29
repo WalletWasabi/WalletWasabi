@@ -149,4 +149,9 @@ public class BuyAnythingClient
 
 		return _countries;
 	}
+
+	public async Task UpdateConversationAsync(string conversationIdContextToken, string rawText)
+	{
+		throw new NotImplementedException();
+	}
 }
