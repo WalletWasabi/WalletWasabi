@@ -107,7 +107,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(UiContext, this)));
 
-		BuyCommand = ReactiveCommand.Create(() => Navigate().To().Buy(this));
+		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().Receive(new WalletModel(Wallet)));
 

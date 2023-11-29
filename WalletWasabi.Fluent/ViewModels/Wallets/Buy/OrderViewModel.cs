@@ -24,12 +24,12 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(
-		Guid id,
+		string contextToken,
 		string title,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager)
 	{
-		Id = id;
+		ContextToken = contextToken;
 		Title = title;
 
 		// TODO: For now we have only one workflow manager.
@@ -62,7 +62,7 @@ public partial class OrderViewModel : ReactiveObject
 		// RunNoInputWorkflowSteps();
 	}
 
-	public Guid Id { get; }
+	public string ContextToken { get; }
 
 	public string Title { get; }
 
@@ -76,8 +76,8 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void UpdateOrder()
 	{
-		IsCompleted = _orderManager.IsCompleted(Id);
-		HasUnreadMessages = _orderManager.HasUnreadMessages(Id);
+		IsCompleted = _orderManager.IsCompleted(ContextToken);
+		HasUnreadMessages = _orderManager.HasUnreadMessages(ContextToken);
 		// TODO: Update messages etc.
 	}
 
@@ -229,12 +229,23 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void RemoveOrder()
 	{
-		_orderManager.RemoveOrder(Id);
+		_orderManager.RemoveOrder(ContextToken);
 	}
 
 	public void Update()
 	{
 		// TODO: For testing
 		RunNoInputWorkflowSteps();
+	}
+
+	// TODO: Temporary until we sync messages
+	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
+	{
+		// TODO: We need to sync with current workflow.
+		_messagesList.Edit(x =>
+		{
+			x.Clear();
+			x.Add(messages);
+		});
 	}
 }
