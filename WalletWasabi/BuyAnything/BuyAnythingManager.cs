@@ -24,7 +24,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private BuyAnythingClient Client { get; }
 	private List<ConversationUpdateTrack> Conversations { get; } = new();
 
-	public EventHandler<ConversationUpdateEvent> OnConversationUpdate;
+	public event EventHandler<ConversationUpdateEvent> OnConversationUpdate;
 
 	public BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : base(period)
 	{
@@ -40,7 +40,7 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				track.LastUpdate = DateTimeOffset.Now;
 				var newMessageFromConcierge = Parse(order.CustomerComment);
-				OnConversationUpdate.SafeInvoke(this, new ConversationUpdateEvent (track.ContextToken, order.UpdatedAt!.Value, newMessageFromConcierge));
+				OnConversationUpdate.SafeInvoke(this, new ConversationUpdateEvent(track.ContextToken, order.UpdatedAt!.Value, newMessageFromConcierge));
 			}
 		}
 	}
