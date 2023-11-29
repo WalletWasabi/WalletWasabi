@@ -68,7 +68,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 					workflowValidator,
 					"City?")),
 			new (requiresUserInput: true,
-				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+				userInputValidator: new CityWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
 			// State
@@ -77,7 +77,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 					workflowValidator,
 					"State?")),
 			new (requiresUserInput: true,
-				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+				userInputValidator: new StateWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
 			// Confirm
