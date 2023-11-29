@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 
@@ -78,8 +76,10 @@ public class BuyAnythingClient
 		return ctxToken; // return the order number and the token to identify the conversation
 	}
 
-	public async Task UpdateConversationAsync(string conversationIdContextToken, string rawText)
+	public async Task UpdateConversationAsync(string ctxToken, string rawText)
 	{
+		Dictionary<string, string> fields = new() { ["wallet_chat_store"] = rawText };
+		await ApiClient.UpdateCustomerProfileAsync(ctxToken, new CustomerProfileUpdateRequest(FirstName, LastName, fields), CancellationToken.None).ConfigureAwait(false);
 	}
 
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
@@ -143,5 +143,4 @@ public class BuyAnythingClient
 			CustomerComment: "",
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
-
 }

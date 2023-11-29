@@ -11,6 +11,7 @@ using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
 using CancelOrderResponse = WalletWasabi.WebClients.ShopWare.Models.StateMachineState;
+using CustomerProfileUpdateResponse = WalletWasabi.WebClients.ShopWare.Models.Unit;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
@@ -41,6 +42,8 @@ public class ShopWareApiClient
 	public Task<CustomerLoginResponse> LoginCustomerAsync(string ctxToken, CustomerLoginRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CustomerLoginRequest, CustomerLoginResponse>(ctxToken, HttpMethod.Post, "account/login", request, cancellationToken);
 
+	public Task<CustomerProfileUpdateResponse> UpdateCustomerProfileAsync(string ctxToken, CustomerProfileUpdateRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerProfileUpdateRequest, CustomerProfileUpdateResponse>(ctxToken, HttpMethod.Post, "account/change-profile", request, cancellationToken);
 	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartCreationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartCreationRequest, ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);
 

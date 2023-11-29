@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using CustomFields = System.Collections.Generic.Dictionary<string, string>;
 
 namespace WalletWasabi.WebClients.ShopWare.Models;
 
@@ -24,7 +24,7 @@ public record CustomerRegistrationRequest
 	string AffiliateCode,
 	bool AcceptedDataProtection,
 	string StorefrontUrl,
-	Dictionary<string, string> CustomFields,
+	CustomFields CustomFields,
 	BillingAddress? BillingAddress
 );
 
@@ -46,3 +46,5 @@ public record CustomerLoginResponse
 	string ApiAlias,
 	string ContextToken
 );
+
+public record CustomerProfileUpdateRequest(string FirstName, string LastName, CustomFields CustomFields);
