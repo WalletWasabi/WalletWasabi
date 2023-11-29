@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -48,7 +47,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, string>(x => x.ContextToken);
+		_ordersCache = new SourceCache<OrderViewModel, string>(x => x.Id);
 
 		_ordersCache
 			.Connect()
@@ -187,23 +186,23 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_ordersCache.AddOrUpdate(demoOrders);
 	}
 
-	bool IOrderManager.HasUnreadMessages(string contextToken)
+	bool IOrderManager.HasUnreadMessages(string id)
 	{
 		// TODO: Check if order had unread messages.
 		return true;
 	}
 
-	bool IOrderManager.IsCompleted(string contextToken)
+	bool IOrderManager.IsCompleted(string idS)
 	{
 		// TODO: Check if order is completed.
 		return false;
 	}
 
-	void IOrderManager.RemoveOrder(string contextToken)
+	void IOrderManager.RemoveOrder(string id)
 	{
 		_ordersCache.Edit(x =>
 		{
-			_ordersCache.RemoveKey(contextToken);
+			_ordersCache.RemoveKey(id);
 		});
 
 		SelectedOrder = _orders.FirstOrDefault();
