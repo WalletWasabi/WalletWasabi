@@ -42,10 +42,8 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<(string, string)> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
+	public async Task<string> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
-		var countries = await GetCountryListAsync(cancellationToken).ConfigureAwait(false);
-
 		// Messages to use
 		var customerRegistrationRequest = CreateRandomCustomer();
 		var shoppingCartCreationRequest = new ShoppingCartCreationRequest("My shopping cart");
@@ -68,7 +66,7 @@ public class BuyAnythingClient
 		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 
-		return (ctxToken, orderGenerationResponse.OrderNumber); // return the order number and the token to identify the conversation
+		return ctxToken; // return the order number and the token to identify the conversation
 	}
 
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)

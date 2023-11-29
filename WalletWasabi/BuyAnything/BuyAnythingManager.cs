@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Protocol;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -77,6 +78,19 @@ public class BuyAnythingManager : PeriodicRunner
 		return Conversations
 			.Where(c => c.Conversation.Id.WalletId == walletId)
 			.Select(c => c.Conversation);
+	}
+
+	public async Task StartNewConversationAsync(string walletId, string countryId, string message, CancellationToken cancellationToken)
+	{
+		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
+			.ConfigureAwait(false);
+
+		Conversations.Add(new ConversationUpdateTrack(
+			new Conversation(
+				new ConversationId(walletId, ctxToken),
+				new []{ new ChatMessage(true, message) })));
+
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, CancellationToken cancellationToken)
