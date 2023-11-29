@@ -213,7 +213,7 @@ public class Global
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(TimeSpan.FromSeconds(10), buyAnythingClient), "BuyAnythingManager");
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(10), buyAnythingClient), "BuyAnythingManager");
 				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);

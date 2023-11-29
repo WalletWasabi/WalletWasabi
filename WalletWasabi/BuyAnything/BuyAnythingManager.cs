@@ -1,11 +1,14 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare.Models;
@@ -22,7 +25,7 @@ public class Conversation
 	public string CustomerEmail { get; set; }
 	public string CustomerPassword { get; set; }
 
-	// public string ContextToken { get; }
+	public string ContextToken { get; }
 	public ChatMessage[] Messages { get; set; } = Array.Empty<ChatMessage>();
 }
 
@@ -38,6 +41,8 @@ public class ConversationUpdateTrack
 	public string ContextToken { get; }
 	public DateTimeOffset LastUpdate { get; set; }
 	public Conversation Conversation { get; set; } = new();
+
+	[JsonIgnore]
 	public Wallet Wallet { get; }
 }
 
@@ -45,13 +50,15 @@ public class ConversationUpdateTrack
 // This is a toy implementation just to share the idea by code.
 public class BuyAnythingManager : PeriodicRunner
 {
-	public BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : base(period)
+	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client) : base(period)
 	{
 		Client = client;
+		FilePath = Path.Combine(dataDir, "Orders", "Orders.json");
 	}
 
 	private BuyAnythingClient Client { get; }
 	private List<ConversationUpdateTrack> Conversations { get; } = new();
+	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
 
@@ -68,6 +75,9 @@ public class BuyAnythingManager : PeriodicRunner
 				var orderLastUpdated = order.UpdatedAt!.Value;
 				track.LastUpdate = orderLastUpdated;
 				var newMessageFromConcierge = Parse(order.CustomerComment);
+
+				// Update cache with new message(s).
+				track.Conversation.Messages = track.Conversation.Messages.Concat(newMessageFromConcierge).ToArray();
 				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.ContextToken, orderLastUpdated, newMessageFromConcierge, track.Wallet));
 			}
 		}
@@ -149,6 +159,13 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		// Feed the dummy data.
 		Conversations.Add(new ConversationUpdateTrack("myDebugConversation", wallet));
+	}
+
+	public void ToFile()
+	{
+		IoHelpers.EnsureFileExists(FilePath);
+		string json = JsonConvert.SerializeObject(Conversations, Formatting.Indented);
+		File.WriteAllText(FilePath, json);
 	}
 
 	private Order MyDummyOrder { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
