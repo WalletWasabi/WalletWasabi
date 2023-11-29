@@ -61,9 +61,24 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				var orderLastUpdated = order.UpdatedAt!.Value;
 				track.LastUpdate = orderLastUpdated;
+
+				// Update the conversation status according to the order state
+				// TODO: Verify if the state machine is values match reality
+				var status = order.StateMachineState.Name switch
+				{
+					"Cancelled" => ConversationStatus.Cancelled,
+					"Completed" => ConversationStatus.Finished,
+					"InProgress" => ConversationStatus.WaitingForUpdates,
+					_ => track.Conversation.Status
+				};
+
 				var newMessageFromConcierge = Parse(order.CustomerComment ?? "");
 
-				track.Conversation = track.Conversation with {Messages = newMessageFromConcierge.ToArray() };
+				track.Conversation = track.Conversation with
+				{
+					Messages = newMessageFromConcierge.ToArray(),
+					Status = status != track.Conversation.Status ? status : track.Conversation.Status
+				};
 				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, orderLastUpdated));
 			}
 		}
