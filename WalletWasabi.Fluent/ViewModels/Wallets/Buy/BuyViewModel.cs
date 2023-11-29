@@ -62,29 +62,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		// Demo();
 
-		// TODO: Move to OnNavigatedTo ?
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
-		{
-			// TODO: Fill up the UI with the conversations.
-			var currentConversations = buyAnythingManager.GetConversations(_wallet);
-
-			CreateOrders(currentConversations);
-
-			Observable
-				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
-				.Select(args => args.EventArgs)
-				.Where(e => e.Wallet == _wallet)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					// e.ConversationId
-					// e.ChatMessages
-					// TODO: Where is the Code? Update the conversations.
-
-					// Notify that conversation updated.
-					_updateTriggerSubject.OnNext(e.ConversationId);
-				});
-		}
+		InitializeOrders();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -117,11 +95,70 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedFrom(isInHistory);
 	}
 
-	private void CreateOrders(IEnumerable<Conversation> currentConversations)
+	private void InitializeOrders()
+	{
+		// TODO: Move to OnNavigatedTo ?
+		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			// TODO: Fill up the UI with the conversations.
+			var currentConversations = buyAnythingManager.GetConversations(_wallet);
+
+			CreateOrders(currentConversations);
+
+			Observable
+				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager,
+					nameof(BuyAnythingManager.ConversationUpdated))
+				.Select(args => args.EventArgs)
+				.Where(e => e.Wallet == _wallet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e =>
+				{
+					// e.ConversationId
+					// e.ChatMessages
+					// TODO: Where is the Code? Update the conversations.
+
+					// Notify that conversation updated.
+					_updateTriggerSubject.OnNext(e.ConversationId);
+				});
+		}
+	}
+
+	private List<MessageViewModel> CreateMessages(Conversation conversation)
+	{
+		var orderMessages = new List<MessageViewModel>();
+
+		foreach (var message in conversation.Messages)
+		{
+			if (message.IsMyMessage)
+			{
+				var userMessage = new UserMessageViewModel()
+				{
+					Message = message.Message,
+					// TODO: Check if message exists
+					IsUnread = true
+				};
+				orderMessages.Add(userMessage);
+			}
+			else
+			{
+				var userMessage = new AssistantMessageViewModel()
+				{
+					Message = message.Message,
+					// TODO: Check if message exists
+					IsUnread = true
+				};
+				orderMessages.Add(userMessage);
+			}
+		}
+
+		return orderMessages;
+	}
+
+	private void CreateOrders(IEnumerable<Conversation> conversations)
 	{
 		var orders = new List<OrderViewModel>();
 
-		foreach (var conversation in currentConversations)
+		foreach (var conversation in conversations)
 		{
 			// TODO: Conversation needs name/title?
 			var order = new OrderViewModel(
@@ -130,31 +167,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				new ShopinBitWorkflowManagerViewModel(),
 				this);
 
-			var orderMessages = new List<MessageViewModel>();
-
-			foreach (var message in conversation.Messages)
-			{
-				if (message.IsMyMessage)
-				{
-					var userMessage = new UserMessageViewModel()
-					{
-						Message = message.Message,
-						// TODO: Check if message exists
-						IsUnread = true
-					};
-					orderMessages.Add(userMessage);
-				}
-				else
-				{
-					var userMessage = new AssistantMessageViewModel()
-					{
-						Message = message.Message,
-						// TODO: Check if message exists
-						IsUnread = true
-					};
-					orderMessages.Add(userMessage);
-				}
-			}
+			var orderMessages = CreateMessages(conversation);
 
 			order.UpdateMessages(orderMessages);
 		}
