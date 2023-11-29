@@ -73,6 +73,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.Subscribe(e =>
 				{
 					// TODO: Where is the Code? Update the conversations.
+
+					// Notify that conversation updated.
+					_updateTriggerSubject.OnNext(Unit.Default);
 				});
 		}
 	}
