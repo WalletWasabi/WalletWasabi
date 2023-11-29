@@ -17,24 +17,35 @@ public record ChatMessage(bool IsMyMessage, string Message);
 
 public class Conversation
 {
-	public ChatMessage[] Messages { get; set; } = [];
+	public ChatMessage[] Messages { get; set; } = Array.Empty<ChatMessage>();
 }
 
 // Class to keep a track of the last update of a conversation
-public class ConversationUpdateTrack(string contextToken, Wallet wallet)
+public class ConversationUpdateTrack
 {
-	public string ContextToken { get; set; } = contextToken;
+	public ConversationUpdateTrack(string contextToken, Wallet wallet)
+	{
+		Wallet = wallet;
+		ContextToken = contextToken;
+	}
+
+	public string ContextToken { get; }
 	public DateTimeOffset LastUpdate { get; set; }
 	public Conversation Conversation { get; set; } = new();
-	public Wallet Wallet { get; set; } = wallet;
+	public Wallet Wallet { get; }
 }
 
 // Class to manage the conversation updates
 // This is a toy implementation just to share the idea by code.
-public class BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : PeriodicRunner(period)
+public class BuyAnythingManager : PeriodicRunner
 {
-	private BuyAnythingClient Client { get; } = client;
-	private List<ConversationUpdateTrack> Conversations { get; } = [];
+	public BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : base(period)
+	{
+		Client = client;
+	}
+
+	private BuyAnythingClient Client { get; }
+	private List<ConversationUpdateTrack> Conversations { get; } = new();
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
 
@@ -60,16 +71,16 @@ public class BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : Per
 	{
 		if (customerComment is null)
 		{
-			return [];
+			return Enumerable.Empty<ChatMessage>();
 		}
 
 		var messages = customerComment.Split("||", StringSplitOptions.RemoveEmptyEntries);
 		if (!messages.Any())
 		{
-			return [];
+			return Enumerable.Empty<ChatMessage>();
 		}
 
-		List<ChatMessage> chatMessages = [];
+		List<ChatMessage> chatMessages = new();
 
 		foreach (var message in messages)
 		{
@@ -77,7 +88,7 @@ public class BuyAnythingManager(TimeSpan period, BuyAnythingClient client) : Per
 
 			if (items.Length != 2)
 			{
-				return [];
+				return Enumerable.Empty<ChatMessage>();
 			}
 
 			var isMine = items[0] == "WASABI";
