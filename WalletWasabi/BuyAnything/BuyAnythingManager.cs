@@ -55,7 +55,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			var orders = track.ContextToken != "myDebugConversation"
 				? await Client.GetConversationsUpdateSinceAsync(track.ContextToken, track.LastUpdate, cancel).ConfigureAwait(false)
-				: [MyDummyOrder];
+				: new[] { MyDummyOrder };
 
 			foreach (var order in orders.Where(o => o.UpdatedAt!.Value > track.LastUpdate))
 			{
