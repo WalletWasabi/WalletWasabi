@@ -119,10 +119,10 @@ public class BuyAnythingManager : PeriodicRunner
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
-			await SaveAsync(cancellationToken).ConfigureAwait(false);
-
 			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
 			await Client.UpdateConversationAsync(conversationId.ContextToken, rawText).ConfigureAwait(false);
+
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
