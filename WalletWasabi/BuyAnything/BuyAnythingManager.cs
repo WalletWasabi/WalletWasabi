@@ -86,7 +86,8 @@ public class BuyAnythingManager : PeriodicRunner
 			new Conversation(
 				new ConversationId(walletId, ctxToken),
 				new []{ new ChatMessage(true, message) },
-				ConversationStatus.Started)));
+				ConversationStatus.Started,
+				new object())));
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
