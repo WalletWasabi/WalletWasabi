@@ -68,47 +68,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			// TODO: Fill up the UI with the conversations.
 			var currentConversations = buyAnythingManager.GetConversations(_wallet);
 
-			var currentOrders = new List<OrderViewModel>();
-
-			foreach (var conversation in currentConversations)
-			{
-				// TODO: Conversation needs name/title?
-				var orderViewModel = new OrderViewModel(
-					conversation.ContextToken,
-					"Order ??",
-					new ShopinBitWorkflowManagerViewModel(),
-					this);
-
-				var orderMessages = new List<MessageViewModel>();
-
-				foreach (var message in conversation.Messages)
-				{
-					if (message.IsMyMessage)
-					{
-						var userMessage = new UserMessageViewModel()
-						{
-							Message = message.Message,
-							// TODO: Check if message exists
-							IsUnread = true
-						};
-						orderMessages.Add(userMessage);
-					}
-					else
-					{
-						var userMessage = new AssistantMessageViewModel()
-						{
-							Message = message.Message,
-							// TODO: Check if message exists
-							IsUnread = true
-						};
-						orderMessages.Add(userMessage);
-					}
-				}
-
-				orderViewModel.UpdateMessages(orderMessages);
-			}
-
-			_ordersCache.AddOrUpdate(currentOrders);
+			CreateOrders(currentConversations);
 
 			Observable
 				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
@@ -155,6 +115,51 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
 		base.OnNavigatedFrom(isInHistory);
+	}
+
+	private void CreateOrders(IEnumerable<Conversation> currentConversations)
+	{
+		var orders = new List<OrderViewModel>();
+
+		foreach (var conversation in currentConversations)
+		{
+			// TODO: Conversation needs name/title?
+			var order = new OrderViewModel(
+				conversation.ContextToken,
+				"Order ??",
+				new ShopinBitWorkflowManagerViewModel(),
+				this);
+
+			var orderMessages = new List<MessageViewModel>();
+
+			foreach (var message in conversation.Messages)
+			{
+				if (message.IsMyMessage)
+				{
+					var userMessage = new UserMessageViewModel()
+					{
+						Message = message.Message,
+						// TODO: Check if message exists
+						IsUnread = true
+					};
+					orderMessages.Add(userMessage);
+				}
+				else
+				{
+					var userMessage = new AssistantMessageViewModel()
+					{
+						Message = message.Message,
+						// TODO: Check if message exists
+						IsUnread = true
+					};
+					orderMessages.Add(userMessage);
+				}
+			}
+
+			order.UpdateMessages(orderMessages);
+		}
+
+		_ordersCache.AddOrUpdate(orders);
 	}
 
 	private void Demo()
