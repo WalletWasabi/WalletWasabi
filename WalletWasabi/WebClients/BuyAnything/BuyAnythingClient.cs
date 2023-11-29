@@ -27,6 +27,15 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
 
+	// Customer information. We need this values to update the messages
+	// we have three options:
+	// 1. Create a new customer with random names and store them in the disk
+	// 2. Use {firstName}.{lastName}@me.com as the email address and store that (it makes sense if need to log in customers)
+	// 3. Hardcode the values here
+	private static readonly string FirstName = "Watoshi";
+	private static readonly string LastName = "Sabimoto";
+
+
 	private static readonly string CountriesPath = "./Data/Countries.json";
 
 	public BuyAnythingClient(ShopWareApiClient apiClient)
@@ -45,10 +54,10 @@ public class BuyAnythingClient
 	public async Task<string> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
-		var customerRegistrationRequest = CreateRandomCustomer();
+		var customerRegistrationRequest = CreateRandomCustomer(comment);
 		var shoppingCartCreationRequest = new ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = CreateShoppingCartItemAdditionRequest(ProductIds[product]);
-		var orderGenerationRequest = CreateOrderGenerationRequest(comment);
+		var orderGenerationRequest = CreateOrderGenerationRequest();
 
 		// Create the conversation
 		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
@@ -86,17 +95,18 @@ public class BuyAnythingClient
 	// Here we create a Guest customer. We assume that the context token is enough to identify the user and that the token
 	// doesn't expire. In case this is not true then we need to create a registered customer with random credentials, store
 	// them in a file and use them to login the user.
-	private CustomerRegistrationRequest CreateRandomCustomer() =>
+	private CustomerRegistrationRequest CreateRandomCustomer(string message) =>
 		new CustomerRegistrationRequest(
 			SalutationId: "018b6635785b70679f479eadf50330f3",
-			FirstName: "Mariela",
-			LastName: "Carranza",
+			FirstName: FirstName,
+			LastName: LastName,
 			Email: "emilia.carranza@me.com",
 			Password: "Password",
-			Guest: true,
+			Guest: false,
 			AffiliateCode: "WASABI",
 			AcceptedDataProtection: true,
 			StorefrontUrl: "https://wasabi.shopinbit.com",
+			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#{message}||"},
 			BillingAddress: new BillingAddress(
 				Street: "My street",
 				AdditionalAddressLine1: "My additional address line 1",
@@ -124,9 +134,9 @@ public class BuyAnythingClient
 				});
 
 	// Creates a request to generate an order. The first conversation text is added as a CurstomerComment.
-	private OrderGenerationRequest CreateOrderGenerationRequest(string comment) =>
+	private OrderGenerationRequest CreateOrderGenerationRequest() =>
 		new(
-			CustomerComment: comment,
+			CustomerComment: "",
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
 

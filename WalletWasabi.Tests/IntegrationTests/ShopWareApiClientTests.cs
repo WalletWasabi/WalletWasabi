@@ -37,6 +37,7 @@ public class ShopWareApiClientTests
 			AffiliateCode: "WASABI",
 			AcceptedDataProtection: true,
 			StorefrontUrl: "https://wasabi.shopinbit.com",
+			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#Hello, is it anybody in there?||"},
 			BillingAddress: new BillingAddress(
 				Street: "My street",
 				AdditionalAddressLine1: "My additional address line 1",
@@ -211,6 +212,7 @@ public class ShopWareApiClientTests
 			AffiliateCode: "WASABI",
 			AcceptedDataProtection: true,
 			StorefrontUrl: "https://wasabi.shopinbit.com",
+			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#Hello... is it me you're looking for?||"},
 			BillingAddress: new BillingAddress(
 				Street: "My street",
 				AdditionalAddressLine1: "My additional address line 1",

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace WalletWasabi.WebClients.ShopWare.Models;
@@ -11,6 +12,7 @@ public record BillingAddress
 	string CountryId
 );
 
+
 public record CustomerRegistrationRequest
 (
 	string SalutationId,
@@ -22,6 +24,7 @@ public record CustomerRegistrationRequest
 	string AffiliateCode,
 	bool AcceptedDataProtection,
 	string StorefrontUrl,
+	Dictionary<string, string> CustomFields,
 	BillingAddress? BillingAddress
 );
 
