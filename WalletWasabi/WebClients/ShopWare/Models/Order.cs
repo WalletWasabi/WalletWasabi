@@ -187,20 +187,3 @@ public record TranslatedState
 
 public record CancelOrderRequest(string OrderId);
 
-public record UpdateOrderRequest
-(
-	string OrderId,
-	string CustomerComment
-);
-
-public class GetOrderListRequest
-{
-	public GetOrderListRequest(DateTimeOffset lastUpdate)
-	{
-		Parameters = new() { { "gt", lastUpdate } };
-	}
-
-	public string Type { get; } = "range";
-	public string Field { get; } = "updatedAt";
-	public Dictionary<string, DateTimeOffset> Parameters { get; }
-}

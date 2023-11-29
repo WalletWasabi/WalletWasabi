@@ -56,10 +56,6 @@ public class ShopWareApiClient
 	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken, CancelOrderRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CancelOrderRequest, CancelOrderResponse>(ctxToken, HttpMethod.Post, "order/state/cancel", request, cancellationToken);
 
-	// This method doesn't work. It seems there is no way to update an order.
-	public Task UpdateOrderAsync(string ctxToken, UpdateOrderRequest request, CancellationToken cancellationToken) =>
-		SendAsync(ctxToken, HttpMethod.Patch, $"order/{request.OrderId}", request, cancellationToken);
-
 	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
 

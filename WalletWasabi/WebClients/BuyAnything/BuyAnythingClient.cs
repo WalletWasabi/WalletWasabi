@@ -78,6 +78,10 @@ public class BuyAnythingClient
 		return ctxToken; // return the order number and the token to identify the conversation
 	}
 
+	public async Task UpdateConversationAsync(string conversationIdContextToken, string rawText)
+	{
+	}
+
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
@@ -140,9 +144,4 @@ public class BuyAnythingClient
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
 
-
-	public async Task UpdateConversationAsync(string conversationIdContextToken, string rawText)
-	{
-		throw new NotImplementedException();
-	}
 }
