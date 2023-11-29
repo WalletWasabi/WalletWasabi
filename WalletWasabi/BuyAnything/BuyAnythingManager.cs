@@ -44,13 +44,17 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private BuyAnythingClient Client { get; }
-	private List<ConversationUpdateTrack> Conversations { get; } = new();
+	private List<ConversationUpdateTrack> Conversations { get; } = new ();
+	private bool IsConversationsLoaded { get; set; }
+
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
+
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
@@ -84,16 +88,19 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	public IEnumerable<Conversation> GetConversations(Wallet wallet)
+	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var walletId = GetWalletId(wallet);
 		return Conversations
 			.Where(c => c.Conversation.Id.WalletId == walletId)
-			.Select(c => c.Conversation);
+			.Select(c => c.Conversation)
+			.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, string message, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
 			.ConfigureAwait(false);
 
@@ -109,6 +116,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, object metadata, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		if (Conversations.FirstOrDefault(c => c.Conversation.Id == conversationId) is { } track)
 		{
 			track.Conversation = track.Conversation with
@@ -171,4 +179,21 @@ public class BuyAnythingManager : PeriodicRunner
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
+
+	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
+	{
+		if (IsConversationsLoaded is false)
+		{
+			await LoadConversationsAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task LoadConversationsAsync(CancellationToken cancellationToken)
+	{
+		IoHelpers.EnsureFileExists(FilePath);
+		string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+		var conversations = JsonConvert.DeserializeObject<List<ConversationUpdateTrack>>(json) ?? new();
+		Conversations.AddRange(conversations);
+		IsConversationsLoaded = true;
+	}
 }
