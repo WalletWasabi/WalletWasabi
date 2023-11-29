@@ -98,12 +98,11 @@ public partial class OrderViewModel : ReactiveObject
 			}
 
 			var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
-			if (message is null)
-			{
-				return;
-			}
 
-			AddUserMessage(message);
+			if (message is not null)
+			{
+				AddUserMessage(message);
+			}
 
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is null)
