@@ -27,4 +27,9 @@ public partial class PackageWorkflowInputValidatorViewModel : WorkflowInputValid
 		// TODO: Remove step after implementing backend interaction
 		WorkflowValidator.NextStep();
 	}
+
+	public override bool OnCompletion()
+	{
+		return false;
+	}
 }

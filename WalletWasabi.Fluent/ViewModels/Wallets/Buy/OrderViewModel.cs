@@ -38,7 +38,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
-			SendCommand?.Execute(null);
+			await SendAsync();
 		});
 
 		_messagesList = new SourceList<MessageViewModel>();
@@ -104,10 +104,21 @@ public partial class OrderViewModel : ReactiveObject
 				AddUserMessage(message);
 			}
 
+			if (_workflowManager.CurrentWorkflow.IsCompleted)
+			{
+				SelectNextWorkflow();
+				return;
+			}
+
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is null)
 			{
 				// TODO: Handle error?
+				return;
+			}
+
+			if (!nextStep.UserInputValidator.OnCompletion())
+			{
 				return;
 			}
 
@@ -180,6 +191,11 @@ public partial class OrderViewModel : ReactiveObject
 				}
 
 				if (nextStep.RequiresUserInput)
+				{
+					break;
+				}
+
+				if (!nextStep.UserInputValidator.OnCompletion())
 				{
 					break;
 				}

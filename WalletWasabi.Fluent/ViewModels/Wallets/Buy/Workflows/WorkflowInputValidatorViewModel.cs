@@ -29,4 +29,9 @@ public abstract partial class WorkflowInputValidatorViewModel : ReactiveObject
 	public virtual void OnActivation()
 	{
 	}
+
+	public virtual bool OnCompletion()
+	{
+		return true;
+	}
 }

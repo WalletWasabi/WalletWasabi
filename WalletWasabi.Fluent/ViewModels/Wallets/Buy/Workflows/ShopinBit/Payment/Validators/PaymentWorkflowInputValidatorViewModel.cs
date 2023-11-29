@@ -29,4 +29,9 @@ public partial class PaymentWorkflowInputValidatorViewModel : WorkflowInputValid
 		// TODO: Remove step after implementing backend interaction
 		WorkflowValidator.NextStep();
 	}
+
+	public override bool OnCompletion()
+	{
+		return false;
+	}
 }
