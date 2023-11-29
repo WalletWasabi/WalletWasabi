@@ -42,7 +42,7 @@ public class BuyAnythingManager : PeriodicRunner
 	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client) : base(period)
 	{
 		Client = client;
-		FilePath = Path.Combine(dataDir, "Orders", "Orders.json");
+		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
 	}
 
 	private BuyAnythingClient Client { get; }
@@ -79,7 +79,7 @@ public class BuyAnythingManager : PeriodicRunner
 			.Select(c => c.Conversation);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage)
+	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, CancellationToken cancellationToken)
 	{
 		if (Conversations.FirstOrDefault(c => c.Conversation.Id == conversationId) is { } track)
 		{
@@ -88,6 +88,8 @@ public class BuyAnythingManager : PeriodicRunner
 				Messages = track.Conversation.Messages.Append(new ChatMessage(false, newMessage)).ToArray()
 			};
 			track.LastUpdate = DateTimeOffset.Now;
+
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
 
 			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
 			await Client.UpdateConversationAsync(conversationId.ContextToken, rawText).ConfigureAwait(false);
@@ -128,11 +130,11 @@ public class BuyAnythingManager : PeriodicRunner
 		return result.ToString();
 	}
 
-	public void ToFile()
+	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
 		string json = JsonConvert.SerializeObject(Conversations, Formatting.Indented);
-		File.WriteAllText(FilePath, json);
+		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
 	public static string GetWalletId (Wallet wallet) =>
