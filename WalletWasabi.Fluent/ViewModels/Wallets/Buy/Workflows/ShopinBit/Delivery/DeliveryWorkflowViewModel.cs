@@ -80,6 +80,11 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Confirm
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
 			// Final
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
