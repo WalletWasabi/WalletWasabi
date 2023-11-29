@@ -80,11 +80,7 @@
 
             <DataTemplate DataType="shopinBit:ConfirmDeliveryWorkflowInputValidatorViewModel">
               <!-- TODO: Hide send button or refactor how we display it -->
-              <Button DockPanel.Dock="Right"
-                      Command="{Binding ConfirmDeliveryCommand}"
-                      Margin="8 0 0 0"
-                      Content="Confirm"
-                      Classes="action" />
+              <Panel />
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
