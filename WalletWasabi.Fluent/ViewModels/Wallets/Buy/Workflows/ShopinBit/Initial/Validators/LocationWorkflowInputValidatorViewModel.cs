@@ -13,7 +13,7 @@ public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputVali
 	public LocationWorkflowInputValidatorViewModel(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Enter your location...")
+		: base(workflowValidator, null, "Enter your location...", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 

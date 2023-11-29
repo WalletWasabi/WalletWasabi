@@ -9,7 +9,7 @@ public partial class RequestWorkflowInputValidatorViewModel : WorkflowInputValid
 	public RequestWorkflowInputValidatorViewModel(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Type here...")
+		: base(workflowValidator, null, "Type here...", "Request")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 

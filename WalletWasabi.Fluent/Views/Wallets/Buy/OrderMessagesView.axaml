@@ -27,7 +27,7 @@
         <Button DockPanel.Dock="Right"
                 Command="{Binding SelectedOrder.SendCommand}"
                 Margin="8 0 0 0"
-                Content="Request"
+                Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
                 Classes="action" />
 
         <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
@@ -78,8 +78,11 @@
               </TextBox>
             </DataTemplate>
 
+            <DataTemplate DataType="shopinBit:ConfirmInitialWorkflowInputValidatorViewModel">
+              <Panel />
+            </DataTemplate>
+
             <DataTemplate DataType="shopinBit:ConfirmDeliveryWorkflowInputValidatorViewModel">
-              <!-- TODO: Hide send button or refactor how we display it -->
               <Panel />
             </DataTemplate>
 
@@ -111,7 +114,6 @@
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:LocationWorkflowInputValidatorViewModel">
-              <!-- TODO: Text="{Binding Message}" -->
               <c:TagsBox VerticalAlignment="Center"
                          Background="{StaticResource Background}"
                          RestrictInputToSuggestions="True"

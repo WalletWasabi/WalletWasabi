@@ -37,6 +37,14 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new RequestWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Confirm
+			new (false,
+				new InitialSummaryWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmInitialWorkflowInputValidatorViewModel(
+					workflowValidator)),
 			// Final
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(

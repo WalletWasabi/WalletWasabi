@@ -9,7 +9,7 @@ public partial class DeliverySummaryWorkflowInputValidatorViewModel : WorkflowIn
 	public DeliverySummaryWorkflowInputValidatorViewModel(
 		IWorkflowValidator workflowValidator,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, null)
+		: base(workflowValidator, null, null, null)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 	}

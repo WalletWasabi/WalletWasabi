@@ -8,7 +8,8 @@ public partial class DefaultWorkflowInputValidatorViewModel : WorkflowInputValid
 	public DefaultWorkflowInputValidatorViewModel(
 		IWorkflowValidator workflowValidator,
 		string? message,
-		string? watermark = "Type here...") : base(workflowValidator, message, watermark)
+		string? watermark = "Type here...",
+		string? content = "Request") : base(workflowValidator, message, watermark, content)
 	{
 		this.WhenAnyValue(x => x.Message)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));

@@ -7,7 +7,9 @@ public partial class NoInputWorkflowInputValidatorViewModel : WorkflowInputValid
 	public NoInputWorkflowInputValidatorViewModel(
 		IWorkflowValidator workflowValidator,
 		string? message,
-		string? watermark = null) : base(workflowValidator, message, watermark)
+		string? watermark = null,
+		string? content = "Request")
+		: base(workflowValidator, message, watermark, content)
 	{
 	}
 
