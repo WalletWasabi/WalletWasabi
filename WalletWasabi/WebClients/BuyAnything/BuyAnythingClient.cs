@@ -20,7 +20,7 @@ public class BuyAnythingClient
 	}
 
 	// Product Id mapping for Concierge services
-	private static readonly Dictionary<Product, string> ProductIds = new ()
+	private static readonly Dictionary<Product, string> ProductIds = new()
 	{
 		[Product.ConciergeRequest] = "018c0cec5299719f9458dba04f88eb8c",
 		[Product.FastTravelBooking] = "018c0cef890970ea9b143994f9930331",
@@ -42,7 +42,7 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<(string, string)> CreateNewConversationAsync(string countryId, Product product,  string comment, CancellationToken cancellationToken)
+	public async Task<(string, string)> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		var countries = await GetCountryListAsync(cancellationToken).ConfigureAwait(false);
 
@@ -53,7 +53,7 @@ public class BuyAnythingClient
 		var orderGenerationRequest = CreateOrderGenerationRequest(comment);
 
 		// Create the conversation
-		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context",customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
+		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
 
 		// Get the context token (session identifier) for the created user. In same cases, as customer registration,
 		// we can get two context tokens. The first one is for the recently created user and the second one is for the
@@ -71,8 +71,7 @@ public class BuyAnythingClient
 		return (ctxToken, orderGenerationResponse.OrderNumber); // return the order number and the token to identify the conversation
 	}
 
-
-	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate,  CancellationToken cancellationToken)
+	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
 		var updatedOrders = orderList.Orders.Elements
@@ -95,6 +94,7 @@ public class BuyAnythingClient
 			FirstName: "Mariela",
 			LastName: "Carranza",
 			Email: "emilia.carranza@me.com",
+			Password: "Password",
 			Guest: true,
 			AffiliateCode: "WASABI",
 			AcceptedDataProtection: true,
@@ -127,7 +127,7 @@ public class BuyAnythingClient
 
 	// Creates a request to generate an order. The first conversation text is added as a CurstomerComment.
 	private OrderGenerationRequest CreateOrderGenerationRequest(string comment) =>
-		new (
+		new(
 			CustomerComment: comment,
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");

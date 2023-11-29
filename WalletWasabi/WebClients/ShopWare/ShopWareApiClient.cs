@@ -36,7 +36,10 @@ public class ShopWareApiClient
 	}
 
 	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, HttpMethod.Post, "account/register" , request, cancellationToken);
+		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, HttpMethod.Post, "account/register", request, cancellationToken);
+
+	public Task<CustomerLoginResponse> LoginCustomerAsync(string ctxToken, CustomerLoginRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerLoginRequest, CustomerLoginResponse>(ctxToken, HttpMethod.Post, "account/login", request, cancellationToken);
 
 	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartCreationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartCreationRequest, ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);

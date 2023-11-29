@@ -17,6 +17,7 @@ public record CustomerRegistrationRequest
 	string FirstName,
 	string LastName,
 	string Email,
+	string Password,
 	bool Guest,
 	string AffiliateCode,
 	bool AcceptedDataProtection,
@@ -29,4 +30,16 @@ public record CustomerRegistrationResponse
 	string Id,
 	string CustomerNumber,
 	string[] ContextTokens
+);
+
+public record CustomerLoginRequest
+(
+	string Email,
+	string Password
+);
+
+public record CustomerLoginResponse
+(
+	string ApiAlias,
+	string ContextToken
 );

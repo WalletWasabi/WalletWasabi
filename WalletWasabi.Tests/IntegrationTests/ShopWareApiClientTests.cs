@@ -32,6 +32,7 @@ public class ShopWareApiClientTests
 			FirstName: "Mariela",
 			LastName: "Carranza",
 			Email: "emilia.carranza@me.com",
+			Password: "Password",
 			Guest: true,
 			AffiliateCode: "WASABI",
 			AcceptedDataProtection: true,
@@ -76,6 +77,41 @@ public class ShopWareApiClientTests
 			CancellationToken.None);
 
 		Assert.Equal("Cancelled", cancelledOrder.Name);
+	}
+
+	[Fact]
+	public async Task CanRegisterAndLogInAsync()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		// Register a user.
+		var customerRequestWithRandomData = CreateRandomCustomer(out var email, out var password);
+		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRequestWithRandomData, CancellationToken.None);
+		Assert.NotNull(customer);
+
+		var ogCustomerNumber = customer.CustomerNumber;
+		var ogCustomerToken = customer.ContextTokens[0];
+		var ogCustomerId = customer.Id;
+
+		// Login with the new user.
+		var loggedInCustomer = await shopWareApiClient.LoginCustomerAsync("none", new CustomerLoginRequest(email, password), CancellationToken.None);
+		Assert.Equal(loggedInCustomer.ContextToken, customer.ContextTokens[0]);
+
+		// Register with a new user.
+		var newCustomerRequestWithRandomData = CreateRandomCustomer(out var newEmail, out var newPassword);
+		var newCustomer = await shopWareApiClient.RegisterCustomerAsync("none", newCustomerRequestWithRandomData, CancellationToken.None);
+		Assert.NotNull(newCustomer);
+
+		var newCustomerNumber = newCustomer.CustomerNumber;
+		var newCustomerToken = newCustomer.ContextTokens[0];
+		var newCustomerId = newCustomer.Id;
+
+		// Assert that new user's data isn't the same as the first one.
+		Assert.NotEqual(ogCustomerNumber, newCustomerNumber);
+		Assert.NotEqual(ogCustomerId, newCustomerId);
+		Assert.NotEqual(ogCustomerToken, newCustomerToken);
 	}
 
 	[Fact]
@@ -161,5 +197,29 @@ public class ShopWareApiClientTests
 		// Save the new file if it changed
 		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
 		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
+	}
+
+	private CustomerRegistrationRequest CreateRandomCustomer(out string email, out string password)
+	{
+		var crr = new CustomerRegistrationRequest(
+			SalutationId: "018b6635785b70679f479eadf50330f3",
+			FirstName: "Random",
+			LastName: "Dude Jr.",
+			Email: $"{Guid.NewGuid()}@me.com",
+			Password: "Password",
+			Guest: false,
+			AffiliateCode: "WASABI",
+			AcceptedDataProtection: true,
+			StorefrontUrl: "https://wasabi.shopinbit.com",
+			BillingAddress: new BillingAddress(
+				Street: "My street",
+				AdditionalAddressLine1: "My additional address line 1",
+				Zipcode: "12345",
+				City: "Appleton",
+				CountryId: "5d54dfdc2b384a8e9fff2bfd6e64c186"
+			));
+		email = crr.Email;
+		password = crr.Password;
+		return crr;
 	}
 }
