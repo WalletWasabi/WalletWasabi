@@ -96,6 +96,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet));
 
+		IsBuyButtonVisible = walletModel.Balances.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
+
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x._parent.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
@@ -143,6 +145,27 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 	}
+
+	private bool GetIsBuyButtonVisible(bool hasBalance)
+	{
+		// TODO: Replace this with proper UI Decoupling abstraction.
+		var network = Services.PersistentConfig.Network;
+
+		if (network == Network.Main && hasBalance)
+		{
+			return true;
+		}
+
+#if DEBUG
+		if (hasBalance)
+		{
+			return true;
+		}
+#endif
+		return false;
+	}
+
+	public IObservable<bool> IsBuyButtonVisible { get; }
 
 	public WalletState WalletState => Wallet.State;
 
