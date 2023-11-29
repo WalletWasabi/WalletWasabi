@@ -60,6 +60,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		Demo();
 
+		// TODO: Move to OnNavigatedTo ?
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
 			// TODO: Fill up the UI with the conversations.
