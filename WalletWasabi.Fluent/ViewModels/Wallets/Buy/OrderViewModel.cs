@@ -14,17 +14,23 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly IWorkflowManager _workflowManager;
+	private readonly IOrderManager _orderManager;
 
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
-	public OrderViewModel(Guid id, string title, IWorkflowManager workflowManager)
+	public OrderViewModel(
+		Guid id,
+		string title,
+		IWorkflowManager workflowManager,
+		IOrderManager orderManager)
 	{
 		Id = id;
 		Title = title;
 
 		// TODO: For now we have only one workflow manager.
 		_workflowManager = workflowManager;
+		_orderManager = orderManager;
 
 		_messagesList = new SourceList<MessageViewModel>();
 
@@ -36,6 +42,8 @@ public partial class OrderViewModel : ReactiveObject
 		_workflowManager.SelectNextWorkflow();
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
+
+		RemoveOrderCommand = ReactiveCommand.Create(RemoveOrder);
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
@@ -49,7 +57,9 @@ public partial class OrderViewModel : ReactiveObject
 
 	public IWorkflowManager WorkflowManager => _workflowManager;
 
-	public ICommand SendCommand { get; set; }
+	public ICommand SendCommand { get; }
+
+	public ICommand RemoveOrderCommand { get;  }
 
 	private async Task SendAsync()
 	{
@@ -195,6 +205,11 @@ public partial class OrderViewModel : ReactiveObject
 		});
 
 		SelectedMessage = userMessage;
+	}
+
+	private void RemoveOrder()
+	{
+		_orderManager.RemoveOrder(Id);
 	}
 
 	public void Update()

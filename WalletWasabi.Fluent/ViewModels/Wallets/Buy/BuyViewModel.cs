@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
-public partial class BuyViewModel : RoutableViewModel
+public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
@@ -83,11 +83,21 @@ public partial class BuyViewModel : RoutableViewModel
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(Guid.NewGuid(), "Order 001", new ShopinBitWorkflowManagerViewModel()),
-			new OrderViewModel(Guid.NewGuid(), "Order 002", new ShopinBitWorkflowManagerViewModel()),
-			new OrderViewModel(Guid.NewGuid(), "Order 003", new ShopinBitWorkflowManagerViewModel()),
+			new OrderViewModel(Guid.NewGuid(), "Order 001", new ShopinBitWorkflowManagerViewModel(), this),
+			new OrderViewModel(Guid.NewGuid(), "Order 002", new ShopinBitWorkflowManagerViewModel(), this),
+			new OrderViewModel(Guid.NewGuid(), "Order 003", new ShopinBitWorkflowManagerViewModel(), this),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
+	}
+
+	public void RemoveOrder(Guid id)
+	{
+		_ordersCache.Edit(x =>
+		{
+			_ordersCache.RemoveKey(id);
+		});
+
+		SelectedOrder = _orders.FirstOrDefault();
 	}
 }

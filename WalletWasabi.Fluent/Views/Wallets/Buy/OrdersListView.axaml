@@ -28,7 +28,17 @@
           <Border Background="#343A47"
                   Padding="8"
                   CornerRadius="8">
-            <TextBlock Text="{Binding Title}" />
+            <DockPanel>
+              <Button Classes="plain addressActionButton"
+                      Margin="0"
+                      Command="{Binding RemoveOrderCommand}"
+                      ToolTip.Tip="Remove order"
+                      DockPanel.Dock="Right">
+                <PathIcon Data="{StaticResource delete_regular}" Classes=" addressActionIcon" />
+              </Button>
+              <TextBlock Text="{Binding Title}"
+                         VerticalAlignment="Center"/>
+            </DockPanel>
           </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
