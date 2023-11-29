@@ -101,6 +101,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			// TODO: Fill up the UI with the conversations.
 			var currentConversations = buyAnythingManager.GetConversations(_wallet);
 
+			// // TODO: Create new conversation if we have none.
+			// if (currentConversations.Count() == 0)
+			// {
+			// 	buyAnythingManager.StartNewConversationAsync()
+			// }
+
 			CreateOrders(currentConversations);
 
 			Observable
