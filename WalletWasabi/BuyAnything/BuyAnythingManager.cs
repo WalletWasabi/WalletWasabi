@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -17,6 +18,9 @@ public record ChatMessage(bool IsMyMessage, string Message);
 
 public class Conversation
 {
+	public string CustomerEmail { get; set; }
+	public string CustomerPassword { get; set; }
+	public string ContextToken { get; }
 	public ChatMessage[] Messages { get; set; } = Array.Empty<ChatMessage>();
 }
 
@@ -97,6 +101,27 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		return chatMessages.ToArray();
+	}
+
+	private string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	{
+		StringBuilder result = new();
+
+		foreach (var chatMessage in cleanChatMessages)
+		{
+			if (chatMessage.IsMyMessage)
+			{
+				result.Append($"||#WASABI#{chatMessage.Message}");
+			}
+			else
+			{
+				result.Append($"||#SIB#{chatMessage.Message}");
+			}
+		}
+
+		result.Append("||");
+
+		return result.ToString();
 	}
 
 	public IEnumerable<Conversation> GetConversations(Wallet wallet)
