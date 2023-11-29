@@ -35,7 +35,7 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding IsSendButtonVisible}"
+                    IsVisible="{Binding IsBuyButtonVisible^}"
                     Command="{Binding BuyCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_buy}" />
