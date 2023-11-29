@@ -4,8 +4,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
 public interface IOrderManager
 {
-	IObservable<Unit> UpdateTrigger { get; }
-	bool HasUnreadMessages(Guid id);
-	bool IsCompleted(Guid id);
-	void RemoveOrder(Guid id);
+	IObservable<string> UpdateTrigger { get; }
+	bool HasUnreadMessages(string id);
+	bool IsCompleted(string idS);
+	void RemoveOrder(string id);
 }

@@ -24,7 +24,7 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(
-		Guid id,
+		string id,
 		string title,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager)
@@ -62,7 +62,7 @@ public partial class OrderViewModel : ReactiveObject
 		// RunNoInputWorkflowSteps();
 	}
 
-	public Guid Id { get; }
+	public string Id { get; }
 
 	public string Title { get; }
 
@@ -236,5 +236,16 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		// TODO: For testing
 		RunNoInputWorkflowSteps();
+	}
+
+	// TODO: Temporary until we sync messages
+	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
+	{
+		// TODO: We need to sync with current workflow.
+		_messagesList.Edit(x =>
+		{
+			x.Clear();
+			x.Add(messages);
+		});
 	}
 }
