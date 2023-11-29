@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,8 @@ public class Conversation
 {
 	public string CustomerEmail { get; set; }
 	public string CustomerPassword { get; set; }
-	public string ContextToken { get; }
+
+	// public string ContextToken { get; }
 	public ChatMessage[] Messages { get; set; } = Array.Empty<ChatMessage>();
 }
 
@@ -122,6 +124,20 @@ public class BuyAnythingManager : PeriodicRunner
 		result.Append("||");
 
 		return result.ToString();
+	}
+
+	public void SendAndUpdateConversation(ChatMessage newMessage, string customerEmail, string customerPassword)
+	{
+		// Update local cache.
+		ConversationUpdateTrack conversationToUpdate = Conversations.First(conv => conv.Conversation.CustomerEmail == customerEmail && conv.Conversation.CustomerPassword == customerPassword);
+		conversationToUpdate.Conversation.Messages = conversationToUpdate.Conversation.Messages.Concat([newMessage]).ToArray(); // Why array instead of List?
+		conversationToUpdate.LastUpdate = DateTimeOffset.Now;
+
+		// Convert conversation messages to customer comment.
+		var sendableCunstomerComment = ConvertToCustomerComment(conversationToUpdate.Conversation.Messages);
+
+		// Send whole conversation to SIB.
+		//Client.SendNewMessage(sendableCunstomerComment, customerEmail, customerPassword);
 	}
 
 	public IEnumerable<Conversation> GetConversations(Wallet wallet)
