@@ -84,7 +84,7 @@ public record Order
 	StateMachineState StateMachineState,
 	string OrderNumber,
 	string CurrencyId,
-	int CurrencyFactor,
+	float CurrencyFactor,
 	string SalesChannelId,
 	string BillingAddressId,
 	string BillingAddressVersionId,
