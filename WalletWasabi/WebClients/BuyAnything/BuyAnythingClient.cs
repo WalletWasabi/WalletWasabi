@@ -140,23 +140,6 @@ public class BuyAnythingClient
 			AffiliateCode: "WASABI",
 			CampaignCode: "WASABI");
 
-	private async Task<List<CachedCountry>> GetCountryListAsync(CancellationToken cancellationToken)
-	{
-		if (_countries is not null)
-		{
-			return _countries;
-		}
-
-		_countries =  JsonConvert.DeserializeObject<List<CachedCountry>>(
-			await File.ReadAllTextAsync(CountriesPath, cancellationToken).ConfigureAwait(false));
-
-		if (_countries is null)
-		{
-			throw new InvalidOperationException("Couldn't read cached countries values.");
-		}
-
-		return _countries;
-	}
 
 	public async Task UpdateConversationAsync(string conversationIdContextToken, string rawText)
 	{
