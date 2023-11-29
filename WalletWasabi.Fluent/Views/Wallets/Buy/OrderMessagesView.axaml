@@ -5,12 +5,18 @@
              xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:workflows="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows"
              xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="buy:BuyViewModel"
              x:CompileBindings="True">
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="BlueishDarkGray" Color="#21252D" />
+    <SolidColorBrush x:Key="AccentColor" Color="#6591EC" />
+    <SolidColorBrush x:Key="Background" Color="#232932" />
+    <SolidColorBrush x:Key="ErrorColor" Color="Red" />
+  </UserControl.Resources>
 
   <Border Background="#343A47">
 
@@ -25,14 +31,18 @@
                 Classes="action" />
 
         <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
+          <ContentControl.Styles>
+            <Style Selector="TextBox">
+              <Setter Property="MaxLength" Value="5000" />
+            </Style>
+          </ContentControl.Styles>
           <ContentControl.DataTemplates>
 
             <DataTemplate DataType="shopinBit:TextInputWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="#232932"
+                       Background="{StaticResource Background}"
                        Text="{Binding Message}"
-                       Watermark="{Binding Watermark}"
-                       MaxLength="5000">
+                       Watermark="{Binding Watermark}">
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -43,10 +53,9 @@
 
             <DataTemplate DataType="shopinBit:DefaultWorkflowInputValidatorViewModel">
                 <TextBox VerticalAlignment="Center"
-                         Background="#232932"
+                         Background="{StaticResource Background}"
                          Text="{Binding Message}"
-                         Watermark="{Binding Watermark}"
-                         MaxLength="5000">
+                         Watermark="{Binding Watermark}">
                   <TextBox.Styles>
                     <Style Selector="TextBox /template/ DataValidationErrors">
                       <Setter Property="IsVisible" Value="False" />
@@ -57,10 +66,9 @@
 
             <DataTemplate DataType="shopinBit:NoInputWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="#232932"
+                       Background="{StaticResource Background}"
                        Text=""
                        Watermark=""
-                       MaxLength="5000"
                        IsEnabled="False">
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
@@ -81,10 +89,9 @@
 
             <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="#232932"
+                       Background="{StaticResource Background}"
                        Text=""
                        Watermark=""
-                       MaxLength="5000"
                        IsEnabled="False">
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
@@ -96,10 +103,9 @@
 
             <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="#232932"
+                       Background="{StaticResource Background}"
                        Text="{Binding Message}"
-                       Watermark="{Binding Watermark}"
-                       MaxLength="5000">
+                       Watermark="{Binding Watermark}">
                 <TextBox.Styles>
                   <Style Selector="TextBox /template/ DataValidationErrors">
                     <Setter Property="IsVisible" Value="False" />
@@ -111,7 +117,7 @@
             <DataTemplate DataType="shopinBit:LocationWorkflowInputValidatorViewModel">
               <!-- TODO: Text="{Binding Message}" -->
               <c:TagsBox VerticalAlignment="Center"
-                         Background="#232932"
+                         Background="{StaticResource Background}"
                          RestrictInputToSuggestions="True"
                          SuggestionsAreCaseSensitive="False"
                          Watermark="{Binding Watermark}"
@@ -133,45 +139,45 @@
                    Value="50"
                    DockPanel.Dock="Bottom"/>
 
-      <ScrollViewer Name="MessagesScrollViewer"
+      <ScrollViewer x:Name="MessagesScrollViewer"
                     HorizontalScrollBarVisibility="Disabled"
                     VerticalScrollBarVisibility="Auto">
-        <SelectingItemsControl Name="MessagesItemsControl"
+        <SelectingItemsControl x:Name="MessagesItemsControl"
                                Items="{Binding SelectedOrder.Messages}"
                                SelectedItem="{Binding SelectedOrder.SelectedMessage}">
+          <SelectingItemsControl.Styles>
+            <Style Selector="ContentPresenter > Border">
+              <Setter Property="Padding" Value="14" />
+              <Setter Property="Margin" Value="8" />
+              <Setter Property="CornerRadius" Value="12" />
+            </Style>
+            <Style Selector="TextBlock">
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+          </SelectingItemsControl.Styles>
+
           <SelectingItemsControl.DataTemplates>
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
-              <Border Padding="8"
-                      Margin="8"
-                      CornerRadius="12"
-                      HorizontalAlignment="Right"
-                      Background="#6591EC">
+              <Border HorizontalAlignment="Right"
+                       Background="{StaticResource AccentColor}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBlock TextWrapping="Wrap"
-                             Text="{Binding Message}" />
+                  <TextBlock Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
-              <Border Padding="8"
-                      Margin="8"
-                      CornerRadius="12"
-                      HorizontalAlignment="Left"
-                      Background="#21252D">
+              <Border HorizontalAlignment="Left"
+                      Background="{StaticResource BlueishDarkGray}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBlock TextWrapping="Wrap"
-                             Text="{Binding Message}" />
+                  <TextBlock Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
-              <Border Padding="8"
-                      Margin="8"
-                      CornerRadius="12"
-                      HorizontalAlignment="Left"
-                      Background="#FF0000">
+              <Border HorizontalAlignment="Left"
+                      Background="{StaticResource ErrorColor}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
-                  <TextBlock TextWrapping="Wrap"
+                  <TextBlock VerticalAlignment="Center"
                              Text="{Binding Message}" />
                 </c:PreviewItem>
               </Border>
