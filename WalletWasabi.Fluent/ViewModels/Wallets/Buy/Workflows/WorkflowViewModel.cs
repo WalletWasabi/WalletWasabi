@@ -42,6 +42,9 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 
 		var result = true;
 		var step = _steps[_nextStepIndex];
+
+		step.UserInputValidator.OnActivation();
+
 		if (step.RequiresUserInput)
 		{
 			result = step.UserInputValidator.IsValid();
