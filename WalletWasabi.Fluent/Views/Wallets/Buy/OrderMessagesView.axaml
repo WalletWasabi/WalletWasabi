@@ -106,21 +106,8 @@
               <Panel />
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
-              <TextBox VerticalAlignment="Center"
-                       Background="{StaticResource Background}"
-                       Text=""
-                       Watermark=""
-                       IsEnabled="False">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-                </i:Interaction.Behaviors>
-                <TextBox.Styles>
-                  <Style Selector="TextBox /template/ DataValidationErrors">
-                    <Setter Property="IsVisible" Value="False" />
-                  </Style>
-                </TextBox.Styles>
-              </TextBox>
+            <DataTemplate DataType="shopinBit:PackageWorkflowInputValidatorViewModel">
+              <Panel />
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
