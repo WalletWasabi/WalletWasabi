@@ -161,6 +161,13 @@ public class BuyAnythingManager : PeriodicRunner
 		Conversations.Add(new ConversationUpdateTrack("myDebugConversation", wallet));
 	}
 
+	public void ToFile()
+	{
+		IoHelpers.EnsureFileExists(FilePath);
+		string json = JsonConvert.SerializeObject(Conversations, Formatting.Indented);
+		File.WriteAllText(FilePath, json);
+	}
+
 	private Order OrderUntilCountry { get; } = new(null, null, null, DateTimeOffset.MinValue, DateTimeOffset.UtcNow, null, null, null, 0, null, null, null, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, 0, 0, 0, null, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
 		"||#SIB#I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.||" +
 		"||#SIB#I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount" +
