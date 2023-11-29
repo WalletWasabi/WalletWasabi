@@ -169,9 +169,10 @@ public partial class OrderViewModel : ReactiveObject
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is not null)
 			{
-				if (nextStep.UserInputValidator.Message is not null)
+				var message = nextStep.UserInputValidator.GetFinalMessage();
+				if (message is not null)
 				{
-					AddAssistantMessage(nextStep.UserInputValidator.Message);
+					AddAssistantMessage(message);
 				}
 
 				if (nextStep.RequiresUserInput)
