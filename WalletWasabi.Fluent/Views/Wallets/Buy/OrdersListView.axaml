@@ -8,7 +8,6 @@
              x:DataType="buy:BuyViewModel"
              x:CompileBindings="True">
 
-
   <UserControl.Styles>
     <Style Selector="PathIcon.CompletedIcon">
       <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
