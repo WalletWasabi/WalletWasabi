@@ -22,7 +22,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	public async Task SendApiRequestAsync()
 	{
 		// TODO: Just for testing, remove when api service is implemented.
-		await Task.Delay(3000);
+		await Task.Delay(1000);
 
 		if (_currentWorkflow is null)
 		{

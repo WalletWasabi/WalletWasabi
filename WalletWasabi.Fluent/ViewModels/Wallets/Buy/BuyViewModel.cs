@@ -80,7 +80,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			{
 				Task.Run(async () =>
 				{
-					await Task.Delay(1000);
+					await Task.Delay(500);
 					Dispatcher.UIThread.Post(() => x?.Update());
 				});
 			})
