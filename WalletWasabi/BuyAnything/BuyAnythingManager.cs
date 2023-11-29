@@ -20,19 +20,6 @@ public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset 
 public record ChatMessage(bool IsMyMessage, string Message);
 
 // Class to keep a track of the last update of a conversation
-public class ConversationUpdateTrack
-{
-	public ConversationUpdateTrack(Conversation conversation)
-	{
-		Conversation = conversation;
-	}
-
-	public DateTimeOffset LastUpdate { get; set; }
-	public Conversation Conversation { get; set; }
-	public bool IsUpdatable =>
-		Conversation.Status == ConversationStatus.WaitingForUpdates ||
-		Conversation.Status == ConversationStatus.Started;
-}
 
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
@@ -53,8 +40,10 @@ public class BuyAnythingManager : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		// Load the conversations from the disk in case they were not loaded yet
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
+		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
@@ -64,7 +53,6 @@ public class BuyAnythingManager : PeriodicRunner
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
 			{
 				var orderLastUpdated = order.UpdatedAt!.Value;
-				track.LastUpdate = orderLastUpdated;
 
 				// Update the conversation status according to the order state
 				// TODO: Verify if the state machine is values match reality
@@ -78,6 +66,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 				var newMessageFromConcierge = Parse(order.CustomerComment ?? "");
 
+				track.LastUpdate = orderLastUpdated;
 				track.Conversation = track.Conversation with
 				{
 					Messages = newMessageFromConcierge.ToArray(),
