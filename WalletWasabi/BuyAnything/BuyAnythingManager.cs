@@ -20,19 +20,6 @@ public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset 
 public record ChatMessage(bool IsMyMessage, string Message);
 
 // Class to keep a track of the last update of a conversation
-public class ConversationUpdateTrack
-{
-	public ConversationUpdateTrack(Conversation conversation)
-	{
-		Conversation = conversation;
-	}
-
-	public DateTimeOffset LastUpdate { get; set; }
-	public Conversation Conversation { get; set; }
-	public bool IsUpdatable =>
-		Conversation.Status == ConversationStatus.WaitingForUpdates ||
-		Conversation.Status == ConversationStatus.Started;
-}
 
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
@@ -44,13 +31,19 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private BuyAnythingClient Client { get; }
-	private List<ConversationUpdateTrack> Conversations { get; } = new();
+	private List<ConversationUpdateTrack> Conversations { get; } = new ();
+	private bool IsConversationsLoaded { get; set; }
+
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		// Load the conversations from the disk in case they were not loaded yet
+		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
+
+		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
@@ -60,7 +53,6 @@ public class BuyAnythingManager : PeriodicRunner
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
 			{
 				var orderLastUpdated = order.UpdatedAt!.Value;
-				track.LastUpdate = orderLastUpdated;
 
 				// Update the conversation status according to the order state
 				// TODO: Verify if the state machine is values match reality
@@ -74,6 +66,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 				var newMessageFromConcierge = Parse(order.CustomerComment ?? "");
 
+				track.LastUpdate = orderLastUpdated;
 				track.Conversation = track.Conversation with
 				{
 					Messages = newMessageFromConcierge.ToArray(),
@@ -84,16 +77,19 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	public IEnumerable<Conversation> GetConversations(Wallet wallet)
+	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var walletId = GetWalletId(wallet);
 		return Conversations
 			.Where(c => c.Conversation.Id.WalletId == walletId)
-			.Select(c => c.Conversation);
+			.Select(c => c.Conversation)
+			.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, string message, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
 			.ConfigureAwait(false);
 
@@ -109,6 +105,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, object metadata, CancellationToken cancellationToken)
 	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		if (Conversations.FirstOrDefault(c => c.Conversation.Id == conversationId) is { } track)
 		{
 			track.Conversation = track.Conversation with
@@ -171,4 +168,21 @@ public class BuyAnythingManager : PeriodicRunner
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
+
+	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
+	{
+		if (IsConversationsLoaded is false)
+		{
+			await LoadConversationsAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task LoadConversationsAsync(CancellationToken cancellationToken)
+	{
+		IoHelpers.EnsureFileExists(FilePath);
+		string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+		var conversations = JsonConvert.DeserializeObject<List<ConversationUpdateTrack>>(json) ?? new();
+		Conversations.AddRange(conversations);
+		IsConversationsLoaded = true;
+	}
 }
