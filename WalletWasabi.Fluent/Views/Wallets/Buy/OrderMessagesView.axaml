@@ -30,6 +30,7 @@
                 Command="{Binding SelectedOrder.SendCommand}"
                 Margin="8 0 0 0"
                 Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
+                IsVisible="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput}"
                 Classes="action"
                 IsDefault="True">
           <i:Interaction.Behaviors>
