@@ -8,18 +8,22 @@ public partial class PaymentWorkflowInputValidatorViewModel : WorkflowInputValid
 		IWorkflowValidator workflowValidator,
 		string? message,
 		string? watermark = null,
-		string? content = "Request") : base(workflowValidator, message, watermark, content)
+		string? content = "...") : base(workflowValidator, message, watermark, content)
 	{
 	}
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
-		return false;
+		return true;
 	}
 
 	public override string? GetFinalMessage()
 	{
 		return null;
+	}
+
+	public override void OnActivation()
+	{
+		WorkflowValidator.Signal(true);
 	}
 }

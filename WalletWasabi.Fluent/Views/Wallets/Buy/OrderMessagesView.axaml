@@ -103,6 +103,10 @@
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
+              <Panel />
+            </DataTemplate>
+
+            <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
                        Background="{StaticResource Background}"
                        Text=""

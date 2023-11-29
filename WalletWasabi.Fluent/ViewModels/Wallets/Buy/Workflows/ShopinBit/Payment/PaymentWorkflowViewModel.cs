@@ -26,14 +26,14 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
 					$"{paymentAddress}")),
-			// TODO: Payment awaiter
+			// Payment
 			new (requiresUserInput: false,
-				userInputValidator: new PaymentWorkflowInputValidatorViewModel(
+				userInputValidator: new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
 					"Awaiting payment...")),
-			// Final
+			// TODO: Remove step after implementing backend interaction
 			new (false,
-				new NoInputWorkflowInputValidatorViewModel(
+				new PaymentWorkflowInputValidatorViewModel(
 					workflowValidator,
 					"We have received you payment! Delivery is in progress."))
 		};
