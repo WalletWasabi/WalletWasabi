@@ -8,6 +8,23 @@
              x:DataType="buy:BuyViewModel"
              x:CompileBindings="True">
 
+
+  <UserControl.Styles>
+    <Style Selector="PathIcon.CompletedIcon">
+      <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="PathIcon.UnreadMessagesIcon">
+      <Setter Property="Data" Value="{StaticResource mail_unread}" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+    </Style>
+    <Style Selector="PathIcon.RemoveOrderIcon">
+      <Setter Property="Data" Value="{StaticResource delete_regular}" />
+      <Setter Property="Height" Value="15" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel>
 
     <TextBlock Background="Transparent"
@@ -34,8 +51,13 @@
                       Command="{Binding RemoveOrderCommand}"
                       ToolTip.Tip="Remove order"
                       DockPanel.Dock="Right">
-                <PathIcon Data="{StaticResource delete_regular}" Classes=" addressActionIcon" />
+                <PathIcon Classes="RemoveOrderIcon" />
               </Button>
+              <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
+                        Classes.UnreadMessagesIcon="{Binding HasUnreadMessages}"
+                        Opacity="0.6"
+                        Margin="8,0,8,0"
+                        DockPanel.Dock="Right" />
               <TextBlock Text="{Binding Title}"
                          VerticalAlignment="Center"/>
             </DockPanel>

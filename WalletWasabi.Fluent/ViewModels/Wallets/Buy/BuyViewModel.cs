@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData;
@@ -27,9 +29,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel,Guid> _ordersCache;
+	private readonly BehaviorSubject<Unit> _updateTriggerSubject;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
-
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
 		UiContext = uiContext;
@@ -48,12 +50,19 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Bind(out _orders)
 			.Subscribe();
 
+		// TODO: Do we want per-order triggers?
+		_updateTriggerSubject = new BehaviorSubject<Unit>(Unit.Default);
+
+		UpdateTrigger = _updateTriggerSubject;
+
 		Demo();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
 	public WalletViewModel WalletVm { get; }
+
+	public IObservable<Unit> UpdateTrigger { get; }
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
@@ -91,7 +100,19 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_ordersCache.AddOrUpdate(demoOrders);
 	}
 
-	public void RemoveOrder(Guid id)
+	bool IOrderManager.HasUnreadMessages(Guid id)
+	{
+		// TODO: Check if order had unread messages.
+		return true;
+	}
+
+	bool IOrderManager.IsCompleted(Guid id)
+	{
+		// TODO: Check if order is completed.
+		return false;
+	}
+
+	void IOrderManager.RemoveOrder(Guid id)
 	{
 		_ordersCache.Edit(x =>
 		{

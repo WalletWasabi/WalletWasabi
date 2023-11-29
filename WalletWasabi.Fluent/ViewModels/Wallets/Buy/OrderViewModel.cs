@@ -17,6 +17,8 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly IOrderManager _orderManager;
 
 	[AutoNotify] private bool _isBusy;
+	[AutoNotify] private bool _isCompleted;
+	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(
@@ -45,6 +47,10 @@ public partial class OrderViewModel : ReactiveObject
 
 		RemoveOrderCommand = ReactiveCommand.Create(RemoveOrder);
 
+		_orderManager.UpdateTrigger.Subscribe(_=> UpdateOrder());
+
+		UpdateOrder();
+
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
 	}
@@ -60,6 +66,13 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand SendCommand { get; }
 
 	public ICommand RemoveOrderCommand { get;  }
+
+	private void UpdateOrder()
+	{
+		IsCompleted = _orderManager.IsCompleted(Id);
+		HasUnreadMessages = _orderManager.HasUnreadMessages(Id);
+		// TODO: Update messages etc.
+	}
 
 	private async Task SendAsync()
 	{
