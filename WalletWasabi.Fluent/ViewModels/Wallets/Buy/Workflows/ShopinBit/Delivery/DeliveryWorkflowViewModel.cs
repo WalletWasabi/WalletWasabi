@@ -6,7 +6,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 {
 	private readonly DeliveryWorkflowRequest _request;
 
-	public DeliveryWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
+	public DeliveryWorkflowViewModel(IWorkflowValidator workflowValidator)
 	{
 		_request = new DeliveryWorkflowRequest();
 
@@ -16,12 +16,17 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					$"Dear {userName}, I can deliver a Green Lambo to Germany the latest by 2023.12.24. for 300,000 USD which is approx 10.5 BTC.")),
+					"I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC.")),
+			// Info
+			new(false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					$"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
 			// Firstname
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"What is your Firstname?")),
+					"Your First Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new FirstNameWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -30,7 +35,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"What is your Lastname?")),
+					"Your Last Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new LastNameWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -39,7 +44,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"Streetname?")),
+					"Street Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new StreetNameWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -48,7 +53,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"Housenumber?")),
+					"House Number:")),
 			new (requiresUserInput: true,
 				userInputValidator: new HouseNumberWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -57,7 +62,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"ZIP/Postalcode?")),
+					"ZIP/Postal Code:")),
 			new (requiresUserInput: true,
 				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -66,7 +71,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"City?")),
+					"City:")),
 			new (requiresUserInput: true,
 				userInputValidator: new CityWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -75,7 +80,7 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"State?")),
+					"State:")),
 			new (requiresUserInput: true,
 				userInputValidator: new StateWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -92,7 +97,12 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"Thank you! I have everything to deliver the product to you."))
+					"Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions.")),
+			// T&C link
+			new(false,
+				new NoInputWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"www.termsandconditions.com"))
 		};
 	}
 

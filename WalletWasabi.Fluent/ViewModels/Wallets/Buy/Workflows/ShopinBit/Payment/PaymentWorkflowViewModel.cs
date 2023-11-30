@@ -6,7 +6,7 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 {
 	private readonly PaymentWorkflowRequest _request;
 
-	public PaymentWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
+	public PaymentWorkflowViewModel(IWorkflowValidator workflowValidator)
 	{
 		_request = new PaymentWorkflowRequest();
 
@@ -20,7 +20,7 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					$"In order to finalize the order please send {paymentAmount} to the following address:")),
+					$"To finalize your order, kindly transfer {paymentAmount} to the following address:")),
 			// Address
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
@@ -30,12 +30,12 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 			new (requiresUserInput: false,
 				userInputValidator: new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"Awaiting payment...")),
+					"Once your payment is confirmed, we'll initiate the delivery process.")),
 			// TODO: Remove step after implementing backend interaction
 			new (false,
 				new PaymentWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"We have received you payment! Delivery is in progress."))
+					"Great news! Your order is complete."))
 		};
 	}
 

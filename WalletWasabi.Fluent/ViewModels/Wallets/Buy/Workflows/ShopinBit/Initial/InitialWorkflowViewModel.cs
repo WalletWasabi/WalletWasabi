@@ -4,11 +4,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class InitialWorkflowViewModel : WorkflowViewModel
 {
-	private const string AssistantName = "Clippy";
-
 	private readonly InitialWorkflowRequest _request;
 
-	public InitialWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
+	public InitialWorkflowViewModel(IWorkflowValidator workflowValidator)
 	{
 		_request = new InitialWorkflowRequest();
 
@@ -18,12 +16,17 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					$"Hi {userName}, I am {AssistantName}, I can get you anything. Just tell me what you want, I will order it for you. Flights, cars...")),
+					"I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.")),
+			// Minimum limit
+			new(false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					"I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount")),
 			// Location
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"First, tell me where do you want to order?")),
+					"Let's begin by selecting your country.")),
 			new (requiresUserInput: true,
 				userInputValidator: new LocationWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -32,7 +35,7 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"What do you need?")),
+					"What would you like to buy?")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestWorkflowInputValidatorViewModel(
 					workflowValidator,
@@ -49,7 +52,7 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
 					workflowValidator,
-					"We have received you request, We will get back to you in a couple of days."))
+					"We've received your request, we will be in touch with you within the next couple of days."))
 		};
 	}
 
