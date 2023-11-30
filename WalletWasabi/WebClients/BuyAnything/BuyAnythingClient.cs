@@ -33,9 +33,6 @@ public class BuyAnythingClient
 	private static readonly string FirstName = "Watoshi";
 	private static readonly string LastName = "Sabimoto";
 
-
-	private static readonly string CountriesPath = "./Data/Countries.json";
-
 	public BuyAnythingClient(ShopWareApiClient apiClient)
 	{
 		ApiClient = apiClient;
