@@ -10,7 +10,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.BuyView"
              d:DesignWidth="600" d:DesignHeight="600">
-  <c:ContentArea EnableBack="{Binding EnableBack}"
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="False"
                  NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"
@@ -18,13 +19,7 @@
                  Caption="Simply tell us what you're looking for, and we'll handle the rest from start to finish."
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:ContentArea.Title>
-      <DockPanel>
-        <TextBlock Text="{Binding Title}" />
-      </DockPanel>
-    </c:ContentArea.Title>
-
-    <DockPanel Background="#21252D">
+    <DockPanel Background="{DynamicResource BuyAnythingConversationsBackground}">
       <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
       <buy:OrderMessagesView />
     </DockPanel>

@@ -14,22 +14,15 @@
              x:DataType="buy:BuyViewModel"
              x:CompileBindings="True">
 
-  <UserControl.Resources>
-    <SolidColorBrush x:Key="BlueishDarkGray" Color="#21252D" />
-    <SolidColorBrush x:Key="AccentColor" Color="#6591EC" />
-    <SolidColorBrush x:Key="Background" Color="#232932" />
-    <SolidColorBrush x:Key="ErrorColor" Color="Red" />
-  </UserControl.Resources>
+  <Border Background="{DynamicResource BuyAnythingChatBackground}">
 
-  <Border Background="#343A47">
+    <DockPanel x:Name="RightSide">
 
-    <DockPanel x:Name="RightSide" Margin="8">
-
-      <DockPanel DockPanel.Dock="Bottom">
+      <DockPanel DockPanel.Dock="Bottom" Margin="10">
 
         <Button DockPanel.Dock="Right"
                 Command="{Binding SelectedOrder.SendCommand}"
-                Margin="8 0 0 0"
+                Margin="10 0 0 0"
                 Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
                 IsVisible="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}"
                 Classes="action"
@@ -42,14 +35,28 @@
         <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
           <ContentControl.Styles>
             <Style Selector="TextBox">
-              <Setter Property="MaxLength" Value="5000" />
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+            </Style>
+            <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+            </Style>
+            <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+            </Style>
+            <Style Selector="c|TagsBox">
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+            </Style>
+            <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+            </Style>
+            <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
+              <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
             </Style>
           </ContentControl.Styles>
           <ContentControl.DataTemplates>
 
             <DataTemplate DataType="shopinBit:TextInputWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="{StaticResource Background}"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
                 <i:Interaction.Behaviors>
@@ -65,7 +72,6 @@
 
             <DataTemplate DataType="shopinBit:DefaultWorkflowInputValidatorViewModel">
                 <TextBox VerticalAlignment="Center"
-                         Background="{StaticResource Background}"
                          Text="{Binding Message}"
                          Watermark="{Binding Watermark}">
                   <i:Interaction.Behaviors>
@@ -81,7 +87,6 @@
 
             <DataTemplate DataType="shopinBit:NoInputWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="{StaticResource Background}"
                        Text=""
                        Watermark=""
                        IsEnabled="False">
@@ -97,8 +102,7 @@
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyWorkflowInputValidatorViewModel">
-              <StackPanel Orientation="Horizontal"
-                          Background="{StaticResource Background}">
+              <StackPanel Orientation="Horizontal">
                 <CheckBox VerticalAlignment="Center"
                           IsChecked="{Binding HasAcceptedPrivacyPolicy}"
                           Margin="8 0 0 0">
@@ -112,8 +116,7 @@
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:ConfirmTosWorkflowInputValidatorViewModel">
-              <StackPanel Orientation="Horizontal"
-                          Background="{StaticResource Background}">
+              <StackPanel Orientation="Horizontal">
                 <CheckBox VerticalAlignment="Center"
                           IsChecked="{Binding HasAcceptedTermsOfService}"
                           Margin="8 0 0 0">
@@ -144,7 +147,6 @@
 
             <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
               <TextBox VerticalAlignment="Center"
-                       Background="{StaticResource Background}"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
                 <i:Interaction.Behaviors>
@@ -160,7 +162,6 @@
 
             <DataTemplate DataType="shopinBit:LocationWorkflowInputValidatorViewModel">
               <c:TagsBox VerticalAlignment="Center"
-                         Background="{StaticResource Background}"
                          RestrictInputToSuggestions="True"
                          SuggestionsAreCaseSensitive="False"
                          Watermark="{Binding Watermark}"
@@ -181,7 +182,7 @@
 
       <ProgressBar IsIndeterminate="{Binding SelectedOrder.IsBusy}"
                    IsVisible="{Binding SelectedOrder.IsBusy}"
-                   Margin="0,10,0,10"
+                   Margin="10,10,10,0"
                    Value="50"
                    DockPanel.Dock="Bottom"/>
 
@@ -193,19 +194,23 @@
                                SelectedItem="{Binding SelectedOrder.SelectedMessage}">
           <SelectingItemsControl.Styles>
             <Style Selector="ContentPresenter > Border">
-              <Setter Property="Padding" Value="14" />
-              <Setter Property="Margin" Value="8" />
-              <Setter Property="CornerRadius" Value="12" />
+              <Setter Property="Padding" Value="15 10" />
+              <Setter Property="Margin" Value="10 10 10 0" />
+              <Setter Property="CornerRadius" Value="10" />
             </Style>
             <Style Selector="TextBlock">
+              <Setter Property="MaxWidth" Value="330" />
               <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style Selector="c|PreviewItem">
+              <Setter Property="Margin" Value="0 -4 0 0" />
             </Style>
           </SelectingItemsControl.Styles>
 
           <SelectingItemsControl.DataTemplates>
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
               <Border HorizontalAlignment="Right"
-                       Background="{StaticResource AccentColor}">
+                      Background="{DynamicResource UserMessageBackground}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
                   <TextBlock Text="{Binding Message}" />
                 </c:PreviewItem>
@@ -213,7 +218,7 @@
             </DataTemplate>
             <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
               <Border HorizontalAlignment="Left"
-                      Background="{StaticResource BlueishDarkGray}">
+                      Background="{DynamicResource AssistantMessageBackground}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
                   <TextBlock Text="{Binding Message}" />
                 </c:PreviewItem>
@@ -221,7 +226,7 @@
             </DataTemplate>
             <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
               <Border HorizontalAlignment="Left"
-                      Background="{StaticResource ErrorColor}">
+                      Background="{DynamicResource ErrorColor}">
                 <c:PreviewItem CopyableContent="{Binding Message}">
                   <TextBlock VerticalAlignment="Center"
                              Text="{Binding Message}" />
