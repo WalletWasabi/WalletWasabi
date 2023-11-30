@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,14 +18,14 @@ public class BuyAnythingManagerTests
 	[Fact]
 	public async Task BuyAnythingManagerTest()
 	{
-		#if !USE_MOCK
+#if !USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
 		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("order#123456789"));
 		shopWareApiClient.OnGetCustomerProfile = s => Task.FromResult(
 			new CustomerProfileResponse(
 				new ChatField("||#WASABI#Hi, I want to by this||#SIB#Bye||"),
 				"ctxToken", "customer#", DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddSeconds(1)));
-		shopWareApiClient.OnGetOrderListAsync = (s) => Task.FromResult(new GetOrderListResponse(new OrderList(new []
+		shopWareApiClient.OnGetOrderListAsync = (s) => Task.FromResult(new GetOrderListResponse(new OrderList(new[]
 		{
 			new Order("1", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1),
 				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
@@ -31,9 +33,9 @@ public class BuyAnythingManagerTests
 				null!,
 				"idxxxxxxx")
 		})));
-		#else
+#else
 		var shopWareApiClient = new ShopWareApiClient(new HttpClient(), "real-api-key");
-		#endif
+#endif
 
 		await IoHelpers.TryDeleteDirectoryAsync("datadir");
 		var buyAnythingClient = new BuyAnythingClient(shopWareApiClient);
@@ -55,6 +57,18 @@ public class BuyAnythingManagerTests
 		conversation = Assert.Single(conversations);
 		var reply = Assert.Single(conversation.Messages, m => !m.IsMyMessage);
 		Assert.Equal("Bye", reply.Message);
+
+		await buyAnythingManager.UpdateConversationAsync(conversation.Id, "Ok Bye", "metadata", CancellationToken.None);
+		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
+		conversation = Assert.Single(conversations);
+		Assert.Equal(3, conversation.Messages.Length);
+		var myMessages = conversation.Messages.Where(m => m.IsMyMessage).ToArray();
+		Assert.Equal("Ok Bye", myMessages[1].Message);
+
+		// Parse testing
+		var conversationString = "||#WASABI#Hi, I want to by this||#SIB#Bye||#WASABI#Ok Bye||";
+		var text = buyAnythingManager.ConvertToCustomerComment(buyAnythingManager.Parse(conversationString));
+		Assert.Equal(conversationString, text);
 	}
 
 	private MockShopWareApiClient PreconfiguredShopWareApiClient()
@@ -65,13 +79,17 @@ public class BuyAnythingManagerTests
 
 		mockedShopwareClient.OnRegisterCustomerAsync = (s, bag) =>
 			Task.FromResult(new CustomerRegistrationResponse("872-xxxx-xxxx", "customer-whatever",
-				new[] {"ctx-token-for-872-xxxx-xxxx"}));
+				new[] { "ctx-token-for-872-xxxx-xxxx" }));
 
 		mockedShopwareClient.OnGetOrCreateShoppingCartAsync = (s, bag) =>
 			Task.FromResult(new ShoppingCartResponse("ctx-token-for-872-xxxx-xxxx"));
 
 		mockedShopwareClient.OnAddItemToShoppingCartAsync = (s, bag) =>
 			Task.FromResult(new ShoppingCartItemsResponse("ctx-token-for-872-xxxx-xxxx"));
+
+		mockedShopwareClient.OnUpdateCustomerProfileAsync = (s, bag) =>
+			Task.FromResult(bag);
+
 		return mockedShopwareClient;
 	}
 }

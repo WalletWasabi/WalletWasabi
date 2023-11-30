@@ -145,7 +145,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			track.Conversation = track.Conversation with
 			{
-				Messages = track.Conversation.Messages.Append(new ChatMessage(false, newMessage)).ToArray(),
+				Messages = track.Conversation.Messages.Append(new ChatMessage(true, newMessage)).ToArray(),
 				Metadata = metadata,
 				Status = ConversationStatus.WaitingForUpdates
 			};
@@ -158,7 +158,7 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	private IEnumerable<ChatMessage> Parse(string customerComment)
+	public IEnumerable<ChatMessage> Parse(string customerComment)
 	{
 		var messages = customerComment.Split("||", StringSplitOptions.RemoveEmptyEntries);
 
@@ -225,7 +225,7 @@ public class BuyAnythingManager : PeriodicRunner
 		Countries.AddRange(countries);
 	}
 
-	private string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	public string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
 	{
 		StringBuilder result = new();
 
