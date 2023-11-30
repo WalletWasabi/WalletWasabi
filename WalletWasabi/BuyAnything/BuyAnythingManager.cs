@@ -51,44 +51,57 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
-			var fullConversation = await Client
-				.GetFullConversationAsync(track.Credential, cancel)
-				.ConfigureAwait(false);
+			// Get the full conversation and detect new messages
+			await CheckChatUpdateAsync(track, cancel).ConfigureAwait(false);
 
-			var messages = Parse(fullConversation.CustomFields.Wallet_Chat_Store).ToArray();
-			if (messages.Length > track.Conversation.Messages.Length)
+			// Check if the order state has changed and update the conversation status
+			await CheckOrderUpdateAsync(track, cancel).ConfigureAwait(false);
+		}
+	}
+
+	private async Task CheckOrderUpdateAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		var orders = await Client
+			.GetOrdersUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
+			.ConfigureAwait(false);
+
+		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
+		foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
+		{
+			// Update the conversation status according to the order state
+			// TODO: Verify if the state machine is values match reality
+			var status = order.StateMachineState.Name switch
 			{
-				track.Conversation = track.Conversation with
-				{
-					Messages = messages.ToArray(),
-				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, fullConversation.UpdatedAt ?? DateTimeOffset.Now));
-			}
+				"Cancelled" => ConversationStatus.Cancelled,
+				"Done" => ConversationStatus.Finished,
+				"In Progress" => ConversationStatus.WaitingForUpdates,
+				_ => track.Conversation.Status
+			};
 
-			var orders = await Client
-				.GetOrdersUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
-				.ConfigureAwait(false);
-
-			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
-			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
+			track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
+			track.Conversation = track.Conversation with
 			{
-				// Update the conversation status according to the order state
-				// TODO: Verify if the state machine is values match reality
-				var status = order.StateMachineState.Name switch
-				{
-					"Cancelled" => ConversationStatus.Cancelled,
-					"Done" => ConversationStatus.Finished,
-					"In Progress" => ConversationStatus.WaitingForUpdates,
-					_ => track.Conversation.Status
-				};
+				Status = status != track.Conversation.Status ? status : track.Conversation.Status
+			};
+			ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
+		}
+	}
 
-				track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
-				track.Conversation = track.Conversation with
-				{
-					Status = status != track.Conversation.Status ? status : track.Conversation.Status
-				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
-			}
+	private async Task CheckChatUpdateAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		var fullConversation = await Client
+			.GetFullConversationAsync(track.Credential, cancel)
+			.ConfigureAwait(false);
+
+		var messages = Parse(fullConversation.CustomFields.Wallet_Chat_Store).ToArray();
+		if (messages.Length > track.Conversation.Messages.Length)
+		{
+			track.Conversation = track.Conversation with
+			{
+				Messages = messages.ToArray(),
+			};
+			ConversationUpdated.SafeInvoke(this,
+				new ConversationUpdateEvent(track.Conversation, fullConversation.UpdatedAt ?? DateTimeOffset.Now));
 		}
 	}
 
