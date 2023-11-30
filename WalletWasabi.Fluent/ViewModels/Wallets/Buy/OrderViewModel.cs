@@ -8,6 +8,7 @@ using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -17,6 +18,7 @@ public partial class OrderViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
+	private readonly UiContext _uiContext;
 	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
 
@@ -25,7 +27,7 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
-	public OrderViewModel(
+	public OrderViewModel(UiContext uiContext,
 		ConversationId id,
 		string title,
 		IWorkflowManager workflowManager,
@@ -36,6 +38,7 @@ public partial class OrderViewModel : ReactiveObject
 		Title = title;
 
 		// TODO: For now we have only one workflow manager.
+		_uiContext = uiContext;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
 
@@ -55,7 +58,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		RemoveOrderCommand = ReactiveCommand.Create(RemoveOrder);
+		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync);
 
 		_orderManager.UpdateTrigger.Subscribe(_=> UpdateOrder());
 
@@ -75,7 +78,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand SendCommand { get; }
 
-	public ICommand RemoveOrderCommand { get;  }
+	public ICommand RemoveOrderCommand { get; }
 
 	private void UpdateOrder()
 	{
@@ -251,9 +254,14 @@ public partial class OrderViewModel : ReactiveObject
 		SelectedMessage = userMessage;
 	}
 
-	private void RemoveOrder()
+	private async Task RemoveOrderAsync()
 	{
-		_orderManager.RemoveOrder(Id);
+		var confirmed = await _uiContext.Navigate().To().ConfirmDeleteOrder(this).GetResultAsync();
+
+		if (confirmed)
+		{
+			_orderManager.RemoveOrder(Id);
+		}
 	}
 
 	public void Update()

@@ -193,6 +193,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		// TODO: Conversation needs name/title?
 		var order = new OrderViewModel(
+			UiContext,
 			conversation.Id,
 			$"Order {i + 1}",
 			new ShopinBitWorkflowManagerViewModel(conversation.Id),
@@ -210,9 +211,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(new ConversationId("1", "", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("2", "", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("3", "", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(UiContext, new ConversationId("1", "", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(UiContext, new ConversationId("2", "", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(UiContext, new ConversationId("3", "", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
