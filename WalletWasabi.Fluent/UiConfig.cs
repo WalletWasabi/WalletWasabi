@@ -1,12 +1,12 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent;
 
@@ -28,6 +28,7 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
+	private bool _showBuyAnythingInfo;
 
 	public UiConfig() : base()
 	{
@@ -35,37 +36,10 @@ public class UiConfig : ConfigBase
 
 	public UiConfig(string filePath) : base(filePath)
 	{
-		this.WhenAnyValue(
-				x => x.Autocopy,
-				x => x.AutoPaste,
-				x => x.IsCustomChangeAddress,
-				x => x.DarkModeEnabled,
-				x => x.FeeDisplayUnit,
-				x => x.LastSelectedWallet,
-				x => x.WindowState,
-				x => x.Oobe,
-				x => x.RunOnSystemStartup,
-				x => x.PrivacyMode,
-				x => x.HideOnClose,
-				x => x.FeeTarget,
-				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+		this.WhenAnyPropertyChanged()
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => ToFile());
-
-		this.WhenAnyValue(x => x.SendAmountConversionReversed)
-			.Throttle(TimeSpan.FromMilliseconds(500))
-			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => ToFile());
-
-		this.WhenAnyValue(
-				x => x.WindowWidth,
-				x => x.WindowHeight)
-			.Throttle(TimeSpan.FromMilliseconds(500))
-			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -186,6 +160,14 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "ShowBuyAnythingInfo", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool ShowBuyAnythingInfo
+	{
+		get => _showBuyAnythingInfo;
+		internal set => RaiseAndSetIfChanged(ref _showBuyAnythingInfo, value);
 	}
 
 	[OnDeserialized]
