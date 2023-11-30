@@ -106,10 +106,22 @@ public class BuyAnythingClient
 		return customerProfileResponse;
 	}
 
+	// Login the customer and return the context token.
+	// This method implements a caching mechanism to avoid multiple login requests.
 	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
+		if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
+		{
+			if (cacheEntry.expriresAt > DateTimeOffset.UtcNow)
+			{
+				return cacheEntry.token;
+			}
+		}
 		var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
 		var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
+		ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
 		return response.ContextToken;
 	}
+
+	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();
 }

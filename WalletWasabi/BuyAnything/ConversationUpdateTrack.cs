@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.Net;
 
 namespace WalletWasabi.BuyAnything;
