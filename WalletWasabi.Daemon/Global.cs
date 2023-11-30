@@ -209,7 +209,7 @@ public class Global
 
 				// TODO: we should use Tor by using HttpClientFactory.
 #pragma warning disable CA2000 // Dispose objects before losing scope
-				ShopWareApiClient shopWareApiClient = new(HttpClientFactory, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+				ShopWareApiClient shopWareApiClient = new(new System.Net.Http.HttpClient(), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);

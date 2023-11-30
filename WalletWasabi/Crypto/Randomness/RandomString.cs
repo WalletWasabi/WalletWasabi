@@ -13,8 +13,6 @@ public static class RandomString
 		return res;
 	}
 
-	public static string LowercaseLetters(int length, bool secureRandom = false) => FromCharacters(length, Constants.LowercaseLetters, secureRandom);
-
 	public static string AlphaNumeric(int length, bool secureRandom = false) => FromCharacters(length, Constants.AlphaNumericCharacters, secureRandom);
 
 	public static string CapitalAlphaNumeric(int length, bool secureRandom = false) => FromCharacters(length, Constants.CapitalAlphaNumericCharacters, secureRandom);
