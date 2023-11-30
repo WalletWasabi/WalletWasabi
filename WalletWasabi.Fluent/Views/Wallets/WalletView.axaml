@@ -18,16 +18,20 @@
 
   <UserControl.Styles>
     <Style Selector="FlyoutPresenter.Bubble">
-      <Setter Property="Background" Value="White" />
-      <Setter Property="TextBlock.Foreground" Value="Black"></Setter>
+      <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate>
-            <DockPanel>
-              <Border Background="White" Padding="10" CornerRadius="10" MaxWidth="400" >
+            <DockPanel Margin="0 40 0 0">
+              <Border Background="{DynamicResource ChatInputBackground}" Padding="10" CornerRadius="10" MaxWidth="400"
+                      BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}" DockPanel.Dock="Bottom">
                 <ContentPresenter Content="{TemplateBinding Content}" />
               </Border>
-              <Polygon Points="0,0 20,10 0,20" Fill="White" HorizontalAlignment="Right" VerticalAlignment="Center" />
+              <Panel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="150 0 0 -1" DockPanel.Dock="Top">
+                <Polygon Points="10,-1 0,9 21,10" Fill="{DynamicResource SystemAccentColor}" />
+                <Polygon Points="10,0 0,10 20,10" Fill="{DynamicResource ChatInputBackground}" />
+              </Panel>
             </DockPanel>
           </ControlTemplate>
         </Setter.Value>
@@ -64,10 +68,10 @@
                 <TextBlock Text="Buy Anything" />
               </StackPanel>
               <FlyoutBase.AttachedFlyout>
-                <Flyout ShowMode="Transient" Placement="Left" FlyoutPresenterClasses="Bubble">
+                <Flyout ShowMode="Transient" Placement="Bottom" FlyoutPresenterClasses="Bubble">
                   <StackPanel Spacing="6">
-                    <TextBlock FontWeight="SemiBold" TextAlignment="Center">Your Bitcoin wallet is now an Anything wallet!</TextBlock>
-                    <TextBlock>Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will find what you want and send it to you, privately.</TextBlock>
+                    <TextBlock FontWeight="SemiBold" TextAlignment="Left">Your Bitcoin wallet is now an Anything wallet!</TextBlock>
+                    <TextBlock Opacity="0.6">Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will find what you want and send it to you, privately.</TextBlock>
                   </StackPanel>
                 </Flyout>
               </FlyoutBase.AttachedFlyout>
