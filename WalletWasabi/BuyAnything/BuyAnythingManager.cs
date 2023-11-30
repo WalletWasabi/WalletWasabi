@@ -198,13 +198,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private static async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
-		var countriesFilePath = "./Data/Countries.json";
+		var countriesFilePath = "./BuyAnything/Data/Countries.json";
 		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
-		var countries = JsonConvert.DeserializeObject<Dictionary<string, string>>(fileContent)
+		var countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
 						?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
-		Countries.AddRange(countries.Select(x => new Country(x.Value, x.Key)));
+		Countries.AddRange(countries);
 	}
 
 	private string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)

@@ -34,12 +34,12 @@ public class BuyAnythingClient
 	private static readonly string FirstName = "Watoshi";
 	private static readonly string LastName = "Sabimoto";
 
-	public BuyAnythingClient(ShopWareApiClient apiClient)
+	public BuyAnythingClient(IShopWareApiClient apiClient)
 	{
 		ApiClient = apiClient;
 	}
 
-	private ShopWareApiClient ApiClient { get; }
+	private IShopWareApiClient ApiClient { get; }
 	private List<CachedCountry>? _countries { get; set; }
 
 	// Creates a new "conversation" (or Request). This means that we have to:
