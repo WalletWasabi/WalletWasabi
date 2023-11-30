@@ -16,6 +16,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -211,9 +212,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(new ConversationId("1", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("2", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("3", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("1", "", new LocalCustomer("", "", "", "", "")), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("2", "", new LocalCustomer("", "", "", "", "")), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("3", "", new LocalCustomer("", "", "", "", "")), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
