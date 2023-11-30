@@ -1,3 +1,6 @@
+using System.Data.Common;
+using System.Net;
+
 namespace WalletWasabi.BuyAnything;
 
 public class ConversationUpdateTrack
@@ -12,4 +15,6 @@ public class ConversationUpdateTrack
 	public bool IsUpdatable =>
 		Conversation.Status == ConversationStatus.WaitingForUpdates ||
 		Conversation.Status == ConversationStatus.Started;
+
+	public NetworkCredential Credential => new (Conversation.Id.EmailAddress, Conversation.Id.Password);
 }

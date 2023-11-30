@@ -49,7 +49,7 @@ public class BuyAnythingManager : PeriodicRunner
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
-				.GetConversationsUpdateSinceAsync(track.Conversation.Id.ContextToken, track.LastUpdate, cancel)
+				.GetConversationsUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
 				.ConfigureAwait(false);
 
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
@@ -117,12 +117,12 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
+		var credential =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
-				new ConversationId(walletId, ctxToken),
+				new ConversationId(walletId, credential.UserName, credential.Password),
 				new []{ new ChatMessage(true, message) },
 				ConversationStatus.Started,
 				new object())));
@@ -144,7 +144,7 @@ public class BuyAnythingManager : PeriodicRunner
 			track.LastUpdate = DateTimeOffset.Now;
 
 			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
-			await Client.UpdateConversationAsync(conversationId.ContextToken, rawText).ConfigureAwait(false);
+			await Client.UpdateConversationAsync(track.Credential, rawText).ConfigureAwait(false);
 
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
 		}

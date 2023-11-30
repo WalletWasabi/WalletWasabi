@@ -210,9 +210,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(new ConversationId("1", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("2", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("3", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("1", "", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("2", "", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("3", "", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
