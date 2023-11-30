@@ -150,7 +150,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
 
 		HasUnreadConversations = BuyViewModel.Orders.ToObservableChangeSet(x => x.Id)
-			.FilterOnObservable(model => model.HasUnreadMessages)
+			.Filter(model => model.HasUnreadMessages)
 			.AsObservableCache()
 			.CountChanged
 			.Select(x => x > 0);

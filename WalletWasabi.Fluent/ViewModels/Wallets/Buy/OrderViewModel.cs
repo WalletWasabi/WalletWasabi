@@ -23,6 +23,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
+	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(
@@ -51,7 +52,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		HasUnreadMessages = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
+		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		_workflowManager.SelectNextWorkflow();
 
@@ -61,13 +62,16 @@ public partial class OrderViewModel : ReactiveObject
 
 		_orderManager.UpdateTrigger.Subscribe(_=> UpdateOrder());
 
+		// TODO: Remove this once we use newer version of DynamicData
+		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
+
 		UpdateOrder();
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
 	}
 
-	public IObservable<bool> HasUnreadMessages { get; set; }
+	public IObservable<bool> HasUnreadMessagesObs { get; }
 
 	public ConversationId Id { get; }
 
