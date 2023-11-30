@@ -13,7 +13,6 @@ using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.BuyAnything;
 
-
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
@@ -32,8 +31,10 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private BuyAnythingClient Client { get; }
 	private static List<Country> Countries { get; } = new();
+
 	// Todo: Is it ok that this is accessed without lock?
-	private List<ConversationUpdateTrack> Conversations { get; } = new ();
+	private List<ConversationUpdateTrack> Conversations { get; } = new();
+
 	private bool IsConversationsLoaded { get; set; }
 
 	private string FilePath { get; }
@@ -117,13 +118,13 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
+		var ctxToken = await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
 				new ConversationId(walletId, ctxToken),
-				new []{ new ChatMessage(true, message) },
+				new[] { new ChatMessage(true, message) },
 				ConversationStatus.Started,
 				new object())));
 
@@ -164,7 +165,7 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 
 			var isMine = items[0] == "WASABI";
-			var text = items[1];
+			var text = EnsureProperRawMessage(items[1]);
 			yield return new ChatMessage(isMine, text);
 		}
 	}
@@ -176,7 +177,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
-	public static string GetWalletId (Wallet wallet) =>
+	public static string GetWalletId(Wallet wallet) =>
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
@@ -212,23 +213,31 @@ public class BuyAnythingManager : PeriodicRunner
 		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
 		var countries = JsonConvert.DeserializeObject<Dictionary<string, string>>(fileContent)
-		                ?? throw new InvalidOperationException("Couldn't read cached countries values.");
+						?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
 		Countries.AddRange(countries.Select(x => new Country(x.Value, x.Key)));
 	}
 
-	private static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	private string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
 	{
 		StringBuilder result = new();
 
 		foreach (var chatMessage in cleanChatMessages)
 		{
 			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{chatMessage.Message}");
+			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
 		}
 
 		result.Append("||");
 
 		return result.ToString();
+	}
+
+	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
+	private string EnsureProperRawMessage(string message)
+	{
+		message = message.Replace("||", " ");
+		message = message.Replace('#', '-');
+		return message;
 	}
 }
