@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Models.UI;
@@ -54,6 +55,8 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
+		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
+
 		_workflowManager.SelectNextWorkflow();
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
@@ -62,11 +65,16 @@ public partial class OrderViewModel : ReactiveObject
 
 		_orderManager.UpdateTrigger.Subscribe(_=> UpdateOrder());
 
+		// TODO: Remove this once we use newer version of DynamicData
+		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
+
 		UpdateOrder();
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
 	}
+
+	public IObservable<bool> HasUnreadMessagesObs { get; }
 
 	public ConversationId Id { get; }
 
@@ -83,7 +91,7 @@ public partial class OrderViewModel : ReactiveObject
 	private void UpdateOrder()
 	{
 		IsCompleted = _orderManager.IsCompleted(Id);
-		HasUnreadMessages = _orderManager.HasUnreadMessages(Id);
+		// HasUnreadMessages = _orderManager.HasUnreadMessages(Id);
 		// TODO: Update messages etc.
 	}
 
