@@ -25,6 +25,7 @@
 		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" />
 		<PackageReference Include="Avalonia.Skia" />
+		<PackageReference Include="DynamicData" />
 		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
 	</ItemGroup>

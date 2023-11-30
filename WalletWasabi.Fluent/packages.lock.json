@@ -76,6 +76,15 @@
           "Avalonia.Xaml.Interactivity": "0.10.19"
         }
       },
+      "DynamicData": {
+        "type": "Direct",
+        "requested": "[8.1.1, )",
+        "resolved": "8.1.1",
+        "contentHash": "NYTTP6lJudweNrIQgIM67/KzFJIp20NK+GVInqrvxdCB9JMHsihqOYplyDGuOCZbMeZXVskj8bpXZfspsdm45w==",
+        "dependencies": {
+          "System.Reactive": "6.0.0"
+        }
+      },
       "QRackers": {
         "type": "Direct",
         "requested": "[1.1.0, )",
@@ -131,14 +140,6 @@
         "contentHash": "b0yFngiW8K0Zb75NqR9+eDH76YrENHuErmAWrcsu7D5dEUJlTgZO2oZ4OaEJd7rNNvxdXzyhHKLssB+7+ztrKQ==",
         "dependencies": {
           "Avalonia": "0.10.19"
-        }
-      },
-      "DynamicData": {
-        "type": "Transitive",
-        "resolved": "7.1.1",
-        "contentHash": "Pc6J5bFnSxEa64PV2V67FMcLlDdpv6m+zTBKSnRN3aLon/WtWWy8kuDpHFbJlgXHtqc6Nxloj9ItuvDlvKC/8w==",
-        "dependencies": {
-          "System.Reactive": "5.0.0"
         }
       },
       "HarfBuzzSharp": {
@@ -442,8 +443,8 @@
       },
       "System.Reactive": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
+        "resolved": "6.0.0",
+        "contentHash": "31kfaW4ZupZzPsI5PVe77VhnvFF55qgma7KZr/E0iFTs6fmdhhG8j0mgEx620iLTey1EynOkEfnyTjtNEpJzGw=="
       },
       "System.Reflection": {
         "type": "Transitive",
