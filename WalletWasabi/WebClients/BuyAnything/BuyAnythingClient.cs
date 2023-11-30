@@ -26,6 +26,14 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
 
+	// Concierge request status
+	public enum ConciergeRequestStatus
+	{
+		Open,
+		Claimed,
+		Offer
+	}
+
 	// Customer information. We need this values to update the messages
 	// we have three options:
 	// 1. Create a new customer with random names and store them in the disk
