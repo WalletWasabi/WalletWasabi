@@ -5,6 +5,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -22,6 +24,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
+using DynamicData.Aggregation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -146,6 +149,12 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
 
+		HasUnreadConversations = BuyViewModel.Orders.ToObservableChangeSet(x => x.Id)
+			.Filter(model => model.HasUnreadMessages)
+			.AsObservableCache()
+			.CountChanged
+			.Select(x => x > 0);
+
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
@@ -261,6 +270,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	}
 
 	public ICommand DismissBuyInfoCommand { get; }
+
+	public IObservable<bool> HasUnreadConversations { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
