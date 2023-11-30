@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -74,22 +73,22 @@ public class BuyAnythingClient
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(NetworkCredential credential, string rawText)
+	public async Task UpdateConversationAsync(NetworkCredential credential, string rawText, CancellationToken cancellationToken)
 	{
-		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
-		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
+		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task SetBillingAddressAsync(NetworkCredential credential, string address, string houseNumber, string zipCode, string city, string countryId)
+	public async Task SetBillingAddressAsync(NetworkCredential credential, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
 	{
-		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode,  city,  countryId );
-		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, CancellationToken.None).ConfigureAwait(false);
+		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
-		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
 		var updatedOrders = orderList.Orders.Elements
 			.Where(o => o.UpdatedAt is not null)
@@ -98,10 +97,10 @@ public class BuyAnythingClient
 		return updatedOrders;
 	}
 
-	private async Task<string> LoginAsync(NetworkCredential credential)
+	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
-		var response = await ApiClient.LoginCustomerAsync("new-context", request, CancellationToken.None).ConfigureAwait(false);
+		var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
 		return response.ContextToken;
 	}
 }

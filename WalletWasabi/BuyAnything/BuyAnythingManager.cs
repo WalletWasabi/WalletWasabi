@@ -134,7 +134,7 @@ public class BuyAnythingManager : PeriodicRunner
 			track.LastUpdate = DateTimeOffset.Now;
 
 			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
-			await Client.UpdateConversationAsync(track.Credential, rawText).ConfigureAwait(false);
+			await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
 
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
 		}
