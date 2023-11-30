@@ -25,14 +25,14 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate>
-            <DockPanel Margin="0 40 0 0">
+            <DockPanel Margin="0 110 0 0">
               <Border Background="{DynamicResource ChatInputBackground}" Padding="10" CornerRadius="10" MaxWidth="400"
-                      BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}" DockPanel.Dock="Bottom">
+                      BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}" DockPanel.Dock="Left">
                 <ContentPresenter Content="{TemplateBinding Content}" />
               </Border>
-              <Panel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="150 0 0 -1" DockPanel.Dock="Top">
-                <Polygon Points="10,-1 0,9 21,10" Fill="{DynamicResource SystemAccentColor}" />
-                <Polygon Points="10,0 0,10 20,10" Fill="{DynamicResource ChatInputBackground}" />
+              <Panel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-1 20 0 0" DockPanel.Dock="Right">
+                <Polygon Points="0,0 12,10 0,20" Fill="{DynamicResource SystemAccentColor}" />
+                <Polygon Points="-1,1 10,10 -1,19" Fill="{DynamicResource ChatInputBackground}" />
               </Panel>
             </DockPanel>
           </ControlTemplate>
@@ -71,7 +71,7 @@
                   <TextBlock Text="Buy Anything" />
                 </StackPanel>
                 <FlyoutBase.AttachedFlyout>
-                  <Flyout ShowMode="Transient" Placement="Bottom" FlyoutPresenterClasses="Bubble">
+                  <Flyout ShowMode="Transient" Placement="Left" FlyoutPresenterClasses="Bubble">
                     <StackPanel Spacing="6">
                       <TextBlock FontWeight="SemiBold" TextAlignment="Left">Your Bitcoin wallet is now an Anything wallet!</TextBlock>
                       <TextBlock Opacity="0.6">Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will find what you want and send it to you, privately.</TextBlock>
