@@ -64,6 +64,10 @@ public class BuyAnythingManager : PeriodicRunner
 					_ => track.Conversation.Status
 				};
 
+				// FIXME: this is not tested. The chat messages are now stored in a customers' profile custom field
+				// while previously they were stored in the order. That means that we have to check the customer
+				// profiles instead of checking the orders. However, given that the orders come with the customers'
+				// profile, this could work.
 				var newMessageFromConcierge = Parse(order.GetCustomerProfileComment() ?? "");
 
 				track.LastUpdate = orderLastUpdated;
