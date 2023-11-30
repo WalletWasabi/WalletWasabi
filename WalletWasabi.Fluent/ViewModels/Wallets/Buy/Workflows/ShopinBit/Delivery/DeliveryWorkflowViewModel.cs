@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -9,6 +10,8 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 	public DeliveryWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
 		_request = new DeliveryWorkflowRequest();
+
+		var termsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
 
 		Steps = new List<WorkflowStepViewModel>
 		{
@@ -80,6 +83,22 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new StateWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Accept Terms of service
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					$"To continue please accept Privacy Policy: {termsOfServiceUrl}")),
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmTosWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request,
+					new LinkViewModel
+					{
+						Link = termsOfServiceUrl,
+						Description = "Accept the Terms of service",
+						IsClickable = true
+					},
+					"Accepted Terms of service.")),
 			// Confirm
 			new (false,
 				new DeliverySummaryWorkflowInputValidatorViewModel(

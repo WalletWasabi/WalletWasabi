@@ -4,6 +4,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed class DeliveryWorkflowRequest : WorkflowRequest
 {
+	public bool HasAcceptedTermsOfService { get; set; }
+
 	public string? FirstName { get; set; }
 
 	public string? LastName { get; set; }
@@ -28,6 +30,7 @@ public sealed class DeliveryWorkflowRequest : WorkflowRequest
 		sb.AppendLine($"PostalCode: {PostalCode}");
 		sb.AppendLine($"City: {City}");
 		sb.AppendLine($"State: {State}");
+		sb.AppendLine($"HasAcceptedTermsOfService: {HasAcceptedTermsOfService}");
 		return sb.ToString();
 	}
 }

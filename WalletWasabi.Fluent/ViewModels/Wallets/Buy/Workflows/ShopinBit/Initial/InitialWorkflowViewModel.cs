@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -11,6 +12,8 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 	public InitialWorkflowViewModel(IWorkflowValidator workflowValidator, string userName)
 	{
 		_request = new InitialWorkflowRequest();
+
+		var privacyPolicyUrl = "https://shopinbit.com/Information/Privacy-Policy/";
 
 		Steps = new List<WorkflowStepViewModel>
 		{
@@ -37,6 +40,22 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new RequestWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Accept Privacy Policy
+			new (false,
+				new DefaultWorkflowInputValidatorViewModel(
+					workflowValidator,
+					$"to continue please accept Privacy Policy: {privacyPolicyUrl}")),
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmPrivacyPolicyWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request,
+					new LinkViewModel
+					{
+						Link = privacyPolicyUrl,
+						Description = "Accept the Privacy Policy",
+						IsClickable = true
+					},
+					"Accepted Privacy Policy.")),
 			// Confirm
 			new (false,
 				new InitialSummaryWorkflowInputValidatorViewModel(
