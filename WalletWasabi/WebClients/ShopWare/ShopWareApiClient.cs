@@ -12,6 +12,7 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
 using CancelOrderResponse = WalletWasabi.WebClients.ShopWare.Models.StateMachineState;
 using CustomerProfileUpdateResponse = WalletWasabi.WebClients.ShopWare.Models.PropertyBag;
+
 using BillingAddressResponse = WalletWasabi.WebClients.ShopWare.Models.PropertyBag;
 
 namespace WalletWasabi.WebClients.ShopWare;
@@ -49,6 +50,9 @@ public class ShopWareApiClient : IShopWareApiClient
 	public Task<BillingAddressResponse> UpdateCustomerBillingAddressAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<BillingAddressResponse>(ctxToken, HttpMethod.Post, "account/address", request, cancellationToken);
 
+	public Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerProfileResponse>(ctxToken, HttpMethod.Post, "account/customer", PropertyBag.Empty, cancellationToken);
+
 	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);
 
@@ -61,7 +65,7 @@ public class ShopWareApiClient : IShopWareApiClient
 	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetOrderListResponse>(ctxToken, HttpMethod.Post, "order", PropertyBag.Empty, cancellationToken);
 
-	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken,  PropertyBag request, CancellationToken cancellationToken) =>
+	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<CancelOrderResponse>(ctxToken, HttpMethod.Post, "order/state/cancel", request, cancellationToken);
 
 	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>

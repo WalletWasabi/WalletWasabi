@@ -52,9 +52,22 @@ public class BuyAnythingManager : PeriodicRunner
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
-				.GetConversationsUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
+				.GetOrdersUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
 				.ConfigureAwait(false);
 
+			var customerProfileResponse = await Client
+				.GetFullConversationAsync(track.Credential, track.LastUpdate, cancel)
+				.ConfigureAwait(false);
+
+			if (customerProfileResponse.UpdatedAt.HasValue && customerProfileResponse.UpdatedAt > track.LastUpdate)
+			{
+				// This is the full conversation between a customer and an agent.
+				var fullMessage = customerProfileResponse.CustomFields.Wallet_Chat_Store;
+
+				// Update track.LastUpdate?
+			}
+
+			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
 			{
 				var orderLastUpdated = order.UpdatedAt!.Value;
@@ -112,7 +125,7 @@ public class BuyAnythingManager : PeriodicRunner
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password),
-				new []{ new ChatMessage(true, message) },
+				new[] { new ChatMessage(true, message) },
 				ConversationStatus.Started,
 				new object())));
 
@@ -222,7 +235,7 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>
-		new (
+		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
 

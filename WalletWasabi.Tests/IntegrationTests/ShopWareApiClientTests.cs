@@ -10,6 +10,8 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
+using WalletWasabi.BuyAnything;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -36,7 +38,7 @@ public class ShopWareApiClientTests
 		var shoppingCart = await shopWareApiClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0],
 			ShopWareRequestFactory.ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
 		var shoppingCartx = await shopWareApiClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
-			ShopWareRequestFactory.ShoppingCartItemsRequest("018c0cec5299719f9458dba04f88eb8c") , CancellationToken.None);
+			ShopWareRequestFactory.ShoppingCartItemsRequest("018c0cec5299719f9458dba04f88eb8c"), CancellationToken.None);
 		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token,
 			ShopWareRequestFactory.OrderGenerationRequest(), CancellationToken.None);
 
@@ -86,6 +88,25 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
+	public async Task CanGetFullConversationAsync()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		BuyAnythingClient bac = new(shopWareApiClient);
+		using BuyAnythingManager bam = new(Common.DataDir, TimeSpan.FromSeconds(10), bac);
+
+		await bam.StartAsync(CancellationToken.None);
+
+		await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
+		await Task.Delay(3000);
+
+		// Szpoti: I used breakpoints in BuyAnythingManager to see that the CustomerProfile actually gives back the full message, even after if its updated on admin side.
+		// Implement update conversation here?
+	}
+
+	[Fact]
 	public async Task FetchAllCountriesAsync()
 	{
 		using var httpClient = new HttpClient();
@@ -94,7 +115,7 @@ public class ShopWareApiClientTests
 
 		var toSerialize = new List<object>();
 		var currentPage = 0;
-		while(true)
+		while (true)
 		{
 			currentPage++;
 

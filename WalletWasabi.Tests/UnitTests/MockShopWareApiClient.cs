@@ -11,6 +11,7 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Func<string, PropertyBag, Task<CustomerLoginResponse>>? OnLoginCustomerAsync { get; set; }
 	public Func<string, PropertyBag, Task<PropertyBag>>? OnUpdateCustomerProfileAsync { get; set; }
 	public Func<string, PropertyBag, Task<PropertyBag>>? OnUpdateCustomerBillingAddressAsync { get; set; }
+	public Func<string, Task<CustomerProfileResponse>>? OnGetCustomerProfile { get; set; }
 	public Func<string, PropertyBag, Task<ShoppingCartResponse>>? OnGetOrCreateShoppingCartAsync { get; set; }
 	public Func<string, PropertyBag, Task<ShoppingCartItemsResponse>>? OnAddItemToShoppingCartAsync { get; set; }
 	public Func<string, PropertyBag, Task<OrderGenerationResponse>>? OnGenerateOrderAsync { get; set; }
@@ -57,4 +58,8 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		OnGetCountriesAsync?.Invoke(ctxToken, request)
 		?? throw new NotImplementedException("GetCountriesAsync is not implemented.");
+
+	public Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken) =>
+		OnGetCustomerProfile?.Invoke(ctxToken)
+		?? throw new NotImplementedException("GetCustomerProfileAsync is not implemented.");
 }

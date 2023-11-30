@@ -32,6 +32,7 @@ public class BuyAnythingClient
 	// 2. Use {firstName}.{lastName}@me.com as the email address and store that (it makes sense if need to log in customers)
 	// 3. Hardcode the values here
 	private static readonly string FirstName = "Watoshi";
+
 	private static readonly string LastName = "Sabimoto";
 
 	public BuyAnythingClient(IShopWareApiClient apiClient)
@@ -40,7 +41,6 @@ public class BuyAnythingClient
 	}
 
 	private IShopWareApiClient ApiClient { get; }
-	private List<CachedCountry>? _countries { get; set; }
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
@@ -82,19 +82,28 @@ public class BuyAnythingClient
 	public async Task SetBillingAddressAsync(NetworkCredential credential, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode,  city,  countryId );
+		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode, city, countryId);
 		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<Order[]> GetConversationsUpdateSinceAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	public async Task<Order[]> GetOrdersUpdateSinceAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+
 		var updatedOrders = orderList.Orders.Elements
 			.Where(o => o.UpdatedAt is not null)
 			.Where(o => o.UpdatedAt > lastUpdate)
 			.ToArray();
 		return updatedOrders;
+	}
+
+	public async Task<CustomerProfileResponse> GetFullConversationAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	{
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
+		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+
+		return customerProfileResponse;
 	}
 
 	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
