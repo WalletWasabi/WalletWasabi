@@ -8,11 +8,14 @@ public sealed class InitialWorkflowRequest : WorkflowRequest
 
 	public string? Request { get; set; }
 
+	public bool HasAcceptedPrivacyPolicy { get; set; }
+
 	public override string ToMessage()
 	{
 		var sb = new StringBuilder();
 		sb.AppendLine($"Location: {Location}");
 		sb.AppendLine($"Request: {Request}");
+		sb.AppendLine($"HasAcceptedPrivacyPolicy: {HasAcceptedPrivacyPolicy}");
 		return sb.ToString();
 	}
 }

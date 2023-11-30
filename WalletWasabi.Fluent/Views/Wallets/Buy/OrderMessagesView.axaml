@@ -8,6 +8,7 @@
              xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
+             xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="buy:BuyViewModel"
@@ -93,6 +94,36 @@
                   </Style>
                 </TextBox.Styles>
               </TextBox>
+            </DataTemplate>
+
+            <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyWorkflowInputValidatorViewModel">
+              <StackPanel Orientation="Horizontal"
+                          Background="{StaticResource Background}">
+                <CheckBox VerticalAlignment="Center"
+                          IsChecked="{Binding HasAcceptedPrivacyPolicy}"
+                          Margin="8 0 0 0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                  </i:Interaction.Behaviors>
+                </CheckBox>
+                <helpAndSupport:LinkView
+                  DataContext="{Binding Link}" />
+              </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate DataType="shopinBit:ConfirmTosWorkflowInputValidatorViewModel">
+              <StackPanel Orientation="Horizontal"
+                          Background="{StaticResource Background}">
+                <CheckBox VerticalAlignment="Center"
+                          IsChecked="{Binding HasAcceptedTermsOfService}"
+                          Margin="8 0 0 0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                  </i:Interaction.Behaviors>
+                </CheckBox>
+                <helpAndSupport:LinkView
+                  DataContext="{Binding Link}" />
+              </StackPanel>
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:ConfirmInitialWorkflowInputValidatorViewModel">

@@ -90,7 +90,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		Task.Run(async () =>
 		{
 			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
-#if false
+#if true
 			Demo(_cts.Token);
 #else
 			await InitializeOrdersAsync(_cts.Token);
@@ -209,9 +209,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(ConversationId.Empty, "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(ConversationId.Empty, "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(ConversationId.Empty, "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("1", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("2", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("3", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
