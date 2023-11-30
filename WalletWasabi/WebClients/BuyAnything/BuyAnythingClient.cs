@@ -82,6 +82,12 @@ public class BuyAnythingClient
 		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
 	}
 
+	public async Task SetBillingAddressAsync(string ctxToken, string address, string houseNumber, string zipCode, string city, string countryId)
+	{
+		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode,  city,  countryId );
+		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, CancellationToken.None).ConfigureAwait(false);
+	}
+
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);

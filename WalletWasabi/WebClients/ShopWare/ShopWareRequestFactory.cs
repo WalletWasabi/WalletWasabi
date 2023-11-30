@@ -82,4 +82,15 @@ public static class ShopWareRequestFactory
 		{
 			["orderId"] = orderId
 		};
+
+	public static PropertyBag BillingAddressRequest(string street, string houseNumber, string zipcode, string city,
+		string countryId) =>
+		new()
+		{
+			["street"] = street,
+			["additionalAddressLine1"] = houseNumber,
+			["zipcode"] = zipcode,
+			["city"] = city,
+			["countryId"] = countryId
+		};
 }
