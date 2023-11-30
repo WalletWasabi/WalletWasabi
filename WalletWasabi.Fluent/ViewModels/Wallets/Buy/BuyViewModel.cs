@@ -15,8 +15,6 @@ using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using WalletWasabi.WebClients.BuyAnything;
-using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -116,8 +114,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			if (_orders.Count == 0)
 			{
 				var walletId = BuyAnythingManager.GetWalletId(_wallet);
-				// Todo: Choose product
-				await buyAnythingManager.StartNewConversationAsync(walletId, "", BuyAnythingClient.Product.ConciergeRequest, "Hello World", cancellationToken);
+				await buyAnythingManager.StartNewConversationAsync(walletId, "", "Hello World", cancellationToken);
 				await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 			}
 
@@ -212,9 +209,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(new ConversationId("1", "", new LocalCustomer("", "", "", "", "")), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("2", "", new LocalCustomer("", "", "", "", "")), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(new ConversationId("3", "", new LocalCustomer("", "", "", "", "")), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("1", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("2", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(new ConversationId("3", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
