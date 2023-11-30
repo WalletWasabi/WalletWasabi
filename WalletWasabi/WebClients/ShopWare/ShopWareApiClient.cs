@@ -16,7 +16,7 @@ using BillingAddressResponse = WalletWasabi.WebClients.ShopWare.Models.PropertyB
 
 namespace WalletWasabi.WebClients.ShopWare;
 
-public class ShopWareApiClient
+public class ShopWareApiClient : IShopWareApiClient
 {
 	private HttpClient _client;
 
