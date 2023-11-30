@@ -27,55 +27,25 @@ public class ShopWareApiClientTests
 		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
-		var customer = await shopWareApiClient.RegisterCustomerAsync("none", new CustomerRegistrationRequest(
-			SalutationId: "018b6635785b70679f479eadf50330f3",
-			FirstName: "Mariela",
-			LastName: "Carranza",
-			Email: "emilia.carranza@me.com",
-			Password: "Password",
-			Guest: true,
-			AffiliateCode: "WASABI",
-			AcceptedDataProtection: true,
-			StorefrontUrl: "https://wasabi.shopinbit.com",
-			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#Hello, is it anybody in there?||"},
-			BillingAddress: new BillingAddress(
-				Street: "My street",
-				AdditionalAddressLine1: "My additional address line 1",
-				Zipcode: "12345",
-				City: "Appleton",
-				CountryId: "5d54dfdc2b384a8e9fff2bfd6e64c186"
-			)), CancellationToken.None);
+		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
+			"Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "comment");
+		customerRegistrationRequest["guest"] = true;
 
-		var shoppingCart =
-			await shopWareApiClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0], new ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
+		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRegistrationRequest, CancellationToken.None);
 
+		var shoppingCart = await shopWareApiClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0],
+			ShopWareRequestFactory.ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
 		var shoppingCartx = await shopWareApiClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
-			new ShoppingCartItemsRequest(
-				Items: new[]
-				{
-					new ShoppingCartItem(
-						Id: "0",
-						ReferencedId: "018c0cec5299719f9458dba04f88eb8c",
-						Label: "The label",
-						Quantity: 1,
-						Type: "product",
-						Good: true,
-						Description: "description",
-						Stackable: false,
-						Removable: false,
-						Modified: false)
-				}), CancellationToken.None);
-		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token, new OrderGenerationRequest(
-			CustomerComment: "Customer comment",
-			AffiliateCode: "WASABI",
-			CampaignCode: "WASABI"), CancellationToken.None);
+			ShopWareRequestFactory.ShoppingCartItemsRequest("018c0cec5299719f9458dba04f88eb8c") , CancellationToken.None);
+		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token,
+			ShopWareRequestFactory.OrderGenerationRequest(), CancellationToken.None);
 
 		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token, CancellationToken.None);
 		var uniqueOrder = Assert.Single(orderList.Orders.Elements);
 		Assert.Equal(uniqueOrder.OrderNumber, order.OrderNumber);
 
-		var cancelledOrder = await shopWareApiClient.CancelOrderAsync(shoppingCartx.Token, new CancelOrderRequest(uniqueOrder.Id),
-			CancellationToken.None);
+		var cancelledOrder = await shopWareApiClient.CancelOrderAsync(shoppingCartx.Token,
+			ShopWareRequestFactory.CancelOrderRequest(uniqueOrder.Id), CancellationToken.None);
 
 		Assert.Equal("Cancelled", cancelledOrder.Name);
 	}
@@ -88,7 +58,7 @@ public class ShopWareApiClientTests
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 		// Register a user.
-		var customerRequestWithRandomData = CreateRandomCustomer(out var email, out var password);
+		var customerRequestWithRandomData = CreateRandomCustomer("a comment", out var email, out var password);
 		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRequestWithRandomData, CancellationToken.None);
 		Assert.NotNull(customer);
 
@@ -97,11 +67,11 @@ public class ShopWareApiClientTests
 		var ogCustomerId = customer.Id;
 
 		// Login with the new user.
-		var loggedInCustomer = await shopWareApiClient.LoginCustomerAsync("none", new CustomerLoginRequest(email, password), CancellationToken.None);
+		var loggedInCustomer = await shopWareApiClient.LoginCustomerAsync("none", ShopWareRequestFactory.CustomerLoginRequest(email, password), CancellationToken.None);
 		Assert.Equal(loggedInCustomer.ContextToken, customer.ContextTokens[0]);
 
 		// Register with a new user.
-		var newCustomerRequestWithRandomData = CreateRandomCustomer(out var newEmail, out var newPassword);
+		var newCustomerRequestWithRandomData = CreateRandomCustomer("no comments", out var newEmail, out var newPassword);
 		var newCustomer = await shopWareApiClient.RegisterCustomerAsync("none", newCustomerRequestWithRandomData, CancellationToken.None);
 		Assert.NotNull(newCustomer);
 
@@ -113,49 +83,6 @@ public class ShopWareApiClientTests
 		Assert.NotEqual(ogCustomerNumber, newCustomerNumber);
 		Assert.NotEqual(ogCustomerId, newCustomerId);
 		Assert.NotEqual(ogCustomerToken, newCustomerToken);
-	}
-
-	[Fact]
-	public async Task CanFetchCountriesAsync()
-	{
-		using var httpClient = new HttpClient();
-		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
-		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
-
-		var countryResponse = await shopWareApiClient.GetCountryByNameAsync("none", new GetCountryRequest(
-			Page: 1,
-			Limit: 10,
-			Filter: new[]
-				{
-				new Filter(
-					Type: "equals",
-					Field: "name",
-					Value: "Sudan"
-					)
-				}
-			), CancellationToken.None);
-		var country = countryResponse.Elements.FirstOrDefault();
-		Assert.NotNull(country);
-		Assert.Equal("Sudan", country.Name);
-		Assert.Equal("094d0bb402e542d7b71ff016c10aff7f", country.Id);
-
-		countryResponse = await shopWareApiClient.GetCountryByNameAsync("none", new GetCountryRequest(
-			Page: 1,
-			Limit: 10,
-			Filter: new[]
-				{
-				new Filter(
-					Type: "equals",
-					Field: "name",
-					Value: "Hungary"
-					)
-				}
-			), CancellationToken.None);
-
-		country = countryResponse.Elements.FirstOrDefault();
-		Assert.NotNull(country);
-		Assert.Equal("Hungary", country.Name);
-		Assert.Equal("6ab3247e27174ee898a2479071754912", country.Id);
 	}
 
 	[Fact]
@@ -171,11 +98,7 @@ public class ShopWareApiClientTests
 		{
 			currentPage++;
 
-			var countryResponse = await shopWareApiClient.GetCountriesAsync("none", new GetCountriesRequest(
-				Page: currentPage,
-				Limit: 100
-			), CancellationToken.None);
-
+			var countryResponse = await shopWareApiClient.GetCountriesAsync("none", ShopWareRequestFactory.GetPage(currentPage, 100), CancellationToken.None);
 			var cachedCountries = countryResponse.Elements
 				.Where(x => x.Active)
 				.Select(x => new CachedCountry(
@@ -200,28 +123,16 @@ public class ShopWareApiClientTests
 		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
 	}
 
-	private CustomerRegistrationRequest CreateRandomCustomer(out string email, out string password)
+	private PropertyBag CreateRandomCustomer(string message, out string email, out string password)
 	{
-		var crr = new CustomerRegistrationRequest(
-			SalutationId: "018b6635785b70679f479eadf50330f3",
-			FirstName: "Random",
-			LastName: "Dude Jr.",
-			Email: $"{Guid.NewGuid()}@me.com",
-			Password: "Password",
-			Guest: false,
-			AffiliateCode: "WASABI",
-			AcceptedDataProtection: true,
-			StorefrontUrl: "https://wasabi.shopinbit.com",
-			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#Hello... is it me you're looking for?||"},
-			BillingAddress: new BillingAddress(
-				Street: "My street",
-				AdditionalAddressLine1: "My additional address line 1",
-				Zipcode: "12345",
-				City: "Appleton",
-				CountryId: "5d54dfdc2b384a8e9fff2bfd6e64c186"
-			));
-		email = crr.Email;
-		password = crr.Password;
+		PropertyBag crr = ShopWareRequestFactory.CustomerRegistrationRequest(
+			firstName: "Random",
+			lastName: "Dude Jr.",
+			email: $"{Guid.NewGuid()}@me.com",
+			password: "Password",
+			message: message);
+		email = crr["email"].ToString();
+		password = crr["password"].ToString();
 		return crr;
 	}
 }

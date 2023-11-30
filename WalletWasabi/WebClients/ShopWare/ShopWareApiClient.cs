@@ -11,7 +11,7 @@ using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
 using CancelOrderResponse = WalletWasabi.WebClients.ShopWare.Models.StateMachineState;
-using CustomerProfileUpdateResponse = WalletWasabi.WebClients.ShopWare.Models.Unit;
+using CustomerProfileUpdateResponse = WalletWasabi.WebClients.ShopWare.Models.PropertyBag;
 
 namespace WalletWasabi.WebClients.ShopWare;
 
@@ -36,37 +36,33 @@ public class ShopWareApiClient
 		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey); // API key. Must be in every single request.
 	}
 
-	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, CustomerRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CustomerRegistrationRequest, CustomerRegistrationResponse>(ctxToken, HttpMethod.Post, "account/register", request, cancellationToken);
+	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerRegistrationResponse>(ctxToken, HttpMethod.Post, "account/register", request, cancellationToken);
 
-	public Task<CustomerLoginResponse> LoginCustomerAsync(string ctxToken, CustomerLoginRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CustomerLoginRequest, CustomerLoginResponse>(ctxToken, HttpMethod.Post, "account/login", request, cancellationToken);
+	public Task<CustomerLoginResponse> LoginCustomerAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerLoginResponse>(ctxToken, HttpMethod.Post, "account/login", request, cancellationToken);
 
-	public Task<CustomerProfileUpdateResponse> UpdateCustomerProfileAsync(string ctxToken, CustomerProfileUpdateRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CustomerProfileUpdateRequest, CustomerProfileUpdateResponse>(ctxToken, HttpMethod.Post, "account/change-profile", request, cancellationToken);
-	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, ShoppingCartCreationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ShoppingCartCreationRequest, ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);
+	public Task<CustomerProfileUpdateResponse> UpdateCustomerProfileAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerProfileUpdateResponse>(ctxToken, HttpMethod.Post, "account/change-profile", request, cancellationToken);
+	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);
 
-	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, ShoppingCartItemsRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ShoppingCartItemsRequest, ShoppingCartItemsResponse>(ctxToken, HttpMethod.Post, "checkout/cart/line-item", request, cancellationToken);
+	public Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<ShoppingCartItemsResponse>(ctxToken, HttpMethod.Post, "checkout/cart/line-item", request, cancellationToken);
 
-	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, OrderGenerationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<OrderGenerationRequest, OrderGenerationResponse>(ctxToken, HttpMethod.Post, "checkout/order", request, cancellationToken);
+	public Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<OrderGenerationResponse>(ctxToken, HttpMethod.Post, "checkout/order", request, cancellationToken);
 
 	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<Unit, GetOrderListResponse>(ctxToken, HttpMethod.Post, "order", Unit.Instance, cancellationToken);
+		SendAndReceiveAsync<GetOrderListResponse>(ctxToken, HttpMethod.Post, "order", PropertyBag.Empty, cancellationToken);
 
-	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken, CancelOrderRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<CancelOrderRequest, CancelOrderResponse>(ctxToken, HttpMethod.Post, "order/state/cancel", request, cancellationToken);
+	public Task<CancelOrderResponse> CancelOrderAsync(string ctxToken,  PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CancelOrderResponse>(ctxToken, HttpMethod.Post, "order/state/cancel", request, cancellationToken);
 
-	public Task<GetCountryResponse> GetCountryByNameAsync(string ctxToken, GetCountryRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<GetCountryRequest, GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
+	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
 
-	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, GetCountriesRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<GetCountriesRequest, GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
-
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string ctxToken, HttpMethod httpMethod, string path, TRequest request, CancellationToken cancellationToken)
-		where TRequest : class
+	private async Task<TResponse> SendAndReceiveAsync<TResponse>(string ctxToken, HttpMethod httpMethod, string path, PropertyBag request, CancellationToken cancellationToken)
 	{
 		var jsonString = await SendAsync(ctxToken, httpMethod, path, request, cancellationToken).ConfigureAwait(false);
 		return Deserialize<TResponse>(jsonString);

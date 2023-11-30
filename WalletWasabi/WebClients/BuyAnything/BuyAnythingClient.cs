@@ -52,10 +52,11 @@ public class BuyAnythingClient
 	public async Task<string> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
-		var customerRegistrationRequest = CreateRandomCustomer(comment);
-		var shoppingCartCreationRequest = new ShoppingCartCreationRequest("My shopping cart");
-		var shoppingCartItemAdditionRequest = CreateShoppingCartItemAdditionRequest(ProductIds[product]);
-		var orderGenerationRequest = CreateOrderGenerationRequest();
+		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
+			FirstName, LastName, $"{Guid.NewGuid()}@me.com", "Password", comment);
+		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
+		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
+		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
 
 		// Create the conversation
 		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
@@ -78,8 +79,7 @@ public class BuyAnythingClient
 
 	public async Task UpdateConversationAsync(string ctxToken, string rawText)
 	{
-		Dictionary<string, string> fields = new() { ["wallet_chat_store"] = rawText };
-		await ApiClient.UpdateCustomerProfileAsync(ctxToken, new CustomerProfileUpdateRequest(FirstName, LastName, fields), CancellationToken.None).ConfigureAwait(false);
+		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
 	}
 
 	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
@@ -91,56 +91,4 @@ public class BuyAnythingClient
 			.ToArray();
 		return updatedOrders;
 	}
-
-	// Creates a non-random customer creation request.
-	// There are two kind of customers: Guest and Registered.
-	// Guest customers are passwordless can share the same email address and do not have an account.
-	// Registered customers have an account and need to call the login API with their credentials (email address and password).
-	// Here we create a Guest customer. We assume that the context token is enough to identify the user and that the token
-	// doesn't expire. In case this is not true then we need to create a registered customer with random credentials, store
-	// them in a file and use them to login the user.
-	private CustomerRegistrationRequest CreateRandomCustomer(string message) =>
-		new CustomerRegistrationRequest(
-			SalutationId: "018b6635785b70679f479eadf50330f3",
-			FirstName: FirstName,
-			LastName: LastName,
-			Email: "emilia.carranza@me.com",
-			Password: "Password",
-			Guest: false,
-			AffiliateCode: "WASABI",
-			AcceptedDataProtection: true,
-			StorefrontUrl: "https://wasabi.shopinbit.com",
-			CustomFields: new() { ["wallet_chat_store"] = $"||#WASABI#{message}||"},
-			BillingAddress: new BillingAddress(
-				Street: "My street",
-				AdditionalAddressLine1: "My additional address line 1",
-				Zipcode: "12345",
-				City: "Appleton",
-				CountryId: "5d54dfdc2b384a8e9fff2bfd6e64c186"
-			));
-
-	// Creates a request to add a product to the shopping cart.
-	// This product is one of the three services provided by Concierge
-	private ShoppingCartItemsRequest CreateShoppingCartItemAdditionRequest(string productId) =>
-		new ShoppingCartItemsRequest(
-			Items: new[] {
-				new ShoppingCartItem (
-					Id: "0",
-					ReferencedId: productId,
-					Label: "",
-					Quantity: 1,
-					Type: "product",
-					Good: true,
-					Description: "",
-					Stackable: false,
-					Removable: false,
-					Modified: false)
-				});
-
-	// Creates a request to generate an order. The first conversation text is added as a CurstomerComment.
-	private OrderGenerationRequest CreateOrderGenerationRequest() =>
-		new(
-			CustomerComment: "",
-			AffiliateCode: "WASABI",
-			CampaignCode: "WASABI");
 }

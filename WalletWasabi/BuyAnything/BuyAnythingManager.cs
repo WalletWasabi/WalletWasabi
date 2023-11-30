@@ -64,7 +64,7 @@ public class BuyAnythingManager : PeriodicRunner
 					_ => track.Conversation.Status
 				};
 
-				var newMessageFromConcierge = Parse(order.CustomerComment ?? "");
+				var newMessageFromConcierge = Parse(order.GetCustomerProfileComment() ?? "");
 
 				track.LastUpdate = orderLastUpdated;
 				track.Conversation = track.Conversation with
