@@ -15,7 +15,7 @@ public partial class ConfirmTosWorkflowInputValidatorViewModel : WorkflowInputVa
 		DeliveryWorkflowRequest deliveryWorkflowRequest,
 		LinkViewModel link,
 		string message,
-		string content = "Accept")
+		string content)
 		: base(workflowValidator, message, null, content)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
