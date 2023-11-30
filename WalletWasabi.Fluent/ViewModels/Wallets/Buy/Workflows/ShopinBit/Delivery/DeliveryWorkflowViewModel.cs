@@ -88,6 +88,14 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 				userInputValidator: new StateWorkflowInputValidatorViewModel(
 					workflowValidator,
 					_request)),
+			// Confirm
+			new (false,
+				new DeliverySummaryWorkflowInputValidatorViewModel(
+					workflowValidator,
+					_request)),
+			new (requiresUserInput: true,
+				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
+					workflowValidator)),
 			// Accept Terms of service
 			new (false,
 				new DefaultWorkflowInputValidatorViewModel(
@@ -103,15 +111,8 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 						Description = "Accept the Terms of service",
 						IsClickable = true
 					},
-					"Accepted Terms of service.")),
-			// Confirm
-			new (false,
-				new DeliverySummaryWorkflowInputValidatorViewModel(
-					workflowValidator,
-					_request)),
-			new (requiresUserInput: true,
-				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
-					workflowValidator)),
+					"Accepted Terms of service.",
+					"BUY NOW")),
 			// Final
 			new (false,
 				new NoInputWorkflowInputValidatorViewModel(
