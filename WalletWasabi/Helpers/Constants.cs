@@ -60,6 +60,7 @@ public static class Constants
 
 	public const decimal DefaultDustThreshold = 0.00005m;
 
+	public const string LowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
 	public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
