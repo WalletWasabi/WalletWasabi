@@ -41,4 +41,7 @@ public record StateMachineState
 	string TechnicalName
 );
 
-
+public record HandlePaymentResponse
+(
+	string Id
+);

@@ -106,6 +106,13 @@ public class BuyAnythingClient
 		return customerProfileResponse;
 	}
 
+	public async Task HandlePaymentAsync (NetworkCredential credential, string orderId, CancellationToken cancellationToken)
+	{
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
+		var request = ShopWareRequestFactory.PaymentRequest(orderId);
+		await ApiClient.HandlePaymentAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
+	}
+
 	// Login the customer and return the context token.
 	// This method implements a caching mechanism to avoid multiple login requests.
 	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)

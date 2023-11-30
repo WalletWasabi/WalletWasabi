@@ -93,4 +93,12 @@ public static class ShopWareRequestFactory
 			["city"] = city,
 			["countryId"] = countryId
 		};
+
+	public static PropertyBag PaymentRequest(string orderId) =>
+		new ()
+		{
+			["orderId"] = orderId,
+			["finishUrl"] = "",
+			["errorUrl"] = ""
+		};
 }
