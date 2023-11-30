@@ -25,16 +25,8 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
 
-	// Customer information. We need this values to update the messages
-	// we have three options:
-	// 1. Create a new customer with random names and store them in the disk
-	// 2. Use {firstName}.{lastName}@me.com as the email address and store that (it makes sense if need to log in customers)
-	// 3. Hardcode the values here
 	private static readonly string FirstName = "Watoshi";
 	private static readonly string LastName = "Sabimoto";
-
-
-	private static readonly string CountriesPath = "./Data/Countries.json";
 
 	public BuyAnythingClient(ShopWareApiClient apiClient)
 	{
@@ -42,55 +34,66 @@ public class BuyAnythingClient
 	}
 
 	private ShopWareApiClient ApiClient { get; }
-	private List<CachedCountry>? _countries { get; set; }
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<string> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
+	// Todo: Country not used?
+	public async Task<(LocalCustomer Customer, string OrderNumber)> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
+		var customerEmail = $"{Guid.NewGuid()}@me.com";
+		var customerPassword = $"Password";
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			FirstName, LastName, $"{Guid.NewGuid()}@me.com", "Password", comment);
+			FirstName, LastName, customerEmail, customerPassword, comment);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
 
 		// Create the conversation
-		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
+		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync(customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
 
 		// Get the context token (session identifier) for the created user. In same cases, as customer registration,
 		// we can get two context tokens. The first one is for the recently created user and the second one is for the
 		// user that created the new new user.
 		var ctxToken = customerRegistrationResponse.ContextTokens[0];
 
+		var customer = new LocalCustomer(
+			Id: customerRegistrationResponse.Id,
+			CustomerNumber: customerRegistrationResponse.CustomerNumber,
+			Email: customerEmail,
+			Password: customerPassword,
+			LastKnownAccessToken: ctxToken
+		);
+
 		// Note: When we create a shopping cart, we receive a new context token but it is identical to the one that was
 		// used to create it so, I don't know whether it makes any sense to use it or not. Here we use the same context
 		// token.
+		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(customer, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
+		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(customer, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
+		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(customer, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 
-		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
-		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
-		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
-
-		return ctxToken; // return the order number and the token to identify the conversation
+		return (customer, orderGenerationResponse.OrderNumber); // return the order number and the token to identify the conversation
 	}
 
-	public async Task UpdateConversationAsync(string ctxToken, string rawText)
+	// Todo: Not correct anymore?
+	public async Task UpdateConversationAsync(LocalCustomer customer, string rawText)
 	{
-		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
+		await ApiClient.UpdateCustomerProfileAsync(customer, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
 	}
 
-	public async Task SetBillingAddressAsync(string ctxToken, string address, string houseNumber, string zipCode, string city, string countryId)
+	public async Task SetBillingAddressAsync(LocalCustomer customer, string address, string houseNumber, string zipCode, string city, string countryId)
 	{
 		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode,  city,  countryId );
-		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, CancellationToken.None).ConfigureAwait(false);
+		await ApiClient.UpdateCustomerBillingAddressAsync(customer, request, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	// Todo: This work with a ctxToken, but because each customer is used only once, this will always load one conversation
+	public async Task<Order[]> GetConversationsUpdateSinceAsync(LocalCustomer customer, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
-		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+		var orderList = await ApiClient.GetOrderListAsync(customer, cancellationToken).ConfigureAwait(false);
 		var updatedOrders = orderList.Orders.Elements
 			.Where(o => o.UpdatedAt is not null)
 			.Where(o => o.UpdatedAt > lastUpdate)

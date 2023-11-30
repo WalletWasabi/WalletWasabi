@@ -15,6 +15,7 @@ using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -114,7 +115,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			if (_orders.Count == 0)
 			{
 				var walletId = BuyAnythingManager.GetWalletId(_wallet);
-				await buyAnythingManager.StartNewConversationAsync(walletId, "", "Hello World", cancellationToken);
+				// Todo: Choose product
+				await buyAnythingManager.StartNewConversationAsync(walletId, "", BuyAnythingClient.Product.ConciergeRequest, "Hello World", cancellationToken);
 				await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 			}
 
