@@ -19,7 +19,7 @@ public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset 
 
 public record ChatMessage(bool IsMyMessage, string Message);
 
-// Class to keep a track of the last update of a conversation
+public record Country(string Id, string Name);
 
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
@@ -31,6 +31,8 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private BuyAnythingClient Client { get; }
+	private static List<Country> Countries { get; } = new();
+	// Todo: Is it ok that this is accessed without lock?
 	private List<ConversationUpdateTrack> Conversations { get; } = new ();
 	private bool IsConversationsLoaded { get; set; }
 
@@ -106,7 +108,13 @@ public class BuyAnythingManager : PeriodicRunner
 			.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, string message, CancellationToken cancellationToken)
+	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		return Countries.ToArray();
+	}
+
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var ctxToken =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
@@ -161,21 +169,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	private static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
-	{
-		StringBuilder result = new();
-
-		foreach (var chatMessage in cleanChatMessages)
-		{
-			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{chatMessage.Message}");
-		}
-
-		result.Append("||");
-
-		return result.ToString();
-	}
-
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
@@ -203,5 +196,39 @@ public class BuyAnythingManager : PeriodicRunner
 		var conversations = JsonConvert.DeserializeObject<List<ConversationUpdateTrack>>(json) ?? new();
 		Conversations.AddRange(conversations);
 		IsConversationsLoaded = true;
+	}
+
+	private static async Task EnsureCountriesAreLoadedAsync(CancellationToken cancellationToken)
+	{
+		if (Countries.Count == 0)
+		{
+			await LoadCountriesAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private static async Task LoadCountriesAsync(CancellationToken cancellationToken)
+	{
+		var countriesFilePath = "./Data/Countries.json";
+		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
+
+		var countries = JsonConvert.DeserializeObject<Dictionary<string, string>>(fileContent)
+		                ?? throw new InvalidOperationException("Couldn't read cached countries values.");
+
+		Countries.AddRange(countries.Select(x => new Country(x.Value, x.Key)));
+	}
+
+	private static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	{
+		StringBuilder result = new();
+
+		foreach (var chatMessage in cleanChatMessages)
+		{
+			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
+			result.Append($"||#{prefix}#{chatMessage.Message}");
+		}
+
+		result.Append("||");
+
+		return result.ToString();
 	}
 }
