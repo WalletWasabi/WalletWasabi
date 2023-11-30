@@ -86,10 +86,9 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
+	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var walletId = GetWalletId(wallet);
 		return Conversations
 			.Where(c => c.Conversation.Id.WalletId == walletId)
 			.Select(c => c.Conversation)
@@ -102,12 +101,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
 		var credential = GenerateRandomCredential();
-		await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
+		await Client.CreateNewConversationAsync(credential.UserName, credential.Password, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(

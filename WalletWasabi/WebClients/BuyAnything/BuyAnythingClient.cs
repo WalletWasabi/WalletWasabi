@@ -47,7 +47,7 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task CreateNewConversationAsync(string emailAddress, string password, string countryId, Product product, string comment, CancellationToken cancellationToken)
+	public async Task CreateNewConversationAsync(string emailAddress, string password, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(

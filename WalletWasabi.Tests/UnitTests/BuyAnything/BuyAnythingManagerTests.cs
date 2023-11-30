@@ -1,7 +1,12 @@
+using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare;
+using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BuyAnything;
@@ -11,13 +16,58 @@ public class BuyAnythingManagerTests
 	[Fact]
 	public async Task BuyAnythingManagerTest()
 	{
-		var mockedShopwareClient = new MockShopWareApiClient();
-		var buyAnythingClient = new BuyAnythingClient(mockedShopwareClient);
-		using var buyAnythingManager = new BuyAnythingManager("fake-api-key", TimeSpan.FromMinutes(0), buyAnythingClient);
+		#if !USE_MOCK
+		var shopWareApiClient = PreconfiguredShopWareApiClient();
+		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("order#123456789"));
+		shopWareApiClient.OnGetOrderListAsync = (s) => Task.FromResult(new GetOrderListResponse(new OrderList(new []
+		{
+			new Order("1", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1),
+				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
+				"order#123456789",
+				new OrderCustomer("1", DateTimeOffset.UtcNow, new () { ["wallet_chat_store"] = "||#WASABI#Hi, I want to by this||#SIB#Bye||"}, "xx"),
+				"idxxxxxxx")
+		})));
+		#else
+		var shopWareApiClient = new ShopWareApiClient(new HttpClient(), "real-api-key");
+		#endif
+
+		await IoHelpers.TryDeleteDirectoryAsync("datadir");
+		var buyAnythingClient = new BuyAnythingClient(shopWareApiClient);
+		using var buyAnythingManager = new BuyAnythingManager("datadir", TimeSpan.FromDays(7), buyAnythingClient);
+		await buyAnythingManager.StartAsync(CancellationToken.None);
 
 		var countries = await buyAnythingManager.GetCountriesAsync(CancellationToken.None);
 		Assert.Single(countries, x => x.Name == "Argentina");
 
+		await buyAnythingManager.StartNewConversationAsync("walletID", BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
+		var conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
+		var conversation = Assert.Single(conversations);
+		var message = Assert.Single(conversation.Messages);
+		Assert.Equal("Hi, I want to buy this", message.Message);
 
+		await buyAnythingManager.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+
+		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
+		conversation = Assert.Single(conversations);
+		var reply = Assert.Single(conversation.Messages, m => !m.IsMyMessage);
+		Assert.Equal("Bye", reply.Message);
+	}
+
+	private MockShopWareApiClient PreconfiguredShopWareApiClient()
+	{
+		var mockedShopwareClient = new MockShopWareApiClient();
+		mockedShopwareClient.OnLoginCustomerAsync = (s, bag) =>
+			Task.FromResult(new CustomerLoginResponse("token-whatever"));
+
+		mockedShopwareClient.OnRegisterCustomerAsync = (s, bag) =>
+			Task.FromResult(new CustomerRegistrationResponse("872-xxxx-xxxx", "customer-whatever",
+				new[] {"ctx-token-for-872-xxxx-xxxx"}));
+
+		mockedShopwareClient.OnGetOrCreateShoppingCartAsync = (s, bag) =>
+			Task.FromResult(new ShoppingCartResponse("ctx-token-for-872-xxxx-xxxx"));
+
+		mockedShopwareClient.OnAddItemToShoppingCartAsync = (s, bag) =>
+			Task.FromResult(new ShoppingCartItemsResponse("ctx-token-for-872-xxxx-xxxx"));
+		return mockedShopwareClient;
 	}
 }

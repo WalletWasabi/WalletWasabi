@@ -115,7 +115,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			if (_orders.Count == 0)
 			{
 				var walletId = BuyAnythingManager.GetWalletId(_wallet);
-				await buyAnythingManager.StartNewConversationAsync(walletId, "", BuyAnythingClient.Product.ConciergeRequest, "Hello World", cancellationToken);
+				await buyAnythingManager.StartNewConversationAsync(walletId, BuyAnythingClient.Product.ConciergeRequest, "Hello World", cancellationToken);
 				await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 			}
 
@@ -139,7 +139,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private async Task UpdateOrdersAsync(CancellationToken cancellationToken, BuyAnythingManager buyAnythingManager)
 	{
-		var currentConversations = await buyAnythingManager.GetConversationsAsync(_wallet, cancellationToken);
+		var walletId = BuyAnythingManager.GetWalletId(_wallet);
+		var currentConversations = await buyAnythingManager.GetConversationsAsync(walletId, cancellationToken);
 
 		CreateOrders(currentConversations.ToList(), cancellationToken);
 	}
