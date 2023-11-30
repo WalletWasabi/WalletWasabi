@@ -8,8 +8,8 @@ public enum ConversationStatus
 	WaitingForUpdates
 };
 
-public record ConversationId(string WalletId, string ContextToken)
+public record ConversationId(string WalletId, string EmailAddress, string Password)
 {
-	public static readonly ConversationId Empty = new(string.Empty, string.Empty);
+	public static readonly ConversationId Empty = new("", "", "");
 }
 public record Conversation(ConversationId Id, ChatMessage[] Messages, ConversationStatus Status, object Metadata);

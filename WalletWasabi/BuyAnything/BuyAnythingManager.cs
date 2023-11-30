@@ -2,10 +2,12 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
@@ -50,7 +52,7 @@ public class BuyAnythingManager : PeriodicRunner
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
 			var orders = await Client
-				.GetConversationsUpdateSinceAsync(track.Conversation.Id.ContextToken, track.LastUpdate, cancel)
+				.GetConversationsUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
 				.ConfigureAwait(false);
 
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
@@ -84,21 +86,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	[Obsolete("Use the async version and delete this one")]
-	public Conversation[] GetConversations(Wallet wallet)
-	{
-		if (!IsConversationsLoaded)
-		{
-			throw new InvalidOperationException("Conversations are not loaded.");
-		}
-
-		var walletId = GetWalletId(wallet);
-		return Conversations
-			.Where(c => c.Conversation.Id.WalletId == walletId)
-			.Select(c => c.Conversation)
-			.ToArray();
-	}
-
 	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -111,20 +98,22 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
 	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		return Countries.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var ctxToken = await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
+
+		var credential = GenerateRandomCredential();
+		await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
-				new ConversationId(walletId, ctxToken),
-				new[] { new ChatMessage(true, message) },
+				new ConversationId(walletId, credential.UserName, credential.Password),
+				new []{ new ChatMessage(true, message) },
 				ConversationStatus.Started,
 				new object())));
 
@@ -145,7 +134,7 @@ public class BuyAnythingManager : PeriodicRunner
 			track.LastUpdate = DateTimeOffset.Now;
 
 			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
-			await Client.UpdateConversationAsync(conversationId.ContextToken, rawText).ConfigureAwait(false);
+			await Client.UpdateConversationAsync(track.Credential, rawText).ConfigureAwait(false);
 
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
 		}
@@ -232,6 +221,11 @@ public class BuyAnythingManager : PeriodicRunner
 
 		return result.ToString();
 	}
+
+	private NetworkCredential GenerateRandomCredential() =>
+		new (
+			userName: $"{Guid.NewGuid()}@me.com",
+			password: RandomString.AlphaNumeric(25));
 
 	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
 	private string EnsureProperRawMessage(string message)

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.ShopWare;
@@ -46,11 +48,11 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<string> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
+	public async Task CreateNewConversationAsync(string emailAddress, string password, string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			FirstName, LastName, $"{Guid.NewGuid()}@me.com", "Password", comment);
+			FirstName, LastName, emailAddress, password, comment);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
@@ -70,28 +72,36 @@ public class BuyAnythingClient
 		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
-
-		return ctxToken; // return the order number and the token to identify the conversation
 	}
 
-	public async Task UpdateConversationAsync(string ctxToken, string rawText)
+	public async Task UpdateConversationAsync(NetworkCredential credential, string rawText)
 	{
+		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
 		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), CancellationToken.None).ConfigureAwait(false);
 	}
 
-	public async Task SetBillingAddressAsync(string ctxToken, string address, string houseNumber, string zipCode, string city, string countryId)
+	public async Task SetBillingAddressAsync(NetworkCredential credential, string address, string houseNumber, string zipCode, string city, string countryId)
 	{
+		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode,  city,  countryId );
 		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, CancellationToken.None).ConfigureAwait(false);
 	}
 
-	public async Task<Order[]> GetConversationsUpdateSinceAsync(string ctxToken, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	public async Task<Order[]> GetConversationsUpdateSinceAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
 	{
+		var ctxToken = await LoginAsync(credential).ConfigureAwait(false);
 		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
 		var updatedOrders = orderList.Orders.Elements
 			.Where(o => o.UpdatedAt is not null)
 			.Where(o => o.UpdatedAt > lastUpdate)
 			.ToArray();
 		return updatedOrders;
+	}
+
+	private async Task<string> LoginAsync(NetworkCredential credential)
+	{
+		var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
+		var response = await ApiClient.LoginCustomerAsync("new-context", request, CancellationToken.None).ConfigureAwait(false);
+		return response.ContextToken;
 	}
 }
