@@ -1,25 +1,29 @@
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
 {
+	private readonly ConversationId _conversationId;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	private readonly string _userName;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowViewModel? _currentWorkflow;
 
-	public ShopinBitWorkflowManagerViewModel()
+	public ShopinBitWorkflowManagerViewModel(ConversationId conversationId)
 	{
+		_conversationId = conversationId;
 		_workflowValidator = new WorkflowValidatorViewModel();
 		_userName = "PussyCat89";
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
 
-	public async Task SendApiRequestAsync()
+	public async Task SendApiRequestAsync(CancellationToken cancellationToken)
 	{
 		// TODO: Just for testing, remove when api service is implemented.
 		await Task.Delay(1000);
@@ -30,6 +34,13 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 
 		var request = _currentWorkflow.GetResult();
+
+		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			var message = request.ToMessage();
+			var metadata = GetMetadata(request);
+			await buyAnythingManager.UpdateConversationAsync(_conversationId, message, metadata, cancellationToken);
+		}
 
 		switch (request)
 		{
@@ -67,6 +78,28 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			{
 				throw new ArgumentOutOfRangeException(nameof(request));
 			}
+		}
+	}
+
+	private object GetMetadata(WorkflowRequest request)
+	{
+		// TODO:
+		switch (request)
+		{
+			case DeliveryWorkflowRequest:
+				return "Delivery";
+			case InitialWorkflowRequest:
+				return "Initial";
+			case PackageWorkflowRequest:
+				return "Package";
+			case PaymentWorkflowRequest:
+				return "Payment";
+			case SupportChatWorkflowRequest:
+				return "SupportChat";
+			case WorkflowRequestError:
+				return "Error";
+			default:
+				return "Unknown";
 		}
 	}
 

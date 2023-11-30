@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -24,10 +26,11 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(
-		string id,
+		ConversationId id,
 		string title,
 		IWorkflowManager workflowManager,
-		IOrderManager orderManager)
+		IOrderManager orderManager,
+		CancellationToken cancellationToken)
 	{
 		Id = id;
 		Title = title;
@@ -38,7 +41,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
-			await SendAsync();
+			await SendAsync(cancellationToken);
 		});
 
 		_messagesList = new SourceList<MessageViewModel>();
@@ -62,7 +65,7 @@ public partial class OrderViewModel : ReactiveObject
 		// RunNoInputWorkflowSteps();
 	}
 
-	public string Id { get; }
+	public ConversationId Id { get; }
 
 	public string Title { get; }
 
@@ -81,7 +84,7 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: Update messages etc.
 	}
 
-	private async Task SendAsync()
+	private async Task SendAsync(CancellationToken cancellationToken)
 	{
 		IsBusy = true;
 
@@ -139,7 +142,7 @@ public partial class OrderViewModel : ReactiveObject
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
 				// TODO: Send request to api service.
-				await _workflowManager.SendApiRequestAsync();
+				await _workflowManager.SendApiRequestAsync(cancellationToken);
 
 				SelectNextWorkflow();
 			}

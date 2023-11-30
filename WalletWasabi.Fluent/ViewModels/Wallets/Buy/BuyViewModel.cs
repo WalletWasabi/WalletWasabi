@@ -30,9 +30,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	Searchable = false)]
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
+	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel, string> _ordersCache;
+	private readonly SourceCache<OrderViewModel, ConversationId> _ordersCache;
 	private readonly BehaviorSubject<ConversationId> _updateTriggerSubject;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
@@ -48,23 +49,19 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, string>(x => x.Id);
+		_ordersCache = new SourceCache<OrderViewModel, ConversationId>(x => x.Id);
 
 		_ordersCache
 			.Connect()
 			.Bind(out _orders)
 			.Subscribe();
 
+		_cts = new CancellationTokenSource();
+
 		// TODO: Do we want per-order triggers?
 		_updateTriggerSubject = new BehaviorSubject<ConversationId>(ConversationId.Empty);
 
 		UpdateTrigger = _updateTriggerSubject;
-
-		Demo();
-
-		// TODO:
-		// var cts = new CancellationTokenSource();
-		// InitializeOrders(cts.Token);
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -85,11 +82,21 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				{
 					await Task.Delay(500);
 					Dispatcher.UIThread.Post(() => x?.Update());
-				});
+				}, _cts.Token);
 			})
 			.DisposeWith(disposables);
 
-		SelectedOrder = _orders.FirstOrDefault();
+		// TODO:
+		Task.Run(async () =>
+		{
+			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
+#if false
+			Demo(_cts.Token);
+#else
+			await InitializeOrdersAsync(_cts.Token);
+#endif
+			SelectedOrder = _orders.FirstOrDefault();
+		}, _cts.Token);
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
@@ -97,20 +104,19 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedFrom(isInHistory);
 	}
 
-	private async Task InitializeOrders(CancellationToken cancel)
+	private async Task InitializeOrdersAsync(CancellationToken cancellationToken)
 	{
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
 			// TODO: Fill up the UI with the conversations.
-			var currentConversations = await buyAnythingManager.GetConversationsAsync(_wallet, cancel);
+			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 
-			// // TODO: Create new conversation if we have none.
-			// if (currentConversations.Count() == 0)
-			// {
-			// 	buyAnythingManager.StartNewConversationAsync()
-			// }
-
-			CreateOrders(currentConversations);
+			if (_orders.Count == 0)
+			{
+				var walletId = BuyAnythingManager.GetWalletId(_wallet);
+				await buyAnythingManager.StartNewConversationAsync(walletId, "", "Hello World", cancellationToken);
+				await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
+			}
 
 			Observable
 				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager,
@@ -128,6 +134,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					_updateTriggerSubject.OnNext(e.Conversation.Id);
 				});
 		}
+	}
+
+	private async Task UpdateOrdersAsync(CancellationToken cancellationToken, BuyAnythingManager buyAnythingManager)
+	{
+		var currentConversations = await buyAnythingManager.GetConversationsAsync(_wallet, cancellationToken);
+
+		CreateOrders(currentConversations.ToList(), cancellationToken);
 	}
 
 	private List<MessageViewModel> CreateMessages(Conversation conversation)
@@ -161,52 +174,62 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return orderMessages;
 	}
 
-	private void CreateOrders(IEnumerable<Conversation> conversations)
+	private void CreateOrders(List<Conversation> conversations, CancellationToken cancellationToken)
 	{
 		var orders = new List<OrderViewModel>();
 
-		foreach (var conversation in conversations)
+		for (var i = 0; i < conversations.Count; i++)
 		{
-			// TODO: Conversation needs name/title?
-			var order = new OrderViewModel(
-				conversation.Id.ContextToken,
-				"Order ??",
-				new ShopinBitWorkflowManagerViewModel(),
-				this);
-
-			var orderMessages = CreateMessages(conversation);
-
-			order.UpdateMessages(orderMessages);
+			var conversation = conversations[i];
+			var order = CreateOrder(conversation, cancellationToken, i);
+			orders.Add(order);
 		}
 
 		_ordersCache.AddOrUpdate(orders);
 	}
 
-	private void Demo()
+	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken, int i)
+	{
+		// TODO: Conversation needs name/title?
+		var order = new OrderViewModel(
+			conversation.Id,
+			$"Order {i + 1}",
+			new ShopinBitWorkflowManagerViewModel(conversation.Id),
+			this,
+			cancellationToken);
+
+		var orderMessages = CreateMessages(conversation);
+
+		order.UpdateMessages(orderMessages);
+
+		return order;
+	}
+
+	private void Demo(CancellationToken cancellationToken)
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(Guid.NewGuid().ToString(), "Order 001", new ShopinBitWorkflowManagerViewModel(), this),
-			new OrderViewModel(Guid.NewGuid().ToString(), "Order 002", new ShopinBitWorkflowManagerViewModel(), this),
-			new OrderViewModel(Guid.NewGuid().ToString(), "Order 003", new ShopinBitWorkflowManagerViewModel(), this),
+			new OrderViewModel(ConversationId.Empty, "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(ConversationId.Empty, "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(ConversationId.Empty, "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);
 	}
 
-	bool IOrderManager.HasUnreadMessages(string id)
+	bool IOrderManager.HasUnreadMessages(ConversationId id)
 	{
 		// TODO: Check if order had unread messages.
 		return true;
 	}
 
-	bool IOrderManager.IsCompleted(string idS)
+	bool IOrderManager.IsCompleted(ConversationId idS)
 	{
 		// TODO: Check if order is completed.
 		return false;
 	}
 
-	void IOrderManager.RemoveOrder(string id)
+	void IOrderManager.RemoveOrder(ConversationId id)
 	{
 		_ordersCache.Edit(x =>
 		{
