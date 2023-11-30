@@ -90,7 +90,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		Task.Run(async () =>
 		{
 			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
-#if false
+#if true
 			Demo(_cts.Token);
 #else
 			await InitializeOrdersAsync(_cts.Token);
