@@ -2,10 +2,12 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
@@ -95,14 +97,16 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
 	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		return Countries.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var credential =  await Client.CreateNewConversationAsync(countryId, BuyAnythingClient.Product.ConciergeRequest, message, cancellationToken)
+
+		var credential = GenerateRandomCredential();
+		await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(
@@ -216,4 +220,9 @@ public class BuyAnythingManager : PeriodicRunner
 
 		return result.ToString();
 	}
+
+	private NetworkCredential GenerateRandomCredential() =>
+		new (
+			userName: $"{Guid.NewGuid()}@me.com",
+			password: RandomString.AlphaNumeric(25));
 }

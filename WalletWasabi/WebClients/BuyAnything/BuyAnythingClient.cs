@@ -48,11 +48,9 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<NetworkCredential> CreateNewConversationAsync(string countryId, Product product, string comment, CancellationToken cancellationToken)
+	public async Task CreateNewConversationAsync(string emailAddress, string password, string countryId, Product product, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
-		var emailAddress = $"{Guid.NewGuid()}@me.com";
-		var password = "Password";
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
 			FirstName, LastName, emailAddress, password, comment);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
@@ -74,8 +72,6 @@ public class BuyAnythingClient
 		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
 		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
-
-		return new NetworkCredential(emailAddress, password);
 	}
 
 	public async Task UpdateConversationAsync(NetworkCredential credential, string rawText)
