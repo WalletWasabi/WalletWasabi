@@ -24,10 +24,7 @@ public record Order
 	string OrderNumber,
 	OrderCustomer OrderCustomer,
 	string Id
-)
-{
-	public string GetCustomerProfileComment() => (string)OrderCustomer.CustomFields["wallet_chat_store"];
-};
+);
 
 public record OrderCustomer
 (
