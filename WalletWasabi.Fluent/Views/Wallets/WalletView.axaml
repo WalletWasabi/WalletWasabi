@@ -8,11 +8,33 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
+             xmlns:f="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
+
+
+  <UserControl.Styles>
+    <Style Selector="FlyoutPresenter.Bubble">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="TextBlock.Foreground" Value="Black"></Setter>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <DockPanel>
+              <Border Background="White" Padding="10" CornerRadius="10" MaxWidth="400" >
+                <ContentPresenter Content="{TemplateBinding Content}" />
+              </Border>
+              <Polygon Points="0,0 20,10 0,20" Fill="White" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </DockPanel>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
   <i:Interaction.Behaviors>
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
   </i:Interaction.Behaviors>
@@ -35,12 +57,26 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding IsBuyButtonVisible^}"
+                    IsVisible="{Binding CanBuy^}"
                     Command="{Binding BuyCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_buy}" />
                 <TextBlock Text="Buy Anything" />
               </StackPanel>
+              <FlyoutBase.AttachedFlyout>
+                <Flyout ShowMode="Transient" Placement="Left" FlyoutPresenterClasses="Bubble">
+                  <StackPanel Spacing="6">
+                    <TextBlock FontWeight="SemiBold" TextAlignment="Center">Your Bitcoin wallet is now an Anything wallet!</TextBlock>
+                    <TextBlock>Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will find what you want and send it to you, privately.</TextBlock>
+                  </StackPanel>
+                </Flyout>
+              </FlyoutBase.AttachedFlyout>
+              <Interaction.Behaviors>
+                <f:AttachedFlyoutBehaviorDisplayBehavior IsVisible="{Binding IsBuyInfoDisplayed^}" />
+                <f:AttachedFlyoutDismissedTriggerBehavior>
+                  <InvokeCommandAction Command="{Binding DismissBuyInfoCommand}"></InvokeCommandAction>
+                </f:AttachedFlyoutDismissedTriggerBehavior>
+              </Interaction.Behaviors>
             </Button>
             <Button Classes="function"
                     IsVisible="{Binding IsSendButtonVisible}"

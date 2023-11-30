@@ -47,6 +47,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		_parent = parent;
 		Wallet = parent.Wallet;
 		UiContext = uiContext;
+		_uiConfig = Services.UiConfig;
 
 		_title = WalletName;
 
@@ -96,7 +97,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet));
 
-		IsBuyButtonVisible = walletModel.Balances.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
+		CanBuy = walletModel.Balances.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x._parent.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
@@ -141,10 +142,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
+		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x._uiConfig.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
+
+		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
+
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 	}
+
+	public IObservable<bool> IsBuyInfoDisplayed { get; }
 
 	private static bool GetIsBuyButtonVisible(bool hasBalance)
 	{
@@ -165,11 +172,12 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return false;
 	}
 
-	public IObservable<bool> IsBuyButtonVisible { get; }
+	public IObservable<bool> CanBuy { get; }
 
 	public WalletState WalletState => Wallet.State;
 
 	private string _title;
+	private readonly UiConfig _uiConfig;
 
 	public Wallet Wallet { get; }
 
@@ -251,6 +259,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		get => _title;
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
+
+	public ICommand DismissBuyInfoCommand { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
