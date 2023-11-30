@@ -51,7 +51,6 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
-			var originalConversation = track.Conversation;
 			var fullConversation = await Client
 				.GetFullConversationAsync(track.Credential, cancel)
 				.ConfigureAwait(false);
@@ -63,6 +62,7 @@ public class BuyAnythingManager : PeriodicRunner
 				{
 					Messages = messages.ToArray(),
 				};
+				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, fullConversation.UpdatedAt ?? DateTimeOffset.Now));
 			}
 
 			var orders = await Client
@@ -72,31 +72,22 @@ public class BuyAnythingManager : PeriodicRunner
 			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
 			{
-				var orderLastUpdated = order.UpdatedAt!.Value;
-
 				// Update the conversation status according to the order state
 				// TODO: Verify if the state machine is values match reality
 				var status = order.StateMachineState.Name switch
 				{
 					"Cancelled" => ConversationStatus.Cancelled,
-					"Completed" => ConversationStatus.Finished,
-					"InProgress" => ConversationStatus.WaitingForUpdates,
+					"Done" => ConversationStatus.Finished,
+					"In Progress" => ConversationStatus.WaitingForUpdates,
 					_ => track.Conversation.Status
 				};
 
-				// FIXME: this is not tested. The chat messages are now stored in a customers' profile custom field
-				// while previously they were stored in the order. That means that we have to check the customer
-				// profiles instead of checking the orders. However, given that the orders come with the customers'
-				// profile, this could work.
-				var newMessageFromConcierge = Parse(order.GetCustomerProfileComment() ?? "");
-
-				track.LastUpdate = orderLastUpdated;
+				track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
 				track.Conversation = track.Conversation with
 				{
-					Messages = newMessageFromConcierge.ToArray(),
 					Status = status != track.Conversation.Status ? status : track.Conversation.Status
 				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, orderLastUpdated));
+				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
 			}
 		}
 	}
