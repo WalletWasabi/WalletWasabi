@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
@@ -36,10 +37,38 @@ public class UiConfig : ConfigBase
 
 	public UiConfig(string filePath) : base(filePath)
 	{
-		this.WhenAnyPropertyChanged()
+		this.WhenAnyValue(
+				x => x.Autocopy,
+				x => x.AutoPaste,
+				x => x.IsCustomChangeAddress,
+				x => x.DarkModeEnabled,
+				x => x.FeeDisplayUnit,
+				x => x.LastSelectedWallet,
+				x => x.WindowState,
+				x => x.Oobe,
+				x => x.RunOnSystemStartup,
+				x => x.PrivacyMode,
+				x => x.HideOnClose,
+				x => x.FeeTarget,
+				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			.CombineLatest(this.WhenAnyValue(config => config.ShowBuyAnythingInfo))
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(
+				x => x.WindowWidth,
+				x => x.WindowHeight)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
