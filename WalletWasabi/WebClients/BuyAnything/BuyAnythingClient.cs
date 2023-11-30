@@ -98,7 +98,7 @@ public class BuyAnythingClient
 		return updatedOrders;
 	}
 
-	public async Task<CustomerProfileResponse> GetFullConversationAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	public async Task<CustomerProfileResponse> GetFullConversationAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);

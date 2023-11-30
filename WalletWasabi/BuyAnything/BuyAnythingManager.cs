@@ -51,21 +51,23 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c.IsUpdatable))
 		{
+			var originalConversation = track.Conversation;
+			var fullConversation = await Client
+				.GetFullConversationAsync(track.Credential, cancel)
+				.ConfigureAwait(false);
+
+			var messages = Parse(fullConversation.CustomFields.Wallet_Chat_Store).ToArray();
+			if (messages.Length > track.Conversation.Messages.Length)
+			{
+				track.Conversation = track.Conversation with
+				{
+					Messages = messages.ToArray(),
+				};
+			}
+
 			var orders = await Client
 				.GetOrdersUpdateSinceAsync(track.Credential, track.LastUpdate, cancel)
 				.ConfigureAwait(false);
-
-			var customerProfileResponse = await Client
-				.GetFullConversationAsync(track.Credential, track.LastUpdate, cancel)
-				.ConfigureAwait(false);
-
-			if (customerProfileResponse.UpdatedAt.HasValue && customerProfileResponse.UpdatedAt > track.LastUpdate)
-			{
-				// This is the full conversation between a customer and an agent.
-				var fullMessage = customerProfileResponse.CustomFields.Wallet_Chat_Store;
-
-				// Update track.LastUpdate?
-			}
 
 			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
 			foreach (var order in orders.Where(o => o.UpdatedAt.HasValue && o.UpdatedAt!.Value > track.LastUpdate))
