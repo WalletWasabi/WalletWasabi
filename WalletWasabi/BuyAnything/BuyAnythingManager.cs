@@ -58,8 +58,8 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Get full customer profile to get updated messages.
 			var customerProfileResponse = await Client
-			.GetFullConversationAsync(track.Credential, track.LastUpdate, cancel)
-			.ConfigureAwait(false);
+				.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
+				.ConfigureAwait(false);
 
 			// There is only one order per customer  and that's why we request all the orders
 			// but with only expect to get one.
