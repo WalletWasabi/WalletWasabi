@@ -23,8 +23,11 @@ public record Order
 	StateMachineState StateMachineState,
 	string OrderNumber,
 	OrderCustomer OrderCustomer,
+	LineItem[] LineItems,
 	string Id
 );
+
+public record LineItem(string Description, float Price); // TODO: make it real
 
 public record OrderCustomer
 (

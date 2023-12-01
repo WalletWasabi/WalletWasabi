@@ -12,6 +12,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
 
@@ -82,18 +83,44 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				// Update the conversation status according to the order state
 				// TODO: Verify if the state machine is values match reality
-				var status = order.StateMachineState.Name switch
+				var orderStatus = order.StateMachineState.Name switch
 				{
-					"Cancelled" => ConversationStatus.Cancelled,
-					"Done" => ConversationStatus.Finished,
-					"In Progress" => ConversationStatus.WaitingForUpdates,
-					_ => track.Conversation.Status
+					"Open" => OrderStatus.Open,
+					"In Progress" => OrderStatus.InProgress,
+					"Cancelled" => OrderStatus.Cancelled,
+					"Done" => OrderStatus.Done,
+					_ => track.Conversation.OrderStatus
 				};
 
+				// The status changed.
+				if (orderStatus != track.Conversation.OrderStatus)
+				{
+					// The status changes to "In Progress" after the user paid
+					if (orderStatus == OrderStatus.InProgress)
+					{
+						track.Conversation = track.Conversation with
+						{
+							Messages = track.Conversation.Messages.Append(new ChatMessage(false, "Payment confirmed")) .ToArray(),
+							ConversationStatus = ConversationStatus.PaymentConfirmed
+						};
+						ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
+					}
+				}
+				else if (track.Conversation.ConversationStatus == ConversationStatus.Started /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
+				{
+					// This means that in "lineItems" we have the offer data
+					var offerMessages = ConvertOfferDetailToChatMessages(order);
+					track.Conversation = track.Conversation with
+					{
+						Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+						ConversationStatus = ConversationStatus.OfferReceived
+					};
+					ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
+				}
 				track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
 				track.Conversation = track.Conversation with
 				{
-					Status = status != track.Conversation.Status ? status : track.Conversation.Status
+					OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
 				};
 				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
 			}
@@ -141,6 +168,7 @@ public class BuyAnythingManager : PeriodicRunner
 			new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password),
 				new[] { new ChatMessage(true, message) },
+				OrderStatus.Open,
 				ConversationStatus.Started,
 				new object())));
 
@@ -156,7 +184,6 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				Messages = track.Conversation.Messages.Append(new ChatMessage(true, newMessage)).ToArray(),
 				Metadata = metadata,
-				Status = ConversationStatus.WaitingForUpdates
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
@@ -197,6 +224,15 @@ public class BuyAnythingManager : PeriodicRunner
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
+
+	private static IEnumerable<ChatMessage> ConvertOfferDetailToChatMessages(Order order)
+	{
+		foreach (var lineItem in order.LineItems)
+		{
+			var message = $"{lineItem.Description} price: {lineItem.Price}";
+			yield return new ChatMessage(false, message) ;
+		}
+	}
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{

@@ -31,6 +31,7 @@ public class BuyAnythingManagerTests
 				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
 				"order#123456789",
 				null,
+				new LineItem[0],
 				"idxxxxxxx")
 		})));
 #else

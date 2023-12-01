@@ -1,15 +1,23 @@
 namespace WalletWasabi.BuyAnything;
 
+public enum OrderStatus
+{
+	Open,
+	Done,
+	Cancelled,
+	InProgress,
+};
+
 public enum ConversationStatus
 {
 	Started,
-	Finished,
-	Cancelled,
-	WaitingForUpdates
+	OfferReceived,
+	PaymentDone,
+	PaymentConfirmed
 };
 
 public record ConversationId(string WalletId, string EmailAddress, string Password)
 {
 	public static readonly ConversationId Empty = new("", "", "");
 }
-public record Conversation(ConversationId Id, ChatMessage[] Messages, ConversationStatus Status, object Metadata);
+public record Conversation(ConversationId Id, ChatMessage[] Messages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, object Metadata);
