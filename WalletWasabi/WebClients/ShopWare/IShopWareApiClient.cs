@@ -14,6 +14,8 @@ public interface IShopWareApiClient
 
 	Task<PropertyBag> UpdateCustomerBillingAddressAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
+	Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken);
+
 	Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
 	Task<ShoppingCartItemsResponse> AddItemToShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
@@ -25,5 +27,6 @@ public interface IShopWareApiClient
 	Task<StateMachineState> CancelOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
 	Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
+
 	Task<HandlePaymentResponse> HandlePaymentAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 }

@@ -49,6 +49,10 @@ public class ShopWareApiClient : IShopWareApiClient
 
 	public Task<BillingAddressResponse> UpdateCustomerBillingAddressAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<BillingAddressResponse>(ctxToken, HttpMethod.Post, "account/address", request, cancellationToken);
+
+	public Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<CustomerProfileResponse>(ctxToken, HttpMethod.Post, "account/customer", PropertyBag.Empty, cancellationToken);
+
 	public Task<ShoppingCartResponse> GetOrCreateShoppingCartAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ShoppingCartResponse>(ctxToken, HttpMethod.Post, "checkout/cart", request, cancellationToken);
 

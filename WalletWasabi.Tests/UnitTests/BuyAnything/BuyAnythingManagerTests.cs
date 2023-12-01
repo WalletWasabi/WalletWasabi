@@ -21,12 +21,16 @@ public class BuyAnythingManagerTests
 #if !USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
 		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("order#123456789"));
+		shopWareApiClient.OnGetCustomerProfileAsync = s => Task.FromResult(
+			new CustomerProfileResponse(
+				new ChatField("||#WASABI#Hi, I want to by this||#SIB#Bye||"),
+				"ctxToken", "customer#", DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddSeconds(1)));
 		shopWareApiClient.OnGetOrderListAsync = (s, bag) => Task.FromResult(new GetOrderListResponse(new OrderList(new[]
 		{
 			new Order("1", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1),
 				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
 				"order#123456789",
-				new OrderCustomer("1", DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddSeconds(1), new ("||#WASABI#Hi, I want to by this||#SIB#Bye||"), "xx"),
+				null,
 				"idxxxxxxx")
 		})));
 #else
