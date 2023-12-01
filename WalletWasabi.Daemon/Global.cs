@@ -207,7 +207,6 @@ public class Global
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
 
-				// TODO: we should use Tor by using HttpClientFactory.
 #pragma warning disable CA2000 // Dispose objects before losing scope
 				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 #pragma warning restore CA2000 // Dispose objects before losing scope

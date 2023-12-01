@@ -63,6 +63,7 @@ public class ShopWareApiClientTests
 		await CanRegisterAndLogInAsync(shopWareApiClient);
 	}
 
+	// Make sure tor.exe is running locally, otherwise the test fails.
 	[Fact]
 	public async Task CanRegisterAndLogInTorAsync()
 	{
