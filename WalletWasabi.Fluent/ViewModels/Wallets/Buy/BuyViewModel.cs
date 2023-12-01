@@ -256,14 +256,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return true;
 	}
 
-	bool IOrderManager.IsCompleted(ConversationId idS)
+	bool IOrderManager.IsCompleted(ConversationId id)
 	{
 		// TODO: Check if order is completed.
+		// -> Save manager as a field then manager.GetConversationsByIdAsync(id).IsCompleted() ?
 		return false;
 	}
 
 	void IOrderManager.RemoveOrder(ConversationId id)
 	{
+		// TODO: Shouldn't this also remove from manager?
 		_ordersCache.Edit(x =>
 		{
 			_ordersCache.RemoveKey(id);

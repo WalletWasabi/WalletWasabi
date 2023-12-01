@@ -34,7 +34,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private BuyAnythingClient Client { get; }
 	private static List<Country> Countries { get; } = new();
 
-	// Todo: Is it ok that this is accessed without lock?
+	// Todo: Is it ok that this is accessed without lock? It feels risky
 	private List<ConversationUpdateTrack> Conversations { get; } = new();
 
 	private bool IsConversationsLoaded { get; set; }
@@ -49,7 +49,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in Conversations.Where(c => c.IsUpdatable))
+		foreach (var track in Conversations.Where(c => c.Conversation.IsUpdatable()))
 		{
 			// Check if the order state has changed and update the conversation status
 			var orders = await Client
@@ -102,6 +102,20 @@ public class BuyAnythingManager : PeriodicRunner
 			.Where(c => c.Conversation.Id.WalletId == walletId)
 			.Select(c => c.Conversation)
 			.ToArray();
+	}
+
+	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		return Conversations
+			.First(c => c.Conversation.Id == conversationId)
+			.Conversation;
+	}
+
+	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		return Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
