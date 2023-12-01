@@ -10,12 +10,12 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	private readonly ConversationId _conversationId;
 	private readonly IWorkflowValidator _workflowValidator;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowViewModel? _currentWorkflow;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
 	public ShopinBitWorkflowManagerViewModel(ConversationId conversationId)
 	{
 		_conversationId = conversationId;
-		_workflowValidator = new WorkflowValidatorViewModel();
+		_workflowValidator = new WorkflowValidator();
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
@@ -106,34 +106,34 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			case null:
 			{
-				CurrentWorkflow = new InitialWorkflowViewModel(_workflowValidator);
+				CurrentWorkflow = new InitialWorkflow(_workflowValidator);
 				break;
 			}
-			case InitialWorkflowViewModel:
+			case InitialWorkflow:
 			{
 				// TODO:
-				CurrentWorkflow = new DeliveryWorkflowViewModel(_workflowValidator);
+				CurrentWorkflow = new DeliveryWorkflow(_workflowValidator);
 				break;
 			}
-			case DeliveryWorkflowViewModel:
+			case DeliveryWorkflow:
 			{
 				// TODO:
-				CurrentWorkflow = new PaymentWorkflowViewModel(_workflowValidator);
+				CurrentWorkflow = new PaymentWorkflow(_workflowValidator);
 				break;
 			}
-			case PaymentWorkflowViewModel:
+			case PaymentWorkflow:
 			{
 				// TODO:
-				CurrentWorkflow = new PackageWorkflowViewModel(_workflowValidator);
+				CurrentWorkflow = new PackageWorkflow(_workflowValidator);
 				break;
 			}
-			case PackageWorkflowViewModel:
+			case PackageWorkflow:
 			{
 				// TODO: After receiving package info switch to final workflow with chat support.
-				CurrentWorkflow = new SupportChatWorkflowViewModel();
+				CurrentWorkflow = new SupportChatWorkflow();
 				break;
 			}
-			case SupportChatWorkflowViewModel:
+			case SupportChatWorkflow:
 			{
 				// TODO: Order is complete do nothing?
 				break;

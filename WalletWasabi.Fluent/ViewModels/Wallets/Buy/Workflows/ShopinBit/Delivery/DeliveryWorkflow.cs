@@ -3,17 +3,17 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class DeliveryWorkflowViewModel : WorkflowViewModel
+public partial class DeliveryWorkflow : Workflow
 {
 	private readonly DeliveryWorkflowRequest _request;
 
-	public DeliveryWorkflowViewModel(IWorkflowValidator workflowValidator)
+	public DeliveryWorkflow(IWorkflowValidator workflowValidator)
 	{
 		_request = new DeliveryWorkflowRequest();
 
 		var termsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
 
-		Steps = new List<WorkflowStepViewModel>
+		Steps = new List<WorkflowStep>
 		{
 			// Info
 			new (false,

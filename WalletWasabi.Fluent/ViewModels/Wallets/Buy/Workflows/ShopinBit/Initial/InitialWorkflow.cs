@@ -3,17 +3,17 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class InitialWorkflowViewModel : WorkflowViewModel
+public partial class InitialWorkflow : Workflow
 {
 	private readonly InitialWorkflowRequest _request;
 
-	public InitialWorkflowViewModel(IWorkflowValidator workflowValidator)
+	public InitialWorkflow(IWorkflowValidator workflowValidator)
 	{
 		_request = new InitialWorkflowRequest();
 
 		var privacyPolicyUrl = "https://shopinbit.com/Information/Privacy-Policy/";
 
-		Steps = new List<WorkflowStepViewModel>
+		Steps = new List<WorkflowStep>
 		{
 			// Welcome
 			new (false,

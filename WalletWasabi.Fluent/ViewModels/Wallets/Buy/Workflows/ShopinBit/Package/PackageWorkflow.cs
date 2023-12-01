@@ -2,11 +2,11 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class PackageWorkflowViewModel : WorkflowViewModel
+public partial class PackageWorkflow : Workflow
 {
 	private readonly PackageWorkflowRequest _request;
 
-	public PackageWorkflowViewModel(IWorkflowValidator workflowValidator)
+	public PackageWorkflow(IWorkflowValidator workflowValidator)
 	{
 		_request = new PackageWorkflowRequest();
 
@@ -14,7 +14,7 @@ public partial class PackageWorkflowViewModel : WorkflowViewModel
 		var trackingUrl = "www.trackmypackage.com/trcknmbr0000001";
 		var downloadUrl = "www.invoice.com/lamboincoice";
 
-		Steps = new List<WorkflowStepViewModel>
+		Steps = new List<WorkflowStep>
 		{
 			// Download
 			new (false,

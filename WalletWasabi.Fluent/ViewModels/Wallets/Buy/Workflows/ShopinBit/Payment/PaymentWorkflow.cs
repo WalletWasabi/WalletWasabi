@@ -2,11 +2,11 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class PaymentWorkflowViewModel : WorkflowViewModel
+public partial class PaymentWorkflow : Workflow
 {
 	private readonly PaymentWorkflowRequest _request;
 
-	public PaymentWorkflowViewModel(IWorkflowValidator workflowValidator)
+	public PaymentWorkflow(IWorkflowValidator workflowValidator)
 	{
 		_request = new PaymentWorkflowRequest();
 
@@ -14,7 +14,7 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 		var paymentAmount = "10.5 BTC";
 		var paymentAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
 
-		Steps = new List<WorkflowStepViewModel>
+		Steps = new List<WorkflowStep>
 		{
 			// Info
 			new (false,

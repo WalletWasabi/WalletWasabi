@@ -7,7 +7,7 @@ public interface IWorkflowManager
 {
 	IWorkflowValidator WorkflowValidator { get; }
 
-	WorkflowViewModel? CurrentWorkflow { get; }
+	Workflow? CurrentWorkflow { get; }
 
 	Task SendApiRequestAsync(CancellationToken cancellationToken);
 

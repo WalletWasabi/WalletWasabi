@@ -1,12 +1,14 @@
+using ReactiveUI;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public partial class WorkflowStepViewModel
+public partial class WorkflowStep : ReactiveObject
 {
 	[AutoNotify] private bool _requiresUserInput;
 	[AutoNotify] private InputValidator _userInputValidator;
 	[AutoNotify] private bool _isCompleted;
 
-	public WorkflowStepViewModel(
+	public WorkflowStep(
 		bool requiresUserInput,
 		InputValidator userInputValidator)
 	{

@@ -3,15 +3,15 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public abstract partial class WorkflowViewModel : ReactiveObject
+public abstract partial class Workflow : ReactiveObject
 {
-	[AutoNotify] private List<WorkflowStepViewModel>? _steps;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowStepViewModel? _currentStep;
+	[AutoNotify] private List<WorkflowStep>? _steps;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowStep? _currentStep;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCompleted;
 
 	private int _nextStepIndex = 0;
 
-	public WorkflowStepViewModel? PeekNextStep()
+	public WorkflowStep? PeekNextStep()
 	{
 		if (_steps is null)
 		{
@@ -26,7 +26,7 @@ public abstract partial class WorkflowViewModel : ReactiveObject
 		return _steps[_nextStepIndex];
 	}
 
-	public WorkflowStepViewModel? ExecuteNextStep()
+	public WorkflowStep? ExecuteNextStep()
 	{
 		if (_steps is null)
 		{
