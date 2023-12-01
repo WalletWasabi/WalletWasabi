@@ -34,7 +34,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private BuyAnythingClient Client { get; }
 	private static List<Country> Countries { get; } = new();
 
-	// Todo: Is it ok that this is accessed without lock?
+	// Todo: Is it ok that this is accessed without lock? It feels risky
 	private List<ConversationUpdateTrack> Conversations { get; } = new();
 
 	private bool IsConversationsLoaded { get; set; }
@@ -110,6 +110,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return Conversations
 			.First(c => c.Conversation.Id == conversationId)
 			.Conversation;
+	}
+
+	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		return Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)

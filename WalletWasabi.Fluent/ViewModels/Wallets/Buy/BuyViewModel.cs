@@ -265,6 +265,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	void IOrderManager.RemoveOrder(ConversationId id)
 	{
+		// TODO: Shouldn't this also remove from manager?
 		_ordersCache.Edit(x =>
 		{
 			_ordersCache.RemoveKey(id);
