@@ -16,8 +16,10 @@ public class BuyAnythingClient
 	{
 		[Description("Concierge Request")]
 		ConciergeRequest,
+
 		[Description("Fast Travel Booking")]
 		FastTravelBooking,
+
 		[Description("Travel Concierge")]
 		TravelConcierge
 	}
@@ -106,7 +108,15 @@ public class BuyAnythingClient
 		return orderList.Orders.Elements;
 	}
 
-	public async Task HandlePaymentAsync (NetworkCredential credential, string orderId, CancellationToken cancellationToken)
+	public async Task<CustomerProfileResponse> GetFullConversationAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	{
+		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
+		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+
+		return customerProfileResponse;
+	}
+
+	public async Task HandlePaymentAsync(NetworkCredential credential, string orderId, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.PaymentRequest(orderId);

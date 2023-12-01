@@ -117,7 +117,8 @@ public class ShopWareApiClientTests
 		await bam.StartAsync(CancellationToken.None);
 
 		await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
-		await Task.Delay(3000);
+
+		await Task.Delay(10000);
 
 		// Szpoti: I used breakpoints in BuyAnythingManager to see that the CustomerProfile actually gives back the full message, even after if its updated on admin side.
 		// Implement update conversation here?
