@@ -104,7 +104,7 @@ public class BuyAnythingManager : PeriodicRunner
 			.ToArray();
 	}
 
-	public async Task<Conversation> GetConversationsByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
+	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		return Conversations
