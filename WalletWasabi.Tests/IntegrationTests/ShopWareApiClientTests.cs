@@ -33,7 +33,6 @@ public class ShopWareApiClientTests
 
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
 			"Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "comment");
-		customerRegistrationRequest["guest"] = true;
 
 		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRegistrationRequest, CancellationToken.None);
 
