@@ -12,6 +12,8 @@ public enum ConversationStatus
 {
 	Started,
 	OfferReceived,
+	OfferAccepted,
+	InvoiceReceived,
 	PaymentDone,
 	PaymentConfirmed
 };

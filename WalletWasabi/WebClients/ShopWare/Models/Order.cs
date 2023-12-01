@@ -27,7 +27,7 @@ public record Order
 	string Id
 );
 
-public record LineItem(string Description, float Price); // TODO: make it real
+public record LineItem(float Quantity, string Description, float Price); // TODO: make it real
 
 public record OrderCustomer
 (

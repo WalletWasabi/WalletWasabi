@@ -74,7 +74,6 @@ public class BuyAnythingManager : PeriodicRunner
 		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
 		{
 			// Update the conversation status according to the order state
-			// TODO: Verify if the state machine is values match reality
 			var orderStatus = order.StateMachineState.Name switch
 			{
 				"Open" => OrderStatus.Open,
@@ -100,18 +99,32 @@ public class BuyAnythingManager : PeriodicRunner
 						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
 				}
 			}
-			else if (track.Conversation.ConversationStatus ==
-			         ConversationStatus.Started /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
+			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
+			         /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
 			{
-				// This means that in "lineItems" we have the offer data
-				var offerMessages = ConvertOfferDetailToChatMessages(order);
-				track.Conversation = track.Conversation with
+				if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted  /* && order.BtcPayLink != "" */)
 				{
-					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
-					ConversationStatus = ConversationStatus.OfferReceived
-				};
-				ConversationUpdated.SafeInvoke(this,
-					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+					var bip21 = "bitcoin:blahblah"; // order.BtcPayLink;
+					track.Conversation = track.Conversation with
+					{
+						Messages = track.Conversation.Messages.Append(new ChatMessage(false, $"Pay to: {bip21}")).ToArray(),
+						ConversationStatus = ConversationStatus.InvoiceReceived
+					};
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				}
+				else
+				{
+					// This means that in "lineItems" we have the offer data
+					var offerMessages = ConvertOfferDetailToChatMessages(order);
+					track.Conversation = track.Conversation with
+					{
+						Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+						ConversationStatus = ConversationStatus.OfferReceived
+					};
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				}
 			}
 
 			track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
@@ -164,7 +177,13 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		var removedCount = Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		if (removedCount > 0)
+		{
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		return removedCount;
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
@@ -246,7 +265,7 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		foreach (var lineItem in order.LineItems)
 		{
-			var message = $"{lineItem.Description} price: {lineItem.Price}";
+			var message = $"{lineItem.Quantity} x {lineItem.Description} price: {lineItem.Price}";
 			yield return new ChatMessage(false, message) ;
 		}
 	}
