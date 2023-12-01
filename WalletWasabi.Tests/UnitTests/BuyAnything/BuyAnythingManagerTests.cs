@@ -20,7 +20,7 @@ public class BuyAnythingManagerTests
 	{
 #if !USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
-		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("order#123456789"));
+		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("12345","order#123456789"));
 		shopWareApiClient.OnGetCustomerProfileAsync = s => Task.FromResult(
 			new CustomerProfileResponse(
 				new ChatField("||#WASABI#Hi, I want to by this||#SIB#Bye||"),

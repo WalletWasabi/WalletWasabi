@@ -18,8 +18,8 @@ public enum ConversationStatus
 	PaymentConfirmed
 };
 
-public record ConversationId(string WalletId, string EmailAddress, string Password)
+public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
 {
-	public static readonly ConversationId Empty = new("", "", "");
+	public static readonly ConversationId Empty = new("", "", "", "");
 }
 public record Conversation(ConversationId Id, ChatMessage[] Messages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, object Metadata);

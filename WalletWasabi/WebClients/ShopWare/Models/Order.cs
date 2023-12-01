@@ -2,6 +2,7 @@ namespace WalletWasabi.WebClients.ShopWare.Models;
 
 public record OrderGenerationResponse
 (
+	string Id,
 	string OrderNumber
 );
 

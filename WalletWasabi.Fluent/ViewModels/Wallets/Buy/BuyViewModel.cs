@@ -115,7 +115,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			// TODO: Fill up the UI with the conversations.
 			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 
-			if (_orders.Count == 0 || _orders.All(x => x.Id != new ConversationId(BuyAnythingManager.GetWalletId(_wallet), "", "")))
+			if (_orders.Count == 0 || _orders.All(x => x.Id != new ConversationId(BuyAnythingManager.GetWalletId(_wallet), "", "", "")))
 			{
 				CreateAndAddEmptyOrder(_cts.Token);
 			}
@@ -226,7 +226,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		var order = new OrderViewModel(
 			UiContext,
-			new ConversationId(walletId, "", ""),
+			new ConversationId(walletId, "", "", ""),
 			$"Order {nextOrderIndex}",
 			new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
 			this,
