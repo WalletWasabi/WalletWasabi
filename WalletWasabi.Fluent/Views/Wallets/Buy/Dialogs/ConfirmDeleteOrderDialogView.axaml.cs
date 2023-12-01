@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Buy;
+namespace WalletWasabi.Fluent.Views.Wallets.Buy.Dialogs;
 
-public class ConfirmDeleteOrderView : UserControl
+public class ConfirmDeleteOrderDialogView : UserControl
 {
-	public ConfirmDeleteOrderView()
+	public ConfirmDeleteOrderDialogView()
 	{
 		InitializeComponent();
 	}

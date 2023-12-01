@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="dialog:ConfirmHideAddressViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.ConfirmDeleteOrderView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.Dialogs.ConfirmDeleteOrderDialogView">
   <c:ContentArea Title="{Binding Title}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:QuestionControl YesCommand="{Binding NextCommand}"
