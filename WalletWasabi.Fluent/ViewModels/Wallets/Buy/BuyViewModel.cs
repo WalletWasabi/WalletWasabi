@@ -78,13 +78,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		Task.Run(async () =>
 		{
 			await InitializeCountries(_cts.Token);
-
-			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
-#if false
-			Demo(_cts.Token);
-#else
 			await InitializeOrdersAsync(_cts.Token, disposable);
-#endif
 			SelectedOrder = _orders.FirstOrDefault();
 		}, _cts.Token);
 	}
@@ -104,11 +98,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				}, _cts.Token);
 			})
 			.DisposeWith(disposables);
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		base.OnNavigatedFrom(isInHistory);
 	}
 
 	private async Task InitializeCountries(CancellationToken cancellationToken)
@@ -244,38 +233,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			cancellationToken);
 
 		_ordersCache.AddOrUpdate(order);
-	}
-
-	private void Demo(CancellationToken cancellationToken)
-	{
-		var walletId = BuyAnythingManager.GetWalletId(_wallet);
-
-		var demoOrders = new[]
-		{
-			new OrderViewModel(
-				UiContext,
-				new ConversationId(walletId, "a", "a"),
-				"Order 1",
-				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
-				this,
-				cancellationToken),
-			new OrderViewModel(
-				UiContext,
-				new ConversationId(walletId, "b", "b"),
-				"Order 2",
-				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
-				this,
-				cancellationToken),
-			new OrderViewModel(
-				UiContext,
-				new ConversationId(walletId, "c", "d"),
-				"Order 3",
-				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
-				this,
-				cancellationToken),
-		};
-
-		_ordersCache.AddOrUpdate(demoOrders);
 	}
 
 	bool IOrderManager.HasUnreadMessages(ConversationId id)
