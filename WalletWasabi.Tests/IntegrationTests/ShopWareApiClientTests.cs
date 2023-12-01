@@ -11,7 +11,9 @@ using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -25,8 +27,8 @@ public class ShopWareApiClientTests
 		//	Proxy = new WebProxy("socks5://127.0.0.1", 9050)
 		//};
 		//using var httpClient = new HttpClient(handler);
-		using var httpClient = new HttpClient();
-		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		await using var httpClientFactory = new HttpClientFactory(null, null);
+		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
@@ -53,12 +55,27 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task CanRegisterAndLogInAsync()
+	public async Task CanRegisterAndLogInClearnetAsync()
 	{
-		using var httpClient = new HttpClient();
-		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		await using var httpClientFactory = new HttpClientFactory(null, null);
+		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api"), Mode.DefaultCircuit);
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
+		await CanRegisterAndLogInAsync(shopWareApiClient);
+	}
+
+	[Fact]
+	public async Task CanRegisterAndLogInTorAsync()
+	{
+		await using var httpClientFactory = new HttpClientFactory(Common.TorSocks5Endpoint, null);
+		var httpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.com/store-api"));
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		await CanRegisterAndLogInAsync(shopWareApiClient);
+	}
+
+	private async Task CanRegisterAndLogInAsync(ShopWareApiClient shopWareApiClient)
+	{
 		// Register a user.
 		var customerRequestWithRandomData = CreateRandomCustomer("a comment", out var email, out var password);
 		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRequestWithRandomData, CancellationToken.None);
@@ -90,8 +107,8 @@ public class ShopWareApiClientTests
 	[Fact]
 	public async Task CanGetFullConversationAsync()
 	{
-		using var httpClient = new HttpClient();
-		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		await using var httpClientFactory = new HttpClientFactory(null, null);
+		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 		BuyAnythingClient bac = new(shopWareApiClient);
@@ -109,8 +126,8 @@ public class ShopWareApiClientTests
 	[Fact]
 	public async Task FetchAllCountriesAsync()
 	{
-		using var httpClient = new HttpClient();
-		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		await using var httpClientFactory = new HttpClientFactory(null, null);
+		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 		var toSerialize = new List<object>();

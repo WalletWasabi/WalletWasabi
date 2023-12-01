@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.ShopWare.Models;
@@ -19,7 +21,8 @@ namespace WalletWasabi.WebClients.ShopWare;
 
 public class ShopWareApiClient : IShopWareApiClient
 {
-	private HttpClient _client;
+	private IHttpClient _client;
+	private string _apiKey;
 
 	// Initializes a new instance of the ShopWareApiClient class.
 	//
@@ -29,13 +32,10 @@ public class ShopWareApiClient : IShopWareApiClient
 	//
 	//   apiKey:
 	//     The API key to authenticate the requests.
-	public ShopWareApiClient(HttpClient client, string apiKey)
+	public ShopWareApiClient(IHttpClient client, string apiKey)
 	{
 		_client = client;
-
-		// Initialize HttpClient with required headers
-		_client.DefaultRequestHeaders.Add("Accept", "application/json");
-		_client.DefaultRequestHeaders.Add("sw-access-key", apiKey); // API key. Must be in every single request.
+		_apiKey = apiKey;
 	}
 
 	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
@@ -79,8 +79,12 @@ public class ShopWareApiClient : IShopWareApiClient
 	private async Task<string> SendAsync<TRequest>(string ctxToken, HttpMethod httpMethod, string path, TRequest request, CancellationToken cancellationToken)
 		where TRequest : class
 	{
-		using var httpRequest = new HttpRequestMessage(httpMethod, path);
+		using var httpRequest = new HttpRequestMessage(httpMethod, _client.BaseUriGetter is null ? path : Path.Combine(_client.BaseUriGetter().AbsoluteUri, path));
+
 		httpRequest.Headers.Add("sw-context-token", ctxToken);
+		httpRequest.Headers.Add("Accept", "application/json");
+		httpRequest.Headers.Add("sw-access-key", _apiKey);
+
 		using var content = Serialize(request);
 		if (httpMethod != HttpMethod.Get)
 		{
