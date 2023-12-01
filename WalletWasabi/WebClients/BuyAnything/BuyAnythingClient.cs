@@ -93,10 +93,10 @@ public class BuyAnythingClient
 		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task SetBillingAddressAsync(NetworkCredential credential, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
+	public async Task SetBillingAddressAsync(NetworkCredential credential, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		var request = ShopWareRequestFactory.BillingAddressRequest(address, houseNumber, zipCode, city, countryId);
+		var request = ShopWareRequestFactory.BillingAddressRequest(firstName, lastName, address, houseNumber, zipCode, city, countryId);
 		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 

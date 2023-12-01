@@ -162,6 +162,39 @@ public class ShopWareApiClientTests
 		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
 	}
 
+	[Fact]
+	public async Task CanUpdateBillingAddressAsync()
+	{
+		var customerRequestWithRandomData = CreateRandomCustomer("Set billing address please.", out var email, out var password);
+
+		await using var httpClientFactory = new HttpClientFactory(null, null);
+		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
+		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+
+		// Register
+		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRequestWithRandomData, CancellationToken.None);
+
+		// Login
+		var loggedInCustomer = await shopWareApiClient.LoginCustomerAsync(customer.ContextTokens[0], ShopWareRequestFactory.CustomerLoginRequest(email, password), CancellationToken.None);
+
+		// Update billing address
+		await shopWareApiClient.UpdateCustomerBillingAddressAsync(
+			loggedInCustomer.ContextToken,
+			ShopWareRequestFactory.BillingAddressRequest(
+			customerRequestWithRandomData["firstName"].ToString()!,
+			customerRequestWithRandomData["lastName"].ToString()!,
+			"My updated street",
+			"123",
+			"1022",
+			"Budapest",
+			"6ab3247e27174ee898a2479071754912"),
+			CancellationToken.None);
+
+		await Task.Delay(10000);
+
+		// Check admin site if the customer billing address got updated or not.
+	}
+
 	private PropertyBag CreateRandomCustomer(string message, out string email, out string password)
 	{
 		PropertyBag crr = ShopWareRequestFactory.CustomerRegistrationRequest(

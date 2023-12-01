@@ -5,7 +5,7 @@ namespace WalletWasabi.WebClients.ShopWare;
 public static class ShopWareRequestFactory
 {
 	public static PropertyBag CustomerRegistrationRequest(string firstName, string lastName, string email, string password, string message) =>
-		new ()
+		new()
 		{
 			["salutationId"] = "018b6635785b70679f479eadf50330f3",
 			["firstName"] = firstName,
@@ -28,37 +28,37 @@ public static class ShopWareRequestFactory
 		};
 
 	public static PropertyBag CustomerLoginRequest(string email, string password) =>
-		new ()
+		new()
 		{
 			["email"] = email,
 			["password"] = password
 		};
 
 	public static PropertyBag CustomerProfileUpdateRequest(string firstName, string lastName, string comment) =>
-		new ()
+		new()
 		{
 			["firstName"] = firstName,
 			["lastName"] = lastName,
 			["wallet_chat_store"] = comment
 		};
 
-	public static PropertyBag GetPage( int page, int limit) =>
-		new ()
+	public static PropertyBag GetPage(int page, int limit) =>
+		new()
 		{
 			["page"] = page,
 			["limit"] = limit
 		};
 
 	public static PropertyBag ShoppingCartCreationRequest(string name) =>
-		new ()
+		new()
 		{
 			["name"] = name
 		};
 
 	public static PropertyBag ShoppingCartItemsRequest(string productId) =>
-		new ()
+		new()
 		{
-			["items"] = new []
+			["items"] = new[]
 			{
 				new PropertyBag
 				{
@@ -70,23 +70,25 @@ public static class ShopWareRequestFactory
 			}
 		};
 
-	public static PropertyBag OrderGenerationRequest()=>
-		new ()
+	public static PropertyBag OrderGenerationRequest() =>
+		new()
 		{
 			["affiliateCode"] = "WASABI",
 			["campaignCode"] = "WASABI",
 		};
 
 	public static PropertyBag CancelOrderRequest(string orderId) =>
-		new ()
+		new()
 		{
 			["orderId"] = orderId
 		};
 
-	public static PropertyBag BillingAddressRequest(string street, string houseNumber, string zipcode, string city,
+	public static PropertyBag BillingAddressRequest(string firstName, string lastName, string street, string houseNumber, string zipcode, string city,
 		string countryId) =>
 		new()
 		{
+			["firstName"] = firstName,
+			["lastName"] = lastName,
 			["street"] = street,
 			["additionalAddressLine1"] = houseNumber,
 			["zipcode"] = zipcode,
@@ -95,7 +97,7 @@ public static class ShopWareRequestFactory
 		};
 
 	public static PropertyBag PaymentRequest(string orderId) =>
-		new ()
+		new()
 		{
 			["orderId"] = orderId,
 			["finishUrl"] = "",
@@ -103,11 +105,12 @@ public static class ShopWareRequestFactory
 		};
 
 	public static PropertyBag GetOrderListRequest() =>
-		new ()
+		new()
 		{
 			["page"] = 1,
 			["limit"] = 1,
-			["associations"] = new PropertyBag {
+			["associations"] = new PropertyBag
+			{
 				["lineItems"] = Array.Empty<object>(),
 				["deliveries"] = Array.Empty<object>()
 			}

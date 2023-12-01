@@ -167,6 +167,16 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
+	public async Task SetBillingAddressAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+		if (Conversations.FirstOrDefault(track => track.Conversation.Id == conversationId) is { } track)
+		{
+			await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
 	public IEnumerable<ChatMessage> Parse(string customerComment)
 	{
 		var messages = customerComment.Split("||", StringSplitOptions.RemoveEmptyEntries);
