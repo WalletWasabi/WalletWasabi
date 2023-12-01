@@ -105,23 +105,24 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task CanGetFullConversationAsync()
+	public async Task GetExistingOrder()
 	{
 		await using var httpClientFactory = new HttpClientFactory(null, null);
 		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 		var shopWareApiClient = new ShopWareApiClient(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 		BuyAnythingClient bac = new(shopWareApiClient);
-		using BuyAnythingManager bam = new(Common.DataDir, TimeSpan.FromSeconds(10), bac);
+		using BuyAnythingManager bam = new(Common.DataDir, TimeSpan.FromSeconds(5), bac);
 
 		await bam.StartAsync(CancellationToken.None);
 
-		await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
+		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
+		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 
-		await Task.Delay(10000);
-
-		// Szpoti: I used breakpoints in BuyAnythingManager to see that the CustomerProfile actually gives back the full message, even after if its updated on admin side.
-		// Implement update conversation here?
+		// By puting a while true here, you can test changes constantly periodically every 5 seconds.
+		// while(true){
+		await Task.Delay(1000);
+		// }
 	}
 
 	[Fact]

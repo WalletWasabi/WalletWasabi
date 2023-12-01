@@ -25,10 +25,24 @@ public record Order
 	string OrderNumber,
 	OrderCustomer OrderCustomer,
 	LineItem[] LineItems,
-	string Id
+	string Id,
+	OrderCustomFields CustomFields
 );
 
-public record LineItem(float Quantity, string Description, float Price); // TODO: make it real
+public record OrderCustomFields
+(
+	string Concierge_Request_Status_State,
+	string Concierge_Request_Attachements_Links
+);
+
+public record LineItem
+(
+	float Quantity,
+	string Description,
+	string Label,
+	float UnitPrice,
+	float TotalPrice
+);
 
 public record OrderCustomer
 (

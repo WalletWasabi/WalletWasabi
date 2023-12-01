@@ -53,14 +53,19 @@ public class BuyAnythingManager : PeriodicRunner
 		foreach (var track in Conversations.Where(c => c is not null && c.Conversation.IsUpdatable()))
 		{
 			// Check if there is new info in the chat
-			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
+			bool chatUpdated = await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
 
 			// Check if the order state has changed and update the conversation status.
-			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			bool orderUpdated = await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+
+			if (chatUpdated || orderUpdated)
+			{
+				await SaveAsync(cancel).ConfigureAwait(false);
+			}
 		}
 	}
 
-	private async Task CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	private async Task<bool> CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
 		var orders = await Client
 			.GetOrdersUpdateAsync(track.Credential, cancel)
@@ -69,6 +74,7 @@ public class BuyAnythingManager : PeriodicRunner
 		// There is only one order per customer  and that's why we request all the orders
 		// but with only expect to get one.
 		var order = orders.Single();
+		var orderCustomFields = order.CustomFields;
 
 		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
 		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
@@ -100,7 +106,7 @@ public class BuyAnythingManager : PeriodicRunner
 				}
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
-			         /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
+					 && orderCustomFields.Concierge_Request_Status_State == "OFFER")
 			{
 				if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted  /* && order.BtcPayLink != "" */)
 				{
@@ -133,10 +139,12 @@ public class BuyAnythingManager : PeriodicRunner
 				OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
 			};
 			ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
+			return true;
 		}
+		return false;
 	}
 
-	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	private async Task<bool> CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
 		// Get full customer profile to get updated messages.
 		var customerProfileResponse = await Client
@@ -154,7 +162,9 @@ public class BuyAnythingManager : PeriodicRunner
 			};
 			ConversationUpdated.SafeInvoke(this,
 				new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
+			return true;
 		}
+		return false;
 	}
 
 	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
@@ -275,8 +285,8 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		foreach (var lineItem in order.LineItems)
 		{
-			var message = $"{lineItem.Quantity} x {lineItem.Description} price: {lineItem.Price}";
-			yield return new ChatMessage(false, message) ;
+			var message = $"{lineItem.Quantity} x {lineItem.Label} price: {lineItem.UnitPrice}";
+			yield return new ChatMessage(false, message);
 		}
 	}
 

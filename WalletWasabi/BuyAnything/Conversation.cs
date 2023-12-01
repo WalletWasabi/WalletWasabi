@@ -12,12 +12,11 @@ public enum ConversationStatus
 {
 	Started,
 	OfferReceived,
-	OfferAccepted,
-	InvoiceReceived,
 	PaymentDone,
-	PaymentConfirmed
-};
-
+	PaymentConfirmed,
+	OfferAccepted,
+	InvoiceReceived
+}
 public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
 {
 	public static readonly ConversationId Empty = new("", "", "", "");

@@ -32,7 +32,8 @@ public class BuyAnythingManagerTests
 				"order#123456789",
 				null,
 				new LineItem[0],
-				"idxxxxxxx")
+				"idxxxxxxx",
+				null)
 		})));
 #else
 		var shopWareApiClient = new ShopWareApiClient(new HttpClient(), "real-api-key");
