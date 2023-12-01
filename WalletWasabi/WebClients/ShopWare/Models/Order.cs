@@ -30,7 +30,8 @@ public record OrderCustomer
 (
 	string VersionId,
 	DateTimeOffset CreatedAt,
-	PropertyBag CustomFields,
+	DateTimeOffset? UpdatedAt,
+	ChatField CustomFields,
 	string Id
 );
 

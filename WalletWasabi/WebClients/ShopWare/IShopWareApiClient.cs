@@ -10,8 +10,6 @@ public interface IShopWareApiClient
 
 	Task<CustomerLoginResponse> LoginCustomerAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
-	Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken);
-
 	Task<PropertyBag> UpdateCustomerProfileAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
 	Task<PropertyBag> UpdateCustomerBillingAddressAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
@@ -22,7 +20,7 @@ public interface IShopWareApiClient
 
 	Task<OrderGenerationResponse> GenerateOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
-	Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken);
+	Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
 	Task<StateMachineState> CancelOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 

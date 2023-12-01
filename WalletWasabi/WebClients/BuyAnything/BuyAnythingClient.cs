@@ -94,24 +94,12 @@ public class BuyAnythingClient
 		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<Order[]> GetOrdersUpdateSinceAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	public async Task<Order[]> GetOrdersUpdateSinceAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		var orderList = await ApiClient.GetOrderListAsync(ctxToken, cancellationToken).ConfigureAwait(false);
-
-		var updatedOrders = orderList.Orders.Elements
-			.Where(o => o.UpdatedAt is not null)
-			.Where(o => o.UpdatedAt > lastUpdate)
-			.ToArray();
-		return updatedOrders;
-	}
-
-	public async Task<CustomerProfileResponse> GetFullConversationAsync(NetworkCredential credential, CancellationToken cancellationToken)
-	{
-		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
-
-		return customerProfileResponse;
+		var request = ShopWareRequestFactory.GetOrderListRequest();
+		var orderList = await ApiClient.GetOrderListAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
+		return orderList.Orders.Elements;
 	}
 
 	public async Task HandlePaymentAsync (NetworkCredential credential, string orderId, CancellationToken cancellationToken)

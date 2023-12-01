@@ -101,4 +101,15 @@ public static class ShopWareRequestFactory
 			["finishUrl"] = "",
 			["errorUrl"] = ""
 		};
+
+	public static PropertyBag GetOrderListRequest() =>
+		new ()
+		{
+			["page"] = 1,
+			["limit"] = 1,
+			["associations"] = new PropertyBag {
+				["lineItems"] = Array.Empty<object>(),
+				["deliveries"] = Array.Empty<object>()
+			}
+		};
 }

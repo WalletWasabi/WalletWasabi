@@ -41,8 +41,8 @@ public class ShopWareApiClientTests
 			ShopWareRequestFactory.ShoppingCartItemsRequest("018c0cec5299719f9458dba04f88eb8c"), CancellationToken.None);
 		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token,
 			ShopWareRequestFactory.OrderGenerationRequest(), CancellationToken.None);
-
-		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token, CancellationToken.None);
+		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token,
+			ShopWareRequestFactory.GetOrderListRequest(), CancellationToken.None);
 		var uniqueOrder = Assert.Single(orderList.Orders.Elements);
 		Assert.Equal(uniqueOrder.OrderNumber, order.OrderNumber);
 

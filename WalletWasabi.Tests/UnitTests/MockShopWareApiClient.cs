@@ -11,11 +11,10 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Func<string, PropertyBag, Task<CustomerLoginResponse>>? OnLoginCustomerAsync { get; set; }
 	public Func<string, PropertyBag, Task<PropertyBag>>? OnUpdateCustomerProfileAsync { get; set; }
 	public Func<string, PropertyBag, Task<PropertyBag>>? OnUpdateCustomerBillingAddressAsync { get; set; }
-	public Func<string, Task<CustomerProfileResponse>>? OnGetCustomerProfile { get; set; }
 	public Func<string, PropertyBag, Task<ShoppingCartResponse>>? OnGetOrCreateShoppingCartAsync { get; set; }
 	public Func<string, PropertyBag, Task<ShoppingCartItemsResponse>>? OnAddItemToShoppingCartAsync { get; set; }
 	public Func<string, PropertyBag, Task<OrderGenerationResponse>>? OnGenerateOrderAsync { get; set; }
-	public Func<string, Task<GetOrderListResponse>>? OnGetOrderListAsync { get; set; }
+	public Func<string, PropertyBag, Task<GetOrderListResponse>>? OnGetOrderListAsync { get; set; }
 	public Func<string, PropertyBag, Task<StateMachineState>>? OnCancelOrderAsync { get; set; }
 	public Func<string, PropertyBag, Task<GetCountryResponse>>? OnGetCountriesAsync { get; set; }
 	public Func<string, PropertyBag, Task<HandlePaymentResponse>>? OnHandlePaymentAsync { get; set; }
@@ -49,8 +48,8 @@ public class MockShopWareApiClient : IShopWareApiClient
 		OnGenerateOrderAsync?.Invoke(ctxToken, request)
 		?? throw new NotImplementedException("GenerateOrderAsync is not implemented.");
 
-	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, CancellationToken cancellationToken) =>
-		OnGetOrderListAsync?.Invoke(ctxToken)
+	public Task<GetOrderListResponse> GetOrderListAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
+		OnGetOrderListAsync?.Invoke(ctxToken, request)
 		?? throw new NotImplementedException("GetOrderListAsync is not implemented.");
 
 	public Task<StateMachineState> CancelOrderAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
@@ -64,8 +63,4 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Task<HandlePaymentResponse> HandlePaymentAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		OnHandlePaymentAsync?.Invoke(ctxToken, request)
 		?? throw new NotImplementedException("HandlePaymentAsync is not implemented.");
-
-	public Task<CustomerProfileResponse> GetCustomerProfileAsync(string ctxToken, CancellationToken cancellationToken) =>
-		OnGetCustomerProfile?.Invoke(ctxToken)
-		?? throw new NotImplementedException("GetCustomerProfileAsync is not implemented.");
 }
