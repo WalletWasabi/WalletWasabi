@@ -37,6 +37,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly SourceCache<OrderViewModel, ConversationId> _ordersCache;
 	private readonly BehaviorSubject<ConversationId> _updateTriggerSubject;
 
+	private Country[]? _countries;
+
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
@@ -90,6 +92,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		// TODO:
 		Task.Run(async () =>
 		{
+			await InitializeCountries(_cts.Token);
+
 			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
 #if true
 			Demo(_cts.Token);
@@ -103,6 +107,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
 		base.OnNavigatedFrom(isInHistory);
+	}
+
+	private async Task InitializeCountries(CancellationToken cancellationToken)
+	{
+		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			_countries = await buyAnythingManager.GetCountriesAsync(cancellationToken);
+		}
 	}
 
 	private async Task InitializeOrdersAsync(CancellationToken cancellationToken)
