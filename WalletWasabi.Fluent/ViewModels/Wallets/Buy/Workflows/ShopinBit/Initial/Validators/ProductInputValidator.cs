@@ -71,4 +71,9 @@ public partial class ProductInputValidator : InputValidator
 
 		return null;
 	}
+
+	public override void OnActivation()
+	{
+		WorkflowValidator.Signal(true);
+	}
 }
