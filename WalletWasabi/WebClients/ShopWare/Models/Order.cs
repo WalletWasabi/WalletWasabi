@@ -26,19 +26,23 @@ public record Order
 	OrderCustomer OrderCustomer,
 	LineItem[] LineItems,
 	string Id,
-	OrderCustomFields CustomFields
+	OrderCustomFields CustomFields,
+	string Btcpay_PaymentLink
 );
 
 public record OrderCustomFields
 (
 	string Concierge_Request_Status_State,
-	string Concierge_Request_Attachements_Links
+	string Concierge_Request_Attachements_Links,
+	string Btcpay_PaymentLink,
+	string Btcpay_Destination,
+	string Btcpay_Amount,
+	string Btcpay_Rate
 );
 
 public record LineItem
 (
 	float Quantity,
-	string Description,
 	string Label,
 	float UnitPrice,
 	float TotalPrice
