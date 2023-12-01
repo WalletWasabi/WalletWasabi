@@ -240,13 +240,20 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	public async Task SetBillingAddressAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
 		if (Conversations.FirstOrDefault(track => track.Conversation.Id == conversationId) is { } track)
 		{
 			await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
+			await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
+			track.Conversation = track.Conversation with
+			{
+				Messages = track.Conversation.Messages.Append(new ChatMessage(true, "Offer accepted")).ToArray(),
+				ConversationStatus = ConversationStatus.OfferAccepted
+			};
+			track.LastUpdate = DateTimeOffset.Now;
 		}
 	}
 
