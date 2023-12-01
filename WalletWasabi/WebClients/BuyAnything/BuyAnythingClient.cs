@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -13,8 +14,11 @@ public class BuyAnythingClient
 	// Services provided by Concierge
 	public enum Product
 	{
+		[Description("Concierge Request")]
 		ConciergeRequest,
+		[Description("Fast Travel Booking")]
 		FastTravelBooking,
+		[Description("Travel Concierge")]
 		TravelConcierge
 	}
 

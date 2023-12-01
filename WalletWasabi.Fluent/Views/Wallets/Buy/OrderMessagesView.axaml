@@ -175,6 +175,16 @@
               </c:TagsBox>
             </DataTemplate>
 
+            <DataTemplate DataType="shopinBit:ProductInputValidator">
+              <ComboBox VerticalAlignment="Center"
+                         Items="{Binding Products}"
+                         SelectedItem="{Binding Product, Mode=TwoWay}">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
+              </ComboBox>
+            </DataTemplate>
+
           </ContentControl.DataTemplates>
         </ContentControl>
 

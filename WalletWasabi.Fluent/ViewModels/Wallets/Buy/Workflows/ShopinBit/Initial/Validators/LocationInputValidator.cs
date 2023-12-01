@@ -1,57 +1,70 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class LocationInputValidator : InputValidator
 {
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
+	private Country[] _countriesSource;
 
 	[AutoNotify] private ObservableCollection<string> _countries;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _country;
 
 	public LocationInputValidator(
 		IWorkflowValidator workflowValidator,
+		Country[] countries,
 		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Enter your location...", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 
+		_countriesSource = countries;
+
+		_countries = new ObservableCollection<string>(countries.Select(x => x.Name));
+
 		// TODO: Get from service.
-		_countries = new ObservableCollection<string>
+
+		if (_countries.Count == 0)
 		{
-			"Austria",
-			"Belgium",
-			"Bulgaria",
-			"Croatia",
-			"Cyprus",
-			"Czech Republic",
-			"Denmark",
-			"Estonia",
-			"Finland",
-			"France",
-			"Germany",
-			"Greece",
-			"Hungary",
-			"Ireland",
-			"Italy",
-			"Latvia",
-			"Lithuania",
-			"Luxembourg",
-			"Malta",
-			"Netherlands",
-			"Poland",
-			"Portugal",
-			"Romania",
-			"Slovakia",
-			"Slovenia",
-			"Spain",
-			"Sweden",
-			"Canada",
-			"Switzerland",
-			"United Kingdom",
-			"United States of America",
-		};
+			_countries = new ObservableCollection<string>
+			{
+				"Austria",
+				"Belgium",
+				"Bulgaria",
+				"Croatia",
+				"Cyprus",
+				"Czech Republic",
+				"Denmark",
+				"Estonia",
+				"Finland",
+				"France",
+				"Germany",
+				"Greece",
+				"Hungary",
+				"Ireland",
+				"Italy",
+				"Latvia",
+				"Lithuania",
+				"Luxembourg",
+				"Malta",
+				"Netherlands",
+				"Poland",
+				"Portugal",
+				"Romania",
+				"Slovakia",
+				"Slovenia",
+				"Spain",
+				"Sweden",
+				"Canada",
+				"Switzerland",
+				"United Kingdom",
+				"United States of America",
+			};
+
+		}
 
 		_country = new ObservableCollection<string>();
 
@@ -69,11 +82,11 @@ public partial class LocationInputValidator : InputValidator
 	{
 		if (IsValid())
 		{
-			var location = _country[0];
+			var location = _countriesSource[_countries.IndexOf(_country[0])];
 
 			_initialWorkflowRequest.Location = location;
 
-			return location;
+			return _country[0];
 		}
 
 		return null;

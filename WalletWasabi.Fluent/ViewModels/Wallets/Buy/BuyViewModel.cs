@@ -37,7 +37,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly SourceCache<OrderViewModel, ConversationId> _ordersCache;
 	private readonly BehaviorSubject<ConversationId> _updateTriggerSubject;
 
-	private Country[]? _countries;
+	private Country[] _countries;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
@@ -209,7 +209,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			conversation.Id,
 			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(conversation.Id),
+			new ShopinBitWorkflowManagerViewModel(conversation.Id, _countries),
 			this,
 			cancellationToken);
 
@@ -224,9 +224,27 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var demoOrders = new[]
 		{
-			new OrderViewModel(UiContext, new ConversationId("1", "", ""), "Order 1", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(UiContext, new ConversationId("2", "", ""), "Order 2", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
-			new OrderViewModel(UiContext, new ConversationId("3", "", ""), "Order 3", new ShopinBitWorkflowManagerViewModel(ConversationId.Empty), this, cancellationToken),
+			new OrderViewModel(
+				UiContext,
+				new ConversationId("1", "", ""),
+				"Order 1",
+				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+				this,
+				cancellationToken),
+			new OrderViewModel(
+				UiContext,
+				new ConversationId("2", "", ""),
+				"Order 2",
+				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+				this,
+				cancellationToken),
+			new OrderViewModel(
+				UiContext,
+				new ConversationId("3", "", ""),
+				"Order 3",
+				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+				this,
+				cancellationToken),
 		};
 
 		_ordersCache.AddOrUpdate(demoOrders);

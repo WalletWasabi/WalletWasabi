@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -7,7 +8,7 @@ public partial class InitialWorkflow : Workflow
 {
 	private readonly InitialWorkflowRequest _request;
 
-	public InitialWorkflow(IWorkflowValidator workflowValidator)
+	public InitialWorkflow(IWorkflowValidator workflowValidator, Country[] countries)
 	{
 		_request = new InitialWorkflowRequest();
 
@@ -25,6 +26,15 @@ public partial class InitialWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowValidator,
 					"I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount")),
+			// Product
+			new (false,
+				new DefaultInputValidator(
+					workflowValidator,
+					"Please select product category.")),
+			new (requiresUserInput: true,
+				userInputValidator: new ProductInputValidator(
+					workflowValidator,
+					_request)),
 			// Location
 			new (false,
 				new DefaultInputValidator(
@@ -33,6 +43,7 @@ public partial class InitialWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new LocationInputValidator(
 					workflowValidator,
+					countries,
 					_request)),
 			// What
 			new (false,
