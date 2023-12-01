@@ -100,7 +100,7 @@ public class BuyAnythingClient
 		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<Order[]> GetOrdersUpdateSinceAsync(NetworkCredential credential, CancellationToken cancellationToken)
+	public async Task<Order[]> GetOrdersUpdateAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.GetOrderListRequest();

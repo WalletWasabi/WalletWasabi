@@ -52,78 +52,95 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c is not null && c.Conversation.IsUpdatable()))
 		{
+			// Check if there is new info in the chat
+			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
+
 			// Check if the order state has changed and update the conversation status.
-			var orders = await Client
-				.GetOrdersUpdateSinceAsync(track.Credential, cancel)
-				.ConfigureAwait(false);
+			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+		}
+	}
 
-			// Get full customer profile to get updated messages.
-			var customerProfileResponse = await Client
-				.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
-				.ConfigureAwait(false);
+	private async Task CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		var orders = await Client
+			.GetOrdersUpdateAsync(track.Credential, cancel)
+			.ConfigureAwait(false);
 
-			// There is only one order per customer  and that's why we request all the orders
-			// but with only expect to get one.
-			var order = orders.Single();
+		// There is only one order per customer  and that's why we request all the orders
+		// but with only expect to get one.
+		var order = orders.Single();
 
-			var customer = customerProfileResponse;
-			var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
-			var messages = Parse(fullConversation).ToArray();
-			if (messages.Length > track.Conversation.Messages.Length)
+		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
+		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
+		{
+			// Update the conversation status according to the order state
+			// TODO: Verify if the state machine is values match reality
+			var orderStatus = order.StateMachineState.Name switch
 			{
-				track.Conversation = track.Conversation with
-				{
-					Messages = messages.ToArray(),
-				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
-			}
+				"Open" => OrderStatus.Open,
+				"In Progress" => OrderStatus.InProgress,
+				"Cancelled" => OrderStatus.Cancelled,
+				"Done" => OrderStatus.Done,
+				_ => track.Conversation.OrderStatus
+			};
 
-			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
-			if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
+			// The status changed.
+			if (orderStatus != track.Conversation.OrderStatus)
 			{
-				// Update the conversation status according to the order state
-				// TODO: Verify if the state machine is values match reality
-				var orderStatus = order.StateMachineState.Name switch
+				// The status changes to "In Progress" after the user paid
+				if (orderStatus == OrderStatus.InProgress)
 				{
-					"Open" => OrderStatus.Open,
-					"In Progress" => OrderStatus.InProgress,
-					"Cancelled" => OrderStatus.Cancelled,
-					"Done" => OrderStatus.Done,
-					_ => track.Conversation.OrderStatus
-				};
-
-				// The status changed.
-				if (orderStatus != track.Conversation.OrderStatus)
-				{
-					// The status changes to "In Progress" after the user paid
-					if (orderStatus == OrderStatus.InProgress)
-					{
-						track.Conversation = track.Conversation with
-						{
-							Messages = track.Conversation.Messages.Append(new ChatMessage(false, "Payment confirmed")) .ToArray(),
-							ConversationStatus = ConversationStatus.PaymentConfirmed
-						};
-						ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
-					}
-				}
-				else if (track.Conversation.ConversationStatus == ConversationStatus.Started /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
-				{
-					// This means that in "lineItems" we have the offer data
-					var offerMessages = ConvertOfferDetailToChatMessages(order);
 					track.Conversation = track.Conversation with
 					{
-						Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
-						ConversationStatus = ConversationStatus.OfferReceived
+						Messages =
+						track.Conversation.Messages.Append(new ChatMessage(false, "Payment confirmed")).ToArray(),
+						ConversationStatus = ConversationStatus.PaymentConfirmed
 					};
-					ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
 				}
-				track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
+			}
+			else if (track.Conversation.ConversationStatus ==
+			         ConversationStatus.Started /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
+			{
+				// This means that in "lineItems" we have the offer data
+				var offerMessages = ConvertOfferDetailToChatMessages(order);
 				track.Conversation = track.Conversation with
 				{
-					OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
+					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+					ConversationStatus = ConversationStatus.OfferReceived
 				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
+				ConversationUpdated.SafeInvoke(this,
+					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
 			}
+
+			track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
+			track.Conversation = track.Conversation with
+			{
+				OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
+			};
+			ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
+		}
+	}
+
+	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		// Get full customer profile to get updated messages.
+		var customerProfileResponse = await Client
+			.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
+			.ConfigureAwait(false);
+
+		var customer = customerProfileResponse;
+		var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
+		var messages = Parse(fullConversation).ToArray();
+		if (messages.Length > track.Conversation.Messages.Length)
+		{
+			track.Conversation = track.Conversation with
+			{
+				Messages = messages.ToArray(),
+			};
+			ConversationUpdated.SafeInvoke(this,
+				new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
 		}
 	}
 
