@@ -66,7 +66,7 @@ public class BuyAnythingManager : PeriodicRunner
 			var order = orders.Single();
 
 			var customer = customerProfileResponse;
-			var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store; ;
+			var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
 			var messages = Parse(fullConversation).ToArray();
 			if (messages.Length > track.Conversation.Messages.Length)
 			{
