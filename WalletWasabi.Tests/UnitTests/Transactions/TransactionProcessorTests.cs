@@ -393,8 +393,8 @@ public class TransactionProcessorTests
 
 		var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
 		var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
-		Assert.True(unconfirmedCoin1.IsReplaceable());
-		Assert.True(unconfirmedCoin2.IsReplaceable());
+		Assert.True(unconfirmedCoin1.Transaction.IsReplaceable());
+		Assert.True(unconfirmedCoin2.Transaction.IsReplaceable());
 
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
@@ -411,7 +411,7 @@ public class TransactionProcessorTests
 		Assert.True(relevant3.IsNews);
 		Assert.Equal(1, replaceTransactionReceivedCalled);
 		var finalCoin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(finalCoin.IsReplaceable());
+		Assert.True(finalCoin.Transaction.IsReplaceable());
 		Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
 		Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
@@ -514,9 +514,9 @@ public class TransactionProcessorTests
 
 		var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.True(coinB.IsReplaceable());
-		Assert.True(coinC.IsReplaceable());
-		Assert.True(coinD.IsReplaceable());
+		Assert.True(coinB.Transaction.IsReplaceable());
+		Assert.True(coinC.Transaction.IsReplaceable());
+		Assert.True(coinD.Transaction.IsReplaceable());
 
 		// Now it is confirmed
 		var blockHeight = new Height(77551);
@@ -526,8 +526,8 @@ public class TransactionProcessorTests
 		coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
 		coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.False(coinC.IsReplaceable());
-		Assert.False(coinD.IsReplaceable());
+		Assert.False(coinC.Transaction.IsReplaceable());
+		Assert.False(coinD.Transaction.IsReplaceable());
 	}
 
 	[Fact]
@@ -654,7 +654,7 @@ public class TransactionProcessorTests
 
 		Assert.True(relevant2.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(coin.IsReplaceable());
+		Assert.True(coin.Transaction.IsReplaceable());
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -708,10 +708,10 @@ public class TransactionProcessorTests
 		relevant = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant.IsNews);
-		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable());
+		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.Transaction.IsReplaceable());
 		Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
-		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.IsReplaceable());
+		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.Transaction.IsReplaceable());
 		Assert.Equal(tx1.Transaction.GetHash(), nonReplaceableCoin.TransactionId);
 
 		// Transaction store assertions

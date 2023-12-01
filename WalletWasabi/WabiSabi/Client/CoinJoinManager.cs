@@ -305,7 +305,7 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
-		var immatureCoins = coinCandidates.Where(x => x.IsImmature(bestHeight)).ToArray();
+		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
 

@@ -221,7 +221,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
 	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 	/// </summary>
-	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
+	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.Transaction.IsReplaceable()));
+
+	public bool IsReplaceable() => IsRBF;
+
+	public bool IsImmature(int bestHeight)
+	{
+		return Transaction.IsCoinBase && Height >= bestHeight - 100;
+	}
 
 	#endregion Members
 
