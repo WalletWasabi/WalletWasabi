@@ -3,14 +3,14 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class LocationWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class LocationInputValidator : InputValidator
 {
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
 	[AutoNotify] private ObservableCollection<string> _countries;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _country;
 
-	public LocationWorkflowInputValidatorViewModel(
+	public LocationInputValidator(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Enter your location...", "Next")

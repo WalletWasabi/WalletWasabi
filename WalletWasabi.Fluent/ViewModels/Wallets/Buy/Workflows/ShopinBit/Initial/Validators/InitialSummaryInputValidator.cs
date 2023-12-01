@@ -2,11 +2,11 @@ using System.Text;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class InitialSummaryWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class InitialSummaryInputValidator : InputValidator
 {
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
-	public InitialSummaryWorkflowInputValidatorViewModel(
+	public InitialSummaryInputValidator(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, null, null)

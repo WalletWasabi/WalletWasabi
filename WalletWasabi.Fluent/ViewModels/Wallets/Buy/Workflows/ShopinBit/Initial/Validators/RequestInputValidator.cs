@@ -2,16 +2,16 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class CityWorkflowInputValidatorViewModel : TextInputWorkflowInputValidatorViewModel
+public partial class RequestInputValidator : InputValidator
 {
-	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
+	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
-	public CityWorkflowInputValidatorViewModel(
+	public RequestInputValidator(
 		IWorkflowValidator workflowValidator,
-		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, "Type here...")
+		InitialWorkflowRequest initialWorkflowRequest)
+		: base(workflowValidator, null, "Type here...", "Request")
 	{
-		_deliveryWorkflowRequest = deliveryWorkflowRequest;
+		_initialWorkflowRequest = initialWorkflowRequest;
 
 		this.WhenAnyValue(x => x.Message)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
@@ -29,7 +29,7 @@ public partial class CityWorkflowInputValidatorViewModel : TextInputWorkflowInpu
 		{
 			var message = Message;
 
-			_deliveryWorkflowRequest.City = message;
+			_initialWorkflowRequest.Request = message;
 
 			return message;
 		}

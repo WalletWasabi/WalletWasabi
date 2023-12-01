@@ -18,22 +18,22 @@ public partial class PaymentWorkflowViewModel : WorkflowViewModel
 		{
 			// Info
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"To finalize your order, kindly transfer {paymentAmount} to the following address:")),
 			// Address
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"{paymentAddress}")),
 			// Payment
 			new (requiresUserInput: false,
-				userInputValidator: new DefaultWorkflowInputValidatorViewModel(
+				userInputValidator: new DefaultInputValidator(
 					workflowValidator,
 					"Once your payment is confirmed, we'll initiate the delivery process.")),
 			// TODO: Remove step after implementing backend interaction
 			new (false,
-				new PaymentWorkflowInputValidatorViewModel(
+				new PaymentInputValidator(
 					workflowValidator,
 					"Great news! Your order is complete."))
 		};

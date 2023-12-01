@@ -1,8 +1,8 @@
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public abstract partial class TextInputWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public abstract partial class TextInputInputValidator : InputValidator
 {
-	protected TextInputWorkflowInputValidatorViewModel(
+	protected TextInputInputValidator(
 		IWorkflowValidator workflowValidator,
 		string? message,
 		string? watermark,

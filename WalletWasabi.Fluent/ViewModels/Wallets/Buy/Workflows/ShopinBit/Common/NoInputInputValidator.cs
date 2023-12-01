@@ -2,9 +2,9 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class NoInputWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class NoInputInputValidator : InputValidator
 {
-	public NoInputWorkflowInputValidatorViewModel(
+	public NoInputInputValidator(
 		IWorkflowValidator workflowValidator,
 		string? message,
 		string? watermark = null,

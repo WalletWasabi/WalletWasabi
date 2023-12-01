@@ -264,7 +264,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	private async Task RemoveOrderAsync()
 	{
-		var confirmed = await _uiContext.Navigate().To().ConfirmDeleteOrder(this).GetResultAsync();
+		var confirmed = await _uiContext.Navigate().To().ConfirmDeleteOrderDialog(this).GetResultAsync();
 
 		if (confirmed)
 		{

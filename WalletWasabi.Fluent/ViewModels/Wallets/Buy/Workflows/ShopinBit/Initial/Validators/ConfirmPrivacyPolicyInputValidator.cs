@@ -3,14 +3,14 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class ConfirmPrivacyPolicyWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 {
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
 	[AutoNotify] private bool _hasAcceptedPrivacyPolicy;
 	[AutoNotify] private LinkViewModel _link;
 
-	public ConfirmPrivacyPolicyWorkflowInputValidatorViewModel(
+	public ConfirmPrivacyPolicyInputValidator(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest,
 		LinkViewModel link,

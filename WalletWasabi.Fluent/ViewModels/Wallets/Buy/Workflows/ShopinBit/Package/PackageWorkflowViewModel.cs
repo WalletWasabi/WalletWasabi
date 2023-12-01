@@ -18,27 +18,27 @@ public partial class PackageWorkflowViewModel : WorkflowViewModel
 		{
 			// Download
 			new (false,
-				new PackageWorkflowInputValidatorViewModel(
+				new PackageInputValidator(
 					workflowValidator,
 					"Download your files:")),
 			// Download links
 			new(false,
-				new PackageWorkflowInputValidatorViewModel(
+				new PackageInputValidator(
 					workflowValidator,
 					$"{downloadUrl}")),
 			// Shipping
 			new(false,
-				new PackageWorkflowInputValidatorViewModel(
+				new PackageInputValidator(
 					workflowValidator,
 					"For shipping updates:")),
 			// Shipping link
 			new(false,
-				new PackageWorkflowInputValidatorViewModel(
+				new PackageInputValidator(
 					workflowValidator,
 					$"{trackingUrl}")),
 			// Vanish message
 			new(false,
-				new PackageWorkflowInputValidatorViewModel(
+				new PackageInputValidator(
 					workflowValidator,
 					"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
 		};

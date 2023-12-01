@@ -17,39 +17,39 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 		{
 			// Welcome
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.")),
 			// Minimum limit
 			new(false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount")),
 			// Location
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"Let's begin by selecting your country.")),
 			new (requiresUserInput: true,
-				userInputValidator: new LocationWorkflowInputValidatorViewModel(
+				userInputValidator: new LocationInputValidator(
 					workflowValidator,
 					_request)),
 			// What
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"What would you like to buy?")),
 			new (requiresUserInput: true,
-				userInputValidator: new RequestWorkflowInputValidatorViewModel(
+				userInputValidator: new RequestInputValidator(
 					workflowValidator,
 					_request)),
 			// Accept Privacy Policy
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"to continue please accept Privacy Policy: {privacyPolicyUrl}")),
 			new (requiresUserInput: true,
-				userInputValidator: new ConfirmPrivacyPolicyWorkflowInputValidatorViewModel(
+				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowValidator,
 					_request,
 					new LinkViewModel
@@ -61,15 +61,15 @@ public partial class InitialWorkflowViewModel : WorkflowViewModel
 					"Accepted Privacy Policy.")),
 			// Confirm
 			new (false,
-				new InitialSummaryWorkflowInputValidatorViewModel(
+				new InitialSummaryInputValidator(
 					workflowValidator,
 					_request)),
 			new (requiresUserInput: true,
-				userInputValidator: new ConfirmInitialWorkflowInputValidatorViewModel(
+				userInputValidator: new ConfirmInitialInputValidator(
 					workflowValidator)),
 			// Final
 			new (false,
-				new NoInputWorkflowInputValidatorViewModel(
+				new NoInputInputValidator(
 					workflowValidator,
 					"We've received your request, we will be in touch with you within the next couple of days."))
 		};

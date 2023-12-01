@@ -1,16 +1,18 @@
-using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class DefaultWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class HouseNumberInputValidator : TextInputInputValidator
 {
-	public DefaultWorkflowInputValidatorViewModel(
+	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
+
+	public HouseNumberInputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
-		string? watermark = "Type here...",
-		string? content = "Request") : base(workflowValidator, message, watermark, content)
+		DeliveryWorkflowRequest deliveryWorkflowRequest)
+		: base(workflowValidator, null, "Type here...")
 	{
+		_deliveryWorkflowRequest = deliveryWorkflowRequest;
+
 		this.WhenAnyValue(x => x.Message)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
 	}
@@ -25,7 +27,11 @@ public partial class DefaultWorkflowInputValidatorViewModel : WorkflowInputValid
 	{
 		if (IsValid())
 		{
-			return Message;
+			var message = Message;
+
+			_deliveryWorkflowRequest.HouseNumber = message;
+
+			return message;
 		}
 
 		return null;

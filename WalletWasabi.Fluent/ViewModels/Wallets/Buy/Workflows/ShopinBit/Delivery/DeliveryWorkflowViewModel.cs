@@ -17,92 +17,92 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 		{
 			// Info
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC.")),
 			// Info
 			new(false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
 			// Firstname
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"Your First Name:")),
 			new (requiresUserInput: true,
-				userInputValidator: new FirstNameWorkflowInputValidatorViewModel(
+				userInputValidator: new FirstNameInputValidator(
 					workflowValidator,
 					_request)),
 			// Lastname
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"Your Last Name:")),
 			new (requiresUserInput: true,
-				userInputValidator: new LastNameWorkflowInputValidatorViewModel(
+				userInputValidator: new LastNameInputValidator(
 					workflowValidator,
 					_request)),
 			// Streetname
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"Street Name:")),
 			new (requiresUserInput: true,
-				userInputValidator: new StreetNameWorkflowInputValidatorViewModel(
+				userInputValidator: new StreetNameInputValidator(
 					workflowValidator,
 					_request)),
 			// Housenumber
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"House Number:")),
 			new (requiresUserInput: true,
-				userInputValidator: new HouseNumberWorkflowInputValidatorViewModel(
+				userInputValidator: new HouseNumberInputValidator(
 					workflowValidator,
 					_request)),
 			// ZIP/Postalcode
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"ZIP/Postal Code:")),
 			new (requiresUserInput: true,
-				userInputValidator: new PostalCodeWorkflowInputValidatorViewModel(
+				userInputValidator: new PostalCodeInputValidator(
 					workflowValidator,
 					_request)),
 			// City
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"City:")),
 			new (requiresUserInput: true,
-				userInputValidator: new CityWorkflowInputValidatorViewModel(
+				userInputValidator: new CityInputValidator(
 					workflowValidator,
 					_request)),
 			// State
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					"State:")),
 			new (requiresUserInput: true,
-				userInputValidator: new StateWorkflowInputValidatorViewModel(
+				userInputValidator: new StateInputValidator(
 					workflowValidator,
 					_request)),
 			// Confirm
 			new (false,
-				new DeliverySummaryWorkflowInputValidatorViewModel(
+				new DeliverySummaryInputValidator(
 					workflowValidator,
 					_request)),
 			new (requiresUserInput: true,
-				userInputValidator: new ConfirmDeliveryWorkflowInputValidatorViewModel(
+				userInputValidator: new ConfirmDeliveryInputValidator(
 					workflowValidator)),
 			// Accept Terms of service
 			new (false,
-				new DefaultWorkflowInputValidatorViewModel(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"To continue please accept Privacy Policy: {termsOfServiceUrl}")),
 			new (requiresUserInput: true,
-				userInputValidator: new ConfirmTosWorkflowInputValidatorViewModel(
+				userInputValidator: new ConfirmTosInputValidator(
 					workflowValidator,
 					_request,
 					new LinkViewModel
@@ -115,12 +115,12 @@ public partial class DeliveryWorkflowViewModel : WorkflowViewModel
 					"BUY NOW")),
 			// Final
 			new (false,
-				new NoInputWorkflowInputValidatorViewModel(
+				new NoInputInputValidator(
 					workflowValidator,
 					"Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions.")),
 			// T&C link
 			new(false,
-				new NoInputWorkflowInputValidatorViewModel(
+				new NoInputInputValidator(
 					workflowValidator,
 					"www.termsandconditions.com"))
 		};

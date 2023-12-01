@@ -2,11 +2,11 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class StateWorkflowInputValidatorViewModel : TextInputWorkflowInputValidatorViewModel
+public partial class PostalCodeInputValidator : TextInputInputValidator
 {
 	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 
-	public StateWorkflowInputValidatorViewModel(
+	public PostalCodeInputValidator(
 		IWorkflowValidator workflowValidator,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
 		: base(workflowValidator, null, "Type here...")
@@ -29,7 +29,7 @@ public partial class StateWorkflowInputValidatorViewModel : TextInputWorkflowInp
 		{
 			var message = Message;
 
-			_deliveryWorkflowRequest.State = message;
+			_deliveryWorkflowRequest.PostalCode = message;
 
 			return message;
 		}

@@ -2,13 +2,13 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public abstract partial class WorkflowInputValidatorViewModel : ReactiveObject
+public abstract partial class InputValidator : ReactiveObject
 {
 	[AutoNotify] private string? _message;
 	[AutoNotify] private string? _watermark;
 	[AutoNotify] private string? _content;
 
-	protected WorkflowInputValidatorViewModel(
+	protected InputValidator(
 		IWorkflowValidator workflowValidator,
 		string? message,
 		string? watermark,

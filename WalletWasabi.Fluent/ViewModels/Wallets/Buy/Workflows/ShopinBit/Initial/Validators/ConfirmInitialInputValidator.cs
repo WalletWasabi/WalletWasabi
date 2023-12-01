@@ -1,8 +1,8 @@
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class ConfirmInitialWorkflowInputValidatorViewModel : WorkflowInputValidatorViewModel
+public partial class ConfirmInitialInputValidator : InputValidator
 {
-	public ConfirmInitialWorkflowInputValidatorViewModel(
+	public ConfirmInitialInputValidator(
 		IWorkflowValidator workflowValidator)
 		: base(workflowValidator, null, null, "Confirm")
 	{

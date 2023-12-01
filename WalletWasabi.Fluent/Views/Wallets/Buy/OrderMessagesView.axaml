@@ -55,7 +55,7 @@
           </ContentControl.Styles>
           <ContentControl.DataTemplates>
 
-            <DataTemplate DataType="shopinBit:TextInputWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:TextInputInputValidator">
               <TextBox VerticalAlignment="Center"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
@@ -70,7 +70,7 @@
               </TextBox>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:DefaultWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:DefaultInputValidator">
                 <TextBox VerticalAlignment="Center"
                          Text="{Binding Message}"
                          Watermark="{Binding Watermark}">
@@ -85,7 +85,7 @@
                 </TextBox>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:NoInputWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:NoInputInputValidator">
               <TextBox VerticalAlignment="Center"
                        Text=""
                        Watermark=""
@@ -101,7 +101,7 @@
               </TextBox>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyInputValidator">
               <StackPanel Orientation="Horizontal">
                 <CheckBox VerticalAlignment="Center"
                           IsChecked="{Binding HasAcceptedPrivacyPolicy}"
@@ -115,7 +115,7 @@
               </StackPanel>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:ConfirmTosWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:ConfirmTosInputValidator">
               <StackPanel Orientation="Horizontal">
                 <CheckBox VerticalAlignment="Center"
                           IsChecked="{Binding HasAcceptedTermsOfService}"
@@ -129,23 +129,23 @@
               </StackPanel>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:ConfirmInitialWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:ConfirmInitialInputValidator">
               <Panel />
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:ConfirmDeliveryWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:ConfirmDeliveryInputValidator">
               <Panel />
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:PaymentWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:PaymentInputValidator">
               <Panel />
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:PackageWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:PackageInputValidator">
               <Panel />
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:RequestWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:RequestInputValidator">
               <TextBox VerticalAlignment="Center"
                        Text="{Binding Message}"
                        Watermark="{Binding Watermark}">
@@ -160,7 +160,7 @@
               </TextBox>
             </DataTemplate>
 
-            <DataTemplate DataType="shopinBit:LocationWorkflowInputValidatorViewModel">
+            <DataTemplate DataType="shopinBit:LocationInputValidator">
               <c:TagsBox VerticalAlignment="Center"
                          RestrictInputToSuggestions="True"
                          SuggestionsAreCaseSensitive="False"
