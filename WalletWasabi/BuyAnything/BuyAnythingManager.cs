@@ -49,19 +49,24 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in Conversations.Where(c => c.Conversation.IsUpdatable()))
+		foreach (var track in Conversations.Where(c => c is not null && c.Conversation.IsUpdatable()))
 		{
-			// Check if the order state has changed and update the conversation status
+			// Check if the order state has changed and update the conversation status.
 			var orders = await Client
 				.GetOrdersUpdateSinceAsync(track.Credential, cancel)
+				.ConfigureAwait(false);
+
+			// Get full customer profile to get updated messages.
+			var customerProfileResponse = await Client
+				.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
 				.ConfigureAwait(false);
 
 			// There is only one order per customer  and that's why we request all the orders
 			// but with only expect to get one.
 			var order = orders.Single();
 
-			var customer = order.OrderCustomer;
-			var fullConversation = customer.CustomFields.Wallet_Chat_Store;
+			var customer = customerProfileResponse;
+			var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
 			var messages = Parse(fullConversation).ToArray();
 			if (messages.Length > track.Conversation.Messages.Length)
 			{
