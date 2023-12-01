@@ -90,7 +90,7 @@ public class BuyAnythingManager : PeriodicRunner
 			};
 
 			// The status changed.
-			if (orderStatus != track.Conversation.OrderStatus)
+			if ( orderStatus != track.Conversation.OrderStatus)
 			{
 				// The status changes to "In Progress" after the user paid
 				if (orderStatus == OrderStatus.InProgress)
@@ -106,39 +106,39 @@ public class BuyAnythingManager : PeriodicRunner
 				}
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
-					 && orderCustomFields.Concierge_Request_Status_State == "OFFER")
+			         && orderCustomFields.Concierge_Request_Status_State == "OFFER")
 			{
-				if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted  /* && order.BtcPayLink != "" */)
+				// This means that in "lineItems" we have the offer data
+				var offerMessages = ConvertOfferDetailToChatMessages(order);
+				track.Conversation = track.Conversation with
 				{
-					var bip21 = "bitcoin:blahblah"; // order.BtcPayLink;
-					track.Conversation = track.Conversation with
-					{
-						Messages = track.Conversation.Messages.Append(new ChatMessage(false, $"Pay to: {bip21}")).ToArray(),
-						ConversationStatus = ConversationStatus.InvoiceReceived
-					};
-					ConversationUpdated.SafeInvoke(this,
-						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
-				}
-				else
+					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+					ConversationStatus = ConversationStatus.OfferReceived
+				};
+				ConversationUpdated.SafeInvoke(this,
+					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+			}
+			else if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted)
+			{
+				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
+				var offerMessages = new List<ChatMessage>();
+				if (!string.IsNullOrWhiteSpace(attachedLink))
 				{
-					// This means that in "lineItems" we have the offer data
-					var offerMessages = ConvertOfferDetailToChatMessages(order);
-					track.Conversation = track.Conversation with
-					{
-						Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
-						ConversationStatus = ConversationStatus.OfferReceived
-					};
-					ConversationUpdated.SafeInvoke(this,
-						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+					offerMessages.Add(new ChatMessage(false, $"Check the attached file: {attachedLink}"));
 				}
+				var bip21 = orderCustomFields.Btcpay_PaymentLink;
+
+				offerMessages.Add(new ChatMessage(false, $"Pay to: {bip21}"));
+
+				track.Conversation = track.Conversation with
+				{
+					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+					ConversationStatus = ConversationStatus.InvoiceReceived
+				};
+				ConversationUpdated.SafeInvoke(this,
+					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
 			}
 
-			track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
-			track.Conversation = track.Conversation with
-			{
-				OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
-			};
-			ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
 			return true;
 		}
 		return false;
@@ -292,7 +292,7 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		foreach (var lineItem in order.LineItems)
 		{
-			var message = $"{lineItem.Quantity} x {lineItem.Label} price: {lineItem.UnitPrice}";
+			var message = $"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}";
 			yield return new ChatMessage(false, message);
 		}
 	}

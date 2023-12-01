@@ -115,13 +115,18 @@ public class ShopWareApiClientTests
 		using BuyAnythingManager bam = new(Common.DataDir, TimeSpan.FromSeconds(5), bac);
 
 		await bam.StartAsync(CancellationToken.None);
-
+		await Task.Delay(TimeSpan.FromSeconds(1));
+		var conversations = await bam.GetConversationsAsync("1", CancellationToken.None);
+		var conversation = conversations.Last();
+		var countries = await bam.GetCountriesAsync(CancellationToken.None);
+		var argentina = countries.First(c => c.Name == "Argentina");
+		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", argentina.Id, CancellationToken.None);
 		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
 		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 
 		// By puting a while true here, you can test changes constantly periodically every 5 seconds.
 		// while(true){
-		await Task.Delay(1000);
+		await Task.Delay(1000000);
 		// }
 	}
 
