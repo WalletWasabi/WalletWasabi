@@ -73,6 +73,22 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	public IObservable<ConversationId> UpdateTrigger { get; }
 
+	public void Activate(CompositeDisposable disposable)
+	{
+		Task.Run(async () =>
+		{
+			await InitializeCountries(_cts.Token);
+
+			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
+#if true
+			Demo(_cts.Token);
+#else
+			await InitializeOrdersAsync(_cts.Token);
+#endif
+			SelectedOrder = _orders.FirstOrDefault();
+		}, _cts.Token);
+	}
+
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(inHistory, disposables);
@@ -88,20 +104,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				}, _cts.Token);
 			})
 			.DisposeWith(disposables);
-
-		// TODO:
-		Task.Run(async () =>
-		{
-			await InitializeCountries(_cts.Token);
-
-			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
-#if true
-			Demo(_cts.Token);
-#else
-			await InitializeOrdersAsync(_cts.Token);
-#endif
-			SelectedOrder = _orders.FirstOrDefault();
-		}, _cts.Token);
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)

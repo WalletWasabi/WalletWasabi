@@ -254,6 +254,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => this.RaisePropertyChanged(nameof(WalletState)))
 			.DisposeWith(disposables);
+
+		BuyViewModel.Activate(disposables);
 	}
 
 	public static WalletViewModel Create(UiContext uiContext, WalletPageViewModel parent)
