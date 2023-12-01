@@ -49,7 +49,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in Conversations.Where(c => c.IsUpdatable))
+		foreach (var track in Conversations.Where(c => c.Conversation.IsUpdatable()))
 		{
 			// Check if the order state has changed and update the conversation status
 			var orders = await Client
@@ -102,6 +102,14 @@ public class BuyAnythingManager : PeriodicRunner
 			.Where(c => c.Conversation.Id.WalletId == walletId)
 			.Select(c => c.Conversation)
 			.ToArray();
+	}
+
+	public async Task<Conversation> GetConversationsByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		return Conversations
+			.First(c => c.Conversation.Id == conversationId)
+			.Conversation;
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
