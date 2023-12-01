@@ -14,13 +14,12 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <c:QuestionControl.IconContent>
-        <Viewbox MaxHeight="150" Margin="40">
+        <Viewbox MaxHeight="100" Margin="0 0 0 20">
           <PathIcon Data="{StaticResource delete_regular}" Opacity="0.6" />
         </Viewbox>
       </c:QuestionControl.IconContent>
       <StackPanel Spacing="10">
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Do you wish to delete this order?" />
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="This can not be undone." />
       </StackPanel>
     </c:QuestionControl>
   </c:ContentArea>
