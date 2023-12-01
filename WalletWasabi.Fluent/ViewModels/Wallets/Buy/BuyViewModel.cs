@@ -15,7 +15,7 @@ using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using WalletWasabi.WebClients.BuyAnything;
+using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -80,10 +80,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			await InitializeCountries(_cts.Token);
 
 			// TODO: Run Demo() for testing UI otherwise InitializeOrdersAsync(...)
-#if true
+#if false
 			Demo(_cts.Token);
 #else
-			await InitializeOrdersAsync(_cts.Token);
+			await InitializeOrdersAsync(_cts.Token, disposable);
 #endif
 			SelectedOrder = _orders.FirstOrDefault();
 		}, _cts.Token);
@@ -119,7 +119,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		}
 	}
 
-	private async Task InitializeOrdersAsync(CancellationToken cancellationToken)
+	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
 	{
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
@@ -128,9 +128,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 			if (_orders.Count == 0)
 			{
-				var walletId = BuyAnythingManager.GetWalletId(_wallet);
-				await buyAnythingManager.StartNewConversationAsync(walletId, BuyAnythingClient.Product.ConciergeRequest, "Hello World", cancellationToken);
-				await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
+				CreateAndAddEmptyOrder(_cts.Token);
 			}
 
 			Observable
@@ -145,9 +143,19 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					// e.ChatMessages
 					// TODO: Update the conversations.
 
+					// The conversation belongs to the "fake" empty conversation
+					if (Orders.All(x => x.Id != e.Conversation.Id))
+					{
+						// Update the fake conversation ID because now we have a valid one.
+						// After updating the ID we can now create a new "fake" conversation.
+						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
+						CreateAndAddEmptyOrder(_cts.Token);
+					}
+
 					// Notify that conversation updated.
 					_updateTriggerSubject.OnNext(e.Conversation.Id);
-				});
+				})
+				.DisposeWith(disposable);
 		}
 	}
 
@@ -222,27 +230,45 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return order;
 	}
 
+	private void CreateAndAddEmptyOrder(CancellationToken cancellationToken)
+	{
+		var walletId = BuyAnythingManager.GetWalletId(_wallet);
+		var nextOrderIndex = Orders.Count + 1;
+
+		var order = new OrderViewModel(
+			UiContext,
+			new ConversationId(walletId, "", ""),
+			$"Order {nextOrderIndex}",
+			new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+			this,
+			cancellationToken);
+
+		_ordersCache.AddOrUpdate(order);
+	}
+
 	private void Demo(CancellationToken cancellationToken)
 	{
+		var walletId = BuyAnythingManager.GetWalletId(_wallet);
+
 		var demoOrders = new[]
 		{
 			new OrderViewModel(
 				UiContext,
-				new ConversationId("1", "", ""),
+				new ConversationId(walletId, "a", "a"),
 				"Order 1",
 				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
 				this,
 				cancellationToken),
 			new OrderViewModel(
 				UiContext,
-				new ConversationId("2", "", ""),
+				new ConversationId(walletId, "b", "b"),
 				"Order 2",
 				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
 				this,
 				cancellationToken),
 			new OrderViewModel(
 				UiContext,
-				new ConversationId("3", "", ""),
+				new ConversationId(walletId, "c", "d"),
 				"Order 3",
 				new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
 				this,
