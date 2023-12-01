@@ -2,6 +2,7 @@ namespace WalletWasabi.WebClients.ShopWare.Models;
 
 public record OrderGenerationResponse
 (
+	string Id,
 	string OrderNumber
 );
 
@@ -23,8 +24,11 @@ public record Order
 	StateMachineState StateMachineState,
 	string OrderNumber,
 	OrderCustomer OrderCustomer,
+	LineItem[] LineItems,
 	string Id
 );
+
+public record LineItem(float Quantity, string Description, float Price); // TODO: make it real
 
 public record OrderCustomer
 (

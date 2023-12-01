@@ -12,6 +12,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
 
@@ -51,52 +52,108 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in Conversations.Where(c => c is not null && c.Conversation.IsUpdatable()))
 		{
+			// Check if there is new info in the chat
+			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
+
 			// Check if the order state has changed and update the conversation status.
-			var orders = await Client
-				.GetOrdersUpdateSinceAsync(track.Credential, cancel)
-				.ConfigureAwait(false);
+			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+		}
+	}
 
-			// Get full customer profile to get updated messages.
-			var customerProfileResponse = await Client
-				.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
-				.ConfigureAwait(false);
+	private async Task CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		var orders = await Client
+			.GetOrdersUpdateAsync(track.Credential, cancel)
+			.ConfigureAwait(false);
 
-			// There is only one order per customer  and that's why we request all the orders
-			// but with only expect to get one.
-			var order = orders.Single();
+		// There is only one order per customer  and that's why we request all the orders
+		// but with only expect to get one.
+		var order = orders.Single();
 
-			var customer = customerProfileResponse;
-			var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
-			var messages = Parse(fullConversation).ToArray();
-			if (messages.Length > track.Conversation.Messages.Length)
+		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
+		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
+		{
+			// Update the conversation status according to the order state
+			var orderStatus = order.StateMachineState.Name switch
 			{
-				track.Conversation = track.Conversation with
+				"Open" => OrderStatus.Open,
+				"In Progress" => OrderStatus.InProgress,
+				"Cancelled" => OrderStatus.Cancelled,
+				"Done" => OrderStatus.Done,
+				_ => track.Conversation.OrderStatus
+			};
+
+			// The status changed.
+			if (orderStatus != track.Conversation.OrderStatus)
+			{
+				// The status changes to "In Progress" after the user paid
+				if (orderStatus == OrderStatus.InProgress)
 				{
-					Messages = messages.ToArray(),
-				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
+					track.Conversation = track.Conversation with
+					{
+						Messages =
+						track.Conversation.Messages.Append(new ChatMessage(false, "Payment confirmed")).ToArray(),
+						ConversationStatus = ConversationStatus.PaymentConfirmed
+					};
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				}
+			}
+			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
+			         /* && order.CustomFields.concierge_request_status_state == "OFFER" */)
+			{
+				if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted  /* && order.BtcPayLink != "" */)
+				{
+					var bip21 = "bitcoin:blahblah"; // order.BtcPayLink;
+					track.Conversation = track.Conversation with
+					{
+						Messages = track.Conversation.Messages.Append(new ChatMessage(false, $"Pay to: {bip21}")).ToArray(),
+						ConversationStatus = ConversationStatus.InvoiceReceived
+					};
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				}
+				else
+				{
+					// This means that in "lineItems" we have the offer data
+					var offerMessages = ConvertOfferDetailToChatMessages(order);
+					track.Conversation = track.Conversation with
+					{
+						Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
+						ConversationStatus = ConversationStatus.OfferReceived
+					};
+					ConversationUpdated.SafeInvoke(this,
+						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				}
 			}
 
-			// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
-			if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
+			track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
+			track.Conversation = track.Conversation with
 			{
-				// Update the conversation status according to the order state
-				// TODO: Verify if the state machine is values match reality
-				var status = order.StateMachineState.Name switch
-				{
-					"Cancelled" => ConversationStatus.Cancelled,
-					"Done" => ConversationStatus.Finished,
-					"In Progress" => ConversationStatus.WaitingForUpdates,
-					_ => track.Conversation.Status
-				};
+				OrderStatus = orderStatus != track.Conversation.OrderStatus ? orderStatus : track.Conversation.OrderStatus
+			};
+			ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
+		}
+	}
 
-				track.LastUpdate = order.UpdatedAt ?? DateTimeOffset.Now;
-				track.Conversation = track.Conversation with
-				{
-					Status = status != track.Conversation.Status ? status : track.Conversation.Status
-				};
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, track.LastUpdate));
-			}
+	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	{
+		// Get full customer profile to get updated messages.
+		var customerProfileResponse = await Client
+			.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
+			.ConfigureAwait(false);
+
+		var customer = customerProfileResponse;
+		var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
+		var messages = Parse(fullConversation).ToArray();
+		if (messages.Length > track.Conversation.Messages.Length)
+		{
+			track.Conversation = track.Conversation with
+			{
+				Messages = messages.ToArray(),
+			};
+			ConversationUpdated.SafeInvoke(this,
+				new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
 		}
 	}
 
@@ -120,7 +177,13 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		var removedCount = Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		if (removedCount > 0)
+		{
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		return removedCount;
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
@@ -134,13 +197,14 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
 		var credential = GenerateRandomCredential();
-		await Client.CreateNewConversationAsync(credential.UserName, credential.Password, product, message, cancellationToken)
+		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
-				new ConversationId(walletId, credential.UserName, credential.Password),
+				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
 				new[] { new ChatMessage(true, message) },
+				OrderStatus.Open,
 				ConversationStatus.Started,
 				new object())));
 
@@ -156,7 +220,6 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				Messages = track.Conversation.Messages.Append(new ChatMessage(true, newMessage)).ToArray(),
 				Metadata = metadata,
-				Status = ConversationStatus.WaitingForUpdates
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
@@ -207,6 +270,15 @@ public class BuyAnythingManager : PeriodicRunner
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
+
+	private static IEnumerable<ChatMessage> ConvertOfferDetailToChatMessages(Order order)
+	{
+		foreach (var lineItem in order.LineItems)
+		{
+			var message = $"{lineItem.Quantity} x {lineItem.Description} price: {lineItem.Price}";
+			yield return new ChatMessage(false, message) ;
+		}
+	}
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
