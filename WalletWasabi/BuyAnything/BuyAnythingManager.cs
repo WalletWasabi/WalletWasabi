@@ -243,6 +243,8 @@ public class BuyAnythingManager : PeriodicRunner
 				ConversationStatus = ConversationStatus.OfferAccepted
 			};
 			track.LastUpdate = DateTimeOffset.Now;
+
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
