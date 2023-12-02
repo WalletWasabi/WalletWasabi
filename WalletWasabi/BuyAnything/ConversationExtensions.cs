@@ -18,7 +18,7 @@ public static class ConversationExtensions
 		ConversationStatus newStatus) =>
 		conversation with
 		{
-			Messages = conversation.Messages.Concat(messages.Select(m => new ChatMessage(false, m))).ToArray(),
+			ChatMessages = conversation.ChatMessages.AddRangeSentMessages(messages),
 			ConversationStatus = newStatus
 		};
 }

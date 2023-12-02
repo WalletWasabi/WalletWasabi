@@ -160,7 +160,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var orderMessages = new List<MessageViewModel>();
 
-		foreach (var message in conversation.Messages)
+		foreach (var message in conversation.ChatMessages)
 		{
 			if (message.IsMyMessage)
 			{

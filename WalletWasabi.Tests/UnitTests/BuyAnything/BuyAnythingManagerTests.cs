@@ -51,26 +51,26 @@ public class BuyAnythingManagerTests
 		await buyAnythingManager.StartNewConversationAsync("walletID", BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
 		var conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		var conversation = Assert.Single(conversations);
-		var message = Assert.Single(conversation.Messages);
+		var message = Assert.Single(conversation.ChatMessages);
 		Assert.Equal("Hi, I want to buy this", message.Message);
 
 		await buyAnythingManager.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 
 		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		conversation = Assert.Single(conversations);
-		var reply = Assert.Single(conversation.Messages, m => !m.IsMyMessage);
+		var reply = Assert.Single(conversation.ChatMessages, m => !m.IsMyMessage);
 		Assert.Equal("Bye", reply.Message);
 
 		await buyAnythingManager.UpdateConversationAsync(conversation.Id, "Ok Bye", "metadata", CancellationToken.None);
 		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		conversation = Assert.Single(conversations);
-		Assert.Equal(3, conversation.Messages.Length);
-		var myMessages = conversation.Messages.Where(m => m.IsMyMessage).ToArray();
+		Assert.Equal(3, conversation.ChatMessages.Count);
+		var myMessages = conversation.ChatMessages.Where(m => m.IsMyMessage).ToArray();
 		Assert.Equal("Ok Bye", myMessages[1].Message);
 
 		// Parse testing
 		var conversationString = "||#WASABI#Hi, I want to by this||#SIB#Bye||#WASABI#Ok Bye||";
-		var text = BuyAnythingManager.ConvertToCustomerComment(BuyAnythingManager.Parse(conversationString));
+		var text = Chat.FromText(conversationString).ToText();
 		Assert.Equal(conversationString, text);
 	}
 

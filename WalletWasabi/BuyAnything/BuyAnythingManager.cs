@@ -85,7 +85,7 @@ public class BuyAnythingManager : PeriodicRunner
 					when orderCustomFields.Concierge_Request_Status_State == "OFFER":
 					track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
 						ConvertOfferDetailToMessages(order),
-						order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
+						order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 					break;
 
 				// Once the user accepts the offer, the system generates a bitcoin address and amount
@@ -135,12 +135,12 @@ public class BuyAnythingManager : PeriodicRunner
 
 		var customer = customerProfileResponse;
 		var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
-		var messages = Parse(fullConversation).ToArray();
-		if (messages.Length > track.Conversation.Messages.Length)
+		var messages = Chat.FromText(fullConversation);
+		if (messages.Count > track.Conversation.ChatMessages.Count)
 		{
 			track.Conversation = track.Conversation with
 			{
-				Messages = messages.ToArray(),
+				ChatMessages = messages,
 			};
 			ConversationUpdated.SafeInvoke(this,
 				new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
@@ -195,7 +195,7 @@ public class BuyAnythingManager : PeriodicRunner
 		Conversations.Add(new ConversationUpdateTrack(
 			new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-				new[] { new ChatMessage(true, message) },
+				new Chat(new[] { new ChatMessage(true, message) }),
 				OrderStatus.Open,
 				ConversationStatus.Started,
 				new object())));
@@ -210,12 +210,12 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			track.Conversation = track.Conversation with
 			{
-				Messages = track.Conversation.Messages.Append(new ChatMessage(true, newMessage)).ToArray(),
+				ChatMessages = track.Conversation.ChatMessages.AddSentMessage(newMessage),
 				Metadata = metadata,
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 
-			var rawText = ConvertToCustomerComment(track.Conversation.Messages);
+			var rawText = track.Conversation.ChatMessages.ToText();
 			await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
 
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -232,46 +232,13 @@ public class BuyAnythingManager : PeriodicRunner
 			await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
 			track.Conversation = track.Conversation with
 			{
-				Messages = track.Conversation.Messages.Append(new ChatMessage(true, "Offer accepted")).ToArray(),
+				ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted"),
 				ConversationStatus = ConversationStatus.OfferAccepted
 			};
 			track.LastUpdate = DateTimeOffset.Now;
 		}
 	}
 
-	public static IEnumerable<ChatMessage> Parse(string customerComment)
-	{
-		var messages = customerComment.Split("||", StringSplitOptions.RemoveEmptyEntries);
-
-		foreach (var message in messages)
-		{
-			var items = message.Split("#", StringSplitOptions.RemoveEmptyEntries);
-
-			if (items.Length != 2)
-			{
-				yield break;
-			}
-
-			var isMine = items[0] == "WASABI";
-			var text = EnsureProperRawMessage(items[1]);
-			yield return new ChatMessage(isMine, text);
-		}
-	}
-
-	public static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
-	{
-		StringBuilder result = new();
-
-		foreach (var chatMessage in cleanChatMessages)
-		{
-			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
-		}
-
-		result.Append("||");
-
-		return result.ToString();
-	}
 
 	private static OrderStatus GetOrderStatus(Order order)
 	{
@@ -354,11 +321,4 @@ public class BuyAnythingManager : PeriodicRunner
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
 
-	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
-	private static string EnsureProperRawMessage(string message)
-	{
-		message = message.Replace("||", " ");
-		message = message.Replace('#', '-');
-		return message;
-	}
 }
