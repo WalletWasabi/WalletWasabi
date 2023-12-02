@@ -119,7 +119,17 @@ public class BuyAnythingManager : PeriodicRunner
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
-			}
+			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
+			//case ConversationStatus.PaymentConfirmed
+				//when shipping status is SHIPPED:
+				//var trackingLink = order.Deliveries.TrackingCodes;
+				//if (!string.IsNullOrWhiteSpace(trackingLink))
+				//{
+				//	track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+				//		new[] {$"Tracking link: {trackingLink}"},
+				//		order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+				//}
+				//break;
 		}
 	}
 
