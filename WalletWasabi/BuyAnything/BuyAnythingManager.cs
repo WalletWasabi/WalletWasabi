@@ -100,7 +100,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 					var bip21 = orderCustomFields.Btcpay_PaymentLink;
 
-					offerMessages.Add($"Pay to: {bip21}");
+					offerMessages.Add($"Pay to: {bip21}. The invoice expires in 10 minutes.");
 
 					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
 						order.UpdatedAt,
