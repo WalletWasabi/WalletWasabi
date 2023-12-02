@@ -50,22 +50,17 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in Conversations.Where(c => c is not null && c.Conversation.IsUpdatable()))
+		foreach (var track in Conversations.Where(c => c.Conversation.IsUpdatable()))
 		{
 			// Check if there is new info in the chat
-			bool chatUpdated = await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
+			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
 
 			// Check if the order state has changed and update the conversation status.
-			bool orderUpdated = await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
-
-			if (chatUpdated || orderUpdated)
-			{
-				await SaveAsync(cancel).ConfigureAwait(false);
-			}
+			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
 		}
 	}
 
-	private async Task<bool> CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	private async Task CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
 		var orders = await Client
 			.GetOrdersUpdateAsync(track.Credential, cancel)
@@ -80,14 +75,7 @@ public class BuyAnythingManager : PeriodicRunner
 		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
 		{
 			// Update the conversation status according to the order state
-			var orderStatus = order.StateMachineState.Name switch
-			{
-				"Open" => OrderStatus.Open,
-				"In Progress" => OrderStatus.InProgress,
-				"Cancelled" => OrderStatus.Cancelled,
-				"Done" => OrderStatus.Done,
-				_ => track.Conversation.OrderStatus
-			};
+			var orderStatus = GetOrderStatus(order);
 
 			// The status changed.
 			if ( orderStatus != track.Conversation.OrderStatus)
@@ -95,16 +83,17 @@ public class BuyAnythingManager : PeriodicRunner
 				// The status changes to "In Progress" after the user paid
 				if (orderStatus == OrderStatus.InProgress)
 				{
-					track.Conversation = SendSystemChatLines(track.Conversation, new[] {"Payment confirmed"},
-						order.UpdatedAt, ConversationStatus.PaymentConfirmed);
+					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
+						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				}
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
 			         && orderCustomFields.Concierge_Request_Status_State == "OFFER")
 			{
 				// This means that in "lineItems" we have the offer data
-				track.Conversation = SendSystemChatLines(track.Conversation, ConvertOfferDetailToMessages(order),
-					order.UpdatedAt, ConversationStatus.OfferAccepted);
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+					ConvertOfferDetailToMessages(order),
+					order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted)
 			{
@@ -118,16 +107,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 				offerMessages.Add( $"Pay to: {bip21}");
 
-				track.Conversation = SendSystemChatLines(track.Conversation, offerMessages, order.UpdatedAt,
-					ConversationStatus.InvoiceReceived);
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages, order.UpdatedAt,
+					ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 			}
-
-			return true;
 		}
-		return false;
 	}
 
-	private async Task<bool> CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
+	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
 		// Get full customer profile to get updated messages.
 		var customerProfileResponse = await Client
@@ -145,9 +131,9 @@ public class BuyAnythingManager : PeriodicRunner
 			};
 			ConversationUpdated.SafeInvoke(this,
 				new ConversationUpdateEvent(track.Conversation, customer.UpdatedAt ?? DateTimeOffset.Now));
-			return true;
+
+			await SaveAsync(cancel).ConfigureAwait(false);
 		}
-		return false;
 	}
 
 	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
@@ -274,10 +260,24 @@ public class BuyAnythingManager : PeriodicRunner
 		return result.ToString();
 	}
 
-	private Conversation SendSystemChatLines(Conversation conversation, IEnumerable<string> messages, DateTimeOffset? updatedAt, ConversationStatus newStatus)
+	private static OrderStatus GetOrderStatus(Order order)
+	{
+		var orderStatus = order.StateMachineState.Name switch
+		{
+			"Open" => OrderStatus.Open,
+			"In Progress" => OrderStatus.InProgress,
+			"Cancelled" => OrderStatus.Cancelled,
+			"Done" => OrderStatus.Done,
+			_ => throw new ArgumentException($"Unexpected {order.StateMachineState.Name} status.")
+		};
+		return orderStatus;
+	}
+
+	private async Task<Conversation> SendSystemChatLinesAsync(Conversation conversation, IEnumerable<string> messages, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
 		var updatedConversation = conversation.AddSystemChatLines(messages, newStatus);
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
 		return updatedConversation;
 	}
 	private async Task SaveAsync(CancellationToken cancellationToken)
