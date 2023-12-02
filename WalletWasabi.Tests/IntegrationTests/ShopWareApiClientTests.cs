@@ -38,16 +38,16 @@ public class ShopWareApiClientTests
 
 		var shoppingCart = await shopWareApiClient.GetOrCreateShoppingCartAsync(customer.ContextTokens[0],
 			ShopWareRequestFactory.ShoppingCartCreationRequest("My little shopping cart"), CancellationToken.None);
-		var shoppingCartx = await shopWareApiClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
+		var shoppingCartItemsResponse = await shopWareApiClient.AddItemToShoppingCartAsync(customer.ContextTokens[0],
 			ShopWareRequestFactory.ShoppingCartItemsRequest("018c0cec5299719f9458dba04f88eb8c"), CancellationToken.None);
-		var order = await shopWareApiClient.GenerateOrderAsync(shoppingCartx.Token,
+		var orderResponse = await shopWareApiClient.GenerateOrderAsync(shoppingCartItemsResponse.Token,
 			ShopWareRequestFactory.OrderGenerationRequest(), CancellationToken.None);
-		var orderList = await shopWareApiClient.GetOrderListAsync(shoppingCartx.Token,
+		var orderListResponse = await shopWareApiClient.GetOrderListAsync(shoppingCartItemsResponse.Token,
 			ShopWareRequestFactory.GetOrderListRequest(), CancellationToken.None);
-		var uniqueOrder = Assert.Single(orderList.Orders.Elements);
-		Assert.Equal(uniqueOrder.OrderNumber, order.OrderNumber);
+		var uniqueOrder = Assert.Single(orderListResponse.Orders.Elements);
+		Assert.Equal(uniqueOrder.OrderNumber, orderResponse.OrderNumber);
 
-		var cancelledOrder = await shopWareApiClient.CancelOrderAsync(shoppingCartx.Token,
+		var cancelledOrder = await shopWareApiClient.CancelOrderAsync(shoppingCartItemsResponse.Token,
 			ShopWareRequestFactory.CancelOrderRequest(uniqueOrder.Id), CancellationToken.None);
 
 		Assert.Equal("Cancelled", cancelledOrder.Name);
@@ -85,7 +85,7 @@ public class ShopWareApiClientTests
 		var ogCustomerToken = customer.ContextTokens[0];
 		var ogCustomerId = customer.Id;
 
-		// Login with the new user.
+		// Log in with the new user.
 		var loggedInCustomer = await shopWareApiClient.LoginCustomerAsync("none", ShopWareRequestFactory.CustomerLoginRequest(email, password), CancellationToken.None);
 		Assert.Equal(loggedInCustomer.ContextToken, customer.ContextTokens[0]);
 
@@ -105,7 +105,7 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task GetExistingOrder()
+	public async Task GetExistingOrderAsync()
 	{
 		await using var httpClientFactory = new HttpClientFactory(null, null);
 		var httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
@@ -124,7 +124,7 @@ public class ShopWareApiClientTests
 		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
 		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 
-		// By puting a while true here, you can test changes constantly periodically every 5 seconds.
+		// By putting a while true here, you can test changes constantly periodically every 5 seconds.
 		// while(true){
 		await Task.Delay(1000000);
 		// }
@@ -203,14 +203,16 @@ public class ShopWareApiClientTests
 
 	private PropertyBag CreateRandomCustomer(string message, out string email, out string password)
 	{
+		email = $"{Guid.NewGuid()}@me.com";
+		password = "Password";
+
 		PropertyBag crr = ShopWareRequestFactory.CustomerRegistrationRequest(
 			firstName: "Random",
 			lastName: "Dude Jr.",
-			email: $"{Guid.NewGuid()}@me.com",
-			password: "Password",
+			email: email,
+			password: password,
 			message: message);
-		email = crr["email"].ToString();
-		password = crr["password"].ToString();
+
 		return crr;
 	}
 }
