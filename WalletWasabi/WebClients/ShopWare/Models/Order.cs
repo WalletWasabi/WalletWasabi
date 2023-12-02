@@ -37,7 +37,10 @@ public record OrderCustomFields
 	string Btcpay_PaymentLink,
 	string Btcpay_Destination,
 	string Btcpay_Amount,
-	string Btcpay_Rate
+	string Btcpay_Rate,
+	string BtcpayOrderStatus,
+	bool PaidAfterExpiration,
+	bool Overpaid
 );
 
 public record LineItem

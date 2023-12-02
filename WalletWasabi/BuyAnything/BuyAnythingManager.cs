@@ -114,6 +114,14 @@ public class BuyAnythingManager : PeriodicRunner
 					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
 						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 					break;
+
+				// In case the invoice expires we communicate this fact to the chat
+				case ConversationStatus.InvoiceReceived
+					when orderCustomFields.BtcpayOrderStatus == "invoiceExpired":
+					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Invoice has expired"},
+						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					break;
+
 			}
 		}
 	}
