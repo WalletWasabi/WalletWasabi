@@ -276,6 +276,21 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
+	public static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	{
+		StringBuilder result = new();
+
+		foreach (var chatMessage in cleanChatMessages)
+		{
+			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
+			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
+		}
+
+		result.Append("||");
+
+		return result.ToString();
+	}
+
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
@@ -331,21 +346,6 @@ public class BuyAnythingManager : PeriodicRunner
 						?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
 		Countries.AddRange(countries);
-	}
-
-	public static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
-	{
-		StringBuilder result = new();
-
-		foreach (var chatMessage in cleanChatMessages)
-		{
-			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
-		}
-
-		result.Append("||");
-
-		return result.ToString();
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>

@@ -70,7 +70,7 @@ public class BuyAnythingManagerTests
 
 		// Parse testing
 		var conversationString = "||#WASABI#Hi, I want to by this||#SIB#Bye||#WASABI#Ok Bye||";
-		var text = buyAnythingManager.ConvertToCustomerComment(buyAnythingManager.Parse(conversationString));
+		var text = BuyAnythingManager.ConvertToCustomerComment(BuyAnythingManager.Parse(conversationString));
 		Assert.Equal(conversationString, text);
 	}
 
