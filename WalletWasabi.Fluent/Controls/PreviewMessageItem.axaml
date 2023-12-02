@@ -13,22 +13,27 @@
   <Style Selector="c|PreviewMessageItem">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Background="Transparent">
+        <DockPanel Background="Transparent"
+                   Margin="{TemplateBinding Margin}">
+          <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+                                 ToolTip.Tip="Copy"
+                                 DockPanel.Dock="{TemplateBinding CopyButtonPlacement}"
+                                 Width="30"
+                                 Text="{Binding Path=CopyableContent, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:StringConverters.AsString}}"
+                                 IsVisible="{TemplateBinding IsCopyButtonVisible}"
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Center"/>
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
                     Data="{TemplateBinding Icon}"
                     Opacity="0.5"
                     Margin="0 0 20 0"
                     Foreground="{StaticResource SystemAccentColor}"
-                    DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    DockPanel.Dock="Left"
+                    IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <DockPanel>
             <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
                        Opacity="0.6" />
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
-                                     ToolTip.Tip="Copy"
-                                     DockPanel.Dock="Right" Width="30"
-                                     Text="{Binding Path=CopyableContent, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:StringConverters.AsString}}"
-                                     IsVisible="{TemplateBinding IsCopyButtonVisible}" />
               <Panel>
                 <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                                   ContentTemplate="{TemplateBinding ContentTemplate}"

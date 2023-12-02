@@ -204,45 +204,47 @@
                                Items="{Binding SelectedOrder.Messages}"
                                SelectedItem="{Binding SelectedOrder.SelectedMessage}">
           <SelectingItemsControl.Styles>
-            <Style Selector="ContentPresenter > Border">
-              <Setter Property="Padding" Value="15 10" />
-              <Setter Property="Margin" Value="10 10 10 0" />
+            <Style Selector="ContentPresenter > c|PreviewMessageItem">
+              <Setter Property="Margin" Value="5 5 5 0" />
+            </Style>
+            <Style Selector="ContentPresenter > c|PreviewMessageItem > Border">
               <Setter Property="CornerRadius" Value="10" />
+              <Setter Property="Padding" Value="15 10" />
             </Style>
             <Style Selector="TextBlock">
               <Setter Property="MaxWidth" Value="330" />
               <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
-            <Style Selector="c|PreviewMessageItem">
-              <Setter Property="Margin" Value="0 -4 0 0" />
-            </Style>
           </SelectingItemsControl.Styles>
 
           <SelectingItemsControl.DataTemplates>
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
-              <Border HorizontalAlignment="Right"
-                      Background="{DynamicResource UserMessageBackground}">
-                <c:PreviewMessageItem CopyableContent="{Binding Message}">
-                  <TextBlock Text="{Binding Message}" />
-                </c:PreviewMessageItem>
-              </Border>
+              <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                    CopyButtonPlacement="Left"
+                                    HorizontalAlignment="Right">
+                <Border Background="{DynamicResource UserMessageBackground}">
+                    <TextBlock Text="{Binding Message}" />
+                </Border>
+              </c:PreviewMessageItem>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
-              <Border HorizontalAlignment="Left"
-                      Background="{DynamicResource AssistantMessageBackground}">
-                <c:PreviewMessageItem CopyableContent="{Binding Message}">
-                  <TextBlock Text="{Binding Message}" />
-                </c:PreviewMessageItem>
-              </Border>
+              <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                    CopyButtonPlacement="Right"
+                                    HorizontalAlignment="Left">
+                <Border Background="{DynamicResource AssistantMessageBackground}">
+                    <TextBlock Text="{Binding Message}" />
+                </Border>
+              </c:PreviewMessageItem>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
-              <Border HorizontalAlignment="Left"
-                      Background="{DynamicResource ErrorColor}">
-                <c:PreviewMessageItem CopyableContent="{Binding Message}">
-                  <TextBlock VerticalAlignment="Center"
-                             Text="{Binding Message}" />
-                </c:PreviewMessageItem>
-              </Border>
+              <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                    CopyButtonPlacement="Right"
+                                    HorizontalAlignment="Left">
+                <Border Background="{DynamicResource ErrorColor}">
+                    <TextBlock VerticalAlignment="Center"
+                               Text="{Binding Message}" />
+                </Border>
+              </c:PreviewMessageItem>
             </DataTemplate>
           </SelectingItemsControl.DataTemplates>
         </SelectingItemsControl>

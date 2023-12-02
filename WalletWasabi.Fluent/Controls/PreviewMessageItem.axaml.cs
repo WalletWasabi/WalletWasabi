@@ -34,6 +34,9 @@ public class PreviewMessageItem : ContentControl
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewMessageItem, bool>(nameof(PrivacyModeEnabled));
 
+	public static readonly StyledProperty<Dock> CopyButtonPlacementProperty =
+		AvaloniaProperty.Register<PreviewMessageItem, Dock>(nameof(CopyButtonPlacement), Dock.Right);
+
 	public string Label
 	{
 		get => GetValue(LabelProperty);
@@ -80,6 +83,12 @@ public class PreviewMessageItem : ContentControl
 	{
 		get => GetValue(PrivacyModeEnabledProperty);
 		set => SetValue(PrivacyModeEnabledProperty, value);
+	}
+
+	public Dock CopyButtonPlacement
+	{
+		get => GetValue(CopyButtonPlacementProperty);
+		set => SetValue(CopyButtonPlacementProperty, value);
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
