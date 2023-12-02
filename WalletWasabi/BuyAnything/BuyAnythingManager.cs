@@ -72,55 +72,52 @@ public class BuyAnythingManager : PeriodicRunner
 		var orderCustomFields = order.CustomFields;
 
 		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
-		// FIXME: is this if really necessary????
-		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
+		// Update the conversation status according to the order state
+		var orderStatus = GetOrderStatus(order);
+
+		switch (track.Conversation.ConversationStatus)
 		{
-			// Update the conversation status according to the order state
-			var orderStatus = GetOrderStatus(order);
+			// This means that in "lineItems" we have the offer data
+			case ConversationStatus.Started
+				when orderCustomFields.Concierge_Request_Status_State == "OFFER":
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+					ConvertOfferDetailToMessages(order),
+					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
+				break;
 
-			switch (track.Conversation.ConversationStatus)
+			// Once the user accepts the offer, the system generates a bitcoin address and amount
+			case ConversationStatus.OfferAccepted:
 			{
-				// This means that in "lineItems" we have the offer data
-				case ConversationStatus.Started
-					when orderCustomFields.Concierge_Request_Status_State == "OFFER":
-					track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
-						ConvertOfferDetailToMessages(order),
-						order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
-					break;
-
-				// Once the user accepts the offer, the system generates a bitcoin address and amount
-				case ConversationStatus.OfferAccepted:
+				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
+				var offerMessages = new List<string>();
+				if (!string.IsNullOrWhiteSpace(attachedLink))
 				{
-					var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
-					var offerMessages = new List<string>();
-					if (!string.IsNullOrWhiteSpace(attachedLink))
-					{
-						offerMessages.Add($"Check the attached file: {attachedLink}");
-					}
-
-					var bip21 = orderCustomFields.Btcpay_PaymentLink;
-
-					offerMessages.Add($"Pay to: {bip21}. The invoice expires in 10 minutes.");
-
-					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
-						order.UpdatedAt,
-						ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
-					break;
+					offerMessages.Add($"Check the attached file: {attachedLink}");
 				}
 
-				// The status changes to "In Progress" after the user paid
-				case ConversationStatus.InvoiceReceived
-					when orderStatus == OrderStatus.InProgress && track.Conversation.OrderStatus == OrderStatus.Open:
-					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
-						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
-					break;
+				var bip21 = orderCustomFields.Btcpay_PaymentLink;
 
-				// In case the invoice expires we communicate this fact to the chat
-				case ConversationStatus.InvoiceReceived
-					when orderCustomFields.BtcpayOrderStatus == "invoiceExpired":
-					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Invoice has expired"},
-						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
-					break;
+				offerMessages.Add($"Pay to: {bip21}. The invoice expires in 10 minutes.");
+
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
+					order.UpdatedAt,
+					ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+				break;
+			}
+
+			// The status changes to "In Progress" after the user paid
+			case ConversationStatus.InvoiceReceived
+				when orderStatus == OrderStatus.InProgress && track.Conversation.OrderStatus == OrderStatus.Open:
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
+					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+				break;
+
+			// In case the invoice expires we communicate this fact to the chat
+			case ConversationStatus.InvoiceReceived
+				when orderCustomFields.BtcpayOrderStatus == "invoiceExpired":
+				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Invoice has expired"},
+					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+				break;
 
 			}
 		}

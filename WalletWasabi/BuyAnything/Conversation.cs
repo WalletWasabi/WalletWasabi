@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using Enumerable = System.Linq.Enumerable;
 
 namespace WalletWasabi.BuyAnything;
@@ -31,6 +32,7 @@ public record ConversationId(string WalletId, string EmailAddress, string Passwo
 public record Chat : IReadOnlyCollection<ChatMessage>
 {
 	public static readonly Chat Empty = new(Array.Empty<ChatMessage>());
+	[JsonConstructor]
 	public Chat(IEnumerable<ChatMessage> messages)
 	{
 		_messages = Enumerable.ToArray(messages);
