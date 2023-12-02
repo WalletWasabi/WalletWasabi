@@ -257,7 +257,7 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	public IEnumerable<ChatMessage> Parse(string customerComment)
+	public static IEnumerable<ChatMessage> Parse(string customerComment)
 	{
 		var messages = customerComment.Split("||", StringSplitOptions.RemoveEmptyEntries);
 
@@ -333,7 +333,7 @@ public class BuyAnythingManager : PeriodicRunner
 		Countries.AddRange(countries);
 	}
 
-	public string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
+	public static string ConvertToCustomerComment(IEnumerable<ChatMessage> cleanChatMessages)
 	{
 		StringBuilder result = new();
 
@@ -354,7 +354,7 @@ public class BuyAnythingManager : PeriodicRunner
 			password: RandomString.AlphaNumeric(25));
 
 	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
-	private string EnsureProperRawMessage(string message)
+	private static string EnsureProperRawMessage(string message)
 	{
 		message = message.Replace("||", " ");
 		message = message.Replace('#', '-');
