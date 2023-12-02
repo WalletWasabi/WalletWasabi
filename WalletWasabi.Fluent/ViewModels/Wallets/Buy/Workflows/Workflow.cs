@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -10,6 +11,8 @@ public abstract partial class Workflow : ReactiveObject
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCompleted;
 
 	private int _nextStepIndex = 0;
+
+	public IObservable<bool>? CanEditObservable { get; protected set; }
 
 	public WorkflowStep? PeekNextStep()
 	{
@@ -71,5 +74,15 @@ public abstract partial class Workflow : ReactiveObject
 		return step;
 	}
 
+	public void EditStep(WorkflowStep step)
+	{
+		// TODO:
+	}
+
 	public abstract WorkflowRequest GetResult();
+
+	protected virtual void CreateCanEditObservable()
+	{
+		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
+	}
 }

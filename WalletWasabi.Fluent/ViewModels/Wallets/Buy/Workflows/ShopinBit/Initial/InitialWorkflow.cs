@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class InitialWorkflow : Workflow
+public sealed partial class InitialWorkflow : Workflow
 {
 	private readonly InitialWorkflowRequest _request;
 
@@ -84,6 +84,8 @@ public partial class InitialWorkflow : Workflow
 					workflowValidator,
 					"We've received your request, we will be in touch with you within the next couple of days."))
 		};
+
+		CreateCanEditObservable();
 	}
 
 	public override WorkflowRequest GetResult() => _request;

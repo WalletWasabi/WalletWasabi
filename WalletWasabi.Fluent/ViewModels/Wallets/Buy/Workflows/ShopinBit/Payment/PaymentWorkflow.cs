@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class PaymentWorkflow : Workflow
+public sealed partial class PaymentWorkflow : Workflow
 {
 	private readonly PaymentWorkflowRequest _request;
 
@@ -37,6 +37,8 @@ public partial class PaymentWorkflow : Workflow
 					workflowValidator,
 					"Great news! Your order is complete."))
 		};
+
+		CreateCanEditObservable();
 	}
 
 	public override WorkflowRequest GetResult() => _request;

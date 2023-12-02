@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class DeliveryWorkflow : Workflow
+public sealed partial class DeliveryWorkflow : Workflow
 {
 	private readonly DeliveryWorkflowRequest _request;
 
@@ -124,6 +124,8 @@ public partial class DeliveryWorkflow : Workflow
 					workflowValidator,
 					"www.termsandconditions.com"))
 		};
+
+		CreateCanEditObservable();
 	}
 
 	public override WorkflowRequest GetResult() => _request;

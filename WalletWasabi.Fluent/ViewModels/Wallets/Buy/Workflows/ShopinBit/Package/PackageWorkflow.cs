@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class PackageWorkflow : Workflow
+public sealed partial class PackageWorkflow : Workflow
 {
 	private readonly PackageWorkflowRequest _request;
 
@@ -42,6 +42,8 @@ public partial class PackageWorkflow : Workflow
 					workflowValidator,
 					"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
 		};
+
+		CreateCanEditObservable();
 	}
 
 	public override WorkflowRequest GetResult() => _request;
