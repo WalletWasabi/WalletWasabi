@@ -23,6 +23,22 @@
                                  IsVisible="{TemplateBinding IsCopyButtonVisible}"
                                  VerticalAlignment="Center"
                                  HorizontalAlignment="Center"/>
+          <Button Classes="plain"
+                  ToolTip.Tip="Edit"
+                  Command="{TemplateBinding EditCommand}"
+                  IsVisible="{TemplateBinding IsEditButtonVisible}"
+                  Margin="0 0 10 0"
+                  DockPanel.Dock="{TemplateBinding CopyButtonPlacement}">
+            <Button.Styles>
+              <Style Selector="Button > PathIcon">
+                <Setter Property="Opacity" Value="0.6" />
+              </Style>
+              <Style Selector="Button:pointerover > PathIcon">
+                <Setter Property="Opacity" Value="1.0" />
+              </Style>
+            </Button.Styles>
+            <PathIcon Data="{StaticResource edit_regular}" />
+          </Button>
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
                     Data="{TemplateBinding Icon}"
                     Opacity="0.5"

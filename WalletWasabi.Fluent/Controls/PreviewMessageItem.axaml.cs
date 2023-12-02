@@ -37,6 +37,12 @@ public class PreviewMessageItem : ContentControl
 	public static readonly StyledProperty<Dock> CopyButtonPlacementProperty =
 		AvaloniaProperty.Register<PreviewMessageItem, Dock>(nameof(CopyButtonPlacement), Dock.Right);
 
+	public static readonly StyledProperty<ICommand?> EditCommandProperty =
+		AvaloniaProperty.Register<PreviewMessageItem, ICommand?>(nameof(EditCommand));
+
+	public static readonly StyledProperty<bool> IsEditButtonVisibleProperty =
+		AvaloniaProperty.Register<PreviewMessageItem, bool>(nameof(IsEditButtonVisible));
+
 	public string Label
 	{
 		get => GetValue(LabelProperty);
@@ -89,6 +95,18 @@ public class PreviewMessageItem : ContentControl
 	{
 		get => GetValue(CopyButtonPlacementProperty);
 		set => SetValue(CopyButtonPlacementProperty, value);
+	}
+
+	public ICommand? EditCommand
+	{
+		get => GetValue(EditCommandProperty);
+		set => SetValue(EditCommandProperty, value);
+	}
+
+	public bool IsEditButtonVisible
+	{
+		get => GetValue(IsEditButtonVisibleProperty);
+		set => SetValue(IsEditButtonVisibleProperty, value);
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

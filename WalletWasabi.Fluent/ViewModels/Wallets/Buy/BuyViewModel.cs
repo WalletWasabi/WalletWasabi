@@ -164,7 +164,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		{
 			if (message.IsMyMessage)
 			{
-				var userMessage = new UserMessageViewModel()
+				var userMessage = new UserMessageViewModel(null, null, null)
 				{
 					Message = message.Message,
 					// TODO: Check if message exists
@@ -174,7 +174,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			}
 			else
 			{
-				var userMessage = new AssistantMessageViewModel()
+				var userMessage = new AssistantMessageViewModel(null, null)
 				{
 					Message = message.Message,
 					// TODO: Check if message exists

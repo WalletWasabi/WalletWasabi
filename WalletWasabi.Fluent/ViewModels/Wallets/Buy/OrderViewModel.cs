@@ -115,7 +115,11 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (message is not null)
 			{
-				AddUserMessage(message);
+				AddUserMessage(
+					message,
+					_workflowManager.CurrentWorkflow.EditStepCommand,
+					_workflowManager.CurrentWorkflow.CanEditObservable,
+					_workflowManager.CurrentWorkflow.CurrentStep);
 			}
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
@@ -219,7 +223,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void AddErrorMessage(string message)
 	{
-		var assistantMessage = new ErrorMessageViewModel
+		var assistantMessage = new ErrorMessageViewModel(null, null)
 		{
 			Message = message
 		};
@@ -234,7 +238,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void AddAssistantMessage(string message)
 	{
-		var assistantMessage = new AssistantMessageViewModel
+		var assistantMessage = new AssistantMessageViewModel(null, null)
 		{
 			Message = message
 		};
@@ -247,9 +251,13 @@ public partial class OrderViewModel : ReactiveObject
 		SelectedMessage = assistantMessage;
 	}
 
-	private void AddUserMessage(string message)
+	private void AddUserMessage(
+		string message,
+		ICommand? editCommand,
+		IObservable<bool>? canEditObservable,
+		WorkflowStep? workflowStep)
 	{
-		var userMessage = new UserMessageViewModel
+		var userMessage = new UserMessageViewModel(editCommand, canEditObservable, workflowStep)
 		{
 			Message = message
 		};

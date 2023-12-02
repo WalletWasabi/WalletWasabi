@@ -221,7 +221,9 @@
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
               <c:PreviewMessageItem CopyableContent="{Binding Message}"
                                     CopyButtonPlacement="Left"
-                                    HorizontalAlignment="Right">
+                                    HorizontalAlignment="Right"
+                                    EditCommand="{Binding EditCommand}"
+                                    IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
                 <Border Background="{DynamicResource UserMessageBackground}">
                     <TextBlock Text="{Binding Message}" />
                 </Border>
