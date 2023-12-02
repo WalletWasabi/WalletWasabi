@@ -213,7 +213,7 @@
               <Setter Property="MaxWidth" Value="330" />
               <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
-            <Style Selector="c|PreviewItem">
+            <Style Selector="c|PreviewMessageItem">
               <Setter Property="Margin" Value="0 -4 0 0" />
             </Style>
           </SelectingItemsControl.Styles>
@@ -222,26 +222,26 @@
             <DataTemplate DataType="buyMessage:UserMessageViewModel">
               <Border HorizontalAlignment="Right"
                       Background="{DynamicResource UserMessageBackground}">
-                <c:PreviewItem CopyableContent="{Binding Message}">
+                <c:PreviewMessageItem CopyableContent="{Binding Message}">
                   <TextBlock Text="{Binding Message}" />
-                </c:PreviewItem>
+                </c:PreviewMessageItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
               <Border HorizontalAlignment="Left"
                       Background="{DynamicResource AssistantMessageBackground}">
-                <c:PreviewItem CopyableContent="{Binding Message}">
+                <c:PreviewMessageItem CopyableContent="{Binding Message}">
                   <TextBlock Text="{Binding Message}" />
-                </c:PreviewItem>
+                </c:PreviewMessageItem>
               </Border>
             </DataTemplate>
             <DataTemplate DataType="buyMessage:ErrorMessageViewModel">
               <Border HorizontalAlignment="Left"
                       Background="{DynamicResource ErrorColor}">
-                <c:PreviewItem CopyableContent="{Binding Message}">
+                <c:PreviewMessageItem CopyableContent="{Binding Message}">
                   <TextBlock VerticalAlignment="Center"
                              Text="{Binding Message}" />
-                </c:PreviewItem>
+                </c:PreviewMessageItem>
               </Border>
             </DataTemplate>
           </SelectingItemsControl.DataTemplates>
