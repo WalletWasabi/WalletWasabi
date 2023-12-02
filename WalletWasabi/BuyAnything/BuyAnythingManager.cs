@@ -72,43 +72,48 @@ public class BuyAnythingManager : PeriodicRunner
 		var orderCustomFields = order.CustomFields;
 
 		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
+		// FIXME: is this if really necessary????
 		if (order.UpdatedAt.HasValue && order.UpdatedAt!.Value > track.LastUpdate)
 		{
 			// Update the conversation status according to the order state
 			var orderStatus = GetOrderStatus(order);
 
-			// The status changed.
-			if ( orderStatus != track.Conversation.OrderStatus)
-			{
-				// The status changes to "In Progress" after the user paid
-				if (orderStatus == OrderStatus.InProgress)
-				{
-					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
-						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
-				}
-			}
-			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
-			         && orderCustomFields.Concierge_Request_Status_State == "OFFER")
+			switch (track.Conversation.ConversationStatus)
 			{
 				// This means that in "lineItems" we have the offer data
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
-					ConvertOfferDetailToMessages(order),
-					order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
-			}
-			else if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted)
-			{
-				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
-				var offerMessages = new List<string>();
-				if (!string.IsNullOrWhiteSpace(attachedLink))
+				case ConversationStatus.Started
+					when orderCustomFields.Concierge_Request_Status_State == "OFFER":
+					track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+						ConvertOfferDetailToMessages(order),
+						order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
+					break;
+
+				// Once the user accepts the offer, the system generates a bitcoin address and amount
+				case ConversationStatus.OfferAccepted:
 				{
-					offerMessages.Add( $"Check the attached file: {attachedLink}");
+					var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
+					var offerMessages = new List<string>();
+					if (!string.IsNullOrWhiteSpace(attachedLink))
+					{
+						offerMessages.Add($"Check the attached file: {attachedLink}");
+					}
+
+					var bip21 = orderCustomFields.Btcpay_PaymentLink;
+
+					offerMessages.Add($"Pay to: {bip21}");
+
+					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
+						order.UpdatedAt,
+						ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+					break;
 				}
-				var bip21 = orderCustomFields.Btcpay_PaymentLink;
 
-				offerMessages.Add( $"Pay to: {bip21}");
-
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages, order.UpdatedAt,
-					ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+				// The status changes to "In Progress" after the user paid
+				case ConversationStatus.InvoiceReceived
+					when orderStatus == OrderStatus.InProgress && track.Conversation.OrderStatus == OrderStatus.Open:
+					track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
+						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					break;
 			}
 		}
 	}
