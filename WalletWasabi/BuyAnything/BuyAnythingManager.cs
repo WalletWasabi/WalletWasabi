@@ -95,48 +95,31 @@ public class BuyAnythingManager : PeriodicRunner
 				// The status changes to "In Progress" after the user paid
 				if (orderStatus == OrderStatus.InProgress)
 				{
-					track.Conversation = track.Conversation with
-					{
-						Messages =
-						track.Conversation.Messages.Append(new ChatMessage(false, "Payment confirmed")).ToArray(),
-						ConversationStatus = ConversationStatus.PaymentConfirmed
-					};
-					ConversationUpdated.SafeInvoke(this,
-						new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+					track.Conversation = SendSystemChatLines(track.Conversation, new[] {"Payment confirmed"},
+						order.UpdatedAt, ConversationStatus.PaymentConfirmed);
 				}
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.Started
 			         && orderCustomFields.Concierge_Request_Status_State == "OFFER")
 			{
 				// This means that in "lineItems" we have the offer data
-				var offerMessages = ConvertOfferDetailToChatMessages(order);
-				track.Conversation = track.Conversation with
-				{
-					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
-					ConversationStatus = ConversationStatus.OfferReceived
-				};
-				ConversationUpdated.SafeInvoke(this,
-					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				track.Conversation = SendSystemChatLines(track.Conversation, ConvertOfferDetailToMessages(order),
+					order.UpdatedAt, ConversationStatus.OfferAccepted);
 			}
 			else if (track.Conversation.ConversationStatus == ConversationStatus.OfferAccepted)
 			{
 				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
-				var offerMessages = new List<ChatMessage>();
+				var offerMessages = new List<string>();
 				if (!string.IsNullOrWhiteSpace(attachedLink))
 				{
-					offerMessages.Add(new ChatMessage(false, $"Check the attached file: {attachedLink}"));
+					offerMessages.Add( $"Check the attached file: {attachedLink}");
 				}
 				var bip21 = orderCustomFields.Btcpay_PaymentLink;
 
-				offerMessages.Add(new ChatMessage(false, $"Pay to: {bip21}"));
+				offerMessages.Add( $"Pay to: {bip21}");
 
-				track.Conversation = track.Conversation with
-				{
-					Messages = track.Conversation.Messages.Concat(offerMessages).ToArray(),
-					ConversationStatus = ConversationStatus.InvoiceReceived
-				};
-				ConversationUpdated.SafeInvoke(this,
-					new ConversationUpdateEvent(track.Conversation, order.UpdatedAt ?? DateTimeOffset.Now));
+				track.Conversation = SendSystemChatLines(track.Conversation, offerMessages, order.UpdatedAt,
+					ConversationStatus.InvoiceReceived);
 			}
 
 			return true;
@@ -291,6 +274,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return result.ToString();
 	}
 
+	private Conversation SendSystemChatLines(Conversation conversation, IEnumerable<string> messages, DateTimeOffset? updatedAt, ConversationStatus newStatus)
+	{
+		var updatedConversation = conversation.AddSystemChatLines(messages, newStatus);
+		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
+		return updatedConversation;
+	}
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
@@ -303,12 +292,11 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private static IEnumerable<ChatMessage> ConvertOfferDetailToChatMessages(Order order)
+	private static IEnumerable<string> ConvertOfferDetailToMessages(Order order)
 	{
 		foreach (var lineItem in order.LineItems)
 		{
-			var message = $"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}";
-			yield return new ChatMessage(false, message);
+			yield return $"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}";
 		}
 	}
 

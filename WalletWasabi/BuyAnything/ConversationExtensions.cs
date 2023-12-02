@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace WalletWasabi.BuyAnything;
 
 public static class ConversationExtensions
@@ -9,4 +13,12 @@ public static class ConversationExtensions
 
 	public static bool IsUpdatable(this Conversation conversation) =>
 		conversation.OrderStatus is OrderStatus.Open or OrderStatus.InProgress;
+
+	public static Conversation AddSystemChatLines(this Conversation conversation, IEnumerable<string> messages,
+		ConversationStatus newStatus) =>
+		conversation with
+		{
+			Messages = conversation.Messages.Concat(messages.Select(m => new ChatMessage(false, m))).ToArray(),
+			ConversationStatus = newStatus
+		};
 }
