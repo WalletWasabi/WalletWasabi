@@ -85,6 +85,21 @@
                 </TextBox>
             </DataTemplate>
 
+            <DataTemplate DataType="shopinBit:ChatMessageInputValidator">
+                <TextBox VerticalAlignment="Center"
+                         Text="{Binding Message}"
+                         Watermark="{Binding Watermark}">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                  </i:Interaction.Behaviors>
+                  <TextBox.Styles>
+                    <Style Selector="TextBox /template/ DataValidationErrors">
+                      <Setter Property="IsVisible" Value="False" />
+                    </Style>
+                  </TextBox.Styles>
+                </TextBox>
+            </DataTemplate>
+
             <DataTemplate DataType="shopinBit:NoInputInputValidator">
               <Panel />
             </DataTemplate>
