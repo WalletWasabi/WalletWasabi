@@ -78,8 +78,13 @@ public class BuyAnythingManager : PeriodicRunner
 			.ConfigureAwait(false);
 
 		// There is only one order per customer  and that's why we request all the orders
-		// but with only expect to get one.
-		var order = orders.Single();
+		// but with only expect to get one. However, it could happen that the order was
+		// deleted and then we can have zero orders
+		if (orders.FirstOrDefault() is not {} order)
+		{
+			return;
+		}
+
 		var orderCustomFields = order.CustomFields;
 
 		var serverEvent = GetServerEvent(order, track.Conversation.OrderStatus);
