@@ -86,19 +86,7 @@
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:NoInputInputValidator">
-              <TextBox VerticalAlignment="Center"
-                       Text=""
-                       Watermark=""
-                       IsEnabled="False">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-                </i:Interaction.Behaviors>
-                <TextBox.Styles>
-                  <Style Selector="TextBox /template/ DataValidationErrors">
-                    <Setter Property="IsVisible" Value="False" />
-                  </Style>
-                </TextBox.Styles>
-              </TextBox>
+              <Panel />
             </DataTemplate>
 
             <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyInputValidator">
