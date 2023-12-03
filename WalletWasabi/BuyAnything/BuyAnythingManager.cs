@@ -23,6 +23,15 @@ public record ChatMessage(bool IsMyMessage, string Message);
 
 public record Country(string Id, string Name);
 
+[Flags]
+enum ServerEvent
+{
+	MakeOffer,
+	ConfirmPayment,
+	InvalidateInvoice,
+	ReceiveInvoice
+}
+
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
 {
@@ -71,22 +80,20 @@ public class BuyAnythingManager : PeriodicRunner
 		var order = orders.Single();
 		var orderCustomFields = order.CustomFields;
 
-		// When the custom field in a Customer is updated, the order will not be updated, so this check kinda irrelevant.
-		// Update the conversation status according to the order state
-		var orderStatus = GetOrderStatus(order);
-
+		var serverEvent = GetServerEvent(order, track.Conversation.OrderStatus);
 		switch (track.Conversation.ConversationStatus)
 		{
 			// This means that in "lineItems" we have the offer data
 			case ConversationStatus.Started
-				when orderCustomFields.Concierge_Request_Status_State == "OFFER":
+				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
 					ConvertOfferDetailToMessages(order),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted:
+			case ConversationStatus.OfferAccepted
+				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 			{
 				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
 				var offerMessages = new List<string>();
@@ -96,31 +103,36 @@ public class BuyAnythingManager : PeriodicRunner
 				}
 
 				var bip21 = orderCustomFields.Btcpay_PaymentLink;
-
 				offerMessages.Add($"Pay to: {bip21}. The invoice expires in 10 minutes.");
 
 				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
 					order.UpdatedAt,
 					ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+
 				break;
 			}
 
 			// The status changes to "In Progress" after the user paid
 			case ConversationStatus.InvoiceReceived
-				when orderStatus == OrderStatus.InProgress && track.Conversation.OrderStatus == OrderStatus.Open:
+				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
 				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
-				when orderCustomFields.BtcpayOrderStatus == "invoiceExpired":
+				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
 				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Invoice has expired"},
-					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.InvoiceInvalidated, cancel).ConfigureAwait(false);
+				break;
+
+			case ConversationStatus.InvoiceInvalidated:
+				// now what!?
 				break;
 
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
-			//case ConversationStatus.PaymentConfirmed
+			case ConversationStatus.PaymentConfirmed:
+				break;
 				//when shipping status is SHIPPED:
 				//var trackingLink = order.Deliveries.TrackingCodes;
 				//if (!string.IsNullOrWhiteSpace(trackingLink))
@@ -248,7 +260,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-
 	private static OrderStatus GetOrderStatus(Order order)
 	{
 		var orderStatus = order.StateMachineState.Name switch
@@ -260,6 +271,32 @@ public class BuyAnythingManager : PeriodicRunner
 			_ => throw new ArgumentException($"Unexpected {order.StateMachineState.Name} status.")
 		};
 		return orderStatus;
+	}
+
+	private ServerEvent GetServerEvent(Order order, OrderStatus currentOrderStatus)
+	{
+		ServerEvent events = 0;
+		if (order.CustomFields.Concierge_Request_Status_State == "OFFER")
+		{
+			events |= ServerEvent.MakeOffer;
+		}
+
+		var orderStatus = GetOrderStatus(order);
+		if (orderStatus == OrderStatus.InProgress && currentOrderStatus == OrderStatus.Open)
+		{
+			events |= ServerEvent.ConfirmPayment;
+		}
+
+		if (order.CustomFields.BtcpayOrderStatus == "invoiceExpired")
+		{
+			events |= ServerEvent.InvalidateInvoice;
+		}
+
+		if (!string.IsNullOrWhiteSpace(order.CustomFields.Btcpay_PaymentLink))
+		{
+			events |= ServerEvent.ReceiveInvoice;
+		}
+		return events;
 	}
 
 	private async Task<Conversation> SendSystemChatLinesAsync(Conversation conversation, IEnumerable<string> messages, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
