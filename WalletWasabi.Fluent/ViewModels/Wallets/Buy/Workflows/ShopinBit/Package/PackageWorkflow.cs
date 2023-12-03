@@ -18,27 +18,31 @@ public sealed partial class PackageWorkflow : Workflow
 		{
 			// Download
 			new (false,
-				new PackageInputValidator(
+				new DefaultInputValidator(
 					workflowValidator,
 					"Download your files:")),
 			// Download links
 			new(false,
-				new PackageInputValidator(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"{downloadUrl}")),
 			// Shipping
 			new(false,
-				new PackageInputValidator(
+				new DefaultInputValidator(
 					workflowValidator,
 					"For shipping updates:")),
 			// Shipping link
 			new(false,
-				new PackageInputValidator(
+				new DefaultInputValidator(
 					workflowValidator,
 					$"{trackingUrl}")),
 			// Vanish message
+			// new(false,
+			// 	new PackageInputValidator(
+			// 		workflowValidator,
+			// 		"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
 			new(false,
-				new PackageInputValidator(
+				new NoInputInputValidator(
 					workflowValidator,
 					"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
 		};

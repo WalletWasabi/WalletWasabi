@@ -32,8 +32,12 @@ public sealed partial class PaymentWorkflow : Workflow
 					workflowValidator,
 					"Once your payment is confirmed, we'll initiate the delivery process.")),
 			// TODO: Remove step after implementing backend interaction
+			// new (false,
+			// 	new PaymentInputValidator(
+			// 		workflowValidator,
+			// 		"Great news! Your order is complete.")),
 			new (false,
-				new PaymentInputValidator(
+				new NoInputInputValidator(
 					workflowValidator,
 					"Great news! Your order is complete."))
 		};
