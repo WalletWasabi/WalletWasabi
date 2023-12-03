@@ -17,8 +17,11 @@ public sealed class InitialWorkflowRequest : WorkflowRequest
 	public override string ToMessage()
 	{
 		var sb = new StringBuilder();
-		sb.AppendLine($"Product: {Product}");
-		sb.AppendLine($"Location: {Location}");
+		if (Product is not null)
+		{
+			sb.AppendLine($"Product: {ProductHelper.GetDescription(Product.Value)}");
+		}
+		sb.AppendLine($"Location: {Location?.Name}");
 		sb.AppendLine($"Request: {Request}");
 		sb.AppendLine($"HasAcceptedPrivacyPolicy: {HasAcceptedPrivacyPolicy}");
 		return sb.ToString();

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using ReactiveUI;
 using WalletWasabi.WebClients.BuyAnything;
@@ -23,34 +22,11 @@ public partial class ProductInputValidator : InputValidator
 
 		_productsEnum = Enum.GetValues<BuyAnythingClient.Product>();
 
-		_products = new ObservableCollection<string>(_productsEnum.Select(GetDescription));
+		_products = new ObservableCollection<string>(_productsEnum.Select(ProductHelper.GetDescription));
 		_product = _products.FirstOrDefault();
 
 		this.WhenAnyValue(x => x.Product)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
-	}
-
-	private static string GetDescription(BuyAnythingClient.Product product)
-	{
-		var fieldInfo = product.GetType().GetField(product.ToString());
-		var attribArray = fieldInfo!.GetCustomAttributes(false);
-
-		if (attribArray.Length == 0)
-		{
-			return product.ToString();
-		}
-
-		DescriptionAttribute? attrib = null;
-
-		foreach (var att in attribArray)
-		{
-			if (att is DescriptionAttribute attribute)
-			{
-				attrib = attribute;
-			}
-		}
-
-		return attrib == null ? product.ToString() : attrib.Description;
 	}
 
 	public override bool IsValid()
