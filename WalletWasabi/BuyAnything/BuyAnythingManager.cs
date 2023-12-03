@@ -29,7 +29,8 @@ enum ServerEvent
 	MakeOffer,
 	ConfirmPayment,
 	InvalidateInvoice,
-	ReceiveInvoice
+	ReceiveInvoice,
+	FinishConversation
 }
 
 // Class to manage the conversation updates
@@ -282,9 +283,17 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		var orderStatus = GetOrderStatus(order);
-		if (orderStatus == OrderStatus.InProgress && currentOrderStatus == OrderStatus.Open)
+		if (orderStatus != currentOrderStatus) // the order status changed
 		{
-			events |= ServerEvent.ConfirmPayment;
+			if (orderStatus == OrderStatus.InProgress && currentOrderStatus == OrderStatus.Open)
+			{
+				events |= ServerEvent.ConfirmPayment;
+			}
+
+			if (orderStatus == OrderStatus.Done)
+			{
+				events |= ServerEvent.FinishConversation;
+			}
 		}
 
 		if (order.CustomFields.BtcpayOrderStatus == "invoiceExpired")
