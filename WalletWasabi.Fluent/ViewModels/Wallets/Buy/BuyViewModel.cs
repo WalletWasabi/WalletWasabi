@@ -35,7 +35,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, ConversationId> _ordersCache;
-	private readonly BehaviorSubject<ConversationId> _updateTriggerSubject;
+	private readonly BehaviorSubject<OrderUpdateMessage> _updateTriggerSubject;
 
 	private Country[] _countries;
 
@@ -62,7 +62,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_cts = new CancellationTokenSource();
 
 		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<ConversationId>(ConversationId.Empty);
+		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null));
 
 		UpdateTrigger = _updateTriggerSubject;
 	}
@@ -71,7 +71,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	public WalletViewModel WalletVm { get; }
 
-	public IObservable<ConversationId> UpdateTrigger { get; }
+	public IObservable<OrderUpdateMessage> UpdateTrigger { get; }
 
 	public void Activate(CompositeDisposable disposable)
 	{
@@ -128,9 +128,39 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
-					// e.ConversationId
-					// e.ChatMessages
-					// TODO: Update the conversations.
+					// TODO: Handle ConversationStatus and pass to order view model to handle.
+					switch (e.Conversation.ConversationStatus)
+					{
+						case ConversationStatus.Started:
+							break;
+						case ConversationStatus.OfferReceived:
+							break;
+						case ConversationStatus.PaymentDone:
+							break;
+						case ConversationStatus.PaymentConfirmed:
+							break;
+						case ConversationStatus.OfferAccepted:
+							break;
+						case ConversationStatus.InvoiceReceived:
+							break;
+					}
+
+					// TODO: Handle OrderStatus and pass to order view model to handle.
+					switch (e.Conversation.OrderStatus)
+					{
+						case OrderStatus.Open:
+							break;
+						case OrderStatus.Done:
+							break;
+						case OrderStatus.Cancelled:
+							break;
+						case OrderStatus.InProgress:
+							break;
+					}
+
+					// TODO: Handle e.Conversation.Metadata
+
+					// TODO: Update the order conversations using e.ChatMessages
 
 					// The conversation belongs to the "fake" empty conversation
 					if (Orders.All(x => x.Id != e.Conversation.Id))
@@ -141,8 +171,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						CreateAndAddEmptyOrder(_cts.Token);
 					}
 
+					// TODO: Get the command (if any) form agent message using e.Conversation.ChatMessages (ChatMessage does not have it?)
+					var command = default(string);
+
 					// Notify that conversation updated.
-					_updateTriggerSubject.OnNext(e.Conversation.Id);
+					_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, command));
 				})
 				.DisposeWith(disposable);
 		}

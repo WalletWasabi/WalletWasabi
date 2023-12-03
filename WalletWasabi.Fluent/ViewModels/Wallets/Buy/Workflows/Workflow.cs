@@ -93,4 +93,13 @@ public abstract partial class Workflow : ReactiveObject
 	{
 		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
 	}
+
+	/// <summary>
+	///
+	/// </summary>
+	/// <returns>True if workflow can be canceled.</returns>
+	public virtual bool CanCancel()
+	{
+		return true;
+	}
 }

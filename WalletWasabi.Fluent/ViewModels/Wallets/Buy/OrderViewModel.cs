@@ -22,6 +22,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly UiContext _uiContext;
 	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
+	private readonly CancellationToken _cancellationToken;
 
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
@@ -42,10 +43,11 @@ public partial class OrderViewModel : ReactiveObject
 		_uiContext = uiContext;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
+		_cancellationToken = cancellationToken;
 
 		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
-			await SendAsync(cancellationToken);
+			await SendAsync(_cancellationToken);
 		});
 
 		_messagesList = new SourceList<MessageViewModel>();
@@ -57,18 +59,18 @@ public partial class OrderViewModel : ReactiveObject
 
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
-		_workflowManager.SelectNextWorkflow();
+		_workflowManager.SelectNextWorkflow(null);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync);
 
-		_orderManager.UpdateTrigger.Subscribe(_=> UpdateOrder());
+		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command));
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		UpdateOrder();
+		UpdateOrder(id, null);
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
@@ -88,11 +90,23 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand RemoveOrderCommand { get; }
 
-	private void UpdateOrder()
+	private void UpdateOrder(ConversationId id, string? command)
 	{
-		IsCompleted = _orderManager.IsCompleted(Id);
-		// HasUnreadMessages = _orderManager.HasUnreadMessages(Id);
+		if (id != Id)
+		{
+			return;
+		}
+
+		IsCompleted = _orderManager.IsCompleted(id);
+
+		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
+
 		// TODO: Update messages etc.
+
+		if (command is not null)
+		{
+			SelectNextWorkflow(command);
+		}
 	}
 
 	private async Task SendAsync(CancellationToken cancellationToken)
@@ -124,7 +138,8 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				SelectNextWorkflow();
+				// TODO: Handle agent command.
+				SelectNextWorkflow(null);
 				return;
 			}
 
@@ -159,7 +174,7 @@ public partial class OrderViewModel : ReactiveObject
 				// TODO: Send request to api service.
 				await _workflowManager.SendApiRequestAsync(cancellationToken);
 
-				SelectNextWorkflow();
+				SelectNextWorkflow(null);
 			}
 		}
 		catch (Exception exception)
@@ -173,15 +188,17 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void SelectNextWorkflow()
+	private bool SelectNextWorkflow(string? command)
 	{
 		// TODO: Select next workflow or wait for api service response.
-		_workflowManager.SelectNextWorkflow();
+		_workflowManager.SelectNextWorkflow(command);
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
 		// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
 		RunNoInputWorkflowSteps();
+
+		return true;
 	}
 
 	private void RunNoInputWorkflowSteps()

@@ -102,8 +102,40 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	public void SelectNextWorkflow()
+	private Workflow? GetWorkflowFromCommand(string? command)
 	{
+		// TODO: What we do if current workflow matched command or is ongoing?
+		switch (command)
+		{
+			case "Initial":
+				return new InitialWorkflow(_workflowValidator, _countries);
+			case "Delivery":
+				return new DeliveryWorkflow(_workflowValidator);
+			case "Payment":
+				return new PaymentWorkflow(_workflowValidator);
+			case "Package":
+				return new PackageWorkflow(_workflowValidator);
+			case "SupportChat":
+				return new SupportChatWorkflow();
+			default:
+				return null;
+		}
+	}
+
+	public bool SelectNextWorkflow(string? command)
+	{
+		if (command is not null)
+		{
+			// TODO: Check if we can cancel current workflow.
+			if (_currentWorkflow?.CanCancel() ?? true)
+			{
+				CurrentWorkflow = GetWorkflowFromCommand(command);
+				return true;
+			}
+
+			return false;
+		}
+
 		switch (_currentWorkflow)
 		{
 			case null:
@@ -141,5 +173,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				break;
 			}
 		}
+
+		return true;
 	}
 }
