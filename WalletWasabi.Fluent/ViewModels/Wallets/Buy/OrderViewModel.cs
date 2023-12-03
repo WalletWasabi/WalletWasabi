@@ -120,25 +120,28 @@ public partial class OrderViewModel : ReactiveObject
 			// TODO: Only for form messages and not api calls.
 			await Task.Delay(500);
 
-			if (_workflowManager.CurrentWorkflow?.CurrentStep is null)
+			if (_workflowManager.CurrentWorkflow is null)
 			{
 				return;
 			}
 
-			var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
-
-			if (message is not null)
+			if (_workflowManager.CurrentWorkflow.CurrentStep is not null)
 			{
-				AddUserMessage(
-					message,
-					_workflowManager.CurrentWorkflow.EditStepCommand,
-					_workflowManager.CurrentWorkflow.CanEditObservable,
-					_workflowManager.CurrentWorkflow.CurrentStep);
+				var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
+
+				if (message is not null)
+				{
+					AddUserMessage(
+						message,
+						_workflowManager.CurrentWorkflow.EditStepCommand,
+						_workflowManager.CurrentWorkflow.CanEditObservable,
+						_workflowManager.CurrentWorkflow.CurrentStep);
+				}
 			}
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				// TODO: Handle agent command.
+				// TODO: Handle agent command?
 				SelectNextWorkflow(null);
 				return;
 			}
