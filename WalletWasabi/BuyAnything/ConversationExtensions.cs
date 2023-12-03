@@ -14,11 +14,11 @@ public static class ConversationExtensions
 	public static bool IsUpdatable(this Conversation conversation) =>
 		conversation.OrderStatus is OrderStatus.Open or OrderStatus.InProgress;
 
-	public static Conversation AddSystemChatLines(this Conversation conversation, IEnumerable<string> messages,
+	public static Conversation AddSystemChatLine(this Conversation conversation, string message,
 		ConversationStatus newStatus) =>
 		conversation with
 		{
-			ChatMessages = conversation.ChatMessages.AddRangeSentMessages(messages),
+			ChatMessages = conversation.ChatMessages.AddSentMessage(message),
 			ConversationStatus = newStatus
 		};
 }

@@ -30,7 +30,8 @@ enum ServerEvent
 	ConfirmPayment,
 	InvalidateInvoice,
 	ReceiveInvoice,
-	FinishConversation
+	FinishConversation,
+	ReceiveAttachments
 }
 
 // Class to manage the conversation updates
@@ -87,43 +88,37 @@ public class BuyAnythingManager : PeriodicRunner
 			// This means that in "lineItems" we have the offer data
 			case ConversationStatus.Started
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
-				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-			{
-				var attachedLink = orderCustomFields.Concierge_Request_Attachements_Links;
-				var offerMessages = new List<string>();
-				if (!string.IsNullOrWhiteSpace(attachedLink))
-				{
-					offerMessages.Add($"Check the attached file: {attachedLink}");
-				}
-
-				var bip21 = orderCustomFields.Btcpay_PaymentLink;
-				offerMessages.Add($"Pay to: {bip21}. The invoice expires in 10 minutes.");
-
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, offerMessages,
-					order.UpdatedAt,
-					ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
-
+				when serverEvent.HasFlag(ServerEvent.ReceiveAttachments):
+				await SendSystemChatLinesAsync(track,
+					$"Check the attached file: {orderCustomFields.Concierge_Request_Attachements_Links}",
+					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 				break;
-			}
+
+			case ConversationStatus.OfferAccepted
+				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+				await SendSystemChatLinesAsync(track,
+					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
+					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+				break;
 
 			// The status changes to "In Progress" after the user paid
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Payment confirmed"},
+				await SendSystemChatLinesAsync(track, "Payment confirmed",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
-				track.Conversation = await SendSystemChatLinesAsync(track.Conversation, new[] {"Invoice has expired"},
+				await SendSystemChatLinesAsync(track, "Invoice has expired",
 					order.UpdatedAt, ConversationStatus.InvoiceInvalidated, cancel).ConfigureAwait(false);
 				break;
 
@@ -138,7 +133,7 @@ public class BuyAnythingManager : PeriodicRunner
 				//var trackingLink = order.Deliveries.TrackingCodes;
 				//if (!string.IsNullOrWhiteSpace(trackingLink))
 				//{
-				//	track.Conversation = await SendSystemChatLinesAsync(track.Conversation,
+				//	await SendSystemChatLinesAsync(track,
 				//		new[] {$"Tracking link: {trackingLink}"},
 				//		order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				//}
@@ -305,16 +300,23 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			events |= ServerEvent.ReceiveInvoice;
 		}
+
+		if (!string.IsNullOrWhiteSpace(order.CustomFields.Concierge_Request_Attachements_Links))
+		{
+			events |= ServerEvent.ReceiveAttachments;
+		}
+
 		return events;
 	}
 
-	private async Task<Conversation> SendSystemChatLinesAsync(Conversation conversation, IEnumerable<string> messages, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
+	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
-		var updatedConversation = conversation.AddSystemChatLines(messages, newStatus);
+		var updatedConversation = track.Conversation.AddSystemChatLine(message, newStatus);
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
-		return updatedConversation;
+		track.Conversation = updatedConversation;
 	}
+
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
@@ -327,12 +329,15 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private static IEnumerable<string> ConvertOfferDetailToMessages(Order order)
+	private static string ConvertOfferDetailToMessages(Order order)
 	{
+		StringBuilder sb = new();
 		foreach (var lineItem in order.LineItems)
 		{
-			yield return $"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}";
+			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}");
 		}
+
+		return sb.ToString();
 	}
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)

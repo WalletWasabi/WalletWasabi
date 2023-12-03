@@ -48,9 +48,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public Chat AddReceivedMessage(string msg) =>
 		new (this.Append(new ChatMessage(false, msg)));
 
-	public Chat AddRangeSentMessages(IEnumerable<string> msgs) =>
-		new(this.Concat(msgs.Select(x => new ChatMessage(true, x))));
-
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator() ;
 
