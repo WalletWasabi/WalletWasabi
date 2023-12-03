@@ -62,7 +62,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_cts = new CancellationTokenSource();
 
 		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null));
+		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null, null));
 
 		UpdateTrigger = _updateTriggerSubject;
 	}
@@ -128,21 +128,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
-					// TODO: Handle ConversationStatus and pass to order view model to handle.
-					switch (e.Conversation.ConversationStatus)
+					// The conversation belongs to the "fake" empty conversation
+					if (Orders.All(x => x.Id != e.Conversation.Id))
 					{
-						case ConversationStatus.Started:
-							break;
-						case ConversationStatus.OfferReceived:
-							break;
-						case ConversationStatus.PaymentDone:
-							break;
-						case ConversationStatus.PaymentConfirmed:
-							break;
-						case ConversationStatus.OfferAccepted:
-							break;
-						case ConversationStatus.InvoiceReceived:
-							break;
+						// Update the fake conversation ID because now we have a valid one.
+						// After updating the ID we can now create a new "fake" conversation.
+						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
+						CreateAndAddEmptyOrder(_cts.Token);
 					}
 
 					// TODO: Handle OrderStatus and pass to order view model to handle.
@@ -162,20 +154,36 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 					// TODO: Update the order conversations using e.ChatMessages
 
-					// The conversation belongs to the "fake" empty conversation
-					if (Orders.All(x => x.Id != e.Conversation.Id))
+					var orderMessages = CreateMessages(e.Conversation);
+
+					// TODO: Handle ConversationStatus and pass to order view model to handle.
+					switch (e.Conversation.ConversationStatus)
 					{
-						// Update the fake conversation ID because now we have a valid one.
-						// After updating the ID we can now create a new "fake" conversation.
-						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
-						CreateAndAddEmptyOrder(_cts.Token);
+						case ConversationStatus.Started:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "Started", orderMessages));
+							return;
+						case ConversationStatus.OfferReceived:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferReceived", orderMessages));
+							return;
+						case ConversationStatus.PaymentDone:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentDone", orderMessages));
+							return;
+						case ConversationStatus.PaymentConfirmed:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentConfirmed", orderMessages));
+							return;
+						case ConversationStatus.OfferAccepted:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferAccepted", orderMessages));
+							return;
+						case ConversationStatus.InvoiceReceived:
+							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "InvoiceReceived", orderMessages));
+							return;
 					}
 
 					// TODO: Get the command (if any) form agent message using e.Conversation.ChatMessages (ChatMessage does not have it?)
 					var command = default(string);
 
 					// Notify that conversation updated.
-					_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, command));
+					_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, command, orderMessages));
 				})
 				.DisposeWith(disposable);
 		}

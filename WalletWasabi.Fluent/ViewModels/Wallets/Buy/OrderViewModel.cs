@@ -65,12 +65,12 @@ public partial class OrderViewModel : ReactiveObject
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync);
 
-		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command));
+		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command, m.Messages));
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		UpdateOrder(id, null);
+		UpdateOrder(id, null, null);
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
@@ -90,7 +90,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand RemoveOrderCommand { get; }
 
-	private void UpdateOrder(ConversationId id, string? command)
+	private void UpdateOrder(ConversationId id, string? command, IReadOnlyList<MessageViewModel>? messages)
 	{
 		if (id != Id)
 		{
@@ -101,7 +101,10 @@ public partial class OrderViewModel : ReactiveObject
 
 		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
 
-		// TODO: Update messages etc.
+		if (messages is not null)
+		{
+			UpdateMessages(messages);
+		}
 
 		if (command is not null)
 		{

@@ -105,6 +105,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	private Workflow? GetWorkflowFromCommand(string? command)
 	{
 		// TODO: What we do if current workflow matched command or is ongoing?
+		/*
 		switch (command)
 		{
 			case "Initial":
@@ -116,6 +117,24 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			case "Package":
 				return new PackageWorkflow(_workflowValidator);
 			case "SupportChat":
+				return new SupportChatWorkflow(_workflowValidator);
+			default:
+				return null;
+		}
+		*/
+		switch (command)
+		{
+			case "Started":
+				return new InitialWorkflow(_workflowValidator, _countries);
+			case "OfferReceived":
+				return new DeliveryWorkflow(_workflowValidator);
+			case "PaymentDone":
+				return new PaymentWorkflow(_workflowValidator);
+			case "PaymentConfirmed":
+				return new PaymentWorkflow(_workflowValidator);
+			case "OfferAccepted":
+				return new DeliveryWorkflow(_workflowValidator);
+			case "InvoiceReceived":
 				return new SupportChatWorkflow(_workflowValidator);
 			default:
 				return null;

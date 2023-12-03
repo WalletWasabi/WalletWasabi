@@ -1,9 +1,6 @@
-using System.Reactive;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
-
-public record OrderUpdateMessage(ConversationId Id, string? Command);
 
 public interface IOrderManager
 {
