@@ -201,6 +201,16 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
 		RunNoInputWorkflowSteps();
 
+		// Continue the loop until next workflow is there and is completed.
+		if (_workflowManager.CurrentWorkflow is not null)
+		{
+			if (_workflowManager.CurrentWorkflow.IsCompleted)
+			{
+				// TODO: Handle agent command?
+				SelectNextWorkflow(null);
+			}
+		}
+
 		return true;
 	}
 
