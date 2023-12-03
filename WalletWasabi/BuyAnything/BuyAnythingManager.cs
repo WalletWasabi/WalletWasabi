@@ -100,15 +100,11 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
-				when serverEvent.HasFlag(ServerEvent.ReceiveAttachments):
-				await SendSystemChatLinesAsync(track,
-					$"Check the attached file: {orderCustomFields.Concierge_Request_Attachements_Links}",
-					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
-				break;
-
-			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				await SendSystemChatLinesAsync(track,
+					string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
+						? string.Empty
+						: $"Check the attached file: {orderCustomFields.Concierge_Request_Attachements_Links}\n" +
 					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 				break;
