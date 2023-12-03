@@ -116,7 +116,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			case "Package":
 				return new PackageWorkflow(_workflowValidator);
 			case "SupportChat":
-				return new SupportChatWorkflow();
+				return new SupportChatWorkflow(_workflowValidator);
 			default:
 				return null;
 		}
@@ -164,12 +164,13 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			case PackageWorkflow:
 			{
 				// TODO: After receiving package info switch to final workflow with chat support.
-				CurrentWorkflow = new SupportChatWorkflow();
+				CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
 				break;
 			}
 			case SupportChatWorkflow:
 			{
 				// TODO: Order is complete do nothing?
+				CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
 				break;
 			}
 		}
