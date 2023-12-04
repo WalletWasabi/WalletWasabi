@@ -12,7 +12,7 @@ public static class ConversationExtensions
 	}
 
 	public static bool IsUpdatable(this Conversation conversation) =>
-		conversation.OrderStatus is OrderStatus.Open or OrderStatus.InProgress;
+		true;
 
 	public static Conversation AddSystemChatLine(this Conversation conversation, string message,
 		ConversationStatus newStatus) =>
