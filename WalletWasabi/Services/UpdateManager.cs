@@ -34,10 +34,10 @@ public class UpdateManager : IDisposable
 	public string InstallerDir { get; }
 	public IHttpClient HttpClient { get; }
 
-	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
-	public bool DownloadNewVersion { get; }
+	///<summary>Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
+	private bool DownloadNewVersion { get; }
 
-	///<summary> Install new version on shutdown or not.</summary>
+	///<summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker? UpdateChecker { get; set; }
