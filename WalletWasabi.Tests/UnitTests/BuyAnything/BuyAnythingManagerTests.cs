@@ -31,9 +31,10 @@ public class BuyAnythingManagerTests
 				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
 				"order#123456789",
 				null,
-				new LineItem[0],
+				new [] { new LineItem(1.0f, "Best Lambo ever", 10000.0f, 10000.0f)},
 				"idxxxxxxx",
-				null,
+				new OrderCustomFields(
+					"Open", "Link1 | link2", "", "", "", "", "", false, false),
 				null)
 		})));
 #else
@@ -64,9 +65,9 @@ public class BuyAnythingManagerTests
 		await buyAnythingManager.UpdateConversationAsync(conversation.Id, "Ok Bye", "metadata", CancellationToken.None);
 		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		conversation = Assert.Single(conversations);
-		Assert.Equal(3, conversation.ChatMessages.Count);
+		Assert.Equal(4, conversation.ChatMessages.Count);
 		var myMessages = conversation.ChatMessages.Where(m => m.IsMyMessage).ToArray();
-		Assert.Equal("Ok Bye", myMessages[1].Message);
+		Assert.Equal("Ok Bye", myMessages[2].Message);
 
 		// Parse testing
 		var conversationString = "||#WASABI#Hi, I want to by this||#SIB#Bye||#WASABI#Ok Bye||";
