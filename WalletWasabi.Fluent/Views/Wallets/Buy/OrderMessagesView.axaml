@@ -122,7 +122,8 @@
 
           <DataTemplate DataType="shopinBit:ConfirmTosInputValidator">
             <StackPanel Orientation="Horizontal">
-              <CheckBox IsChecked="{Binding HasAcceptedTermsOfService}"
+              <CheckBox VerticalAlignment="Center"
+                        IsChecked="{Binding HasAcceptedTermsOfService}"
                         Margin="8 0 0 0">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusOnAttachedBehavior />
