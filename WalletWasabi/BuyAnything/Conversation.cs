@@ -23,7 +23,8 @@ public enum ConversationStatus
 	PaymentConfirmed,
 	OfferAccepted,
 	InvoiceReceived,
-	InvoiceInvalidated
+	InvoiceInvalidated,
+	Finished
 }
 public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
 {
