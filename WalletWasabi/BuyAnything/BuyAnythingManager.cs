@@ -105,7 +105,7 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 			// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
-				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
+				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links) // TODO: move this to done because it is the product itself when is travel tickest for example.
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
 					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes";
