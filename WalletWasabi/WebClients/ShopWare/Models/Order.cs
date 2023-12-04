@@ -27,7 +27,7 @@ public record Order
 	OrderCustomer OrderCustomer,
 	LineItem[] LineItems,
 	string Id,
-	OrderCustomFields CustomFields,
+	OrderCustomFields? CustomFields,
 	string Btcpay_PaymentLink
 );
 public record Deliveries

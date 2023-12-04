@@ -29,6 +29,7 @@ public record Country(string Id, string Name);
 [Flags]
 internal enum ServerEvent
 {
+	None, // do not remove this value
 	MakeOffer,
 	ConfirmPayment,
 	InvalidateInvoice,
@@ -305,7 +306,7 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (order.CustomFields.BtcpayOrderStatus == "invoiceExpired")
+		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
 		{
 			if (order.CustomFields.PaidAfterExpiration)
 			{
@@ -317,12 +318,12 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (!string.IsNullOrWhiteSpace(order.CustomFields.Btcpay_PaymentLink))
+		if (!string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink))
 		{
 			events |= ServerEvent.ReceiveInvoice;
 		}
 
-		if (!string.IsNullOrWhiteSpace(order.CustomFields.Concierge_Request_Attachements_Links))
+		if (!string.IsNullOrWhiteSpace(order.CustomFields?.Concierge_Request_Attachements_Links))
 		{
 			events |= ServerEvent.ReceiveAttachments;
 		}
