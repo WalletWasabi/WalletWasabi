@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Http;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Helpers;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
+using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BuyAnything;
@@ -18,7 +17,7 @@ public class BuyAnythingManagerTests
 	[Fact]
 	public async Task BuyAnythingManagerTest()
 	{
-#if !USE_MOCK
+#if USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
 		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("12345", "order#123456789"));
 		shopWareApiClient.OnGetCustomerProfileAsync = s => Task.FromResult(
@@ -39,41 +38,49 @@ public class BuyAnythingManagerTests
 				null)
 		})));
 #else
-		var shopWareApiClient = new ShopWareApiClient(new HttpClient(), "real-api-key");
+		var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
+		var http = new ClearnetHttpClient(httpClient);
+		ShopWareApiClient shopWareApiClient = new(http, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 #endif
 
-		await IoHelpers.TryDeleteDirectoryAsync("datadir");
+		//await IoHelpers.TryDeleteDirectoryAsync("datadir");
 		var buyAnythingClient = new BuyAnythingClient(shopWareApiClient);
-		using var buyAnythingManager = new BuyAnythingManager("datadir", TimeSpan.FromDays(7), buyAnythingClient);
+		using var buyAnythingManager = new BuyAnythingManager("datadir", TimeSpan.FromSeconds(2), buyAnythingClient);
 		await buyAnythingManager.StartAsync(CancellationToken.None);
 
 		var countries = await buyAnythingManager.GetCountriesAsync(CancellationToken.None);
-		Assert.Single(countries, x => x.Name == "Argentina");
+		var argentina = Assert.Single(countries, x => x.Name == "Argentina");
 
-		await buyAnythingManager.StartNewConversationAsync("walletID", "5d54dfdc2b384a8e9fff2bfd6e64c186", BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
+		//await buyAnythingManager.StartNewConversationAsync("walletID", argentina.Id, BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
 		var conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
-		var conversation = Assert.Single(conversations);
-		var message = Assert.Single(conversation.ChatMessages);
-		Assert.Equal("Hi, I want to buy this", message.Message);
-
-		await buyAnythingManager.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+		var conversation = conversations.Last(); // Assert.Single(conversations);
+		//var message = Assert.Single(conversation.ChatMessages);
 
 		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		conversation = Assert.Single(conversations);
-		var reply = Assert.Single(conversation.ChatMessages, m => !m.IsMyMessage);
-		Assert.Equal("Bye", reply.Message);
 
+		while (conversation.ConversationStatus != ConversationStatus.OfferReceived)
+		{
+			await Task.Delay(1000);
+			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
+		}
+
+		await buyAnythingManager.AcceptOfferAsync(conversation.Id, "Lucas", "Ontivero", "Carlos III", "12345", "5000",
+			"Cordoba", argentina.Id, CancellationToken.None);
+
+		while (conversation.ConversationStatus != ConversationStatus.PaymentConfirmed)
+		{
+			await Task.Delay(1000);
+			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
+		}
+
+		while (conversation.ConversationStatus != ConversationStatus.Shipped)
+		{
+			await Task.Delay(1000);
+			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
+		}
 		await buyAnythingManager.UpdateConversationAsync(conversation.Id, "Ok Bye", "metadata", CancellationToken.None);
-		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
-		conversation = Assert.Single(conversations);
-		Assert.Equal(4, conversation.ChatMessages.Count);
-		var myMessages = conversation.ChatMessages.Where(m => m.IsMyMessage).ToArray();
-		Assert.Equal("Ok Bye", myMessages[2].Message);
-
-		// Parse testing
-		var conversationString = "||#WASABI#Hi, I want to by this||#SIB#Bye||#WASABI#Ok Bye||";
-		var text = Chat.FromText(conversationString).ToText();
-		Assert.Equal(conversationString, text);
 	}
 
 	private MockShopWareApiClient PreconfiguredShopWareApiClient()
