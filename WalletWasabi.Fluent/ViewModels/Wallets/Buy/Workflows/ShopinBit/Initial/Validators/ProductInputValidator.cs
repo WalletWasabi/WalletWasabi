@@ -42,7 +42,7 @@ public partial class ProductInputValidator : InputValidator
 
 			_initialWorkflowRequest.Product = product;
 
-			return null;
+			return _product;
 		}
 
 		return null;
