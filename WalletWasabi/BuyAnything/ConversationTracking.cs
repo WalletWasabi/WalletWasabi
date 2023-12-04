@@ -11,7 +11,7 @@ public class ConversationTracking
 	public void Load(ConversationTracking conversations)
 	{
 		NextConversationIds = conversations.NextConversationIds;
-		Conversations.AddRange(conversations.Conversations);
+		Conversations.AddRange(conversations.Conversations.Where(c => c is not null));
 	}
 
 	public IEnumerable<ConversationUpdateTrack> UpdatableConversations =>
