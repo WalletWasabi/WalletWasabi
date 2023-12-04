@@ -100,7 +100,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"To continue please accept Privacy Policy: {termsOfServiceUrl}")),
+					$"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'PLACE ORDER' to proceed")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowValidator,
@@ -111,18 +111,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 						Description = "Accept the Terms of service",
 						IsClickable = true
 					},
-					"Accepted Terms of service.",
-					"BUY NOW")),
-			// Final
-			new (false,
-				new NoInputInputValidator(
-					workflowValidator,
-					"Thank you for the information. Please take a moment to verify the accuracy of the provided data. If any details are incorrect, you can make adjustments using the \"EDIT\" button,if everything is correct, click “PLACE ORDER” and accept Terms and Conditions.")),
-			// T&C link
-			new(false,
-				new NoInputInputValidator(
-					workflowValidator,
-					"www.termsandconditions.com"))
+					null,
+					"PLACE ORDER")),
 		};
 
 		CreateCanEditObservable();

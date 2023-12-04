@@ -44,7 +44,7 @@ public sealed partial class PackageWorkflow : Workflow
 			new(false,
 				new NoInputInputValidator(
 					workflowValidator,
-					"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
+					"This conversation will vanish after 30 days, so please save any important information you might need later.")),
 		};
 
 		CreateCanEditObservable();
