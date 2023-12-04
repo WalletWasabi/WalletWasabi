@@ -103,7 +103,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-			//  case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
+			// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
@@ -124,7 +124,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
 				await SendSystemChatLinesAsync(track, "Invoice has expired",
-					order.UpdatedAt, ConversationStatus.InvoiceInvalidated, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expires we communicate this fact to the chat
@@ -254,6 +254,10 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
 		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		if (track.Conversation.ConversationStatus == ConversationStatus.InvoiceExpired)
+		{
+			throw new InvalidOperationException("Invoice has expired.");
+		}
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
 		track.Conversation = track.Conversation with
