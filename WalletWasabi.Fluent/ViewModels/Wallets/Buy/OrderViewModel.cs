@@ -12,6 +12,7 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -238,6 +239,11 @@ public partial class OrderViewModel : ReactiveObject
 				var message = nextStep.UserInputValidator.GetFinalMessage();
 				if (message is not null)
 				{
+					// TODO: Hack for marketing team recording. Remove and fix it properly.
+					if (nextStep.UserInputValidator is ProductInputValidator)
+					{
+						break;
+					}
 					AddAssistantMessage(message);
 				}
 
