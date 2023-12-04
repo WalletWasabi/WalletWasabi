@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Builder;
+using NBitcoin.Protocol;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -127,8 +129,7 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
-			case ConversationStatus.PaymentConfirmed:
-				break;
+			case ConversationStatus.PaymentConfirmed
 				//when shipping status is SHIPPED:
 				//var trackingLink = order.Deliveries.TrackingCodes;
 				//if (!string.IsNullOrWhiteSpace(trackingLink))
@@ -138,6 +139,9 @@ public class BuyAnythingManager : PeriodicRunner
 				//		order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				//}
 				//break;
+				when serverEvent.HasFlag(ServerEvent.FinishConversation):
+				await FinishConversationAsync(track, cancel).ConfigureAwait(false);
+				break;
 		}
 	}
 
@@ -309,6 +313,14 @@ public class BuyAnythingManager : PeriodicRunner
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 		track.Conversation = updatedConversation;
+	}
+
+	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
+	{
+		var updatedConversation = track.Conversation.AddSystemChatLine("Conversation finished.", ConversationStatus.Finished);
+		track.Conversation = updatedConversation;
+		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, DateTimeOffset.Now));
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task SaveAsync(CancellationToken cancellationToken)

@@ -23,8 +23,10 @@ public enum ConversationStatus
 	PaymentConfirmed,
 	OfferAccepted,
 	InvoiceReceived,
-	InvoiceInvalidated
+	InvoiceInvalidated,
+	Finished
 }
+
 public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
 {
 	public static readonly ConversationId Empty = new("", "", "", "");
@@ -43,13 +45,13 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public ChatMessage this[int i] => _messages[i];
 
 	public Chat AddSentMessage(string msg) =>
-		new (this.Append(new ChatMessage(true, msg)));
+		new(this.Append(new ChatMessage(true, msg)));
 
 	public Chat AddReceivedMessage(string msg) =>
-		new (this.Append(new ChatMessage(false, msg)));
+		new(this.Append(new ChatMessage(false, msg)));
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
-		Enumerable.AsEnumerable(_messages).GetEnumerator() ;
+		Enumerable.AsEnumerable(_messages).GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
@@ -93,7 +95,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		return result.ToString();
 	}
 
-
 	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
 	private static string EnsureProperRawMessage(string message)
 	{
@@ -101,7 +102,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		message = message.Replace('#', '-');
 		return message;
 	}
-
 }
 
 public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, object Metadata);
