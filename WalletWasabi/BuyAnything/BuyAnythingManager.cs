@@ -103,7 +103,7 @@ public class BuyAnythingManager : PeriodicRunner
 				await SendSystemChatLinesAsync(track,
 					string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
 						? string.Empty
-						: $"Check the attached file: {orderCustomFields.Concierge_Request_Attachements_Links}\n" +
+						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
 					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 				break;
@@ -135,7 +135,7 @@ public class BuyAnythingManager : PeriodicRunner
 				//{
 				//	await SendSystemChatLinesAsync(track,
 				//		new[] {$"Tracking link: {trackingLink}"},
-				//		order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+				//		order.UpdatedAt, ConversationStatus.Done, cancel).ConfigureAwait(false);
 				//}
 				//break;
 		}
@@ -266,7 +266,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private ServerEvent GetServerEvent(Order order, OrderStatus currentOrderStatus)
 	{
 		ServerEvent events = 0;
-		if (order.CustomFields.Concierge_Request_Status_State == "OFFER")
+		if (order.CustomFields?.Concierge_Request_Status_State == "OFFER")
 		{
 			events |= ServerEvent.MakeOffer;
 		}
@@ -322,6 +322,10 @@ public class BuyAnythingManager : PeriodicRunner
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";
+
+	private string GetLinksByLine(string attachementsLinks) =>
+		string.Join("\n", attachementsLinks
+			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
