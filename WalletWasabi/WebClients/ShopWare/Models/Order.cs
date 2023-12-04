@@ -22,6 +22,7 @@ public record Order
 	DateTimeOffset CreatedAt,
 	DateTimeOffset? UpdatedAt,
 	StateMachineState StateMachineState,
+	Deliveries[] Deliveries,
 	string OrderNumber,
 	OrderCustomer OrderCustomer,
 	LineItem[] LineItems,
@@ -29,7 +30,13 @@ public record Order
 	OrderCustomFields CustomFields,
 	string Btcpay_PaymentLink
 );
+public record Deliveries
+(
+	string OrderId,
+	string[] TrackingCodes,
+	StateMachineState StateMachineState
 
+	);
 public record OrderCustomFields
 (
 	string Concierge_Request_Status_State,

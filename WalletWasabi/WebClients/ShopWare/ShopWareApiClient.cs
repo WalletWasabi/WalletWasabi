@@ -83,17 +83,19 @@ public class ShopWareApiClient : IShopWareApiClient
 	private async Task<string> SendAsync<TRequest>(string ctxToken, HttpMethod httpMethod, string path, TRequest request, CancellationToken cancellationToken)
 		where TRequest : class
 	{
-		using var httpRequest = new HttpRequestMessage(httpMethod, _client.BaseUriGetter is null ? path : Path.Combine(_client.BaseUriGetter().AbsoluteUri, path));
-
-		httpRequest.Headers.Add("sw-context-token", ctxToken);
-		httpRequest.Headers.Add("Accept", "application/json");
-		httpRequest.Headers.Add("sw-access-key", _apiKey);
-
-		using var content = Serialize(request);
-		if (httpMethod != HttpMethod.Get)
+		try
 		{
-			httpRequest.Content = content;
-		}
+			using var httpRequest = new HttpRequestMessage(httpMethod, _client.BaseUriGetter is null ? path : Path.Combine(_client.BaseUriGetter().AbsoluteUri, path));
+
+			httpRequest.Headers.Add("sw-context-token", ctxToken);
+			httpRequest.Headers.Add("Accept", "application/json");
+			httpRequest.Headers.Add("sw-access-key", _apiKey);
+
+			using var content = Serialize(request);
+			if (httpMethod != HttpMethod.Get)
+			{
+				httpRequest.Content = content;
+			}
 #if false
 		// This is only for testing. And sends the request to the localhost so we can see exacty what is being sent.
 		// to the network without needing to spy on it.
@@ -106,26 +108,31 @@ public class ShopWareApiClient : IShopWareApiClient
 			_client = client;
 		}
 #endif
-		using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+			using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
-		if (!response.IsSuccessStatusCode)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			if (!response.IsSuccessStatusCode)
+			{
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+			// Here we read the context tokens from the response headers.
+			// and add them to the request json body such that they can be deserialized transparently for those
+			// types that include a `string[] ContextTokens` property.
+			var ctxTokens = response.Headers.GetValues("sw-context-token").ToArray();
+			if (JsonConvert.DeserializeObject(responseBody) is JObject jObject)
+			{
+				jObject.Add("ContextTokens", JArray.FromObject(ctxTokens));
+				return JsonConvert.SerializeObject(jObject);
+			}
+
+			return responseBody;
 		}
-
-		var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-		// Here we read the context tokens from the response headers.
-		// and add them to the request json body such that they can be deserialized transparently for those
-		// types that include a `string[] ContextTokens` property.
-		var ctxTokens = response.Headers.GetValues("sw-context-token").ToArray();
-		if (JsonConvert.DeserializeObject(responseBody) is JObject jObject)
+		catch (Exception)
 		{
-			jObject.Add("ContextTokens", JArray.FromObject(ctxTokens));
-			return JsonConvert.SerializeObject(jObject);
+			throw;
 		}
-
-		return responseBody;
 	}
 
 	private static StringContent Serialize<T>(T obj)

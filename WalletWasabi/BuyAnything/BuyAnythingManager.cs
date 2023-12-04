@@ -34,7 +34,8 @@ internal enum ServerEvent
 	InvalidateInvoice,
 	ReceiveInvoice,
 	FinishConversation,
-	ReceiveAttachments
+	ReceiveAttachments,
+	SendOrder
 }
 
 // Class to manage the conversation updates
@@ -102,12 +103,12 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-				await SendSystemChatLinesAsync(track,
-					string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
+				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
-					order.UpdatedAt, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
+					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes";
+				await SendSystemChatLinesAsync(track, message, order.UpdatedAt, ConversationStatus.InvoiceReceived,
+					cancel).ConfigureAwait(false);
 				break;
 
 			// The status changes to "In Progress" after the user paid
@@ -130,18 +131,24 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
 			case ConversationStatus.PaymentConfirmed
-				//when shipping status is SHIPPED:
-				//var trackingLink = order.Deliveries.TrackingCodes;
-				//if (!string.IsNullOrWhiteSpace(trackingLink))
-				//{
-				//	await SendSystemChatLinesAsync(track,
-				//		new[] {$"Tracking link: {trackingLink}"},
-				//		order.UpdatedAt, ConversationStatus.Done, cancel).ConfigureAwait(false);
-				//}
-				//break;
-				when serverEvent.HasFlag(ServerEvent.FinishConversation):
-				await FinishConversationAsync(track, cancel).ConfigureAwait(false);
-				break;
+				when serverEvent.HasFlag(ServerEvent.SendOrder):
+			{
+				var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
+
+				if (trackingCodes.Any())
+				{
+					var newMessage = "Tracking link"  + (trackingCodes.Length >= 2 ? "s" : "");
+					await SendSystemChatLinesAsync(track,
+						  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
+					order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+				}
+
+				track.Conversation = track.Conversation with
+				{
+					ConversationStatus = ConversationStatus.Shipped
+				};
+			}
+			break;
 		}
 	}
 
@@ -304,6 +311,10 @@ public class BuyAnythingManager : PeriodicRunner
 			events |= ServerEvent.ReceiveAttachments;
 		}
 
+		if (order.Deliveries.Any(d => d.StateMachineState.Name == "Shipped"))
+		{
+			events |= ServerEvent.SendOrder;
+		}
 		return events;
 	}
 

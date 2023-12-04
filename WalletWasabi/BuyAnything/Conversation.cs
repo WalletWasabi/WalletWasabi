@@ -24,6 +24,7 @@ public enum ConversationStatus
 	OfferAccepted,
 	InvoiceReceived,
 	InvoiceInvalidated,
+	Shipped,
 	Finished
 }
 

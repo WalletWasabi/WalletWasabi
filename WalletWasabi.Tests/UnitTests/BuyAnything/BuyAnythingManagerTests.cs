@@ -20,7 +20,7 @@ public class BuyAnythingManagerTests
 	{
 #if !USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
-		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("12345","order#123456789"));
+		shopWareApiClient.OnGenerateOrderAsync = (s, bag) => Task.FromResult(new OrderGenerationResponse("12345", "order#123456789"));
 		shopWareApiClient.OnGetCustomerProfileAsync = s => Task.FromResult(
 			new CustomerProfileResponse(
 				new ChatField("||#WASABI#Hi, I want to by this||#SIB#Bye||"),
@@ -29,6 +29,7 @@ public class BuyAnythingManagerTests
 		{
 			new Order("1", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1),
 				new StateMachineState(DateTimeOffset.Now, "Open", "Open"),
+				new Deliveries[]{new Deliveries("order#123456789",null,new StateMachineState(DateTimeOffset.Now, "Open", "Open")) },
 				"order#123456789",
 				null,
 				new [] { new LineItem(1.0f, "Best Lambo ever", 10000.0f, 10000.0f)},
