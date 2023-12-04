@@ -29,6 +29,27 @@ public class UpdateManager : IDisposable
 		DownloadNewVersion = downloadNewVersion;
 	}
 
+	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
+
+	public string InstallerDir { get; }
+	public IHttpClient HttpClient { get; }
+
+	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
+	public bool DownloadNewVersion { get; }
+
+	///<summary> Install new version on shutdown or not.</summary>
+	public bool DoUpdateOnClose { get; set; }
+
+	private UpdateChecker? UpdateChecker { get; set; }
+	private CancellationToken CancellationToken { get; set; }
+
+	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
+	{
+		UpdateChecker = updateChecker;
+		CancellationToken = cancelationToken;
+		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+	}
+
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
 	{
 		var tries = 0;
@@ -289,20 +310,6 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
-
-	public string InstallerDir { get; }
-	public IHttpClient HttpClient { get; }
-
-	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
-	public bool DownloadNewVersion { get; }
-
-	///<summary> Install new version on shutdown or not.</summary>
-	public bool DoUpdateOnClose { get; set; }
-
-	private UpdateChecker? UpdateChecker { get; set; }
-	private CancellationToken CancellationToken { get; set; }
-
 	public void StartInstallingNewVersion()
 	{
 		try
@@ -345,13 +352,6 @@ public class UpdateManager : IDisposable
 		{
 			Logger.LogError("Failed to install latest release. File might be corrupted.", ex);
 		}
-	}
-
-	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
-	{
-		UpdateChecker = updateChecker;
-		CancellationToken = cancelationToken;
-		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 
 	public void Dispose()
