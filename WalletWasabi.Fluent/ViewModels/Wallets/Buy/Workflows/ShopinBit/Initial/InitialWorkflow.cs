@@ -20,26 +20,37 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"I'm here to assist you with anything you need to buy. Whether it's flights, cars, or any other request, just let me know, and I'll take care of it for you.")),
-			// Minimum limit
+					"Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.")),
+			// Fast Travel Assistant
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"I'd like to kindly inform you that our minimum transaction amount is $1,000 USD. Please feel free to share any requests above this amount")),
-			// Product
+					"Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.")),
+			// General Travel Assistant
+			new(false,
+				new DefaultInputValidator(
+					workflowValidator,
+					"General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.")),
+			// All-Purpose Concierge Assistant
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Please select product category.")),
-			new (requiresUserInput: true,
+					"All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more")),
+			// Pick one (dropdown)
+			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
 					workflowValidator,
 					_request)),
+			// Assistant greeting, min order limit
+			new(false,
+				new DefaultInputValidator(
+					workflowValidator,
+					"Hello, I am your chosen Assistant. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
 			// Location
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Let's begin by selecting your country.")),
+					"To start, please indicate your country. If your order involves shipping, provide the destination country. For non-shipping orders, please specify your nationality.")),
 			new (requiresUserInput: true,
 				userInputValidator: new LocationInputValidator(
 					workflowValidator,
@@ -49,16 +60,16 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"What would you like to buy?")),
+					"What specific assistance do you need today?")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
 					workflowValidator,
 					_request)),
-			// Accept Privacy Policy
+			// Request received + accept Privacy Policy
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"To continue please accept Privacy Policy: {privacyPolicyUrl}")),
+					"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within the next few days")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowValidator,
@@ -69,20 +80,16 @@ public sealed partial class InitialWorkflow : Workflow
 						Description = "Accept the Privacy Policy",
 						IsClickable = true
 					},
-					"Accepted Privacy Policy.")),
+					"")),
+			// TODO: Do we need this? Temp disabled for marketing team.
 			// Confirm
-			new (false,
-				new InitialSummaryInputValidator(
-					workflowValidator,
-					_request)),
-			new (requiresUserInput: true,
-				userInputValidator: new ConfirmInitialInputValidator(
-					workflowValidator)),
-			// Final
-			new (false,
-				new NoInputInputValidator(
-					workflowValidator,
-					"We've received your request, we will be in touch with you within the next couple of days."))
+			// new (false,
+			// 	new InitialSummaryInputValidator(
+			// 		workflowValidator,
+			// 		_request)),
+			// new (requiresUserInput: true,
+			// 	userInputValidator: new ConfirmInitialInputValidator(
+			// 		workflowValidator)),
 		};
 
 		CreateCanEditObservable();
