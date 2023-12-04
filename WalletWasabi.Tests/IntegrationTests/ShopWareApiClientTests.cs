@@ -24,7 +24,7 @@ public class ShopWareApiClientTests
 		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
 
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			"Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "comment");
+			"Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "5d54dfdc2b384a8e9fff2bfd6e64c186", "comment");
 
 		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRegistrationRequest, CancellationToken.None);
 
@@ -198,6 +198,7 @@ public class ShopWareApiClientTests
 			lastName: "Dude Jr.",
 			email: email,
 			password: password,
+			countryId: "5d54dfdc2b384a8e9fff2bfd6e64c186",
 			message: message);
 
 		return crr;

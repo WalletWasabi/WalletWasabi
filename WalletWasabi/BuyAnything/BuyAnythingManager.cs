@@ -201,12 +201,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
 		var credential = GenerateRandomCredential();
-		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, product, message, cancellationToken)
+		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
 		ConversationTracking.Add(new ConversationUpdateTrack(

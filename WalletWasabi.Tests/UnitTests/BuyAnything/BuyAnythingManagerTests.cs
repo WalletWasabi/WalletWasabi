@@ -49,7 +49,7 @@ public class BuyAnythingManagerTests
 		var countries = await buyAnythingManager.GetCountriesAsync(CancellationToken.None);
 		Assert.Single(countries, x => x.Name == "Argentina");
 
-		await buyAnythingManager.StartNewConversationAsync("walletID", BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
+		await buyAnythingManager.StartNewConversationAsync("walletID", "5d54dfdc2b384a8e9fff2bfd6e64c186", BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
 		var conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		var conversation = Assert.Single(conversations);
 		var message = Assert.Single(conversation.ChatMessages);
