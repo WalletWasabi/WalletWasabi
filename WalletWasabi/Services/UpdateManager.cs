@@ -35,7 +35,7 @@ public class UpdateManager : IDisposable
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
 	public string InstallerDir { get; }
-	public IHttpClient HttpClient { get; }
+	private IHttpClient HttpClient { get; }
 
 	///<summary>Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
