@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
+using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.WebClients.BuyAnything;
 
@@ -139,6 +140,33 @@ public class BuyAnythingClient
 		var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
 		ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
 		return response.ContextToken;
+	}
+
+	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
+	{
+		var results = new List<Country>();
+		var currentPage = 0;
+		while (true)
+		{
+			currentPage++;
+
+			var countryResponse = await ApiClient.GetCountriesAsync("none", ShopWareRequestFactory.GetPage(currentPage, 100), cancellationToken).ConfigureAwait(false);
+			var cachedCountries = countryResponse.Elements
+				.Where(x => x.Active)
+				.Select(x => new Country(
+					Id: x.Id,
+					Name: x.Name)
+				);
+
+			results.AddRange(cachedCountries);
+
+			if (countryResponse.Total != countryResponse.Limit)
+			{
+				break;
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+		}
+		return results.ToArray();
 	}
 
 	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();

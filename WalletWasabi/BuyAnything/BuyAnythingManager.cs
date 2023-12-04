@@ -10,6 +10,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare.Models;
@@ -24,7 +25,7 @@ public record ChatMessage(bool IsMyMessage, string Message);
 public record Country(string Id, string Name);
 
 [Flags]
-enum ServerEvent
+internal enum ServerEvent
 {
 	MakeOffer,
 	ConfirmPayment,
@@ -80,7 +81,7 @@ public class BuyAnythingManager : PeriodicRunner
 		// There is only one order per customer  and that's why we request all the orders
 		// but with only expect to get one. However, it could happen that the order was
 		// deleted and then we can have zero orders
-		if (orders.FirstOrDefault() is not {} order)
+		if (orders.FirstOrDefault() is not { } order)
 		{
 			return;
 		}
@@ -358,7 +359,7 @@ public class BuyAnythingManager : PeriodicRunner
 		IsConversationsLoaded = true;
 	}
 
-	private static async Task EnsureCountriesAreLoadedAsync(CancellationToken cancellationToken)
+	private async Task EnsureCountriesAreLoadedAsync(CancellationToken cancellationToken)
 	{
 		if (Countries.Count == 0)
 		{
@@ -366,20 +367,39 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
-	private static async Task LoadCountriesAsync(CancellationToken cancellationToken)
+	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
 		var countriesFilePath = "./BuyAnything/Data/Countries.json";
-		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
+		try
+		{
+			var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
-		var countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-						?? throw new InvalidOperationException("Couldn't read cached countries values.");
+			Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+							?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
-		Countries.AddRange(countries);
+			Countries.AddRange(countries);
+		}
+		catch (DirectoryNotFoundException)
+		{
+			Logger.LogWarning($"Failed to load local countries from path {countriesFilePath}. Getting them manualy...");
+
+			Country[] countries = await Client.GetCountriesAsync(cancellationToken).ConfigureAwait(false);
+			await SaveCountriesToFileAsync(countries, countriesFilePath, cancellationToken).ConfigureAwait(false);
+
+			Countries.AddRange(countries);
+			Logger.LogInfo("Succesfully downloaded and cached countries.");
+		}
+	}
+
+	private async Task SaveCountriesToFileAsync(Country[] countries, string countriesFilePath, CancellationToken cancellationToken)
+	{
+		IoHelpers.EnsureDirectoryExists("./BuyAnything/Data/");
+		var countriesJson = JsonConvert.SerializeObject(countries, Formatting.Indented);
+		await File.WriteAllTextAsync(countriesFilePath, countriesJson, cancellationToken).ConfigureAwait(false);
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
-
 }
