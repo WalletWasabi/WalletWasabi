@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -69,7 +70,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within the next few days")),
+					$"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within {GetWithinHours()} (Monday to Friday).")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowValidator,
@@ -81,18 +82,20 @@ public sealed partial class InitialWorkflow : Workflow
 						IsClickable = true
 					},
 					null)),
-			// TODO: Do we need this? Temp disabled for marketing team.
-			// Confirm
-			// new (false,
-			// 	new InitialSummaryInputValidator(
-			// 		workflowValidator,
-			// 		_request)),
-			// new (requiresUserInput: true,
-			// 	userInputValidator: new ConfirmInitialInputValidator(
-			// 		workflowValidator)),
 		};
 
 		CreateCanEditObservable();
+	}
+
+	private string GetWithinHours()
+	{
+		return _request.Product switch
+		{
+			BuyAnythingClient.Product.ConciergeRequest => "24-48 hours",
+			BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
+			BuyAnythingClient.Product.TravelConcierge => "48-72 hours",
+			_ => "a few days"
+		};
 	}
 
 	public override WorkflowRequest GetResult() => _request;
