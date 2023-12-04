@@ -19,9 +19,13 @@
                  Caption="Simply tell us what you're looking for, and we'll handle the rest from start to finish."
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <DockPanel Background="{DynamicResource BuyAnythingConversationsBackground}">
-      <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
-      <buy:OrderMessagesView />
+    <DockPanel>
+      <Border Background="{DynamicResource BuyAnythingConversationsBackground}" CornerRadius="5 0 0 5">
+        <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
+      </Border>
+      <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 5 5 0">
+        <buy:OrderMessagesView />
+      </Border>
     </DockPanel>
 
   </c:ContentArea>
