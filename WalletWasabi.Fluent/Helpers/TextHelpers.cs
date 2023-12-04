@@ -98,12 +98,7 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		if (confirmations > 0)
-		{
-			return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
-		}
-
-		return "Pending";
+		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
 	}
 
 	public static string FormatPercentageDiff(double n)
