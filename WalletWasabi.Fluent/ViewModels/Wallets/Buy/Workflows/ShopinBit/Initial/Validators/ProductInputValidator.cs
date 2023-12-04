@@ -16,7 +16,7 @@ public partial class ProductInputValidator : InputValidator
 	public ProductInputValidator(
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Enter your location...", "Next")
+		: base(workflowValidator, null, "Enter your location...", "Send")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 
