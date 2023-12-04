@@ -35,7 +35,8 @@ internal enum ServerEvent
 	ReceiveInvoice,
 	FinishConversation,
 	ReceiveAttachments,
-	SendOrder
+	SendOrder,
+	ReceivePaymentAfterExpiration
 }
 
 // Class to manage the conversation updates
@@ -101,8 +102,8 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted
-				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+			//  case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links)
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
@@ -113,6 +114,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// The status changes to "In Progress" after the user paid
 			case ConversationStatus.InvoiceReceived
+				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
 				await SendSystemChatLinesAsync(track, "Payment confirmed",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
@@ -125,8 +127,11 @@ public class BuyAnythingManager : PeriodicRunner
 					order.UpdatedAt, ConversationStatus.InvoiceInvalidated, cancel).ConfigureAwait(false);
 				break;
 
-			case ConversationStatus.InvoiceInvalidated:
-				// now what!?
+			// In case the invoice expires we communicate this fact to the chat
+			case ConversationStatus.InvoiceReceived
+				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
+				await SendSystemChatLinesAsync(track, "Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
+					order.UpdatedAt, ConversationStatus.InvoicePaidAfterExpiration, cancel).ConfigureAwait(false);
 				break;
 
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
@@ -298,7 +303,14 @@ public class BuyAnythingManager : PeriodicRunner
 
 		if (order.CustomFields.BtcpayOrderStatus == "invoiceExpired")
 		{
-			events |= ServerEvent.InvalidateInvoice;
+			if (order.CustomFields.PaidAfterExpiration)
+			{
+				events |= ServerEvent.ReceivePaymentAfterExpiration;
+			}
+			else
+			{
+				events |= ServerEvent.InvalidateInvoice;
+			}
 		}
 
 		if (!string.IsNullOrWhiteSpace(order.CustomFields.Btcpay_PaymentLink))
