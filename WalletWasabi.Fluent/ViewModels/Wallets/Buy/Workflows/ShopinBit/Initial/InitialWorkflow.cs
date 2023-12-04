@@ -60,7 +60,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"What specific assistance do you need today?")),
+					"What specific assistance do you need today? Be as precise as possible for faster response.")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
 					workflowValidator,
