@@ -131,15 +131,23 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (_workflowManager.CurrentWorkflow.CurrentStep is not null)
 			{
-				var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
-
-				if (message is not null)
+				if (!_workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
 				{
-					AddUserMessage(
-						message,
-						_workflowManager.CurrentWorkflow.EditStepCommand,
-						_workflowManager.CurrentWorkflow.CanEditObservable,
-						_workflowManager.CurrentWorkflow.CurrentStep);
+					return;
+				}
+
+				if (_workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
+				{
+					var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
+
+					if (message is not null)
+					{
+						AddUserMessage(
+							message,
+							_workflowManager.CurrentWorkflow.EditStepCommand,
+							_workflowManager.CurrentWorkflow.CanEditObservable,
+							_workflowManager.CurrentWorkflow.CurrentStep);
+					}
 				}
 			}
 
@@ -164,10 +172,13 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (!nextStep.RequiresUserInput)
 			{
-				var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
-				if (nextMessage is not null)
+				if ( nextStep.UserInputValidator.CanDisplayMessage())
 				{
-					AddAssistantMessage(nextMessage);
+					var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
+					if (nextMessage is not null)
+					{
+						AddAssistantMessage(nextMessage);
+					}
 				}
 			}
 
@@ -236,15 +247,13 @@ public partial class OrderViewModel : ReactiveObject
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is not null)
 			{
-				var message = nextStep.UserInputValidator.GetFinalMessage();
-				if (message is not null)
+				if (nextStep.UserInputValidator.CanDisplayMessage())
 				{
-					// TODO: Hack for marketing team recording. Remove and fix it properly.
-					if (nextStep.UserInputValidator is ProductInputValidator)
+					var message = nextStep.UserInputValidator.GetFinalMessage();
+					if (message is not null)
 					{
-						break;
+						AddAssistantMessage(message);
 					}
-					AddAssistantMessage(message);
 				}
 
 				if (nextStep.RequiresUserInput)

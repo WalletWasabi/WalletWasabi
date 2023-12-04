@@ -48,8 +48,21 @@ public partial class ProductInputValidator : InputValidator
 		return null;
 	}
 
+	private bool _cabDisplayMessage = false;
+
+	public override bool CanDisplayMessage()
+	{
+		return _cabDisplayMessage;
+	}
+
 	public override void OnActivation()
 	{
 		WorkflowValidator.Signal(true);
+	}
+
+	public override bool OnCompletion()
+	{
+		_cabDisplayMessage = true;
+		return true;
 	}
 }
