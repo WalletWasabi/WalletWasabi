@@ -19,7 +19,7 @@ public enum ConversationStatus
 {
 	Started,
 	OfferReceived,
-	PaymentDone,
+	PaymentDone,     // We don't know when the user paid, we only know when the payment is confirmed.
 	PaymentConfirmed,
 	OfferAccepted,
 	InvoiceReceived,
