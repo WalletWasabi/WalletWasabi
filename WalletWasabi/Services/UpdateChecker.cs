@@ -20,7 +20,7 @@ public class UpdateChecker : PeriodicRunner
 	public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
 	private WasabiSynchronizer Synchronizer { get; }
-	public UpdateStatus UpdateStatus { get; private set; }
+	private UpdateStatus UpdateStatus { get; set; }
 	public WasabiClient WasabiClient { get; }
 
 	private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
