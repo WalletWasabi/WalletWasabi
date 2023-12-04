@@ -20,10 +20,10 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <DockPanel>
-      <Border Background="{DynamicResource BuyAnythingConversationsBackground}" CornerRadius="8 0 0 8">
+      <Border Background="{DynamicResource BuyAnythingConversationsBackground}" CornerRadius="5 0 0 5">
         <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
       </Border>
-      <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 8 8 0">
+      <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 5 5 0">
         <buy:OrderMessagesView />
       </Border>
     </DockPanel>
