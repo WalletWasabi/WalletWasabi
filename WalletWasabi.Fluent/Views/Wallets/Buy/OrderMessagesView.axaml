@@ -16,7 +16,7 @@
 
   <DockPanel x:Name="RightSide">
 
-    <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10">
+    <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10" Height="39">
 
       <Button DockPanel.Dock="Right"
               Command="{Binding SelectedOrder.SendCommand}"
@@ -48,6 +48,14 @@
             <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
           </Style>
           <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+          </Style>
+          <Style Selector="ComboBox">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+          </Style>
+          <Style Selector="ComboBox:pointerover /template/ Border#Background">
             <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
           </Style>
         </ContentControl.Styles>
@@ -177,8 +185,7 @@
           </DataTemplate>
 
           <DataTemplate DataType="shopinBit:ProductInputValidator">
-            <ComboBox VerticalAlignment="Center"
-                      Items="{Binding Products}"
+            <ComboBox Items="{Binding Products}"
                       SelectedItem="{Binding Product, Mode=TwoWay}">
               <i:Interaction.Behaviors>
                 <behaviors:FocusOnAttachedBehavior />
