@@ -47,9 +47,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private BuyAnythingClient Client { get; }
 	private static List<Country> Countries { get; } = new();
 
-	// Todo: Is it ok that this is accessed without lock? It feels risky
-	private List<ConversationUpdateTrack> Conversations { get; } = new();
-
+	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
 
 	private string FilePath { get; }
@@ -62,7 +60,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in Conversations.Where(c => c.Conversation.IsUpdatable()))
+		foreach (var track in ConversationTracking.UpdatableConversations)
 		{
 			// Check if there is new info in the chat
 			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
@@ -166,27 +164,25 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 	}
 
+	public int GetNextConversationId(string walletId) =>
+		ConversationTracking.GetNextConversationId(walletId);
+
 	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Conversations
-			.Where(c => c.Conversation.Id.WalletId == walletId)
-			.Select(c => c.Conversation)
-			.ToArray();
+		return ConversationTracking.GetConversationsByWalletId(walletId);
 	}
 
 	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Conversations
-			.First(c => c.Conversation.Id == conversationId)
-			.Conversation;
+		return ConversationTracking.GetConversationsById(conversationId);
 	}
 
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var removedCount = Conversations.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		var removedCount = ConversationTracking.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
 		if (removedCount > 0)
 		{
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -209,7 +205,7 @@ public class BuyAnythingManager : PeriodicRunner
 		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, product, message, cancellationToken)
 			.ConfigureAwait(false);
 
-		Conversations.Add(new ConversationUpdateTrack(
+		ConversationTracking.Add(new ConversationUpdateTrack(
 			new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
 				new Chat(new[] { new ChatMessage(true, message) }),
@@ -223,39 +219,35 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, object metadata, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		if (Conversations.FirstOrDefault(c => c.Conversation.Id == conversationId) is { } track)
+		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		track.Conversation = track.Conversation with
 		{
-			track.Conversation = track.Conversation with
-			{
-				ChatMessages = track.Conversation.ChatMessages.AddSentMessage(newMessage),
-				Metadata = metadata,
-			};
-			track.LastUpdate = DateTimeOffset.Now;
+			ChatMessages = track.Conversation.ChatMessages.AddSentMessage(newMessage),
+			Metadata = metadata,
+		};
+		track.LastUpdate = DateTimeOffset.Now;
 
-			var rawText = track.Conversation.ChatMessages.ToText();
-			await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
+		var rawText = track.Conversation.ChatMessages.ToText();
+		await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
 
-			await SaveAsync(cancellationToken).ConfigureAwait(false);
-		}
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-		if (Conversations.FirstOrDefault(track => track.Conversation.Id == conversationId) is { } track)
+		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
+		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
+		track.Conversation = track.Conversation with
 		{
-			await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
-			await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
-			track.Conversation = track.Conversation with
-			{
-				ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted"),
-				ConversationStatus = ConversationStatus.OfferAccepted
-			};
-			track.LastUpdate = DateTimeOffset.Now;
+			ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted"),
+			ConversationStatus = ConversationStatus.OfferAccepted
+		};
+		track.LastUpdate = DateTimeOffset.Now;
 
-			await SaveAsync(cancellationToken).ConfigureAwait(false);
-		}
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private static OrderStatus GetOrderStatus(Order order)
@@ -322,7 +314,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(Conversations, Formatting.Indented);
+		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented);
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -354,8 +346,8 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		IoHelpers.EnsureFileExists(FilePath);
 		string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-		var conversations = JsonConvert.DeserializeObject<List<ConversationUpdateTrack>>(json) ?? new();
-		Conversations.AddRange(conversations);
+		var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json) ?? new();
+		ConversationTracking.Load(conversations);
 		IsConversationsLoaded = true;
 	}
 
