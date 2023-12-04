@@ -80,7 +80,7 @@ public sealed partial class InitialWorkflow : Workflow
 						Description = "Accept the Privacy Policy",
 						IsClickable = true
 					},
-					"")),
+					null)),
 			// TODO: Do we need this? Temp disabled for marketing team.
 			// Confirm
 			// new (false,
