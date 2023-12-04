@@ -16,10 +16,11 @@ public class LegalChecker : IDisposable
 
 	private bool _disposedValue;
 
-	public LegalChecker(string dataDir)
+	public LegalChecker(string dataDir, UpdateChecker updateChecker)
 	{
 		LegalFolder = Path.Combine(dataDir, LegalFolderName);
 		ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
+		UpdateChecker = updateChecker;
 	}
 
 	public event EventHandler<LegalDocuments>? AgreedChanged;
@@ -29,16 +30,15 @@ public class LegalChecker : IDisposable
 	/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
 	private AsyncLock LegalDocumentLock { get; } = new();
 
-	private UpdateChecker? UpdateChecker { get; set; }
+	private UpdateChecker UpdateChecker { get; }
 	public string LegalFolder { get; }
 	public string ProvisionalLegalFolder { get; }
 	public LegalDocuments? CurrentLegalDocument { get; private set; }
 	private LegalDocuments? ProvisionalLegalDocument { get; set; }
 	private TaskCompletionSource<LegalDocuments> LatestDocumentTaskCompletion { get; } = new();
 
-	public async Task InitializeAsync(UpdateChecker updateChecker)
+	public async Task InitializeAsync()
 	{
-		UpdateChecker = updateChecker;
 		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 		CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
 		ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);

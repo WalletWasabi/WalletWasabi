@@ -22,11 +22,14 @@ public class UpdateManager : IDisposable
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient, UpdateChecker updateChecker)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
 		DownloadNewVersion = downloadNewVersion;
+
+		UpdateChecker = updateChecker;
+		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
@@ -40,14 +43,12 @@ public class UpdateManager : IDisposable
 	///<summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
-	private UpdateChecker? UpdateChecker { get; set; }
+	private UpdateChecker UpdateChecker { get; }
 	private CancellationToken CancellationToken { get; set; }
 
-	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
+	public void Initialize(CancellationToken cancelationToken)
 	{
-		UpdateChecker = updateChecker;
 		CancellationToken = cancelationToken;
-		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
@@ -356,9 +357,6 @@ public class UpdateManager : IDisposable
 
 	public void Dispose()
 	{
-		if (UpdateChecker is { } updateChecker)
-		{
-			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
-		}
+		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 	}
 }
