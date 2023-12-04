@@ -26,7 +26,9 @@ public class UpdateManager : IDisposable
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
-		DownloadNewVersion = downloadNewVersion;
+
+		// The feature is disable on linux at the moment because we install Wasabi Wallet as a Debian package.
+		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		UpdateChecker = updateChecker;
 		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
@@ -64,7 +66,7 @@ public class UpdateManager : IDisposable
 			return;
 		}
 
-		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		if (DownloadNewVersion)
 		{
 			do
 			{
