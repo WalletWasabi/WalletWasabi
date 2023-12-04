@@ -14,13 +14,13 @@ public class BuyAnythingClient
 	// Services provided by Concierge
 	public enum Product
 	{
-		[Description("Concierge Request")]
+		[Description("All-Purpose Concierge Assistant")]
 		ConciergeRequest,
 
-		[Description("Fast Travel Booking")]
+		[Description("Fast Travel Assistant")]
 		FastTravelBooking,
 
-		[Description("Travel Concierge")]
+		[Description("General Travel Assistant")]
 		TravelConcierge
 	}
 
