@@ -145,6 +145,8 @@ public partial class OrderViewModel : ReactiveObject
 							_workflowManager.CurrentWorkflow.EditStepCommand,
 							_workflowManager.CurrentWorkflow.CanEditObservable,
 							_workflowManager.CurrentWorkflow.CurrentStep);
+
+						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
@@ -176,6 +178,7 @@ public partial class OrderViewModel : ReactiveObject
 					if (nextMessage is not null)
 					{
 						AddAssistantMessage(nextMessage);
+						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
@@ -354,5 +357,22 @@ public partial class OrderViewModel : ReactiveObject
 				: (MessageViewModel) new AssistantMessageViewModel(null, null) { Message = x.Message });
 
 		_messagesList.EditDiff(messages);
+	}
+
+	private ChatMessage[] GetChatMessages()
+	{
+		return _messages
+			.Select(x =>
+			{
+				var message = x.Message ?? "";
+
+				if (x is AssistantMessageViewModel)
+				{
+					return new ChatMessage(false, message);
+				}
+
+				return new ChatMessage(true, message);
+			})
+			.ToArray();
 	}
 }
