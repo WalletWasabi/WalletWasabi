@@ -63,7 +63,9 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync);
+		var canExecuteRemoveCommand = Observable.Return(_workflowManager.Id != ConversationId.Empty);
+
+		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
 
 		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command, m.Messages));
 
@@ -172,7 +174,7 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (!nextStep.RequiresUserInput)
 			{
-				if ( nextStep.UserInputValidator.CanDisplayMessage())
+				if (nextStep.UserInputValidator.CanDisplayMessage())
 				{
 					var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
 					if (nextMessage is not null)
@@ -353,7 +355,7 @@ public partial class OrderViewModel : ReactiveObject
 				{
 					Message = x.Message
 				}
-				: (MessageViewModel) new AssistantMessageViewModel(null, null) { Message = x.Message });
+				: (MessageViewModel)new AssistantMessageViewModel(null, null) { Message = x.Message });
 
 		_messagesList.EditDiff(messages);
 	}
