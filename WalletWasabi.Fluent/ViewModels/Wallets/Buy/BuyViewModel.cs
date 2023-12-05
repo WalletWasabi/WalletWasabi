@@ -128,16 +128,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
-					// The conversation belongs to the "fake" empty conversation
-					if (Orders.All(x => x.BackendId != e.Conversation.Id))
+					// This handles the unbound conversation. The unbound conversation is a conversation that only exists in the UI.
+					
+					if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
 					{
-						var fake = Orders.First(x => x.BackendId == ConversationId.Empty);
-						fake.Copy(e.Conversation);
-						fake.BackendId = e.Conversation.Id;
-						//fake.Messages = e.Conversation.ChatMessages;
-						//fake.
-						// Update the fake conversation ID because now we have a valid one.
-						// After updating the ID we can now create a new "fake" conversation.
+						// It is because the incoming event has the freshly assigned BackedId.
+						// We should lookup for the unbound order and assign its BackendId and update it with the data in the conversation.
+						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
+						unboundOrder.Copy(e.Conversation);	// Copies the data from the updated conversation to the order
+						unboundOrder.BackendId = e.Conversation.Id;	// The order is no longer unbound ;)
+						
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						CreateAndAddEmptyOrder(_cts.Token);
 						return;
