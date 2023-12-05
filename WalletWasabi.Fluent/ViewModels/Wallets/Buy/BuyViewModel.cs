@@ -62,7 +62,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_cts = new CancellationTokenSource();
 
 		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(null, null, null));
+		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null, null));
 
 		UpdateTrigger = _updateTriggerSubject;
 	}
@@ -131,7 +131,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					// The conversation belongs to the "fake" empty conversation
 					if (Orders.All(x => x.BackendId != e.Conversation.Id))
 					{
-						var fake = Orders.First(x => x.BackendId == null);
+						var fake = Orders.First(x => x.BackendId == ConversationId.Empty);
 						fake.Copy(e.Conversation);
 						fake.BackendId = e.Conversation.Id;
 						//fake.Messages = e.Conversation.ChatMessages;
@@ -274,7 +274,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {nextOrderIndex}",
-			new ShopinBitWorkflowManagerViewModel(null, _countries),
+			new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
 			this,
 			cancellationToken);
 
