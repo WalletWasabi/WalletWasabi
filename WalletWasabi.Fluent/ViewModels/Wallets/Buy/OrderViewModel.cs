@@ -31,13 +31,13 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(UiContext uiContext,
-		ConversationId id,
+		ConversationId backendId,
 		string title,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
-		Id = id;
+		BackendId = backendId;
 		Title = title;
 
 		// TODO: For now we have only one workflow manager.
@@ -71,7 +71,7 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		UpdateOrder(id, null, null);
+		UpdateOrder(backendId, null, null);
 
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
@@ -79,7 +79,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
 
-	public ConversationId Id { get; }
+	public ConversationId BackendId { get; }
 
 	public string Title { get; }
 
@@ -90,10 +90,11 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand SendCommand { get; }
 
 	public ICommand RemoveOrderCommand { get; }
+	public Guid Id { get; }
 
 	private void UpdateOrder(ConversationId id, string? command, IReadOnlyList<MessageViewModel>? messages)
 	{
-		if (id != Id)
+		if (id != BackendId)
 		{
 			return;
 		}
@@ -324,7 +325,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrder(Id);
+			_orderManager.RemoveOrder(BackendId);
 		}
 	}
 
