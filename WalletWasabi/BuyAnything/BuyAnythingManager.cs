@@ -37,7 +37,8 @@ internal enum ServerEvent
 	FinishConversation = 16,
 	ReceiveAttachments = 32,
 	SendOrder = 64,
-	ReceivePaymentAfterExpiration = 128
+	ReceivePaymentAfterExpiration = 128,
+	CloseOfferSuccessfully = 256
 }
 
 // Class to manage the conversation updates
@@ -111,11 +112,9 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
-				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links) // TODO: move this to done because it is the product itself when is travel tickest for example.
-						? string.Empty
-						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes";
-				await SendSystemChatLinesAsync(track, message, order.UpdatedAt, ConversationStatus.InvoiceReceived,
+				await SendSystemChatLinesAsync(track,
+					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
+					order.UpdatedAt, ConversationStatus.InvoiceReceived,
 					cancel).ConfigureAwait(false);
 				break;
 
@@ -160,6 +159,13 @@ public class BuyAnythingManager : PeriodicRunner
 						ConversationStatus = ConversationStatus.Shipped
 					};
 				}
+				break;
+
+			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
+			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
+				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
+				await SendSystemChatLinesAsync(track,$"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			default:
@@ -322,7 +328,14 @@ public class BuyAnythingManager : PeriodicRunner
 
 			if (orderStatus == OrderStatus.Done)
 			{
-				events |= ServerEvent.FinishConversation;
+				if (!string.IsNullOrWhiteSpace(order.CustomFields?.Concierge_Request_Attachements_Links))
+				{
+					events |= ServerEvent.CloseOfferSuccessfully;
+				}
+				else
+				{
+					events |= ServerEvent.FinishConversation;
+				}
 			}
 		}
 
