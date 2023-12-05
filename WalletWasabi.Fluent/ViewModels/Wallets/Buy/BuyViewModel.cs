@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
+using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using Country = WalletWasabi.BuyAnything.Country;
 
@@ -56,6 +57,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_ordersCache
 			.Connect()
+			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.Title))
 			.Bind(out _orders)
 			.Subscribe();
 
