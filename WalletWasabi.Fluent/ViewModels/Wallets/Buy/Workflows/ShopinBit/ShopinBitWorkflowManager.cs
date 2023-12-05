@@ -9,16 +9,18 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 {
 	private readonly Country[] _countries;
 	private readonly string _walletId;
+	private readonly string _title;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
 	private Country? _location;
 
-	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId)
+	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId, string title)
 	{
 		_countries = countries;
 		_walletId = walletId;
+		_title = title;
 		_workflowValidator = new WorkflowValidator();
 	}
 
@@ -43,10 +45,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			return Task.CompletedTask;
 		}
 
-		var request = _currentWorkflow.GetResult();
-		var metaData = GetMetadata(request);
-
-		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, metaData, cancellationToken);
+		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, cancellationToken);
 	}
 
 	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
@@ -80,6 +79,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						product,
 						requestMessage,
 						chatMessages,
+						_title,
 						cancellationToken);
 					break;
 				}

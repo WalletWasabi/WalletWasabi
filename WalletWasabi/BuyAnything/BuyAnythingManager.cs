@@ -238,7 +238,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, ChatMessage[] chatMessages, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, ChatMessage[] chatMessages, string title, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -250,21 +250,20 @@ public class BuyAnythingManager : PeriodicRunner
 				new Chat(chatMessages),
 				OrderStatus.Open,
 				ConversationStatus.Started,
-				new object());
+				title);
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, object metadata, CancellationToken cancellationToken)
+	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var track = ConversationTracking.GetConversationTrackByd(conversationId);
 		track.Conversation = track.Conversation with
 		{
 			ChatMessages = new(chatMessages),
-			Metadata = metadata,
 		};
 		track.LastUpdate = DateTimeOffset.Now;
 

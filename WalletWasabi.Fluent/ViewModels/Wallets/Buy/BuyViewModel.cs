@@ -264,8 +264,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var order = new OrderViewModel(
 			UiContext,
 			Guid.NewGuid(),
-			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
+			conversation.Title,
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), conversation.Title),
 			this,
 			cancellationToken);
 
@@ -283,11 +283,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
+			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
+
 			var order = new OrderViewModel(
 			UiContext,
 			Guid.NewGuid(),
-			$"Order {buyAnythingManager.GetNextConversationId(walletId)}",
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
+			title,
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), title),
 			this,
 			cancellationToken);
 
