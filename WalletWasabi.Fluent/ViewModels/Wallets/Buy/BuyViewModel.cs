@@ -34,7 +34,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel, ConversationId> _ordersCache;
+	private readonly SourceCache<OrderViewModel, Guid> _ordersCache;
 	private readonly BehaviorSubject<OrderUpdateMessage> _updateTriggerSubject;
 
 	private Country[] _countries;
@@ -52,7 +52,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, ConversationId>(x => x.Id);
+		_ordersCache = new SourceCache<OrderViewModel, Guid>(x => x.Id);
 
 		_ordersCache
 			.Connect()
@@ -115,7 +115,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			// TODO: Fill up the UI with the conversations.
 			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 
-			if (_orders.Count == 0 || _orders.All(x => x.Id != new ConversationId(BuyAnythingManager.GetWalletId(_wallet), "", "", "")))
+			if (_orders.Count == 0 || _orders.All(x => x.BackendId != new ConversationId(BuyAnythingManager.GetWalletId(_wallet), "", "", "")))
 			{
 				CreateAndAddEmptyOrder(_cts.Token);
 			}
@@ -129,7 +129,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.Subscribe(e =>
 				{
 					// The conversation belongs to the "fake" empty conversation
-					if (Orders.All(x => x.Id != e.Conversation.Id))
+					if (Orders.All(x => x.BackendId != e.Conversation.Id))
 					{
 						// Update the fake conversation ID because now we have a valid one.
 						// After updating the ID we can now create a new "fake" conversation.
@@ -291,12 +291,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	void IOrderManager.RemoveOrder(ConversationId id)
 	{
-		// TODO: Shouldn't this also remove from manager?
-		_ordersCache.Edit(x =>
-		{
-			_ordersCache.RemoveKey(id);
-		});
+		//// TODO: Shouldn't this also remove from manager?
+		//_ordersCache.Edit(x =>
+		//{
+		//	_ordersCache.RemoveKey(id);
+		//});
 
-		SelectedOrder = _orders.FirstOrDefault();
+		//SelectedOrder = _orders.FirstOrDefault();
 	}
 }
