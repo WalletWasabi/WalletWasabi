@@ -9,6 +9,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -55,6 +56,10 @@ public partial class OrderViewModel : ReactiveObject
 		_messagesList
 			.Connect()
 			.Bind(out _messages)
+			.Subscribe();
+
+		_messagesList.CountChanged
+			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
 			.Subscribe();
 
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
@@ -147,8 +152,6 @@ public partial class OrderViewModel : ReactiveObject
 							_workflowManager.CurrentWorkflow.EditStepCommand,
 							_workflowManager.CurrentWorkflow.CanEditObservable,
 							_workflowManager.CurrentWorkflow.CurrentStep);
-
-						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
@@ -180,7 +183,6 @@ public partial class OrderViewModel : ReactiveObject
 					if (nextMessage is not null)
 					{
 						AddAssistantMessage(nextMessage);
-						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
@@ -192,7 +194,8 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				await _workflowManager.SendApiRequestAsync(cancellationToken);
+				var chatMessages = GetChatMessages();
+				await _workflowManager.SendApiRequestAsync(chatMessages, cancellationToken);
 
 				SelectNextWorkflow(null);
 			}

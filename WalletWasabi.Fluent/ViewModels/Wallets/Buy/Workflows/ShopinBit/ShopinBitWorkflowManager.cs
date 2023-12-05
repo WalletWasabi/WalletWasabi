@@ -49,7 +49,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, metaData, cancellationToken);
 	}
 
-	public async Task SendApiRequestAsync(CancellationToken cancellationToken)
+	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
 	{
 		// TODO: Just for testing, remove when api service is implemented.
 		await Task.Delay(1000);
@@ -79,6 +79,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						location.Id,
 						product,
 						requestMessage,
+						chatMessages,
 						cancellationToken);
 					break;
 				}

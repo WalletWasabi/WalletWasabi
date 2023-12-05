@@ -14,7 +14,7 @@ public interface IWorkflowManager
 
 	Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken);
 
-	Task SendApiRequestAsync(CancellationToken cancellationToken);
+	Task SendApiRequestAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken);
 
 	void UpdateId(ConversationId id);
 
