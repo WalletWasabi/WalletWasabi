@@ -139,6 +139,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						return;
 					}
 
+					Logging.Logger.LogInfo($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: {e.Conversation.Id}, {e.Conversation.ConversationStatus}, {e.Conversation.OrderStatus}");
+
 					_updateTriggerSubject.OnNext(
 						new OrderUpdateMessage(
 							e.Conversation.Id,
