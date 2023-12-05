@@ -68,7 +68,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		var canExecuteRemoveCommand = Observable.Return(_workflowManager.Id != ConversationId.Empty);
+		var canExecuteRemoveCommand = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
 

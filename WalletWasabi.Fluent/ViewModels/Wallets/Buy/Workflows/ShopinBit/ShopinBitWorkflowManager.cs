@@ -14,6 +14,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private ConversationId? _id = ConversationId.Empty;
+
 	private Country? _location;
 
 	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId, string title)
@@ -25,8 +28,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
-
-	public ConversationId Id { get; private set; } = ConversationId.Empty;
 
 	public void UpdateId(ConversationId newId)
 	{
