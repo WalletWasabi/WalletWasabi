@@ -329,7 +329,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrder(Id);
+			_orderManager.RemoveOrderAsync(Id);
 		}
 	}
 

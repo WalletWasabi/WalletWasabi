@@ -310,9 +310,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return false;
 	}
 
-	void IOrderManager.RemoveOrder(Guid id)
+	async Task IOrderManager.RemoveOrderAsync(Guid id)
 	{
-		// TODO: Shouldn't this also remove from manager?
+		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove && Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			await buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.BackendId }, _cts.Token);
+		}
+
 		_ordersCache.RemoveKey(id);
 		SelectedOrder = _orders.FirstOrDefault();
 	}
