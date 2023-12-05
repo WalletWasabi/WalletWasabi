@@ -39,7 +39,7 @@
              Margin="10"
              Items="{Binding Orders}"
              SelectedItem="{Binding SelectedOrder}"
-             DockPanel.Dock="Left" >
+             DockPanel.Dock="Left">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <DockPanel>
@@ -47,12 +47,13 @@
               <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
                         Classes.UnreadMessagesIcon="{Binding HasUnreadMessagesObs^}" />
               <Button Classes="plain"
-                      Command="{Binding RemoveOrderCommand}">
+                      Command="{Binding RemoveOrderCommand}"
+                      IsVisible="{Binding $self.IsEffectivelyEnabled}">
                 <PathIcon Classes="RemoveOrderIcon" />
               </Button>
             </StackPanel>
             <TextBlock Text="{Binding Title}"
-                       VerticalAlignment="Center"/>
+                       VerticalAlignment="Center" />
           </DockPanel>
         </DataTemplate>
       </ListBox.ItemTemplate>
@@ -79,7 +80,5 @@
         </Style>
       </ListBox.Styles>
     </ListBox>
-
   </DockPanel>
-
 </UserControl>
