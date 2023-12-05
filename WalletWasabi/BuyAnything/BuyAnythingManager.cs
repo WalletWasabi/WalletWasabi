@@ -396,8 +396,8 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private string GetLinksByLine(string attachementsLinks) =>
-		string.Join("\n", attachementsLinks
+	private string GetLinksByLine(string attachmentsLinks) =>
+		string.Join("\n", attachmentsLinks
 			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
 	private static string ConvertOfferDetailToMessages(Order order)
@@ -413,7 +413,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
-		if (IsConversationsLoaded is false)
+		if (!IsConversationsLoaded)
 		{
 			await LoadConversationsAsync(cancellationToken).ConfigureAwait(false);
 		}
@@ -450,13 +450,13 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 		catch (DirectoryNotFoundException)
 		{
-			Logger.LogWarning($"Failed to load local countries from path {countriesFilePath}. Getting them manualy...");
+			Logger.LogWarning($"Failed to load local countries from path {countriesFilePath}. Getting them manually...");
 
 			Country[] countries = await Client.GetCountriesAsync(cancellationToken).ConfigureAwait(false);
 			await SaveCountriesToFileAsync(countries, countriesFilePath, cancellationToken).ConfigureAwait(false);
 
 			Countries.AddRange(countries);
-			Logger.LogInfo("Succesfully downloaded and cached countries.");
+			Logger.LogInfo("Successfully downloaded and cached countries.");
 		}
 	}
 
