@@ -48,6 +48,11 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		Client = client;
 		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
+
+		BuyAnythingDataFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data");
+		CountriesFilePath = Path.Combine(BuyAnythingDataFolder, "Countries.json");
+		IoHelpers.EnsureDirectoryExists(BuyAnythingDataFolder);
+
 		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
 	}
 
@@ -61,6 +66,12 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
+
+	/// <summary>Folder for storing helper data regarding BAB, not suitable to be stored in user's profile.</summary>
+	private string BuyAnythingDataFolder { get; }
+
+	/// <remarks>If the file is missing, it's necessary to download it using ShopWare API.</remarks>
+	private string CountriesFilePath { get; }
 
 	private string FilePath { get; }
 
@@ -438,10 +449,9 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
-		var countriesFilePath = "./BuyAnything/Data/Countries.json";
 		try
 		{
-			var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
+			var fileContent = await File.ReadAllTextAsync(CountriesFilePath, cancellationToken).ConfigureAwait(false);
 
 			Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
 							?? throw new InvalidOperationException("Couldn't read cached countries values.");
@@ -450,21 +460,20 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 		catch (DirectoryNotFoundException)
 		{
-			Logger.LogWarning($"Failed to load local countries from path {countriesFilePath}. Getting them manualy...");
+			Logger.LogWarning($"Failed to load local countries from path '{CountriesFilePath}'. Getting them manualy...");
 
 			Country[] countries = await Client.GetCountriesAsync(cancellationToken).ConfigureAwait(false);
-			await SaveCountriesToFileAsync(countries, countriesFilePath, cancellationToken).ConfigureAwait(false);
+			await SaveCountriesToFileAsync(countries, cancellationToken).ConfigureAwait(false);
 
 			Countries.AddRange(countries);
 			Logger.LogInfo("Succesfully downloaded and cached countries.");
 		}
 	}
 
-	private async Task SaveCountriesToFileAsync(Country[] countries, string countriesFilePath, CancellationToken cancellationToken)
+	private async Task SaveCountriesToFileAsync(Country[] countries, CancellationToken cancellationToken)
 	{
-		IoHelpers.EnsureDirectoryExists("./BuyAnything/Data/");
 		var countriesJson = JsonConvert.SerializeObject(countries, Formatting.Indented);
-		await File.WriteAllTextAsync(countriesFilePath, countriesJson, cancellationToken).ConfigureAwait(false);
+		await File.WriteAllTextAsync(CountriesFilePath, countriesJson, cancellationToken).ConfigureAwait(false);
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>
