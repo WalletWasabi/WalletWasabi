@@ -250,7 +250,7 @@
             <c:PreviewMessageItem CopyableContent="{Binding Message}"
                                   CopyButtonPlacement="Right"
                                   HorizontalAlignment="Left">
-              <Border Background="{DynamicResource ErrorColor}">
+              <Border Background="{DynamicResource ErrorMessageColor}">
                 <TextBlock VerticalAlignment="Center"
                            Text="{Binding Message}" />
               </Border>

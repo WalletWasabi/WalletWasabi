@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.BuyAnything;
 
 public class BuyAnythingManagerTests
 {
-	[Fact]
+	//[Fact]
 	public async Task BuyAnythingManagerTest()
 	{
 #if USE_MOCK

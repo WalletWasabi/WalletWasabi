@@ -9,22 +9,25 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 {
 	private readonly Country[] _countries;
 	private readonly string _walletId;
+	private readonly string _title;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private ConversationId? _id = ConversationId.Empty;
+
 	private Country? _location;
 
-	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId)
+	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId, string title)
 	{
 		_countries = countries;
 		_walletId = walletId;
+		_title = title;
 		_workflowValidator = new WorkflowValidator();
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
-
-	public ConversationId Id { get; private set; } = ConversationId.Empty;
 
 	public void UpdateId(ConversationId newId)
 	{
@@ -43,17 +46,11 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			return Task.CompletedTask;
 		}
 
-		var request = _currentWorkflow.GetResult();
-		var metaData = GetMetadata(request);
-
-		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, metaData, cancellationToken);
+		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, cancellationToken);
 	}
 
-	public async Task SendApiRequestAsync(CancellationToken cancellationToken)
+	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
 	{
-		// TODO: Just for testing, remove when api service is implemented.
-		await Task.Delay(1000);
-
 		if (_currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
 			return;
@@ -79,6 +76,8 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						location.Id,
 						product,
 						requestMessage,
+						chatMessages,
+						_title,
 						cancellationToken);
 					break;
 				}
@@ -110,26 +109,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						cancellationToken);
 					break;
 				}
-			case PackageWorkflowRequest packageWorkflowRequest:
-				{
-					// TODO:
-					break;
-				}
-			case PaymentWorkflowRequest paymentWorkflowRequest:
-				{
-					// TODO:
-					break;
-				}
-			case SupportChatWorkflowRequest supportChatWorkflowRequest:
-				{
-					// TODO:
-					break;
-				}
-			case WorkflowRequestError workflowRequestError:
-				{
-					// TODO:
-					break;
-				}
 			default:
 				{
 					throw new ArgumentOutOfRangeException(nameof(request));
@@ -137,60 +116,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	private object GetMetadata(WorkflowRequest request)
+	private Workflow? GetWorkflowFromConversation(string? conversationStatus)
 	{
-		// TODO:
-		switch (request)
-		{
-			case DeliveryWorkflowRequest:
-				return "Delivery";
-
-			case InitialWorkflowRequest:
-				return "Initial";
-
-			case PackageWorkflowRequest:
-				return "Package";
-
-			case PaymentWorkflowRequest:
-				return "Payment";
-
-			case SupportChatWorkflowRequest:
-				return "SupportChat";
-
-			case WorkflowRequestError:
-				return "Error";
-
-			default:
-				return "Unknown";
-		}
-	}
-
-	private Workflow? GetWorkflowFromCommand(string? command)
-	{
-		// TODO: What we do if current workflow matched command or is ongoing?
-		/*
-		switch (command)
-		{
-			case "Initial":
-				return new InitialWorkflow(_workflowValidator, _countries);
-
-			case "Delivery":
-				return new DeliveryWorkflow(_workflowValidator);
-
-			case "Payment":
-				return new PaymentWorkflow(_workflowValidator);
-
-			case "Package":
-				return new PackageWorkflow(_workflowValidator);
-
-			case "SupportChat":
-				return new SupportChatWorkflow(_workflowValidator);
-
-			default:
-				return null;
-		}
-		*/
-		switch (command)
+		switch (conversationStatus)
 		{
 			case "Started":
 				return new InitialWorkflow(_workflowValidator, _countries);
@@ -199,15 +127,27 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				return new DeliveryWorkflow(_workflowValidator);
 
 			case "PaymentDone":
-				return new PaymentWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(_workflowValidator);
 
 			case "PaymentConfirmed":
-				return new PaymentWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(_workflowValidator);
 
 			case "OfferAccepted":
-				return new DeliveryWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(_workflowValidator);
 
 			case "InvoiceReceived":
+				return new SupportChatWorkflow(_workflowValidator);
+
+			case "InvoiceExpired":
+				return new SupportChatWorkflow(_workflowValidator);
+
+			case "InvoicePaidAfterExpiration":
+				return new SupportChatWorkflow(_workflowValidator);
+
+			case "Shipped":
+				return new SupportChatWorkflow(_workflowValidator);
+
+			case "Finished":
 				return new SupportChatWorkflow(_workflowValidator);
 
 			default:
@@ -215,58 +155,27 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	public bool SelectNextWorkflow(string? command)
+	public bool SelectNextWorkflow(string? conversationStatus)
 	{
-		if (command is not null)
+		if (conversationStatus is not null)
 		{
-			// TODO: Check if we can cancel current workflow.
 			if (_currentWorkflow?.CanCancel() ?? true)
 			{
-				CurrentWorkflow = GetWorkflowFromCommand(command);
+				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus);
 				return true;
 			}
 
 			return false;
 		}
 
-		switch (_currentWorkflow)
+		CurrentWorkflow = _currentWorkflow switch
 		{
-			case null:
-				{
-					CurrentWorkflow = new InitialWorkflow(_workflowValidator, _countries);
-					break;
-				}
-			case InitialWorkflow:
-				{
-					// TODO:
-					CurrentWorkflow = new DeliveryWorkflow(_workflowValidator);
-					break;
-				}
-			case DeliveryWorkflow:
-				{
-					// TODO:
-					CurrentWorkflow = new PaymentWorkflow(_workflowValidator);
-					break;
-				}
-			case PaymentWorkflow:
-				{
-					// TODO:
-					CurrentWorkflow = new PackageWorkflow(_workflowValidator);
-					break;
-				}
-			case PackageWorkflow:
-				{
-					// TODO: After receiving package info switch to final workflow with chat support.
-					CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
-					break;
-				}
-			case SupportChatWorkflow:
-				{
-					// TODO: Order is complete do nothing?
-					CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
-					break;
-				}
-		}
+			null => new InitialWorkflow(_workflowValidator, _countries),
+			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
+			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
+			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),
+			_ => CurrentWorkflow
+		};
 
 		return true;
 	}

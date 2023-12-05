@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using NBitcoin.Protocol;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -251,7 +249,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, ChatMessage[] chatMessages, string title, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -260,24 +258,23 @@ public class BuyAnythingManager : PeriodicRunner
 			.ConfigureAwait(false);
 		var conversation = new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-				new Chat(new[] { new ChatMessage(true, message) }),
+				new Chat(chatMessages),
 				OrderStatus.Open,
 				ConversationStatus.Started,
-				new object());
+				title);
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, object metadata, CancellationToken cancellationToken)
+	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var track = ConversationTracking.GetConversationTrackByd(conversationId);
 		track.Conversation = track.Conversation with
 		{
 			ChatMessages = new(chatMessages),
-			Metadata = metadata,
 		};
 		track.LastUpdate = DateTimeOffset.Now;
 
@@ -407,8 +404,8 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private string GetLinksByLine(string attachementsLinks) =>
-		string.Join("\n", attachementsLinks
+	private string GetLinksByLine(string attachmentsLinks) =>
+		string.Join("\n", attachmentsLinks
 			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
 	private static string ConvertOfferDetailToMessages(Order order)
@@ -424,7 +421,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
-		if (IsConversationsLoaded is false)
+		if (!IsConversationsLoaded)
 		{
 			await LoadConversationsAsync(cancellationToken).ConfigureAwait(false);
 		}
@@ -449,31 +446,12 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
-		try
-		{
-			var fileContent = await File.ReadAllTextAsync(CountriesFilePath, cancellationToken).ConfigureAwait(false);
+		var fileContent = await File.ReadAllTextAsync(CountriesFilePath, cancellationToken).ConfigureAwait(false);
 
-			Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-							?? throw new InvalidOperationException("Couldn't read cached countries values.");
+		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+						?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
-			Countries.AddRange(countries);
-		}
-		catch (DirectoryNotFoundException)
-		{
-			Logger.LogWarning($"Failed to load local countries from path '{CountriesFilePath}'. Getting them manualy...");
-
-			Country[] countries = await Client.GetCountriesAsync(cancellationToken).ConfigureAwait(false);
-			await SaveCountriesToFileAsync(countries, cancellationToken).ConfigureAwait(false);
-
-			Countries.AddRange(countries);
-			Logger.LogInfo("Succesfully downloaded and cached countries.");
-		}
-	}
-
-	private async Task SaveCountriesToFileAsync(Country[] countries, CancellationToken cancellationToken)
-	{
-		var countriesJson = JsonConvert.SerializeObject(countries, Formatting.Indented);
-		await File.WriteAllTextAsync(CountriesFilePath, countriesJson, cancellationToken).ConfigureAwait(false);
+		Countries.AddRange(countries);
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>

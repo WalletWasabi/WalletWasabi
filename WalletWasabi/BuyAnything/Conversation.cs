@@ -106,4 +106,4 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	}
 }
 
-public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, object Metadata);
+public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, string Title);

@@ -9,6 +9,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -39,7 +40,6 @@ public partial class OrderViewModel : ReactiveObject
 		Id = id;
 		Title = title;
 
-		// TODO: For now we have only one workflow manager.
 		_uiContext = uiContext;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
@@ -57,23 +57,24 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
+		_messagesList.CountChanged
+			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
+			.Subscribe();
+
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		_workflowManager.SelectNextWorkflow(null);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		var canExecuteRemoveCommand = Observable.Return(_workflowManager.Id != ConversationId.Empty);
+		var canExecuteRemoveCommand = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
 
-		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command, m.Messages));
+		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.ConversationStatus, m.OrderStatus, m.Messages));
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
-
-		// TODO: Run initial workflow steps if any.
-		// RunNoInputWorkflowSteps();
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
@@ -91,14 +92,18 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand RemoveOrderCommand { get; }
 	public Guid Id { get; }
 
-	private void UpdateOrder(ConversationId id, string? command, IReadOnlyList<MessageViewModel>? messages)
+	private void UpdateOrder(
+		ConversationId id,
+		string? conversationStatus,
+		string? orderStatus,
+		IReadOnlyList<MessageViewModel>? messages)
 	{
 		if (id != BackendId)
 		{
 			return;
 		}
 
-		IsCompleted = _orderManager.IsCompleted(id);
+		IsCompleted = orderStatus == "Done";
 
 		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
 
@@ -107,9 +112,9 @@ public partial class OrderViewModel : ReactiveObject
 			UpdateMessages(messages);
 		}
 
-		if (command is not null)
+		if (conversationStatus is not null)
 		{
-			SelectNextWorkflow(command);
+			SelectNextWorkflow(conversationStatus);
 		}
 	}
 
@@ -120,9 +125,6 @@ public partial class OrderViewModel : ReactiveObject
 		try
 		{
 			_workflowManager.WorkflowValidator.Signal(false);
-
-			// TODO: Only for form messages and not api calls.
-			await Task.Delay(500);
 
 			if (_workflowManager.CurrentWorkflow is null)
 			{
@@ -147,15 +149,13 @@ public partial class OrderViewModel : ReactiveObject
 							_workflowManager.CurrentWorkflow.EditStepCommand,
 							_workflowManager.CurrentWorkflow.CanEditObservable,
 							_workflowManager.CurrentWorkflow.CurrentStep);
-
-						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				// TODO: Handle agent command?
+				// TODO: Handle agent conversationStatus?
 				SelectNextWorkflow(null);
 				return;
 			}
@@ -180,19 +180,19 @@ public partial class OrderViewModel : ReactiveObject
 					if (nextMessage is not null)
 					{
 						AddAssistantMessage(nextMessage);
-						await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 					}
 				}
 			}
 
 			if (nextStep.IsCompleted)
 			{
-				RunNoInputWorkflowSteps();
+				Update();
 			}
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				await _workflowManager.SendApiRequestAsync(cancellationToken);
+				var chatMessages = GetChatMessages();
+				await _workflowManager.SendApiRequestAsync(chatMessages, cancellationToken);
 
 				SelectNextWorkflow(null);
 			}
@@ -208,22 +208,19 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private bool SelectNextWorkflow(string? command)
+	private bool SelectNextWorkflow(string? conversationStatus)
 	{
-		// TODO: Select next workflow or wait for api service response.
-		_workflowManager.SelectNextWorkflow(command);
+		_workflowManager.SelectNextWorkflow(conversationStatus);
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
-		// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
-		RunNoInputWorkflowSteps();
+		Update();
 
 		// Continue the loop until next workflow is there and is completed.
 		if (_workflowManager.CurrentWorkflow is not null)
 		{
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				// TODO: Handle agent command?
 				SelectNextWorkflow(null);
 			}
 		}
@@ -231,7 +228,7 @@ public partial class OrderViewModel : ReactiveObject
 		return true;
 	}
 
-	private void RunNoInputWorkflowSteps()
+	public void Update()
 	{
 		if (_workflowManager.CurrentWorkflow is null)
 		{
@@ -247,26 +244,28 @@ public partial class OrderViewModel : ReactiveObject
 			}
 
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
-			if (nextStep is not null)
+			if (nextStep is null)
 			{
-				if (nextStep.UserInputValidator.CanDisplayMessage())
-				{
-					var message = nextStep.UserInputValidator.GetFinalMessage();
-					if (message is not null)
-					{
-						AddAssistantMessage(message);
-					}
-				}
+				continue;
+			}
 
-				if (nextStep.RequiresUserInput)
+			if (nextStep.UserInputValidator.CanDisplayMessage())
+			{
+				var message = nextStep.UserInputValidator.GetFinalMessage();
+				if (message is not null)
 				{
-					break;
+					AddAssistantMessage(message);
 				}
+			}
 
-				if (!nextStep.UserInputValidator.OnCompletion())
-				{
-					break;
-				}
+			if (nextStep.RequiresUserInput)
+			{
+				break;
+			}
+
+			if (!nextStep.UserInputValidator.OnCompletion())
+			{
+				break;
 			}
 		}
 	}
@@ -326,14 +325,8 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrder(Id);
+			_orderManager.RemoveOrderAsync(Id);
 		}
-	}
-
-	public void Update()
-	{
-		// TODO: For testing
-		RunNoInputWorkflowSteps();
 	}
 
 	// TODO: Temporary until we sync messages

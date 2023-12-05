@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
+using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using Country = WalletWasabi.BuyAnything.Country;
 
@@ -56,13 +57,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_ordersCache
 			.Connect()
+			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.Title))
 			.Bind(out _orders)
 			.Subscribe();
 
 		_cts = new CancellationTokenSource();
-
-		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null, null));
+		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(OrderUpdateMessage.Empty);
 
 		UpdateTrigger = _updateTriggerSubject;
 	}
@@ -77,7 +77,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		Task.Run(async () =>
 		{
-			await InitializeCountries(_cts.Token);
+			await InitializeCountriesAsync(_cts.Token);
 			await InitializeOrdersAsync(_cts.Token, disposable);
 			SelectedOrder = _orders.FirstOrDefault();
 		}, _cts.Token);
@@ -87,20 +87,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
-		// TODO: For testing.
 		this.WhenAnyValue(x => x.SelectedOrder)
-			.Subscribe(x =>
+			.Subscribe(order =>
 			{
-				Task.Run(async () =>
-				{
-					await Task.Delay(500);
-					Dispatcher.UIThread.Post(() => x?.Update());
-				}, _cts.Token);
+				Dispatcher.UIThread.Post(() => order?.Update());
 			})
 			.DisposeWith(disposables);
 	}
 
-	private async Task InitializeCountries(CancellationToken cancellationToken)
+	private async Task InitializeCountriesAsync(CancellationToken cancellationToken)
 	{
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
@@ -112,7 +107,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
-			// TODO: Fill up the UI with the conversations.
 			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 
 			if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
@@ -128,12 +122,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
-					// This handles the unbound conversation. The unbound conversation is a conversation that only exists in the UI (yet)
+					// This handles the unbound conversation.
+					// The unbound conversation is a conversation that only exists in the UI (yet)
 
 					if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
 					{
 						// It is because the incoming event has the freshly assigned BackedId.
-						// We should lookup for the unbound order and assign its BackendId and update it with the data in the conversation.
+						// We should lookup for the unbound order and assign its BackendId
+						// and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
 						unboundOrder.Copy(e.Conversation); // Copies the data from the updated conversation to the order
 						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
@@ -143,61 +139,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						return;
 					}
 
-					// TODO: Handle OrderStatus and pass to order view model to handle.
-					switch (e.Conversation.OrderStatus)
-					{
-						case OrderStatus.Open:
-							break;
-
-						case OrderStatus.Done:
-							break;
-
-						case OrderStatus.Cancelled:
-							break;
-
-						case OrderStatus.InProgress:
-							break;
-					}
-
-					// TODO: Handle e.Conversation.Metadata
-
-					// TODO: Update the order conversations using e.ChatMessages
-
-					var orderMessages = CreateMessages(e.Conversation);
-
-					// TODO: Handle ConversationStatus and pass to order view model to handle.
-					switch (e.Conversation.ConversationStatus)
-					{
-						case ConversationStatus.Started:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "Started", orderMessages));
-							return;
-
-						case ConversationStatus.OfferReceived:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferReceived", orderMessages));
-							return;
-
-						case ConversationStatus.PaymentDone:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentDone", orderMessages));
-							return;
-
-						case ConversationStatus.PaymentConfirmed:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentConfirmed", orderMessages));
-							return;
-
-						case ConversationStatus.OfferAccepted:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferAccepted", orderMessages));
-							return;
-
-						case ConversationStatus.InvoiceReceived:
-							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "InvoiceReceived", orderMessages));
-							return;
-					}
-
-					// TODO: Get the command (if any) form agent message using e.Conversation.ChatMessages (ChatMessage does not have it?)
-					var command = default(string);
-
-					// Notify that conversation updated.
-					_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, command, orderMessages));
+					_updateTriggerSubject.OnNext(
+						new OrderUpdateMessage(
+							e.Conversation.Id,
+							e.Conversation.ConversationStatus.ToString(),
+							e.Conversation.OrderStatus.ToString(),
+							CreateMessages(e.Conversation)));
 				})
 				.DisposeWith(disposable);
 		}
@@ -242,7 +189,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return orderMessages;
 	}
 
-	private void CreateOrders(List<Conversation> conversations, CancellationToken cancellationToken)
+	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
 		var orders = new List<OrderViewModel>();
 
@@ -258,12 +205,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken, int i)
 	{
-		// TODO: Conversation needs name/title?
 		var order = new OrderViewModel(
 			UiContext,
 			Guid.NewGuid(),
-			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
+			conversation.Title,
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), conversation.Title),
 			this,
 			cancellationToken);
 
@@ -281,34 +227,27 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
+			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
+
 			var order = new OrderViewModel(
-			UiContext,
-			Guid.NewGuid(),
-			$"Order {buyAnythingManager.GetNextConversationId(walletId)}",
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
-			this,
-			cancellationToken);
+				UiContext,
+				Guid.NewGuid(),
+				title,
+				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), title),
+				this,
+				cancellationToken);
 
 			_ordersCache.AddOrUpdate(order);
 		}
 	}
 
-	bool IOrderManager.HasUnreadMessages(ConversationId id)
+	async Task IOrderManager.RemoveOrderAsync(Guid id)
 	{
-		// TODO: Check if order had unread messages.
-		return true;
-	}
+		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove && Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			await buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.BackendId }, _cts.Token);
+		}
 
-	bool IOrderManager.IsCompleted(ConversationId id)
-	{
-		// TODO: Check if order is completed.
-		// -> Save manager as a field then manager.GetConversationsByIdAsync(id).IsCompleted() ?
-		return false;
-	}
-
-	void IOrderManager.RemoveOrder(Guid id)
-	{
-		// TODO: Shouldn't this also remove from manager?
 		_ordersCache.RemoveKey(id);
 		SelectedOrder = _orders.FirstOrDefault();
 	}
