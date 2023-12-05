@@ -71,6 +71,9 @@ public class ShopWareApiClient : IShopWareApiClient
 	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<GetCountryResponse>(ctxToken, HttpMethod.Post, "country", request, cancellationToken);
 
+	public Task<GetStateResponse> GetStatesByCountryIdAsync(string ctxToken, string countryId, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<GetStateResponse>(ctxToken, HttpMethod.Get, $"country-state/{countryId}", PropertyBag.Empty, cancellationToken);
+
 	public Task<HandlePaymentResponse> HandlePaymentAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<HandlePaymentResponse>(ctxToken, HttpMethod.Post, "handle-payment", request, cancellationToken);
 

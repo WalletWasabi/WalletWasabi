@@ -104,7 +104,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-			// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
+				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links) // TODO: move this to done because it is the product itself when is travel tickest for example.
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
@@ -138,23 +138,23 @@ public class BuyAnythingManager : PeriodicRunner
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
 			case ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.SendOrder):
-			{
-				var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
-
-				if (trackingCodes.Any())
 				{
-					var newMessage = "Tracking link"  + (trackingCodes.Length >= 2 ? "s" : "");
-					await SendSystemChatLinesAsync(track,
-						  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
-					order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
+
+					if (trackingCodes.Any())
+					{
+						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
+						await SendSystemChatLinesAsync(track,
+							  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
+						order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					}
+
+					track.Conversation = track.Conversation with
+					{
+						ConversationStatus = ConversationStatus.Shipped
+					};
 				}
-
-				track.Conversation = track.Conversation with
-				{
-					ConversationStatus = ConversationStatus.Shipped
-				};
-			}
-			break;
+				break;
 		}
 	}
 
@@ -208,6 +208,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return removedCount;
 	}
 
+	public async Task<State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken)
+	{
+		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
+		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
+	}
+
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
 	{
 		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -250,7 +256,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -259,7 +265,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
-		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
+		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
 		track.Conversation = track.Conversation with
 		{

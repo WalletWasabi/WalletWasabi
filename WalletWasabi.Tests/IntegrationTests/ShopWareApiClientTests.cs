@@ -109,7 +109,8 @@ public class ShopWareApiClientTests
 		var conversation = conversations.Last();
 		var countries = await bam.GetCountriesAsync(CancellationToken.None);
 		var argentina = countries.First(c => c.Name == "Argentina");
-		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", argentina.Id, CancellationToken.None);
+		var stateId = "none";
+		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Id, CancellationToken.None);
 		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
 		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 
@@ -120,12 +121,12 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task FetchAllCountriesAsync()
+	public async Task CanFetchCountriesAndStatesAsync()
 	{
 		await using TestSetup testSetup = TestSetup.ForClearnet();
 		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
 
-		var toSerialize = new List<object>();
+		var toSerialize = new List<CachedCountry>();
 		var currentPage = 0;
 		while (true)
 		{
@@ -150,6 +151,9 @@ public class ShopWareApiClientTests
 		// If a country is added or removed, test will fail and we will be notified.
 		// We could go further and verify equality.
 		Assert.Equal(246, toSerialize.Count);
+
+		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("none", toSerialize.First(c => c.Name == "United States of America").Id, CancellationToken.None);
+		Assert.Equal(51, stateResponse.Elements.Count);
 
 		// Save the new file if it changed
 		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
@@ -180,6 +184,7 @@ public class ShopWareApiClientTests
 			"123",
 			"1022",
 			"Budapest",
+			"none",
 			"6ab3247e27174ee898a2479071754912"),
 			CancellationToken.None);
 
@@ -215,7 +220,7 @@ public class ShopWareApiClientTests
 				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.com/store-api"))
 				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 
-			ShopWareApiClient = new (httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+			ShopWareApiClient = new(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 		}
 
 		private HttpClientFactory HttpClientFactory { get; }

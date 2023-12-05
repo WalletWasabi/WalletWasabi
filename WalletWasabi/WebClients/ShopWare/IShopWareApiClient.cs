@@ -28,5 +28,7 @@ public interface IShopWareApiClient
 
 	Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 
+	Task<GetStateResponse> GetStatesByCountryIdAsync(string ctxToken, string countryId, CancellationToken cancellationToken);
+
 	Task<HandlePaymentResponse> HandlePaymentAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken);
 }

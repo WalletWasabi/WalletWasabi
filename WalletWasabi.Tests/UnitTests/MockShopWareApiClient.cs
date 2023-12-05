@@ -18,6 +18,7 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Func<string, PropertyBag, Task<GetOrderListResponse>>? OnGetOrderListAsync { get; set; }
 	public Func<string, PropertyBag, Task<StateMachineState>>? OnCancelOrderAsync { get; set; }
 	public Func<string, PropertyBag, Task<GetCountryResponse>>? OnGetCountriesAsync { get; set; }
+	public Func<string, string, Task<GetStateResponse>>? OnGetStatesByCountryIdAsync { get; set; }
 	public Func<string, PropertyBag, Task<HandlePaymentResponse>>? OnHandlePaymentAsync { get; set; }
 
 	public Task<CustomerRegistrationResponse> RegisterCustomerAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
@@ -59,6 +60,10 @@ public class MockShopWareApiClient : IShopWareApiClient
 	public Task<GetCountryResponse> GetCountriesAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		OnGetCountriesAsync?.Invoke(ctxToken, request)
 		?? throw new NotImplementedException("GetCountriesAsync is not implemented.");
+
+	public Task<GetStateResponse> GetStatesByCountryIdAsync(string ctxToken, string countryId, CancellationToken cancellationToken) =>
+		OnGetStatesByCountryIdAsync?.Invoke(ctxToken, countryId)
+		?? throw new NotImplementedException("GetStatesByCountryIdAsync is not implemented.");
 
 	public Task<HandlePaymentResponse> HandlePaymentAsync(string ctxToken, PropertyBag request, CancellationToken cancellationToken) =>
 		OnHandlePaymentAsync?.Invoke(ctxToken, request)

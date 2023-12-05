@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
@@ -46,16 +47,17 @@ public class BuyAnythingManagerTests
 
 		//await IoHelpers.TryDeleteDirectoryAsync("datadir");
 		var buyAnythingClient = new BuyAnythingClient(shopWareApiClient);
-		using var buyAnythingManager = new BuyAnythingManager("datadir", TimeSpan.FromSeconds(2), buyAnythingClient);
+		using var buyAnythingManager = new BuyAnythingManager(Common.DataDir, TimeSpan.FromSeconds(2), buyAnythingClient);
 		await buyAnythingManager.StartAsync(CancellationToken.None);
 
 		var countries = await buyAnythingManager.GetCountriesAsync(CancellationToken.None);
 		var argentina = Assert.Single(countries, x => x.Name == "Argentina");
+		var stateId = "none";
 
-		//await buyAnythingManager.StartNewConversationAsync("walletID", argentina.Id, BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
+		// await buyAnythingManager.StartNewConversationAsync("walletID", argentina.Id, BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
 		var conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		var conversation = conversations.Last(); // Assert.Single(conversations);
-		//var message = Assert.Single(conversation.ChatMessages);
+												 //var message = Assert.Single(conversation.ChatMessages);
 
 		conversations = await buyAnythingManager.GetConversationsAsync("walletID", CancellationToken.None);
 		conversation = Assert.Single(conversations);
@@ -67,7 +69,7 @@ public class BuyAnythingManagerTests
 		}
 
 		await buyAnythingManager.AcceptOfferAsync(conversation.Id, "Lucas", "Ontivero", "Carlos III", "12345", "5000",
-			"Cordoba", argentina.Id, CancellationToken.None);
+			"Cordoba", stateId, argentina.Id, CancellationToken.None);
 
 		while (conversation.ConversationStatus != ConversationStatus.PaymentConfirmed)
 		{
