@@ -40,7 +40,6 @@ public partial class OrderViewModel : ReactiveObject
 		Id = id;
 		Title = title;
 
-		// TODO: For now we have only one workflow manager.
 		_uiContext = uiContext;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
@@ -72,13 +71,10 @@ public partial class OrderViewModel : ReactiveObject
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
 
-		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.Command, m.Messages));
+		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.ConversationStatus, m.OrderStatus, m.Messages));
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
-
-		// TODO: Run initial workflow steps if any.
-		// RunNoInputWorkflowSteps();
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
@@ -96,14 +92,18 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand RemoveOrderCommand { get; }
 	public Guid Id { get; }
 
-	private void UpdateOrder(ConversationId id, string? command, IReadOnlyList<MessageViewModel>? messages)
+	private void UpdateOrder(
+		ConversationId id,
+		string? conversationStatus,
+		string? orderStatus,
+		IReadOnlyList<MessageViewModel>? messages)
 	{
 		if (id != BackendId)
 		{
 			return;
 		}
 
-		IsCompleted = _orderManager.IsCompleted(id);
+		IsCompleted = orderStatus == "Done";
 
 		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
 
@@ -112,9 +112,9 @@ public partial class OrderViewModel : ReactiveObject
 			UpdateMessages(messages);
 		}
 
-		if (command is not null)
+		if (conversationStatus is not null)
 		{
-			SelectNextWorkflow(command);
+			SelectNextWorkflow(conversationStatus);
 		}
 	}
 
@@ -125,9 +125,6 @@ public partial class OrderViewModel : ReactiveObject
 		try
 		{
 			_workflowManager.WorkflowValidator.Signal(false);
-
-			// TODO: Only for form messages and not api calls.
-			await Task.Delay(500);
 
 			if (_workflowManager.CurrentWorkflow is null)
 			{
@@ -158,7 +155,7 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				// TODO: Handle agent command?
+				// TODO: Handle agent conversationStatus?
 				SelectNextWorkflow(null);
 				return;
 			}
@@ -211,14 +208,12 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private bool SelectNextWorkflow(string? command)
+	private bool SelectNextWorkflow(string? conversationStatus)
 	{
-		// TODO: Select next workflow or wait for api service response.
-		_workflowManager.SelectNextWorkflow(command);
+		_workflowManager.SelectNextWorkflow(conversationStatus);
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
-		// TODO: After workflow is completed we either wait for service api message or check if next workflow can be run.
 		RunNoInputWorkflowSteps();
 
 		// Continue the loop until next workflow is there and is completed.
@@ -226,7 +221,6 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				// TODO: Handle agent command?
 				SelectNextWorkflow(null);
 			}
 		}
@@ -250,26 +244,28 @@ public partial class OrderViewModel : ReactiveObject
 			}
 
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
-			if (nextStep is not null)
+			if (nextStep is null)
 			{
-				if (nextStep.UserInputValidator.CanDisplayMessage())
-				{
-					var message = nextStep.UserInputValidator.GetFinalMessage();
-					if (message is not null)
-					{
-						AddAssistantMessage(message);
-					}
-				}
+				continue;
+			}
 
-				if (nextStep.RequiresUserInput)
+			if (nextStep.UserInputValidator.CanDisplayMessage())
+			{
+				var message = nextStep.UserInputValidator.GetFinalMessage();
+				if (message is not null)
 				{
-					break;
+					AddAssistantMessage(message);
 				}
+			}
 
-				if (!nextStep.UserInputValidator.OnCompletion())
-				{
-					break;
-				}
+			if (nextStep.RequiresUserInput)
+			{
+				break;
+			}
+
+			if (!nextStep.UserInputValidator.OnCompletion())
+			{
+				break;
 			}
 		}
 	}

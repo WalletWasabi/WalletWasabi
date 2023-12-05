@@ -19,9 +19,9 @@ public interface IWorkflowManager
 	void UpdateId(ConversationId id);
 
 	/// <summary>
-	/// Selects next scripted workflow or use command to override.
+	/// Selects next scripted workflow or use conversationStatus to override.
 	/// </summary>
-	/// <param name="command">The remote command override to select next workflow.</param>
+	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	bool SelectNextWorkflow(string? command);
+	bool SelectNextWorkflow(string? conversationStatus);
 }
