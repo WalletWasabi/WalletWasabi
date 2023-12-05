@@ -446,13 +446,6 @@ public class BuyAnythingManager : PeriodicRunner
 		Countries.AddRange(countries);
 	}
 
-	private async Task SaveCountriesToFileAsync(Country[] countries, string countriesFilePath, CancellationToken cancellationToken)
-	{
-		IoHelpers.EnsureDirectoryExists("./BuyAnything/Data/");
-		var countriesJson = JsonConvert.SerializeObject(countries, Formatting.Indented);
-		await File.WriteAllTextAsync(countriesFilePath, countriesJson, cancellationToken).ConfigureAwait(false);
-	}
-
 	private NetworkCredential GenerateRandomCredential() =>
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
