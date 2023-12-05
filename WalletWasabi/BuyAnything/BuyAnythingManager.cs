@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using NBitcoin.Protocol;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
