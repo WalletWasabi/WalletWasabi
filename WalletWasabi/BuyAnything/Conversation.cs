@@ -29,10 +29,7 @@ public enum ConversationStatus
 	Finished
 }
 
-public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
-{
-	public static readonly ConversationId Empty = new("", "", "", "");
-}
+public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId);
 
 public record Chat : IReadOnlyCollection<ChatMessage>
 {

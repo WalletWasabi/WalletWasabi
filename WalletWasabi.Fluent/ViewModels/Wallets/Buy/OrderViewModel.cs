@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reactive;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,6 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -31,13 +30,13 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	public OrderViewModel(UiContext uiContext,
-		ConversationId backendId,
+		Guid id,
 		string title,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
-		BackendId = backendId;
+		Id = id;
 		Title = title;
 
 		// TODO: For now we have only one workflow manager.
@@ -71,15 +70,13 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		UpdateOrder(backendId, null, null);
-
 		// TODO: Run initial workflow steps if any.
 		// RunNoInputWorkflowSteps();
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
 
-	public ConversationId BackendId { get; }
+	public ConversationId BackendId { get; set; }
 
 	public string Title { get; }
 
@@ -325,7 +322,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrder(BackendId);
+			_orderManager.RemoveOrder(Id);
 		}
 	}
 
@@ -344,5 +341,18 @@ public partial class OrderViewModel : ReactiveObject
 			x.Clear();
 			x.Add(messages);
 		});
+	}
+
+	public void Copy(Conversation conv)
+	{
+		var messages = conv.ChatMessages.Select(
+			x => x.IsMyMessage
+				? new UserMessageViewModel(WorkflowManager.CurrentWorkflow.EditStepCommand, WorkflowManager.CurrentWorkflow.CanEditObservable, WorkflowManager.CurrentWorkflow.CurrentStep)
+				{
+					Message = x.Message
+				}
+				: (MessageViewModel) new AssistantMessageViewModel(null, null) { Message = x.Message });
+
+		_messagesList.EditDiff(messages);
 	}
 }

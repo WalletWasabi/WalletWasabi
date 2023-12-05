@@ -7,5 +7,5 @@ public interface IOrderManager
 	IObservable<OrderUpdateMessage> UpdateTrigger { get; }
 	bool HasUnreadMessages(ConversationId id);
 	bool IsCompleted(ConversationId id);
-	void RemoveOrder(ConversationId id);
+	void RemoveOrder(Guid id);
 }
