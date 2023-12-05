@@ -7,7 +7,7 @@ public partial class DefaultInputValidator : InputValidator
 {
 	public DefaultInputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
+		Func<string?> message,
 		string? watermark = "Type here...",
 		string? content = "Request") : base(workflowValidator, message, watermark, content)
 	{

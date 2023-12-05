@@ -12,6 +12,8 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
+	private Country? _location;
+
 	public ShopinBitWorkflowManagerViewModel(Country[] countries)
 	{
 		_countries = countries;
@@ -37,30 +39,63 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		// TODO: Just for testing, remove when api service is implemented.
 		await Task.Delay(1000);
 
-		if (_currentWorkflow is null)
+		if (_currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
 			return;
 		}
 
 		var request = _currentWorkflow.GetResult();
 
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
-		{
-			var message = request.ToMessage();
-			var metadata = GetMetadata(request);
-			await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
-		}
+		var message = request.ToMessage();
+		var metadata = GetMetadata(request);
+		await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
 
 		switch (request)
 		{
-			case DeliveryWorkflowRequest deliveryWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
 			case InitialWorkflowRequest initialWorkflowRequest:
 			{
-				// TODO:
+				if (initialWorkflowRequest.Location is not { } location ||
+				    initialWorkflowRequest.Product is not { } product ||
+				    initialWorkflowRequest.Request is not { } requestMessage)
+				{
+					throw new ArgumentException($"Argument was not provided!");
+				}
+
+				_location = location;
+
+				await buyAnythingManager.StartNewConversationAsync(
+					Id.WalletId,
+					location.Id,
+					product,
+					requestMessage,
+					CancellationToken.None);
+				break;
+			}
+			case DeliveryWorkflowRequest deliveryWorkflowRequest:
+			{
+				if (deliveryWorkflowRequest.FirstName is not { } firstName ||
+				    deliveryWorkflowRequest.LastName is not { } lastName ||
+				    deliveryWorkflowRequest.StreetName is not { } streetName ||
+				    deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
+				    deliveryWorkflowRequest.PostalCode is not { } postalCode ||
+				    deliveryWorkflowRequest.PostalCode is not { } ||
+				    deliveryWorkflowRequest.City is not { } city ||
+				    _location is not { } location
+				   )
+				{
+					throw new ArgumentException($"Argument was not provided!");
+				}
+
+				await buyAnythingManager.AcceptOfferAsync(
+					Id,
+					firstName,
+					lastName,
+					streetName,
+					houseNumber,
+					postalCode,
+					city,
+					location.Id,
+					CancellationToken.None);
 				break;
 			}
 			case PackageWorkflowRequest packageWorkflowRequest:

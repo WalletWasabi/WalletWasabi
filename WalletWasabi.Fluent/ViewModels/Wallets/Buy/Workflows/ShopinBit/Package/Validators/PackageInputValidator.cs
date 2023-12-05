@@ -4,7 +4,7 @@ public partial class PackageInputValidator : InputValidator
 {
 	public PackageInputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
+		Func<string?> message,
 		string? watermark = null,
 		string? content = "...") : base(workflowValidator, message, watermark, content)
 	{
