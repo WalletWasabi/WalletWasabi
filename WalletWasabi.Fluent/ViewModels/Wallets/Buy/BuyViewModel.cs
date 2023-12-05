@@ -135,7 +135,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						// It is because the incoming event has the freshly assigned BackedId.
 						// We should lookup for the unbound order and assign its BackendId and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-						unboundOrder.Copy(e.Conversation);	// Copies the data from the updated conversation to the order
+						unboundOrder.Copy(e.Conversation);  // Copies the data from the updated conversation to the order
 						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
 
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
@@ -148,10 +148,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					{
 						case OrderStatus.Open:
 							break;
+
 						case OrderStatus.Done:
 							break;
+
 						case OrderStatus.Cancelled:
 							break;
+
 						case OrderStatus.InProgress:
 							break;
 					}
@@ -168,18 +171,23 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						case ConversationStatus.Started:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "Started", orderMessages));
 							return;
+
 						case ConversationStatus.OfferReceived:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferReceived", orderMessages));
 							return;
+
 						case ConversationStatus.PaymentDone:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentDone", orderMessages));
 							return;
+
 						case ConversationStatus.PaymentConfirmed:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "PaymentConfirmed", orderMessages));
 							return;
+
 						case ConversationStatus.OfferAccepted:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "OfferAccepted", orderMessages));
 							return;
+
 						case ConversationStatus.InvoiceReceived:
 							_updateTriggerSubject.OnNext(new OrderUpdateMessage(e.Conversation.Id, "InvoiceReceived", orderMessages));
 							return;
@@ -269,17 +277,20 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateAndAddEmptyOrder(CancellationToken cancellationToken)
 	{
-		var nextOrderIndex = Orders.Count + 1;
+		var walletId = BuyAnythingManager.GetWalletId(_wallet);
 
-		var order = new OrderViewModel(
+		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		{
+			var order = new OrderViewModel(
 			UiContext,
 			Guid.NewGuid(),
-			$"Order {nextOrderIndex}",
+			$"Order {buyAnythingManager.GetNextConversationId(walletId)}",
 			new ShopinBitWorkflowManagerViewModel(_countries),
 			this,
 			cancellationToken);
 
-		_ordersCache.AddOrUpdate(order);
+			_ordersCache.AddOrUpdate(order);
+		}
 	}
 
 	bool IOrderManager.HasUnreadMessages(ConversationId id)
