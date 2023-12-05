@@ -437,7 +437,8 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
 		var assembly = System.Reflection.Assembly.GetAssembly(typeof(BuyAnythingManager));
-		var countriesFilePath = Path.Combine(assembly.Location, "./BuyAnything/Data/Countries.json");
+		var assemblyDir = Path.GetDirectoryName(assembly.Location);
+		var countriesFilePath = Path.Combine(assemblyDir, "BuyAnything/Data/Countries.json");
 		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
 		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
