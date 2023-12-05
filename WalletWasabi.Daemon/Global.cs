@@ -207,9 +207,7 @@ public class Global
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
 				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(10), buyAnythingClient), "BuyAnythingManager");

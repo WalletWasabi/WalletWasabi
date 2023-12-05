@@ -393,8 +393,8 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private string GetLinksByLine(string attachementsLinks) =>
-		string.Join("\n", attachementsLinks
+	private string GetLinksByLine(string attachmentsLinks) =>
+		string.Join("\n", attachmentsLinks
 			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
 	private static string ConvertOfferDetailToMessages(Order order)
@@ -410,7 +410,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
-		if (IsConversationsLoaded is false)
+		if (!IsConversationsLoaded)
 		{
 			await LoadConversationsAsync(cancellationToken).ConfigureAwait(false);
 		}
