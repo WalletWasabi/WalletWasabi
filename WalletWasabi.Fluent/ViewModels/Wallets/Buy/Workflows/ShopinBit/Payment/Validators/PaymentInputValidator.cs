@@ -6,7 +6,7 @@ public partial class PaymentInputValidator : InputValidator
 {
 	public PaymentInputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
+		Func<string?> message,
 		string? watermark = null,
 		string? content = "...") : base(workflowValidator, message, watermark, content)
 	{

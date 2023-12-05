@@ -20,17 +20,17 @@ public sealed partial class PaymentWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"To finalize your order, please send {paymentAmount} to the following address:")),
+					() => $"To finalize your order, please send {paymentAmount} to the following address:")),
 			// Address
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"{paymentAddress}")),
+					() => $"{paymentAddress}")),
 			// Payment
 			new (requiresUserInput: false,
 				userInputValidator: new DefaultInputValidator(
 					workflowValidator,
-					"Your payment must confirm within 30 minutes in order to initiate the delivery process.")),
+					() => "Your payment must confirm within 30 minutes in order to initiate the delivery process.")),
 			// TODO: Remove step after implementing backend interaction
 			// new (false,
 			// 	new PaymentInputValidator(
@@ -39,7 +39,7 @@ public sealed partial class PaymentWorkflow : Workflow
 			new (false,
 				new NoInputInputValidator(
 					workflowValidator,
-					"Fantastic! Your order has been processed successfully"))
+					() => "Fantastic! Your order has been processed successfully"))
 		};
 
 		CreateCanEditObservable();
