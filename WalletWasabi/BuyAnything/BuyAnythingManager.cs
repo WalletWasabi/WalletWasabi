@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using NBitcoin.Protocol;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -438,26 +436,14 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
-		var countriesFilePath = "./BuyAnything/Data/Countries.json";
-		try
-		{
-			var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
+		var assembly = System.Reflection.Assembly.GetAssembly(typeof(BuyAnythingManager));
+		var countriesFilePath = Path.Combine(assembly.Location, "./BuyAnything/Data/Countries.json");
+		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
-			Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-							?? throw new InvalidOperationException("Couldn't read cached countries values.");
+		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+						?? throw new InvalidOperationException("Couldn't read cached countries values.");
 
-			Countries.AddRange(countries);
-		}
-		catch (DirectoryNotFoundException)
-		{
-			Logger.LogWarning($"Failed to load local countries from path {countriesFilePath}. Getting them manualy...");
-
-			Country[] countries = await Client.GetCountriesAsync(cancellationToken).ConfigureAwait(false);
-			await SaveCountriesToFileAsync(countries, countriesFilePath, cancellationToken).ConfigureAwait(false);
-
-			Countries.AddRange(countries);
-			Logger.LogInfo("Succesfully downloaded and cached countries.");
-		}
+		Countries.AddRange(countries);
 	}
 
 	private async Task SaveCountriesToFileAsync(Country[] countries, string countriesFilePath, CancellationToken cancellationToken)
