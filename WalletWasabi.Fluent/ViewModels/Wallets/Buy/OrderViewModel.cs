@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -199,8 +200,8 @@ public partial class OrderViewModel : ReactiveObject
 		}
 		catch (Exception exception)
 		{
-			// TODO: Add propert error handling.
-			AddErrorMessage($"Error: {exception.Message}");
+			AddErrorMessage($"Error while processing order.");
+			Logger.LogError($"Error while processing order: {exception}).");
 		}
 		finally
 		{
