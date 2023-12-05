@@ -186,7 +186,7 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (nextStep.IsCompleted)
 			{
-				RunNoInputWorkflowSteps();
+				Update();
 			}
 
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
@@ -214,7 +214,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
-		RunNoInputWorkflowSteps();
+		Update();
 
 		// Continue the loop until next workflow is there and is completed.
 		if (_workflowManager.CurrentWorkflow is not null)
@@ -228,7 +228,7 @@ public partial class OrderViewModel : ReactiveObject
 		return true;
 	}
 
-	private void RunNoInputWorkflowSteps()
+	public void Update()
 	{
 		if (_workflowManager.CurrentWorkflow is null)
 		{
@@ -327,12 +327,6 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			_orderManager.RemoveOrderAsync(Id);
 		}
-	}
-
-	public void Update()
-	{
-		// TODO: For testing
-		RunNoInputWorkflowSteps();
 	}
 
 	// TODO: Temporary until we sync messages

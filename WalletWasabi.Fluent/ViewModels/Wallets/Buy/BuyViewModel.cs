@@ -87,14 +87,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
-		// TODO: For testing.
 		this.WhenAnyValue(x => x.SelectedOrder)
-			.Subscribe(x =>
+			.Subscribe(order =>
 			{
-				Task.Run(async () =>
-				{
-					Dispatcher.UIThread.Post(() => x?.Update());
-				}, _cts.Token);
+				Dispatcher.UIThread.Post(() => order?.Update());
 			})
 			.DisposeWith(disposables);
 	}
