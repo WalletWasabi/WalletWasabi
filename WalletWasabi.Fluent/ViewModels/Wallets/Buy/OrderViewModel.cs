@@ -330,7 +330,6 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	// TODO: Temporary until we sync messages
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
 	{
 		// TODO: We need to sync with current workflow.
