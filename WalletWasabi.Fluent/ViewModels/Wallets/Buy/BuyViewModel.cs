@@ -128,7 +128,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
-					// This handles the unbound conversation. The unbound conversation is a conversation that only exists in the UI.
+					// This handles the unbound conversation. The unbound conversation is a conversation that only exists in the UI (yet)
 					
 					if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
 					{
