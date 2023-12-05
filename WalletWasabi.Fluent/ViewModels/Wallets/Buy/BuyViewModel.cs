@@ -62,7 +62,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_cts = new CancellationTokenSource();
 
 		// TODO: Do we want per-order triggers?
-		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(ConversationId.Empty, null, null));
+		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(new OrderUpdateMessage(null, null, null));
 
 		UpdateTrigger = _updateTriggerSubject;
 	}
@@ -131,10 +131,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					// The conversation belongs to the "fake" empty conversation
 					if (Orders.All(x => x.BackendId != e.Conversation.Id))
 					{
+						var fake = Orders.First(x => x.BackendId == null);
+						fake.Copy(e.Conversation);
+						fake.BackendId = e.Conversation.Id;
+						//fake.Messages = e.Conversation.ChatMessages;
+						//fake.
 						// Update the fake conversation ID because now we have a valid one.
 						// After updating the ID we can now create a new "fake" conversation.
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						CreateAndAddEmptyOrder(_cts.Token);
+						return;
 					}
 
 					// TODO: Handle OrderStatus and pass to order view model to handle.
@@ -247,7 +253,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		// TODO: Conversation needs name/title?
 		var order = new OrderViewModel(
 			UiContext,
-			conversation.Id,
+			Guid.NewGuid(), 
 			$"Order {i + 1}",
 			new ShopinBitWorkflowManagerViewModel(conversation.Id, _countries),
 			this,
@@ -262,14 +268,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateAndAddEmptyOrder(CancellationToken cancellationToken)
 	{
-		var walletId = BuyAnythingManager.GetWalletId(_wallet);
 		var nextOrderIndex = Orders.Count + 1;
 
 		var order = new OrderViewModel(
 			UiContext,
-			new ConversationId(walletId, "", "", ""),
+			Guid.NewGuid(),
 			$"Order {nextOrderIndex}",
-			new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+			new ShopinBitWorkflowManagerViewModel(null, _countries),
 			this,
 			cancellationToken);
 
@@ -289,14 +294,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return false;
 	}
 
-	void IOrderManager.RemoveOrder(ConversationId id)
+	void IOrderManager.RemoveOrder(Guid id)
 	{
-		//// TODO: Shouldn't this also remove from manager?
-		//_ordersCache.Edit(x =>
-		//{
-		//	_ordersCache.RemoveKey(id);
-		//});
-
-		//SelectedOrder = _orders.FirstOrDefault();
+		// TODO: Shouldn't this also remove from manager?
+		_ordersCache.RemoveKey(id);
+		SelectedOrder = _orders.FirstOrDefault();
 	}
 }
