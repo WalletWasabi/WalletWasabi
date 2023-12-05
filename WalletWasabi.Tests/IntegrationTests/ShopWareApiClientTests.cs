@@ -12,6 +12,7 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
+using System.Net.Http;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -191,6 +192,29 @@ public class ShopWareApiClientTests
 		await Task.Delay(10000);
 
 		// Check admin site if the customer billing address got updated or not.
+
+		// Some countries (eg. USA) has Postal Code/ZIP code as a mandatory parameter on admin site,
+		// and can detect if the length/format of zip code is wrong.
+
+		var countries = await shopWareApiClient.GetCountriesAsync("", PropertyBag.Empty, CancellationToken.None);
+		var usa = countries.Elements.Single(c => c.Name == "United States of America");
+		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("", usa.Id, CancellationToken.None);
+		var usaStates = stateResponse.Elements;
+
+		// System.Net.Http.HttpRequestException : Bad Request
+		// { "errors":[{ "code":"VIOLATION::ZIP_CODE_INVALID","status":"400","title":"Constraint violation error","detail":"This value is not a valid ZIP code for country \u0022US\u0022","source":{ "pointer":"\/zipcode"},"meta":{ "parameters":{ "{{ iso }}":"\u0022US\u0022"} } }]}
+		await Assert.ThrowsAsync<HttpRequestException>(async () => await shopWareApiClient.UpdateCustomerBillingAddressAsync(
+			loggedInCustomer.ContextToken,
+			ShopWareRequestFactory.BillingAddressRequest(
+			customerRequestWithRandomData["firstName"].ToString()!,
+			customerRequestWithRandomData["lastName"].ToString()!,
+			"My updated street",
+			"123",
+			"1111", // Zip code is not valid. USA'S zip code length is 5 numbers (eg. 64633)
+			"MyCity",
+			usaStates.First().Id,
+			usa.Id),
+			CancellationToken.None));
 	}
 
 	private PropertyBag CreateRandomCustomer(string message, out string email, out string password)
