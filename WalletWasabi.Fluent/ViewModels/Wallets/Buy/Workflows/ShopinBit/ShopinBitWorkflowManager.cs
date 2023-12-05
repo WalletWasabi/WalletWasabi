@@ -7,20 +7,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
 {
-	private readonly ConversationId _conversationId;
 	private readonly Country[] _countries;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
-	public ShopinBitWorkflowManagerViewModel(ConversationId conversationId, Country[] countries)
+	public ShopinBitWorkflowManagerViewModel(Country[] countries)
 	{
-		_conversationId = conversationId;
 		_countries = countries;
 		_workflowValidator = new WorkflowValidator();
 	}
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
+
+	public ConversationId Id { get; private set; } = ConversationId.Empty;
+
+	public void UpdateId(ConversationId newId)
+	{
+		if (Id != ConversationId.Empty)
+		{
+			throw new InvalidOperationException("ID cannot be modified!");
+		}
+
+		Id = newId;
+	}
 
 	public async Task SendApiRequestAsync(CancellationToken cancellationToken)
 	{
@@ -38,7 +48,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			var message = request.ToMessage();
 			var metadata = GetMetadata(request);
-			await buyAnythingManager.UpdateConversationAsync(_conversationId, message, metadata, cancellationToken);
+			await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
 		}
 
 		switch (request)

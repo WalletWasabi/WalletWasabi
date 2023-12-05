@@ -115,7 +115,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			// TODO: Fill up the UI with the conversations.
 			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
 
-			if (_orders.Count == 0 || _orders.All(x => x.BackendId != new ConversationId(BuyAnythingManager.GetWalletId(_wallet), "", "", "")))
+			if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
 			{
 				CreateAndAddEmptyOrder(_cts.Token);
 			}
@@ -129,15 +129,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.Subscribe(e =>
 				{
 					// This handles the unbound conversation. The unbound conversation is a conversation that only exists in the UI (yet)
-					
+
 					if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
 					{
 						// It is because the incoming event has the freshly assigned BackedId.
 						// We should lookup for the unbound order and assign its BackendId and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
 						unboundOrder.Copy(e.Conversation);	// Copies the data from the updated conversation to the order
-						unboundOrder.BackendId = e.Conversation.Id;	// The order is no longer unbound ;)
-						
+						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
+
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						CreateAndAddEmptyOrder(_cts.Token);
 						return;
@@ -253,14 +253,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		// TODO: Conversation needs name/title?
 		var order = new OrderViewModel(
 			UiContext,
-			Guid.NewGuid(), 
+			Guid.NewGuid(),
 			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(conversation.Id, _countries),
+			new ShopinBitWorkflowManagerViewModel(_countries),
 			this,
 			cancellationToken);
 
-		var orderMessages = CreateMessages(conversation);
+		order.WorkflowManager.UpdateId(conversation.Id);
 
+		var orderMessages = CreateMessages(conversation);
 		order.UpdateMessages(orderMessages);
 
 		return order;
@@ -274,7 +275,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {nextOrderIndex}",
-			new ShopinBitWorkflowManagerViewModel(ConversationId.Empty, _countries),
+			new ShopinBitWorkflowManagerViewModel(_countries),
 			this,
 			cancellationToken);
 

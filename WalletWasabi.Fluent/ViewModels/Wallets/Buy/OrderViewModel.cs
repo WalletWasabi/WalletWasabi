@@ -76,7 +76,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
 
-	public ConversationId BackendId { get; set; } = ConversationId.Empty;
+	public ConversationId BackendId => WorkflowManager.Id;
 
 	public string Title { get; }
 
