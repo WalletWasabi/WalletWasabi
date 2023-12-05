@@ -8,15 +8,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
 {
 	private readonly Country[] _countries;
+	private readonly string _walletId;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
 	private Country? _location;
 
-	public ShopinBitWorkflowManagerViewModel(Country[] countries)
+	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId)
 	{
 		_countries = countries;
+		_walletId = walletId;
 		_workflowValidator = new WorkflowValidator();
 	}
 
@@ -70,7 +72,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 					_location = location;
 
 					await buyAnythingManager.StartNewConversationAsync(
-						Id.WalletId,
+						_walletId,
 						location.Id,
 						product,
 						requestMessage,

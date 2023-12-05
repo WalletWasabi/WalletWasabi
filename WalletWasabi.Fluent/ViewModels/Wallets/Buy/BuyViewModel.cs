@@ -255,7 +255,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(_countries),
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 
@@ -275,7 +275,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {nextOrderIndex}",
-			new ShopinBitWorkflowManagerViewModel(_countries),
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 
