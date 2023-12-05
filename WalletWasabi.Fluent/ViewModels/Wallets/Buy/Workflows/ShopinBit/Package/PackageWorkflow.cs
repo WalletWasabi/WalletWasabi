@@ -36,15 +36,11 @@ public sealed partial class PackageWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowValidator,
 					() => $"{trackingUrl}")),
-			// Vanish message
-			// new(false,
-			// 	new PackageInputValidator(
-			// 		workflowValidator,
-			// 		"This conversation will vanish in 30 days, make sure to save all the important info beforehand.\u00a0")),
+			// 30 day message
 			new(false,
-				new NoInputInputValidator(
+				new DefaultInputValidator(
 					workflowValidator,
-					() => "This conversation will vanish after 30 days, so please save any important information you might need later.")),
+					() => "I'll be available for the next 30 days to assist with any questions you might have.")),
 		};
 
 		CreateCanEditObservable();

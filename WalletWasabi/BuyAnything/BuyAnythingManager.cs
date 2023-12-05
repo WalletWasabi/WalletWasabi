@@ -29,15 +29,15 @@ public record Country(string Id, string Name);
 [Flags]
 internal enum ServerEvent
 {
-	None, // do not remove this value
-	MakeOffer,
-	ConfirmPayment,
-	InvalidateInvoice,
-	ReceiveInvoice,
-	FinishConversation,
-	ReceiveAttachments,
-	SendOrder,
-	ReceivePaymentAfterExpiration
+	None = 0, // do not remove this value
+	MakeOffer = 1,
+	ConfirmPayment = 2,
+	InvalidateInvoice = 4,
+	ReceiveInvoice = 8,
+	FinishConversation = 16,
+	ReceiveAttachments = 32,
+	SendOrder = 64,
+	ReceivePaymentAfterExpiration = 128
 }
 
 // Class to manage the conversation updates

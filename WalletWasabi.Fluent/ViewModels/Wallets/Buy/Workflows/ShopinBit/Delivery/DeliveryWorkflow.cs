@@ -100,7 +100,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					() => $"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'PLACE ORDER' to proceed")),
+					() => $"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'BUY NOW' to proceed")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowValidator,
@@ -112,7 +112,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 						IsClickable = true
 					},
 					() => null,
-					"PLACE ORDER")),
+					"BUY NOW")),
 		};
 
 		CreateCanEditObservable();
