@@ -4,9 +4,9 @@ public abstract partial class TextInputInputValidator : InputValidator
 {
 	protected TextInputInputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
+		Func<string?>? messageProvider,
 		string? watermark,
-		string? content = "Next") : base(workflowValidator, message, watermark, content)
+		string? content = "Next") : base(workflowValidator, messageProvider, watermark, content)
 	{
 	}
 }

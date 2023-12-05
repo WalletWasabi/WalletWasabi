@@ -132,6 +132,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 					if (Orders.All(x => x.Id != e.Conversation.Id))
 					{
 						// Update the fake conversation ID because now we have a valid one.
+
+						// TODO:
+
 						// After updating the ID we can now create a new "fake" conversation.
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						CreateAndAddEmptyOrder(_cts.Token);

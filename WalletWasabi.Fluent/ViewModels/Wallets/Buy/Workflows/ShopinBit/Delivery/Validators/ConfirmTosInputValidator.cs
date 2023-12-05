@@ -14,7 +14,7 @@ public partial class ConfirmTosInputValidator : InputValidator
 		IWorkflowValidator workflowValidator,
 		DeliveryWorkflowRequest deliveryWorkflowRequest,
 		LinkViewModel link,
-		string message,
+		Func<string?> message,
 		string content)
 		: base(workflowValidator, message, null, content)
 	{

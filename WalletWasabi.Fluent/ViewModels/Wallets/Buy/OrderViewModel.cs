@@ -190,7 +190,7 @@ public partial class OrderViewModel : ReactiveObject
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
 				// TODO: Send request to api service.
-				await _workflowManager.SendApiRequestAsync(cancellationToken);
+				// await _workflowManager.SendApiRequestAsync(cancellationToken);
 
 				SelectNextWorkflow(null);
 			}

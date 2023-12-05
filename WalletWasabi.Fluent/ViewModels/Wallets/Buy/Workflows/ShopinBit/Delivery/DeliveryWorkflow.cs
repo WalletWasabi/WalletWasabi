@@ -19,17 +19,17 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC.")),
+					() => "I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC.")),
 			// Info
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
+					() => $"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
 			// Firstname
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Your First Name:")),
+					() => "Your First Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowValidator,
@@ -38,7 +38,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Your Last Name:")),
+					() => "Your Last Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowValidator,
@@ -47,7 +47,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Street Name:")),
+					() => "Street Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowValidator,
@@ -56,7 +56,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"House Number:")),
+					() => "House Number:")),
 			new (requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowValidator,
@@ -65,7 +65,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"ZIP/Postal Code:")),
+					() => "ZIP/Postal Code:")),
 			new (requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowValidator,
@@ -74,7 +74,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"City:")),
+					() => "City:")),
 			new (requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowValidator,
@@ -83,7 +83,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"State:")),
+					() => "State:")),
 			new (requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
 					workflowValidator,
@@ -100,7 +100,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'PLACE ORDER' to proceed")),
+					() => $"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'PLACE ORDER' to proceed")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowValidator,
@@ -111,7 +111,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 						Description = "Accept the Terms of service",
 						IsClickable = true
 					},
-					null,
+					() => null,
 					"PLACE ORDER")),
 		};
 

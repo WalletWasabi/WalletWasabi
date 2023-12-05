@@ -4,17 +4,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class InputValidator : ReactiveObject
 {
+	private readonly Func<string?>? _messageProvider;
 	[AutoNotify] private string? _message;
 	[AutoNotify] private string? _watermark;
 	[AutoNotify] private string? _content;
 
 	protected InputValidator(
 		IWorkflowValidator workflowValidator,
-		string? message,
+		Func<string?>? messageProvider,
 		string? watermark,
 		string? content)
 	{
-		_message = message;
+		_messageProvider = messageProvider;
 		_watermark = watermark;
 		_content = content;
 		WorkflowValidator = workflowValidator;
@@ -33,6 +34,10 @@ public abstract partial class InputValidator : ReactiveObject
 
 	public virtual void OnActivation()
 	{
+		if (_messageProvider != null)
+		{
+			Message = _messageProvider.Invoke();
+		}
 	}
 
 	public virtual bool OnCompletion()

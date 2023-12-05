@@ -21,22 +21,22 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.")),
+					() => "Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.")),
 			// Fast Travel Assistant
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.")),
+					() => "Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.")),
 			// General Travel Assistant
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.")),
+					() => "General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.")),
 			// All-Purpose Concierge Assistant
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more")),
+					() => "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more")),
 			// Pick one (dropdown)
 			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
@@ -46,12 +46,12 @@ public sealed partial class InitialWorkflow : Workflow
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Hello, I am your chosen Assistant. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
+					() => "Hello, I am your chosen Assistant. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
 			// Location
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"To start, please indicate your country. If your order involves shipping, provide the destination country. For non-shipping orders, please specify your nationality.")),
+					() => "To start, please indicate your country. If your order involves shipping, provide the destination country. For non-shipping orders, please specify your nationality.")),
 			new (requiresUserInput: true,
 				userInputValidator: new LocationInputValidator(
 					workflowValidator,
@@ -61,7 +61,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"What specific assistance do you need today? Be as precise as possible for faster response.")),
+					() => "What specific assistance do you need today? Be as precise as possible for faster response.")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
 					workflowValidator,
@@ -70,7 +70,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within {GetWithinHours()} (Monday to Friday).")),
+					() => $"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within {GetWithinHours()} (Monday to Friday).")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowValidator,
@@ -81,7 +81,7 @@ public sealed partial class InitialWorkflow : Workflow
 						Description = "Accept the Privacy Policy",
 						IsClickable = true
 					},
-					null)),
+					() => null)),
 		};
 
 		CreateCanEditObservable();

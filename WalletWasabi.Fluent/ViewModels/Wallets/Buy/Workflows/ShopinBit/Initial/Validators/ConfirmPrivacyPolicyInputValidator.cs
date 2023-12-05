@@ -14,7 +14,7 @@ public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 		IWorkflowValidator workflowValidator,
 		InitialWorkflowRequest initialWorkflowRequest,
 		LinkViewModel link,
-		string message,
+		Func<string?> message,
 		string content = "Accept")
 		: base(workflowValidator, message, null, content)
 	{

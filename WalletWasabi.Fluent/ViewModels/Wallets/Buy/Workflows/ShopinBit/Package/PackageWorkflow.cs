@@ -20,22 +20,22 @@ public sealed partial class PackageWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"Download your files:")),
+					() => "Download your files:")),
 			// Download links
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"{downloadUrl}")),
+					() => $"{downloadUrl}")),
 			// Shipping
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					"For shipping updates:")),
+					() => "For shipping updates:")),
 			// Shipping link
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					$"{trackingUrl}")),
+					() => $"{trackingUrl}")),
 			// Vanish message
 			// new(false,
 			// 	new PackageInputValidator(
@@ -44,7 +44,7 @@ public sealed partial class PackageWorkflow : Workflow
 			new(false,
 				new NoInputInputValidator(
 					workflowValidator,
-					"This conversation will vanish after 30 days, so please save any important information you might need later.")),
+					() => "This conversation will vanish after 30 days, so please save any important information you might need later.")),
 		};
 
 		CreateCanEditObservable();
