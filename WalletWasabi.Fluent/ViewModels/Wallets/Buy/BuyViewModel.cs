@@ -135,7 +135,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						// It is because the incoming event has the freshly assigned BackedId.
 						// We should lookup for the unbound order and assign its BackendId and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-						unboundOrder.Copy(e.Conversation);  // Copies the data from the updated conversation to the order
+						unboundOrder.Copy(e.Conversation); // Copies the data from the updated conversation to the order
 						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
 
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
@@ -263,7 +263,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {i + 1}",
-			new ShopinBitWorkflowManagerViewModel(_countries),
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 
@@ -285,7 +285,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			$"Order {buyAnythingManager.GetNextConversationId(walletId)}",
-			new ShopinBitWorkflowManagerViewModel(_countries),
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 

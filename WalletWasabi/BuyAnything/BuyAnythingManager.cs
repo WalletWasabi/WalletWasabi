@@ -247,15 +247,15 @@ public class BuyAnythingManager : PeriodicRunner
 		var credential = GenerateRandomCredential();
 		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
 			.ConfigureAwait(false);
-
-		ConversationTracking.Add(new ConversationUpdateTrack(
-			new Conversation(
+		var conversation = new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
 				new Chat(new[] { new ChatMessage(true, message) }),
 				OrderStatus.Open,
 				ConversationStatus.Started,
-				new object())));
+				new object());
+		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
+		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
