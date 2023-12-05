@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -7,9 +8,13 @@ public interface IWorkflowManager
 {
 	IWorkflowValidator WorkflowValidator { get; }
 
+	public ConversationId Id { get; }
+
 	Workflow? CurrentWorkflow { get; }
 
 	Task SendApiRequestAsync(CancellationToken cancellationToken);
+
+	void UpdateId(ConversationId id);
 
 	/// <summary>
 	/// Selects next scripted workflow or use command to override.

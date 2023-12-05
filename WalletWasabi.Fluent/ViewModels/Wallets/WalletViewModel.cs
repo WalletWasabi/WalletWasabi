@@ -149,7 +149,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
 
-		HasUnreadConversations = BuyViewModel.Orders.ToObservableChangeSet(x => x.Id)
+		HasUnreadConversations = BuyViewModel.Orders.ToObservableChangeSet(x => x.BackendId)
 			.Filter(model => model.HasUnreadMessages)
 			.AsObservableCache()
 			.CountChanged
