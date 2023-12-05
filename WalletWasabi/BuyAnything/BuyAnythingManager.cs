@@ -29,15 +29,15 @@ public record Country(string Id, string Name);
 [Flags]
 internal enum ServerEvent
 {
-	None, // do not remove this value
-	MakeOffer,
-	ConfirmPayment,
-	InvalidateInvoice,
-	ReceiveInvoice,
-	FinishConversation,
-	ReceiveAttachments,
-	SendOrder,
-	ReceivePaymentAfterExpiration
+	None = 0, // do not remove this value
+	MakeOffer = 1,
+	ConfirmPayment = 2,
+	InvalidateInvoice = 4,
+	ReceiveInvoice = 8,
+	FinishConversation = 16,
+	ReceiveAttachments = 32,
+	SendOrder = 64,
+	ReceivePaymentAfterExpiration = 128
 }
 
 // Class to manage the conversation updates
@@ -104,7 +104,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-			// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
+				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				var message = string.IsNullOrWhiteSpace(orderCustomFields.Concierge_Request_Attachements_Links) // TODO: move this to done because it is the product itself when is travel tickest for example.
 						? string.Empty
 						: $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}\n" +
@@ -138,23 +138,23 @@ public class BuyAnythingManager : PeriodicRunner
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
 			case ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.SendOrder):
-			{
-				var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
-
-				if (trackingCodes.Any())
 				{
-					var newMessage = "Tracking link"  + (trackingCodes.Length >= 2 ? "s" : "");
-					await SendSystemChatLinesAsync(track,
-						  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
-					order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
+
+					if (trackingCodes.Any())
+					{
+						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
+						await SendSystemChatLinesAsync(track,
+							  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
+						order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					}
+
+					track.Conversation = track.Conversation with
+					{
+						ConversationStatus = ConversationStatus.Shipped
+					};
 				}
-
-				track.Conversation = track.Conversation with
-				{
-					ConversationStatus = ConversationStatus.Shipped
-				};
-			}
-			break;
+				break;
 		}
 	}
 
