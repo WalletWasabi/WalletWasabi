@@ -47,6 +47,12 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		Client = client;
 		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
+		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
+	}
+
+	private void BuyAnythingManager_ConversationUpdated(object? sender, ConversationUpdateEvent e)
+	{
+		Logger.LogWarning($"ConvID: {e.Conversation.Id} OrderStatus: {e.Conversation.OrderStatus} ConvStatus: {e.Conversation.ConversationStatus} LastMessage: {e.Conversation.ChatMessages.Last().Message}");
 	}
 
 	private BuyAnythingClient Client { get; }
@@ -154,6 +160,14 @@ public class BuyAnythingManager : PeriodicRunner
 						ConversationStatus = ConversationStatus.Shipped
 					};
 				}
+				break;
+
+			default:
+				if (serverEvent.HasFlag(ServerEvent.FinishConversation))
+				{
+					await SendSystemChatLinesAsync(track, "Conversation Finished.", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				}
+				// TODO: Handle unexpected phase changes.
 				break;
 		}
 	}
@@ -438,4 +452,10 @@ public class BuyAnythingManager : PeriodicRunner
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
+
+	public override void Dispose()
+	{
+		ConversationUpdated -= BuyAnythingManager_ConversationUpdated;
+		base.Dispose();
+	}
 }
