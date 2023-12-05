@@ -36,15 +36,15 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 	public Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
 	{
-		// TODO: Enable when testing
-		return Task.CompletedTask;
-
-		if (Id == ConversationId.Empty || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		if (Id == ConversationId.Empty || _currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
 			return Task.CompletedTask;
 		}
 
-		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, new object(), cancellationToken);
+		var request = _currentWorkflow.GetResult();
+		var metaData = GetMetadata(request);
+
+		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, metaData, cancellationToken);
 	}
 
 	public async Task SendApiRequestAsync(CancellationToken cancellationToken)
@@ -58,10 +58,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 
 		var request = _currentWorkflow.GetResult();
-
-		// var message = request.ToMessage();
-		// var metadata = GetMetadata(request);
-		// await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
 
 		switch (request)
 		{
