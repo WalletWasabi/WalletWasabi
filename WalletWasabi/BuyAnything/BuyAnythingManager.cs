@@ -222,6 +222,12 @@ public class BuyAnythingManager : PeriodicRunner
 		return removedCount;
 	}
 
+	public async Task<State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken)
+	{
+		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
+		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
+	}
+
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
 	{
 		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -247,13 +253,13 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, string newMessage, object metadata, CancellationToken cancellationToken)
+	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, object metadata, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var track = ConversationTracking.GetConversationTrackByd(conversationId);
 		track.Conversation = track.Conversation with
 		{
-			ChatMessages = track.Conversation.ChatMessages.AddSentMessage(newMessage),
+			ChatMessages = new(chatMessages),
 			Metadata = metadata,
 		};
 		track.LastUpdate = DateTimeOffset.Now;
@@ -264,7 +270,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string countryId, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryId, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -273,7 +279,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
-		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, countryId, cancellationToken).ConfigureAwait(false);
+		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
 		track.Conversation = track.Conversation with
 		{

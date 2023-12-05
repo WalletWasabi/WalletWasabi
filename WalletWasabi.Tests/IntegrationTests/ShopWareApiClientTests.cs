@@ -12,6 +12,7 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
+using System.Net.Http;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -109,7 +110,8 @@ public class ShopWareApiClientTests
 		var conversation = conversations.Last();
 		var countries = await bam.GetCountriesAsync(CancellationToken.None);
 		var argentina = countries.First(c => c.Name == "Argentina");
-		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", argentina.Id, CancellationToken.None);
+		var stateId = "none";
+		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Id, CancellationToken.None);
 		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
 		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 
@@ -120,12 +122,12 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task FetchAllCountriesAsync()
+	public async Task CanFetchCountriesAndStatesAsync()
 	{
 		await using TestSetup testSetup = TestSetup.ForClearnet();
 		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
 
-		var toSerialize = new List<object>();
+		var toSerialize = new List<CachedCountry>();
 		var currentPage = 0;
 		while (true)
 		{
@@ -150,6 +152,9 @@ public class ShopWareApiClientTests
 		// If a country is added or removed, test will fail and we will be notified.
 		// We could go further and verify equality.
 		Assert.Equal(246, toSerialize.Count);
+
+		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("none", toSerialize.First(c => c.Name == "United States of America").Id, CancellationToken.None);
+		Assert.Equal(51, stateResponse.Elements.Count);
 
 		// Save the new file if it changed
 		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
@@ -180,12 +185,36 @@ public class ShopWareApiClientTests
 			"123",
 			"1022",
 			"Budapest",
+			"none",
 			"6ab3247e27174ee898a2479071754912"),
 			CancellationToken.None);
 
 		await Task.Delay(10000);
 
 		// Check admin site if the customer billing address got updated or not.
+
+		// Some countries (eg. USA) has Postal Code/ZIP code as a mandatory parameter on admin site,
+		// and can detect if the length/format of zip code is wrong.
+
+		var countries = await shopWareApiClient.GetCountriesAsync("", PropertyBag.Empty, CancellationToken.None);
+		var usa = countries.Elements.Single(c => c.Name == "United States of America");
+		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("", usa.Id, CancellationToken.None);
+		var usaStates = stateResponse.Elements;
+
+		// System.Net.Http.HttpRequestException : Bad Request
+		// { "errors":[{ "code":"VIOLATION::ZIP_CODE_INVALID","status":"400","title":"Constraint violation error","detail":"This value is not a valid ZIP code for country \u0022US\u0022","source":{ "pointer":"\/zipcode"},"meta":{ "parameters":{ "{{ iso }}":"\u0022US\u0022"} } }]}
+		await Assert.ThrowsAsync<HttpRequestException>(async () => await shopWareApiClient.UpdateCustomerBillingAddressAsync(
+			loggedInCustomer.ContextToken,
+			ShopWareRequestFactory.BillingAddressRequest(
+			customerRequestWithRandomData["firstName"].ToString()!,
+			customerRequestWithRandomData["lastName"].ToString()!,
+			"My updated street",
+			"123",
+			"1111", // Zip code is not valid. USA'S zip code length is 5 numbers (eg. 64633)
+			"MyCity",
+			usaStates.First().Id,
+			usa.Id),
+			CancellationToken.None));
 	}
 
 	private PropertyBag CreateRandomCustomer(string message, out string email, out string password)
@@ -215,7 +244,7 @@ public class ShopWareApiClientTests
 				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.com/store-api"))
 				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
 
-			ShopWareApiClient = new (httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+			ShopWareApiClient = new(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 		}
 
 		private HttpClientFactory HttpClientFactory { get; }

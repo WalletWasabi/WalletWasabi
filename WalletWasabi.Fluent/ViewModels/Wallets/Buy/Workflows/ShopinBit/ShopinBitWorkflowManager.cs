@@ -46,82 +46,84 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 		var request = _currentWorkflow.GetResult();
 
-		var message = request.ToMessage();
-		var metadata = GetMetadata(request);
-		await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
+
+		// var message = request.ToMessage();
+		// var metadata = GetMetadata(request);
+		// await buyAnythingManager.UpdateConversationAsync(Id, message, metadata, cancellationToken);
 
 		switch (request)
 		{
 			case InitialWorkflowRequest initialWorkflowRequest:
-			{
-				if (initialWorkflowRequest.Location is not { } location ||
-				    initialWorkflowRequest.Product is not { } product ||
-				    initialWorkflowRequest.Request is not { } requestMessage)
 				{
-					throw new ArgumentException($"Argument was not provided!");
+					if (initialWorkflowRequest.Location is not { } location ||
+						initialWorkflowRequest.Product is not { } product ||
+						initialWorkflowRequest.Request is not { } requestMessage)
+					{
+						throw new ArgumentException($"Argument was not provided!");
+					}
+
+					_location = location;
+
+					await buyAnythingManager.StartNewConversationAsync(
+						Id.WalletId,
+						location.Id,
+						product,
+						requestMessage,
+						CancellationToken.None);
+					break;
 				}
-
-				_location = location;
-
-				await buyAnythingManager.StartNewConversationAsync(
-					Id.WalletId,
-					location.Id,
-					product,
-					requestMessage,
-					CancellationToken.None);
-				break;
-			}
 			case DeliveryWorkflowRequest deliveryWorkflowRequest:
-			{
-				if (deliveryWorkflowRequest.FirstName is not { } firstName ||
-				    deliveryWorkflowRequest.LastName is not { } lastName ||
-				    deliveryWorkflowRequest.StreetName is not { } streetName ||
-				    deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
-				    deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-				    deliveryWorkflowRequest.PostalCode is not { } ||
-				    deliveryWorkflowRequest.City is not { } city ||
-				    _location is not { } location
-				   )
 				{
-					throw new ArgumentException($"Argument was not provided!");
+					if (deliveryWorkflowRequest.FirstName is not { } firstName ||
+						deliveryWorkflowRequest.LastName is not { } lastName ||
+						deliveryWorkflowRequest.StreetName is not { } streetName ||
+						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
+						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
+						deliveryWorkflowRequest.PostalCode is not { } ||
+						deliveryWorkflowRequest.State is not { } state ||
+						deliveryWorkflowRequest.City is not { } city ||
+						_location is not { } location
+					   )
+					{
+						throw new ArgumentException($"Argument was not provided!");
+					}
+					await buyAnythingManager.AcceptOfferAsync(
+						Id,
+						firstName,
+						lastName,
+						streetName,
+						houseNumber,
+						postalCode,
+						city,
+						"stateId", // TODO: use state variable, but ID is required, not name.
+						location.Id,
+						CancellationToken.None);
+					break;
 				}
-
-				await buyAnythingManager.AcceptOfferAsync(
-					Id,
-					firstName,
-					lastName,
-					streetName,
-					houseNumber,
-					postalCode,
-					city,
-					location.Id,
-					CancellationToken.None);
-				break;
-			}
 			case PackageWorkflowRequest packageWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
+				{
+					// TODO:
+					break;
+				}
 			case PaymentWorkflowRequest paymentWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
+				{
+					// TODO:
+					break;
+				}
 			case SupportChatWorkflowRequest supportChatWorkflowRequest:
-			{
-				// TODO:
-				break;
-			}
+				{
+					// TODO:
+					break;
+				}
 			case WorkflowRequestError workflowRequestError:
-			{
-				// TODO:
-				break;
-			}
+				{
+					// TODO:
+					break;
+				}
 			default:
-			{
-				throw new ArgumentOutOfRangeException(nameof(request));
-			}
+				{
+					throw new ArgumentOutOfRangeException(nameof(request));
+				}
 		}
 	}
 
@@ -132,16 +134,22 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			case DeliveryWorkflowRequest:
 				return "Delivery";
+
 			case InitialWorkflowRequest:
 				return "Initial";
+
 			case PackageWorkflowRequest:
 				return "Package";
+
 			case PaymentWorkflowRequest:
 				return "Payment";
+
 			case SupportChatWorkflowRequest:
 				return "SupportChat";
+
 			case WorkflowRequestError:
 				return "Error";
+
 			default:
 				return "Unknown";
 		}
@@ -155,14 +163,19 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			case "Initial":
 				return new InitialWorkflow(_workflowValidator, _countries);
+
 			case "Delivery":
 				return new DeliveryWorkflow(_workflowValidator);
+
 			case "Payment":
 				return new PaymentWorkflow(_workflowValidator);
+
 			case "Package":
 				return new PackageWorkflow(_workflowValidator);
+
 			case "SupportChat":
 				return new SupportChatWorkflow(_workflowValidator);
+
 			default:
 				return null;
 		}
@@ -171,16 +184,22 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		{
 			case "Started":
 				return new InitialWorkflow(_workflowValidator, _countries);
+
 			case "OfferReceived":
 				return new DeliveryWorkflow(_workflowValidator);
+
 			case "PaymentDone":
 				return new PaymentWorkflow(_workflowValidator);
+
 			case "PaymentConfirmed":
 				return new PaymentWorkflow(_workflowValidator);
+
 			case "OfferAccepted":
 				return new DeliveryWorkflow(_workflowValidator);
+
 			case "InvoiceReceived":
 				return new SupportChatWorkflow(_workflowValidator);
+
 			default:
 				return null;
 		}
@@ -203,40 +222,40 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		switch (_currentWorkflow)
 		{
 			case null:
-			{
-				CurrentWorkflow = new InitialWorkflow(_workflowValidator, _countries);
-				break;
-			}
+				{
+					CurrentWorkflow = new InitialWorkflow(_workflowValidator, _countries);
+					break;
+				}
 			case InitialWorkflow:
-			{
-				// TODO:
-				CurrentWorkflow = new DeliveryWorkflow(_workflowValidator);
-				break;
-			}
+				{
+					// TODO:
+					CurrentWorkflow = new DeliveryWorkflow(_workflowValidator);
+					break;
+				}
 			case DeliveryWorkflow:
-			{
-				// TODO:
-				CurrentWorkflow = new PaymentWorkflow(_workflowValidator);
-				break;
-			}
+				{
+					// TODO:
+					CurrentWorkflow = new PaymentWorkflow(_workflowValidator);
+					break;
+				}
 			case PaymentWorkflow:
-			{
-				// TODO:
-				CurrentWorkflow = new PackageWorkflow(_workflowValidator);
-				break;
-			}
+				{
+					// TODO:
+					CurrentWorkflow = new PackageWorkflow(_workflowValidator);
+					break;
+				}
 			case PackageWorkflow:
-			{
-				// TODO: After receiving package info switch to final workflow with chat support.
-				CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
-				break;
-			}
+				{
+					// TODO: After receiving package info switch to final workflow with chat support.
+					CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
+					break;
+				}
 			case SupportChatWorkflow:
-			{
-				// TODO: Order is complete do nothing?
-				CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
-				break;
-			}
+				{
+					// TODO: Order is complete do nothing?
+					CurrentWorkflow = new SupportChatWorkflow(_workflowValidator);
+					break;
+				}
 		}
 
 		return true;
