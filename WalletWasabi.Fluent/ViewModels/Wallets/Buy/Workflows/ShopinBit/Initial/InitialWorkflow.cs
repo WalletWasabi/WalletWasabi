@@ -46,7 +46,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
-					() => "Hello, I am your chosen Assistant. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
+					() => $"Hello, I am your chosen {GetAssistantName()}. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
 			// Location
 			new (false,
 				new DefaultInputValidator(
@@ -95,6 +95,15 @@ public sealed partial class InitialWorkflow : Workflow
 			BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
 			BuyAnythingClient.Product.TravelConcierge => "48-72 hours",
 			_ => "a few days"
+		};
+	}
+
+	private string GetAssistantName()
+	{
+		return (_request.Product is not null) switch
+		{
+			true => ProductHelper.GetDescription(_request.Product.Value),
+			_ => "Assistant"
 		};
 	}
 
