@@ -67,8 +67,6 @@ public partial class OrderViewModel : ReactiveObject
 
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
-		_workflowManager.SelectNextWorkflow(null);
-
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
 		var canExecuteRemoveCommand = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
@@ -94,6 +92,16 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand RemoveOrderCommand { get; }
 
 	public Guid Id { get; }
+
+	public void StartConversation()
+	{
+		if (Messages.Any())
+		{
+			return;
+		}
+
+		_workflowManager.SelectNextWorkflow(null);
+	}
 
 	public void UpdateOrder(
 		ConversationId id,

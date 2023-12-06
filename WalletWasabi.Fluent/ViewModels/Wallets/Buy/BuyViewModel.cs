@@ -226,6 +226,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				this,
 				cancellationToken);
 
+			order.StartConversation();
+
 			_ordersCache.AddOrUpdate(order);
 		}
 	}
