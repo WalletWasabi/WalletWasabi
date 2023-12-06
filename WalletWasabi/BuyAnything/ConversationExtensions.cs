@@ -18,7 +18,7 @@ public static class ConversationExtensions
 		ConversationStatus newStatus) =>
 		conversation with
 		{
-			ChatMessages = conversation.ChatMessages.AddSentMessage(message),
+			ChatMessages = conversation.ChatMessages.AddReceivedMessage(message),
 			ConversationStatus = newStatus
 		};
 }

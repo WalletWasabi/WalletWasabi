@@ -105,7 +105,6 @@ public partial class OrderViewModel : ReactiveObject
 			return;
 		}
 
-		// Based on the messages detect the workflow and step.
 		_workflowManager.SelectNextWorkflow(conversationStatus);
 	}
 
