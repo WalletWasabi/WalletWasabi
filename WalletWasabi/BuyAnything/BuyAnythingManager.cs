@@ -46,7 +46,6 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		Client = client;
 		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
-		CountriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 
 		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
 	}
@@ -61,7 +60,6 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
-	private string CountriesFilePath { get; }
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
@@ -437,7 +435,8 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
 	{
-		var fileContent = await File.ReadAllTextAsync(CountriesFilePath, cancellationToken).ConfigureAwait(false);
+		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
+		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
 
 		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
 						?? throw new InvalidOperationException("Couldn't read cached countries values.");
