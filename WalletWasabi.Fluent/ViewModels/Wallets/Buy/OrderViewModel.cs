@@ -254,7 +254,7 @@ public partial class OrderViewModel : ReactiveObject
 				break;
 			}
 
-			if (_workflowManager.CurrentWorkflow.CurrentStep != null && _workflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput)
+			if (_workflowManager.CurrentWorkflow.CurrentStep is { RequiresUserInput: true })
 			{
 				break;
 			}
