@@ -75,8 +75,6 @@ public partial class OrderViewModel : ReactiveObject
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
 
-		_orderManager.UpdateTrigger.Subscribe(m => UpdateOrder(m.Id, m.ConversationStatus, m.OrderStatus, m.Messages));
-
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 	}
@@ -97,7 +95,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public Guid Id { get; }
 
-	private void UpdateOrder(
+	public void UpdateOrder(
 		ConversationId id,
 		string? conversationStatus,
 		string? orderStatus,

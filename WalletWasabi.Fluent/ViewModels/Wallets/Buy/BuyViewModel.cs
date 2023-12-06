@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData;
@@ -36,7 +35,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, Guid> _ordersCache;
-	private readonly BehaviorSubject<OrderUpdateMessage> _updateTriggerSubject;
 
 	private Country[] _countries;
 
@@ -62,16 +60,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Subscribe();
 
 		_cts = new CancellationTokenSource();
-		_updateTriggerSubject = new BehaviorSubject<OrderUpdateMessage>(OrderUpdateMessage.Empty);
-
-		UpdateTrigger = _updateTriggerSubject;
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
 	public WalletViewModel WalletVm { get; }
-
-	public IObservable<OrderUpdateMessage> UpdateTrigger { get; }
 
 	public void Activate(CompositeDisposable disposable)
 	{
@@ -137,14 +130,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						CreateAndAddEmptyOrder(_cts.Token);
 					}
 
-					Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
-
-					_updateTriggerSubject.OnNext(
-						new OrderUpdateMessage(
+					if (Orders.FirstOrDefault(x => x.BackendId == e.Conversation.Id) is { } orderToUpdate)
+					{
+						orderToUpdate.UpdateOrder(
 							e.Conversation.Id,
 							e.Conversation.ConversationStatus.ToString(),
 							e.Conversation.OrderStatus.ToString(),
-							CreateMessages(e.Conversation)));
+							CreateMessages(e.Conversation));
+
+						Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
+					}
 				})
 				.DisposeWith(disposable);
 		}
