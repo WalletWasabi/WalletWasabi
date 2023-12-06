@@ -162,7 +162,7 @@ public class BuyAnythingManager : PeriodicRunner
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
-				await SendSystemChatLinesAsync(track,$"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
+				await SendSystemChatLinesAsync(track, $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
@@ -238,16 +238,16 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, string message, ChatMessage[] chatMessages, string title, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, string title, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-
+		var fullChat = new Chat(chatMessages);
 		var credential = GenerateRandomCredential();
-		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, message, cancellationToken)
+		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, fullChat.ToText(), cancellationToken)
 			.ConfigureAwait(false);
 		var conversation = new Conversation(
 				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-				new Chat(chatMessages),
+				fullChat,
 				OrderStatus.Open,
 				ConversationStatus.Started,
 				title);
@@ -419,9 +419,27 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task LoadConversationsAsync(CancellationToken cancellationToken)
 	{
 		IoHelpers.EnsureFileExists(FilePath);
-		string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-		var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json) ?? new();
-		ConversationTracking.Load(conversations);
+
+		try
+		{
+			string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json) ?? new();
+			ConversationTracking.Load(conversations);
+		}
+		catch (JsonException ex)
+		{
+			// Something happened with the file.
+			var bakFilePath = $"{FilePath}.bak";
+			Logger.LogError($"Wasabi was not able to load conversations file. Resetting the onversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
+			File.Move(FilePath, bakFilePath, true);
+			ConversationTracking.Load(new ConversationTracking());
+			await SaveAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"Wasabi was not able to load conversations file. Reason: '{ex}'.");
+		}
+
 		IsConversationsLoaded = true;
 	}
 
