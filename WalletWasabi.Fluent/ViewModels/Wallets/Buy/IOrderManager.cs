@@ -5,5 +5,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
 public interface IOrderManager
 {
-	Task RemoveOrderAsync(Guid id);
+	Task RemoveOrderAsync(int id);
 }

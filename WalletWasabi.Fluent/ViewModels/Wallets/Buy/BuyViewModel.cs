@@ -34,7 +34,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel, Guid> _ordersCache;
+	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 
 	private Country[] _countries;
 
@@ -51,7 +51,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, Guid>(x => x.Id);
+		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.Id);
 
 		_ordersCache
 			.Connect()
@@ -189,15 +189,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
-		var orderViewModels = conversations.Select(x => CreateOrder(x, cancellationToken));
+		var orderViewModels = conversations.Select((x, i) => CreateOrder(x, i+1, cancellationToken));
 		_ordersCache.AddOrUpdate(orderViewModels);
 	}
 
-	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken)
+	private OrderViewModel CreateOrder(Conversation conversation, int id, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
 			UiContext,
-			Guid.NewGuid(),
+			id,
 			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
 			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
@@ -220,11 +220,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
-			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
+			var nextConversationId = buyAnythingManager.GetNextConversationId(walletId);
+			var title = $"Order {nextConversationId}";
 
 			var order = new OrderViewModel(
 				UiContext,
-				Guid.NewGuid(),
+				nextConversationId,
 				new ConversationMetaData(title, null),
 				"Started",
 				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
@@ -237,7 +238,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		}
 	}
 
-	async Task IOrderManager.RemoveOrderAsync(Guid id)
+	async Task IOrderManager.RemoveOrderAsync(int id)
 	{
 		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove && Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
