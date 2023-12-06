@@ -90,7 +90,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				}
 			})
 			.DisposeWith(disposables);
+
+		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
 	}
+
+	private IDisposable MarkNewMessagesFromSelectedOrderAsRead() => this.WhenAnyValue(x => x.SelectedOrder)
+		.WhereNotNull()
+		.Select(x => x.Messages.ToObservableChangeSet())
+		.Switch()
+		.OnItemAdded(x => x.IsUnread = false)
+		.Subscribe();
 
 	private async Task InitializeCountriesAsync(CancellationToken cancellationToken)
 	{

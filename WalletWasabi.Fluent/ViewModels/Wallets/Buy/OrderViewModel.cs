@@ -82,7 +82,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public string Title { get; }
 
-	public IReadOnlyCollection<MessageViewModel> Messages => _messages;
+	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
 	public IWorkflowManager WorkflowManager => _workflowManager;
 
