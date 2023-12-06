@@ -98,16 +98,19 @@ public partial class OrderViewModel : ReactiveObject
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
 			_workflowManager.SelectNextWorkflow(null);
+			Update();
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
 			_workflowManager.SelectNextWorkflow("Support");
+			Update();
 			return;
 		}
 
 		_workflowManager.SelectNextWorkflow(conversationStatus);
+		Update();
 	}
 
 	public void UpdateOrder(

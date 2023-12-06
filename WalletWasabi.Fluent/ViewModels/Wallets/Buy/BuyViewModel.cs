@@ -88,8 +88,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				{
 					messageViewModel.IsUnread = false;
 				}
-
-				Dispatcher.UIThread.Post(() => order.Update());
 			})
 			.DisposeWith(disposables);
 	}
