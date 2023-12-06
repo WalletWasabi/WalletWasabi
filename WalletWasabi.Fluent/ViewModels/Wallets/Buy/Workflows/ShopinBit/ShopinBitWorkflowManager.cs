@@ -64,7 +64,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				{
 					if (initialWorkflowRequest.Location is not { } location ||
 						initialWorkflowRequest.Product is not { } product ||
-						initialWorkflowRequest.Request is not { } requestMessage)
+						initialWorkflowRequest.Request is not { } requestMessage) // TODO: Delete, this is redundant, we send out the whole conversation to generate a new order.
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
@@ -75,7 +75,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						_walletId,
 						location.Id,
 						product,
-						requestMessage,
 						chatMessages,
 						_title,
 						cancellationToken);
