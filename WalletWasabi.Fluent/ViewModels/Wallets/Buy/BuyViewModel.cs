@@ -77,7 +77,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		Task.Run(async () =>
 		{
-			await InitializeCountriesAsync(_cts.Token);
 			await InitializeOrdersAsync(_cts.Token, disposable);
 			SelectedOrder = _orders.FirstOrDefault();
 		}, _cts.Token);
@@ -93,14 +92,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				Dispatcher.UIThread.Post(() => order?.Update());
 			})
 			.DisposeWith(disposables);
-	}
-
-	private async Task InitializeCountriesAsync(CancellationToken cancellationToken)
-	{
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
-		{
-			_countries = await buyAnythingManager.GetCountriesAsync(cancellationToken);
-		}
 	}
 
 	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
