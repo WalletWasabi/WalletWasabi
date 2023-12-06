@@ -22,6 +22,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly UiContext _uiContext;
+	private readonly string _conversationStatus;
 	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
@@ -34,6 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	public OrderViewModel(UiContext uiContext,
 		Guid id,
 		string title,
+		string conversationStatus,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
@@ -42,6 +44,7 @@ public partial class OrderViewModel : ReactiveObject
 		Title = title;
 
 		_uiContext = uiContext;
+		_conversationStatus = conversationStatus;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
@@ -91,6 +94,7 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand SendCommand { get; }
 
 	public ICommand RemoveOrderCommand { get; }
+
 	public Guid Id { get; }
 
 	private void UpdateOrder(
@@ -113,7 +117,7 @@ public partial class OrderViewModel : ReactiveObject
 			UpdateMessages(messages);
 		}
 
-		if (conversationStatus is not null)
+		if (conversationStatus is not null && _conversationStatus != conversationStatus)
 		{
 			SelectNextWorkflow(conversationStatus);
 		}
@@ -338,19 +342,6 @@ public partial class OrderViewModel : ReactiveObject
 			x.Clear();
 			x.Add(messages);
 		});
-	}
-
-	public void Copy(Conversation conv)
-	{
-		var messages = conv.ChatMessages.Select(
-			x => x.IsMyMessage
-				? new UserMessageViewModel(WorkflowManager.CurrentWorkflow.EditStepCommand, WorkflowManager.CurrentWorkflow.CanEditObservable, WorkflowManager.CurrentWorkflow.CurrentStep)
-				{
-					Message = x.Message
-				}
-				: (MessageViewModel)new AssistantMessageViewModel(null, null) { Message = x.Message });
-
-		_messagesList.EditDiff(messages);
 	}
 
 	private ChatMessage[] GetChatMessages()

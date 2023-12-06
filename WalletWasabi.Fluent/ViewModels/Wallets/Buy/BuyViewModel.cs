@@ -131,12 +131,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						// We should lookup for the unbound order and assign its BackendId
 						// and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-						unboundOrder.Copy(e.Conversation); // Copies the data from the updated conversation to the order
 						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
 
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						CreateAndAddEmptyOrder(_cts.Token);
-						return;
 					}
 
 					Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
@@ -211,6 +209,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			UiContext,
 			Guid.NewGuid(),
 			conversation.Title,
+			conversation.ConversationStatus.ToString(),
 			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), conversation.Title),
 			this,
 			cancellationToken);
@@ -235,6 +234,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				UiContext,
 				Guid.NewGuid(),
 				title,
+				"Started",
 				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), title),
 				this,
 				cancellationToken);
