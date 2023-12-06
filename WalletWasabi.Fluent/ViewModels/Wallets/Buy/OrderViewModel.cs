@@ -254,6 +254,11 @@ public partial class OrderViewModel : ReactiveObject
 				break;
 			}
 
+			if (_workflowManager.CurrentWorkflow.CurrentStep is { RequiresUserInput: true })
+			{
+				break;
+			}
+
 			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is null)
 			{
