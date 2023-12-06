@@ -140,7 +140,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 							e.Conversation.Id,
 							e.Conversation.ConversationStatus.ToString(),
 							e.Conversation.OrderStatus.ToString(),
-							CreateMessages(e.Conversation));
+							CreateMessages(e.Conversation),
+							e.Conversation.MetaData);
 
 						Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
 					}

@@ -22,7 +22,6 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly UiContext _uiContext;
-	private readonly ConversationMetaData _metaData;
 	private readonly string _conversationStatus;
 	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
@@ -32,6 +31,8 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
+
+	private ConversationMetaData _metaData;
 
 	public OrderViewModel(UiContext uiContext,
 		Guid id,
@@ -113,17 +114,18 @@ public partial class OrderViewModel : ReactiveObject
 		Update();
 	}
 
-	public void UpdateOrder(
-		ConversationId id,
+	public void UpdateOrder(ConversationId id,
 		string? conversationStatus,
 		string? orderStatus,
-		IReadOnlyList<MessageViewModel>? messages)
+		IReadOnlyList<MessageViewModel>? messages,
+		ConversationMetaData conversationMetaData)
 	{
 		if (id != BackendId)
 		{
 			return;
 		}
 
+		_metaData = conversationMetaData;
 		IsCompleted = orderStatus == "Done";
 
 		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
