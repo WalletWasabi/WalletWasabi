@@ -39,7 +39,7 @@ public static class ShopWareRequestFactory
 		{
 			["firstName"] = firstName,
 			["lastName"] = lastName,
-			["wallet_chat_store"] = comment
+			["customFields"] = new PropertyBag() { ["wallet_chat_store"] = comment }
 		};
 
 	public static PropertyBag GetPage(int page, int limit) =>
