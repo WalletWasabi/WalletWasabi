@@ -20,7 +20,7 @@ namespace WalletWasabi.BuyAnything;
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
-public record ChatMessage(bool IsMyMessage, string Message);
+public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread);
 
 public record Country(string Id, string Name);
 
@@ -185,7 +185,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 		var customer = customerProfileResponse;
 		var fullConversation = customerProfileResponse.CustomFields.Wallet_Chat_Store;
-		var messages = Chat.FromText(fullConversation);
+		var messages = Chat.FromText(fullConversation, oldConversation: track.Conversation.ChatMessages);
 		if (messages.Count > track.Conversation.ChatMessages.Count)
 		{
 			track.Conversation = track.Conversation with

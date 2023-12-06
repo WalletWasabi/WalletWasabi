@@ -47,10 +47,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public ChatMessage this[int i] => _messages[i];
 
 	public Chat AddSentMessage(string msg) =>
-		new(this.Append(new ChatMessage(true, msg)));
+		new(this.Append(new ChatMessage(true, msg, IsUnread: false)));
 
 	public Chat AddReceivedMessage(string msg) =>
-		new(this.Append(new ChatMessage(false, msg)));
+		new(this.Append(new ChatMessage(false, msg, IsUnread: true)));
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
@@ -60,9 +60,9 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 
 	public int Count => _messages.Length;
 
-	public static Chat FromText(string text)
+	public static Chat FromText(string updatedConversation, Chat oldConversation)
 	{
-		var messages = text.Split("||", StringSplitOptions.RemoveEmptyEntries);
+		var messages = updatedConversation.Split("||", StringSplitOptions.RemoveEmptyEntries);
 
 		var chatEntries = new List<ChatMessage>();
 		foreach (var message in messages)
@@ -74,9 +74,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 				break;
 			}
 
-			var isMine = items[0] == "WASABI";
-			var chatLine = EnsureProperRawMessage(items[1]);
-			chatEntries.Add(new ChatMessage(isMine, chatLine));
+			bool isMine = items[0] == "WASABI";
+			string chatLine = EnsureProperRawMessage(items[1]);
+			bool isUnread = !oldConversation.Contains(chatLine, isMine);
+			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread));
 		}
 
 		return new Chat(chatEntries);
@@ -95,6 +96,19 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		result.Append("||");
 
 		return result.ToString();
+	}
+
+	public bool Contains(string singleMessage, bool isMine)
+	{
+		foreach (var chatMessage in this)
+		{
+			if (chatMessage.IsMyMessage == isMine && chatMessage.Message == singleMessage)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
