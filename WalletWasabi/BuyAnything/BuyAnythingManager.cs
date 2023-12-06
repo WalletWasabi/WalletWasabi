@@ -70,7 +70,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in ConversationTracking.UpdatableConversations)
+		foreach (var track in ConversationTracking.GetUpdatableConversations())
 		{
 			// Check if there is new info in the chat
 			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
