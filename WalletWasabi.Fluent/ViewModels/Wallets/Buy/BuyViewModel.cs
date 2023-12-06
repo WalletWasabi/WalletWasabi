@@ -191,19 +191,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
-		var orders = new List<OrderViewModel>();
-
-		for (var i = 0; i < conversations.Count; i++)
-		{
-			var conversation = conversations[i];
-			var order = CreateOrder(conversation, cancellationToken, i);
-			orders.Add(order);
-		}
-
-		_ordersCache.AddOrUpdate(orders);
+		var orderViewModels = conversations.Select(x => CreateOrder(x, cancellationToken));
+		_ordersCache.AddOrUpdate(orderViewModels);
 	}
 
-	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken, int i)
+	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
 			UiContext,
