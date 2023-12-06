@@ -11,7 +11,7 @@
              xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
-             x:DataType="buy:BuyViewModel"
+             x:DataType="buy:OrderViewModel"
              x:CompileBindings="True">
 
   <DockPanel x:Name="RightSide">
@@ -19,10 +19,10 @@
     <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10">
 
       <Button DockPanel.Dock="Right"
-              Command="{Binding SelectedOrder.SendCommand}"
+              Command="{Binding SendCommand}"
               Margin="10 0 0 0"
-              Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
-              IsVisible="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}"
+              Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
+              IsVisible="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}"
               Classes="action"
               IsDefault="True">
         <i:Interaction.Behaviors>
@@ -30,7 +30,7 @@
         </i:Interaction.Behaviors>
       </Button>
 
-      <ContentControl Content="{Binding SelectedOrder.WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
+      <ContentControl Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
         <ContentControl.Styles>
           <Style Selector="TextBox">
             <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
@@ -200,8 +200,8 @@
     </DockPanel>
 
     <Panel DockPanel.Dock="Bottom" Height="15" Margin="10 0">
-      <ProgressBar IsIndeterminate="{Binding SelectedOrder.IsBusy}"
-                   IsVisible="{Binding SelectedOrder.IsBusy}"
+      <ProgressBar IsIndeterminate="{Binding IsBusy}"
+                   IsVisible="{Binding IsBusy}"
                    VerticalAlignment="Center"
                    Value="50" />
     </Panel>
@@ -210,8 +210,8 @@
                   HorizontalScrollBarVisibility="Disabled"
                   VerticalScrollBarVisibility="Auto">
       <SelectingItemsControl x:Name="MessagesItemsControl"
-                             Items="{Binding SelectedOrder.Messages}"
-                             SelectedItem="{Binding SelectedOrder.SelectedMessage}">
+                             Items="{Binding Messages}"
+                             SelectedItem="{Binding SelectedMessage}">
         <SelectingItemsControl.Styles>
           <Style Selector="ContentPresenter > c|PreviewMessageItem">
             <Setter Property="Margin" Value="5 5 5 0" />

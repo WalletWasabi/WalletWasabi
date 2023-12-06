@@ -24,7 +24,7 @@
         <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
       </Border>
       <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 5 5 0">
-        <buy:OrderMessagesView />
+        <buy:OrderMessagesView DataContext="{Binding SelectedOrder}" />
       </Border>
     </DockPanel>
 
