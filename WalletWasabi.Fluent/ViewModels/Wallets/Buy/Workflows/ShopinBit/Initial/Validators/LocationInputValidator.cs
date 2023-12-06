@@ -17,7 +17,7 @@ public partial class LocationInputValidator : InputValidator
 		IWorkflowValidator workflowValidator,
 		Country[] countries,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Enter your location...", "Next")
+		: base(workflowValidator, null, "Enter the country name!", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 
