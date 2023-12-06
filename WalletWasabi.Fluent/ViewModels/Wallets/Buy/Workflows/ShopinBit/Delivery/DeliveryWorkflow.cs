@@ -16,11 +16,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 		Steps = new List<WorkflowStep>
 		{
 			// Info
-			new (false,
-				new DefaultInputValidator(
-					workflowValidator,
-					() => "I can offer you an automatic Green Lambo for delivery to Germany by December 24, 2023, at the cost of 300,000 USD or approximately 10.5 BTC.")),
-			// Info
 			new(false,
 				new DefaultInputValidator(
 					workflowValidator,
@@ -88,14 +83,14 @@ public sealed partial class DeliveryWorkflow : Workflow
 				userInputValidator: new StateInputValidator(
 					workflowValidator,
 					_request)),
-			// Confirm
-			new (false,
-				new DeliverySummaryInputValidator(
-					workflowValidator,
-					_request)),
-			new (requiresUserInput: true,
-				userInputValidator: new ConfirmDeliveryInputValidator(
-					workflowValidator)),
+			// // Confirm
+			// new (false,
+			// 	new DeliverySummaryInputValidator(
+			// 		workflowValidator,
+			// 		_request)),
+			// new (requiresUserInput: true,
+			// 	userInputValidator: new ConfirmDeliveryInputValidator(
+			// 		workflowValidator)),
 			// Accept Terms of service
 			new (false,
 				new DefaultInputValidator(
