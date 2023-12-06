@@ -81,9 +81,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedTo(inHistory, disposables);
 
 		this.WhenAnyValue(x => x.SelectedOrder)
+			.WhereNotNull()
 			.Subscribe(order =>
 			{
-				Dispatcher.UIThread.Post(() => order?.Update());
+				foreach (var messageViewModel in order.Messages)
+				{
+					messageViewModel.IsUnread = false;
+				}
+
+				Dispatcher.UIThread.Post(() => order.Update());
 			})
 			.DisposeWith(disposables);
 	}
@@ -164,8 +170,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				var userMessage = new UserMessageViewModel(null, null, null)
 				{
 					Message = message.Message,
-					// TODO: Check if message exists
-					IsUnread = true
+					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
 			}
@@ -174,8 +179,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				var userMessage = new AssistantMessageViewModel(null, null)
 				{
 					Message = message.Message,
-					// TODO: Check if message exists
-					IsUnread = true
+					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
 			}

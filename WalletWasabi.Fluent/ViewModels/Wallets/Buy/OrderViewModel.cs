@@ -367,10 +367,10 @@ public partial class OrderViewModel : ReactiveObject
 
 				if (x is AssistantMessageViewModel)
 				{
-					return new ChatMessage(false, message, IsUnread: false); // This method is only called when Workflow == IsCompleted, so I guess every message is read at this point.
+					return new ChatMessage(false, message, x.IsUnread); // This method is only called when Workflow == IsCompleted, so I guess every message is read at this point.
 				}
 
-				return new ChatMessage(true, message, IsUnread: false);
+				return new ChatMessage(true, message, x.IsUnread);
 			})
 			.ToArray();
 	}
