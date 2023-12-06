@@ -16,7 +16,7 @@ public static class ShopWareRequestFactory
 			["affiliateCode"] = "WASABI",
 			["acceptedDataProtection"] = true,
 			["storefrontUrl"] = "https://wasabi.shopinbit.com",
-			["customFields"] = new PropertyBag { ["wallet_chat_store"] = $"||#WASABI#{message}" },
+			["customFields"] = new PropertyBag { ["wallet_chat_store"] = $"{message}" },
 			["billingAddress"] = new PropertyBag
 			{
 				["street"] = "My street",
