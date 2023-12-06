@@ -39,6 +39,18 @@ public partial class OrderMessagesView : UserControl
 			{
 				messagesScrollViewer.ScrollToEnd();
 			});
+
+		messagesItemsControl.GetObservable(ItemsControl.ItemsProperty)
+			.Subscribe(_ =>
+			{
+				messagesScrollViewer.ScrollToEnd();
+			});
+
+		this.GetObservable(DataContextProperty)
+			.Subscribe(_ =>
+			{
+				messagesScrollViewer.ScrollToEnd();
+			});
 	}
 
 	private void InitializeComponent()
