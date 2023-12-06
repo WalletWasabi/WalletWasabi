@@ -27,7 +27,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 		string model;
 		string rawPath;
 
-		// This come from hwi.exe enumerate [model]
+		// This come from hwi.exe enumerate (model).
 		model = Model switch
 		{
 			HardwareWalletModels.Trezor_T => "trezor_t",
@@ -39,7 +39,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			_ => throw new NotImplementedException("Mock missing.")
 		};
 
-		// This come from hwi.exe enumerate [path]
+		// This come from hwi.exe enumerate (path).
 		rawPath = Model switch
 		{
 			HardwareWalletModels.Trezor_T => "webusb: 001:4",
