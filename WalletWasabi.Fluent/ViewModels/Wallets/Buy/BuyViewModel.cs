@@ -189,7 +189,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
-		var orderViewModels = conversations.Select((x, i) => CreateOrder(x, i+1, cancellationToken));
+		var orderViewModels = conversations.Select((x, i) => CreateOrder(x, i, cancellationToken));
 		_ordersCache.AddOrUpdate(orderViewModels);
 	}
 
@@ -220,12 +220,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
-			var nextConversationId = buyAnythingManager.GetNextConversationId(walletId);
-			var title = $"Order {nextConversationId}";
+			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
 
 			var order = new OrderViewModel(
 				UiContext,
-				nextConversationId,
+				_orders.Count,
 				new ConversationMetaData(title, null),
 				"Started",
 				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
