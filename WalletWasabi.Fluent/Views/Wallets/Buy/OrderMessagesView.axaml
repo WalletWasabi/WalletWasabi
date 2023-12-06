@@ -176,6 +176,7 @@
                        Watermark="{Binding Watermark}"
                        MaxTextLength="5000"
                        ItemCountLimit="1"
+                       TagSeparator=";"
                        Items="{Binding Country}"
                        Suggestions="{Binding Countries}">
               <i:Interaction.Behaviors>
