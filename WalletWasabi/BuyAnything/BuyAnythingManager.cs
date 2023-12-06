@@ -415,7 +415,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return sb.ToString();
 	}
 
-	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
+	public async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
 		if (!IsConversationsLoaded)
 		{
