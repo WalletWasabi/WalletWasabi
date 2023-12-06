@@ -195,9 +195,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var order = new OrderViewModel(
 			UiContext,
 			Guid.NewGuid(),
-			conversation.Title,
+			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), conversation.Title),
+			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 
@@ -222,9 +222,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			var order = new OrderViewModel(
 				UiContext,
 				Guid.NewGuid(),
-				title,
+				new ConversationMetaData(title, null),
 				"Started",
-				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet), title),
+				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
 				this,
 				cancellationToken);
 

@@ -238,7 +238,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return Countries.ToArray();
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, string title, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var fullChat = new Chat(chatMessages);
@@ -250,7 +250,7 @@ public class BuyAnythingManager : PeriodicRunner
 				fullChat,
 				OrderStatus.Open,
 				ConversationStatus.Started,
-				title);
+				metaData);
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));

@@ -22,6 +22,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly UiContext _uiContext;
+	private readonly ConversationMetaData _metaData;
 	private readonly string _conversationStatus;
 	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
@@ -34,16 +35,17 @@ public partial class OrderViewModel : ReactiveObject
 
 	public OrderViewModel(UiContext uiContext,
 		Guid id,
-		string title,
+		ConversationMetaData metaData,
 		string conversationStatus,
 		IWorkflowManager workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
 		Id = id;
-		Title = title;
+		Title = metaData.Title;
 
 		_uiContext = uiContext;
+		_metaData = metaData;
 		_conversationStatus = conversationStatus;
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
@@ -208,7 +210,7 @@ public partial class OrderViewModel : ReactiveObject
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
 				var chatMessages = GetChatMessages();
-				await _workflowManager.SendApiRequestAsync(chatMessages, cancellationToken);
+				await _workflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
 				SelectNextWorkflow(null);

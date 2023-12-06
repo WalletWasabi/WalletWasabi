@@ -9,21 +9,17 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 {
 	private readonly Country[] _countries;
 	private readonly string _walletId;
-	private readonly string _title;
 	private readonly IWorkflowValidator _workflowValidator;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private ConversationId? _id = ConversationId.Empty;
+	private ConversationId _id = ConversationId.Empty;
 
-	private Country? _location;
-
-	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId, string title)
+	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId)
 	{
 		_countries = countries;
 		_walletId = walletId;
-		_title = title;
 		_workflowValidator = new WorkflowValidator();
 	}
 
@@ -49,7 +45,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, cancellationToken);
 	}
 
-	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
+	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		if (_currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
@@ -69,14 +65,14 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						throw new ArgumentException($"Argument was not provided!");
 					}
 
-					_location = location;
+					metaData = metaData with { Country = location };
 
 					await buyAnythingManager.StartNewConversationAsync(
 						_walletId,
 						location.Id,
 						product,
 						chatMessages,
-						_title,
+						metaData,
 						cancellationToken);
 					break;
 				}
@@ -87,10 +83,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						deliveryWorkflowRequest.StreetName is not { } streetName ||
 						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
 						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-						deliveryWorkflowRequest.PostalCode is not { } ||
 						deliveryWorkflowRequest.State is not { } state ||
 						deliveryWorkflowRequest.City is not { } city ||
-						_location is not { } location
+						metaData.Country is not { } country
 					   )
 					{
 						throw new ArgumentException($"Argument was not provided!");
@@ -104,7 +99,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						postalCode,
 						city,
 						"stateId", // TODO: use state variable, but ID is required, not name.
-						location.Id,
+						country.Id,
 						cancellationToken);
 					break;
 				}
