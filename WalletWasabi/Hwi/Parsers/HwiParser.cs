@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
@@ -13,6 +14,31 @@ namespace WalletWasabi.Hwi.Parsers;
 
 public static class HwiParser
 {
+	/// <summary>
+	/// Parse the wallet's path from the response.
+	/// </summary>
+	/// <param name="path">The wallet path, what come from hwi enumerate.</param>
+	/// <param name="model">The hardware wallet model.</param>
+	/// <returns>Is matching with the predefined path pattern(true/false)</returns>
+	public static bool ValidatePathString(HardwareWalletModels model, string path)
+	{
+		string pattern = GetPatternForModel(model);
+		return Regex.IsMatch(path, pattern);
+	}
+
+	private static string GetPatternForModel(HardwareWalletModels model)
+	{
+		return model switch
+		{
+			HardwareWalletModels.Trezor_T => "^webusb:",
+			HardwareWalletModels.Trezor_1 => @"^hid:\\\\.*?vid_534c&pid_0001&mi_00",
+			HardwareWalletModels.Coldcard => @"^hid:\\\\.*?vid_d13e&pid_cc10&mi_00",
+			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => @"^hid:\\\\.*?vid_2c97&pid_0001&mi_00",
+			HardwareWalletModels.Jade => @"^COM\d+",
+			_ => "",
+		};
+	}
+
 	public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, [NotNullWhen(true)] out HwiException? error)
 	{
 		error = null;
