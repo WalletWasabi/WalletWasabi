@@ -109,10 +109,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						cancellationToken);
 					break;
 				}
-			default:
-				{
-					throw new ArgumentOutOfRangeException(nameof(request));
-				}
 		}
 	}
 
@@ -148,6 +144,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				return new SupportChatWorkflow(_workflowValidator);
 
 			case "Finished":
+				return new SupportChatWorkflow(_workflowValidator);
+
+			case "Support":
 				return new SupportChatWorkflow(_workflowValidator);
 
 			default:

@@ -206,6 +206,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var orderMessages = CreateMessages(conversation);
 		order.UpdateMessages(orderMessages);
 
+		order.StartConversation(conversation.ConversationStatus.ToString());
+
 		return order;
 	}
 
@@ -226,7 +228,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				this,
 				cancellationToken);
 
-			order.StartConversation();
+			order.StartConversation("Started");
 
 			_ordersCache.AddOrUpdate(order);
 		}

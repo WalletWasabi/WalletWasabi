@@ -61,10 +61,6 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		_messagesList.CountChanged
-			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
-			.Subscribe();
-
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
@@ -93,14 +89,24 @@ public partial class OrderViewModel : ReactiveObject
 
 	public Guid Id { get; }
 
-	public void StartConversation()
+	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
+	public void StartConversation(string conversationStatus)
 	{
-		if (Messages.Any())
+		// The conversation is empty so just start from the beginning
+		if (conversationStatus == "Started" && !Messages.Any())
 		{
+			_workflowManager.SelectNextWorkflow(null);
 			return;
 		}
 
-		_workflowManager.SelectNextWorkflow(null);
+		if (conversationStatus == "Started")
+		{
+			_workflowManager.SelectNextWorkflow("Support");
+			return;
+		}
+
+		// Based on the messages detect the workflow and step.
+		_workflowManager.SelectNextWorkflow(conversationStatus);
 	}
 
 	public void UpdateOrder(
@@ -204,6 +210,7 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				var chatMessages = GetChatMessages();
 				await _workflowManager.SendApiRequestAsync(chatMessages, cancellationToken);
+				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
 				SelectNextWorkflow(null);
 			}
@@ -250,11 +257,6 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			var peekStep = _workflowManager.CurrentWorkflow.PeekNextStep();
 			if (peekStep is null)
-			{
-				break;
-			}
-
-			if (_workflowManager.CurrentWorkflow.CurrentStep is { RequiresUserInput: true })
 			{
 				break;
 			}
