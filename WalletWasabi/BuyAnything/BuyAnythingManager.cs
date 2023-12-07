@@ -117,10 +117,7 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
-				await SendSystemChatLinesAsync(track,
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
-					order.UpdatedAt, ConversationStatus.InvoiceReceived,
-					cancel).ConfigureAwait(false);
+				await ShowInvoiceAsync(track, order, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 				break;
 
 			// The status changes to "In Progress" after the user paid
@@ -181,6 +178,26 @@ public class BuyAnythingManager : PeriodicRunner
 				// TODO: Handle unexpected phase changes.
 				break;
 		}
+	}
+
+	private async Task ShowInvoiceAsync(ConversationUpdateTrack track, Order order, ConversationStatus newStatus, CancellationToken cancel)
+	{
+		// This is ugly! For now, this makes sure the bitcoin invoice is properly copyable.
+
+		await SendSystemChatLinesAsync(track,
+					$"Pay to:",
+					order.UpdatedAt, newStatus,
+					cancel).ConfigureAwait(false);
+
+		await SendSystemChatLinesAsync(track,
+					$"{order.CustomFields?.Btcpay_PaymentLink}",
+					order.UpdatedAt, newStatus,
+					cancel).ConfigureAwait(false);
+
+		await SendSystemChatLinesAsync(track,
+					$"The invoice expires in 30 minutes!",
+					order.UpdatedAt, newStatus,
+					cancel).ConfigureAwait(false);
 	}
 
 	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
