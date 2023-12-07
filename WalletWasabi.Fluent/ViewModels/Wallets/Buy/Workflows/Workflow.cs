@@ -91,7 +91,7 @@ public abstract partial class Workflow : ReactiveObject
 
 	protected virtual void CreateCanEditObservable()
 	{
-		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
+		CanEditObservable = Observable.Return(false);
 	}
 
 	/// <summary>
