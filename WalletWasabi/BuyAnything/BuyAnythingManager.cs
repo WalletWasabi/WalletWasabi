@@ -46,6 +46,14 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		Client = client;
 		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
+
+		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
+		string fileContent = File.ReadAllText(countriesFilePath);
+		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+			?? throw new InvalidOperationException("Couldn't read the countries list.");
+
+		Countries = new List<Country>(countries);
+
 		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
 	}
 
@@ -55,11 +63,10 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private BuyAnythingClient Client { get; }
-	private static List<Country> Countries { get; } = new();
+	public IReadOnlyList<Country> Countries { get; }
 
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
-
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
@@ -230,12 +237,6 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
-	{
-		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Countries.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
@@ -449,27 +450,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		IsConversationsLoaded = true;
-	}
-
-	private async Task EnsureCountriesAreLoadedAsync(CancellationToken cancellationToken)
-	{
-		if (Countries.Count == 0)
-		{
-			await LoadCountriesAsync(cancellationToken).ConfigureAwait(false);
-		}
-	}
-
-	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
-	{
-		var assembly = System.Reflection.Assembly.GetAssembly(typeof(BuyAnythingManager));
-		var assemblyDir = Path.GetDirectoryName(assembly.Location);
-		var countriesFilePath = Path.Combine(assemblyDir, "BuyAnything/Data/Countries.json");
-		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
-
-		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-						?? throw new InvalidOperationException("Couldn't read cached countries values.");
-
-		Countries.AddRange(countries);
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>
