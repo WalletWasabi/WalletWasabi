@@ -74,6 +74,12 @@ public partial class OrderViewModel : ReactiveObject
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
+
+		// IsUnread flags changed so save it to the disk
+		this.WhenAnyValue(x => x.HasUnreadMessages)
+			.Where(x => x == false)
+			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
+			.Subscribe();
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
