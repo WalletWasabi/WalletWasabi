@@ -114,7 +114,7 @@ public partial class OrderViewModel : ReactiveObject
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			_workflowManager.SelectNextWorkflow("Started");
+			_workflowManager.SelectNextWorkflow(null);
 			Update();
 			return;
 		}
@@ -372,6 +372,7 @@ public partial class OrderViewModel : ReactiveObject
 	private void ResetOrder()
 	{
 		ClearMessages();
+		_workflowManager.ResetWorkflow();
 		StartConversation("Started");
 	}
 
