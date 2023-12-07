@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -99,18 +99,8 @@ public class ShopWareApiClient : IShopWareApiClient
 			{
 				httpRequest.Content = content;
 			}
-#if false
-		// This is only for testing. And sends the request to the localhost so we can see exacty what is being sent.
-		// to the network without needing to spy on it.
-		// In a terminal use: nc -l 9090
-		if (path.StartsWith("order/"))
-		{
-			var client = new HttpClient();
-			client.BaseAddress = new Uri("http://127.0.0.1:9090/store-api/");
-			client.DefaultRequestHeaders.Add("sw-access-key", _client.DefaultRequestHeaders.GetValues("sw-access-key"));
-			_client = client;
-		}
-#endif
+
+			WriteRequest(httpRequest, request);
 			using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
@@ -136,6 +126,25 @@ public class ShopWareApiClient : IShopWareApiClient
 		{
 			throw;
 		}
+	}
+
+	[Conditional("DEBUG")]
+	private void WriteRequest<TRequest>(HttpRequestMessage httpRequest, TRequest request)
+	{
+		string body = JsonConvert.SerializeObject(request,
+			new JsonSerializerSettings
+			{
+				ContractResolver = new CamelCasePropertyNamesContractResolver()
+			});
+		Debug.WriteLine($@"""
+			curl --request {httpRequest.Method.Method} \
+                 --url {httpRequest.RequestUri} \
+                 --header 'Accept: application/json' \
+                 --header 'Content-Type: application/json' \
+                 --header 'sw-access-key: {string.Join(",", httpRequest.Headers.GetValues("sw-access-key"))}' \
+                 --header 'sw-context-token: {string.Join(",", httpRequest.Headers.GetValues("sw-context-token"))}' \
+                 --data '{body}'
+			""");
 	}
 
 	private static StringContent Serialize<T>(T obj)
