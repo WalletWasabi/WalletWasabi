@@ -109,7 +109,7 @@ public partial class OrderViewModel : ReactiveObject
 	public int Id { get; }
 
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
-	public void StartConversation(string? conversationStatus)
+	public void StartConversation(string conversationStatus)
 	{
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
@@ -372,7 +372,7 @@ public partial class OrderViewModel : ReactiveObject
 	private void ResetOrder()
 	{
 		ClearMessages();
-		StartConversation(null);
+		StartConversation("Started");
 	}
 
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
