@@ -180,4 +180,12 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 		return true;
 	}
+
+	public void ResetWorkflow()
+	{
+		if (_currentWorkflow?.CanCancel() ?? true)
+		{
+			CurrentWorkflow = null;
+		}
+	}
 }
