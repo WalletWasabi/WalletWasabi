@@ -115,7 +115,8 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+			case ConversationStatus.OfferAccepted or ConversationStatus.InvoiceExpired
+				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				await ShowInvoiceAsync(track, order, ConversationStatus.InvoiceReceived, cancel).ConfigureAwait(false);
 				break;
@@ -131,7 +132,7 @@ public class BuyAnythingManager : PeriodicRunner
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
-				await SendSystemChatLinesAsync(track, "Invoice has expired",
+				await SendSystemChatLinesAsync(track, "Invoice Expired. Please send us your Bitcoin Transaction ID if you already have sent coins.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
 
@@ -371,7 +372,7 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
+		if (order.CustomFields is {Concierge_Request_Status_State: "CLAIMED", BtcpayOrderStatus: "invoiceExpired"})
 		{
 			if (order.CustomFields.PaidAfterExpiration)
 			{
@@ -383,7 +384,8 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (!string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink))
+		if (order.CustomFields?.Concierge_Request_Status_State == "CLAIMED" &&
+		    !string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink))
 		{
 			events |= ServerEvent.ReceiveInvoice;
 		}
