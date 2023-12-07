@@ -82,7 +82,7 @@ public partial class OrderViewModel : ReactiveObject
 		// IsUnread flags changed so save it to the disk
 		this.WhenAnyValue(x => x.HasUnreadMessages)
 			.Where(x => x == false)
-			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
+			.DoAsync(async _ => await WorkflowManager.UpdateConversationLocallyAsync(GetChatMessages(), cancellationToken))
 			.Subscribe();
 	}
 
