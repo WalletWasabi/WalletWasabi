@@ -8,6 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public sealed class ShopinBitDataProvider : IShopinBitDataProvider
 {
 	private readonly BuyAnythingManager _buyAnythingManager;
+	private Country? _currentCountry;
 
 	public ShopinBitDataProvider(BuyAnythingManager buyAnythingManager)
 	{
@@ -22,5 +23,15 @@ public sealed class ShopinBitDataProvider : IShopinBitDataProvider
 	public async Task<WebClients.ShopWare.Models.State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken)
 	{
 		return await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
+	}
+
+	public Country? GetCurrentCountry()
+	{
+		return _currentCountry;
+	}
+
+	public void SetCurrentCountry(Country? country)
+	{
+		_currentCountry = country;
 	}
 }

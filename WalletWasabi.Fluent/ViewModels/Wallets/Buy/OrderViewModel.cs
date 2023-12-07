@@ -79,7 +79,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Select(x => BackendId == ConversationId.Empty)
 			.CombineLatest(hasUserMessages, (a, b) => a && b);
 
-		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
+		ResetOrderCommand = ReactiveCommand.Create(() => ResetOrder(cancellationToken), CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
@@ -114,24 +114,24 @@ public partial class OrderViewModel : ReactiveObject
 	public int Id { get; }
 
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
-	public void StartConversation(string conversationStatus)
+	public void StartConversation(string conversationStatus, CancellationToken cancellationToken)
 	{
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			_workflowManager.SelectNextWorkflow(null);
+			_workflowManager.SelectNextWorkflow(null, cancellationToken);
 			Update();
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
-			_workflowManager.SelectNextWorkflow("Support");
+			_workflowManager.SelectNextWorkflow("Support", cancellationToken);
 			Update();
 			return;
 		}
 
-		_workflowManager.SelectNextWorkflow(conversationStatus);
+		_workflowManager.SelectNextWorkflow(conversationStatus, cancellationToken);
 		Update();
 	}
 
@@ -139,7 +139,8 @@ public partial class OrderViewModel : ReactiveObject
 		string? conversationStatus,
 		string? orderStatus,
 		IReadOnlyList<MessageViewModel>? messages,
-		ConversationMetaData conversationMetaData)
+		ConversationMetaData conversationMetaData,
+		CancellationToken cancellationToken)
 	{
 		if (id != BackendId)
 		{
@@ -147,6 +148,7 @@ public partial class OrderViewModel : ReactiveObject
 		}
 
 		_metaData = conversationMetaData;
+		
 		IsCompleted = orderStatus == "Done";
 
 		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
@@ -158,7 +160,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (conversationStatus is not null && _conversationStatus != conversationStatus)
 		{
-			SelectNextWorkflow(conversationStatus);
+			SelectNextWorkflow(conversationStatus, cancellationToken);
 		}
 	}
 
@@ -200,7 +202,7 @@ public partial class OrderViewModel : ReactiveObject
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
 				// TODO: Handle agent conversationStatus?
-				SelectNextWorkflow(null);
+				SelectNextWorkflow(null, cancellationToken);
 				return;
 			}
 
@@ -239,7 +241,7 @@ public partial class OrderViewModel : ReactiveObject
 				await _workflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
-				SelectNextWorkflow(null);
+				SelectNextWorkflow(null, cancellationToken);
 			}
 		}
 		catch (Exception exception)
@@ -253,9 +255,9 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private bool SelectNextWorkflow(string? conversationStatus)
+	private bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
 	{
-		_workflowManager.SelectNextWorkflow(conversationStatus);
+		_workflowManager.SelectNextWorkflow(conversationStatus, cancellationToken);
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
@@ -266,7 +268,7 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			if (_workflowManager.CurrentWorkflow.IsCompleted)
 			{
-				SelectNextWorkflow(null);
+				SelectNextWorkflow(null, cancellationToken);
 			}
 		}
 
@@ -374,11 +376,11 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void ResetOrder()
+	private void ResetOrder(CancellationToken cancellationToken)
 	{
 		ClearMessages();
 		_workflowManager.ResetWorkflow();
-		StartConversation("Started");
+		StartConversation("Started", cancellationToken);
 	}
 
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)

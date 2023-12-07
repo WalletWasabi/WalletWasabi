@@ -1,16 +1,25 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class DeliveryWorkflow : Workflow
 {
+	private readonly IShopinBitDataProvider _shopinBitDataProvider;
+	private readonly CancellationToken _cancellationToken;
 	private readonly DeliveryWorkflowRequest _request;
 
-	public DeliveryWorkflow(IWorkflowValidator workflowValidator)
+	public DeliveryWorkflow(
+		IWorkflowValidator workflowValidator,
+		IShopinBitDataProvider shopinBitDataProvider,
+		CancellationToken cancellationToken)
 	{
+		_shopinBitDataProvider = shopinBitDataProvider;
+		_cancellationToken = cancellationToken;
 		_request = new DeliveryWorkflowRequest();
 
 		var termsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
@@ -80,11 +89,16 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowValidator,
-					() => "State:")),
+					() => "State:"),
+				// TODO: Make this async.
+				() => CanSkipStateStep(_cancellationToken).GetAwaiter().GetResult()
+				),
 			new (requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
 					workflowValidator,
-					_request)),
+					_request),
+				// TODO: Make this async.
+				() => CanSkipStateStep(_cancellationToken).GetAwaiter().GetResult()),
 			// // Confirm
 			// new (false,
 			// 	new DeliverySummaryInputValidator(
@@ -115,6 +129,17 @@ public sealed partial class DeliveryWorkflow : Workflow
 		CreateCanEditObservable();
 	}
 
+	private async Task<bool> CanSkipStateStep(CancellationToken cancellationToken)
+	{
+		var country = _shopinBitDataProvider.GetCurrentCountry();
+		if (country is null)
+		{
+			return true;
+		}
+
+		var states = await _shopinBitDataProvider.GetStatesForCountryAsync(country.Name, cancellationToken);
+		return states.Length <= 0;
+	}
 	protected override void CreateCanEditObservable()
 	{
 		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);

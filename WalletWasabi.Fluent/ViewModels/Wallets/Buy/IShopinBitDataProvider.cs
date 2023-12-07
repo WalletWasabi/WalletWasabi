@@ -8,5 +8,11 @@ public interface IShopinBitDataProvider
 {
 	Country[] GetCountries();
 
-	Task<WalletWasabi.WebClients.ShopWare.Models.State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken);
+	Task<WalletWasabi.WebClients.ShopWare.Models.State[]> GetStatesForCountryAsync(
+		string countryName,
+		CancellationToken cancellationToken);
+
+	Country? GetCurrentCountry();
+
+	void SetCurrentCountry(Country? country);
 }

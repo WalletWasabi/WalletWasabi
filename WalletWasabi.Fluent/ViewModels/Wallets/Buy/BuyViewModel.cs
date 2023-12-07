@@ -128,7 +128,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 							e.Conversation.ConversationStatus.ToString(),
 							e.Conversation.OrderStatus.ToString(),
 							CreateMessages(e.Conversation),
-							e.Conversation.MetaData);
+							e.Conversation.MetaData,
+							cancellationToken);
 
 						Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
 					}
@@ -196,7 +197,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var orderMessages = CreateMessages(conversation);
 		order.UpdateMessages(orderMessages);
 
-		order.StartConversation(conversation.ConversationStatus.ToString());
+		order.StartConversation(conversation.ConversationStatus.ToString(), cancellationToken);
 
 		return order;
 	}
@@ -218,7 +219,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				this,
 				cancellationToken);
 
-			order.StartConversation("Started");
+			order.StartConversation("Started", cancellationToken);
 
 			_ordersCache.AddOrUpdate(order);
 		}

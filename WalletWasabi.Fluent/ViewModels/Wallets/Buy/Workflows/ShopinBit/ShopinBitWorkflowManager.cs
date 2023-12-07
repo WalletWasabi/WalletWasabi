@@ -83,6 +83,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						throw new ArgumentException($"Argument was not provided!");
 					}
 
+					// TODO: Handle loaded conversation - call SetCurrentCountry after it was loaded.
+					_shopinBitDataProvider.SetCurrentCountry(location);
+
 					metaData = metaData with { Country = location };
 
 					await buyAnythingManager.StartNewConversationAsync(
@@ -124,7 +127,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	private Workflow? GetWorkflowFromConversation(string? conversationStatus)
+	private Workflow? GetWorkflowFromConversation(string? conversationStatus, CancellationToken cancellationToken)
 	{
 		switch (conversationStatus)
 		{
@@ -132,7 +135,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 				return new InitialWorkflow(_workflowValidator, _shopinBitDataProvider);
 
 			case "OfferReceived":
-				return new DeliveryWorkflow(_workflowValidator);
+				return new DeliveryWorkflow(_workflowValidator, _shopinBitDataProvider, cancellationToken);
 
 			case "PaymentDone":
 				return new SupportChatWorkflow(_workflowValidator);
@@ -166,13 +169,13 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	public bool SelectNextWorkflow(string? conversationStatus)
+	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
 	{
 		if (conversationStatus is not null)
 		{
 			if (_currentWorkflow?.CanCancel() ?? true)
 			{
-				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus);
+				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, cancellationToken);
 				return true;
 			}
 

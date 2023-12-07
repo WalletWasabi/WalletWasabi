@@ -51,35 +51,51 @@ public abstract partial class Workflow : ReactiveObject
 			return null;
 		}
 
-		var result = true;
-		var step = _steps[_nextStepIndex];
-
-		step.UserInputValidator.OnActivation();
-
-		if (step.RequiresUserInput)
+		for (var i = _nextStepIndex; i < _steps.Count; i++)
 		{
-			result = step.UserInputValidator.IsValid();
-		}
+			var result = true;
+			var step = _steps[_nextStepIndex];
 
-		if (result)
-		{
-			step.IsCompleted = true;
-		}
-
-		if (result)
-		{
-			if (_nextStepIndex + 1 >= _steps.Count)
+			if (step.SkipStep())
 			{
-				IsCompleted = true;
+				if (_nextStepIndex + 1 >= _steps.Count)
+				{
+					IsCompleted = true;
+					CurrentStep = step;
+					return step;
+				}
+				continue;
 			}
-			else
+
+			step.UserInputValidator.OnActivation();
+
+			if (step.RequiresUserInput)
 			{
-				_nextStepIndex++;
+				result = step.UserInputValidator.IsValid();
 			}
+
+			if (result)
+			{
+				step.IsCompleted = true;
+			}
+
+			if (result)
+			{
+				if (_nextStepIndex + 1 >= _steps.Count)
+				{
+					IsCompleted = true;
+				}
+				else
+				{
+					_nextStepIndex++;
+				}
+			}
+
+			CurrentStep = step;
+			return step;
 		}
 
-		CurrentStep = step;
-		return step;
+		return null;
 	}
 
 	public void EditStep(WorkflowStep step)

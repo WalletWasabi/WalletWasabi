@@ -27,7 +27,7 @@ public interface IWorkflowManager
 	/// </summary>
 	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	bool SelectNextWorkflow(string? conversationStatus);
+	bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken);
 
 	void ResetWorkflow();
 }
