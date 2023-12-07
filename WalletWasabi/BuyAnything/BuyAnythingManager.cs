@@ -385,7 +385,7 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		if (order.CustomFields?.Concierge_Request_Status_State == "CLAIMED" &&
-		    !string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink))
+		    !string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink) && order.CustomFields?.BtcpayOrderStatus != "invoiceExpired")
 		{
 			events |= ServerEvent.ReceiveInvoice;
 		}
