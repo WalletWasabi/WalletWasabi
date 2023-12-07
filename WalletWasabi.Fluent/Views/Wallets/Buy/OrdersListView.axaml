@@ -28,6 +28,12 @@
       <Setter Property="Opacity" Value="0.6" />
       <Setter Property="ToolTip.Tip" Value="Remove order" />
     </Style>
+    <Style Selector="PathIcon.ResetOrderIcon">
+      <Setter Property="Data" Value="{StaticResource arrow_reset}" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="ToolTip.Tip" Value="Reset order" />
+    </Style>
   </UserControl.Styles>
 
   <DockPanel>
@@ -48,8 +54,19 @@
                         Classes.UnreadMessagesIcon="{Binding HasUnreadMessagesObs^}" />
               <Button Classes="plain"
                       Command="{Binding RemoveOrderCommand}"
-                      IsVisible="{Binding $self.IsEffectivelyEnabled}">
+                      Name="RemoveOrderButton">
+                <Button.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="CanRemoveObs^" />
+                    <Binding Path="!CanResetObs^" />
+                  </MultiBinding>
+                </Button.IsVisible>
                 <PathIcon Classes="RemoveOrderIcon" />
+              </Button>
+              <Button Classes="plain"
+                      Command="{Binding ResetOrderCommand}"
+                      IsVisible="{Binding CanResetObs^}">
+                <PathIcon Classes="ResetOrderIcon" />
               </Button>
             </StackPanel>
             <TextBlock Text="{Binding Title}"

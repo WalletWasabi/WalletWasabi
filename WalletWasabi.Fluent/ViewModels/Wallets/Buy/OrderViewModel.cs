@@ -68,15 +68,23 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		var canExecuteRemoveCommand = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
+		CanRemoveObs = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
 
-		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
+		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, CanRemoveObs);
+
+		CanResetObs = _workflowManager.IdChangedObservable.Select(x => BackendId == ConversationId.Empty);
+
+		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
+
+	public IObservable<bool> CanRemoveObs { get; }
+
+	public IObservable<bool> CanResetObs { get; }
 
 	public ConversationId BackendId => WorkflowManager.Id;
 
@@ -89,6 +97,8 @@ public partial class OrderViewModel : ReactiveObject
 	public ICommand SendCommand { get; }
 
 	public ICommand RemoveOrderCommand { get; }
+
+	public ICommand ResetOrderCommand { get; }
 
 	public int Id { get; }
 
@@ -353,6 +363,12 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
+	private void ResetOrder()
+	{
+		ClearMessages();
+		StartConversation(string.Empty);
+	}
+
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
 	{
 		// TODO: We need to sync with current workflow.
@@ -360,6 +376,14 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			x.Clear();
 			x.Add(messages);
+		});
+	}
+
+	private void ClearMessages()
+	{
+		_messagesList.Edit(x =>
+		{
+			x.Clear();
 		});
 	}
 
