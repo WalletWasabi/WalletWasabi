@@ -64,11 +64,6 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		if (Title == "Order 1")
-		{
-			Observable.Timer(TimeSpan.FromSeconds(15)).Subscribe(l => _messagesList.Add(new AssistantMessageViewModel(null, workflowManager.CurrentWorkflow.CanEditObservable) { Message = "Salute", IsUnread = true }));
-		}
-
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
