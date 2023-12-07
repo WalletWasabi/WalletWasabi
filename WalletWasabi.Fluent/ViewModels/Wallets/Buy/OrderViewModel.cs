@@ -246,7 +246,7 @@ public partial class OrderViewModel : ReactiveObject
 		}
 		catch (Exception exception)
 		{
-			AddErrorMessage($"Error while processing order.");
+			await ShowErrorAsync("Error while processing order.");
 			Logger.LogError($"Error while processing order: {exception}).");
 		}
 		finally
@@ -317,21 +317,6 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void AddErrorMessage(string message)
-	{
-		var assistantMessage = new ErrorMessageViewModel(null, null)
-		{
-			Message = message
-		};
-
-		_messagesList.Edit(x =>
-		{
-			x.Add(assistantMessage);
-		});
-
-		SelectedMessage = assistantMessage;
-	}
-
 	private void AddAssistantMessage(string message)
 	{
 		var assistantMessage = new AssistantMessageViewModel(null, null)
@@ -374,6 +359,11 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			_orderManager.RemoveOrderAsync(Id);
 		}
+	}
+
+	private async Task ShowErrorAsync(string message)
+	{
+		await _uiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
 	}
 
 	private void ResetOrder(CancellationToken cancellationToken)
