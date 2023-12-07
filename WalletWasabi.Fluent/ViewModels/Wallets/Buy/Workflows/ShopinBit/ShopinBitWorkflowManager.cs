@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
 {
-	private readonly Country[] _countries;
+	private readonly IShopinBitDataProvider _shopinBitDataProvider;
 	private readonly string _walletId;
 	private readonly IWorkflowValidator _workflowValidator;
 	private readonly BehaviorSubject<bool> _idChangedSubject;
@@ -19,9 +19,9 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;
 
-	public ShopinBitWorkflowManagerViewModel(Country[] countries, string walletId)
+	public ShopinBitWorkflowManagerViewModel(IShopinBitDataProvider shopinBitDataProvider, string walletId)
 	{
-		_countries = countries;
+		_shopinBitDataProvider = shopinBitDataProvider;
 		_walletId = walletId;
 		_workflowValidator = new WorkflowValidator();
 		_idChangedSubject = new BehaviorSubject<bool>(false);
@@ -129,7 +129,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		switch (conversationStatus)
 		{
 			case "Started":
-				return new InitialWorkflow(_workflowValidator, _countries);
+				return new InitialWorkflow(_workflowValidator, _shopinBitDataProvider);
 
 			case "OfferReceived":
 				return new DeliveryWorkflow(_workflowValidator);
@@ -181,7 +181,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 		CurrentWorkflow = _currentWorkflow switch
 		{
-			null => new InitialWorkflow(_workflowValidator, _countries),
+			null => new InitialWorkflow(_workflowValidator, _shopinBitDataProvider),
 			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
 			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
 			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),

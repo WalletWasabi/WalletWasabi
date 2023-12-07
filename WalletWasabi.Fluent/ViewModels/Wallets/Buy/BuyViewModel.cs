@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,7 +14,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -31,12 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	Searchable = false)]
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
+	private readonly IShopinBitDataProvider _shopinBitDataProvider;
 	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
-
-	private Country[] _countries;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
@@ -46,9 +43,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		WalletVm = walletVm;
 
 		_wallet = walletVm.Wallet;
-
-		var bam = Services.HostedServices.Get<BuyAnythingManager>();
-		_countries = bam.Countries.ToArray();
+		_shopinBitDataProvider = new ShopinBitDataProvider(Services.HostedServices.Get<BuyAnythingManager>());
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -192,7 +187,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			id,
 			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
-			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
+			new ShopinBitWorkflowManagerViewModel(_shopinBitDataProvider, BuyAnythingManager.GetWalletId(_wallet)),
 			this,
 			cancellationToken);
 
@@ -219,7 +214,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				_orders.Count,
 				new ConversationMetaData(title, null),
 				"Started",
-				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
+				new ShopinBitWorkflowManagerViewModel(_shopinBitDataProvider, BuyAnythingManager.GetWalletId(_wallet)),
 				this,
 				cancellationToken);
 

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+namespace WalletWasabi.WebClients.ShopWare.Models;
+
 public record GetStateResponse
 (
 	List<State> Elements,

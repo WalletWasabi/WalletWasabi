@@ -15,17 +15,16 @@ public partial class LocationInputValidator : InputValidator
 
 	public LocationInputValidator(
 		IWorkflowValidator workflowValidator,
-		Country[] countries,
+		IShopinBitDataProvider shopinBitDataProvider,
 		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Enter your location...", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
-
-		_countriesSource = countries;
+		_countriesSource = shopinBitDataProvider.GetCountries();
 
 		try
 		{
-			_countries = new ObservableCollection<string>(countries.Select(x => x.Name));
+			_countries = new ObservableCollection<string>(_countriesSource.Select(x => x.Name));
 		}
 		catch (Exception ex)
 		{
