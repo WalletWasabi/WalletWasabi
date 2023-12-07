@@ -419,7 +419,7 @@ public class BuyAnythingManager : PeriodicRunner
 		sb.AppendLine("This is our offer:");
 		foreach (var lineItem in order.LineItems)
 		{
-			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}");
+			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: ${lineItem.UnitPrice} ---total price: ${lineItem.TotalPrice}");
 		}
 		if (order.CustomFields?.Concierge_Request_Attachements_Links is { } links)
 		{
