@@ -173,12 +173,14 @@ public class BuyAnythingManager : PeriodicRunner
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
+			//Handle unexpected finished of the conversation
+			case not ConversationStatus.Finished
+				when serverEvent.HasFlag(ServerEvent.FinishConversation):
+				await SendSystemChatLinesAsync(track, "Conversation Finished.", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				break;
+
 			default:
-				if (serverEvent.HasFlag(ServerEvent.FinishConversation))
-				{
-					await SendSystemChatLinesAsync(track, "Conversation Finished.", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
-				}
-				// TODO: Handle unexpected phase changes.
+				// TODO: Handle unexpected phase changes?
 				break;
 		}
 	}
