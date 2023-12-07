@@ -107,7 +107,7 @@ public class BuyAnythingManager : PeriodicRunner
 		switch (track.Conversation.ConversationStatus)
 		{
 			// This means that in "lineItems" we have the offer data
-			case ConversationStatus.Started
+			case ConversationStatus.Started or ConversationStatus.InvoiceExpired
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
@@ -115,7 +115,7 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted or ConversationStatus.InvoiceExpired
+			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				await SendSystemChatLinesAsync(track,
