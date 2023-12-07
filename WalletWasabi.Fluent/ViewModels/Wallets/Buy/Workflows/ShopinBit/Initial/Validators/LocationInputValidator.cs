@@ -31,51 +31,53 @@ public partial class LocationInputValidator : InputValidator
 			Console.WriteLine(ex);
 		}
 
-		// TODO: Get from service.
-
-		if (_countries.Count == 0)
+		if (_countries is null || _countries.Count == 0)
 		{
-			_countries = new ObservableCollection<string>
-			{
-				"Austria",
-				"Belgium",
-				"Bulgaria",
-				"Croatia",
-				"Cyprus",
-				"Czech Republic",
-				"Denmark",
-				"Estonia",
-				"Finland",
-				"France",
-				"Germany",
-				"Greece",
-				"Hungary",
-				"Ireland",
-				"Italy",
-				"Latvia",
-				"Lithuania",
-				"Luxembourg",
-				"Malta",
-				"Netherlands",
-				"Poland",
-				"Portugal",
-				"Romania",
-				"Slovakia",
-				"Slovenia",
-				"Spain",
-				"Sweden",
-				"Canada",
-				"Switzerland",
-				"United Kingdom",
-				"United States of America",
-			};
-
+			GetDemoCountries();
 		}
 
 		_country = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.Country.Count)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+	}
+
+	private void GetDemoCountries()
+	{
+		_countries = new ObservableCollection<string>
+		{
+			"Austria",
+			"Belgium",
+			"Bulgaria",
+			"Croatia",
+			"Cyprus",
+			"Czech Republic",
+			"Denmark",
+			"Estonia",
+			"Finland",
+			"France",
+			"Germany",
+			"Greece",
+			"Hungary",
+			"Ireland",
+			"Italy",
+			"Latvia",
+			"Lithuania",
+			"Luxembourg",
+			"Malta",
+			"Netherlands",
+			"Poland",
+			"Portugal",
+			"Romania",
+			"Slovakia",
+			"Slovenia",
+			"Spain",
+			"Sweden",
+			"Canada",
+			"Switzerland",
+			"United Kingdom",
+			"United States of America",
+		};
 	}
 
 	public override bool IsValid()
