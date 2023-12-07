@@ -72,7 +72,12 @@ public partial class OrderViewModel : ReactiveObject
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, CanRemoveObs);
 
-		CanResetObs = _workflowManager.IdChangedObservable.Select(x => BackendId == ConversationId.Empty);
+		var hasUserMessages =
+			_messagesList.CountChanged.Select(_ => _messagesList.Items.Any(x => x is UserMessageViewModel));
+
+		CanResetObs = _workflowManager.IdChangedObservable
+			.Select(x => BackendId == ConversationId.Empty)
+			.CombineLatest(hasUserMessages, (a, b) => a && b);
 
 		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
