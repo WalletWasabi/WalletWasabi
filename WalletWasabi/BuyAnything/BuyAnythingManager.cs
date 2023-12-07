@@ -442,14 +442,6 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: ${lineItem.UnitPrice} ---total price: ${lineItem.TotalPrice}");
 		}
-		if (order.CustomFields?.Concierge_Request_Attachements_Links is { } links)
-		{
-			foreach (var link in links.Split("|"))
-			{
-				sb.AppendLine(link);
-			}
-		}
-
 		return sb.ToString();
 	}
 
