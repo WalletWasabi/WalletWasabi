@@ -6,6 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowManager
 {
+	public IObservable<bool> IdChangedObservable { get; }
+
 	IWorkflowValidator WorkflowValidator { get; }
 
 	public ConversationId Id { get; }

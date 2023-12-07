@@ -1,3 +1,5 @@
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -10,6 +12,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	private readonly Country[] _countries;
 	private readonly string _walletId;
 	private readonly IWorkflowValidator _workflowValidator;
+	private readonly BehaviorSubject<bool> _idChangedSubject;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
@@ -21,7 +24,11 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		_countries = countries;
 		_walletId = walletId;
 		_workflowValidator = new WorkflowValidator();
+		_idChangedSubject = new BehaviorSubject<bool>(false);
+		IdChangedObservable = _idChangedSubject.AsObservable();
 	}
+
+	public IObservable<bool> IdChangedObservable { get; }
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
 
@@ -33,6 +40,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 
 		Id = newId;
+		_idChangedSubject.OnNext(true);
 	}
 
 	public Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)

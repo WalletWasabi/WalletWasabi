@@ -35,7 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	private ConversationMetaData _metaData;
 
 	public OrderViewModel(UiContext uiContext,
-		Guid id,
+		int id,
 		ConversationMetaData metaData,
 		string conversationStatus,
 		IWorkflowManager workflowManager,
@@ -68,21 +68,35 @@ public partial class OrderViewModel : ReactiveObject
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
 
-		var canExecuteRemoveCommand = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
+		CanRemoveObs = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
 
-		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, canExecuteRemoveCommand);
+		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, CanRemoveObs);
+
+		CanResetObs = _workflowManager.IdChangedObservable.Select(x => BackendId == ConversationId.Empty);
+
+		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
+
+		// IsUnread flags changed so save it to the disk
+		this.WhenAnyValue(x => x.HasUnreadMessages)
+			.Where(x => x == false)
+			.DoAsync(async _ => await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken))
+			.Subscribe();
 	}
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
+
+	public IObservable<bool> CanRemoveObs { get; }
+
+	public IObservable<bool> CanResetObs { get; }
 
 	public ConversationId BackendId => WorkflowManager.Id;
 
 	public string Title { get; }
 
-	public IReadOnlyCollection<MessageViewModel> Messages => _messages;
+	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
 	public IWorkflowManager WorkflowManager => _workflowManager;
 
@@ -90,7 +104,9 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand RemoveOrderCommand { get; }
 
-	public Guid Id { get; }
+	public ICommand ResetOrderCommand { get; }
+
+	public int Id { get; }
 
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
 	public void StartConversation(string conversationStatus)
@@ -353,6 +369,12 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
+	private void ResetOrder()
+	{
+		ClearMessages();
+		StartConversation("Started");
+	}
+
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)
 	{
 		// TODO: We need to sync with current workflow.
@@ -360,6 +382,14 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			x.Clear();
 			x.Add(messages);
+		});
+	}
+
+	private void ClearMessages()
+	{
+		_messagesList.Edit(x =>
+		{
+			x.Clear();
 		});
 	}
 

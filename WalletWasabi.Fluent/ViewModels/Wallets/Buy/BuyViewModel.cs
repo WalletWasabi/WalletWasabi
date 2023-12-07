@@ -34,7 +34,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel, Guid> _ordersCache;
+	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 
 	private Country[] _countries;
 
@@ -51,7 +51,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, Guid>(x => x.Id);
+		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.Id);
 
 		_ordersCache
 			.Connect()
@@ -70,7 +70,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		Task.Run(async () =>
 		{
-			await InitializeCountriesAsync(_cts.Token);
 			await InitializeOrdersAsync(_cts.Token, disposable);
 			SelectedOrder = _orders.FirstOrDefault();
 		}, _cts.Token);
@@ -80,25 +79,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
-		this.WhenAnyValue(x => x.SelectedOrder)
-			.WhereNotNull()
-			.Subscribe(order =>
-			{
-				foreach (var messageViewModel in order.Messages)
-				{
-					messageViewModel.IsUnread = false;
-				}
-			})
-			.DisposeWith(disposables);
+		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
 	}
 
-	private async Task InitializeCountriesAsync(CancellationToken cancellationToken)
-	{
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
-		{
-			_countries = await buyAnythingManager.GetCountriesAsync(cancellationToken);
-		}
-	}
+	private IDisposable MarkNewMessagesFromSelectedOrderAsRead() => this.WhenAnyValue(x => x.SelectedOrder)
+		.WhereNotNull()
+		.Select(x => x.Messages.ToObservableChangeSet())
+		.Switch()
+		.OnItemAdded(x => x.IsUnread = false)
+		.Subscribe();
 
 	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
 	{
@@ -189,15 +178,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
-		var orderViewModels = conversations.Select(x => CreateOrder(x, cancellationToken));
+		var orderViewModels = conversations.Select((x, i) => CreateOrder(x, i, cancellationToken));
 		_ordersCache.AddOrUpdate(orderViewModels);
 	}
 
-	private OrderViewModel CreateOrder(Conversation conversation, CancellationToken cancellationToken)
+	private OrderViewModel CreateOrder(Conversation conversation, int id, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
 			UiContext,
-			Guid.NewGuid(),
+			id,
 			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
 			new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
@@ -224,7 +213,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 			var order = new OrderViewModel(
 				UiContext,
-				Guid.NewGuid(),
+				_orders.Count,
 				new ConversationMetaData(title, null),
 				"Started",
 				new ShopinBitWorkflowManagerViewModel(_countries, BuyAnythingManager.GetWalletId(_wallet)),
@@ -237,7 +226,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		}
 	}
 
-	async Task IOrderManager.RemoveOrderAsync(Guid id)
+	async Task IOrderManager.RemoveOrderAsync(int id)
 	{
 		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove && Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{

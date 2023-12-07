@@ -46,6 +46,14 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		Client = client;
 		FilePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
+
+		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
+		string fileContent = File.ReadAllText(countriesFilePath);
+		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+			?? throw new InvalidOperationException("Couldn't read the countries list.");
+
+		Countries = new List<Country>(countries);
+
 		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
 	}
 
@@ -55,11 +63,10 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	private BuyAnythingClient Client { get; }
-	private static List<Country> Countries { get; } = new();
+	public IReadOnlyList<Country> Countries { get; }
 
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
-
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
@@ -120,7 +127,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
-				await SendSystemChatLinesAsync(track, "Payment confirmed",
+				await SendSystemChatLinesAsync(track, "Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
@@ -230,12 +237,6 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
-	{
-		await EnsureCountriesAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return Countries.ToArray();
 	}
 
 	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
@@ -415,6 +416,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
 		StringBuilder sb = new();
+		sb.AppendLine("This is our offer:");
 		foreach (var lineItem in order.LineItems)
 		{
 			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: {lineItem.UnitPrice} ---total price: {lineItem.TotalPrice}");
@@ -430,7 +432,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return sb.ToString();
 	}
 
-	private async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
+	public async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
 	{
 		if (!IsConversationsLoaded)
 		{
@@ -463,27 +465,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		IsConversationsLoaded = true;
-	}
-
-	private async Task EnsureCountriesAreLoadedAsync(CancellationToken cancellationToken)
-	{
-		if (Countries.Count == 0)
-		{
-			await LoadCountriesAsync(cancellationToken).ConfigureAwait(false);
-		}
-	}
-
-	private async Task LoadCountriesAsync(CancellationToken cancellationToken)
-	{
-		var assembly = System.Reflection.Assembly.GetAssembly(typeof(BuyAnythingManager));
-		var assemblyDir = Path.GetDirectoryName(assembly.Location);
-		var countriesFilePath = Path.Combine(assemblyDir, "BuyAnything/Data/Countries.json");
-		var fileContent = await File.ReadAllTextAsync(countriesFilePath, cancellationToken).ConfigureAwait(false);
-
-		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-						?? throw new InvalidOperationException("Couldn't read cached countries values.");
-
-		Countries.AddRange(countries);
 	}
 
 	private NetworkCredential GenerateRandomCredential() =>

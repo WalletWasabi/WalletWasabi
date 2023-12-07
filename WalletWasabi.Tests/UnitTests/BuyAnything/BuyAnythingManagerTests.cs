@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.BuyAnything;
 public class BuyAnythingManagerTests
 {
 	//[Fact]
-	public async Task BuyAnythingManagerTest()
+	public async Task BuyAnythingManagerTestAsync()
 	{
 #if USE_MOCK
 		var shopWareApiClient = PreconfiguredShopWareApiClient();
@@ -39,7 +39,7 @@ public class BuyAnythingManagerTests
 				null)
 		})));
 #else
-		var httpClient = new HttpClient();
+		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("https://shopinbit.com/store-api/");
 		var http = new ClearnetHttpClient(httpClient);
 		ShopWareApiClient shopWareApiClient = new(http, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
@@ -50,8 +50,7 @@ public class BuyAnythingManagerTests
 		using var buyAnythingManager = new BuyAnythingManager(Common.DataDir, TimeSpan.FromSeconds(2), buyAnythingClient);
 		await buyAnythingManager.StartAsync(CancellationToken.None);
 
-		var countries = await buyAnythingManager.GetCountriesAsync(CancellationToken.None);
-		var argentina = Assert.Single(countries, x => x.Name == "Argentina");
+		var argentina = Assert.Single(buyAnythingManager.Countries, x => x.Name == "Argentina");
 		var stateId = "none";
 
 		// await buyAnythingManager.StartNewConversationAsync("walletID", argentina.Id, BuyAnythingClient.Product.ConciergeRequest, "Hi, I want to buy this", CancellationToken.None);
@@ -82,7 +81,7 @@ public class BuyAnythingManagerTests
 			await Task.Delay(1000);
 			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
 		}
-		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false)), "metadata", CancellationToken.None);
+		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false)), CancellationToken.None);
 	}
 
 	private MockShopWareApiClient PreconfiguredShopWareApiClient()

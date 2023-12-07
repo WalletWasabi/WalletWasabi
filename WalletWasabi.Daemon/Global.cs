@@ -210,8 +210,9 @@ public class Global
 				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(10), buyAnythingClient), "BuyAnythingManager");
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
 				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
+				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 

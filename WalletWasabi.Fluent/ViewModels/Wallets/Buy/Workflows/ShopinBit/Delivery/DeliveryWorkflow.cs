@@ -1,4 +1,6 @@
+using ReactiveUI;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -111,6 +113,11 @@ public sealed partial class DeliveryWorkflow : Workflow
 		};
 
 		CreateCanEditObservable();
+	}
+
+	protected override void CreateCanEditObservable()
+	{
+		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
 	}
 
 	public override WorkflowRequest GetResult() => _request;
