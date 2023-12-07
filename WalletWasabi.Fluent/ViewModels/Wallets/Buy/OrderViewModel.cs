@@ -35,7 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	private ConversationMetaData _metaData;
 
 	public OrderViewModel(UiContext uiContext,
-		Guid id,
+		int id,
 		ConversationMetaData metaData,
 		string conversationStatus,
 		IWorkflowManager workflowManager,
@@ -90,7 +90,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand RemoveOrderCommand { get; }
 
-	public Guid Id { get; }
+	public int Id { get; }
 
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
 	public void StartConversation(string conversationStatus)
