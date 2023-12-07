@@ -80,17 +80,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
-		this.WhenAnyValue(x => x.SelectedOrder)
-			.WhereNotNull()
-			.Subscribe(order =>
-			{
-				foreach (var messageViewModel in order.Messages)
-				{
-					messageViewModel.IsUnread = false;
-				}
-			})
-			.DisposeWith(disposables);
+		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
 	}
+
+	private IDisposable MarkNewMessagesFromSelectedOrderAsRead() => this.WhenAnyValue(x => x.SelectedOrder)
+		.WhereNotNull()
+		.Select(x => x.Messages.ToObservableChangeSet())
+		.Switch()
+		.OnItemAdded(x => x.IsUnread = false)
+		.Subscribe();
 
 	private async Task InitializeCountriesAsync(CancellationToken cancellationToken)
 	{
