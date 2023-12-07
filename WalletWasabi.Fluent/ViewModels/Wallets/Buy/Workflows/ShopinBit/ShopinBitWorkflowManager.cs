@@ -43,6 +43,16 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		_idChangedSubject.OnNext(true);
 	}
 
+	public Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
+	{
+		if (Id == ConversationId.Empty || _currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		{
+			return Task.CompletedTask;
+		}
+
+		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(Id, chatMessages, cancellationToken);
+	}
+
 	public Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
 	{
 		if (Id == ConversationId.Empty || _currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)

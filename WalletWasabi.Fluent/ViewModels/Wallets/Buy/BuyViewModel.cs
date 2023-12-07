@@ -47,6 +47,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_wallet = walletVm.Wallet;
 
+		var bam = Services.HostedServices.Get<BuyAnythingManager>();
+		_countries = bam.Countries.ToArray();
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;

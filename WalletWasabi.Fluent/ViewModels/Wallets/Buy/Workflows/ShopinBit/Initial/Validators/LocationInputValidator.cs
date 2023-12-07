@@ -23,7 +23,14 @@ public partial class LocationInputValidator : InputValidator
 
 		_countriesSource = countries;
 
-		_countries = new ObservableCollection<string>(countries.Select(x => x.Name));
+		try
+		{
+			_countries = new ObservableCollection<string>(countries.Select(x => x.Name));
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
 
 		// TODO: Get from service.
 
