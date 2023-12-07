@@ -104,13 +104,16 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						deliveryWorkflowRequest.StreetName is not { } streetName ||
 						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
 						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-						deliveryWorkflowRequest.State is not { } state ||
+						// TODO: deliveryWorkflowRequest.State is not { } state ||
 						deliveryWorkflowRequest.City is not { } city ||
 						metaData.Country is not { } country
 					   )
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
+
+					var state = deliveryWorkflowRequest.State;
+
 					await buyAnythingManager.AcceptOfferAsync(
 						Id,
 						firstName,
@@ -119,7 +122,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						houseNumber,
 						postalCode,
 						city,
-						"stateId", // TODO: use state variable, but ID is required, not name.
+						state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
 						country.Id,
 						cancellationToken);
 					break;

@@ -186,6 +186,22 @@
             </c:TagsBox>
           </DataTemplate>
 
+          <DataTemplate DataType="shopinBit:StateInputValidator">
+            <c:TagsBox VerticalAlignment="Center"
+                       RestrictInputToSuggestions="True"
+                       SuggestionsAreCaseSensitive="False"
+                       Watermark="{Binding Watermark}"
+                       MaxTextLength="5000"
+                       ItemCountLimit="1"
+                       TagSeparator=";"
+                       Items="{Binding State}"
+                       Suggestions="{Binding States}">
+              <i:Interaction.Behaviors>
+                <behaviors:FocusOnAttachedBehavior />
+              </i:Interaction.Behaviors>
+            </c:TagsBox>
+          </DataTemplate>
+
           <DataTemplate DataType="shopinBit:ProductInputValidator">
             <ComboBox Items="{Binding Products}"
                       SelectedItem="{Binding Product, Mode=TwoWay}">

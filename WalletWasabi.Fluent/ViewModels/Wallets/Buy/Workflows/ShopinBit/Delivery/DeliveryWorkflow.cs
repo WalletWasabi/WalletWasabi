@@ -96,7 +96,9 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
 					workflowValidator,
-					_request),
+					_shopinBitDataProvider,
+					_request,
+					cancellationToken),
 				// TODO: Make this async.
 				() => CanSkipStateStep(_cancellationToken).GetAwaiter().GetResult()),
 			// // Confirm

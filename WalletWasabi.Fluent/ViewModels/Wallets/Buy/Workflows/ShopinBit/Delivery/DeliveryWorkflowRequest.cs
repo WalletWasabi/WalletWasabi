@@ -18,7 +18,7 @@ public sealed class DeliveryWorkflowRequest : WorkflowRequest
 
 	public string? City { get; set; }
 
-	public string? State { get; set; }
+	public WebClients.ShopWare.Models.State? State { get; set; }
 
 	public override string ToMessage()
 	{
@@ -29,7 +29,10 @@ public sealed class DeliveryWorkflowRequest : WorkflowRequest
 		sb.AppendLine($"HouseNumber: {HouseNumber}");
 		sb.AppendLine($"PostalCode: {PostalCode}");
 		sb.AppendLine($"City: {City}");
-		sb.AppendLine($"State: {State}");
+		if (State is not null)
+		{
+			sb.AppendLine($"State: {State?.Name}");
+		}
 		sb.AppendLine($"HasAcceptedTermsOfService: {HasAcceptedTermsOfService}");
 		return sb.ToString();
 	}
