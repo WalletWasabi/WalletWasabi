@@ -30,7 +30,8 @@
         </i:Interaction.Behaviors>
       </Button>
 
-      <ContentControl Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}">
+      <ContentControl Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}"
+                      IsEnabled="{Binding !IsBusy}">
         <ContentControl.Styles>
           <Style Selector="TextBox">
             <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
@@ -193,10 +194,8 @@
               </i:Interaction.Behaviors>
             </ComboBox>
           </DataTemplate>
-
         </ContentControl.DataTemplates>
       </ContentControl>
-
     </DockPanel>
 
     <Panel DockPanel.Dock="Bottom" Height="15" Margin="10 0">
@@ -260,7 +259,5 @@
         </SelectingItemsControl.DataTemplates>
       </SelectingItemsControl>
     </ScrollViewer>
-
   </DockPanel>
-
 </UserControl>
