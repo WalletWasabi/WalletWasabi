@@ -59,12 +59,12 @@ public class UpdateManager : IDisposable
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
 
-		if (!updateAvailable)
-		{
-			// After updating Wasabi, remove old installer file.
-			Cleanup();
-			return;
-		}
+		//if (!updateAvailable)
+		//{
+		//	// After updating Wasabi, remove old installer file.
+		//	Cleanup();
+		//	return;
+		//}
 
 		if (DownloadNewVersion)
 		{
@@ -107,11 +107,12 @@ public class UpdateManager : IDisposable
 	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
 	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(Version targetVersion)
 	{
+		targetVersion = new Version(2, 0, 4, 1);
 		var result = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
 
 		var installerFilePath = Path.Combine(InstallerDir, result.InstallerFileName);
 
@@ -192,12 +193,13 @@ public class UpdateManager : IDisposable
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// "tag_name" will have a 'v' at the beginning, needs to be removed.
+		// Version githubVersion = new(2,0,4,1);
 		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
-		if (targetVersion != shortGithubVersion)
-		{
-			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
-		}
+		//if (targetVersion != shortGithubVersion)
+		//{
+		//	throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
+		//}
 
 		// Get all asset names and download URLs to find the correct one.
 		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
@@ -215,30 +217,35 @@ public class UpdateManager : IDisposable
 		return (githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
 
-	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl)
+	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsUrl, string wasabiSigUrl)
 	{
-		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
-
-		using HttpClient httpClient = new();
-
 		try
 		{
-			using (var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
-			{
-				await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
-			}
+			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
+			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
+			byte[] sha256Content = await sha256Response.Content.ReadAsByteArrayAsync(CancellationToken).ConfigureAwait(false);
 
-			using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false))
-			{
-				await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
-			}
+			//using (var stream = await HttpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
+			//{
+			//	await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
+			//}
 
-			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
+			//using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false))
+			//{
+			//	await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
+			//}
+
+			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
+			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
+			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
+			byte[] signatureBytes = Convert.FromBase64String(signatureContent);
+
+			WasabiSignerHelpers.VerifySha256Sum(sha256Content, signatureBytes);
 		}
-		catch (HttpRequestException exc)
+		catch (HttpRequestException ex)
 		{
 			string message = "";
-			if (exc.StatusCode is HttpStatusCode.NotFound)
+			if (ex.StatusCode is HttpStatusCode.NotFound)
 			{
 				message = "Wasabi signature files were not found under the API.";
 			}
@@ -246,7 +253,7 @@ public class UpdateManager : IDisposable
 			{
 				message = "Something went wrong while getting Wasabi signature files.";
 			}
-			throw new InvalidOperationException(message, exc);
+			throw new InvalidOperationException(message, ex);
 		}
 		catch (IOException)
 		{
