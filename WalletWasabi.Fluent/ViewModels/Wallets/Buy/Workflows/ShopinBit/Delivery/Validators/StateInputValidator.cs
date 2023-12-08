@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -12,7 +13,6 @@ public partial class StateInputValidator : TextInputInputValidator
 
 	[AutoNotify] private ObservableCollection<string> _states;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _state;
-
 
 	public StateInputValidator(
 		IWorkflowValidator workflowValidator,
@@ -26,7 +26,7 @@ public partial class StateInputValidator : TextInputInputValidator
 		var country = shopinBitDataProvider.GetCurrentCountry();
 
 		// TODO: Make this async.
-		_statesSource = shopinBitDataProvider.GetStatesForCountryAsync(country.Name, cancellationToken).GetAwaiter().GetResult();
+		Task.Run(async () => _statesSource = await shopinBitDataProvider.GetStatesForCountryAsync(country.Name, cancellationToken), cancellationToken).Wait(cancellationToken);
 
 		try
 		{
