@@ -116,13 +116,20 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted or ConversationStatus.WaitingForInvoice
+			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				await SendSystemChatLinesAsync(track,
 					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 					order.UpdatedAt, ConversationStatus.InvoiceReceived,
 					cancel).ConfigureAwait(false);
+				break;
+
+			case ConversationStatus.WaitingForInvoice
+				when serverEvent.HasFlag(ServerEvent.MakeOffer):
+				await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancel).ConfigureAwait(false);
+				await SendSystemChatLinesAsync(track,
+					$"Try again", order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
 				break;
 
 			// The status changes to "In Progress" after the user paid
