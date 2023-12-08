@@ -222,11 +222,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
+			var nextId = Orders.Max(x => x.Id) + 1;
 			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
 
 			var order = new OrderViewModel(
 				UiContext,
-				_orders.Count,
+				nextId,
 				new ConversationMetaData(title, null),
 				"Started",
 				new ShopinBitWorkflowManagerViewModel(BuyAnythingManager.GetWalletId(_wallet), _counties),
