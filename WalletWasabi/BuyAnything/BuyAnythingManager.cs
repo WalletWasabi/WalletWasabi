@@ -36,7 +36,8 @@ internal enum ServerEvent
 	ReceiveAttachments = 32,
 	SendOrder = 64,
 	ReceivePaymentAfterExpiration = 128,
-	CloseOfferSuccessfully = 256
+	CloseOfferSuccessfully = 256,
+	GenerateNewInvoice = 512
 }
 
 // Class to manage the conversation updates
@@ -107,7 +108,7 @@ public class BuyAnythingManager : PeriodicRunner
 		switch (track.Conversation.ConversationStatus)
 		{
 			// This means that in "lineItems" we have the offer data
-			case ConversationStatus.Started or ConversationStatus.InvoiceExpired
+			case ConversationStatus.Started
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
@@ -115,7 +116,7 @@ public class BuyAnythingManager : PeriodicRunner
 				break;
 
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
-			case ConversationStatus.OfferAccepted
+			case ConversationStatus.OfferAccepted or ConversationStatus.WaitingForInvoice
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
 				await SendSystemChatLinesAsync(track,
@@ -144,6 +145,13 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
 				await SendSystemChatLinesAsync(track, "Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
 					order.UpdatedAt, ConversationStatus.InvoicePaidAfterExpiration, cancel).ConfigureAwait(false);
+				break;
+
+			// In case the invoice expired and a new one can be requested
+			case ConversationStatus.InvoiceExpired
+				when serverEvent.HasFlag(ServerEvent.GenerateNewInvoice):
+				await SendSystemChatLinesAsync(track, "Our Team is reactivating the payment process.",
+					order.UpdatedAt, ConversationStatus.WaitingForInvoice, cancel).ConfigureAwait(false);
 				break;
 
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
@@ -355,9 +363,13 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (order.CustomFields is {Concierge_Request_Status_State: "CLAIMED", BtcpayOrderStatus: "invoiceExpired"})
+		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
 		{
-			if (order.CustomFields.PaidAfterExpiration)
+			if (order.CustomFields?.Concierge_Request_Status_State == "CLAIMED")
+			{
+				events |= ServerEvent.GenerateNewInvoice;
+			}
+			else if (order.CustomFields.PaidAfterExpiration)
 			{
 				events |= ServerEvent.ReceivePaymentAfterExpiration;
 			}
@@ -367,8 +379,7 @@ public class BuyAnythingManager : PeriodicRunner
 			}
 		}
 
-		if (order.CustomFields?.Concierge_Request_Status_State == "CLAIMED" &&
-		    !string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink) && order.CustomFields?.BtcpayOrderStatus != "invoiceExpired")
+		if (!string.IsNullOrWhiteSpace(order.CustomFields?.Btcpay_PaymentLink) && order.CustomFields?.BtcpayOrderStatus != "invoiceExpired")
 		{
 			events |= ServerEvent.ReceiveInvoice;
 		}
