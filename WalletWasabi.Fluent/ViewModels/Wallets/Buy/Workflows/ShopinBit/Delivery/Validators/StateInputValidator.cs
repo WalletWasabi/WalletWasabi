@@ -4,7 +4,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class StateInputValidator : TextInputInputValidator
+public partial class StateInputValidator : InputValidator
 {
 	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 	private WebClients.ShopWare.Models.State[] _statesSource;
@@ -16,7 +16,7 @@ public partial class StateInputValidator : TextInputInputValidator
 		IWorkflowValidator workflowValidator,
 		WebClients.ShopWare.Models.State[] states,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, "Type here...")
+		: base(workflowValidator, null, "Type here...", "Next")
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_statesSource = states;
