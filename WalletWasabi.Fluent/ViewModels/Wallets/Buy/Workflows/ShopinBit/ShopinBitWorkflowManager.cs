@@ -9,8 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
 {
-	private readonly IShopinBitDataProvider _shopinBitDataProvider;
 	private readonly string _walletId;
+	private readonly Country[] _countries;
 	private readonly IWorkflowValidator _workflowValidator;
 	private readonly BehaviorSubject<bool> _idChangedSubject;
 
@@ -19,10 +19,10 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;
 
-	public ShopinBitWorkflowManagerViewModel(IShopinBitDataProvider shopinBitDataProvider, string walletId)
+	public ShopinBitWorkflowManagerViewModel(string walletId, Country[] countries)
 	{
-		_shopinBitDataProvider = shopinBitDataProvider;
 		_walletId = walletId;
+		_countries = countries;
 		_workflowValidator = new WorkflowValidator();
 		_idChangedSubject = new BehaviorSubject<bool>(false);
 		IdChangedObservable = _idChangedSubject.AsObservable();
@@ -83,9 +83,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 						throw new ArgumentException($"Argument was not provided!");
 					}
 
-					// TODO: Handle loaded conversation - call SetCurrentCountry after it was loaded.
-					_shopinBitDataProvider.SetCurrentCountry(location);
-
 					metaData = metaData with { Country = location };
 
 					await buyAnythingManager.StartNewConversationAsync(
@@ -130,15 +127,15 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	private Workflow? GetWorkflowFromConversation(string? conversationStatus, CancellationToken cancellationToken)
+	private Workflow? GetWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
 	{
 		switch (conversationStatus)
 		{
 			case "Started":
-				return new InitialWorkflow(_workflowValidator, _shopinBitDataProvider);
+				return new InitialWorkflow(_workflowValidator, _countries);
 
 			case "OfferReceived":
-				return new DeliveryWorkflow(_workflowValidator, _shopinBitDataProvider, cancellationToken);
+				return new DeliveryWorkflow(_workflowValidator, states);
 
 			case "PaymentDone":
 				return new SupportChatWorkflow(_workflowValidator);
@@ -172,13 +169,13 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
+	public bool SelectNextWorkflow(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
 	{
 		if (conversationStatus is not null)
 		{
 			if (_currentWorkflow?.CanCancel() ?? true)
 			{
-				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, cancellationToken);
+				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, states);
 				return true;
 			}
 
@@ -187,7 +184,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 
 		CurrentWorkflow = _currentWorkflow switch
 		{
-			null => new InitialWorkflow(_workflowValidator, _shopinBitDataProvider),
+			null => new InitialWorkflow(_workflowValidator, _countries),
 			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
 			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
 			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),

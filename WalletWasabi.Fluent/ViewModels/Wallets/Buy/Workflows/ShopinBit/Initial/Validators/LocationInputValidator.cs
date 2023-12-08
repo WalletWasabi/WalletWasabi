@@ -15,69 +15,17 @@ public partial class LocationInputValidator : InputValidator
 
 	public LocationInputValidator(
 		IWorkflowValidator workflowValidator,
-		IShopinBitDataProvider shopinBitDataProvider,
+		Country[] countries,
 		InitialWorkflowRequest initialWorkflowRequest)
 		: base(workflowValidator, null, "Enter your location...", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
-		_countriesSource = shopinBitDataProvider.GetCountries();
-
-		try
-		{
-			_countries = new ObservableCollection<string>(_countriesSource.Select(x => x.Name));
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-		}
-
-		if (_countries is null || _countries.Count == 0)
-		{
-			GetDemoCountries();
-		}
-
+		_countriesSource = countries;
+		_countries = new ObservableCollection<string>(_countriesSource.Select(x => x.Name));
 		_country = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.Country.Count)
 			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
-	}
-
-	private void GetDemoCountries()
-	{
-		_countries = new ObservableCollection<string>
-		{
-			"Austria",
-			"Belgium",
-			"Bulgaria",
-			"Croatia",
-			"Cyprus",
-			"Czech Republic",
-			"Denmark",
-			"Estonia",
-			"Finland",
-			"France",
-			"Germany",
-			"Greece",
-			"Hungary",
-			"Ireland",
-			"Italy",
-			"Latvia",
-			"Lithuania",
-			"Luxembourg",
-			"Malta",
-			"Netherlands",
-			"Poland",
-			"Portugal",
-			"Romania",
-			"Slovakia",
-			"Slovenia",
-			"Spain",
-			"Sweden",
-			"Canada",
-			"Switzerland",
-			"United Kingdom",
-			"United States of America",
-		};
 	}
 
 	public override bool IsValid()

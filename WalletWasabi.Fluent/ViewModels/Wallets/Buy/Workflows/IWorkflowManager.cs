@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -26,8 +27,9 @@ public interface IWorkflowManager
 	/// Selects next scripted workflow or use conversationStatus to override.
 	/// </summary>
 	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
+	/// <param name="states"></param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken);
+	bool SelectNextWorkflow(string? conversationStatus, WebClients.ShopWare.Models.State[] states);
 
 	void ResetWorkflow();
 }

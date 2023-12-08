@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -16,27 +14,13 @@ public partial class StateInputValidator : TextInputInputValidator
 
 	public StateInputValidator(
 		IWorkflowValidator workflowValidator,
-		IShopinBitDataProvider shopinBitDataProvider,
-		DeliveryWorkflowRequest deliveryWorkflowRequest,
-		CancellationToken cancellationToken)
+		WebClients.ShopWare.Models.State[] states,
+		DeliveryWorkflowRequest deliveryWorkflowRequest)
 		: base(workflowValidator, null, "Type here...")
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
-
-		var country = shopinBitDataProvider.GetCurrentCountry();
-
-		// TODO: Make this async.
-		Task.Run(async () => _statesSource = await shopinBitDataProvider.GetStatesForCountryAsync(country.Name, cancellationToken), cancellationToken).Wait(cancellationToken);
-
-		try
-		{
-			_states = new ObservableCollection<string>(_statesSource.Select(x => x.Name));
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-		}
-
+		_statesSource = states;
+		_states = new ObservableCollection<string>(_statesSource.Select(x => x.Name));
 		_state = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.State.Count)

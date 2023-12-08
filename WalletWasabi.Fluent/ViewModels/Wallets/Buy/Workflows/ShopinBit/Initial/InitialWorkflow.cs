@@ -7,12 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class InitialWorkflow : Workflow
 {
-	private readonly IShopinBitDataProvider _shopinBitDataProvider;
 	private readonly InitialWorkflowRequest _request;
 
-	public InitialWorkflow(IWorkflowValidator workflowValidator, IShopinBitDataProvider shopinBitDataProvider)
+	public InitialWorkflow(IWorkflowValidator workflowValidator, Country[] countries)
 	{
-		_shopinBitDataProvider = shopinBitDataProvider;
 		_request = new InitialWorkflowRequest();
 
 		var privacyPolicyUrl = "https://shopinbit.com/Information/Privacy-Policy/";
@@ -57,7 +55,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new LocationInputValidator(
 					workflowValidator,
-					_shopinBitDataProvider,
+					countries,
 					_request)),
 			// What
 			new (false,

@@ -33,6 +33,8 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private MessageViewModel? _selectedMessage;
 
 	private ConversationMetaData _metaData;
+	private BuyAnythingManager _buyAnythingManager;
+	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
 	public OrderViewModel(UiContext uiContext,
 		int id,
@@ -51,6 +53,7 @@ public partial class OrderViewModel : ReactiveObject
 		_workflowManager = workflowManager;
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
+		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
@@ -79,7 +82,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Select(x => BackendId == ConversationId.Empty)
 			.CombineLatest(hasUserMessages, (a, b) => a && b);
 
-		ResetOrderCommand = ReactiveCommand.Create(() => ResetOrder(cancellationToken), CanResetObs);
+		ResetOrderCommand = ReactiveCommand.CreateFromTask(ResetOrderAsync, CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
@@ -114,28 +117,33 @@ public partial class OrderViewModel : ReactiveObject
 	public int Id { get; }
 
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
-	public void StartConversation(string conversationStatus, CancellationToken cancellationToken)
+	public async Task StartConversationAsync(string conversationStatus, Country? country)
 	{
+		if (country != null)
+		{
+			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country.Name, _cancellationToken);
+		}
+
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			_workflowManager.SelectNextWorkflow(null, cancellationToken);
+			_workflowManager.SelectNextWorkflow(null, _statesSource);
 			Update();
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
-			_workflowManager.SelectNextWorkflow("Support", cancellationToken);
+			_workflowManager.SelectNextWorkflow("Support", _statesSource);
 			Update();
 			return;
 		}
 
-		_workflowManager.SelectNextWorkflow(conversationStatus, cancellationToken);
+		_workflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
 		Update();
 	}
 
-	public void UpdateOrder(ConversationId id,
+	public async Task UpdateOrderAsync(ConversationId id,
 		string? conversationStatus,
 		string? orderStatus,
 		IReadOnlyList<MessageViewModel>? messages,
@@ -148,10 +156,13 @@ public partial class OrderViewModel : ReactiveObject
 		}
 
 		_metaData = conversationMetaData;
-		
-		IsCompleted = orderStatus == "Done";
 
-		// HasUnreadMessages = _orderManager.HasUnreadMessages(id);
+		if (_metaData.Country is { } c)
+		{
+			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(c.Name, cancellationToken);
+		}
+
+		IsCompleted = orderStatus == "Done";
 
 		if (messages is not null)
 		{
@@ -257,7 +268,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	private bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
 	{
-		_workflowManager.SelectNextWorkflow(conversationStatus, cancellationToken);
+		_workflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
 
 		_workflowManager.WorkflowValidator.Signal(false);
 
@@ -366,11 +377,11 @@ public partial class OrderViewModel : ReactiveObject
 		await _uiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
 	}
 
-	private void ResetOrder(CancellationToken cancellationToken)
+	private async Task ResetOrderAsync()
 	{
 		ClearMessages();
 		_workflowManager.ResetWorkflow();
-		StartConversation("Started", cancellationToken);
+		await StartConversationAsync("Started", null);
 	}
 
 	public void UpdateMessages(IReadOnlyList<MessageViewModel> messages)

@@ -8,17 +8,17 @@ public partial class WorkflowStep : ReactiveObject
 	[AutoNotify] private InputValidator _userInputValidator;
 	[AutoNotify] private bool _isCompleted;
 
-	private readonly Func<bool>? _skipStepFunc;
+	private readonly bool _skipStepFunc;
 
 	public WorkflowStep(
 		bool requiresUserInput,
 		InputValidator userInputValidator,
-		Func<bool>? skipStepFunc = null)
+		bool skipStepFunc = false)
 	{
 		_requiresUserInput = requiresUserInput;
 		_userInputValidator = userInputValidator;
 		_skipStepFunc = skipStepFunc;
 	}
 
-	public bool SkipStep() => _skipStepFunc is not null && _skipStepFunc();
+	public bool SkipStep() => _skipStepFunc;
 }

@@ -64,6 +64,8 @@ public abstract partial class Workflow : ReactiveObject
 					CurrentStep = step;
 					return step;
 				}
+
+				_nextStepIndex++;
 				continue;
 			}
 

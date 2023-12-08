@@ -13,7 +13,10 @@ using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
 using DynamicData.Binding;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.WebClients.ShopWare.Models;
+using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -29,21 +32,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	Searchable = false)]
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
-	private readonly IShopinBitDataProvider _shopinBitDataProvider;
 	private readonly CancellationTokenSource _cts;
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
+	private readonly BuyAnythingManager _buyAnythingManager;
+	private readonly Country[] _counties;
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
+		IsBusy = true;
 		UiContext = uiContext;
 		WalletVm = walletVm;
 
 		_wallet = walletVm.Wallet;
-		_shopinBitDataProvider = new ShopinBitDataProvider(Services.HostedServices.Get<BuyAnythingManager>());
+		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+		_counties = _buyAnythingManager.Countries.ToArray();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -70,6 +76,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		{
 			await InitializeOrdersAsync(_cts.Token, disposable);
 			SelectedOrder = _orders.FirstOrDefault();
+			IsBusy = false;
 		}, _cts.Token);
 	}
 
@@ -95,7 +102,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 			if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
 			{
-				CreateAndAddEmptyOrder(_cts.Token);
+				await CreateAndAddEmptyOrderAsync(_cts.Token);
 			}
 
 			Observable
@@ -104,7 +111,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.Select(args => args.EventArgs)
 				.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
+				.SubscribeAsync(async e =>
 				{
 					// This handles the unbound conversation.
 					// The unbound conversation is a conversation that only exists in the UI (yet)
@@ -118,12 +125,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
 
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
-						CreateAndAddEmptyOrder(_cts.Token);
+						await CreateAndAddEmptyOrderAsync(_cts.Token);
 					}
 
 					if (Orders.FirstOrDefault(x => x.BackendId == e.Conversation.Id) is { } orderToUpdate)
 					{
-						orderToUpdate.UpdateOrder(
+						await orderToUpdate.UpdateOrderAsync(
 							e.Conversation.Id,
 							e.Conversation.ConversationStatus.ToString(),
 							e.Conversation.OrderStatus.ToString(),
@@ -143,7 +150,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var walletId = BuyAnythingManager.GetWalletId(_wallet);
 		var currentConversations = await buyAnythingManager.GetConversationsAsync(walletId, cancellationToken);
 
-		CreateOrders(currentConversations.ToList(), cancellationToken);
+		await CreateOrdersAsync(currentConversations.ToList(), cancellationToken);
 	}
 
 	private List<MessageViewModel> CreateMessages(Conversation conversation)
@@ -175,20 +182,27 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return orderMessages;
 	}
 
-	private void CreateOrders(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
+	private async Task CreateOrdersAsync(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
-		var orderViewModels = conversations.Select((x, i) => CreateOrder(x, i, cancellationToken));
-		_ordersCache.AddOrUpdate(orderViewModels);
+		var orders = new List<OrderViewModel>();
+
+		for (int i = 0; i < conversations.Count; i++)
+		{
+			var conversation = conversations[i];
+			orders.Add(await CreateOrderAsync(conversation, i, cancellationToken));
+		}
+
+		_ordersCache.AddOrUpdate(orders);
 	}
 
-	private OrderViewModel CreateOrder(Conversation conversation, int id, CancellationToken cancellationToken)
+	private async Task<OrderViewModel> CreateOrderAsync(Conversation conversation, int id, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
 			UiContext,
 			id,
 			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
-			new ShopinBitWorkflowManagerViewModel(_shopinBitDataProvider, BuyAnythingManager.GetWalletId(_wallet)),
+			new ShopinBitWorkflowManagerViewModel(BuyAnythingManager.GetWalletId(_wallet), _counties),
 			this,
 			cancellationToken);
 
@@ -197,12 +211,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var orderMessages = CreateMessages(conversation);
 		order.UpdateMessages(orderMessages);
 
-		order.StartConversation(conversation.ConversationStatus.ToString(), cancellationToken);
+		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), conversation.MetaData.Country);
 
 		return order;
 	}
 
-	private void CreateAndAddEmptyOrder(CancellationToken cancellationToken)
+	private async Task CreateAndAddEmptyOrderAsync(CancellationToken cancellationToken)
 	{
 		var walletId = BuyAnythingManager.GetWalletId(_wallet);
 
@@ -215,11 +229,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				_orders.Count,
 				new ConversationMetaData(title, null),
 				"Started",
-				new ShopinBitWorkflowManagerViewModel(_shopinBitDataProvider, BuyAnythingManager.GetWalletId(_wallet)),
+				new ShopinBitWorkflowManagerViewModel(BuyAnythingManager.GetWalletId(_wallet), _counties),
 				this,
 				cancellationToken);
 
-			order.StartConversation("Started", cancellationToken);
+			await order.StartConversationAsync("Started", null);
 
 			_ordersCache.AddOrUpdate(order);
 		}
