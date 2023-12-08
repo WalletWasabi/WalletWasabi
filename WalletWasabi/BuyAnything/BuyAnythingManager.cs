@@ -119,6 +119,10 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
+
+				track.Invoice = new(orderCustomFields.Btcpay_PaymentLink);
+
+				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
 					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 					order.UpdatedAt, ConversationStatus.InvoiceReceived,
