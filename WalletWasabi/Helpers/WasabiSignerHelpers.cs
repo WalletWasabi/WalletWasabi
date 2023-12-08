@@ -30,12 +30,18 @@ public class WasabiSignerHelpers
 		// Read the signature file
 		var wasabiSignatureFilePath = Path.ChangeExtension(sha256SumsAscFilePath, "wasabisig");
 		string signatureText = await File.ReadAllTextAsync(wasabiSignatureFilePath).ConfigureAwait(false);
-		byte[] sigBytes = Convert.FromBase64String(signatureText);
-		var wasabiSignature = ECDSASignature.FromDER(sigBytes);
+		byte[] signatureBytes = Convert.FromBase64String(signatureText);
+
+		VerifySha256Sum(hash, signatureBytes);
+	}
+
+	public static void VerifySha256Sum(byte[] sha256Hash, byte[] signatureBytes)
+	{
+		ECDSASignature wasabiSignature = ECDSASignature.FromDER(signatureBytes);
 
 		PubKey pubKey = new(Constants.WasabiPubKey);
 
-		if (!pubKey.Verify(new uint256(hash), wasabiSignature))
+		if (!pubKey.Verify(new uint256(sha256Hash), wasabiSignature))
 		{
 			throw new InvalidOperationException("Invalid wasabi signature.");
 		}
@@ -89,8 +95,7 @@ public class WasabiSignerHelpers
 	public static async Task<byte[]> GetShaComputedBytesOfFileAsync(string filePath, CancellationToken cancellationToken = default)
 	{
 		byte[] bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
-		using SHA256 sha = SHA256.Create();
-		byte[] computedHash = sha.ComputeHash(bytes);
+		byte[] computedHash = SHA256.HashData(bytes);
 		return computedHash;
 	}
 }
