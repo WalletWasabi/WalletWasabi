@@ -59,7 +59,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_ordersCache
 			.Connect()
-			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.Title))
+			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.Id))
 			.Bind(out _orders)
 			.Subscribe();
 
