@@ -73,7 +73,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 		return true;
 	}
 
-	public override bool OnSelectNextWorkflow(
+	public override bool OnInvokeNextWorkflow(
 		string? context,
 		object? args,
 		Action<string> onAssistantMessage,
@@ -84,7 +84,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 		SelectNextShopinBitWorkflow(context, states);
 
 		WorkflowValidator.SignalValid(false);
-		InvokeOutputs(onAssistantMessage, cancellationToken);
+		InvokeOutputWorkflows(onAssistantMessage, cancellationToken);
 
 		// Continue the loop until next workflow is there and is completed.
 		if (CurrentWorkflow is null)

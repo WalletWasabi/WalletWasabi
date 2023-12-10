@@ -18,7 +18,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 		}
 	}
 
-	public void InvokeOutputs(Action<string> onAssistantMessage, CancellationToken cancellationToken)
+	public void InvokeOutputWorkflows(Action<string> onAssistantMessage, CancellationToken cancellationToken)
 	{
 		if (CurrentWorkflow is null)
 		{
@@ -66,7 +66,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 		}
 	}
 
-	public bool InvokeInputs(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
+	public bool InvokeInputWorkflows(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
 	{
 		WorkflowValidator.SignalValid(false);
 
@@ -95,7 +95,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 		if (CurrentWorkflow.IsCompleted)
 		{
-			OnSelectNextWorkflow(null, args, onAssistantMessage, cancellationToken);
+			OnInvokeNextWorkflow(null, args, onAssistantMessage, cancellationToken);
 			return false;
 		}
 
@@ -124,13 +124,13 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 		if (nextStep.IsCompleted)
 		{
-			InvokeOutputs(onAssistantMessage, cancellationToken);
+			InvokeOutputWorkflows(onAssistantMessage, cancellationToken);
 		}
 
 		return true;
 	}
 
-	public abstract bool OnSelectNextWorkflow(
+	public abstract bool OnInvokeNextWorkflow(
 		string? context,
 		object? args,
 		Action<string> onAssistantMessage,

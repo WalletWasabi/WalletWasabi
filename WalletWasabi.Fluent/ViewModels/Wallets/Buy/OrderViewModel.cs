@@ -126,19 +126,19 @@ public partial class OrderViewModel : ReactiveObject
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
 			WorkflowManager.SelectNextShopinBitWorkflow(null, _statesSource);
-			WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
+			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
 			WorkflowManager.SelectNextShopinBitWorkflow("Support", _statesSource);
-			WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
+			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
 		WorkflowManager.SelectNextShopinBitWorkflow(conversationStatus, _statesSource);
-		WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
+		WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 	}
 
 	public async Task UpdateOrderAsync(ConversationId id,
@@ -169,7 +169,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (conversationStatus is not null && _conversationStatus != conversationStatus)
 		{
-			WorkflowManager.OnSelectNextWorkflow(conversationStatus, _statesSource, AddAssistantMessage, cancellationToken);
+			WorkflowManager.OnInvokeNextWorkflow(conversationStatus, _statesSource, AddAssistantMessage, cancellationToken);
 		}
 	}
 
@@ -179,7 +179,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		try
 		{
-			var result = WorkflowManager.InvokeInputs(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
+			var result = WorkflowManager.InvokeInputWorkflows(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
 			if (!result)
 			{
 				return;
@@ -191,7 +191,7 @@ public partial class OrderViewModel : ReactiveObject
 				await SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
-				WorkflowManager.OnSelectNextWorkflow(null, _statesSource, AddAssistantMessage, cancellationToken);
+				WorkflowManager.OnInvokeNextWorkflow(null, _statesSource, AddAssistantMessage, cancellationToken);
 			}
 		}
 		catch (Exception exception)
