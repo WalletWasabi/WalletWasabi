@@ -21,15 +21,11 @@ public interface IWorkflowManager
 
 	Task SendApiRequestAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken);
 
+	bool SelectNextWorkflow(string? conversationStatus, object? args);
+
 	void UpdateId(ConversationId id);
 
-	/// <summary>
-	/// Selects next scripted workflow or use conversationStatus to override.
-	/// </summary>
-	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
-	/// <param name="states"></param>
-	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	bool SelectNextWorkflow(string? conversationStatus, WebClients.ShopWare.Models.State[] states);
-
 	void ResetWorkflow();
+
+	void Update(Action<string> onNewMessage);
 }

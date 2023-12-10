@@ -127,6 +127,39 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
+	/// <summary>
+	/// Selects next scripted workflow or use conversationStatus to override.
+	/// </summary>
+	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
+	/// <param name="states"></param>
+	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
+	public bool SelectNextWorkflow(string? conversationStatus, object? args)
+	{
+		var states = args as WebClients.ShopWare.Models.State[];
+
+		if (conversationStatus is not null)
+		{
+			if (_currentWorkflow?.CanCancel() ?? true)
+			{
+				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, states);
+				return true;
+			}
+
+			return false;
+		}
+
+		CurrentWorkflow = _currentWorkflow switch
+		{
+			null => new InitialWorkflow(_workflowValidator, _countries),
+			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
+			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
+			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),
+			_ => CurrentWorkflow
+		};
+
+		return true;
+	}
+
 	private Workflow? GetWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
 	{
 		switch (conversationStatus)
@@ -169,36 +202,53 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 		}
 	}
 
-	public bool SelectNextWorkflow(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
-	{
-		if (conversationStatus is not null)
-		{
-			if (_currentWorkflow?.CanCancel() ?? true)
-			{
-				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, states);
-				return true;
-			}
-
-			return false;
-		}
-
-		CurrentWorkflow = _currentWorkflow switch
-		{
-			null => new InitialWorkflow(_workflowValidator, _countries),
-			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
-			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
-			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),
-			_ => CurrentWorkflow
-		};
-
-		return true;
-	}
-
 	public void ResetWorkflow()
 	{
 		if (_currentWorkflow?.CanCancel() ?? true)
 		{
 			CurrentWorkflow = null;
+		}
+	}
+
+	public void Update(Action<string> onNewMessage)
+	{
+		if (CurrentWorkflow is null)
+		{
+			return;
+		}
+
+		while (true)
+		{
+			var peekStep = CurrentWorkflow.PeekNextStep();
+			if (peekStep is null)
+			{
+				break;
+			}
+
+			var nextStep = CurrentWorkflow.ExecuteNextStep();
+			if (nextStep is null)
+			{
+				continue;
+			}
+
+			if (nextStep.UserInputValidator.CanDisplayMessage())
+			{
+				var message = nextStep.UserInputValidator.GetFinalMessage();
+				if (message is not null)
+				{
+					onNewMessage(message);
+				}
+			}
+
+			if (nextStep.RequiresUserInput)
+			{
+				break;
+			}
+
+			if (!nextStep.UserInputValidator.OnCompletion())
+			{
+				break;
+			}
 		}
 	}
 }

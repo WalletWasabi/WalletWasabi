@@ -23,7 +23,6 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly UiContext _uiContext;
 	private readonly string _conversationStatus;
-	private readonly IWorkflowManager _workflowManager;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
 
@@ -50,12 +49,12 @@ public partial class OrderViewModel : ReactiveObject
 		_uiContext = uiContext;
 		_metaData = metaData;
 		_conversationStatus = conversationStatus;
-		_workflowManager = workflowManager;
+		WorkflowManager = workflowManager;
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		_workflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
+		WorkflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
 			await SendAsync(_cancellationToken);
 		});
@@ -69,16 +68,16 @@ public partial class OrderViewModel : ReactiveObject
 
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
-		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, _workflowManager.WorkflowValidator.IsValidObservable);
+		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowValidator.IsValidObservable);
 
-		CanRemoveObs = this.WhenAnyValue(x => x._workflowManager.Id).Select(id => id != ConversationId.Empty);
+		CanRemoveObs = this.WhenAnyValue(x => x.WorkflowManager.Id).Select(id => id != ConversationId.Empty);
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, CanRemoveObs);
 
 		var hasUserMessages =
 			_messagesList.CountChanged.Select(_ => _messagesList.Items.Any(x => x is UserMessageViewModel));
 
-		CanResetObs = _workflowManager.IdChangedObservable
+		CanResetObs = WorkflowManager.IdChangedObservable
 			.Select(x => BackendId == ConversationId.Empty)
 			.CombineLatest(hasUserMessages, (a, b) => a && b);
 
@@ -106,7 +105,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
-	public IWorkflowManager WorkflowManager => _workflowManager;
+	public IWorkflowManager WorkflowManager { get; }
 
 	public ICommand SendCommand { get; }
 
@@ -127,20 +126,20 @@ public partial class OrderViewModel : ReactiveObject
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			_workflowManager.SelectNextWorkflow(null, _statesSource);
-			Update();
+			WorkflowManager.SelectNextWorkflow(null, _statesSource);
+			WorkflowManager.Update(AddAssistantMessage);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
-			_workflowManager.SelectNextWorkflow("Support", _statesSource);
-			Update();
+			WorkflowManager.SelectNextWorkflow("Support", _statesSource);
+			WorkflowManager.Update(AddAssistantMessage);
 			return;
 		}
 
-		_workflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
-		Update();
+		WorkflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
+		WorkflowManager.Update(AddAssistantMessage);
 	}
 
 	public async Task UpdateOrderAsync(ConversationId id,
@@ -181,43 +180,43 @@ public partial class OrderViewModel : ReactiveObject
 
 		try
 		{
-			_workflowManager.WorkflowValidator.Signal(false);
+			WorkflowManager.WorkflowValidator.Signal(false);
 
-			if (_workflowManager.CurrentWorkflow is null)
+			if (WorkflowManager.CurrentWorkflow is null)
 			{
 				return;
 			}
 
-			if (_workflowManager.CurrentWorkflow.CurrentStep is not null)
+			if (WorkflowManager.CurrentWorkflow.CurrentStep is not null)
 			{
-				if (!_workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
+				if (!WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
 				{
 					return;
 				}
 
-				if (_workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
+				if (WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
 				{
-					var message = _workflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
+					var message = WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
 
 					if (message is not null)
 					{
 						AddUserMessage(
 							message,
-							_workflowManager.CurrentWorkflow.EditStepCommand,
-							_workflowManager.CurrentWorkflow.CanEditObservable,
-							_workflowManager.CurrentWorkflow.CurrentStep);
+							WorkflowManager.CurrentWorkflow.EditStepCommand,
+							WorkflowManager.CurrentWorkflow.CanEditObservable,
+							WorkflowManager.CurrentWorkflow.CurrentStep);
 					}
 				}
 			}
 
-			if (_workflowManager.CurrentWorkflow.IsCompleted)
+			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
 				// TODO: Handle agent conversationStatus?
 				SelectNextWorkflow(null, cancellationToken);
 				return;
 			}
 
-			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
+			var nextStep = WorkflowManager.CurrentWorkflow.ExecuteNextStep();
 			if (nextStep is null)
 			{
 				// TODO: Handle error?
@@ -243,13 +242,13 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (nextStep.IsCompleted)
 			{
-				Update();
+				WorkflowManager.Update(AddAssistantMessage);
 			}
 
-			if (_workflowManager.CurrentWorkflow.IsCompleted)
+			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
 				var chatMessages = GetChatMessages();
-				await _workflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
+				await WorkflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
 				SelectNextWorkflow(null, cancellationToken);
@@ -268,64 +267,20 @@ public partial class OrderViewModel : ReactiveObject
 
 	private bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
 	{
-		_workflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
-
-		_workflowManager.WorkflowValidator.Signal(false);
-
-		Update();
+		WorkflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
+		WorkflowManager.WorkflowValidator.Signal(false);
+		WorkflowManager.Update(AddAssistantMessage);
 
 		// Continue the loop until next workflow is there and is completed.
-		if (_workflowManager.CurrentWorkflow is not null)
+		if (WorkflowManager.CurrentWorkflow is not null)
 		{
-			if (_workflowManager.CurrentWorkflow.IsCompleted)
+			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
 				SelectNextWorkflow(null, cancellationToken);
 			}
 		}
 
 		return true;
-	}
-
-	public void Update()
-	{
-		if (_workflowManager.CurrentWorkflow is null)
-		{
-			return;
-		}
-
-		while (true)
-		{
-			var peekStep = _workflowManager.CurrentWorkflow.PeekNextStep();
-			if (peekStep is null)
-			{
-				break;
-			}
-
-			var nextStep = _workflowManager.CurrentWorkflow.ExecuteNextStep();
-			if (nextStep is null)
-			{
-				continue;
-			}
-
-			if (nextStep.UserInputValidator.CanDisplayMessage())
-			{
-				var message = nextStep.UserInputValidator.GetFinalMessage();
-				if (message is not null)
-				{
-					AddAssistantMessage(message);
-				}
-			}
-
-			if (nextStep.RequiresUserInput)
-			{
-				break;
-			}
-
-			if (!nextStep.UserInputValidator.OnCompletion())
-			{
-				break;
-			}
-		}
 	}
 
 	private void AddAssistantMessage(string message)
@@ -380,7 +335,7 @@ public partial class OrderViewModel : ReactiveObject
 	private async Task ResetOrderAsync()
 	{
 		ClearMessages();
-		_workflowManager.ResetWorkflow();
+		WorkflowManager.ResetWorkflow();
 		await StartConversationAsync("Started", null);
 	}
 
