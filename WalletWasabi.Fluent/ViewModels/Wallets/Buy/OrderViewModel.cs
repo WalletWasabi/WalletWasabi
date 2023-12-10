@@ -12,6 +12,7 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 
@@ -222,11 +223,24 @@ public partial class OrderViewModel : ReactiveObject
 
 	private void AddUserMessage(string message)
 	{
-		var editCommand = WorkflowManager.CurrentWorkflow.EditStepCommand;
-		var canEditObservable = WorkflowManager.CurrentWorkflow.CanEditObservable;
-		var workflowStep = WorkflowManager.CurrentWorkflow.CurrentStep;
+		var currentWorkflow = WorkflowManager.CurrentWorkflow;
+		var canEditObservable = currentWorkflow.CanEditObservable;
+		var workflowStep = currentWorkflow.CurrentStep;
 
-		var userMessage = new UserMessageViewModel(editCommand, canEditObservable, workflowStep)
+		var editMessageAsync = async () =>
+		{
+			var confirmed = await _uiContext.Navigate().To().EditMessageDialog(message).GetResultAsync();
+
+			if (confirmed)
+			{
+				// TODO:
+				currentWorkflow.TryToEditStep(workflowStep);
+			}
+		};
+
+		var editMessageCommand = ReactiveCommand.CreateFromTask(editMessageAsync, currentWorkflow.CanEditObservable);
+
+		var userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep)
 		{
 			Message = message
 		};

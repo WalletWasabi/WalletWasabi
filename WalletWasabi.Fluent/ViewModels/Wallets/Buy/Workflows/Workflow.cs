@@ -107,7 +107,7 @@ public abstract partial class Workflow : ReactiveObject
 		return null;
 	}
 
-	public void TryToEditStep(WorkflowStep step)
+	public virtual void TryToEditStep(WorkflowStep step)
 	{
 		// TODO:
 	}
