@@ -241,7 +241,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
 		{
-			var nextId = Orders.Max(x => x.Id) + 1;
+			var nextId = Orders.Count > 0 ? Orders.Max(x => x.Id) + 1 : 1;
 			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
 
 			var order = new OrderViewModel(
