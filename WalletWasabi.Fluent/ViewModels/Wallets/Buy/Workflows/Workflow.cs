@@ -54,12 +54,11 @@ public abstract partial class Workflow : ReactiveObject
 
 		for (var i = _nextStepIndex; i < _steps.Count; i++)
 		{
-			// TODO:
-			// if (cancellationToken.IsCancellationRequested)
-			// {
-			// 	CurrentStep = null;
-			// 	return null;
-			// }
+			if (cancellationToken.IsCancellationRequested)
+			{
+				CurrentStep = null;
+				return null;
+			}
 
 			var result = true;
 			var step = _steps[_nextStepIndex];

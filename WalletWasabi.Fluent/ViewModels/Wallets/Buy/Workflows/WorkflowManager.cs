@@ -27,11 +27,10 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 		while (true)
 		{
-			// TODO:
-			// if (cancellationToken.IsCancellationRequested)
-			// {
-			// 	return;
-			// }
+			if (cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
 
 			var peekStep = CurrentWorkflow.PeekNextStep();
 			if (peekStep is null)
