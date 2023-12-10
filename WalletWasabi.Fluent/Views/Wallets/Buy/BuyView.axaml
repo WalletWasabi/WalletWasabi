@@ -26,13 +26,16 @@
       <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 5 5 0">
         <DockPanel>
 
-          <viewsBuy:OrderInputView DockPanel.Dock="Bottom" Margin="10 0 10 10" />
+          <viewsBuy:OrderInputView DockPanel.Dock="Bottom"
+                                   DataContext="{Binding SelectedOrder}"
+                                   Margin="0 0 0 10" />
 
           <Panel DockPanel.Dock="Bottom" Height="15" Margin="10 0">
             <ProgressBar IsIndeterminate="{Binding IsBusy}"
                          IsVisible="{Binding IsBusy}"
                          VerticalAlignment="Center"
-                         Value="50" />
+                         Value="50"
+                         DataContext="{Binding SelectedOrder}" />
           </Panel>
 
           <viewsBuy:OrderMessagesView DataContext="{Binding SelectedOrder}" />
