@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
@@ -39,7 +40,7 @@ public partial class OrderViewModel : ReactiveObject
 		int id,
 		ConversationMetaData metaData,
 		string conversationStatus,
-		IWorkflowManager workflowManager,
+		ShopinBitWorkflowManagerViewModel workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
@@ -105,7 +106,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
-	public IWorkflowManager WorkflowManager { get; }
+	public ShopinBitWorkflowManagerViewModel WorkflowManager { get; }
 
 	public ICommand SendCommand { get; }
 
@@ -170,7 +171,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (conversationStatus is not null && _conversationStatus != conversationStatus)
 		{
-			SelectNextWorkflow(conversationStatus, cancellationToken);
+			WorkflowManager.SelectNextWorkflow(conversationStatus, cancellationToken, _statesSource, AddAssistantMessage);
 		}
 	}
 
@@ -212,7 +213,7 @@ public partial class OrderViewModel : ReactiveObject
 			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
 				// TODO: Handle agent conversationStatus?
-				SelectNextWorkflow(null, cancellationToken);
+				WorkflowManager.SelectNextWorkflow(null, cancellationToken, _statesSource, AddAssistantMessage);
 				return;
 			}
 
@@ -251,7 +252,7 @@ public partial class OrderViewModel : ReactiveObject
 				await WorkflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
-				SelectNextWorkflow(null, cancellationToken);
+				WorkflowManager.SelectNextWorkflow(null, cancellationToken, _statesSource, AddAssistantMessage);
 			}
 		}
 		catch (Exception exception)
@@ -263,24 +264,6 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			IsBusy = false;
 		}
-	}
-
-	private bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken)
-	{
-		WorkflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
-		WorkflowManager.WorkflowValidator.Signal(false);
-		WorkflowManager.Update(AddAssistantMessage);
-
-		// Continue the loop until next workflow is there and is completed.
-		if (WorkflowManager.CurrentWorkflow is not null)
-		{
-			if (WorkflowManager.CurrentWorkflow.IsCompleted)
-			{
-				SelectNextWorkflow(null, cancellationToken);
-			}
-		}
-
-		return true;
 	}
 
 	private void AddAssistantMessage(string message)

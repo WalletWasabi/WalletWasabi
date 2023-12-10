@@ -7,7 +7,7 @@ using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkflowManager
+public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 {
 	private readonly string _walletId;
 	private readonly Country[] _countries;
@@ -131,7 +131,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 	/// Selects next scripted workflow or use conversationStatus to override.
 	/// </summary>
 	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
-	/// <param name="states"></param>
+	/// <param name="args"></param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
 	public bool SelectNextWorkflow(string? conversationStatus, object? args)
 	{
@@ -156,6 +156,26 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject, IWorkfl
 			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),
 			_ => CurrentWorkflow
 		};
+
+		return true;
+	}
+
+	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken, object? args, Action<string> onNewMessage)
+	{
+		var states = args as WebClients.ShopWare.Models.State[];
+
+		SelectNextWorkflow(conversationStatus, states);
+		WorkflowValidator.Signal(false);
+		Update(onNewMessage);
+
+		// Continue the loop until next workflow is there and is completed.
+		if (CurrentWorkflow is not null)
+		{
+			if (CurrentWorkflow.IsCompleted)
+			{
+				SelectNextWorkflow(null, cancellationToken);
+			}
+		}
 
 		return true;
 	}
