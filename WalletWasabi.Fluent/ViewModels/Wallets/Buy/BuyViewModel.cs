@@ -115,37 +115,39 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				.Select(args => args.EventArgs)
 				.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.SubscribeAsync(async e =>
-				{
-					// This handles the unbound conversation.
-					// The unbound conversation is a conversation that only exists in the UI (yet)
-
-					if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
-					{
-						// It is because the incoming event has the freshly assigned BackedId.
-						// We should lookup for the unbound order and assign its BackendId
-						// and update it with the data in the conversation.
-						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-						unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
-
-						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
-						await CreateAndAddEmptyOrderAsync(_cts.Token);
-					}
-
-					if (Orders.FirstOrDefault(x => x.BackendId == e.Conversation.Id) is { } orderToUpdate)
-					{
-						await orderToUpdate.UpdateOrderAsync(
-							e.Conversation.Id,
-							e.Conversation.ConversationStatus.ToString(),
-							e.Conversation.OrderStatus.ToString(),
-							CreateMessages(e.Conversation),
-							e.Conversation.MetaData,
-							cancellationToken);
-
-						Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
-					}
-				})
+				.SubscribeAsync(async e => { await OnConversationUpdated(e, cancellationToken); })
 				.DisposeWith(disposable);
+		}
+	}
+
+	private async Task OnConversationUpdated(ConversationUpdateEvent e, CancellationToken cancellationToken)
+	{
+		// This handles the unbound conversation.
+		// The unbound conversation is a conversation that only exists in the UI (yet)
+
+		if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
+		{
+			// It is because the incoming event has the freshly assigned BackedId.
+			// We should lookup for the unbound order and assign its BackendId
+			// and update it with the data in the conversation.
+			var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
+			unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
+
+			// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
+			await CreateAndAddEmptyOrderAsync(_cts.Token);
+		}
+
+		if (Orders.FirstOrDefault(x => x.BackendId == e.Conversation.Id) is { } orderToUpdate)
+		{
+			await orderToUpdate.UpdateOrderAsync(
+				e.Conversation.Id,
+				e.Conversation.ConversationStatus.ToString(),
+				e.Conversation.OrderStatus.ToString(),
+				CreateMessages(e.Conversation),
+				e.Conversation.MetaData,
+				cancellationToken);
+
+			Logging.Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
 		}
 	}
 
@@ -154,10 +156,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var walletId = BuyAnythingManager.GetWalletId(_wallet);
 		var currentConversations = await buyAnythingManager.GetConversationsAsync(walletId, cancellationToken);
 
-		await CreateOrdersAsync(currentConversations.ToList(), cancellationToken);
+		await CreateAndAddOrdersAsync(currentConversations.ToList(), cancellationToken);
 	}
 
-	private List<MessageViewModel> CreateMessages(Conversation conversation)
+	private static List<MessageViewModel> CreateMessages(Conversation conversation)
 	{
 		var orderMessages = new List<MessageViewModel>();
 
@@ -186,7 +188,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		return orderMessages;
 	}
 
-	private async Task CreateOrdersAsync(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
+	private async Task CreateAndAddOrdersAsync(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
 	{
 		var orders = new List<OrderViewModel>();
 
