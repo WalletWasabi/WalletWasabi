@@ -23,5 +23,5 @@ public interface IWasabiHttpClientFactory
 	}
 
 	/// <remarks>This is a low-level method. Unless necessary, use a preceding convenience method.</remarks>
-	IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null);
+	IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null, int maximumRedirects = 0);
 }

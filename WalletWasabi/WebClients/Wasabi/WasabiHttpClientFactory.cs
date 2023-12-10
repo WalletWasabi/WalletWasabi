@@ -85,12 +85,12 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	/// <summary>
 	/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 	/// </summary>
-	public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode, ICircuit? circuit = null)
+	public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode, ICircuit? circuit = null, int maximumRedirects = 0)
 	{
 		// Connecting to loopback's URIs cannot be done via Tor.
 		if (TorHttpPool is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 		{
-			return new TorHttpClient(baseUriFn, TorHttpPool, mode, circuit);
+			return new TorHttpClient(baseUriFn, TorHttpPool, mode, circuit, maximumRedirects);
 		}
 		else
 		{
@@ -99,7 +99,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	}
 
 	/// <summary>Creates new <see cref="TorHttpClient"/>.</summary>
-	/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, Mode, ICircuit?)"/> is not sufficient for your use case.</remarks>
+	/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}?, Mode, ICircuit?, int)"/> is not sufficient for your use case.</remarks>
 	/// <exception cref="InvalidOperationException"/>
 	public TorHttpClient NewTorHttpClient(Mode mode, Func<Uri>? baseUriFn = null, ICircuit? circuit = null)
 	{
@@ -114,9 +114,9 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	/// <summary>
 	/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 	/// </summary>
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null)
+	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null, int maximumRedirects = 0)
 	{
-		return NewHttpClient(BackendUriGetter, mode, circuit);
+		return NewHttpClient(BackendUriGetter, mode, circuit, maximumRedirects);
 	}
 
 	public async ValueTask DisposeAsync()

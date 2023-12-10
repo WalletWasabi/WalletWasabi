@@ -177,38 +177,7 @@ public class TorHttpPool : IAsyncDisposable
 					if (maximumRedirects > 0 && response.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect or HttpStatusCode.MultipleChoices or HttpStatusCode.PermanentRedirect)
 					{
 						maximumRedirects--;
-
-						if (!response.Headers.TryGetValues("location", out IEnumerable<string>? locations))
-						{
-							throw new HttpRequestException("'location' HTTP header is missing.");
-						}
-
-						Uri newRequestUri = new(locations.Last());
-
-						// Ensure the redirect location is an absolute URI.
-						if (!newRequestUri.IsAbsoluteUri)
-						{
-							newRequestUri = new Uri(requestUriOverride, newRequestUri);
-						}
-
-						// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a
-						// fragment should inherit the fragment from the original URI.
-						string requestFragment = requestUriOverride.Fragment;
-						if (!string.IsNullOrEmpty(requestFragment))
-						{
-							string redirectFragment = newRequestUri.Fragment;
-							if (string.IsNullOrEmpty(redirectFragment))
-							{
-								newRequestUri = new UriBuilder(newRequestUri) { Fragment = requestFragment }.Uri;
-							}
-						}
-
-						string debugMessage = (locations.Count() > 1)
-							? $"Multiple 'location' headers found for '{requestUriOverride}'."
-							: $"Redirecting '{requestUriOverride}' to '{newRequestUri}'.";
-
-						Logger.LogDebug(debugMessage);
-						requestUriOverride = newRequestUri;
+						requestUriOverride = GetUriForRedirect(response, requestUriOverride);
 
 						// Do not return response now, but try again with the new request URI.
 						continue;
@@ -316,6 +285,42 @@ public class TorHttpPool : IAsyncDisposable
 		}
 
 		throw new NotImplementedException("This should never happen.");
+	}
+
+	private static Uri GetUriForRedirect(HttpResponseMessage response, Uri currentUri)
+	{
+		if (!response.Headers.TryGetValues("location", out IEnumerable<string>? locations))
+		{
+			throw new HttpRequestException("'location' HTTP header is missing.");
+		}
+
+		Uri result = new(locations.Last());
+
+		// Ensure the redirect location is an absolute URI.
+		if (!result.IsAbsoluteUri)
+		{
+			result = new Uri(currentUri, result);
+		}
+
+		// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a fragment should
+		// inherit the fragment from the original URI.
+		string requestFragment = currentUri.Fragment;
+		if (!string.IsNullOrEmpty(requestFragment))
+		{
+			string redirectFragment = result.Fragment;
+			if (string.IsNullOrEmpty(redirectFragment))
+			{
+				result = new UriBuilder(result) { Fragment = requestFragment }.Uri;
+			}
+		}
+
+		string debugMessage = (locations.Count() > 1)
+			? $"Multiple 'location' headers found for '{currentUri}'."
+			: $"Redirecting '{currentUri}' to '{result}'.";
+
+		Logger.LogDebug(debugMessage);
+
+		return result;
 	}
 
 	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken token)
