@@ -89,7 +89,7 @@ public partial class OrderViewModel : ReactiveObject
 		// IsUnread flags changed so save it to the disk
 		this.WhenAnyValue(x => x.HasUnreadMessages)
 			.Where(x => x == false)
-			.DoAsync(async _ => await WorkflowManager.UpdateConversationLocallyAsync(GetChatMessages(), cancellationToken))
+			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), cancellationToken))
 			.Subscribe();
 	}
 
@@ -189,8 +189,8 @@ public partial class OrderViewModel : ReactiveObject
 			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
 				var chatMessages = GetChatMessages();
-				await WorkflowManager.SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
-				await WorkflowManager.SendChatHistoryAsync(GetChatMessages(), cancellationToken);
+				await SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
+				await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
 				WorkflowManager.SelectNextWorkflow(null, cancellationToken, _statesSource, AddAssistantMessage);
 			}
@@ -296,4 +296,89 @@ public partial class OrderViewModel : ReactiveObject
 			})
 			.ToArray();
 	}
+
+	private Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
+	{
+		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		{
+			return Task.CompletedTask;
+		}
+
+		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, cancellationToken);
+	}
+
+	private Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
+	{
+		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		{
+			return Task.CompletedTask;
+		}
+
+		return buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
+	}
+
+	private async Task SendApiRequestAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	{
+		if (WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		{
+			return;
+		}
+
+		var request = WorkflowManager.CurrentWorkflow.GetResult();
+
+		switch (request)
+		{
+			case InitialWorkflowRequest initialWorkflowRequest:
+				{
+					if (initialWorkflowRequest.Location is not { } location ||
+						initialWorkflowRequest.Product is not { } product ||
+						initialWorkflowRequest.Request is not { } requestMessage) // TODO: Delete, this is redundant, we send out the whole conversation to generate a new order.
+					{
+						throw new ArgumentException($"Argument was not provided!");
+					}
+
+					metaData = metaData with { Country = location };
+
+					await buyAnythingManager.StartNewConversationAsync(
+						WorkflowManager.WalletId,
+						location.Id,
+						product,
+						chatMessages,
+						metaData,
+						cancellationToken);
+					break;
+				}
+			case DeliveryWorkflowRequest deliveryWorkflowRequest:
+				{
+					if (deliveryWorkflowRequest.FirstName is not { } firstName ||
+						deliveryWorkflowRequest.LastName is not { } lastName ||
+						deliveryWorkflowRequest.StreetName is not { } streetName ||
+						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
+						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
+						// TODO: deliveryWorkflowRequest.State is not { } state ||
+						deliveryWorkflowRequest.City is not { } city ||
+						metaData.Country is not { } country
+					   )
+					{
+						throw new ArgumentException($"Argument was not provided!");
+					}
+
+					var state = deliveryWorkflowRequest.State;
+
+					await buyAnythingManager.AcceptOfferAsync(
+						WorkflowManager.Id,
+						firstName,
+						lastName,
+						streetName,
+						houseNumber,
+						postalCode,
+						city,
+						state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
+						country.Id,
+						cancellationToken);
+					break;
+				}
+		}
+	}
+
 }

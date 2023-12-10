@@ -1,7 +1,6 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
-using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 
@@ -28,6 +27,8 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 		IdChangedObservable = _idChangedSubject.AsObservable();
 	}
 
+	public string WalletId => _walletId;
+
 	public IObservable<bool> IdChangedObservable { get; }
 
 	public IWorkflowValidator WorkflowValidator => _workflowValidator;
@@ -41,90 +42,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 
 		Id = newId;
 		_idChangedSubject.OnNext(true);
-	}
-
-	public Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
-	{
-		if (Id == ConversationId.Empty || _currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
-		{
-			return Task.CompletedTask;
-		}
-
-		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(Id, chatMessages, cancellationToken);
-	}
-
-	public Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
-	{
-		if (Id == ConversationId.Empty || _currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
-		{
-			return Task.CompletedTask;
-		}
-
-		return buyAnythingManager.UpdateConversationAsync(Id, chatMessages, cancellationToken);
-	}
-
-	public async Task SendApiRequestAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
-	{
-		if (_currentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
-		{
-			return;
-		}
-
-		var request = _currentWorkflow.GetResult();
-
-		switch (request)
-		{
-			case InitialWorkflowRequest initialWorkflowRequest:
-				{
-					if (initialWorkflowRequest.Location is not { } location ||
-						initialWorkflowRequest.Product is not { } product ||
-						initialWorkflowRequest.Request is not { } requestMessage) // TODO: Delete, this is redundant, we send out the whole conversation to generate a new order.
-					{
-						throw new ArgumentException($"Argument was not provided!");
-					}
-
-					metaData = metaData with { Country = location };
-
-					await buyAnythingManager.StartNewConversationAsync(
-						_walletId,
-						location.Id,
-						product,
-						chatMessages,
-						metaData,
-						cancellationToken);
-					break;
-				}
-			case DeliveryWorkflowRequest deliveryWorkflowRequest:
-				{
-					if (deliveryWorkflowRequest.FirstName is not { } firstName ||
-						deliveryWorkflowRequest.LastName is not { } lastName ||
-						deliveryWorkflowRequest.StreetName is not { } streetName ||
-						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
-						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-						// TODO: deliveryWorkflowRequest.State is not { } state ||
-						deliveryWorkflowRequest.City is not { } city ||
-						metaData.Country is not { } country
-					   )
-					{
-						throw new ArgumentException($"Argument was not provided!");
-					}
-
-					var state = deliveryWorkflowRequest.State;
-
-					await buyAnythingManager.AcceptOfferAsync(
-						Id,
-						firstName,
-						lastName,
-						streetName,
-						houseNumber,
-						postalCode,
-						city,
-						state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
-						country.Id,
-						cancellationToken);
-					break;
-				}
-		}
 	}
 
 	/// <summary>
