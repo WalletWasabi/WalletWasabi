@@ -25,15 +25,14 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly string _conversationStatus;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
+	private ConversationMetaData _metaData;
+	private BuyAnythingManager _buyAnythingManager;
+	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private MessageViewModel? _selectedMessage;
-
-	private ConversationMetaData _metaData;
-	private BuyAnythingManager _buyAnythingManager;
-	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
 	public OrderViewModel(UiContext uiContext,
 		int id,
@@ -380,5 +379,4 @@ public partial class OrderViewModel : ReactiveObject
 				}
 		}
 	}
-
 }

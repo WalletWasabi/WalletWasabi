@@ -36,10 +36,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
-
-	[AutoNotify] private OrderViewModel? _selectedOrder;
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private readonly Country[] _counties;
+
+	[AutoNotify] private OrderViewModel? _selectedOrder;
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{

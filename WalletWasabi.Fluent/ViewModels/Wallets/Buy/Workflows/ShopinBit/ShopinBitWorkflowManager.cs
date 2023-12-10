@@ -11,7 +11,8 @@ public partial class ShopinBitWorkflowManagerViewModel : WorkflowManagerViewMode
 	private readonly Country[] _countries;
 	private readonly BehaviorSubject<bool> _idChangedSubject;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private Workflow? _currentWorkflow;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;

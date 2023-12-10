@@ -5,7 +5,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public abstract partial class WorkflowManagerViewModel : ReactiveObject
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private Workflow? _currentWorkflow;
 
 	public IWorkflowValidator WorkflowValidator { get; } = new WorkflowValidator();
 
