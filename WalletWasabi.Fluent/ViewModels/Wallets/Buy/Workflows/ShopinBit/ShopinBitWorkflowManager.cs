@@ -160,13 +160,13 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 		return true;
 	}
 
-	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken, object? args, Action<string> onNewMessage)
+	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken, object? args, Action<string> onAssistantMessage)
 	{
 		var states = args as WebClients.ShopWare.Models.State[];
 
 		SelectNextWorkflow(conversationStatus, states);
 		WorkflowValidator.Signal(false);
-		Update(onNewMessage);
+		RunNoInputWorkflows(onAssistantMessage);
 
 		// Continue the loop until next workflow is there and is completed.
 		if (CurrentWorkflow is not null)
@@ -230,7 +230,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 		}
 	}
 
-	public void Update(Action<string> onNewMessage)
+	public void RunNoInputWorkflows(Action<string> onAssistantMessage)
 	{
 		if (CurrentWorkflow is null)
 		{
@@ -256,7 +256,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 				var message = nextStep.UserInputValidator.GetFinalMessage();
 				if (message is not null)
 				{
-					onNewMessage(message);
+					onAssistantMessage(message);
 				}
 			}
 
@@ -270,5 +270,73 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 				break;
 			}
 		}
+	}
+
+	public bool RunInputWorkflows(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
+	{
+		var states = args as WebClients.ShopWare.Models.State[];
+
+		WorkflowValidator.Signal(false);
+
+		if (CurrentWorkflow is null)
+		{
+			return false;
+		}
+
+		if (CurrentWorkflow.CurrentStep is not null)
+		{
+			if (!CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
+			{
+				return false;
+			}
+
+			if (CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
+			{
+				var message = CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
+
+				if (message is not null)
+				{
+					onUserMessage(message);
+				}
+			}
+		}
+
+		if (CurrentWorkflow.IsCompleted)
+		{
+			// TODO: Handle agent conversationStatus?
+			SelectNextWorkflow(null, cancellationToken, states, onAssistantMessage);
+			return false;
+		}
+
+		var nextStep = CurrentWorkflow.ExecuteNextStep();
+		if (nextStep is null)
+		{
+			// TODO: Handle error?
+			return false;
+		}
+
+		if (!nextStep.UserInputValidator.OnCompletion())
+		{
+			return false;
+		}
+
+		if (!nextStep.RequiresUserInput)
+		{
+			if (nextStep.UserInputValidator.CanDisplayMessage())
+			{
+				var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
+				if (nextMessage is not null)
+				{
+					onAssistantMessage(nextMessage);
+				}
+			}
+		}
+
+		if (nextStep.IsCompleted)
+		{
+			RunNoInputWorkflows(onAssistantMessage);
+		}
+
+		return true;
 	}
 }

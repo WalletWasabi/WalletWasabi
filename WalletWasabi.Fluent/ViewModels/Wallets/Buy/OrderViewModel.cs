@@ -12,7 +12,6 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 
@@ -128,19 +127,19 @@ public partial class OrderViewModel : ReactiveObject
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
 			WorkflowManager.SelectNextWorkflow(null, _statesSource);
-			WorkflowManager.Update(AddAssistantMessage);
+			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
 			WorkflowManager.SelectNextWorkflow("Support", _statesSource);
-			WorkflowManager.Update(AddAssistantMessage);
+			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 			return;
 		}
 
 		WorkflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
-		WorkflowManager.Update(AddAssistantMessage);
+		WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 	}
 
 	public async Task UpdateOrderAsync(ConversationId id,
@@ -181,69 +180,10 @@ public partial class OrderViewModel : ReactiveObject
 
 		try
 		{
-			WorkflowManager.WorkflowValidator.Signal(false);
-
-			if (WorkflowManager.CurrentWorkflow is null)
+			var result = WorkflowManager.RunInputWorkflows(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
+			if (!result)
 			{
 				return;
-			}
-
-			if (WorkflowManager.CurrentWorkflow.CurrentStep is not null)
-			{
-				if (!WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
-				{
-					return;
-				}
-
-				if (WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
-				{
-					var message = WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
-
-					if (message is not null)
-					{
-						AddUserMessage(
-							message,
-							WorkflowManager.CurrentWorkflow.EditStepCommand,
-							WorkflowManager.CurrentWorkflow.CanEditObservable,
-							WorkflowManager.CurrentWorkflow.CurrentStep);
-					}
-				}
-			}
-
-			if (WorkflowManager.CurrentWorkflow.IsCompleted)
-			{
-				// TODO: Handle agent conversationStatus?
-				WorkflowManager.SelectNextWorkflow(null, cancellationToken, _statesSource, AddAssistantMessage);
-				return;
-			}
-
-			var nextStep = WorkflowManager.CurrentWorkflow.ExecuteNextStep();
-			if (nextStep is null)
-			{
-				// TODO: Handle error?
-				return;
-			}
-
-			if (!nextStep.UserInputValidator.OnCompletion())
-			{
-				return;
-			}
-
-			if (!nextStep.RequiresUserInput)
-			{
-				if (nextStep.UserInputValidator.CanDisplayMessage())
-				{
-					var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
-					if (nextMessage is not null)
-					{
-						AddAssistantMessage(nextMessage);
-					}
-				}
-			}
-
-			if (nextStep.IsCompleted)
-			{
-				WorkflowManager.Update(AddAssistantMessage);
 			}
 
 			if (WorkflowManager.CurrentWorkflow.IsCompleted)
@@ -281,12 +221,12 @@ public partial class OrderViewModel : ReactiveObject
 		SelectedMessage = assistantMessage;
 	}
 
-	private void AddUserMessage(
-		string message,
-		ICommand? editCommand,
-		IObservable<bool>? canEditObservable,
-		WorkflowStep? workflowStep)
+	private void AddUserMessage(string message)
 	{
+		var editCommand = WorkflowManager.CurrentWorkflow.EditStepCommand;
+		var canEditObservable = WorkflowManager.CurrentWorkflow.CanEditObservable;
+		var workflowStep = WorkflowManager.CurrentWorkflow.CurrentStep;
+
 		var userMessage = new UserMessageViewModel(editCommand, canEditObservable, workflowStep)
 		{
 			Message = message
