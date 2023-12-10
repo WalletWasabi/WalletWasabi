@@ -213,7 +213,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
+
 	public BuyViewModel BuyViewModel { get; }
+
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
