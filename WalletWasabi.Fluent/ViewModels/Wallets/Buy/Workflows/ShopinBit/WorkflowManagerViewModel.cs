@@ -5,15 +5,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public abstract partial class WorkflowManagerViewModel : ReactiveObject
 {
-	private readonly IWorkflowValidator _workflowValidator;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
 
-	protected WorkflowManagerViewModel()
-	{
-		_workflowValidator = new WorkflowValidator();
-	}
-
-	public IWorkflowValidator WorkflowValidator => _workflowValidator;
+	public IWorkflowValidator WorkflowValidator { get; } = new WorkflowValidator();
 
 	public void ResetWorkflow()
 	{
@@ -23,7 +17,7 @@ public abstract partial class WorkflowManagerViewModel : ReactiveObject
 		}
 	}
 
-	public void RunNoInputWorkflows(Action<string> onAssistantMessage)
+	public void RunNoInputWorkflows(Action<string> onAssistantMessage, CancellationToken cancellationToken)
 	{
 		if (CurrentWorkflow is null)
 		{
@@ -32,13 +26,18 @@ public abstract partial class WorkflowManagerViewModel : ReactiveObject
 
 		while (true)
 		{
+			if (cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
+
 			var peekStep = CurrentWorkflow.PeekNextStep();
 			if (peekStep is null)
 			{
 				break;
 			}
 
-			var nextStep = CurrentWorkflow.ExecuteNextStep();
+			var nextStep = CurrentWorkflow.TryToGetNextStep(cancellationToken);
 			if (nextStep is null)
 			{
 				continue;
@@ -94,15 +93,13 @@ public abstract partial class WorkflowManagerViewModel : ReactiveObject
 
 		if (CurrentWorkflow.IsCompleted)
 		{
-			// TODO: Handle agent conversationStatus?
 			OnSelectNextWorkflow(null, args, onAssistantMessage, cancellationToken);
 			return false;
 		}
 
-		var nextStep = CurrentWorkflow.ExecuteNextStep();
+		var nextStep = CurrentWorkflow.TryToGetNextStep(cancellationToken);
 		if (nextStep is null)
 		{
-			// TODO: Handle error?
 			return false;
 		}
 
@@ -125,7 +122,7 @@ public abstract partial class WorkflowManagerViewModel : ReactiveObject
 
 		if (nextStep.IsCompleted)
 		{
-			RunNoInputWorkflows(onAssistantMessage);
+			RunNoInputWorkflows(onAssistantMessage, cancellationToken);
 		}
 
 		return true;

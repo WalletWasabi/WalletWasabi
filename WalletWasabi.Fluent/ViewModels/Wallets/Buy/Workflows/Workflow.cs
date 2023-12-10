@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Windows.Input;
 using ReactiveUI;
 
@@ -15,7 +16,7 @@ public abstract partial class Workflow : ReactiveObject
 
 	protected Workflow()
 	{
-		EditStepCommand = ReactiveCommand.Create<WorkflowStep>(EditStep);
+		EditStepCommand = ReactiveCommand.Create<WorkflowStep>(TryToEditStep);
 	}
 
 	public IObservable<bool>? CanEditObservable { get; protected set; }
@@ -37,7 +38,7 @@ public abstract partial class Workflow : ReactiveObject
 		return _steps[_nextStepIndex];
 	}
 
-	public WorkflowStep? ExecuteNextStep()
+	public WorkflowStep? TryToGetNextStep(CancellationToken cancellationToken)
 	{
 		if (_steps is null)
 		{
@@ -53,6 +54,12 @@ public abstract partial class Workflow : ReactiveObject
 
 		for (var i = _nextStepIndex; i < _steps.Count; i++)
 		{
+			if (cancellationToken.IsCancellationRequested)
+			{
+				CurrentStep = null;
+				return null;
+			}
+
 			var result = true;
 			var step = _steps[_nextStepIndex];
 
@@ -100,7 +107,7 @@ public abstract partial class Workflow : ReactiveObject
 		return null;
 	}
 
-	public void EditStep(WorkflowStep step)
+	public void TryToEditStep(WorkflowStep step)
 	{
 		// TODO:
 	}

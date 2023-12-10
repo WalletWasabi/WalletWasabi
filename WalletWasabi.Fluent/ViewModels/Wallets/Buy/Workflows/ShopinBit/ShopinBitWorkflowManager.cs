@@ -83,7 +83,7 @@ public partial class ShopinBitWorkflowManagerViewModel : WorkflowManagerViewMode
 		SelectNextShopinBitWorkflow(conversationStatus, states);
 
 		WorkflowValidator.Signal(false);
-		RunNoInputWorkflows(onAssistantMessage);
+		RunNoInputWorkflows(onAssistantMessage, cancellationToken);
 
 		// Continue the loop until next workflow is there and is completed.
 		if (CurrentWorkflow is not null)
