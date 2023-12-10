@@ -74,25 +74,27 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	}
 
 	public override bool OnSelectNextWorkflow(
-		string? conversationStatus,
-		object? statesArgs,
+		string? context,
+		object? args,
 		Action<string> onAssistantMessage,
 		CancellationToken cancellationToken)
 	{
-		var states = statesArgs as WebClients.ShopWare.Models.State[];
+		var states = args as WebClients.ShopWare.Models.State[];
 
-		SelectNextShopinBitWorkflow(conversationStatus, states);
+		SelectNextShopinBitWorkflow(context, states);
 
 		WorkflowValidator.Signal(false);
-		RunNoInputWorkflows(onAssistantMessage, cancellationToken);
+		InvokeOutputs(onAssistantMessage, cancellationToken);
 
 		// Continue the loop until next workflow is there and is completed.
-		if (CurrentWorkflow is not null)
+		if (CurrentWorkflow is null)
 		{
-			if (CurrentWorkflow.IsCompleted)
-			{
-				SelectNextShopinBitWorkflow(null, cancellationToken);
-			}
+			return true;
+		}
+
+		if (CurrentWorkflow.IsCompleted)
+		{
+			SelectNextShopinBitWorkflow(null, cancellationToken);
 		}
 
 		return true;
