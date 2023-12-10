@@ -25,8 +25,8 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly string _conversationStatus;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
+	private readonly BuyAnythingManager _buyAnythingManager;
 	private ConversationMetaData _metaData;
-	private BuyAnythingManager _buyAnythingManager;
 	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
 	[AutoNotify] private bool _isBusy;
@@ -125,19 +125,19 @@ public partial class OrderViewModel : ReactiveObject
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			WorkflowManager.SelectNextShopinBitWorkflow(null, _statesSource);
+			WorkflowManager.TryToSetNextWorkflow(null, _statesSource);
 			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
-			WorkflowManager.SelectNextShopinBitWorkflow("Support", _statesSource);
+			WorkflowManager.TryToSetNextWorkflow("Support", _statesSource);
 			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
-		WorkflowManager.SelectNextShopinBitWorkflow(conversationStatus, _statesSource);
+		WorkflowManager.TryToSetNextWorkflow(conversationStatus, _statesSource);
 		WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 	}
 

@@ -46,7 +46,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
 	/// <param name="args"></param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	public bool SelectNextShopinBitWorkflow(string? conversationStatus, object? args)
+	public bool TryToSetNextWorkflow(string? conversationStatus, object? args)
 	{
 		var states = args as WebClients.ShopWare.Models.State[];
 
@@ -81,7 +81,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	{
 		var states = args as WebClients.ShopWare.Models.State[];
 
-		SelectNextShopinBitWorkflow(context, states);
+		TryToSetNextWorkflow(context, states);
 
 		WorkflowState.SignalValid(false);
 		InvokeOutputWorkflows(onAssistantMessage, cancellationToken);
@@ -94,7 +94,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 		if (CurrentWorkflow.IsCompleted)
 		{
-			SelectNextShopinBitWorkflow(null, cancellationToken);
+			TryToSetNextWorkflow(null, cancellationToken);
 		}
 
 		return true;
