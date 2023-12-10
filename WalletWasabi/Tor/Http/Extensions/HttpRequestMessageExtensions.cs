@@ -11,12 +11,17 @@ public static class HttpRequestMessageExtensions
 {
 	private static readonly HttpMethod ConnectHttpMethod = new("CONNECT");
 
+	/// <inheritdoc cref="ToHttpStringAsync(HttpRequestMessage, Uri?, CancellationToken)"/>
+	public static Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken)
+		=> ToHttpStringAsync(request, requestUriOverride: null, cancellationToken);
+
 	/// <summary>
 	/// Converts <see cref="HttpRequestMessage"/> to plaintext HTTP request string.
 	/// </summary>
 	/// <param name="request">HTTP request to convert.</param>
+	/// <param name="requestUriOverride">URI to override <see cref="HttpRequestMessage.RequestUri"/>. Helps with HTTP redirect support.</param>
 	/// <returns>String representation of <paramref name="request"/> according to <seealso href="https://tools.ietf.org/html/rfc7230"/>.</returns>
-	public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken)
+	public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, Uri? requestUriOverride, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3.3.2
 		// A user agent SHOULD send a Content-Length in a request message when no Transfer-Encoding is sent and the request method defines a meaning
@@ -44,27 +49,21 @@ public static class HttpRequestMessageExtensions
 		// distinguish among resources while servicing requests for multiple host names on a single IP address.
 		// Host = uri - host[":" port] ; Section 2.7.1
 		// A client MUST send a Host header field in all HTTP/1.1 request messages.
-		if (request.Method != ConnectHttpMethod)
-		{
-			if (!request.Headers.Contains("Host"))
-			{
-				// https://tools.ietf.org/html/rfc7230#section-5.4
-				// If the target URI includes an authority component, then a
-				// client MUST send a field-value for Host that is identical to that
-				// authority component, excluding any userinfo subcomponent and its "@"
-				// delimiter(Section 2.7.1).If the authority component is missing or
-				// undefined for the target URI, then a client MUST send a Host header
-				// field with an empty field - value.
-				request.Headers.TryAddWithoutValidation("Host", request.RequestUri!.Authority);
-			}
-		}
+		bool setHost = request.Method != ConnectHttpMethod && !request.Headers.Contains("Host");
 
-		string startLine = new RequestLine(request.Method, request.RequestUri!, new HttpProtocol($"HTTP/{request.Version.Major}.{request.Version.Minor}")).ToString();
+		requestUriOverride ??= request.RequestUri!;
+		string startLine = new RequestLine(request.Method, requestUriOverride, new HttpProtocol($"HTTP/{request.Version.Major}.{request.Version.Minor}")).ToString();
 
 		string headers = "";
-		if (request.Headers.NotNullAndNotEmpty())
+		if (setHost || request.Headers.NotNullAndNotEmpty())
 		{
-			var headerSection = HeaderSection.CreateNew(request.Headers);
+			HeaderSection headerSection = HeaderSection.CreateNew(request.Headers);
+
+			if (setHost)
+			{
+				headerSection.Fields.Add(new HeaderField("Host", requestUriOverride.Authority));
+			}
+
 			headers += headerSection.ToString();
 		}
 
