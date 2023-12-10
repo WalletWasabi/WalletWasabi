@@ -15,6 +15,7 @@ using System.Threading;
 using DynamicData.Binding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.WebClients.ShopWare.Models;
 using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
@@ -35,19 +36,20 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Wallet _wallet;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
-	private readonly Country[] _counties;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
+	private readonly BuyAnythingManager _buyAnythingManager;
+	private readonly Country[] _counties;
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
 		IsBusy = true;
 		UiContext = uiContext;
+		WalletVm = walletVm;
 
 		_wallet = walletVm.Wallet;
-
-		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-		_counties = buyAnythingManager.Countries.ToArray();
+		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+		_counties = _buyAnythingManager.Countries.ToArray();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -65,6 +67,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
+
+	public WalletViewModel WalletVm { get; }
 
 	public void Activate(CompositeDisposable disposable)
 	{
