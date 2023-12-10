@@ -13,22 +13,20 @@ public partial class WorkflowValidator : ReactiveObject, IWorkflowValidator
 	public WorkflowValidator()
 	{
 		_nextStepSubject = new BehaviorSubject<Unit>(Unit.Default);
-
-		NextStepObservable = _nextStepSubject;
-
 		IsValidObservable = this.WhenAnyValue(x => x.IsValid);
+		NextStepObservable = _nextStepSubject;
 	}
-
-	public IObservable<Unit> NextStepObservable { get; }
 
 	public IObservable<bool> IsValidObservable { get; }
 
-	public void Signal(bool isValid)
+	public IObservable<Unit> NextStepObservable { get; }
+
+	public void SignalValid(bool isValid)
 	{
 		IsValid = isValid;
 	}
 
-	public void NextStep()
+	public void SignalNextStep()
 	{
 		_nextStepSubject.OnNext(Unit.Default);
 	}

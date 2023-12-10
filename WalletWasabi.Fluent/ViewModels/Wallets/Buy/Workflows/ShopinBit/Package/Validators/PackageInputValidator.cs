@@ -22,10 +22,10 @@ public partial class PackageInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.Signal(true);
+		WorkflowValidator.SignalValid(true);
 
 		// TODO: Remove step after implementing backend interaction
-		WorkflowValidator.NextStep();
+		WorkflowValidator.SignalNextStep();
 	}
 
 	public override bool OnCompletion()

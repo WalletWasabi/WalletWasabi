@@ -20,6 +20,6 @@ public partial class ConfirmDeliveryInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.Signal(true);
+		WorkflowValidator.SignalValid(true);
 	}
 }

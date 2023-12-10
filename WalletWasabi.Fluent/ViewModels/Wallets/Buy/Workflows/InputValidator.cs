@@ -34,7 +34,7 @@ public abstract partial class InputValidator : ReactiveObject
 
 	public virtual void OnActivation()
 	{
-		WorkflowValidator.Signal(false);
+		WorkflowValidator.SignalValid(false);
 
 		if (_messageProvider != null)
 		{

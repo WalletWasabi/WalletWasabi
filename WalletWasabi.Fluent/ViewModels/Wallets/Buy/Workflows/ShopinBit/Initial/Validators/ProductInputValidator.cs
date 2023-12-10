@@ -26,7 +26,7 @@ public partial class ProductInputValidator : InputValidator
 		_product = _products.FirstOrDefault();
 
 		this.WhenAnyValue(x => x.Product)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()
@@ -57,7 +57,7 @@ public partial class ProductInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.Signal(true);
+		WorkflowValidator.SignalValid(true);
 	}
 
 	public override bool OnCompletion()

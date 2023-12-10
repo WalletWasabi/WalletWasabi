@@ -14,7 +14,7 @@ public partial class LastNameInputValidator : TextInputInputValidator
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 
 		this.WhenAnyValue(x => x.Message)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

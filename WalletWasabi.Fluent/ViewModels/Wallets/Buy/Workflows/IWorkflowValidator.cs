@@ -8,7 +8,7 @@ public interface IWorkflowValidator
 
 	IObservable<bool> IsValidObservable { get; }
 
-	void Signal(bool isValid);
+	void SignalValid(bool isValid);
 
-	void NextStep();
+	void SignalNextStep();
 }

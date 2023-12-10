@@ -12,7 +12,7 @@ public partial class DefaultInputValidator : InputValidator
 		string? content = "Request") : base(workflowValidator, message, watermark, content)
 	{
 		this.WhenAnyValue(x => x.Message)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

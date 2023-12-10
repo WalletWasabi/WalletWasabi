@@ -25,7 +25,7 @@ public partial class LocationInputValidator : InputValidator
 		_country = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.Country.Count)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

@@ -24,7 +24,7 @@ public partial class StateInputValidator : InputValidator
 		_state = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.State.Count)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

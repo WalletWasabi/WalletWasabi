@@ -68,7 +68,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 	public bool InvokeInputs(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
 	{
-		WorkflowValidator.Signal(false);
+		WorkflowValidator.SignalValid(false);
 
 		if (CurrentWorkflow is null)
 		{

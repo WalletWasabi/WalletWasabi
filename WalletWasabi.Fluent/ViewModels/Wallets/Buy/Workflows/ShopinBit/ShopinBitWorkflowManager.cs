@@ -83,7 +83,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 		SelectNextShopinBitWorkflow(context, states);
 
-		WorkflowValidator.Signal(false);
+		WorkflowValidator.SignalValid(false);
 		InvokeOutputs(onAssistantMessage, cancellationToken);
 
 		// Continue the loop until next workflow is there and is completed.

@@ -22,7 +22,7 @@ public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 		_link = link;
 
 		this.WhenAnyValue(x => x.HasAcceptedPrivacyPolicy)
-			.Subscribe(_ => WorkflowValidator.Signal(IsValid()));
+			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()
