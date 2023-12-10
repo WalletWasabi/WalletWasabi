@@ -126,19 +126,19 @@ public partial class OrderViewModel : ReactiveObject
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
 			WorkflowManager.SelectNextShopinBitWorkflow(null, _statesSource);
-			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage, _cancellationToken);
+			WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
 			WorkflowManager.SelectNextShopinBitWorkflow("Support", _statesSource);
-			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage, _cancellationToken);
+			WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
 			return;
 		}
 
 		WorkflowManager.SelectNextShopinBitWorkflow(conversationStatus, _statesSource);
-		WorkflowManager.RunNoInputWorkflows(AddAssistantMessage, _cancellationToken);
+		WorkflowManager.InvokeOutputs(AddAssistantMessage, _cancellationToken);
 	}
 
 	public async Task UpdateOrderAsync(ConversationId id,
@@ -179,7 +179,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		try
 		{
-			var result = WorkflowManager.RunInputWorkflows(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
+			var result = WorkflowManager.InvokeInputs(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
 			if (!result)
 			{
 				return;
