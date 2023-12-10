@@ -43,7 +43,7 @@ public partial class OrderViewModel : ReactiveObject
 		CancellationToken cancellationToken)
 	{
 		Id = id;
-		Title = metaData.Title;
+		Title = metaData?.Title;
 
 		_uiContext = uiContext;
 		_metaData = metaData;
