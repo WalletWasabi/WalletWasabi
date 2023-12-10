@@ -87,12 +87,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
 	}
 
-	private IDisposable MarkNewMessagesFromSelectedOrderAsRead() => this.WhenAnyValue(x => x.SelectedOrder)
-		.WhereNotNull()
-		.Select(x => x.Messages.ToObservableChangeSet())
-		.Switch()
-		.OnItemAdded(x => x.IsUnread = false)
-		.Subscribe();
+	private IDisposable MarkNewMessagesFromSelectedOrderAsRead()
+	{
+		return this
+			.WhenAnyValue(x => x.SelectedOrder)
+			.WhereNotNull()
+			.Select(x => x.Messages.ToObservableChangeSet())
+			.Switch()
+			.OnItemAdded(x => x.IsUnread = false)
+			.Subscribe();
+	}
 
 	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
 	{
