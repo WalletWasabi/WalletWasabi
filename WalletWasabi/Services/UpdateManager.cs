@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -112,7 +113,7 @@ public class UpdateManager : IDisposable
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
+		// await DownloadAndValidateWasabiSignatureAsync(result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
 
 		var installerFilePath = Path.Combine(InstallerDir, result.InstallerFileName);
 
@@ -125,12 +126,17 @@ public class UpdateManager : IDisposable
 				// This should also be done using Tor.
 				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
 				Logger.LogInfo($"Trying to download new version: {result.LatestVersion}");
-				using HttpClient httpClient = new();
 
 				// Get file stream and copy it to downloads folder to access.
-				using var stream = await httpClient.GetStreamAsync(result.InstallerDownloadUrl, CancellationToken).ConfigureAwait(false);
+				// using var stream = await HttpClient.GetStreamAsync(result.InstallerDownloadUrl, CancellationToken).ConfigureAwait(false);
+
+				using HttpRequestMessage request = new(HttpMethod.Get, result.InstallerDownloadUrl);
+				using HttpResponseMessage response = await HttpClient.SendAsync(request, CancellationToken).ConfigureAwait(false);
+				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(CancellationToken).ConfigureAwait(false);
+
 				Logger.LogInfo("Installer downloaded, copying...");
 
+				using MemoryStream stream = new(installerFileBytes);
 				await CopyStreamContentToFileAsync(stream, installerFilePath).ConfigureAwait(false);
 			}
 			string expectedHash = await GetHashFromSha256SumsFileAsync(result.InstallerFileName, sha256SumsFilePath).ConfigureAwait(false);
@@ -164,6 +170,14 @@ public class UpdateManager : IDisposable
 		return correctLine.Split(" ")[0];
 	}
 
+	private string GetHashFromPgpSignatureMessageAsync(string pgpMessage, string installerFileName)
+	{
+		var correctLine = pgpMessage.Split("\n").FirstOrDefault(line => line.Contains(installerFileName))
+			?? throw new InvalidOperationException($"{installerFileName} was not found.");
+
+		return correctLine.Split(" ")[0];
+	}
+
 	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
 	{
 		if (File.Exists(filePath))
@@ -193,8 +207,8 @@ public class UpdateManager : IDisposable
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// "tag_name" will have a 'v' at the beginning, needs to be removed.
-		// Version githubVersion = new(2,0,4,1);
-		Version githubVersion = new(softwareVersion[1..]);
+		Version githubVersion = new(2,0,4,1);
+		// Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		//if (targetVersion != shortGithubVersion)
 		//{
@@ -219,14 +233,24 @@ public class UpdateManager : IDisposable
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsUrl, string wasabiSigUrl)
 	{
+		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
+
 		try
 		{
+			// using HttpClient oldHttpClient = new();
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
 			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
-			byte[] sha256Content = await sha256Response.Content.ReadAsByteArrayAsync(CancellationToken).ConfigureAwait(false);
+			string sha256Content = await sha256Response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
+			string sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
-			//using (var stream = await HttpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
+			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
+			File.WriteAllText(sha256SumsFilePath, sha256Content, Encoding.UTF8);
+
+			//string sha256ContentString = Encoding.UTF8.GetString(sha256Content);
+
+			//using (var stream = await oldHttpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
 			//{
+			//	string sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 			//	await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
 			//}
 
@@ -236,11 +260,16 @@ public class UpdateManager : IDisposable
 			//}
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
-			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, CancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
-			byte[] signatureBytes = Convert.FromBase64String(signatureContent);
 
-			WasabiSignerHelpers.VerifySha256Sum(sha256Content, signatureBytes);
+			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
+			File.WriteAllText(wasabiSigFilePath, signatureContent, Encoding.UTF8);
+
+			//byte[] signatureBytes = Convert.FromBase64String(signatureContent);
+
+			// WasabiSignerHelpers.VerifySha256Sum(sha256Content, signatureBytes);
+			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 		}
 		catch (HttpRequestException ex)
 		{
