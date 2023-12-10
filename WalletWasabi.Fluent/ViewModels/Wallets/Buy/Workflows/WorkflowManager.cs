@@ -1,9 +1,9 @@
 using System.Threading;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public abstract partial class WorkflowManagerViewModel : ReactiveObject
+public abstract partial class WorkflowManager : ReactiveObject
 {
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private Workflow? _currentWorkflow;

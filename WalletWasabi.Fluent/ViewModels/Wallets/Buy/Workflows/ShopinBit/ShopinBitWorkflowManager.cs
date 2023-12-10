@@ -5,7 +5,7 @@ using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class ShopinBitWorkflowManagerViewModel : WorkflowManagerViewModel
+public partial class ShopinBitWorkflowManager : WorkflowManager
 {
 	private readonly string _walletId;
 	private readonly Country[] _countries;
@@ -17,7 +17,7 @@ public partial class ShopinBitWorkflowManagerViewModel : WorkflowManagerViewMode
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;
 
-	public ShopinBitWorkflowManagerViewModel(string walletId, Country[] countries)
+	public ShopinBitWorkflowManager(string walletId, Country[] countries)
 	{
 		_walletId = walletId;
 		_countries = countries;

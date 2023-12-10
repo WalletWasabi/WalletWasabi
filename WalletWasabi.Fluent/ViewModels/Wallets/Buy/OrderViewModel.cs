@@ -38,7 +38,7 @@ public partial class OrderViewModel : ReactiveObject
 		int id,
 		ConversationMetaData metaData,
 		string conversationStatus,
-		ShopinBitWorkflowManagerViewModel workflowManager,
+		ShopinBitWorkflowManager workflowManager,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
@@ -104,7 +104,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
-	public ShopinBitWorkflowManagerViewModel WorkflowManager { get; }
+	public ShopinBitWorkflowManager WorkflowManager { get; }
 
 	public ICommand SendCommand { get; }
 
