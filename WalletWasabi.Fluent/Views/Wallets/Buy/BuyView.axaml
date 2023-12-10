@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
-             xmlns:buy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
+             xmlns:viewsBuy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
              mc:Ignorable="d"
              x:DataType="vm:BuyViewModel"
              x:CompileBindings="True"
@@ -21,10 +21,23 @@
 
     <DockPanel>
       <Border Background="{DynamicResource BuyAnythingConversationsBackground}" CornerRadius="5 0 0 5">
-        <buy:OrdersListView Width="200" DockPanel.Dock="Left" />
+        <viewsBuy:OrdersListView Width="200" DockPanel.Dock="Left" />
       </Border>
       <Border Background="{DynamicResource BuyAnythingChatBackground}" CornerRadius="0 5 5 0">
-        <buy:OrderMessagesView DataContext="{Binding SelectedOrder}" />
+        <DockPanel>
+
+          <viewsBuy:OrderInputView DockPanel.Dock="Bottom" Margin="10 0 10 10" />
+
+          <Panel DockPanel.Dock="Bottom" Height="15" Margin="10 0">
+            <ProgressBar IsIndeterminate="{Binding IsBusy}"
+                         IsVisible="{Binding IsBusy}"
+                         VerticalAlignment="Center"
+                         Value="50" />
+          </Panel>
+
+          <viewsBuy:OrderMessagesView DataContext="{Binding SelectedOrder}" />
+
+        </DockPanel>
       </Border>
     </DockPanel>
 

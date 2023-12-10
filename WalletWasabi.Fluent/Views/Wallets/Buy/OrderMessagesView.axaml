@@ -2,268 +2,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:buy="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
-             xmlns:buyMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
-             xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
-             x:DataType="buy:OrderViewModel"
+             x:DataType="vm:OrderViewModel"
              x:CompileBindings="True">
 
-  <DockPanel x:Name="RightSide">
+  <ScrollViewer x:Name="MessagesScrollViewer"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+    <SelectingItemsControl x:Name="MessagesItemsControl"
+                           Items="{Binding Messages}"
+                           SelectedItem="{Binding SelectedMessage}">
+      <SelectingItemsControl.Styles>
+        <Style Selector="ContentPresenter > c|PreviewMessageItem">
+          <Setter Property="Margin" Value="5 5 5 0" />
+        </Style>
+        <Style Selector="ContentPresenter > c|PreviewMessageItem > Border">
+          <Setter Property="CornerRadius" Value="10" />
+          <Setter Property="Padding" Value="15 10" />
+        </Style>
+        <Style Selector="TextBlock">
+          <Setter Property="MaxWidth" Value="330" />
+          <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+      </SelectingItemsControl.Styles>
 
-    <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10">
+      <SelectingItemsControl.DataTemplates>
+        <DataTemplate DataType="vmMessage:UserMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                CopyButtonPlacement="Left"
+                                HorizontalAlignment="Right"
+                                EditCommand="{Binding EditCommand}"
+                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
+            <Border Background="{DynamicResource UserMessageBackground}">
+              <TextBlock Text="{Binding Message}" />
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+        <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                CopyButtonPlacement="Right"
+                                HorizontalAlignment="Left">
+            <Border Background="{DynamicResource AssistantMessageBackground}">
+              <TextBlock Text="{Binding Message}" />
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+      </SelectingItemsControl.DataTemplates>
+    </SelectingItemsControl>
+  </ScrollViewer>
 
-      <Button DockPanel.Dock="Right"
-              Command="{Binding SendCommand}"
-              Margin="10 0 0 0"
-              Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
-              IsVisible="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}"
-              Classes="action"
-              IsDefault="True">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
-      </Button>
-
-      <ContentControl Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}"
-                      IsEnabled="{Binding !IsBusy}">
-        <ContentControl.Styles>
-          <Style Selector="TextBox">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="c|TagsBox">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="ComboBox">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="VerticalAlignment" Value="Stretch" />
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-          <Style Selector="ComboBox:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-          </Style>
-        </ContentControl.Styles>
-        <ContentControl.DataTemplates>
-
-          <DataTemplate DataType="shopinBit:TextInputInputValidator">
-            <TextBox VerticalAlignment="Center"
-                     Text="{Binding Message}"
-                     Watermark="{Binding Watermark}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-              <TextBox.Styles>
-                <Style Selector="TextBox /template/ DataValidationErrors">
-                  <Setter Property="IsVisible" Value="False" />
-                </Style>
-              </TextBox.Styles>
-            </TextBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:DefaultInputValidator">
-            <TextBox VerticalAlignment="Center"
-                     Text="{Binding Message}"
-                     Watermark="{Binding Watermark}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-              <TextBox.Styles>
-                <Style Selector="TextBox /template/ DataValidationErrors">
-                  <Setter Property="IsVisible" Value="False" />
-                </Style>
-              </TextBox.Styles>
-            </TextBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ChatMessageInputValidator">
-            <TextBox VerticalAlignment="Center"
-                     Text="{Binding Message}"
-                     Watermark="{Binding Watermark}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-              <TextBox.Styles>
-                <Style Selector="TextBox /template/ DataValidationErrors">
-                  <Setter Property="IsVisible" Value="False" />
-                </Style>
-              </TextBox.Styles>
-            </TextBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:NoInputInputValidator">
-            <Panel />
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyInputValidator">
-            <StackPanel Orientation="Horizontal">
-              <CheckBox VerticalAlignment="Center"
-                        IsChecked="{Binding HasAcceptedPrivacyPolicy}"
-                        Margin="8 0 0 0">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-                </i:Interaction.Behaviors>
-              </CheckBox>
-              <helpAndSupport:LinkView
-                DataContext="{Binding Link}" />
-            </StackPanel>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ConfirmTosInputValidator">
-            <StackPanel Orientation="Horizontal">
-              <CheckBox VerticalAlignment="Center"
-                        IsChecked="{Binding HasAcceptedTermsOfService}"
-                        Margin="8 0 0 0">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-                </i:Interaction.Behaviors>
-              </CheckBox>
-              <helpAndSupport:LinkView
-                DataContext="{Binding Link}" />
-            </StackPanel>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ConfirmInitialInputValidator">
-            <Panel />
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ConfirmDeliveryInputValidator">
-            <Panel />
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:PaymentInputValidator">
-            <Panel />
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:PackageInputValidator">
-            <Panel />
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:RequestInputValidator">
-            <TextBox VerticalAlignment="Center"
-                     Text="{Binding Message}"
-                     Watermark="{Binding Watermark}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-              <TextBox.Styles>
-                <Style Selector="TextBox /template/ DataValidationErrors">
-                  <Setter Property="IsVisible" Value="False" />
-                </Style>
-              </TextBox.Styles>
-            </TextBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:LocationInputValidator">
-            <c:TagsBox VerticalAlignment="Center"
-                       RestrictInputToSuggestions="True"
-                       SuggestionsAreCaseSensitive="False"
-                       Watermark="{Binding Watermark}"
-                       MaxTextLength="5000"
-                       ItemCountLimit="1"
-                       TagSeparator=";"
-                       Items="{Binding Country}"
-                       Suggestions="{Binding Countries}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </c:TagsBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:StateInputValidator">
-            <c:TagsBox VerticalAlignment="Center"
-                       RestrictInputToSuggestions="True"
-                       SuggestionsAreCaseSensitive="False"
-                       Watermark="{Binding Watermark}"
-                       MaxTextLength="5000"
-                       ItemCountLimit="1"
-                       TagSeparator=";"
-                       Items="{Binding State}"
-                       Suggestions="{Binding States}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </c:TagsBox>
-          </DataTemplate>
-
-          <DataTemplate DataType="shopinBit:ProductInputValidator">
-            <ComboBox Items="{Binding Products}"
-                      SelectedItem="{Binding Product, Mode=TwoWay}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </ComboBox>
-          </DataTemplate>
-        </ContentControl.DataTemplates>
-      </ContentControl>
-    </DockPanel>
-
-    <Panel DockPanel.Dock="Bottom" Height="15" Margin="10 0">
-      <ProgressBar IsIndeterminate="{Binding IsBusy}"
-                   IsVisible="{Binding IsBusy}"
-                   VerticalAlignment="Center"
-                   Value="50" />
-    </Panel>
-
-    <ScrollViewer x:Name="MessagesScrollViewer"
-                  HorizontalScrollBarVisibility="Disabled"
-                  VerticalScrollBarVisibility="Auto">
-      <SelectingItemsControl x:Name="MessagesItemsControl"
-                             Items="{Binding Messages}"
-                             SelectedItem="{Binding SelectedMessage}">
-        <SelectingItemsControl.Styles>
-          <Style Selector="ContentPresenter > c|PreviewMessageItem">
-            <Setter Property="Margin" Value="5 5 5 0" />
-          </Style>
-          <Style Selector="ContentPresenter > c|PreviewMessageItem > Border">
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Padding" Value="15 10" />
-          </Style>
-          <Style Selector="TextBlock">
-            <Setter Property="MaxWidth" Value="330" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-          </Style>
-        </SelectingItemsControl.Styles>
-
-        <SelectingItemsControl.DataTemplates>
-          <DataTemplate DataType="buyMessage:UserMessageViewModel">
-            <c:PreviewMessageItem CopyableContent="{Binding Message}"
-                                  CopyButtonPlacement="Left"
-                                  HorizontalAlignment="Right"
-                                  EditCommand="{Binding EditCommand}"
-                                  IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
-              <Border Background="{DynamicResource UserMessageBackground}">
-                <TextBlock Text="{Binding Message}" />
-              </Border>
-            </c:PreviewMessageItem>
-          </DataTemplate>
-          <DataTemplate DataType="buyMessage:AssistantMessageViewModel">
-            <c:PreviewMessageItem CopyableContent="{Binding Message}"
-                                  CopyButtonPlacement="Right"
-                                  HorizontalAlignment="Left">
-              <Border Background="{DynamicResource AssistantMessageBackground}">
-                <TextBlock Text="{Binding Message}" />
-              </Border>
-            </c:PreviewMessageItem>
-          </DataTemplate>
-        </SelectingItemsControl.DataTemplates>
-      </SelectingItemsControl>
-    </ScrollViewer>
-  </DockPanel>
 </UserControl>
