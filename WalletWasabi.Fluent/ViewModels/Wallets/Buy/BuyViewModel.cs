@@ -15,6 +15,7 @@ using System.Threading;
 using DynamicData.Binding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.Logging;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Country = WalletWasabi.BuyAnything.Country;
 
@@ -72,12 +73,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	public void Activate(CompositeDisposable disposable)
 	{
-		Task.Run(async () =>
-		{
-			await InitializeOrdersAsync(_cts.Token, disposable);
-			SelectedOrder = _orders.FirstOrDefault();
-			IsBusy = false;
-		}, _cts.Token);
+		Task.Run(async () => { await InitializeAsync(disposable); }, _cts.Token);
 	}
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -85,6 +81,23 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedTo(inHistory, disposables);
 
 		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
+	}
+
+	private async Task InitializeAsync(CompositeDisposable disposable)
+	{
+		try
+		{
+			await InitializeOrdersAsync(_cts.Token, disposable);
+			SelectedOrder = _orders.FirstOrDefault();
+		}
+		catch (Exception exception)
+		{
+			Logger.LogError($"Error while initializing orders: {exception}).");
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 
 	private IDisposable MarkNewMessagesFromSelectedOrderAsRead()
