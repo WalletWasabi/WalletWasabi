@@ -53,7 +53,7 @@ public partial class OrderViewModel : ReactiveObject
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		WorkflowManager.WorkflowValidator.NextStepObservable.Skip(1).Subscribe(async _ =>
+		WorkflowManager.WorkflowState.NextStepObservable.Skip(1).Subscribe(async _ =>
 		{
 			await SendAsync(_cancellationToken);
 		});
@@ -67,7 +67,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
-		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowValidator.IsValidObservable);
+		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowState.IsValidObservable);
 
 		CanRemoveObs = this.WhenAnyValue(x => x.WorkflowManager.Id).Select(id => id != ConversationId.Empty);
 

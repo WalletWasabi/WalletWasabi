@@ -3,10 +3,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public partial class PackageInputValidator : InputValidator
 {
 	public PackageInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		Func<string?> message,
 		string? watermark = null,
-		string? content = "...") : base(workflowValidator, message, watermark, content)
+		string? content = "...") : base(workflowState, message, watermark, content)
 	{
 	}
 
@@ -22,10 +22,10 @@ public partial class PackageInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.SignalValid(true);
+		WorkflowState.SignalValid(true);
 
 		// TODO: Remove step after implementing backend interaction
-		WorkflowValidator.SignalNextStep();
+		WorkflowState.SignalNextStep();
 	}
 
 	public override bool OnCompletion()

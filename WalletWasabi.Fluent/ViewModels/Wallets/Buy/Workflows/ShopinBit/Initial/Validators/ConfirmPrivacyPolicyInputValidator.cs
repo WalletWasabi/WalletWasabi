@@ -11,18 +11,18 @@ public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 	[AutoNotify] private LinkViewModel _link;
 
 	public ConfirmPrivacyPolicyInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		InitialWorkflowRequest initialWorkflowRequest,
 		LinkViewModel link,
 		Func<string?> message,
 		string content = "Accept")
-		: base(workflowValidator, message, null, content)
+		: base(workflowState, message, null, content)
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 		_link = link;
 
 		this.WhenAnyValue(x => x.HasAcceptedPrivacyPolicy)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

@@ -7,14 +7,14 @@ public partial class LastNameInputValidator : TextInputInputValidator
 	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 
 	public LastNameInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, "Type here...")
+		: base(workflowState, null, "Type here...")
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 
 		this.WhenAnyValue(x => x.Message)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

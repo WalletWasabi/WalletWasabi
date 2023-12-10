@@ -14,10 +14,10 @@ public partial class LocationInputValidator : InputValidator
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _country;
 
 	public LocationInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		Country[] countries,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Enter your location...", "Next")
+		: base(workflowState, null, "Enter your location...", "Next")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 		_countriesSource = countries;
@@ -25,7 +25,7 @@ public partial class LocationInputValidator : InputValidator
 		_country = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.Country.Count)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

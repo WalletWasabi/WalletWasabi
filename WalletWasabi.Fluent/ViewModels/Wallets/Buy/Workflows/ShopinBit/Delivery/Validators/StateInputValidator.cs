@@ -13,10 +13,10 @@ public partial class StateInputValidator : InputValidator
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<string> _state;
 
 	public StateInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, "Type here...", "Next")
+		: base(workflowState, null, "Type here...", "Next")
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_statesSource = states;
@@ -24,7 +24,7 @@ public partial class StateInputValidator : InputValidator
 		_state = new ObservableCollection<string>();
 
 		this.WhenAnyValue(x => x.State.Count)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

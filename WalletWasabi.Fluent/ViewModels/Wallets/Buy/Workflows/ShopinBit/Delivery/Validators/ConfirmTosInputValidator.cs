@@ -11,18 +11,18 @@ public partial class ConfirmTosInputValidator : InputValidator
 	[AutoNotify] private LinkViewModel _link;
 
 	public ConfirmTosInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		DeliveryWorkflowRequest deliveryWorkflowRequest,
 		LinkViewModel link,
 		Func<string?> message,
 		string content)
-		: base(workflowValidator, message, null, content)
+		: base(workflowState, message, null, content)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_link = link;
 
 		this.WhenAnyValue(x => x.HasAcceptedTermsOfService)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

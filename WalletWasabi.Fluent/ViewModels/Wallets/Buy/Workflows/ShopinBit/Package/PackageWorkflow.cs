@@ -6,7 +6,7 @@ public sealed partial class PackageWorkflow : Workflow
 {
 	private readonly PackageWorkflowRequest _request;
 
-	public PackageWorkflow(IWorkflowValidator workflowValidator)
+	public PackageWorkflow(WorkflowState workflowState)
 	{
 		_request = new PackageWorkflowRequest();
 
@@ -19,27 +19,27 @@ public sealed partial class PackageWorkflow : Workflow
 			// Download
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Download your files:")),
 			// Download links
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"{downloadUrl}")),
 			// Shipping
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "For shipping updates:")),
 			// Shipping link
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"{trackingUrl}")),
 			// 30 day message
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "I'll be available for the next 30 days to assist with any questions you might have.")),
 		};
 

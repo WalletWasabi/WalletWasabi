@@ -63,10 +63,10 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 		CurrentWorkflow = _currentWorkflow switch
 		{
-			null => new InitialWorkflow(WorkflowValidator, _countries),
-			InitialWorkflow => new SupportChatWorkflow(WorkflowValidator),
-			DeliveryWorkflow => new SupportChatWorkflow(WorkflowValidator),
-			SupportChatWorkflow => new SupportChatWorkflow(WorkflowValidator),
+			null => new InitialWorkflow(WorkflowState, _countries),
+			InitialWorkflow => new SupportChatWorkflow(WorkflowState),
+			DeliveryWorkflow => new SupportChatWorkflow(WorkflowState),
+			SupportChatWorkflow => new SupportChatWorkflow(WorkflowState),
 			_ => CurrentWorkflow
 		};
 
@@ -83,7 +83,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 		SelectNextShopinBitWorkflow(context, states);
 
-		WorkflowValidator.SignalValid(false);
+		WorkflowState.SignalValid(false);
 		InvokeOutputWorkflows(onAssistantMessage, cancellationToken);
 
 		// Continue the loop until next workflow is there and is completed.
@@ -104,17 +104,17 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	{
 		return conversationStatus switch
 		{
-			"Started" => new InitialWorkflow(WorkflowValidator, _countries),
-			"OfferReceived" => new DeliveryWorkflow(WorkflowValidator, states),
-			"PaymentDone" => new SupportChatWorkflow(WorkflowValidator),
-			"PaymentConfirmed" => new SupportChatWorkflow(WorkflowValidator),
-			"OfferAccepted" => new SupportChatWorkflow(WorkflowValidator),
-			"InvoiceReceived" => new SupportChatWorkflow(WorkflowValidator),
-			"InvoiceExpired" => new SupportChatWorkflow(WorkflowValidator),
-			"InvoicePaidAfterExpiration" => new SupportChatWorkflow(WorkflowValidator),
-			"Shipped" => new SupportChatWorkflow(WorkflowValidator),
-			"Finished" => new SupportChatWorkflow(WorkflowValidator),
-			"Support" => new SupportChatWorkflow(WorkflowValidator),
+			"Started" => new InitialWorkflow(WorkflowState, _countries),
+			"OfferReceived" => new DeliveryWorkflow(WorkflowState, states),
+			"PaymentDone" => new SupportChatWorkflow(WorkflowState),
+			"PaymentConfirmed" => new SupportChatWorkflow(WorkflowState),
+			"OfferAccepted" => new SupportChatWorkflow(WorkflowState),
+			"InvoiceReceived" => new SupportChatWorkflow(WorkflowState),
+			"InvoiceExpired" => new SupportChatWorkflow(WorkflowState),
+			"InvoicePaidAfterExpiration" => new SupportChatWorkflow(WorkflowState),
+			"Shipped" => new SupportChatWorkflow(WorkflowState),
+			"Finished" => new SupportChatWorkflow(WorkflowState),
+			"Support" => new SupportChatWorkflow(WorkflowState),
 			_ => null
 		};
 	}

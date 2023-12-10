@@ -7,14 +7,14 @@ public partial class RequestInputValidator : InputValidator
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
 	public RequestInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Type here...", "Request")
+		: base(workflowState, null, "Type here...", "Request")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 
 		this.WhenAnyValue(x => x.Message)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

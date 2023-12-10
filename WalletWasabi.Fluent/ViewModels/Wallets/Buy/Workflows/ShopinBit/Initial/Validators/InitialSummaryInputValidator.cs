@@ -7,9 +7,9 @@ public partial class InitialSummaryInputValidator : InputValidator
 	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 
 	public InitialSummaryInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, null, null)
+		: base(workflowState, null, null, null)
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 	}

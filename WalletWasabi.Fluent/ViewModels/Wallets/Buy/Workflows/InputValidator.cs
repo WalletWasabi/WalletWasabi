@@ -10,7 +10,7 @@ public abstract partial class InputValidator : ReactiveObject
 	[AutoNotify] private string? _content;
 
 	protected InputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		Func<string?>? messageProvider,
 		string? watermark,
 		string? content)
@@ -18,10 +18,10 @@ public abstract partial class InputValidator : ReactiveObject
 		_messageProvider = messageProvider;
 		_watermark = watermark;
 		_content = content;
-		WorkflowValidator = workflowValidator;
+		WorkflowState = workflowState;
 	}
 
-	protected IWorkflowValidator WorkflowValidator { get; }
+	protected WorkflowState WorkflowState { get; }
 
 	public abstract bool IsValid();
 
@@ -34,7 +34,7 @@ public abstract partial class InputValidator : ReactiveObject
 
 	public virtual void OnActivation()
 	{
-		WorkflowValidator.SignalValid(false);
+		WorkflowState.SignalValid(false);
 
 		if (_messageProvider != null)
 		{

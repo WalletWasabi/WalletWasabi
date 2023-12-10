@@ -3,8 +3,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public partial class ConfirmInitialInputValidator : InputValidator
 {
 	public ConfirmInitialInputValidator(
-		IWorkflowValidator workflowValidator)
-		: base(workflowValidator, null, null, "Confirm")
+		WorkflowState workflowState)
+		: base(workflowState, null, null, "Confirm")
 	{
 	}
 
@@ -20,6 +20,6 @@ public partial class ConfirmInitialInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.SignalValid(true);
+		WorkflowState.SignalValid(true);
 	}
 }

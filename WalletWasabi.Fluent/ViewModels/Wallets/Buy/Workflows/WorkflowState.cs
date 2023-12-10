@@ -4,13 +4,13 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public partial class WorkflowValidator : ReactiveObject, IWorkflowValidator
+public partial class WorkflowState : ReactiveObject
 {
 	private readonly BehaviorSubject<Unit> _nextStepSubject;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isValid;
 
-	public WorkflowValidator()
+	public WorkflowState()
 	{
 		_nextStepSubject = new BehaviorSubject<Unit>(Unit.Default);
 		IsValidObservable = this.WhenAnyValue(x => x.IsValid);

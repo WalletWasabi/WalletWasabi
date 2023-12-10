@@ -7,9 +7,9 @@ public partial class DeliverySummaryInputValidator : InputValidator
 	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 
 	public DeliverySummaryInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowValidator, null, null, null)
+		: base(workflowState, null, null, null)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 	}

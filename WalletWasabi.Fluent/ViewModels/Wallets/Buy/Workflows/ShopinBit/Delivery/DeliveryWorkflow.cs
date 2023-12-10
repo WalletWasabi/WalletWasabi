@@ -12,7 +12,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 	private readonly DeliveryWorkflowRequest _request;
 
 	public DeliveryWorkflow(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states)
 	{
 		_request = new DeliveryWorkflowRequest();
@@ -24,82 +24,82 @@ public sealed partial class DeliveryWorkflow : Workflow
 			// Info
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
 			// Firstname
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Your First Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Your Last Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Street Name:")),
 			new (requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "House Number:")),
 			new (requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "ZIP/Postal Code:")),
 			new (requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// City
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "City:")),
 			new (requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// State
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "State:"),
 				CanSkipStateStep(states)),
 			new (requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
-					workflowValidator,
+					workflowState,
 					states,
 					_request),
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'BUY NOW' to proceed")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
-					workflowValidator,
+					workflowState,
 					_request,
 					new LinkViewModel
 					{

@@ -14,9 +14,9 @@ public partial class ProductInputValidator : InputValidator
 	[AutoNotify] private string? _product;
 
 	public ProductInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowValidator, null, "Enter your location...", "Send")
+		: base(workflowState, null, "Enter your location...", "Send")
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 
@@ -26,7 +26,7 @@ public partial class ProductInputValidator : InputValidator
 		_product = _products.FirstOrDefault();
 
 		this.WhenAnyValue(x => x.Product)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()
@@ -57,7 +57,7 @@ public partial class ProductInputValidator : InputValidator
 
 	public override void OnActivation()
 	{
-		WorkflowValidator.SignalValid(true);
+		WorkflowState.SignalValid(true);
 	}
 
 	public override bool OnCompletion()

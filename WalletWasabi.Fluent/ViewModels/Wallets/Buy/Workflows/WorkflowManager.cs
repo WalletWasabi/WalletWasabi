@@ -8,7 +8,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private Workflow? _currentWorkflow;
 
-	public IWorkflowValidator WorkflowValidator { get; } = new WorkflowValidator();
+	public WorkflowState WorkflowState { get; } = new WorkflowState();
 
 	public void ResetWorkflow()
 	{
@@ -68,7 +68,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 	public bool InvokeInputWorkflows(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
 	{
-		WorkflowValidator.SignalValid(false);
+		WorkflowState.SignalValid(false);
 
 		if (CurrentWorkflow is null)
 		{

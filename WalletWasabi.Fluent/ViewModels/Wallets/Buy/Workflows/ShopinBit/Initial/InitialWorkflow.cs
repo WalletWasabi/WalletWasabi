@@ -9,7 +9,7 @@ public sealed partial class InitialWorkflow : Workflow
 {
 	private readonly InitialWorkflowRequest _request;
 
-	public InitialWorkflow(IWorkflowValidator workflowValidator, Country[] countries)
+	public InitialWorkflow(WorkflowState workflowState, Country[] countries)
 	{
 		_request = new InitialWorkflowRequest();
 
@@ -20,60 +20,60 @@ public sealed partial class InitialWorkflow : Workflow
 			// Welcome
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.")),
 			// Fast Travel Assistant
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.")),
 			// General Travel Assistant
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.")),
 			// All-Purpose Concierge Assistant
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more")),
 			// Pick one (dropdown)
 			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// Assistant greeting, min order limit
 			new(false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"Hello, I am your chosen {GetAssistantName()}. At present, we focus on requests where the value of the goods or services is at least $1,000 USD")),
 			// Location
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "To start, please indicate your country. If your order involves shipping, provide the destination country. For non-shipping orders, please specify your nationality.")),
 			new (requiresUserInput: true,
 				userInputValidator: new LocationInputValidator(
-					workflowValidator,
+					workflowState,
 					countries,
 					_request)),
 			// What
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "What specific assistance do you need today? Be as precise as possible for faster response.")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
-					workflowValidator,
+					workflowState,
 					_request)),
 			// Request received + accept Privacy Policy
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within {GetWithinHours()} (Monday to Friday).")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
-					workflowValidator,
+					workflowState,
 					_request,
 					new LinkViewModel
 					{

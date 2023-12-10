@@ -6,7 +6,7 @@ public sealed partial class SupportChatWorkflow : Workflow
 {
 	private readonly SupportChatWorkflowRequest _request;
 
-	public SupportChatWorkflow(IWorkflowValidator workflowValidator)
+	public SupportChatWorkflow(WorkflowState workflowState)
 	{
 		_request = new SupportChatWorkflowRequest();
 
@@ -15,7 +15,7 @@ public sealed partial class SupportChatWorkflow : Workflow
 			// User message
 			new (true,
 				new ChatMessageInputValidator(
-					workflowValidator,
+					workflowState,
 					_request,
 					"Send")),
 			// TODO: Await the chat response from service?

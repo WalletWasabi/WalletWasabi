@@ -7,15 +7,15 @@ public partial class ChatMessageInputValidator : TextInputInputValidator
 	private readonly SupportChatWorkflowRequest _supportChatWorkflowRequest;
 
 	public ChatMessageInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		SupportChatWorkflowRequest supportChatWorkflowRequest,
 		string content)
-		: base(workflowValidator, null, "Type here...", content)
+		: base(workflowState, null, "Type here...", content)
 	{
 		_supportChatWorkflowRequest = supportChatWorkflowRequest;
 
 		this.WhenAnyValue(x => x.Message)
-			.Subscribe(_ => WorkflowValidator.SignalValid(IsValid()));
+			.Subscribe(_ => WorkflowState.SignalValid(IsValid()));
 	}
 
 	public override bool IsValid()

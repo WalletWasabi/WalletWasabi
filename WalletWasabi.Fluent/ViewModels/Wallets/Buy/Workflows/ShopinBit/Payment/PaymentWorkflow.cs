@@ -6,7 +6,7 @@ public sealed partial class PaymentWorkflow : Workflow
 {
 	private readonly PaymentWorkflowRequest _request;
 
-	public PaymentWorkflow(IWorkflowValidator workflowValidator)
+	public PaymentWorkflow(WorkflowState workflowState)
 	{
 		_request = new PaymentWorkflowRequest();
 
@@ -19,26 +19,26 @@ public sealed partial class PaymentWorkflow : Workflow
 			// Info
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"To finalize your order, please send {paymentAmount} to the following address:")),
 			// Address
 			new (false,
 				new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => $"{paymentAddress}")),
 			// Payment
 			new (requiresUserInput: false,
 				userInputValidator: new DefaultInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Your payment must confirm within 30 minutes in order to initiate the delivery process.")),
 			// TODO: Remove step after implementing backend interaction
 			// new (false,
 			// 	new PaymentInputValidator(
-			// 		workflowValidator,
+			// 		workflowState,
 			// 		"Great news! Your order is complete.")),
 			new (false,
 				new NoInputInputValidator(
-					workflowValidator,
+					workflowState,
 					() => "Fantastic! Your order has been processed successfully"))
 		};
 

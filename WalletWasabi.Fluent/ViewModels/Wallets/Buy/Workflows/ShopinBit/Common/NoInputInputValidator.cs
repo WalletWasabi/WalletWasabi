@@ -5,11 +5,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public partial class NoInputInputValidator : InputValidator
 {
 	public NoInputInputValidator(
-		IWorkflowValidator workflowValidator,
+		WorkflowState workflowState,
 		Func<string?> message,
 		string? watermark = null,
 		string? content = "Request")
-		: base(workflowValidator, message, watermark, content)
+		: base(workflowState, message, watermark, content)
 	{
 	}
 
