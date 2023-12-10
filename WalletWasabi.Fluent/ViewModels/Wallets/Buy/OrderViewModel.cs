@@ -126,19 +126,19 @@ public partial class OrderViewModel : ReactiveObject
 		// The conversation is empty so just start from the beginning
 		if (conversationStatus == "Started" && !Messages.Any())
 		{
-			WorkflowManager.SelectNextWorkflow(null, _statesSource);
+			WorkflowManager.SelectNextShopinBitWorkflow(null, _statesSource);
 			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 			return;
 		}
 
 		if (conversationStatus == "Started")
 		{
-			WorkflowManager.SelectNextWorkflow("Support", _statesSource);
+			WorkflowManager.SelectNextShopinBitWorkflow("Support", _statesSource);
 			WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 			return;
 		}
 
-		WorkflowManager.SelectNextWorkflow(conversationStatus, _statesSource);
+		WorkflowManager.SelectNextShopinBitWorkflow(conversationStatus, _statesSource);
 		WorkflowManager.RunNoInputWorkflows(AddAssistantMessage);
 	}
 
@@ -170,7 +170,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (conversationStatus is not null && _conversationStatus != conversationStatus)
 		{
-			WorkflowManager.SelectNextWorkflow(conversationStatus, cancellationToken, _statesSource, AddAssistantMessage);
+			WorkflowManager.OnSelectNextWorkflow(conversationStatus, _statesSource, AddAssistantMessage, cancellationToken);
 		}
 	}
 
@@ -192,7 +192,7 @@ public partial class OrderViewModel : ReactiveObject
 				await SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 
-				WorkflowManager.SelectNextWorkflow(null, cancellationToken, _statesSource, AddAssistantMessage);
+				WorkflowManager.OnSelectNextWorkflow(null, _statesSource, AddAssistantMessage, cancellationToken);
 			}
 		}
 		catch (Exception exception)

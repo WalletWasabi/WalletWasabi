@@ -1,16 +1,14 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
-using ReactiveUI;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
+public partial class ShopinBitWorkflowManagerViewModel : WorkflowManagerViewModel
 {
 	private readonly string _walletId;
 	private readonly Country[] _countries;
-	private readonly IWorkflowValidator _workflowValidator;
 	private readonly BehaviorSubject<bool> _idChangedSubject;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private Workflow? _currentWorkflow;
@@ -22,7 +20,6 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 	{
 		_walletId = walletId;
 		_countries = countries;
-		_workflowValidator = new WorkflowValidator();
 		_idChangedSubject = new BehaviorSubject<bool>(false);
 		IdChangedObservable = _idChangedSubject.AsObservable();
 	}
@@ -31,9 +28,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 
 	public IObservable<bool> IdChangedObservable { get; }
 
-	public IWorkflowValidator WorkflowValidator => _workflowValidator;
-
-	public void UpdateId(ConversationId newId)
+	public void UpdateConversationId(ConversationId newId)
 	{
 		if (Id != ConversationId.Empty)
 		{
@@ -50,7 +45,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 	/// <param name="conversationStatus">The remote conversationStatus override to select next workflow.</param>
 	/// <param name="args"></param>
 	/// <returns>True is next workflow selected successfully or current workflow will continue.</returns>
-	public bool SelectNextWorkflow(string? conversationStatus, object? args)
+	public bool SelectNextShopinBitWorkflow(string? conversationStatus, object? args)
 	{
 		var states = args as WebClients.ShopWare.Models.State[];
 
@@ -58,7 +53,7 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 		{
 			if (_currentWorkflow?.CanCancel() ?? true)
 			{
-				CurrentWorkflow = GetWorkflowFromConversation(conversationStatus, states);
+				CurrentWorkflow = GetShopinBitWorkflowFromConversation(conversationStatus, states);
 				return true;
 			}
 
@@ -67,21 +62,26 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 
 		CurrentWorkflow = _currentWorkflow switch
 		{
-			null => new InitialWorkflow(_workflowValidator, _countries),
-			InitialWorkflow => new SupportChatWorkflow(_workflowValidator),
-			DeliveryWorkflow => new SupportChatWorkflow(_workflowValidator),
-			SupportChatWorkflow => new SupportChatWorkflow(_workflowValidator),
+			null => new InitialWorkflow(WorkflowValidator, _countries),
+			InitialWorkflow => new SupportChatWorkflow(WorkflowValidator),
+			DeliveryWorkflow => new SupportChatWorkflow(WorkflowValidator),
+			SupportChatWorkflow => new SupportChatWorkflow(WorkflowValidator),
 			_ => CurrentWorkflow
 		};
 
 		return true;
 	}
 
-	public bool SelectNextWorkflow(string? conversationStatus, CancellationToken cancellationToken, object? args, Action<string> onAssistantMessage)
+	public override bool OnSelectNextWorkflow(
+		string? conversationStatus,
+		object? statesArgs,
+		Action<string> onAssistantMessage,
+		CancellationToken cancellationToken)
 	{
-		var states = args as WebClients.ShopWare.Models.State[];
+		var states = statesArgs as WebClients.ShopWare.Models.State[];
 
-		SelectNextWorkflow(conversationStatus, states);
+		SelectNextShopinBitWorkflow(conversationStatus, states);
+
 		WorkflowValidator.Signal(false);
 		RunNoInputWorkflows(onAssistantMessage);
 
@@ -90,170 +90,52 @@ public partial class ShopinBitWorkflowManagerViewModel : ReactiveObject
 		{
 			if (CurrentWorkflow.IsCompleted)
 			{
-				SelectNextWorkflow(null, cancellationToken);
+				SelectNextShopinBitWorkflow(null, cancellationToken);
 			}
 		}
 
 		return true;
 	}
 
-	private Workflow? GetWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
+	private Workflow? GetShopinBitWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
 	{
 		switch (conversationStatus)
 		{
 			case "Started":
-				return new InitialWorkflow(_workflowValidator, _countries);
+				return new InitialWorkflow(WorkflowValidator, _countries);
 
 			case "OfferReceived":
-				return new DeliveryWorkflow(_workflowValidator, states);
+				return new DeliveryWorkflow(WorkflowValidator, states);
 
 			case "PaymentDone":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "PaymentConfirmed":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "OfferAccepted":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "InvoiceReceived":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "InvoiceExpired":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "InvoicePaidAfterExpiration":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "Shipped":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "Finished":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			case "Support":
-				return new SupportChatWorkflow(_workflowValidator);
+				return new SupportChatWorkflow(WorkflowValidator);
 
 			default:
 				return null;
 		}
-	}
-
-	public void ResetWorkflow()
-	{
-		if (_currentWorkflow?.CanCancel() ?? true)
-		{
-			CurrentWorkflow = null;
-		}
-	}
-
-	public void RunNoInputWorkflows(Action<string> onAssistantMessage)
-	{
-		if (CurrentWorkflow is null)
-		{
-			return;
-		}
-
-		while (true)
-		{
-			var peekStep = CurrentWorkflow.PeekNextStep();
-			if (peekStep is null)
-			{
-				break;
-			}
-
-			var nextStep = CurrentWorkflow.ExecuteNextStep();
-			if (nextStep is null)
-			{
-				continue;
-			}
-
-			if (nextStep.UserInputValidator.CanDisplayMessage())
-			{
-				var message = nextStep.UserInputValidator.GetFinalMessage();
-				if (message is not null)
-				{
-					onAssistantMessage(message);
-				}
-			}
-
-			if (nextStep.RequiresUserInput)
-			{
-				break;
-			}
-
-			if (!nextStep.UserInputValidator.OnCompletion())
-			{
-				break;
-			}
-		}
-	}
-
-	public bool RunInputWorkflows(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
-	{
-		var states = args as WebClients.ShopWare.Models.State[];
-
-		WorkflowValidator.Signal(false);
-
-		if (CurrentWorkflow is null)
-		{
-			return false;
-		}
-
-		if (CurrentWorkflow.CurrentStep is not null)
-		{
-			if (!CurrentWorkflow.CurrentStep.UserInputValidator.OnCompletion())
-			{
-				return false;
-			}
-
-			if (CurrentWorkflow.CurrentStep.UserInputValidator.CanDisplayMessage())
-			{
-				var message = CurrentWorkflow.CurrentStep.UserInputValidator.GetFinalMessage();
-
-				if (message is not null)
-				{
-					onUserMessage(message);
-				}
-			}
-		}
-
-		if (CurrentWorkflow.IsCompleted)
-		{
-			// TODO: Handle agent conversationStatus?
-			SelectNextWorkflow(null, cancellationToken, states, onAssistantMessage);
-			return false;
-		}
-
-		var nextStep = CurrentWorkflow.ExecuteNextStep();
-		if (nextStep is null)
-		{
-			// TODO: Handle error?
-			return false;
-		}
-
-		if (!nextStep.UserInputValidator.OnCompletion())
-		{
-			return false;
-		}
-
-		if (!nextStep.RequiresUserInput)
-		{
-			if (nextStep.UserInputValidator.CanDisplayMessage())
-			{
-				var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
-				if (nextMessage is not null)
-				{
-					onAssistantMessage(nextMessage);
-				}
-			}
-		}
-
-		if (nextStep.IsCompleted)
-		{
-			RunNoInputWorkflows(onAssistantMessage);
-		}
-
-		return true;
 	}
 }

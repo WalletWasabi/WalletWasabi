@@ -122,7 +122,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						// We should lookup for the unbound order and assign its BackendId
 						// and update it with the data in the conversation.
 						var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-						unboundOrder.WorkflowManager.UpdateId(e.Conversation.Id); // The order is no longer unbound ;)
+						unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
 
 						// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 						await CreateAndAddEmptyOrderAsync(_cts.Token);
@@ -206,7 +206,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			this,
 			cancellationToken);
 
-		order.WorkflowManager.UpdateId(conversation.Id);
+		order.WorkflowManager.UpdateConversationId(conversation.Id);
 
 		var orderMessages = CreateMessages(conversation);
 		order.UpdateMessages(orderMessages);
