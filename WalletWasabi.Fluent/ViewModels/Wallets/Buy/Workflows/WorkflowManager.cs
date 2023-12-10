@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class WorkflowManager : ReactiveObject
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private Workflow? _currentWorkflow;
 
 	public WorkflowState WorkflowState { get; } = new WorkflowState();

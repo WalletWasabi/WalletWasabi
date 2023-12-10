@@ -12,9 +12,6 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	private readonly BehaviorSubject<bool> _idChangedSubject;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private Workflow? _currentWorkflow;
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;
 
 	public ShopinBitWorkflowManager(string walletId, Country[] countries)
@@ -52,7 +49,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 		if (conversationStatus is not null)
 		{
-			if (_currentWorkflow?.CanCancel() ?? true)
+			if (CurrentWorkflow?.CanCancel() ?? true)
 			{
 				CurrentWorkflow = GetShopinBitWorkflowFromConversation(conversationStatus, states);
 				return true;
@@ -61,7 +58,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 			return false;
 		}
 
-		CurrentWorkflow = _currentWorkflow switch
+		CurrentWorkflow = CurrentWorkflow switch
 		{
 			null => new InitialWorkflow(WorkflowState, _countries),
 			InitialWorkflow => new SupportChatWorkflow(WorkflowState),
