@@ -100,43 +100,20 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 
 	private Workflow? GetShopinBitWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
 	{
-		switch (conversationStatus)
+		return conversationStatus switch
 		{
-			case "Started":
-				return new InitialWorkflow(WorkflowValidator, _countries);
-
-			case "OfferReceived":
-				return new DeliveryWorkflow(WorkflowValidator, states);
-
-			case "PaymentDone":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "PaymentConfirmed":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "OfferAccepted":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "InvoiceReceived":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "InvoiceExpired":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "InvoicePaidAfterExpiration":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "Shipped":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "Finished":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			case "Support":
-				return new SupportChatWorkflow(WorkflowValidator);
-
-			default:
-				return null;
-		}
+			"Started" => new InitialWorkflow(WorkflowValidator, _countries),
+			"OfferReceived" => new DeliveryWorkflow(WorkflowValidator, states),
+			"PaymentDone" => new SupportChatWorkflow(WorkflowValidator),
+			"PaymentConfirmed" => new SupportChatWorkflow(WorkflowValidator),
+			"OfferAccepted" => new SupportChatWorkflow(WorkflowValidator),
+			"InvoiceReceived" => new SupportChatWorkflow(WorkflowValidator),
+			"InvoiceExpired" => new SupportChatWorkflow(WorkflowValidator),
+			"InvoicePaidAfterExpiration" => new SupportChatWorkflow(WorkflowValidator),
+			"Shipped" => new SupportChatWorkflow(WorkflowValidator),
+			"Finished" => new SupportChatWorkflow(WorkflowValidator),
+			"Support" => new SupportChatWorkflow(WorkflowValidator),
+			_ => null
+		};
 	}
 }
