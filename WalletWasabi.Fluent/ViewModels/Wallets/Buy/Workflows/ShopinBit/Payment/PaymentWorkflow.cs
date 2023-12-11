@@ -44,6 +44,4 @@ public sealed partial class PaymentWorkflow : Workflow
 
 		CreateCanEditObservable();
 	}
-
-	public override WorkflowRequest GetResult() => _request;
 }

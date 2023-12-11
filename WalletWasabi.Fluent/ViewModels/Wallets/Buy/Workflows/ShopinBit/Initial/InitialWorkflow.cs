@@ -7,12 +7,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class InitialWorkflow : Workflow
 {
-	private readonly InitialWorkflowRequest _request;
-
 	public InitialWorkflow(WorkflowState workflowState, Country[] countries)
 	{
-		_request = new InitialWorkflowRequest();
-
 		var privacyPolicyUrl = "https://shopinbit.com/Information/Privacy-Policy/";
 
 		Steps = new List<WorkflowStep>
@@ -41,7 +37,6 @@ public sealed partial class InitialWorkflow : Workflow
 			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
 					workflowState,
-					_request,
 					ChatMessageMetaData.ChatMessageTag.AssistantType)),
 			// Assistant greeting, min order limit
 			new(false,
@@ -57,7 +52,6 @@ public sealed partial class InitialWorkflow : Workflow
 				userInputValidator: new LocationInputValidator(
 					workflowState,
 					countries,
-					_request,
 					ChatMessageMetaData.ChatMessageTag.Country)),
 			// What
 			new (false,
@@ -75,7 +69,6 @@ public sealed partial class InitialWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowState,
-					_request,
 					new LinkViewModel
 					{
 						Link = privacyPolicyUrl,
@@ -88,9 +81,15 @@ public sealed partial class InitialWorkflow : Workflow
 		CreateCanEditObservable();
 	}
 
+	public BuyAnythingClient.Product? Product { get; set; }
+
+	public Country? Location { get; set; }
+
+	public bool HasAcceptedPrivacyPolicy { get; set; }
+
 	private string GetWithinHours()
 	{
-		return _request.Product switch
+		return Product switch
 		{
 			BuyAnythingClient.Product.ConciergeRequest => "24-48 hours",
 			BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
@@ -101,12 +100,10 @@ public sealed partial class InitialWorkflow : Workflow
 
 	private string GetAssistantName()
 	{
-		return (_request.Product is not null) switch
+		return (Product is not null) switch
 		{
-			true => ProductHelper.GetDescription(_request.Product.Value),
+			true => ProductHelper.GetDescription(Product.Value),
 			_ => "Assistant"
 		};
 	}
-
-	public override WorkflowRequest GetResult() => _request;
 }
