@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
@@ -14,8 +15,7 @@
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
     <SelectingItemsControl x:Name="MessagesItemsControl"
-                           Items="{Binding Messages}"
-                           SelectedItem="{Binding SelectedMessage}">
+                           Items="{Binding Messages}">
       <SelectingItemsControl.Styles>
         <Style Selector="ContentPresenter > c|PreviewMessageItem">
           <Setter Property="Margin" Value="5 5 5 0" />
@@ -83,6 +83,11 @@
           </c:PreviewMessageItem>
         </DataTemplate>
       </SelectingItemsControl.DataTemplates>
+
+      <Interaction.Behaviors>
+        <behaviors:ScrollToNewItemBehavior />
+      </Interaction.Behaviors>
+
     </SelectingItemsControl>
   </ScrollViewer>
 </UserControl>
