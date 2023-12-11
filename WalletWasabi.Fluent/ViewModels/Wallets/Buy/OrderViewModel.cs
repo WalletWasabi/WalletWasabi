@@ -387,14 +387,14 @@ public partial class OrderViewModel : ReactiveObject
 						.FirstOrDefault(x => x.Desc == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.AssistantType));
 
 					if (country is not { } ||
-					    product is not { })
+						product is not { })
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
 
 					await buyAnythingManager.StartNewConversationAsync(
 						WorkflowManager.WalletId,
-						country.Id,
+						country.Name,
 						product.Value.Item1,
 						chatMessages,
 						metaData,
@@ -403,14 +403,14 @@ public partial class OrderViewModel : ReactiveObject
 					break;
 				}
 			case DeliveryWorkflow:
-			{
-				var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
-				var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
-				var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
-				var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
-				var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
-				var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
-				var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+				{
+					var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
+					var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
+					var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
+					var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
+					var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
+					var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
+					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
 
 					if (firstName is not { } ||
 						lastName is not { } ||
