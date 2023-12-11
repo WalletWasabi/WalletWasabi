@@ -6,6 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Dialogs;
 [NavigationMetaData(Title = "Edit Message", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class EditMessageDialogViewModel : DialogViewModelBase<string?>
 {
+	[AutoNotify] private string? _message;
+
 	public EditMessageDialogViewModel(string message)
 	{
 		Message = message;
@@ -15,6 +17,4 @@ public partial class EditMessageDialogViewModel : DialogViewModelBase<string?>
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
-
-	public string Message { get; }
 }
