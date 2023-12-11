@@ -30,6 +30,7 @@ public partial class OrderViewModel : ReactiveObject
 	private ConversationMetaData _metaData;
 	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
+	[AutoNotify] private string _title;
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
@@ -44,7 +45,7 @@ public partial class OrderViewModel : ReactiveObject
 		CancellationToken cancellationToken)
 	{
 		Id = id;
-		Title = metaData?.Title;
+		_title = metaData?.Title;
 
 		_uiContext = uiContext;
 		_metaData = metaData;
@@ -101,8 +102,6 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ConversationId BackendId => WorkflowManager.Id;
 
-	public string Title { get; }
-
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
 	public ShopinBitWorkflowManager WorkflowManager { get; }
@@ -155,6 +154,7 @@ public partial class OrderViewModel : ReactiveObject
 		}
 
 		_metaData = conversationMetaData;
+		Title = _metaData.Title;
 
 		if (_metaData.Country is { } c)
 		{
