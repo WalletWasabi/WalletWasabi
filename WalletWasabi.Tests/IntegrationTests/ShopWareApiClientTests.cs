@@ -110,7 +110,7 @@ public class ShopWareApiClientTests
 		var conversation = conversations.Last();
 		var argentina = bam.Countries.First(c => c.Name == "Argentina");
 		var stateId = "none";
-		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Id, CancellationToken.None);
+		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Name, CancellationToken.None);
 		// Uncomment if you want to create a new conversation. Otherwise you can test existing ones.
 		// await bam.StartNewConversationAsync("1", BuyAnythingClient.Product.ConciergeRequest, "From StartNewConversationAsync", CancellationToken.None).ConfigureAwait(false);
 

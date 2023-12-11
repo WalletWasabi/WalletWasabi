@@ -319,7 +319,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryId, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryName, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -328,6 +328,9 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
+
+		string countryId = Countries.Single(c => c.Name == countryName).Id;
+
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
 		track.Conversation = track.Conversation with

@@ -381,7 +381,7 @@ public partial class OrderViewModel : ReactiveObject
 			case InitialWorkflowRequest initialWorkflowRequest:
 				{
 					if (initialWorkflowRequest.Location is not { } location ||
-					    initialWorkflowRequest.Product is not { } product)
+						initialWorkflowRequest.Product is not { } product)
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
@@ -396,42 +396,42 @@ public partial class OrderViewModel : ReactiveObject
 					break;
 				}
 			case DeliveryWorkflowRequest:
-			{
-				var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
-				var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
-				var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
-				var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
-				var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
-				var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
-				var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
-
-				if (firstName is not { } ||
-				    lastName is not { } ||
-				    streetName is not { } ||
-				    houseNumber is not { } ||
-				    postalCode is not { } ||
-				    city is not { } ||
-				    country is not { }
-				   )
 				{
-					throw new ArgumentException($"Argument was not provided!");
+					var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
+					var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
+					var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
+					var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
+					var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
+					var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
+					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+
+					if (firstName is not { } ||
+						lastName is not { } ||
+						streetName is not { } ||
+						houseNumber is not { } ||
+						postalCode is not { } ||
+						city is not { } ||
+						country is not { }
+					   )
+					{
+						throw new ArgumentException($"Argument was not provided!");
+					}
+
+					var state = _statesSource.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.State));
+
+					await buyAnythingManager.AcceptOfferAsync(
+						WorkflowManager.Id,
+						firstName,
+						lastName,
+						streetName,
+						houseNumber,
+						postalCode,
+						city,
+						state is not null ? state.Id : "",
+						country.Name,
+						cancellationToken);
+					break;
 				}
-
-				var state = _statesSource.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.State));
-
-				await buyAnythingManager.AcceptOfferAsync(
-					WorkflowManager.Id,
-					firstName,
-					lastName,
-					streetName,
-					houseNumber,
-					postalCode,
-					city,
-					state is not null ? state.Id : "",
-					country.Id,
-					cancellationToken);
-				break;
-			}
 		}
 	}
 
