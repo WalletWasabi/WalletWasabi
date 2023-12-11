@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -34,7 +35,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.FirstName)),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
@@ -43,7 +45,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.LastName)),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
@@ -52,7 +55,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.StreetName)),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
@@ -61,7 +65,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.HouseNumber)),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
@@ -70,7 +75,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.PostalCode)),
 			// City
 			new (false,
 				new DefaultInputValidator(
@@ -79,7 +85,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.City)),
 			// State
 			new (false,
 				new DefaultInputValidator(
@@ -90,7 +97,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 				userInputValidator: new StateInputValidator(
 					workflowState,
 					states,
-					_request),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.State),
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,

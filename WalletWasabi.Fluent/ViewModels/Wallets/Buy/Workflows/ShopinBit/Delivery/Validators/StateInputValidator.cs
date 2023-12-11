@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -15,8 +16,9 @@ public partial class StateInputValidator : InputValidator
 	public StateInputValidator(
 		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states,
-		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowState, null, "Type here...", "Next")
+		DeliveryWorkflowRequest deliveryWorkflowRequest,
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Type here...", "Next", tag: tag)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_statesSource = states;

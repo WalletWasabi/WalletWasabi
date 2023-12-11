@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -15,8 +16,9 @@ public partial class ProductInputValidator : InputValidator
 
 	public ProductInputValidator(
 		WorkflowState workflowState,
-		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowState, null, "Enter your location...", "Send")
+		InitialWorkflowRequest initialWorkflowRequest,
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Enter your location...", "Send", tag)
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 

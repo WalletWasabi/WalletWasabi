@@ -1,4 +1,5 @@
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -8,8 +9,9 @@ public partial class LastNameInputValidator : TextInputInputValidator
 
 	public LastNameInputValidator(
 		WorkflowState workflowState,
-		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowState, null, "Type here...")
+		DeliveryWorkflowRequest deliveryWorkflowRequest,
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Type here...", tag: tag)
 	{
 		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 

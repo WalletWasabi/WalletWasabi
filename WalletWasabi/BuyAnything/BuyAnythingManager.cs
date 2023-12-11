@@ -30,20 +30,20 @@ public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag)
 
 	public enum ChatMessageTag
 	{
-		None,
+		None = 0,
 
-		AssistantType,
-		Country,
+		AssistantType = 11,
+		Country = 12,
 
-		FirstName,
-		LastName,
-		StreetName,
-		HouseNumber,
-		PostalCode,
-		City,
-		State,
+		FirstName = 21,
+		LastName = 22,
+		StreetName = 23,
+		HouseNumber = 24,
+		PostalCode = 25,
+		City = 26,
+		State = 27,
 
-		PaymentInfo,
+		PaymentInfo = 31,
 	}
 }
 

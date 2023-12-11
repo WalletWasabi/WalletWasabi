@@ -41,7 +41,8 @@ public sealed partial class InitialWorkflow : Workflow
 			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
 					workflowState,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.AssistantType)),
 			// Assistant greeting, min order limit
 			new(false,
 				new DefaultInputValidator(
@@ -56,7 +57,8 @@ public sealed partial class InitialWorkflow : Workflow
 				userInputValidator: new LocationInputValidator(
 					workflowState,
 					countries,
-					_request)),
+					_request,
+					ChatMessageMetaData.ChatMessageTag.Country)),
 			// What
 			new (false,
 				new DefaultInputValidator(

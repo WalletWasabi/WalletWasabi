@@ -16,8 +16,9 @@ public partial class LocationInputValidator : InputValidator
 	public LocationInputValidator(
 		WorkflowState workflowState,
 		Country[] countries,
-		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowState, null, "Enter your location...", "Next")
+		InitialWorkflowRequest initialWorkflowRequest,
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Enter your location...", "Next", tag)
 	{
 		_initialWorkflowRequest = initialWorkflowRequest;
 		_countriesSource = countries;
