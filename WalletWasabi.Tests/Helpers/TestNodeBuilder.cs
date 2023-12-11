@@ -16,22 +16,18 @@ public static class TestNodeBuilder
 	public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
-
 		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
+
+		return await CoreNode.CreateAsync(nodeParameters, CancellationToken.None);
 	}
 
 	public static async Task<CoreNode> CreateForHeavyConcurrencyAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
-
 		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
 		nodeParameters.RpcWorkQueue = 32;
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
+
+		return await CoreNode.CreateAsync(nodeParameters, CancellationToken.None);
 	}
 
 	private static CoreNodeParams CreateDefaultCoreNodeParams(MempoolService mempoolService, string dataDir)
