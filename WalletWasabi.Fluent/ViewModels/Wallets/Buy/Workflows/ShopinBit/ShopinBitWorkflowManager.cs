@@ -61,7 +61,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 		CurrentWorkflow = CurrentWorkflow switch
 		{
 			null => new InitialWorkflow(WorkflowState, _countries),
-			InitialWorkflow => new DeliveryWorkflow(WorkflowState, states),
+			InitialWorkflow => new SupportChatWorkflow(WorkflowState),
 			DeliveryWorkflow => new SupportChatWorkflow(WorkflowState),
 			SupportChatWorkflow => new SupportChatWorkflow(WorkflowState),
 			_ => CurrentWorkflow
