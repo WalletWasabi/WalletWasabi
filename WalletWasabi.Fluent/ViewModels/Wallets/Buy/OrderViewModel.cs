@@ -410,7 +410,7 @@ public partial class OrderViewModel : ReactiveObject
 					var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
 					var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
 					var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
-					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+					var country = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
 
 					if (firstName is not { } ||
 						lastName is not { } ||
