@@ -237,9 +237,10 @@ public partial class OrderViewModel : ReactiveObject
 			if (!string.IsNullOrEmpty(editedMessage))
 			{
 				// TODO:
-				currentWorkflow.TryToEditStep(workflowStep);
-
-				userMessage.Message = editedMessage;
+				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
+				{
+					userMessage.Message = editedMessage;
+				}
 			}
 		};
 

@@ -100,9 +100,10 @@ public abstract partial class Workflow : ReactiveObject
 		return null;
 	}
 
-	public virtual void TryToEditStep(WorkflowStep step)
+	public virtual bool TryToEditStep(WorkflowStep step, string message)
 	{
-		// TODO:
+		// TODO: Make sure WorkflowRequest is in valid state and dependant steps are updated.
+		return true;
 	}
 
 	public abstract WorkflowRequest GetResult();

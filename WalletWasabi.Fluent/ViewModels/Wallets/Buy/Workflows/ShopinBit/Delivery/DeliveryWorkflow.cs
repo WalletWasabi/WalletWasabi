@@ -126,10 +126,14 @@ public sealed partial class DeliveryWorkflow : Workflow
 
 	public override WorkflowRequest GetResult() => _request;
 
-	public override void TryToEditStep(WorkflowStep step)
+	public override bool TryToEditStep(WorkflowStep step, string message)
 	{
-		base.TryToEditStep(step);
+		var result = base.TryToEditStep(step, message);
 
 		// TODO: Edit step message.
+
+		step.Update(message);
+
+		return result;
 	}
 }
