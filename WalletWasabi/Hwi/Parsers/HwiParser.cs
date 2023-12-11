@@ -17,7 +17,7 @@ public static class HwiParser
 	/// <summary>
 	/// Parse the wallet's path from the response.
 	/// </summary>
-	/// <param name="path">The wallet path, what come from hwi enumerate.</param>
+	/// <param name="path">The wallet path which come from HWI enumerate command.</param>
 	/// <param name="model">The hardware wallet model.</param>
 	/// <returns>Is matching with the predefined path pattern(true/false)</returns>
 	public static bool ValidatePathString(HardwareWalletModels model, string path)
