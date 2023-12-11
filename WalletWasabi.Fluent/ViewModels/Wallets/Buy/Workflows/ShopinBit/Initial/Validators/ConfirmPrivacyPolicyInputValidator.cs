@@ -5,20 +5,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 {
-	private readonly InitialWorkflowRequest _initialWorkflowRequest;
-
 	[AutoNotify] private bool _hasAcceptedPrivacyPolicy;
 	[AutoNotify] private LinkViewModel _link;
 
 	public ConfirmPrivacyPolicyInputValidator(
 		WorkflowState workflowState,
-		InitialWorkflowRequest initialWorkflowRequest,
 		LinkViewModel link,
 		Func<string?> message,
 		string content = "Accept")
 		: base(workflowState, message, null, content)
 	{
-		_initialWorkflowRequest = initialWorkflowRequest;
 		_link = link;
 
 		this.WhenAnyValue(x => x.HasAcceptedPrivacyPolicy)
@@ -34,8 +30,6 @@ public partial class ConfirmPrivacyPolicyInputValidator : InputValidator
 	{
 		if (IsValid())
 		{
-			_initialWorkflowRequest.HasAcceptedPrivacyPolicy = HasAcceptedPrivacyPolicy;
-
 			return Message;
 		}
 

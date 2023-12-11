@@ -20,9 +20,32 @@ namespace WalletWasabi.BuyAnything;
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
-public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread);
+public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
 
 public record Country(string Id, string Name);
+
+public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag)
+{
+	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
+
+	public enum ChatMessageTag
+	{
+		None = 0,
+
+		AssistantType = 11,
+		Country = 12,
+
+		FirstName = 21,
+		LastName = 22,
+		StreetName = 23,
+		HouseNumber = 24,
+		PostalCode = 25,
+		City = 26,
+		State = 27,
+
+		PaymentInfo = 31,
+	}
+}
 
 [Flags]
 internal enum ServerEvent
@@ -259,19 +282,20 @@ public class BuyAnythingManager : PeriodicRunner
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryId, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	public async Task StartNewConversationAsync(string walletId, string countryName, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		string countryId = Countries.Single(c => c.Name == countryName).Id;
 		var fullChat = new Chat(chatMessages);
 		var credential = GenerateRandomCredential();
 		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, fullChat.ToText(), cancellationToken)
 			.ConfigureAwait(false);
 		var conversation = new Conversation(
-				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-				fullChat,
-				OrderStatus.Open,
-				ConversationStatus.Started,
-				metaData);
+			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+			fullChat,
+			OrderStatus.Open,
+			ConversationStatus.Started,
+			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
@@ -294,7 +318,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryId, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryName, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -303,6 +327,9 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
+
+		string countryId = Countries.Single(c => c.Name == countryName).Id;
+
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
 		var newConversation = track.Conversation with
 		{

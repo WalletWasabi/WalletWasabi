@@ -1,4 +1,5 @@
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -13,19 +14,24 @@ public abstract partial class InputValidator : ReactiveObject
 		WorkflowState workflowState,
 		Func<string?>? messageProvider,
 		string? watermark,
-		string? content)
+		string? content,
+		ChatMessageMetaData.ChatMessageTag tag = ChatMessageMetaData.ChatMessageTag.None)
 	{
 		_messageProvider = messageProvider;
 		_watermark = watermark;
 		_content = content;
 		WorkflowState = workflowState;
+		Tag = tag;
 	}
 
 	protected WorkflowState WorkflowState { get; }
 
+	public virtual ChatMessageMetaData.ChatMessageTag Tag { get; }
+
 	public abstract bool IsValid();
 
 	public abstract string? GetFinalMessage();
+
 
 	public virtual bool CanDisplayMessage()
 	{

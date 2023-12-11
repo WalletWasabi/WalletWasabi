@@ -1,12 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class StateInputValidator : InputValidator
 {
-	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
 	private WebClients.ShopWare.Models.State[] _statesSource;
 
 	[AutoNotify] private ObservableCollection<string> _states;
@@ -15,10 +15,9 @@ public partial class StateInputValidator : InputValidator
 	public StateInputValidator(
 		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states,
-		DeliveryWorkflowRequest deliveryWorkflowRequest)
-		: base(workflowState, null, "Type here...", "Next")
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Type here...", "Next", tag: tag)
 	{
-		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_statesSource = states;
 		_states = new ObservableCollection<string>(_statesSource.Select(x => x.Name));
 		_state = new ObservableCollection<string>();
@@ -37,10 +36,6 @@ public partial class StateInputValidator : InputValidator
 	{
 		if (IsValid())
 		{
-			var state = _statesSource[_states.IndexOf(_state[0])];
-
-			_deliveryWorkflowRequest.State = state;
-
 			return _state[0];
 		}
 

@@ -106,8 +106,6 @@ public abstract partial class Workflow : ReactiveObject
 		return true;
 	}
 
-	public abstract WorkflowRequest GetResult();
-
 	protected virtual void CreateCanEditObservable()
 	{
 		CanEditObservable = Observable.Return(false);

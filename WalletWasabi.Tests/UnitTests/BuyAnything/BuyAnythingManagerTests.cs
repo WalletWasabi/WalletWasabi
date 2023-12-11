@@ -68,7 +68,7 @@ public class BuyAnythingManagerTests
 		}
 
 		await buyAnythingManager.AcceptOfferAsync(conversation.Id, "Lucas", "Ontivero", "Carlos III", "12345", "5000",
-			"Cordoba", stateId, argentina.Id, CancellationToken.None);
+			"Cordoba", stateId, argentina.Name, CancellationToken.None);
 
 		while (conversation.ConversationStatus != ConversationStatus.PaymentConfirmed)
 		{
@@ -81,7 +81,8 @@ public class BuyAnythingManagerTests
 			await Task.Delay(1000);
 			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
 		}
-		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false)), CancellationToken.None);
+
+		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false, ChatMessageMetaData.Empty)), CancellationToken.None);
 	}
 
 	private MockShopWareApiClient PreconfiguredShopWareApiClient()

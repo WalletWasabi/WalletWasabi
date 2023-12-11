@@ -4,20 +4,17 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class DeliveryWorkflow : Workflow
 {
-	private readonly DeliveryWorkflowRequest _request;
-
 	public DeliveryWorkflow(
 		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states)
 	{
-		_request = new DeliveryWorkflowRequest();
-
 		var termsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
 
 		Steps = new List<WorkflowStep>
@@ -35,8 +32,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
-					_request),
-				x => _request.FirstName = x),
+					ChatMessageMetaData.ChatMessageTag.FirstName),
+				null),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
@@ -45,8 +42,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
-					_request),
-				x => _request.LastName = x),
+					ChatMessageMetaData.ChatMessageTag.LastName),
+				null),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
@@ -55,8 +52,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
-					_request),
-				x => _request.StreetName = x),
+					ChatMessageMetaData.ChatMessageTag.StreetName),
+				null),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
@@ -65,8 +62,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
-					_request),
-				x => _request.HouseNumber = x),
+					ChatMessageMetaData.ChatMessageTag.HouseNumber),
+				null),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
@@ -75,8 +72,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
-					_request),
-				x => _request.PostalCode = x),
+					ChatMessageMetaData.ChatMessageTag.PostalCode),
+				null),
 			// City
 			new (false,
 				new DefaultInputValidator(
@@ -85,8 +82,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
-					_request),
-				x => _request.City = x),
+					ChatMessageMetaData.ChatMessageTag.City),
+				null),
 			// State
 			new (false,
 				new DefaultInputValidator(
@@ -97,8 +94,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 				userInputValidator: new StateInputValidator(
 					workflowState,
 					states,
-					_request),
-				x => _request.State = states.FirstOrDefault(y => y.Name == x),
+					ChatMessageMetaData.ChatMessageTag.State),
+				null,
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,
@@ -108,7 +105,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowState,
-					_request,
 					new LinkViewModel
 					{
 						Link = termsOfServiceUrl,
@@ -131,8 +127,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 	{
 		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
 	}
-
-	public override WorkflowRequest GetResult() => _request;
 
 	public override bool TryToEditStep(WorkflowStep step, string message)
 	{

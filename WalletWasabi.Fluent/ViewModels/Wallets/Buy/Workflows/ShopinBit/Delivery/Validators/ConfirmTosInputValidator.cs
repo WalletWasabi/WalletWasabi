@@ -5,20 +5,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ConfirmTosInputValidator : InputValidator
 {
-	private readonly DeliveryWorkflowRequest _deliveryWorkflowRequest;
-
 	[AutoNotify] private bool _hasAcceptedTermsOfService;
 	[AutoNotify] private LinkViewModel _link;
 
 	public ConfirmTosInputValidator(
 		WorkflowState workflowState,
-		DeliveryWorkflowRequest deliveryWorkflowRequest,
 		LinkViewModel link,
 		Func<string?> message,
 		string content)
 		: base(workflowState, message, null, content)
 	{
-		_deliveryWorkflowRequest = deliveryWorkflowRequest;
 		_link = link;
 
 		this.WhenAnyValue(x => x.HasAcceptedTermsOfService)
@@ -34,8 +30,6 @@ public partial class ConfirmTosInputValidator : InputValidator
 	{
 		if (IsValid())
 		{
-			_deliveryWorkflowRequest.HasAcceptedTermsOfService = HasAcceptedTermsOfService;
-
 			return Message;
 		}
 
