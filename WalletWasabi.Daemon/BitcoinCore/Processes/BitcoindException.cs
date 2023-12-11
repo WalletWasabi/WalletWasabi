@@ -1,3 +1,5 @@
+using System;
+
 namespace WalletWasabi.BitcoinCore.Processes;
 
 public class BitcoindException : Exception
