@@ -45,6 +45,4 @@ public sealed partial class PackageWorkflow : Workflow
 
 		CreateCanEditObservable();
 	}
-
-	public override WorkflowRequest GetResult() => _request;
 }

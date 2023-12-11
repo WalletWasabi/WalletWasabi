@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -374,36 +375,42 @@ public partial class OrderViewModel : ReactiveObject
 			return;
 		}
 
-		var request = WorkflowManager.CurrentWorkflow.GetResult();
-
-		switch (request)
+		switch (WorkflowManager.CurrentWorkflow)
 		{
-			case InitialWorkflowRequest initialWorkflowRequest:
+			case InitialWorkflow:
 				{
-					if (initialWorkflowRequest.Location is not { } location ||
-						initialWorkflowRequest.Product is not { } product)
+					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+
+					// TODO: Ugly
+					(BuyAnythingClient.Product, string)? product = Enum.GetValues<BuyAnythingClient.Product>()
+						.Select(x => (Product: x, Desc: ProductHelper.GetDescription(x)))
+						.FirstOrDefault(x => x.Desc == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.AssistantType));
+
+					if (country is not { } ||
+					    product is not { })
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
 
 					await buyAnythingManager.StartNewConversationAsync(
 						WorkflowManager.WalletId,
-						location.Id,
-						product,
+						country.Id,
+						product.Value.Item1,
 						chatMessages,
 						metaData,
 						cancellationToken);
+
 					break;
 				}
-			case DeliveryWorkflowRequest:
-				{
-					var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
-					var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
-					var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
-					var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
-					var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
-					var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
-					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+			case DeliveryWorkflow:
+			{
+				var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
+				var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
+				var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
+				var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
+				var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
+				var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
+				var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
 
 					if (firstName is not { } ||
 						lastName is not { } ||
