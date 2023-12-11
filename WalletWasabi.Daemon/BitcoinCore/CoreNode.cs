@@ -24,7 +24,9 @@ namespace WalletWasabi.Daemon.BitcoinCore;
 
 public class CoreNode
 {
-	public CoreNode(string dataDir, Network network, MempoolService mempoolService, CoreConfig config, EndPoint p2pEndPoint, EndPoint rpcEndPoint, IRPCClient rpcClient, string userAgent)
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService, CoreConfig config, EndPoint p2pEndPoint, EndPoint rpcEndPoint, IRPCClient rpcClient)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	{
 		DataDir = dataDir;
 		Network = network;
@@ -33,20 +35,18 @@ public class CoreNode
 		P2pEndPoint = p2pEndPoint;
 		RpcEndPoint = rpcEndPoint;
 		RpcClient = rpcClient;
-		Bridge = new BitcoindRpcProcessBridge(rpcClient, dataDir, printToConsole: false);
-		P2pNode = new P2pNode(Network, P2pEndPoint, MempoolService, userAgent);
 	}
 
 	public EndPoint P2pEndPoint { get; }
 	public EndPoint RpcEndPoint { get; }
 	public IRPCClient RpcClient { get; }
-	private BitcoindRpcProcessBridge Bridge { get; }
+	private BitcoindRpcProcessBridge Bridge { get; set; }
 	public string DataDir { get; }
 	public Network Network { get; }
 	public MempoolService MempoolService { get; }
 
 	public CoreConfig Config { get; }
-	public P2pNode P2pNode { get; }
+	public P2pNode P2pNode { get; private set; }
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
@@ -106,7 +106,7 @@ public class CoreNode
 			coreNodeParams.Network);
 		CachedRpcClient cachedRpcClient = new(rpcClient, coreNodeParams.Cache);
 
-		CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService, coreConfig, p2pEndPoint, rpcEndPoint, cachedRpcClient, coreNodeParams.UserAgent);
+		CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService, coreConfig, p2pEndPoint, rpcEndPoint, cachedRpcClient);
 
 		if (coreNodeParams.TryRestart)
 		{
@@ -253,12 +253,14 @@ public class CoreNode
 		}
 		else
 		{
+			coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 			await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
 			Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 		}
 
 		cancel.ThrowIfCancellationRequested();
 
+		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
 		cancel.ThrowIfCancellationRequested();
