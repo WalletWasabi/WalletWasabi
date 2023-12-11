@@ -395,24 +395,29 @@ public partial class OrderViewModel : ReactiveObject
 						cancellationToken);
 					break;
 				}
-			case DeliveryWorkflowRequest deliveryWorkflowRequest:
+			case DeliveryWorkflowRequest:
 			{
-				var countryString = Messages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
-				var country = _countries.FirstOrDefault(x => x.Name == countryString);
+				var firstName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
+				var lastName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.LastName);
+				var streetName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.StreetName);
+				var houseNumber = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.HouseNumber);
+				var postalCode = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PostalCode);
+				var city = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.City);
+				var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
 
-				if (deliveryWorkflowRequest.FirstName is not { } firstName ||
-				    deliveryWorkflowRequest.LastName is not { } lastName ||
-				    deliveryWorkflowRequest.StreetName is not { } streetName ||
-				    deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
-				    deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-				    deliveryWorkflowRequest.City is not { } city ||
+				if (firstName is not { } ||
+				    lastName is not { } ||
+				    streetName is not { } ||
+				    houseNumber is not { } ||
+				    postalCode is not { } ||
+				    city is not { } ||
 				    country is not { }
 				   )
 				{
 					throw new ArgumentException($"Argument was not provided!");
 				}
 
-				var state = deliveryWorkflowRequest.State;
+				var state = _statesSource.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.State));
 
 				await buyAnythingManager.AcceptOfferAsync(
 					WorkflowManager.Id,
@@ -422,11 +427,16 @@ public partial class OrderViewModel : ReactiveObject
 					houseNumber,
 					postalCode,
 					city,
-					state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
+					state is not null ? state.Id : "",
 					country.Id,
 					cancellationToken);
 				break;
 			}
 		}
+	}
+
+	private string? GetMessageByTag(ChatMessageMetaData.ChatMessageTag tag)
+	{
+		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.Message;
 	}
 }
