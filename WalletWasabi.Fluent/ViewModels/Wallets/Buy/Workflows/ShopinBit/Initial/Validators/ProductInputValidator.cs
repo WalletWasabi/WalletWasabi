@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public partial class ProductInputValidator : InputValidator
 {
-	private readonly InitialWorkflowRequest _initialWorkflowRequest;
 	private readonly BuyAnythingClient.Product[] _productsEnum;
 
 	[AutoNotify] private ObservableCollection<string> _products;
@@ -15,11 +15,9 @@ public partial class ProductInputValidator : InputValidator
 
 	public ProductInputValidator(
 		WorkflowState workflowState,
-		InitialWorkflowRequest initialWorkflowRequest)
-		: base(workflowState, null, "Enter your location...", "Send")
+		ChatMessageMetaData.ChatMessageTag tag)
+		: base(workflowState, null, "Enter your location...", "Send", tag)
 	{
-		_initialWorkflowRequest = initialWorkflowRequest;
-
 		_productsEnum = Enum.GetValues<BuyAnythingClient.Product>();
 
 		_products = new ObservableCollection<string>(_productsEnum.Select(ProductHelper.GetDescription));
@@ -38,10 +36,6 @@ public partial class ProductInputValidator : InputValidator
 	{
 		if (IsValid())
 		{
-			var product = _productsEnum[_products.IndexOf(_product)];
-
-			_initialWorkflowRequest.Product = product;
-
 			return _product;
 		}
 

@@ -3,20 +3,17 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class DeliveryWorkflow : Workflow
 {
-	private readonly DeliveryWorkflowRequest _request;
-
 	public DeliveryWorkflow(
 		WorkflowState workflowState,
 		WebClients.ShopWare.Models.State[] states)
 	{
-		_request = new DeliveryWorkflowRequest();
-
 		var termsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
 
 		Steps = new List<WorkflowStep>
@@ -34,7 +31,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.FirstName)),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
@@ -43,7 +40,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.LastName)),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
@@ -52,7 +49,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.StreetName)),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
@@ -61,7 +58,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.HouseNumber)),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
@@ -70,7 +67,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.PostalCode)),
 			// City
 			new (false,
 				new DefaultInputValidator(
@@ -79,7 +76,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
-					_request)),
+					ChatMessageMetaData.ChatMessageTag.City)),
 			// State
 			new (false,
 				new DefaultInputValidator(
@@ -90,7 +87,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				userInputValidator: new StateInputValidator(
 					workflowState,
 					states,
-					_request),
+					ChatMessageMetaData.ChatMessageTag.State),
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,
@@ -100,7 +97,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowState,
-					_request,
 					new LinkViewModel
 					{
 						Link = termsOfServiceUrl,
@@ -123,8 +119,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 	{
 		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
 	}
-
-	public override WorkflowRequest GetResult() => _request;
 
 	public override void TryToEditStep(WorkflowStep step)
 	{

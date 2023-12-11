@@ -1,3 +1,5 @@
+using WalletWasabi.BuyAnything;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public abstract partial class TextInputInputValidator : InputValidator
@@ -6,7 +8,8 @@ public abstract partial class TextInputInputValidator : InputValidator
 		WorkflowState workflowState,
 		Func<string?>? messageProvider,
 		string? watermark,
-		string? content = "Next") : base(workflowState, messageProvider, watermark, content)
+		string? content = "Next",
+		ChatMessageMetaData.ChatMessageTag tag = ChatMessageMetaData.ChatMessageTag.None) : base(workflowState, messageProvider, watermark, content, tag)
 	{
 	}
 }
