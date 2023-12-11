@@ -502,13 +502,13 @@ public class MockedDeviceTests
 		Assert.Equal("Blockstream Jade does not support restoring via software", restore.Message);
 		Assert.Equal(HwiErrorCode.UnavailableAction, restore.ErrorCode);
 
-		var promptpin = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
-		Assert.Equal("Blockstream Jade does not need a PIN sent from the host", promptpin.Message);
-		Assert.Equal(HwiErrorCode.UnavailableAction, promptpin.ErrorCode);
+		var promptPinEx = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+		Assert.Equal("Blockstream Jade does not need a PIN sent from the host", promptPinEx.Message);
+		Assert.Equal(HwiErrorCode.UnavailableAction, promptPinEx.ErrorCode);
 
-		var sendpin = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
-		Assert.Equal("Blockstream Jade does not need a PIN sent from the host", sendpin.Message);
-		Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
+		var sendPinEx = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+		Assert.Equal("Blockstream Jade does not need a PIN sent from the host", sendPinEx.Message);
+		Assert.Equal(HwiErrorCode.UnavailableAction, sendPinEx.ErrorCode);
 
 		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
 		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
@@ -516,6 +516,7 @@ public class MockedDeviceTests
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		ExtPubKey expectedXpub1;
 		ExtPubKey expectedXpub2;
+
 		if (network == Network.TestNet)
 		{
 			expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
@@ -536,18 +537,18 @@ public class MockedDeviceTests
 		BitcoinAddress expectedAddress2;
 		if (network == Network.Main)
 		{
-			expectedAddress1 = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main);
-			expectedAddress2 = BitcoinAddress.Create("bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf", Network.Main);
+			expectedAddress1 = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", network);
+			expectedAddress2 = BitcoinAddress.Create("bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf", network);
 		}
 		else if (network == Network.TestNet)
 		{
-			expectedAddress1 = BitcoinAddress.Create("tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy", Network.TestNet);
-			expectedAddress2 = BitcoinAddress.Create("tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6", Network.TestNet);
+			expectedAddress1 = BitcoinAddress.Create("tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy", network);
+			expectedAddress2 = BitcoinAddress.Create("tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6", network);
 		}
 		else if (network == Network.RegTest)
 		{
-			expectedAddress1 = BitcoinAddress.Create("bcrt1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7pzmj3d", Network.RegTest);
-			expectedAddress2 = BitcoinAddress.Create("bcrt1qmaveee425a5xjkjcv7m6d4gth45jvtnjz7tugn", Network.RegTest);
+			expectedAddress1 = BitcoinAddress.Create("bcrt1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7pzmj3d", network);
+			expectedAddress2 = BitcoinAddress.Create("bcrt1qmaveee425a5xjkjcv7m6d4gth45jvtnjz7tugn", network);
 		}
 		else
 		{
