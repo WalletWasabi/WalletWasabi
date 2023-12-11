@@ -22,13 +22,7 @@ public static class HwiParser
 	/// <returns><c>true</c> if the path matches the model's regex, <c>false</c> otherwise.</returns>
 	public static bool ValidatePathString(HardwareWalletModels model, string path)
 	{
-		string pattern = GetPatternForModel(model);
-		return Regex.IsMatch(path, pattern);
-	}
-
-	private static string GetPatternForModel(HardwareWalletModels model)
-	{
-		return model switch
+		string pattern = model switch
 		{
 			HardwareWalletModels.Trezor_T => "^webusb:",
 			HardwareWalletModels.Trezor_1 => @"^hid:\\\\.*?vid_534c&pid_0001&mi_00",
@@ -37,6 +31,7 @@ public static class HwiParser
 			HardwareWalletModels.Jade => @"^COM\d+",
 			_ => "",
 		};
+		return Regex.IsMatch(path, pattern);
 	}
 
 	public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, [NotNullWhen(true)] out HwiException? error)
