@@ -32,7 +32,6 @@ public abstract partial class InputValidator : ReactiveObject
 
 	public abstract string? GetFinalMessage();
 
-
 	public virtual bool CanDisplayMessage()
 	{
 		return true;
