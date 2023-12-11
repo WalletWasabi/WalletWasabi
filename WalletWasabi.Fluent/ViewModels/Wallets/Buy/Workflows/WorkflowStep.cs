@@ -21,4 +21,8 @@ public partial class WorkflowStep : ReactiveObject
 	}
 
 	public bool SkipStep() => _skipStepFunc;
+
+	public virtual void Update(string message)
+	{
+	}
 }

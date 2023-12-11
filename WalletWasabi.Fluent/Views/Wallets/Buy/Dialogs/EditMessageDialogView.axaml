@@ -9,6 +9,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.Dialogs.EditMessageDialogView">
   <c:ContentArea Title="{Binding Title}"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <!-- TODO: Use templates from OrderInputView -->
     <TextBox Text="{Binding Message}" />

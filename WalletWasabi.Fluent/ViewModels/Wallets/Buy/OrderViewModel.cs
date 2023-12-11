@@ -226,20 +226,30 @@ public partial class OrderViewModel : ReactiveObject
 		var canEditObservable = currentWorkflow.CanEditObservable;
 		var workflowStep = currentWorkflow.CurrentStep;
 
+		UserMessageViewModel? userMessage = null;
+
 		var editMessageAsync = async () =>
 		{
-			var confirmed = await _uiContext.Navigate().To().EditMessageDialog(message).GetResultAsync();
+			if (userMessage is null)
+			{
+				return;
+			}
 
-			if (confirmed)
+			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(message).GetResultAsync();
+
+			if (!string.IsNullOrEmpty(editedMessage))
 			{
 				// TODO:
-				currentWorkflow.TryToEditStep(workflowStep);
+				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
+				{
+					userMessage.Message = editedMessage;
+				}
 			}
 		};
 
 		var editMessageCommand = ReactiveCommand.CreateFromTask(editMessageAsync, currentWorkflow.CanEditObservable);
 
-		var userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
+		userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
 		{
 			Message = message
 		};

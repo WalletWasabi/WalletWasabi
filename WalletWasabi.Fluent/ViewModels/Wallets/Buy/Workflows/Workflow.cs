@@ -14,14 +14,7 @@ public abstract partial class Workflow : ReactiveObject
 
 	private int _nextStepIndex = 0;
 
-	protected Workflow()
-	{
-		EditStepCommand = ReactiveCommand.Create<WorkflowStep>(TryToEditStep);
-	}
-
 	public IObservable<bool>? CanEditObservable { get; protected set; }
-
-	public ICommand EditStepCommand { get; }
 
 	public WorkflowStep? PeekNextStep()
 	{
@@ -107,9 +100,10 @@ public abstract partial class Workflow : ReactiveObject
 		return null;
 	}
 
-	public virtual void TryToEditStep(WorkflowStep step)
+	public virtual bool TryToEditStep(WorkflowStep step, string message)
 	{
-		// TODO:
+		// TODO: Make sure WorkflowRequest is in valid state and dependant steps are updated.
+		return true;
 	}
 
 	protected virtual void CreateCanEditObservable()

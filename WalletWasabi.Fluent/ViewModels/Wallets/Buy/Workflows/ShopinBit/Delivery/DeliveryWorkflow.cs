@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,66 +29,73 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "Your First Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.FirstName)),
+					ChatMessageMetaData.ChatMessageTag.FirstName),
+				null),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "Your Last Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.LastName)),
+					ChatMessageMetaData.ChatMessageTag.LastName),
+				null),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "Street Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.StreetName)),
+					ChatMessageMetaData.ChatMessageTag.StreetName),
+				null),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "House Number:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.HouseNumber)),
+					ChatMessageMetaData.ChatMessageTag.HouseNumber),
+				null),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "ZIP/Postal Code:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.PostalCode)),
+					ChatMessageMetaData.ChatMessageTag.PostalCode),
+				null),
 			// City
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "City:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
-					ChatMessageMetaData.ChatMessageTag.City)),
+					ChatMessageMetaData.ChatMessageTag.City),
+				null),
 			// State
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
 					() => "State:"),
 				CanSkipStateStep(states)),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
 					workflowState,
 					states,
 					ChatMessageMetaData.ChatMessageTag.State),
+				null,
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,
@@ -120,10 +128,14 @@ public sealed partial class DeliveryWorkflow : Workflow
 		CanEditObservable = this.WhenAnyValue(x => x.IsCompleted).Select(x => !x);
 	}
 
-	public override void TryToEditStep(WorkflowStep step)
+	public override bool TryToEditStep(WorkflowStep step, string message)
 	{
-		base.TryToEditStep(step);
+		var result = base.TryToEditStep(step, message);
 
 		// TODO: Edit step message.
+
+		step.Update(message);
+
+		return result;
 	}
 }
