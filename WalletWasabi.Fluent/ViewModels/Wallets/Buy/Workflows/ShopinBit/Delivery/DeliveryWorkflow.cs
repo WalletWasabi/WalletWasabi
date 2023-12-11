@@ -31,7 +31,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "Your First Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
 					_request)),
@@ -40,7 +40,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "Your Last Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
 					_request)),
@@ -49,7 +49,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "Street Name:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
 					_request)),
@@ -58,7 +58,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "House Number:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
 					_request)),
@@ -67,7 +67,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "ZIP/Postal Code:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
 					_request)),
@@ -76,7 +76,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 				new DefaultInputValidator(
 					workflowState,
 					() => "City:")),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
 					_request)),
@@ -86,7 +86,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 					workflowState,
 					() => "State:"),
 				CanSkipStateStep(states)),
-			new (requiresUserInput: true,
+			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StateInputValidator(
 					workflowState,
 					states,
