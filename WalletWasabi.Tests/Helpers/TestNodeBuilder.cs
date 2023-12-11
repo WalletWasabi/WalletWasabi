@@ -4,9 +4,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Daemon.BitcoinCore;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.Helpers;
