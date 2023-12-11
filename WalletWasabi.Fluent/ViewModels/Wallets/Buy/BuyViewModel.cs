@@ -113,24 +113,21 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
 	{
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		await UpdateOrdersAsync(cancellationToken, _buyAnythingManager);
+
+		if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
 		{
-			await UpdateOrdersAsync(cancellationToken, buyAnythingManager);
-
-			if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
-			{
-				await CreateAndAddEmptyOrderAsync(_cts.Token);
-			}
-
-			Observable
-				.FromEventPattern<ConversationUpdateEvent>(buyAnythingManager,
-					nameof(BuyAnythingManager.ConversationUpdated))
-				.Select(args => args.EventArgs)
-				.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.SubscribeAsync(async e => { await OnConversationUpdated(e, cancellationToken); })
-				.DisposeWith(disposable);
+			await CreateAndAddEmptyOrderAsync(_cts.Token);
 		}
+
+		Observable
+			.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager,
+				nameof(BuyAnythingManager.ConversationUpdated))
+			.Select(args => args.EventArgs)
+			.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.SubscribeAsync(async e => { await OnConversationUpdated(e, cancellationToken); })
+			.DisposeWith(disposable);
 	}
 
 	private async Task OnConversationUpdated(ConversationUpdateEvent e, CancellationToken cancellationToken)
@@ -238,32 +235,28 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private async Task CreateAndAddEmptyOrderAsync(CancellationToken cancellationToken)
 	{
 		var walletId = BuyAnythingManager.GetWalletId(_wallet);
+		var nextId = Orders.Count > 0 ? Orders.Max(x => x.Id) + 1 : 1;
+		var title = $"Order {_buyAnythingManager.GetNextConversationId(walletId)}";
 
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
-		{
-			var nextId = Orders.Count > 0 ? Orders.Max(x => x.Id) + 1 : 1;
-			var title = $"Order {buyAnythingManager.GetNextConversationId(walletId)}";
+		var order = new OrderViewModel(
+			UiContext,
+			nextId,
+			new ConversationMetaData(title, null),
+			"Started",
+			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
+			this,
+			cancellationToken);
 
-			var order = new OrderViewModel(
-				UiContext,
-				nextId,
-				new ConversationMetaData(title, null),
-				"Started",
-				new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
-				this,
-				cancellationToken);
+		await order.StartConversationAsync("Started", null);
 
-			await order.StartConversationAsync("Started", null);
-
-			_ordersCache.AddOrUpdate(order);
-		}
+		_ordersCache.AddOrUpdate(order);
 	}
 
 	async Task IOrderManager.RemoveOrderAsync(int id)
 	{
-		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove && Services.HostedServices.GetOrDefault<BuyAnythingManager>() is { } buyAnythingManager)
+		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove)
 		{
-			await buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.BackendId }, _cts.Token);
+			await _buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.BackendId }, _cts.Token);
 		}
 
 		_ordersCache.RemoveKey(id);
