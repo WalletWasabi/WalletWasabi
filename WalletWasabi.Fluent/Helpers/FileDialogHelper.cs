@@ -1,11 +1,11 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -34,7 +34,6 @@ public static class FileDialogHelper
 		sfd.Filters = GenerateFilters(filterExtTypes);
 		return await GetDialogResultAsync(sfd);
 	}
-
 
 	private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes, string? directory = null)
 	{
