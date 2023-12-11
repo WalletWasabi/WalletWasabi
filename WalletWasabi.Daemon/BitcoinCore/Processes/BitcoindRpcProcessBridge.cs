@@ -5,12 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Configuration;
+using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 
-namespace WalletWasabi.BitcoinCore.Processes;
+namespace WalletWasabi.Daemon.BitcoinCore.Processes;
 
 /// <summary>
 /// Class for starting and stopping of Bitcoin daemon.
