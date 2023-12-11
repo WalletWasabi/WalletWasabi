@@ -48,10 +48,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public ChatMessage this[int i] => _messages[i];
 
 	public Chat AddSentMessage(string msg) =>
-		new(this.Append(new ChatMessage(true, msg, IsUnread: false)));
+		new(this.Append(new ChatMessage(true, msg, IsUnread: false, ChatMessageMetaData.Empty)));
 
 	public Chat AddReceivedMessage(string msg) =>
-		new(this.Append(new ChatMessage(false, msg, IsUnread: true)));
+		new(this.Append(new ChatMessage(false, msg, IsUnread: true, ChatMessageMetaData.Empty)));
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
@@ -78,7 +78,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			bool isMine = items[0] == "WASABI";
 			string chatLine = EnsureProperRawMessage(items[1]);
 			bool isUnread = !oldConversation.Contains(chatLine, isMine);
-			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread));
+			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, null));
 		}
 
 		return new Chat(chatEntries);

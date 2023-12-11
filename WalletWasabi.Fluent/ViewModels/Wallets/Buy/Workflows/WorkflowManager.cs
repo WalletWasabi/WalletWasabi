@@ -1,5 +1,6 @@
 using System.Threading;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -18,7 +19,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 		}
 	}
 
-	public void InvokeOutputWorkflows(Action<string> onAssistantMessage, CancellationToken cancellationToken)
+	public void InvokeOutputWorkflows(Action<string, ChatMessageMetaData> onAssistantMessage, CancellationToken cancellationToken)
 	{
 		if (CurrentWorkflow is null)
 		{
@@ -49,7 +50,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 				var message = nextStep.UserInputValidator.GetFinalMessage();
 				if (message is not null)
 				{
-					onAssistantMessage(message);
+					onAssistantMessage(message, new ChatMessageMetaData(nextStep.UserInputValidator.Tag));
 				}
 			}
 
@@ -65,7 +66,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 		}
 	}
 
-	public bool InvokeInputWorkflows(Action<string> onUserMessage, Action<string> onAssistantMessage, object? args, CancellationToken cancellationToken)
+	public bool InvokeInputWorkflows(Action<string, ChatMessageMetaData> onUserMessage, Action<string, ChatMessageMetaData> onAssistantMessage, object? args, CancellationToken cancellationToken)
 	{
 		WorkflowState.SignalValid(false);
 
@@ -87,7 +88,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 
 				if (message is not null)
 				{
-					onUserMessage(message);
+					onUserMessage(message, new ChatMessageMetaData(CurrentWorkflow.CurrentStep.UserInputValidator.Tag));
 				}
 			}
 		}
@@ -116,7 +117,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 				var nextMessage = nextStep.UserInputValidator.GetFinalMessage();
 				if (nextMessage is not null)
 				{
-					onAssistantMessage(nextMessage);
+					onAssistantMessage(nextMessage, new ChatMessageMetaData(nextStep.UserInputValidator.Tag));
 				}
 			}
 		}
@@ -132,6 +133,6 @@ public abstract partial class WorkflowManager : ReactiveObject
 	public abstract bool OnInvokeNextWorkflow(
 		string? context,
 		object? args,
-		Action<string> onAssistantMessage,
+		Action<string, ChatMessageMetaData> onAssistantMessage,
 		CancellationToken cancellationToken);
 }

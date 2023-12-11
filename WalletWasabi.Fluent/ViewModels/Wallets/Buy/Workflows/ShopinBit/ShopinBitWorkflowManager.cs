@@ -73,7 +73,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	public override bool OnInvokeNextWorkflow(
 		string? context,
 		object? args,
-		Action<string> onAssistantMessage,
+		Action<string, ChatMessageMetaData> onAssistantMessage,
 		CancellationToken cancellationToken)
 	{
 		var states = args as WebClients.ShopWare.Models.State[];

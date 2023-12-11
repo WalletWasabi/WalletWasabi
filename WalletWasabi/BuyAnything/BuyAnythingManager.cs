@@ -20,9 +20,32 @@ namespace WalletWasabi.BuyAnything;
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
-public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread);
+public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
 
 public record Country(string Id, string Name);
+
+public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag)
+{
+	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
+
+	public enum ChatMessageTag
+	{
+		None,
+
+		AssistantType,
+		Country,
+
+		FirstName,
+		LastName,
+		StreetName,
+		HouseNumber,
+		PostalCode,
+		City,
+		State,
+
+		PaymentInfo,
+	}
+}
 
 [Flags]
 internal enum ServerEvent

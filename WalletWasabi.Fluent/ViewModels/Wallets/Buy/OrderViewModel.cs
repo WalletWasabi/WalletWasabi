@@ -202,9 +202,9 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void AddAssistantMessage(string message)
+	private void AddAssistantMessage(string message, ChatMessageMetaData metaData)
 	{
-		var assistantMessage = new AssistantMessageViewModel(null, null)
+		var assistantMessage = new AssistantMessageViewModel(null, null, metaData)
 		{
 			Message = message
 		};
@@ -217,7 +217,7 @@ public partial class OrderViewModel : ReactiveObject
 		SelectedMessage = assistantMessage;
 	}
 
-	private void AddUserMessage(string message)
+	private void AddUserMessage(string message, ChatMessageMetaData metaData)
 	{
 		var currentWorkflow = WorkflowManager.CurrentWorkflow;
 		var canEditObservable = currentWorkflow.CanEditObservable;
@@ -236,7 +236,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		var editMessageCommand = ReactiveCommand.CreateFromTask(editMessageAsync, currentWorkflow.CanEditObservable);
 
-		var userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep)
+		var userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
 		{
 			Message = message
 		};
@@ -300,10 +300,10 @@ public partial class OrderViewModel : ReactiveObject
 
 				if (x is AssistantMessageViewModel)
 				{
-					return new ChatMessage(false, message, x.IsUnread); // This method is only called when Workflow == IsCompleted, so I guess every message is read at this point.
+					return new ChatMessage(false, message, x.IsUnread, x.MetaData);
 				}
 
-				return new ChatMessage(true, message, x.IsUnread);
+				return new ChatMessage(true, message, x.IsUnread, x.MetaData);
 			})
 			.ToArray();
 	}
@@ -336,7 +336,7 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			if (message.IsMyMessage)
 			{
-				var userMessage = new UserMessageViewModel(null, null, null)
+				var userMessage = new UserMessageViewModel(null, null, null, message.MetaData)
 				{
 					Message = message.Message,
 					IsUnread = message.IsUnread
@@ -345,7 +345,7 @@ public partial class OrderViewModel : ReactiveObject
 			}
 			else
 			{
-				var userMessage = new AssistantMessageViewModel(null, null)
+				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
 					Message = message.Message,
 					IsUnread = message.IsUnread
