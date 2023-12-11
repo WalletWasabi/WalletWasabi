@@ -19,7 +19,7 @@ public static class HwiParser
 	/// </summary>
 	/// <param name="path">The wallet path which come from HWI enumerate command.</param>
 	/// <param name="model">The hardware wallet model.</param>
-	/// <returns>Is matching with the predefined path pattern(true/false)</returns>
+	/// <returns><c>true</c> if the path matches the model's regex, <c>false</c> otherwise.</returns>
 	public static bool ValidatePathString(HardwareWalletModels model, string path)
 	{
 		string pattern = GetPatternForModel(model);
