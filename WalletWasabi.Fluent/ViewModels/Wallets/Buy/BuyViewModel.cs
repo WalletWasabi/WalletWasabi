@@ -132,7 +132,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private async Task OnConversationUpdated(ConversationUpdateEvent e, CancellationToken cancellationToken)
 	{
-		var metaData = e.Conversation.MetaData;
+		var conversation = e.Conversation;
 
 		// This handles the unbound conversation.
 		// The unbound conversation is a conversation that only exists in the UI (yet)
@@ -145,21 +145,15 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
 
 			var title = $"Order {_buyAnythingManager.GetNextConversationId(BuyAnythingManager.GetWalletId(_wallet))}";
-			metaData = metaData with { Title = title };
+			conversation = conversation with { MetaData = conversation.MetaData with { Title = title } };
 
 			// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 			await CreateAndAddEmptyOrderAsync(_cts.Token);
 		}
 
-		if (Orders.FirstOrDefault(x => x.BackendId == e.Conversation.Id) is { } orderToUpdate)
+		if (Orders.FirstOrDefault(x => x.BackendId == conversation.Id) is { } orderToUpdate)
 		{
-			await orderToUpdate.UpdateOrderAsync(
-				e.Conversation.Id,
-				e.Conversation.ConversationStatus.ToString(),
-				e.Conversation.OrderStatus.ToString(),
-				CreateMessages(e.Conversation),
-				metaData,
-				cancellationToken);
+			await orderToUpdate.UpdateOrderAsync(conversation, cancellationToken);
 
 			Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
 		}
@@ -171,35 +165,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var currentConversations = await buyAnythingManager.GetConversationsAsync(walletId, cancellationToken);
 
 		await CreateAndAddOrdersAsync(currentConversations.ToList(), cancellationToken);
-	}
-
-	private static List<MessageViewModel> CreateMessages(Conversation conversation)
-	{
-		var orderMessages = new List<MessageViewModel>();
-
-		foreach (var message in conversation.ChatMessages)
-		{
-			if (message.IsMyMessage)
-			{
-				var userMessage = new UserMessageViewModel(null, null, null)
-				{
-					Message = message.Message,
-					IsUnread = message.IsUnread
-				};
-				orderMessages.Add(userMessage);
-			}
-			else
-			{
-				var userMessage = new AssistantMessageViewModel(null, null)
-				{
-					Message = message.Message,
-					IsUnread = message.IsUnread
-				};
-				orderMessages.Add(userMessage);
-			}
-		}
-
-		return orderMessages;
 	}
 
 	private async Task CreateAndAddOrdersAsync(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
@@ -227,9 +192,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			cancellationToken);
 
 		order.WorkflowManager.UpdateConversationId(conversation.Id);
-
-		var orderMessages = CreateMessages(conversation);
-		order.UpdateMessages(orderMessages);
+		order.UpdateMessages(conversation.ChatMessages);
 
 		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), conversation.MetaData.Country);
 

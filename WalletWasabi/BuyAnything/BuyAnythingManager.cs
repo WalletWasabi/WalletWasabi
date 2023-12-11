@@ -319,7 +319,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	// This method is used to mark conversations as read without sending requests to the webshop.
 	// ChatMessage.IsUnread will arrive as false from the ViewModel, all we need to do is update the track and save to disk.
-	public async Task UpdateConversationOnlyLocallyAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
+	public async Task UpdateConversationOnlyLocallyAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var track = ConversationTracking.GetConversationTrackByd(conversationId);
@@ -327,6 +327,7 @@ public class BuyAnythingManager : PeriodicRunner
 		track.Conversation = track.Conversation with
 		{
 			ChatMessages = new(chatMessages),
+			MetaData = metaData,
 		};
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
