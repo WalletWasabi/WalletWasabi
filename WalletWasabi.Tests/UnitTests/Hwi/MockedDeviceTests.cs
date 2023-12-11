@@ -476,8 +476,7 @@ public class MockedDeviceTests
 
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 		IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-		Assert.Single(enumerate);
-		HwiEnumerateEntry entry = enumerate.Single();
+		HwiEnumerateEntry entry = Assert.Single(enumerate);
 		Assert.Equal(HardwareWalletModels.Jade, entry.Model);
 		Assert.True(HwiParser.ValidatePathString(entry.Model, "COM3"));
 		Assert.Equal("COM3", entry.Path);
