@@ -156,7 +156,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		UpdateMessages(conversation.ChatMessages);
 
-		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
+		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
 		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
 		{
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
