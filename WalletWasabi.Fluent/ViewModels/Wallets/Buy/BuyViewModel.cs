@@ -192,7 +192,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			conversation.ConversationStatus.ToString(),
 			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
 			this,
-			_counties,
 			cancellationToken);
 
 		order.WorkflowManager.UpdateConversationId(conversation.Id);
@@ -216,7 +215,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			"Started",
 			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
 			this,
-			_counties,
 			cancellationToken);
 
 		await order.StartConversationAsync("Started", null);

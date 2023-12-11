@@ -27,7 +27,6 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly UiContext _uiContext;
 	private readonly string _conversationStatus;
 	private readonly IOrderManager _orderManager;
-	private readonly Country[] _countries;
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private ConversationMetaData _metaData;
@@ -45,7 +44,6 @@ public partial class OrderViewModel : ReactiveObject
 		string conversationStatus,
 		ShopinBitWorkflowManager workflowManager,
 		IOrderManager orderManager,
-		Country[] countries, // TODO: Remove
 		CancellationToken cancellationToken)
 	{
 		Id = id;
@@ -56,7 +54,6 @@ public partial class OrderViewModel : ReactiveObject
 		_conversationStatus = conversationStatus;
 		WorkflowManager = workflowManager;
 		_orderManager = orderManager;
-		_countries = countries;
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
@@ -379,7 +376,7 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			case InitialWorkflow:
 				{
-					var country = _countries.FirstOrDefault(x => x.Name == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country));
+					var country = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
 
 					// TODO: Ugly
 					(BuyAnythingClient.Product, string)? product = Enum.GetValues<BuyAnythingClient.Product>()
@@ -394,7 +391,7 @@ public partial class OrderViewModel : ReactiveObject
 
 					await buyAnythingManager.StartNewConversationAsync(
 						WorkflowManager.WalletId,
-						country.Name,
+						country,
 						product.Value.Item1,
 						chatMessages,
 						metaData,
