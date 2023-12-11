@@ -108,14 +108,14 @@ public class ShopWareApiClientTests
 
 		await bam.StartAsync(CancellationToken.None);
 
-		await bam.StartNewConversationAsync("1", argentina.Id, BuyAnythingClient.Product.ConciergeRequest, new ChatMessage[] { new(true, "From StartNewConversationAsync", false) }, new ConversationMetaData("Title", bam.Countries[0]), CancellationToken.None).ConfigureAwait(false);
+		await bam.StartNewConversationAsync("1", argentina.Name, BuyAnythingClient.Product.ConciergeRequest, new ChatMessage[] { new(true, "From StartNewConversationAsync", false, ChatMessageMetaData.Empty) }, new ConversationMetaData("Title"), CancellationToken.None).ConfigureAwait(false);
 
 		var conversations = await bam.GetConversationsAsync("1", CancellationToken.None);
 		var conversation = conversations.Last();
 		var stateId = "none";
 
 		// Not sure why we accept any offer in this simple test.
-		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Id, CancellationToken.None);
+		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Name, CancellationToken.None);
 	}
 
 	[Fact]
