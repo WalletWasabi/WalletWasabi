@@ -131,9 +131,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			case ConversationStatus.WaitingForInvoice
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
-				await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancel).ConfigureAwait(false);
-				await SendSystemChatLinesAsync(track,
-					$"Try again", order.UpdatedAt, ConversationStatus.OfferAccepted, cancel).ConfigureAwait(false);
+				await HandlePaymentAsync(track, track.Conversation, cancel).ConfigureAwait(false);
 				break;
 
 			// The status changes to "In Progress" after the user paid
@@ -306,10 +304,20 @@ public class BuyAnythingManager : PeriodicRunner
 			throw new InvalidOperationException("Invoice has expired.");
 		}
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
-		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken).ConfigureAwait(false);
-		track.Conversation = track.Conversation with
+		var newConversation = track.Conversation with
 		{
-			ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted"),
+			ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted")
+		};
+		await HandlePaymentAsync(track, newConversation, cancellationToken).ConfigureAwait(false);
+	}
+
+	private async Task HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
+		CancellationToken cancellationToken)
+	{
+		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken)
+			.ConfigureAwait(false);
+		track.Conversation = newConversation with
+		{
 			ConversationStatus = ConversationStatus.OfferAccepted
 		};
 		track.LastUpdate = DateTimeOffset.Now;
