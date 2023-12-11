@@ -27,7 +27,6 @@ public partial class InitialSummaryInputValidator : InputValidator
 			sb.AppendLine($"Product: {ProductHelper.GetDescription(_initialWorkflowRequest.Product.Value)}");
 		}
 		sb.AppendLine($"Location: {_initialWorkflowRequest.Location?.Name}");
-		sb.AppendLine($"Request: {_initialWorkflowRequest.Request}");
 		return sb.ToString();
 	}
 }

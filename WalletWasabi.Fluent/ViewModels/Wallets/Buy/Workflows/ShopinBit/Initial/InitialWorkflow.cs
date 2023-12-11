@@ -66,8 +66,7 @@ public sealed partial class InitialWorkflow : Workflow
 					() => "What specific assistance do you need today? Be as precise as possible for faster response.")),
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
-					workflowState,
-					_request)),
+					workflowState)),
 			// Request received + accept Privacy Policy
 			new (false,
 				new DefaultInputValidator(

@@ -292,11 +292,11 @@ public class BuyAnythingManager : PeriodicRunner
 		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, fullChat.ToText(), cancellationToken)
 			.ConfigureAwait(false);
 		var conversation = new Conversation(
-				new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-				fullChat,
-				OrderStatus.Open,
-				ConversationStatus.Started,
-				metaData);
+			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+			fullChat,
+			OrderStatus.Open,
+			ConversationStatus.Started,
+			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));

@@ -10,8 +10,6 @@ public sealed class InitialWorkflowRequest : WorkflowRequest
 
 	public Country? Location { get; set; }
 
-	public string? Request { get; set; }
-
 	public bool HasAcceptedPrivacyPolicy { get; set; }
 
 	public override string ToMessage()
@@ -22,7 +20,6 @@ public sealed class InitialWorkflowRequest : WorkflowRequest
 			sb.AppendLine($"Product: {ProductHelper.GetDescription(Product.Value)}");
 		}
 		sb.AppendLine($"Location: {Location?.Name}");
-		sb.AppendLine($"Request: {Request}");
 		sb.AppendLine($"HasAcceptedPrivacyPolicy: {HasAcceptedPrivacyPolicy}");
 		return sb.ToString();
 	}

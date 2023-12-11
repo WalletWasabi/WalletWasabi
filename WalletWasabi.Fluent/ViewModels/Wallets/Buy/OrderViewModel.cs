@@ -10,6 +10,7 @@ using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -25,6 +26,7 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly UiContext _uiContext;
 	private readonly string _conversationStatus;
 	private readonly IOrderManager _orderManager;
+	private readonly Country[] _countries;
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private ConversationMetaData _metaData;
@@ -42,6 +44,7 @@ public partial class OrderViewModel : ReactiveObject
 		string conversationStatus,
 		ShopinBitWorkflowManager workflowManager,
 		IOrderManager orderManager,
+		Country[] countries, // TODO: Remove
 		CancellationToken cancellationToken)
 	{
 		Id = id;
@@ -52,6 +55,7 @@ public partial class OrderViewModel : ReactiveObject
 		_conversationStatus = conversationStatus;
 		WorkflowManager = workflowManager;
 		_orderManager = orderManager;
+		_countries = countries;
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
@@ -88,8 +92,8 @@ public partial class OrderViewModel : ReactiveObject
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
 		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
-			.Merge(this.WhenAnyValue(x => x.Title).ToSignal())
+		this.WhenAnyValue(x => x.HasUnreadMessages)
+			.Where(x => x == false)
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
 			.Subscribe();
 	}
@@ -141,6 +145,11 @@ public partial class OrderViewModel : ReactiveObject
 		WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 	}
 
+	private string? GetCountryStingFromConversation(Conversation conversation)
+	{
+		return conversation.ChatMessages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
+	}
+
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		if (conversation.Id != BackendId)
@@ -152,9 +161,10 @@ public partial class OrderViewModel : ReactiveObject
 		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
 		Title = conversation.MetaData.Title;
 
-		if (_metaData.Country is { } c)
+		var countryName = GetCountryStingFromConversation(conversation);
+		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
 		{
-			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(c.Name, cancellationToken);
+			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
 		}
 
 		UpdateMessages(conversation.ChatMessages);
@@ -371,13 +381,10 @@ public partial class OrderViewModel : ReactiveObject
 			case InitialWorkflowRequest initialWorkflowRequest:
 				{
 					if (initialWorkflowRequest.Location is not { } location ||
-						initialWorkflowRequest.Product is not { } product ||
-						initialWorkflowRequest.Request is not { } requestMessage) // TODO: Delete, this is redundant, we send out the whole conversation to generate a new order.
+					    initialWorkflowRequest.Product is not { } product)
 					{
 						throw new ArgumentException($"Argument was not provided!");
 					}
-
-					metaData = metaData with { Country = location };
 
 					await buyAnythingManager.StartNewConversationAsync(
 						WorkflowManager.WalletId,
@@ -389,35 +396,37 @@ public partial class OrderViewModel : ReactiveObject
 					break;
 				}
 			case DeliveryWorkflowRequest deliveryWorkflowRequest:
+			{
+				var countryString = Messages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
+				var country = _countries.FirstOrDefault(x => x.Name == countryString);
+
+				if (deliveryWorkflowRequest.FirstName is not { } firstName ||
+				    deliveryWorkflowRequest.LastName is not { } lastName ||
+				    deliveryWorkflowRequest.StreetName is not { } streetName ||
+				    deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
+				    deliveryWorkflowRequest.PostalCode is not { } postalCode ||
+				    deliveryWorkflowRequest.City is not { } city ||
+				    country is not { }
+				   )
 				{
-					if (deliveryWorkflowRequest.FirstName is not { } firstName ||
-						deliveryWorkflowRequest.LastName is not { } lastName ||
-						deliveryWorkflowRequest.StreetName is not { } streetName ||
-						deliveryWorkflowRequest.HouseNumber is not { } houseNumber ||
-						deliveryWorkflowRequest.PostalCode is not { } postalCode ||
-						// TODO: deliveryWorkflowRequest.State is not { } state ||
-						deliveryWorkflowRequest.City is not { } city ||
-						metaData.Country is not { } country
-					   )
-					{
-						throw new ArgumentException($"Argument was not provided!");
-					}
-
-					var state = deliveryWorkflowRequest.State;
-
-					await buyAnythingManager.AcceptOfferAsync(
-						WorkflowManager.Id,
-						firstName,
-						lastName,
-						streetName,
-						houseNumber,
-						postalCode,
-						city,
-						state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
-						country.Id,
-						cancellationToken);
-					break;
+					throw new ArgumentException($"Argument was not provided!");
 				}
+
+				var state = deliveryWorkflowRequest.State;
+
+				await buyAnythingManager.AcceptOfferAsync(
+					WorkflowManager.Id,
+					firstName,
+					lastName,
+					streetName,
+					houseNumber,
+					postalCode,
+					city,
+					state is not null ? state.Id : "stateId", // TODO: use state variable, but ID is required, not name.
+					country.Id,
+					cancellationToken);
+				break;
+			}
 		}
 	}
 }

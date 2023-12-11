@@ -144,9 +144,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
 			unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
 
-			var title = $"Order {_buyAnythingManager.GetNextConversationId(BuyAnythingManager.GetWalletId(_wallet))}";
-			conversation = conversation with { MetaData = conversation.MetaData with { Title = title } };
-
 			// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
 			await CreateAndAddEmptyOrderAsync(_cts.Token);
 		}
@@ -180,6 +177,12 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_ordersCache.AddOrUpdate(orders);
 	}
 
+	private Country? GetCountryFromConversation(Conversation conversation)
+	{
+		var countryName = conversation.ChatMessages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
+		return _counties.FirstOrDefault(x => x.Name == countryName);
+	}
+
 	private async Task<OrderViewModel> CreateOrderAsync(Conversation conversation, int id, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
@@ -189,12 +192,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			conversation.ConversationStatus.ToString(),
 			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
 			this,
+			_counties,
 			cancellationToken);
 
 		order.WorkflowManager.UpdateConversationId(conversation.Id);
 		order.UpdateMessages(conversation.ChatMessages);
 
-		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), conversation.MetaData.Country);
+		var country = GetCountryFromConversation(conversation);
+		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), country);
 
 		return order;
 	}
@@ -207,10 +212,11 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		var order = new OrderViewModel(
 			UiContext,
 			nextId,
-			new ConversationMetaData(title, null),
+			new ConversationMetaData(title),
 			"Started",
 			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
 			this,
+			_counties,
 			cancellationToken);
 
 		await order.StartConversationAsync("Started", null);

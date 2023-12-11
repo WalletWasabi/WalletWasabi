@@ -81,7 +81,8 @@ public class BuyAnythingManagerTests
 			await Task.Delay(1000);
 			conversation = await buyAnythingManager.GetConversationByIdAsync(conversation.Id, CancellationToken.None);
 		}
-		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false)), CancellationToken.None);
+
+		await buyAnythingManager.UpdateConversationAsync(conversation.Id, conversation.ChatMessages.Append(new(true, "Ok Bye", IsUnread: false, ChatMessageMetaData.Empty)), CancellationToken.None);
 	}
 
 	private MockShopWareApiClient PreconfiguredShopWareApiClient()
