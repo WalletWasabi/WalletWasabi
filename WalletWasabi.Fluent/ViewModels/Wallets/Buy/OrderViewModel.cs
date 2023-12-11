@@ -143,11 +143,6 @@ public partial class OrderViewModel : ReactiveObject
 		WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 	}
 
-	private string? GetCountryStingFromConversation(Conversation conversation)
-	{
-		return conversation.ChatMessages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
-	}
-
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		if (conversation.Id != BackendId)
@@ -159,13 +154,13 @@ public partial class OrderViewModel : ReactiveObject
 		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
 		Title = conversation.MetaData.Title;
 
-		var countryName = GetCountryStingFromConversation(conversation);
+		UpdateMessages(conversation.ChatMessages);
+
+		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.FirstName);
 		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
 		{
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
 		}
-
-		UpdateMessages(conversation.ChatMessages);
 
 		if (conversation.ConversationStatus == ConversationStatus.OfferAccepted)
 		{
