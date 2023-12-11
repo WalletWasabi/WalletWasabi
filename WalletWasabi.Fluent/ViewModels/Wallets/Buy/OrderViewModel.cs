@@ -435,7 +435,7 @@ public partial class OrderViewModel : ReactiveObject
 						postalCode,
 						city,
 						state is not null ? state.Id : "",
-						country.Name,
+						country,
 						cancellationToken);
 					break;
 				}
