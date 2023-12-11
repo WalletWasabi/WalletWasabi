@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new FirstNameInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.FirstName = x),
 			// Lastname
 			new (false,
 				new DefaultInputValidator(
@@ -43,7 +45,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new LastNameInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.LastName = x),
 			// Streetname
 			new (false,
 				new DefaultInputValidator(
@@ -52,7 +55,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new StreetNameInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.StreetName = x),
 			// Housenumber
 			new (false,
 				new DefaultInputValidator(
@@ -61,7 +65,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new HouseNumberInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.HouseNumber = x),
 			// ZIP/Postalcode
 			new (false,
 				new DefaultInputValidator(
@@ -70,7 +75,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new PostalCodeInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.PostalCode = x),
 			// City
 			new (false,
 				new DefaultInputValidator(
@@ -79,7 +85,8 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new EditableWorkflowStep(requiresUserInput: true,
 				userInputValidator: new CityInputValidator(
 					workflowState,
-					_request)),
+					_request),
+				x => _request.City = x),
 			// State
 			new (false,
 				new DefaultInputValidator(
@@ -91,6 +98,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 					workflowState,
 					states,
 					_request),
+				x => _request.State = states.FirstOrDefault(y => y.Name == x),
 				CanSkipStateStep(states)),
 			// Accept Terms of service
 			new (false,

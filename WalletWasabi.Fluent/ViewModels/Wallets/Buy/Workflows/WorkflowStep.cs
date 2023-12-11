@@ -24,6 +24,5 @@ public partial class WorkflowStep : ReactiveObject
 
 	public virtual void Update(string message)
 	{
-		// TODO: Add EditableWorkflowStep class
 	}
 }
