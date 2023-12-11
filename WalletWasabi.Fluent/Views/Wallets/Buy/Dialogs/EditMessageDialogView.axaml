@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Dialogs"
+             xmlns:viewsBuy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="dialogs:EditMessageDialogViewModel"
              x:CompileBindings="True"
@@ -12,9 +13,9 @@
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue"
+                 EnableNext="True"
+                 NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <!-- TODO: Use templates from OrderInputView -->
-    <TextBox Text="{Binding Message}" />
+    <viewsBuy:UserInputValidatorView DataContext="{Binding UserInputValidator}"/>
   </c:ContentArea>
 </UserControl>

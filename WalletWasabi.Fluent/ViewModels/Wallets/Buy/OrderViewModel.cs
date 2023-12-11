@@ -235,7 +235,11 @@ public partial class OrderViewModel : ReactiveObject
 				return;
 			}
 
-			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(message).GetResultAsync();
+			workflowStep.UserInputValidator.Message = userMessage.Message;
+
+			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(
+				workflowStep.UserInputValidator,
+				WorkflowManager.WorkflowState).GetResultAsync();
 
 			if (!string.IsNullOrEmpty(editedMessage))
 			{
