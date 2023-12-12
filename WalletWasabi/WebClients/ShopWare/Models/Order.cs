@@ -21,6 +21,7 @@ public record Order
 	string VersionId,
 	DateTimeOffset CreatedAt,
 	DateTimeOffset? UpdatedAt,
+	string AmountTotal,
 	StateMachineState StateMachineState,
 	Deliveries[] Deliveries,
 	string OrderNumber,
