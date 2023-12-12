@@ -501,12 +501,19 @@ public class BuyAnythingManager : PeriodicRunner
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
 		StringBuilder sb = new();
-		sb.AppendLine("This is our offer:");
+		sb.AppendLine("Our offer includes:");
 		foreach (var lineItem in order.LineItems)
 		{
-			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---Price: ${lineItem.UnitPrice}");
+			if (lineItem.Quantity > 1)
+			{
+				sb.AppendLine($"{lineItem.Quantity} {lineItem.Label} for ${lineItem.UnitPrice}/item (${lineItem.TotalPrice} total).");
+			}
+			else
+			{
+				sb.AppendLine($"A {lineItem.Label} for ${lineItem.UnitPrice}.");
+			}
 		}
-		sb.AppendLine($"Total Price: ${order.AmountTotal}");
+		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
 		return sb.ToString();
 	}
 
