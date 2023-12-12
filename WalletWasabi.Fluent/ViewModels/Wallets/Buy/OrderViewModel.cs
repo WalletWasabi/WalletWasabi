@@ -35,8 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
-	[AutoNotify] private MessageViewModel? _selectedMessage;
-
+	
 	public OrderViewModel(UiContext uiContext,
 		int id,
 		ConversationMetaData metaData,
@@ -259,8 +258,6 @@ public partial class OrderViewModel : ReactiveObject
 		{
 			x.Add(userMessage);
 		});
-
-		SelectedMessage = userMessage;
 	}
 
 	private async Task RemoveOrderAsync()
