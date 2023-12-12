@@ -466,15 +466,11 @@ public class HwiKatas
 		// Connect and initialize your Jade with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 		// Run this test.
-		// displayaddress request(derivation path): approve
-		// displayaddress request: reject
-		// displayaddress request(derivation path): approve
-		// displayaddress request: approve
-		// displayaddress request(derivation path): approve
-		// displayaddress request: approve
+		// displayaddress request by device_type: reject
+		// displayaddress request by device_type: approve
+		// displayaddress request by fingerprint: approve
 		// signtx request: reject
-		// signtx request: accept
-		// confirm transaction: accept and send
+		// signtx request: 2x approve
 		//
 		// --- USER INTERACTIONS ---
 
@@ -533,7 +529,7 @@ public class HwiKatas
 		var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
 		Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
 
-		// USER: CONFIRM
+		// USER: CONFIRM CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 		Transaction signedTx = signedPsbt.GetOriginalTransaction();
