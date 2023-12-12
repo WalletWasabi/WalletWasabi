@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -24,7 +25,7 @@ public class TagsBox : TemplatedControl
 {
 	private CompositeDisposable? _compositeDisposable;
 	private AutoCompleteBox? _autoCompleteBox;
-	private TextBox? _internalTextBox;
+
 	private TextBlock? _watermark;
 	private IControl? _containerControl;
 	private StringComparison _stringComparison;
@@ -89,6 +90,15 @@ public class TagsBox : TemplatedControl
 
 	public static readonly StyledProperty<bool> EnableDeleteProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
+
+	public static readonly DirectProperty<TagsBox, TextBox?> InternalTextBoxProperty = AvaloniaProperty.RegisterDirect<TagsBox, TextBox?>(nameof(InternalTextBox), o => o.InternalTextBox, (o, v) => o.InternalTextBox = v);
+	private TextBox? _internalTextBox;
+
+	public TextBox? InternalTextBox
+	{
+		get => _internalTextBox;
+		set => SetAndRaise(InternalTextBoxProperty, ref _internalTextBox, value);
+	}
 
 	[Content]
 	public IEnumerable<string>? Items
@@ -201,6 +211,7 @@ public class TagsBox : TemplatedControl
 		presenter.ApplyTemplate();
 		_containerControl = presenter.Panel;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>().FirstOrDefault();
+		InternalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
 
 		if (_autoCompleteBox is null)
 		{
@@ -210,10 +221,10 @@ public class TagsBox : TemplatedControl
 		Observable.FromEventPattern<TemplateAppliedEventArgs>(_autoCompleteBox, nameof(TemplateApplied))
 			.Subscribe(args =>
 			{
-				_internalTextBox = args.EventArgs.NameScope.Find<TextBox>("PART_TextBox");
+				InternalTextBox = args.EventArgs.NameScope.Find<TextBox>("PART_TextBox");
 				var suggestionListBox = args.EventArgs.NameScope.Find<ListBox>("PART_SelectingItemsControl");
 
-				_internalTextBox.WhenAnyValue(x => x.IsFocused)
+				InternalTextBox.WhenAnyValue(x => x.IsFocused)
 					.Where(isFocused => isFocused == false)
 					.Subscribe(_ => RequestAdd = true)
 					.DisposeWith(_compositeDisposable);
@@ -365,7 +376,15 @@ public class TagsBox : TemplatedControl
 	{
 		base.OnGotFocus(e);
 
-		_internalTextBox?.Focus();
+		if (InternalTextBox is null)
+		{
+			this.WhenAnyValue(x => x.InternalTextBox)
+				.WhereNotNull()
+				.Take(1)
+				.Subscribe(tb => tb.Focus());
+		}
+
+		InternalTextBox?.Focus();
 	}
 
 	private void CheckIsInputEnabled()
