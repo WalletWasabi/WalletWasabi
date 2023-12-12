@@ -194,8 +194,8 @@ public class BuyAnythingManager : PeriodicRunner
 
 					if (trackingCodes.Any())
 					{
-						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "") + ":";
-						await SendSystemChatLinesAsync(track, newMessage,
+						var plural = trackingCodes.Length >= 2 ? "s" : "";
+						await SendSystemChatLinesAsync(track, $"Tracking link{plural}:",
 							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
 
 						foreach (var code in trackingCodes)
@@ -219,9 +219,8 @@ public class BuyAnythingManager : PeriodicRunner
 					var links = GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links);
 					if (links.Any())
 					{
-						var newMessage = "Check the attached file" + (links.Length >= 2 ? "s" : "") + ":";
-
-						await SendSystemChatLinesAsync(track, newMessage,
+						var plural = links.Length >= 2 ? "s" : "";
+						await SendSystemChatLinesAsync(track, $"Check the attached file{plural}:",
 							order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 
 						foreach (var link in links)
