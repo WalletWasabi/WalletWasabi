@@ -29,6 +29,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		Amount = invoice.BtcAmount;
 		Address = invoice.Address;
 		PaymentLink = invoice.PaymentLink;
+		IsPaid = metaData.IsPaid;
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
