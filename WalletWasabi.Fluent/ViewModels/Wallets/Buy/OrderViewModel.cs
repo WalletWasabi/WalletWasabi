@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BuyAnything;
@@ -154,7 +153,7 @@ public partial class OrderViewModel : ReactiveObject
 		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
 		Title = conversation.MetaData.Title;
 
-		UpdateMessages(conversation.ChatMessages);
+		UpdateMessages(conversation.ChatMessages, conversation.Invoice);
 
 		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
 		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
@@ -162,9 +161,11 @@ public partial class OrderViewModel : ReactiveObject
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
 		}
 
-		if (conversation.ConversationStatus == ConversationStatus.InvoiceReceived && GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PaymentInfo) is null && conversation.Invoice is { })
+		if (conversation.ConversationStatus == ConversationStatus.InvoiceReceived &&
+		    GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PaymentInfo) is null &&
+		    conversation.Invoice is { } invoice)
 		{
-			AddAssistantMessage(new PayNowAssistantMessageViewModel(conversation.Invoice));
+			AddAssistantMessage(new PayNowAssistantMessageViewModel(invoice, new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.PaymentInfo)));
 			//$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 		}
@@ -292,9 +293,9 @@ public partial class OrderViewModel : ReactiveObject
 		await StartConversationAsync("Started", null);
 	}
 
-	public void UpdateMessages(Chat chat)
+	public void UpdateMessages(Chat chat, Invoice? conversationInvoice)
 	{
-		var messages = CreateMessages(chat);
+		var messages = CreateMessages(chat, conversationInvoice);
 
 		// TODO: We need to sync with current workflow.
 		_messagesList.Edit(x =>
@@ -349,7 +350,7 @@ public partial class OrderViewModel : ReactiveObject
 		return buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
 	}
 
-	private static List<MessageViewModel> CreateMessages(Chat chat)
+	private static List<MessageViewModel> CreateMessages(Chat chat, Invoice? conversationInvoice)
 	{
 		var orderMessages = new List<MessageViewModel>();
 
@@ -366,12 +367,25 @@ public partial class OrderViewModel : ReactiveObject
 			}
 			else
 			{
+				if (message.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.PaymentInfo &&
+				    conversationInvoice is { } invoice)
+				{
+					var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+					{
+						Message = message.Message,
+						IsUnread = message.IsUnread
+					};
+					orderMessages.Add(paymentMessage);
+					continue;
+				}
+
 				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
 					Message = message.Message,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
+
 			}
 		}
 
