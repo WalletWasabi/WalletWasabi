@@ -66,26 +66,28 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 
 	private async Task SendAsync(Wallet wallet, TransactionInfo info)
 	{
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransactionForSIB(wallet, info));
-		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-		var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
-		if (authResult)
+		try
 		{
-			IsBusy = true;
-
-			try
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransactionForSIB(wallet, info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
+			if (authResult)
 			{
+				IsBusy = true;
+
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
 				wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				MetaData = MetaData with { IsPaid = true };
 				IsPaid = true;
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await UiContext.Default.Navigate().DialogScreen.ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
-			}
-
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await UiContext.Default.Navigate().DialogScreen.ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
+		}
+		finally
+		{
 			IsBusy = false;
 		}
 	}
