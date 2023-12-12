@@ -94,11 +94,9 @@ public class BuyAnythingManager : PeriodicRunner
 		// deleted and then we can have zero orders
 		if (orders.FirstOrDefault() is not { } order)
 		{
-			track.Conversation = track.Conversation with
-			{
-				ConversationStatus = ConversationStatus.Deleted
-			};
-			await SaveAsync(cancel).ConfigureAwait(false);
+			await SendSystemChatLinesAsync(track,
+				$"Order was removed from the Concierge server. Remember this order id: {track.Conversation.Id.OrderId}",
+				DateTimeOffset.Now, ConversationStatus.Deleted, cancel).ConfigureAwait(false);
 			return;
 		}
 
