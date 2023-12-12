@@ -166,7 +166,6 @@ public partial class OrderViewModel : ReactiveObject
 		    conversation.Invoice is { } invoice)
 		{
 			AddAssistantMessage(new PayNowAssistantMessageViewModel(invoice, new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.PaymentInfo)));
-			//$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
 			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 		}
 
