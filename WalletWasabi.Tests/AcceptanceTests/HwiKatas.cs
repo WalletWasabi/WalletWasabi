@@ -7,6 +7,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.AcceptanceTests;
@@ -481,7 +482,7 @@ public class HwiKatas
 		HwiEnumerateEntry entry = Assert.Single(enumerate);
 		Assert.NotNull(entry.Path);
 		Assert.Equal(HardwareWalletModels.Jade, entry.Model);
-		Assert.True(HwiParser.ValidatePathString(entry.Model, entry.Path));
+		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, entry.Path));
 		Assert.NotNull(entry.Fingerprint);
 		Assert.Null(entry.Code);
 		Assert.Null(entry.Error);

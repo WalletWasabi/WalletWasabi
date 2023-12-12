@@ -10,6 +10,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
@@ -478,7 +479,7 @@ public class MockedDeviceTests
 		IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 		HwiEnumerateEntry entry = Assert.Single(enumerate);
 		Assert.Equal(HardwareWalletModels.Jade, entry.Model);
-		Assert.True(HwiParser.ValidatePathString(entry.Model, "COM3"));
+		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, "COM3"));
 		Assert.Equal("COM3", entry.Path);
 		Assert.False(entry.NeedsPassphraseSent);
 		Assert.False(entry.NeedsPinSent);
