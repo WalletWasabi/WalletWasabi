@@ -14,9 +14,18 @@ public static class ServiceFactory
 		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 		bool watchOnly = false)
 	{
-		var password = "foo";
-		var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
+		string password = "foo";
+		KeyManager keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
+		SmartCoin[] sCoins = CreateCoins(keyManager, coins);
+		var coinsView = new CoinsView(sCoins);
+		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
+	}
 
+	public static SmartCoin[] CreateCoins(
+		KeyManager keyManager,
+		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins)
+	{
 		var coinArray = coins.ToArray();
 
 		var generated = keyManager.GetKeys().Count();
@@ -50,9 +59,7 @@ public static class ServiceFactory
 			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
-		var coinsView = new CoinsView(sCoins);
-		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
+		return sCoins;
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)

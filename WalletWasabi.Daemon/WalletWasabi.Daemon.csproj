@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>11</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>

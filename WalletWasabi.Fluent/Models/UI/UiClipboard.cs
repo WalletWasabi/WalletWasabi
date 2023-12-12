@@ -11,8 +11,9 @@ public partial class UiClipboard
 	{
 		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
-			return await clipboard.GetTextAsync();
+			return await clipboard.GetTextAsync() ?? "";
 		}
+
 		return await Task.FromResult("");
 	}
 
