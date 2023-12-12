@@ -229,7 +229,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
 					"Order was cancelled. Please contact the agent to solve the problem.",
-					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
@@ -246,14 +246,14 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.FinishConversation):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished.",
-					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
 				break;
 
 			case not ConversationStatus.Finished
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished (Order cancelled).",
-					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
 				break;
 
 			default:
