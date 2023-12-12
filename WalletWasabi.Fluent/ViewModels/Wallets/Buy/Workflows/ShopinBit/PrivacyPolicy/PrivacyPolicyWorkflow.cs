@@ -28,6 +28,11 @@ public sealed partial class PrivacyPolicyWorkflow : Workflow
 						IsClickable = true
 					},
 					() => null)),
+			// Thank You
+			new(false,
+				new DefaultInputValidator(
+					workflowState,
+					() => "Thank you for accepting the Privacy Policy.")),
 		};
 
 		CreateCanEditObservable();
