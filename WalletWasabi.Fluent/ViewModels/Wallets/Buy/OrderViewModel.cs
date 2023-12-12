@@ -162,8 +162,11 @@ public partial class OrderViewModel : ReactiveObject
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
 		}
 
-		if (conversation.ConversationStatus == ConversationStatus.OfferAccepted)
+		if (conversation.ConversationStatus == ConversationStatus.InvoiceReceived && GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PaymentInfo) is null && conversation.Invoice is { })
 		{
+			AddAssistantMessage(new PayNowAssistantMessageViewModel(conversation.Invoice));
+			//$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
+			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 		}
 
 		var conversationStatusString = conversation.ConversationStatus.ToString();
@@ -205,6 +208,12 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
+	private void AddAssistantMessage<T>(T assistantMessage) where T : AssistantMessageViewModel
+	{
+		_messagesList.Edit(x => x.Add(assistantMessage));
+		SelectedMessage = assistantMessage;
+	}
+
 	private void AddAssistantMessage(string message, ChatMessageMetaData metaData)
 	{
 		var assistantMessage = new AssistantMessageViewModel(null, null, metaData)
@@ -212,12 +221,7 @@ public partial class OrderViewModel : ReactiveObject
 			Message = message
 		};
 
-		_messagesList.Edit(x =>
-		{
-			x.Add(assistantMessage);
-		});
-
-		SelectedMessage = assistantMessage;
+		AddAssistantMessage(assistantMessage);
 	}
 
 	private void AddUserMessage(string message, ChatMessageMetaData metaData)

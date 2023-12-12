@@ -142,8 +142,9 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
+				var amount = decimal.Parse(orderCustomFields.Btcpay_Amount);
 
-				track.Invoice = new(orderCustomFields.Btcpay_PaymentLink);
+				track.Conversation = track.Conversation with { Invoice = new(orderCustomFields.Btcpay_Destination, amount, orderCustomFields.Btcpay_PaymentLink) };
 
 				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
@@ -295,7 +296,8 @@ public class BuyAnythingManager : PeriodicRunner
 			fullChat,
 			OrderStatus.Open,
 			ConversationStatus.Started,
-			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
+			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"),
+			null);
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));

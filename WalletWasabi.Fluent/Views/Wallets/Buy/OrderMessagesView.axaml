@@ -42,6 +42,37 @@
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
+
+        <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding Message}"
+                                CopyButtonPlacement="Right"
+                                HorizontalAlignment="Left">
+            <Border Background="{DynamicResource AssistantMessageBackground}">
+              <DockPanel>
+                <Button DockPanel.Dock="Bottom"
+                        Command="{Binding PayNowCommand}"
+                        Margin="10 0 0 0"
+                        Content="Pay Now"
+                        HorizontalAlignment="Right"
+                        Classes="action">
+                </Button>
+
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Text="Complete this order by sending" />
+                    <TextBlock Text="{Binding Amount, StringFormat='{}{0} BTC'}" />
+                  </StackPanel>
+
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Text="To the Address" />
+                    <TextBlock Text="{Binding Address}" />
+                  </StackPanel>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+
         <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
           <c:PreviewMessageItem CopyableContent="{Binding Message}"
                                 CopyButtonPlacement="Right"
@@ -54,5 +85,4 @@
       </SelectingItemsControl.DataTemplates>
     </SelectingItemsControl>
   </ScrollViewer>
-
 </UserControl>

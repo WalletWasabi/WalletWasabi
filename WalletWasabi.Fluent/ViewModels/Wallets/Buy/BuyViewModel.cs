@@ -179,7 +179,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private Country? GetCountryFromConversation(Conversation conversation)
 	{
-		var countryName = conversation.ChatMessages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
+		var countryName = conversation.ChatMessages.FirstOrDefault(x => x.MetaData?.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
 		return _counties.FirstOrDefault(x => x.Name == countryName);
 	}
 
