@@ -91,7 +91,9 @@ public class TagsBox : TemplatedControl
 	public static readonly StyledProperty<bool> EnableDeleteProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
 
-	public static readonly DirectProperty<TagsBox, TextBox?> InternalTextBoxProperty = AvaloniaProperty.RegisterDirect<TagsBox, TextBox?>(nameof(InternalTextBox), o => o.InternalTextBox, (o, v) => o.InternalTextBox = v);
+	public static readonly DirectProperty<TagsBox, TextBox?> InternalTextBoxProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, TextBox?>(nameof(InternalTextBox), o => o.InternalTextBox, (o, v) => o.InternalTextBox = v);
+
 	private TextBox? _internalTextBox;
 
 	public TextBox? InternalTextBox
