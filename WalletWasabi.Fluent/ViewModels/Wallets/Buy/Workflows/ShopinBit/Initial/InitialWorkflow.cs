@@ -62,20 +62,10 @@ public sealed partial class InitialWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
 					workflowState)),
-			// Request received + accept Privacy Policy
-			new (false,
-				new DefaultInputValidator(
-					workflowState,
-					() => $"We've received your request. Please accept our Privacy Policy and we’ll get in touch with you within {GetWithinHours()} (Monday to Friday).")),
+			// Send Request
 			new (requiresUserInput: true,
-				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
+				userInputValidator: new ConfirmRequestInputValidator(
 					workflowState,
-					new LinkViewModel
-					{
-						Link = privacyPolicyUrl,
-						Description = "Accept the Privacy Policy",
-						IsClickable = true
-					},
 					() => null)),
 		};
 
@@ -83,17 +73,6 @@ public sealed partial class InitialWorkflow : Workflow
 	}
 
 	public BuyAnythingClient.Product? Product { get; set; }
-
-	private string GetWithinHours()
-	{
-		return Product switch
-		{
-			BuyAnythingClient.Product.ConciergeRequest => "24-48 hours",
-			BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
-			BuyAnythingClient.Product.TravelConcierge => "48-72 hours",
-			_ => "a few days"
-		};
-	}
 
 	private string GetAssistantName()
 	{

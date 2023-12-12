@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -10,6 +11,7 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	private readonly string _walletId;
 	private readonly Country[] _countries;
 	private readonly BehaviorSubject<bool> _idChangedSubject;
+	private BuyAnythingClient.Product? _product;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private ConversationId _id = ConversationId.Empty;
@@ -47,11 +49,21 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 	{
 		var states = args as WebClients.ShopWare.Models.State[];
 
+		if (CurrentWorkflow is InitialWorkflow initialWorkflow)
+		{
+			_product = initialWorkflow.Product;
+		}
+
+		if (CurrentWorkflow is PrivacyPolicyWorkflow)
+		{
+			_product = null;
+		}
+
 		if (conversationStatus is not null)
 		{
 			if (CurrentWorkflow?.CanCancel() ?? true)
 			{
-				CurrentWorkflow = GetShopinBitWorkflowFromConversation(conversationStatus, states);
+				CurrentWorkflow = GetShopinBitWorkflowFromConversation(conversationStatus, states, _product);
 				return true;
 			}
 
@@ -61,7 +73,8 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 		CurrentWorkflow = CurrentWorkflow switch
 		{
 			null => new InitialWorkflow(WorkflowState, _countries),
-			InitialWorkflow => new SupportChatWorkflow(WorkflowState),
+			InitialWorkflow => new PrivacyPolicyWorkflow(WorkflowState, _product),
+			PrivacyPolicyWorkflow => new SupportChatWorkflow(WorkflowState),
 			DeliveryWorkflow => new SupportChatWorkflow(WorkflowState),
 			SupportChatWorkflow => new SupportChatWorkflow(WorkflowState),
 			_ => CurrentWorkflow
@@ -97,12 +110,17 @@ public partial class ShopinBitWorkflowManager : WorkflowManager
 		return true;
 	}
 
-	private Workflow? GetShopinBitWorkflowFromConversation(string? conversationStatus, WebClients.ShopWare.Models.State[] states)
+	private Workflow? GetShopinBitWorkflowFromConversation(
+		string? conversationStatus,
+		WebClients.ShopWare.Models.State[] states,
+		BuyAnythingClient.Product? product)
 	{
 		return conversationStatus switch
 		{
 			"Started" => new InitialWorkflow(WorkflowState, _countries),
-			"OfferReceived" => new DeliveryWorkflow(WorkflowState, states),
+			"OfferReceived" => product is not null
+				? new PrivacyPolicyWorkflow(WorkflowState, product)
+				: new DeliveryWorkflow(WorkflowState, states),
 			"PaymentDone" => new SupportChatWorkflow(WorkflowState),
 			"PaymentConfirmed" => new SupportChatWorkflow(WorkflowState),
 			"OfferAccepted" => new SupportChatWorkflow(WorkflowState),
