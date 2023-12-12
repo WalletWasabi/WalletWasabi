@@ -100,10 +100,6 @@
           <Panel />
         </DataTemplate>
 
-        <DataTemplate DataType="shopinBit:ConfirmRequestInputValidator">
-          <Panel />
-        </DataTemplate>
-
         <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyInputValidator">
           <StackPanel Orientation="Horizontal">
             <CheckBox VerticalAlignment="Center"

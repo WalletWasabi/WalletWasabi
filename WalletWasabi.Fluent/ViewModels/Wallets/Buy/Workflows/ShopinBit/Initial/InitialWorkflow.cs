@@ -62,11 +62,6 @@ public sealed partial class InitialWorkflow : Workflow
 			new (requiresUserInput: true,
 				userInputValidator: new RequestInputValidator(
 					workflowState)),
-			// Send Request
-			new (requiresUserInput: true,
-				userInputValidator: new ConfirmRequestInputValidator(
-					workflowState,
-					() => null)),
 		};
 
 		CreateCanEditObservable();
