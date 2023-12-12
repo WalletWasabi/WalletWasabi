@@ -12,7 +12,5 @@ public class ConversationUpdateTrack
 	public DateTimeOffset LastUpdate { get; set; }
 	public Conversation Conversation { get; set; }
 	public NetworkCredential Credential => new(Conversation.Id.EmailAddress, Conversation.Id.Password);
-	public Invoice? Invoice { get; set; }
 }
 
-public record Invoice(string PaymentLink);

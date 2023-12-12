@@ -51,8 +51,8 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public Chat AddSentMessage(string msg) =>
 		new(this.Append(new ChatMessage(true, msg, IsUnread: false, ChatMessageMetaData.Empty)));
 
-	public Chat AddReceivedMessage(string msg) =>
-		new(this.Append(new ChatMessage(false, msg, IsUnread: true, ChatMessageMetaData.Empty)));
+	public Chat AddReceivedMessage(string msg, DataCarrier data) =>
+		new(this.Append(new SystemChatMessage(msg, data, IsUnread: true, ChatMessageMetaData.Empty)));
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();

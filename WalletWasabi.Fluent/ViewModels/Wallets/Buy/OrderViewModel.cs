@@ -362,6 +362,28 @@ public partial class OrderViewModel : ReactiveObject
 			}
 			else
 			{
+				// TODO: message variable can be a SystemChatMessage which carriers strongly-typed elements
+				// containing Invoice, Attachments, OfferDetails, etc. You can display/render these elements
+				// without having to parse the message.
+				//
+				// The `Message` string is still there for compatibility, however, the text to display should
+				// be a UI decision (tomorrow it could be Japanese or aligned in reverse for Arabic language, etc)
+				//
+				// Below a crap code to demo the idea:
+
+				//if (message is SystemChatMessage systemMessage)
+				//{
+				//	var model = systemMessage.Data switch
+				//	{
+				//		Invoice invoice => new SystemMessageInvoiceViewModel(invoice.Bip21Link),
+				//		AttachmentLinks attachmentLinks => throw new NotImplementedException(),
+				//		NoData noData => throw new NotImplementedException(),
+				//		OfferCarrier offerCarrier => throw new NotImplementedException(),
+				//		TrackingCodes trackingCodes => throw new NotImplementedException(),
+
+				//	};
+				//}
+
 				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
 					Message = message.Message,
