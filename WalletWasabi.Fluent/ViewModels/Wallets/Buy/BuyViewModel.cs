@@ -81,6 +81,16 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedTo(inHistory, disposables);
 
 		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
+		SelectNewOrderIfAny();
+	}
+
+	private void SelectNewOrderIfAny()
+	{
+		// We should always have a new order, but this condition is for safety, just in case we change this axiom.
+		if (Orders.FirstOrDefault(x => x.BackendId == ConversationId.Empty) is { } newOrder)
+		{
+			SelectedOrder = newOrder;
+		}
 	}
 
 	private async Task InitializeAsync(CompositeDisposable disposable)
