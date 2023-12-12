@@ -53,13 +53,6 @@ public class BuyAnythingManager : PeriodicRunner
 		                      ?? throw new InvalidOperationException("Couldn't read the countries list.");
 
 		Countries = new List<Country>(countries);
-
-		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
-	}
-
-	private void BuyAnythingManager_ConversationUpdated(object? sender, ConversationUpdateEvent e)
-	{
-		Logger.LogWarning($"ConvID: {e.Conversation.Id} OrderStatus: {e.Conversation.OrderStatus} ConvStatus: {e.Conversation.ConversationStatus} LastMessage: {e.Conversation.ChatMessages.Last().Message}");
 	}
 
 	private BuyAnythingClient Client { get; }
@@ -536,10 +529,4 @@ public class BuyAnythingManager : PeriodicRunner
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
-
-	public override void Dispose()
-	{
-		ConversationUpdated -= BuyAnythingManager_ConversationUpdated;
-		base.Dispose();
-	}
 }
