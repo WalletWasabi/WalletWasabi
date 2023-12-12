@@ -194,10 +194,15 @@ public class BuyAnythingManager : PeriodicRunner
 
 					if (trackingCodes.Any())
 					{
-						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
-						await SendSystemChatLinesAsync(track,
-							  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
-						order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "") + ":";
+						await SendSystemChatLinesAsync(track, newMessage,
+							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+
+						foreach (var code in trackingCodes)
+						{
+							await SendSystemChatLinesAsync(track, code,
+							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+						}
 					}
 
 					track.Conversation = track.Conversation with
@@ -210,8 +215,27 @@ public class BuyAnythingManager : PeriodicRunner
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
-				await SendSystemChatLinesAsync(track, $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
-					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				{
+					var links = GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links);
+					if (links.Any())
+					{
+						var newMessage = "Check the attached file" + (links.Length >= 2 ? "s" : "") + ":";
+
+						await SendSystemChatLinesAsync(track, newMessage,
+							order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+
+						foreach (var link in links)
+						{
+							await SendSystemChatLinesAsync(track, link,
+							order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+						}
+					}
+
+					track.Conversation = track.Conversation with
+					{
+						ConversationStatus = ConversationStatus.Finished
+					};
+				}
 				break;
 
 			//Handle unexpected finished of the conversation
@@ -472,9 +496,8 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private string GetLinksByLine(string attachmentsLinks) =>
-		string.Join("\n", attachmentsLinks
-			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+	private string[] GetLinksByLine(string attachmentsLinks) =>
+		attachmentsLinks.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
