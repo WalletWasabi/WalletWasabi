@@ -406,6 +406,8 @@ public partial class OrderViewModel : ReactiveObject
 						metaData,
 						cancellationToken);
 
+					AddAssistantMessage("Your request was sent.", new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.None));
+
 					break;
 				}
 			case DeliveryWorkflow:
@@ -443,6 +445,9 @@ public partial class OrderViewModel : ReactiveObject
 						state is not null ? state.Id : "",
 						country,
 						cancellationToken);
+
+					AddAssistantMessage("Delivery details have been sent.", new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.None));
+
 					break;
 				}
 		}
