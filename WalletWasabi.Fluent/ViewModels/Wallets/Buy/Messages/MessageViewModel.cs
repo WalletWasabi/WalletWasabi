@@ -9,6 +9,7 @@ public abstract partial class MessageViewModel : ReactiveObject
 	[AutoNotify] private string? _id;
 	[AutoNotify] private string? _message;
 	[AutoNotify] private bool _isUnread;
+	[AutoNotify] private bool _isPaid; // TODO: Should only be in PayNowAssistantMessageViewModel
 
 	protected MessageViewModel(
 		ICommand? editCommand,

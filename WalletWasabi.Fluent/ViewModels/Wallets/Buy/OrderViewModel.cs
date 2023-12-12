@@ -89,8 +89,8 @@ public partial class OrderViewModel : ReactiveObject
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
 		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages)
-			.Where(x => x == false)
+		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
+			.Merge(_messagesList.Connect().AutoRefresh(x => x.IsPaid).ToSignal())
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
 			.Subscribe();
 	}

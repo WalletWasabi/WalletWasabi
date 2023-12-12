@@ -21,24 +21,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
-	[AutoNotify] private bool _isPaid;
 	[AutoNotify] private string _payButtonText = "";
+	[AutoNotify] private bool _isBusy;
 
 	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
 		Amount = invoice.BtcAmount;
 		Address = invoice.Address;
-		PaymentLink = invoice.PaymentLink;
 		IsPaid = metaData.IsPaid;
-
-		Message = $"To finalize your order, please send {Amount} BTC to the Address of {Address}";
+		Message = $"To finalize your order, please pay {Amount} BTC";
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
 
 		this.WhenAnyValue(x => x.IsPaid)
-			.Select(x => x ? "PAID" : "Pay Now")
-			.BindTo(this, model => model.IsPaid);
+			.Select(x => x ? "Paid" : "Pay Now")
+			.BindTo(this, x => x.PayButtonText);
 	}
 
 	public UiContext UiContext { get; set; }
@@ -46,8 +44,6 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 	public decimal Amount { get; }
 
 	public string Address { get; }
-
-	public string PaymentLink { get; }
 
 	public ICommand PayNowCommand { get; }
 
@@ -75,15 +71,14 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
 		if (authResult)
 		{
-			//IsBusy = true;
+			IsBusy = true;
 
 			try
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
 				wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				IsPaid = true;
 				MetaData = MetaData with { IsPaid = true };
-				// UiContext.Default.Navigate().To().SendSuccess(wallet, transaction.Transaction);
+				IsPaid = true;
 			}
 			catch (Exception ex)
 			{
@@ -91,7 +86,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 				await UiContext.Default.Navigate().DialogScreen.ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
 			}
 
-			//IsBusy = false;
+			IsBusy = false;
 		}
 	}
 

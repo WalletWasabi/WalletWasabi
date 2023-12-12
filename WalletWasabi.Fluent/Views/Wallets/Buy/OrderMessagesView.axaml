@@ -44,18 +44,28 @@
         </DataTemplate>
 
         <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding PaymentLink}"
+          <c:PreviewMessageItem CopyableContent="{Binding Message}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
               <DockPanel>
-                <Button DockPanel.Dock="Bottom"
-                        Command="{Binding PayNowCommand}"
-                        Margin="0 10 0 0"
-                        Content="Pay Now"
-                        HorizontalAlignment="Center"
-                        Classes="action">
+                <Panel DockPanel.Dock="Bottom"
+                       HorizontalAlignment="Center"
+                       Height="40">
+                  <Viewbox Height="30" IsVisible="{Binding IsBusy}" VerticalAlignment="Center">
+                    <c:ProgressRing Height="50" Width="50" Name="LoadingRing" IsIndeterminate="True" />
+                  </Viewbox>
+
+                  <Button Command="{Binding PayNowCommand}"
+                          Classes="action"
+                          IsVisible="{Binding !IsBusy}"
+                          VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <PathIcon Data="{StaticResource checkmark_filled}" Height="11" IsVisible="{Binding IsPaid}" VerticalAlignment="Center" Foreground="{DynamicResource ActionForegroundColor}" />
+                      <TextBlock Text="{Binding PayButtonText}" VerticalAlignment="Center" />
+                    </StackPanel>
                 </Button>
+                </Panel>
                 <TextBlock Text="{Binding Message}" />
               </DockPanel>
             </Border>
