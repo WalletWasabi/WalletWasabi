@@ -27,6 +27,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 		string model;
 		string rawPath;
 
+		// This come from hwi.exe enumerate (model).
 		model = Model switch
 		{
 			HardwareWalletModels.Trezor_T => "trezor_t",
@@ -34,9 +35,11 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Coldcard => "coldcard",
 			HardwareWalletModels.Ledger_Nano_S => "ledger_nano_s",
 			HardwareWalletModels.Ledger_Nano_X => "ledger_nano_x",
+			HardwareWalletModels.Jade => "jade",
 			_ => throw new NotImplementedException("Mock missing.")
 		};
 
+		// This come from hwi.exe enumerate (path).
 		rawPath = Model switch
 		{
 			HardwareWalletModels.Trezor_T => "webusb: 001:4",
@@ -44,6 +47,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Coldcard => @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Ledger_Nano_S => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Ledger_Nano_X => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
+			HardwareWalletModels.Jade => "COM3",
 			_ => throw new NotImplementedException("Mock missing.")
 		};
 
@@ -64,6 +68,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_S => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_X => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
+				HardwareWalletModels.Jade => $"[{{\"type\": \"{model}\", \"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"9bdca818\"}}]",
 				_ => throw new NotImplementedException($"Mock missing for {model}")
 			};
 		}
@@ -75,6 +80,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support wiping via software\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -86,6 +92,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"setup requires interactive mode\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -97,6 +104,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support software setup\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -108,6 +116,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support restoring via software\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support restoring via software\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -119,6 +128,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -130,46 +140,82 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
+				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
 		else if (CompareGetXbpubArguments(arguments, out string? xpub))
 		{
-			if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+			switch (Model)
 			{
-				response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_X:
+				case HardwareWalletModels.Jade:
+					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
+					break;
 			}
 		}
 		else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --addr-type wit", false))
 		{
-			if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+			switch (Model)
 			{
-				response = t1
-					? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
-					: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_X:
+				case HardwareWalletModels.Jade:
+					response = t1
+						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
+						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
+					break;
 			}
 		}
 		else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --addr-type wit", false))
 		{
-			if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+			switch (Model)
 			{
-				response = t2
-					? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
-					: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_X:
+				case HardwareWalletModels.Jade:
+					response = t2
+						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
+						: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
+					break;
 			}
 		}
 		else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h --addr-type wit", false))
 		{
-			if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+			switch (Model)
 			{
-				response = "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n";
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_X:
+				case HardwareWalletModels.Jade:
+					response = "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n";
+					break;
 			}
 		}
 		else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h/1 --addr-type wit", false))
 		{
-			if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+			switch (Model)
 			{
-				response = "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n";
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_X:
+				case HardwareWalletModels.Jade:
+					response = "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n";
+					break;
 			}
 		}
 
