@@ -24,6 +24,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 	{
 		Amount = invoice.BtcAmount;
 		Address = invoice.Address;
+		PaymentLink = invoice.PaymentLink;
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync);
@@ -34,6 +35,8 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 	public decimal Amount { get; }
 
 	public string Address { get; }
+
+	public string PaymentLink { get; }
 
 	public ICommand PayNowCommand { get; }
 
