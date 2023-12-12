@@ -159,6 +159,7 @@
                      MaxTextLength="5000"
                      ItemCountLimit="1"
                      TagSeparator=";"
+                     EnableDelete="False"
                      Items="{Binding Country}"
                      Suggestions="{Binding Countries}">
             <i:Interaction.Behaviors>
@@ -175,6 +176,7 @@
                      MaxTextLength="5000"
                      ItemCountLimit="1"
                      TagSeparator=";"
+                     EnableDelete="False"
                      Items="{Binding State}"
                      Suggestions="{Binding States}">
             <i:Interaction.Behaviors>
@@ -194,4 +196,3 @@
       </ContentControl.DataTemplates>
     </ContentControl>
 </UserControl>
-
