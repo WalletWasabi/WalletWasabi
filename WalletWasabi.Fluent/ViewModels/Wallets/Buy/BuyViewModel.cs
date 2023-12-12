@@ -178,7 +178,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		var orders = new List<OrderViewModel>();
 
-		for (int i = 0; i < conversations.Count; i++)
+		for (var i = 0; i < conversations.Count; i++)
 		{
 			var conversation = conversations[i];
 			orders.Add(await CreateOrderAsync(conversation, i, cancellationToken));

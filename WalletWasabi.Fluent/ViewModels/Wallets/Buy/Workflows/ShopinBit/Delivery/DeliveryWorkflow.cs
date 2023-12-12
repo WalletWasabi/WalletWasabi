@@ -23,7 +23,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new(false,
 				new DefaultInputValidator(
 					workflowState,
-					() => $"To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
+					() => "To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:")),
 			// Firstname
 			new (false,
 				new DefaultInputValidator(
@@ -101,7 +101,7 @@ public sealed partial class DeliveryWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
-					() => $"Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'BUY NOW' to proceed")),
+					() => "Thank you for providing your details. Please double-check them for accuracy. If everything looks good, agree to our Terms and Conditions and click 'BUY NOW' to proceed")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmTosInputValidator(
 					workflowState,
@@ -131,8 +131,6 @@ public sealed partial class DeliveryWorkflow : Workflow
 	public override bool TryToEditStep(WorkflowStep step, string message)
 	{
 		var result = base.TryToEditStep(step, message);
-
-		// TODO: Edit step message.
 
 		step.Update(message);
 

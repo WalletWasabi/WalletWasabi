@@ -15,7 +15,6 @@ public partial class ChatMessageInputValidator : TextInputInputValidator
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
 		return !string.IsNullOrWhiteSpace(Message);
 	}
 
