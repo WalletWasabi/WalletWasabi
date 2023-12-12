@@ -37,6 +37,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new(requiresUserInput: true,
 				userInputValidator: new ProductInputValidator(
 					workflowState,
+					this,
 					ChatMessageMetaData.ChatMessageTag.AssistantType)),
 			// Assistant greeting, min order limit
 			new(false,
@@ -82,10 +83,6 @@ public sealed partial class InitialWorkflow : Workflow
 	}
 
 	public BuyAnythingClient.Product? Product { get; set; }
-
-	public Country? Location { get; set; }
-
-	public bool HasAcceptedPrivacyPolicy { get; set; }
 
 	private string GetWithinHours()
 	{

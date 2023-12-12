@@ -78,7 +78,8 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			bool isMine = items[0] == "WASABI";
 			string chatLine = EnsureProperRawMessage(items[1]);
 			bool isUnread = !oldConversation.Contains(chatLine, isMine);
-			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, null));
+			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
+			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, metaData));
 		}
 
 		return new Chat(chatEntries);

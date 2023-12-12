@@ -484,8 +484,9 @@ public class BuyAnythingManager : PeriodicRunner
 		sb.AppendLine("This is our offer:");
 		foreach (var lineItem in order.LineItems)
 		{
-			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---unit price: ${lineItem.UnitPrice} ---total price: ${lineItem.TotalPrice}");
+			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---Price: ${lineItem.UnitPrice}");
 		}
+		sb.AppendLine($"Total Price: ${order.AmountTotal}");
 		return sb.ToString();
 	}
 

@@ -13,7 +13,15 @@
              x:DataType="vm:InputValidator"
              x:CompileBindings="True">
     <ContentControl Content="{Binding .}">
+      <ContentControl.Resources>
+        <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
+      </ContentControl.Resources>
       <ContentControl.Styles>
+
+        <Style Selector="c|TagControl /template/ Panel#PART_TagPanel">
+          <Setter Property="Margin" Value="0,0,0,-1" />
+        </Style>
+
         <Style Selector="TextBox">
           <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
         </Style>
@@ -159,6 +167,7 @@
                      MaxTextLength="5000"
                      ItemCountLimit="1"
                      TagSeparator=";"
+                     EnableDelete="False"
                      Items="{Binding Country}"
                      Suggestions="{Binding Countries}">
             <i:Interaction.Behaviors>
@@ -175,6 +184,7 @@
                      MaxTextLength="5000"
                      ItemCountLimit="1"
                      TagSeparator=";"
+                     EnableDelete="False"
                      Items="{Binding State}"
                      Suggestions="{Binding States}">
             <i:Interaction.Behaviors>
@@ -194,4 +204,3 @@
       </ContentControl.DataTemplates>
     </ContentControl>
 </UserControl>
-
