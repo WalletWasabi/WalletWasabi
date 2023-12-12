@@ -27,7 +27,8 @@ public enum ConversationStatus
 	InvoicePaidAfterExpiration,
 	Shipped,
 	Finished,
-	WaitingForInvoice
+	WaitingForInvoice,
+	End
 }
 
 public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
