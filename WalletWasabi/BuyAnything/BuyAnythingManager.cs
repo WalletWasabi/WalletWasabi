@@ -60,7 +60,8 @@ internal enum ServerEvent
 	SendOrder = 64,
 	ReceivePaymentAfterExpiration = 128,
 	CloseOfferSuccessfully = 256,
-	GenerateNewInvoice = 512
+	GenerateNewInvoice = 512,
+	CloseCancelled = 1024
 }
 
 // Class to manage the conversation updates
@@ -212,6 +213,14 @@ public class BuyAnythingManager : PeriodicRunner
 				}
 				break;
 
+			// This is an special case when the order is cancelled after the payment was confirmed.
+			case ConversationStatus.PaymentConfirmed
+				or ConversationStatus.InvoicePaidAfterExpiration
+				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
+				await SendSystemChatLinesAsync(track, "Order was cancelled. Please contact the agent to solve the problem.",
+					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+				break;
+
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
@@ -241,6 +250,11 @@ public class BuyAnythingManager : PeriodicRunner
 			case not ConversationStatus.Finished
 				when serverEvent.HasFlag(ServerEvent.FinishConversation):
 				await SendSystemChatLinesAsync(track, "Conversation Finished.", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				break;
+
+			case not ConversationStatus.Finished
+				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
+				await SendSystemChatLinesAsync(track, "Conversation Finished (Order cancelled).", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			default:
@@ -431,6 +445,11 @@ public class BuyAnythingManager : PeriodicRunner
 					events |= ServerEvent.FinishConversation;
 				}
 			}
+			else if (orderStatus == OrderStatus.Cancelled)
+			{
+				events |= ServerEvent.CloseCancelled;
+			}
+
 		}
 
 		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
