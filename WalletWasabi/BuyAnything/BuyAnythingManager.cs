@@ -76,7 +76,10 @@ public class BuyAnythingManager : PeriodicRunner
 			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
 
 			// Check if the order state has changed and update the conversation status.
-			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			if (track.Conversation.ConversationStatus != ConversationStatus.Deleted)
+			{
+				await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			}
 		}
 	}
 
@@ -91,6 +94,11 @@ public class BuyAnythingManager : PeriodicRunner
 		// deleted and then we can have zero orders
 		if (orders.FirstOrDefault() is not { } order)
 		{
+			track.Conversation = track.Conversation with
+			{
+				ConversationStatus = ConversationStatus.Deleted
+			};
+			await SaveAsync(cancel).ConfigureAwait(false);
 			return;
 		}
 
