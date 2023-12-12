@@ -31,6 +31,8 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		PaymentLink = invoice.PaymentLink;
 		IsPaid = metaData.IsPaid;
 
+		Message = $"To finalize your order, please send {Amount} BTC to the Address of {Address}";
+
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
 

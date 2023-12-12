@@ -56,10 +56,7 @@
                         HorizontalAlignment="Center"
                         Classes="action">
                 </Button>
-                <StackPanel>
-                  <TextBlock Text="{Binding Amount, StringFormat='{}To finalize your order, please send {0} BTC'}" />
-                  <TextBlock Text="{Binding Address, StringFormat='{}To the Address: {0}'}" />
-                </StackPanel>
+                <TextBlock Text="{Binding Message}" />
               </DockPanel>
             </Border>
           </c:PreviewMessageItem>
