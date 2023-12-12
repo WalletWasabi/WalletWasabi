@@ -20,7 +20,24 @@ namespace WalletWasabi.BuyAnything;
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
+public abstract record DataCarrier
+{
+	public static DataCarrier NoData = new NoData();
+}
+
+public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) : DataCarrier;
+
+public record OfferItem(float Quantity, string Description, float UnitPrice, float TotalPrice);
+public record OfferCarrier(IEnumerable<OfferItem> Items) : DataCarrier;
+
+public record TrackingCodes(IEnumerable<string> Codes) : DataCarrier;
+public record AttachmentLinks(IEnumerable<string> Codes) : DataCarrier;
+public record NoData : DataCarrier;
+
 public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
+
+public record SystemChatMessage(string Message, DataCarrier Data, bool IsUnread, ChatMessageMetaData MetaData)
+	: ChatMessage(false, Message, IsUnread, MetaData);
 
 public record Country(string Id, string Name);
 
@@ -60,7 +77,8 @@ internal enum ServerEvent
 	SendOrder = 64,
 	ReceivePaymentAfterExpiration = 128,
 	CloseOfferSuccessfully = 256,
-	GenerateNewInvoice = 512
+	GenerateNewInvoice = 512,
+	CloseCancelled = 1024
 }
 
 // Class to manage the conversation updates
@@ -74,7 +92,7 @@ public class BuyAnythingManager : PeriodicRunner
 		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 		string fileContent = File.ReadAllText(countriesFilePath);
 		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-			?? throw new InvalidOperationException("Couldn't read the countries list.");
+							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
 
 		Countries = new List<Country>(countries);
 
@@ -135,6 +153,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice))),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
@@ -157,28 +176,32 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
-				await SendSystemChatLinesAsync(track, "Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
+				await SendSystemChatLinesAsync(track,
+					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
-				await SendSystemChatLinesAsync(track, "Invoice Expired. Please send us your Bitcoin Transaction ID if you already have sent coins.",
+				await SendSystemChatLinesAsync(track,
+					"Invoice Expired. Please send us your Bitcoin Transaction ID if you already have sent coins.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
-				await SendSystemChatLinesAsync(track, "Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
+				await SendSystemChatLinesAsync(track,
+					"Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
 					order.UpdatedAt, ConversationStatus.InvoicePaidAfterExpiration, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the invoice expired and a new one can be requested
 			case ConversationStatus.InvoiceExpired
 				when serverEvent.HasFlag(ServerEvent.GenerateNewInvoice):
-				await SendSystemChatLinesAsync(track, "Our Team is reactivating the payment process.",
+				await SendSystemChatLinesAsync(track,
+					"Our Team is reactivating the payment process.",
 					order.UpdatedAt, ConversationStatus.WaitingForInvoice, cancel).ConfigureAwait(false);
 				break;
 
@@ -192,28 +215,44 @@ public class BuyAnythingManager : PeriodicRunner
 					{
 						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
 						await SendSystemChatLinesAsync(track,
-							  $"{newMessage}:\n {string.Join("\n", trackingCodes)}",
-						order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+							$"{newMessage}:\n {string.Join("\n", trackingCodes)}",
+							new TrackingCodes(trackingCodes),
+							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
 					}
-
-					track.Conversation = track.Conversation with
-					{
-						ConversationStatus = ConversationStatus.Shipped
-					};
 				}
+				break;
+
+			// This is an special case when the order is cancelled after the payment was confirmed.
+			case ConversationStatus.PaymentConfirmed
+				or ConversationStatus.InvoicePaidAfterExpiration
+				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
+				await SendSystemChatLinesAsync(track,
+					"Order was cancelled. Please contact the agent to solve the problem.",
+					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
-				await SendSystemChatLinesAsync(track, $"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
+				await SendSystemChatLinesAsync(track,
+					$"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
+					new AttachmentLinks(GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)),
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			//Handle unexpected finished of the conversation
 			case not ConversationStatus.Finished
 				when serverEvent.HasFlag(ServerEvent.FinishConversation):
-				await SendSystemChatLinesAsync(track, "Conversation Finished.", order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				await SendSystemChatLinesAsync(track,
+					"Conversation Finished.",
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+				break;
+
+			case not ConversationStatus.Finished
+				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
+				await SendSystemChatLinesAsync(track,
+					"Conversation Finished (Order cancelled).",
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			default:
@@ -405,6 +444,10 @@ public class BuyAnythingManager : PeriodicRunner
 					events |= ServerEvent.FinishConversation;
 				}
 			}
+			else if (orderStatus == OrderStatus.Cancelled)
+			{
+				events |= ServerEvent.CloseCancelled;
+			}
 		}
 
 		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
@@ -440,9 +483,13 @@ public class BuyAnythingManager : PeriodicRunner
 		return events;
 	}
 
-	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
+	private Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DateTimeOffset? updatedAt,
+		ConversationStatus newStatus, CancellationToken cancellationToken) =>
+		SendSystemChatLinesAsync(track, message, DataCarrier.NoData, updatedAt, newStatus, cancellationToken);
+
+	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DataCarrier data, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
-		var updatedConversation = track.Conversation.AddSystemChatLine(message, newStatus);
+		var updatedConversation = track.Conversation.AddSystemChatLine(message, data, newStatus);
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 		track.Conversation = updatedConversation;
 		await UpdateConversationAsync(track.Conversation.Id, track.Conversation.ChatMessages, cancellationToken)
@@ -451,7 +498,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
 	{
-		var updatedConversation = track.Conversation.AddSystemChatLine("Conversation finished.", ConversationStatus.Finished);
+		var updatedConversation = track.Conversation.AddSystemChatLine("Conversation finished.", DataCarrier.NoData, ConversationStatus.Finished);
 		track.Conversation = updatedConversation;
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -469,19 +516,25 @@ public class BuyAnythingManager : PeriodicRunner
 			? masterFingerprint.ToString()
 			: "readonly wallet";
 
-	private string GetLinksByLine(string attachmentsLinks) =>
-		string.Join("\n", attachmentsLinks
-			.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+	private string[] GetLinksByLine(string attachmentsLinks) =>
+		attachmentsLinks.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
 		StringBuilder sb = new();
-		sb.AppendLine("This is our offer:");
+		sb.AppendLine("Our offer includes:");
 		foreach (var lineItem in order.LineItems)
 		{
-			sb.AppendLine($"{lineItem.Quantity} x {lineItem.Label} ---Price: ${lineItem.UnitPrice}");
+			if (lineItem.Quantity > 1)
+			{
+				sb.AppendLine($"{lineItem.Quantity} {lineItem.Label} for ${lineItem.UnitPrice}/item (${lineItem.TotalPrice} total).");
+			}
+			else
+			{
+				sb.AppendLine($"A {lineItem.Label} for ${lineItem.UnitPrice}.");
+			}
 		}
-		sb.AppendLine($"Total Price: ${order.AmountTotal}");
+		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
 		return sb.ToString();
 	}
 

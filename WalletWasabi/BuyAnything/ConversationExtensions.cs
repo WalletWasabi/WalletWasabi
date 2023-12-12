@@ -14,11 +14,11 @@ public static class ConversationExtensions
 	public static bool IsUpdatable(this Conversation conversation) =>
 		true;
 
-	public static Conversation AddSystemChatLine(this Conversation conversation, string message,
+	public static Conversation AddSystemChatLine(this Conversation conversation, string message, DataCarrier data,
 		ConversationStatus newStatus) =>
 		conversation with
 		{
-			ChatMessages = conversation.ChatMessages.AddReceivedMessage(message),
+			ChatMessages = conversation.ChatMessages.AddReceivedMessage(message, data),
 			ConversationStatus = newStatus
 		};
 }

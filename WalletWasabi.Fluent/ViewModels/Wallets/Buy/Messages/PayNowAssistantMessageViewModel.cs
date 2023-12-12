@@ -26,8 +26,8 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 
 	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
-		Amount = invoice.BtcAmount;
-		Address = invoice.Address;
+		Amount = invoice.Amount;
+		Address = invoice.BitcoinAddress;
 		IsPaid = metaData.IsPaid;
 		Message = $"To finalize your order, please pay {Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.";
 

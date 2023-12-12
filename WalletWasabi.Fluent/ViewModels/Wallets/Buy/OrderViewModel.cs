@@ -423,6 +423,16 @@ public partial class OrderViewModel : ReactiveObject
 						metaData,
 						cancellationToken);
 
+
+					var hourRange = product.Value.Item1 switch
+					{
+						BuyAnythingClient.Product.ConciergeRequest => "24-48 hours",
+						BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
+						BuyAnythingClient.Product.TravelConcierge => "48-72 hours",
+						_ => "a few days"
+					};
+					AddAssistantMessage($"Thank you! We've received your request and will get in touch with you within {hourRange} (Monday to Friday).", ChatMessageMetaData.Empty);
+
 					break;
 				}
 			case DeliveryWorkflow:
