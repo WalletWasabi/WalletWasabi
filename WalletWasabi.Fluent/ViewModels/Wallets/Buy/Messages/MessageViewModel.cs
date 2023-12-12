@@ -24,5 +24,5 @@ public abstract partial class MessageViewModel : ReactiveObject
 
 	public IObservable<bool>? CanEditObservable { get; }
 
-	public ChatMessageMetaData MetaData { get; }
+	public ChatMessageMetaData MetaData { get; protected set; }
 }

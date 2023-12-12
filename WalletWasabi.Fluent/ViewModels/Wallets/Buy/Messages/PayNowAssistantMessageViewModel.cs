@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using System.Threading.Tasks;
@@ -20,6 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
+	[AutoNotify] private bool _isPaid;
+	[AutoNotify] private string _payButtonText = "";
+
 	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
 		Amount = invoice.BtcAmount;
@@ -27,7 +31,11 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		PaymentLink = invoice.PaymentLink;
 
 		UiContext = UiContext.Default;
-		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync);
+		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
+
+		this.WhenAnyValue(x => x.IsPaid)
+			.Select(x => x ? "PAID" : "Pay Now")
+			.BindTo(this, model => model.IsPaid);
 	}
 
 	public UiContext UiContext { get; set; }
@@ -70,7 +78,9 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
 				wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				UiContext.Default.Navigate().To().SendSuccess(wallet, transaction.Transaction);
+				IsPaid = true;
+				MetaData = MetaData with { IsPaid = true };
+				// UiContext.Default.Navigate().To().SendSuccess(wallet, transaction.Transaction);
 			}
 			catch (Exception ex)
 			{

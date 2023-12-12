@@ -24,7 +24,7 @@ public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatM
 
 public record Country(string Id, string Name);
 
-public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag)
+public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool IsPaid = false)
 {
 	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
 
