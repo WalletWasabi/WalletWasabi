@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
-	public PayNowAssistantMessageViewModel(Invoice invoice) : base(null, null, new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.PaymentInfo))
+	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
 		Amount = invoice.BtcAmount;
 		Address = invoice.Address;
