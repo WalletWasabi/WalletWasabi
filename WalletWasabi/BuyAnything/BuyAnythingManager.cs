@@ -463,8 +463,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
+		JsonSerializerSettings settings = new JsonSerializerSettings
+		{
+			TypeNameHandling = TypeNameHandling.All
+		};
+
 		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented);
+		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented, settings);
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -509,8 +514,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 		try
 		{
+			JsonSerializerSettings settings = new JsonSerializerSettings
+			{
+				TypeNameHandling = TypeNameHandling.All
+			};
+
 			string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json) ?? new();
+			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json, settings) ?? new();
 			ConversationTracking.Load(conversations);
 		}
 		catch (JsonException ex)
