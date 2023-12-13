@@ -16,7 +16,6 @@ public partial class LastNameInputValidator : TextInputInputValidator
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
 		return !string.IsNullOrWhiteSpace(Message);
 	}
 

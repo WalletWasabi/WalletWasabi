@@ -15,7 +15,6 @@ public partial class NoInputInputValidator : InputValidator
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
 		return false;
 	}
 

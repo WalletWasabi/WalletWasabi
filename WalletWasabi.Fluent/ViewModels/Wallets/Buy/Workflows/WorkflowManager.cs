@@ -9,7 +9,7 @@ public abstract partial class WorkflowManager : ReactiveObject
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private Workflow? _currentWorkflow;
 
-	public WorkflowState WorkflowState { get; } = new WorkflowState();
+	public WorkflowState WorkflowState { get; } = new();
 
 	public void ResetWorkflow()
 	{

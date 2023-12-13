@@ -16,7 +16,6 @@ public partial class CityInputValidator : TextInputInputValidator
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
 		return !string.IsNullOrWhiteSpace(Message);
 	}
 

@@ -112,9 +112,9 @@ public abstract partial class Workflow : ReactiveObject
 	}
 
 	/// <summary>
-	///
+	/// Determines whether the workflow instance can be canceled or not.
 	/// </summary>
-	/// <returns>True if workflow can be canceled.</returns>
+	/// <returns>True if the workflow can be canceled, otherwise False.</returns>
 	public virtual bool CanCancel()
 	{
 		return true;

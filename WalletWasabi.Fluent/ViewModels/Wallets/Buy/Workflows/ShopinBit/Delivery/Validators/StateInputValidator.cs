@@ -28,7 +28,6 @@ public partial class StateInputValidator : InputValidator
 
 	public override bool IsValid()
 	{
-		// TODO: Validate request.
 		return _state.Count == 1 && !string.IsNullOrWhiteSpace(_state[0]);
 	}
 

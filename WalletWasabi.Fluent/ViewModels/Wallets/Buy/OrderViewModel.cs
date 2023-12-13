@@ -247,7 +247,6 @@ public partial class OrderViewModel : ReactiveObject
 
 			if (!string.IsNullOrEmpty(editedMessage))
 			{
-				// TODO:
 				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
 				{
 					userMessage.Message = editedMessage;
@@ -296,7 +295,6 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		var messages = CreateMessages(chat, conversationInvoice);
 
-		// TODO: We need to sync with current workflow.
 		_messagesList.Edit(x =>
 		{
 			x.Clear();
@@ -412,7 +410,7 @@ public partial class OrderViewModel : ReactiveObject
 					if (country is not { } ||
 						product is not { })
 					{
-						throw new ArgumentException($"Argument was not provided!");
+						throw new ArgumentException("Argument was not provided!");
 					}
 
 					await buyAnythingManager.StartNewConversationAsync(

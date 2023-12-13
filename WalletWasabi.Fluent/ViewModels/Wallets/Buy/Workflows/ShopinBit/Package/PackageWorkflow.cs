@@ -4,12 +4,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class PackageWorkflow : Workflow
 {
-	private readonly PackageWorkflowRequest _request;
-
 	public PackageWorkflow(WorkflowState workflowState)
 	{
-		_request = new PackageWorkflowRequest();
-
 		// TODO:
 		var trackingUrl = "www.trackmypackage.com/trcknmbr0000001";
 		var downloadUrl = "www.invoice.com/lamboincoice";

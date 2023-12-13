@@ -66,7 +66,7 @@ public sealed partial class InitialWorkflow : Workflow
 			new (false,
 				new DefaultInputValidator(
 					workflowState,
-					() => $"Please accept our Privacy Policy.")),
+					() => "Please accept our Privacy Policy.")),
 			new (requiresUserInput: true,
 				userInputValidator: new ConfirmPrivacyPolicyInputValidator(
 					workflowState,

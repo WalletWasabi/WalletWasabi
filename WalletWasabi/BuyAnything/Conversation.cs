@@ -19,7 +19,6 @@ public enum ConversationStatus
 {
 	Started,
 	OfferReceived,
-	PaymentDone,     // We don't know when the user paid, we only know when the payment is confirmed.
 	PaymentConfirmed,
 	OfferAccepted,
 	InvoiceReceived,
@@ -28,7 +27,8 @@ public enum ConversationStatus
 	Shipped,
 	Finished,
 	WaitingForInvoice,
-	End
+	End,
+	Deleted
 }
 
 public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)

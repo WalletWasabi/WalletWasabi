@@ -20,49 +20,7 @@ namespace WalletWasabi.BuyAnything;
 // Event that is raised when we detect an update in the server
 public record ConversationUpdateEvent(Conversation Conversation, DateTimeOffset LastUpdate);
 
-public abstract record DataCarrier
-{
-	public static DataCarrier NoData = new NoData();
-}
-
-public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) : DataCarrier;
-
-public record OfferItem(float Quantity, string Description, float UnitPrice, float TotalPrice);
-public record OfferCarrier(IEnumerable<OfferItem> Items) : DataCarrier;
-
-public record TrackingCodes(IEnumerable<string> Codes) : DataCarrier;
-public record AttachmentLinks(IEnumerable<string> Codes) : DataCarrier;
-public record NoData : DataCarrier;
-
-public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
-
-public record SystemChatMessage(string Message, DataCarrier Data, bool IsUnread, ChatMessageMetaData MetaData)
-	: ChatMessage(false, Message, IsUnread, MetaData);
-
 public record Country(string Id, string Name);
-
-public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool IsPaid = false)
-{
-	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
-
-	public enum ChatMessageTag
-	{
-		None = 0,
-
-		AssistantType = 11,
-		Country = 12,
-
-		FirstName = 21,
-		LastName = 22,
-		StreetName = 23,
-		HouseNumber = 24,
-		PostalCode = 25,
-		City = 26,
-		State = 27,
-
-		PaymentInfo = 31,
-	}
-}
 
 [Flags]
 internal enum ServerEvent
@@ -95,13 +53,6 @@ public class BuyAnythingManager : PeriodicRunner
 							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
 
 		Countries = new List<Country>(countries);
-
-		ConversationUpdated += BuyAnythingManager_ConversationUpdated;
-	}
-
-	private void BuyAnythingManager_ConversationUpdated(object? sender, ConversationUpdateEvent e)
-	{
-		Logger.LogWarning($"ConvID: {e.Conversation.Id} OrderStatus: {e.Conversation.OrderStatus} ConvStatus: {e.Conversation.ConversationStatus} LastMessage: {e.Conversation.ChatMessages.Last().Message}");
 	}
 
 	private BuyAnythingClient Client { get; }
@@ -125,7 +76,10 @@ public class BuyAnythingManager : PeriodicRunner
 			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
 
 			// Check if the order state has changed and update the conversation status.
-			await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			if (track.Conversation.ConversationStatus != ConversationStatus.Deleted)
+			{
+				await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			}
 		}
 	}
 
@@ -140,6 +94,9 @@ public class BuyAnythingManager : PeriodicRunner
 		// deleted and then we can have zero orders
 		if (orders.FirstOrDefault() is not { } order)
 		{
+			await SendSystemChatLinesAsync(track,
+				$"Order was removed from the Concierge server. Remember this order id: {track.Conversation.Id.OrderId}",
+				DateTimeOffset.Now, ConversationStatus.Deleted, cancel).ConfigureAwait(false);
 			return;
 		}
 
@@ -228,7 +185,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
 					"Order was cancelled. Please contact the agent to solve the problem.",
-					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			// In case the order was paid and/or shipped and the order is closed containing attachments we send them to the ui
@@ -245,14 +202,14 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.FinishConversation):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished.",
-					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
 				break;
 
 			case not ConversationStatus.Finished
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished (Order cancelled).",
-					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
 				break;
 
 			default:
@@ -577,10 +534,4 @@ public class BuyAnythingManager : PeriodicRunner
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
-
-	public override void Dispose()
-	{
-		ConversationUpdated -= BuyAnythingManager_ConversationUpdated;
-		base.Dispose();
-	}
 }

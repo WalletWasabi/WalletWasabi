@@ -13,7 +13,6 @@ public sealed partial class SupportChatWorkflow : Workflow
 				new ChatMessageInputValidator(
 					workflowState,
 					"Send")),
-			// TODO: Await the chat response from service?
 		};
 
 		CreateCanEditObservable();

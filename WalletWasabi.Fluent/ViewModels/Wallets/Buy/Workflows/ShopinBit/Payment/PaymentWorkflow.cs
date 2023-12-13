@@ -4,12 +4,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 public sealed partial class PaymentWorkflow : Workflow
 {
-	private readonly PaymentWorkflowRequest _request;
-
 	public PaymentWorkflow(WorkflowState workflowState)
 	{
-		_request = new PaymentWorkflowRequest();
-
 		// TODO:
 		var paymentAmount = "10.5 BTC";
 		var paymentAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
@@ -31,11 +27,6 @@ public sealed partial class PaymentWorkflow : Workflow
 				userInputValidator: new DefaultInputValidator(
 					workflowState,
 					() => "Your payment must confirm within 30 minutes in order to initiate the delivery process.")),
-			// TODO: Remove step after implementing backend interaction
-			// new (false,
-			// 	new PaymentInputValidator(
-			// 		workflowState,
-			// 		"Great news! Your order is complete.")),
 			new (false,
 				new NoInputInputValidator(
 					workflowState,
