@@ -123,6 +123,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	}
 }
 
-public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, ConversationMetaData MetaData, Invoice? Invoice);
+public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, ConversationMetaData MetaData);
 
 public record ConversationMetaData(string Title);

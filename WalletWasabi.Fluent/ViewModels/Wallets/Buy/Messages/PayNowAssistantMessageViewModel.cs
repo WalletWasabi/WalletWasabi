@@ -21,15 +21,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
+	public Invoice Invoice { get; }
 	[AutoNotify] private string _payButtonText = "";
 	[AutoNotify] private bool _isBusy;
 
 	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
+		Invoice = invoice;
 		Amount = invoice.Amount;
 		Address = invoice.BitcoinAddress;
 		IsPaid = metaData.IsPaid;
-		Message = $"To finalize your order, please pay {Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.";
+		UiMessage = $"To finalize your order, please pay {Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.";
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));

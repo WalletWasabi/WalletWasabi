@@ -117,11 +117,12 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-				// case ConversationStatus.InvoiceInvalidated when serverEvent.HasFlag(ServerEvent.ReceiveNewInvoice):
-				var amount = decimal.Parse(orderCustomFields.Btcpay_Amount);
-				track.Conversation = track.Conversation with { Invoice = new(orderCustomFields.Btcpay_Destination, amount, orderCustomFields.Btcpay_PaymentLink), ConversationStatus = ConversationStatus.InvoiceReceived };
-				ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(track.Conversation, DateTimeOffset.Now));
-				await SaveAsync(cancel).ConfigureAwait(false);
+				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
+				await SendSystemChatLinesAsync(track,
+					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
+					new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination),
+					order.UpdatedAt, ConversationStatus.InvoiceReceived,
+					cancel).ConfigureAwait(false);
 				break;
 
 			case ConversationStatus.WaitingForInvoice
@@ -287,8 +288,7 @@ public class BuyAnythingManager : PeriodicRunner
 			fullChat,
 			OrderStatus.Open,
 			ConversationStatus.Started,
-			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"),
-			null);
+			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));

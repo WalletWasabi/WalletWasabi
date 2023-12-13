@@ -37,8 +37,6 @@ public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool I
 		PostalCode = 25,
 		City = 26,
 		State = 27,
-
-		PaymentInfo = 31,
 	}
 }
 

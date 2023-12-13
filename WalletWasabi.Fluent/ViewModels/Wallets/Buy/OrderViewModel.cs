@@ -153,20 +153,12 @@ public partial class OrderViewModel : ReactiveObject
 		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
 		Title = conversation.MetaData.Title;
 
-		UpdateMessages(conversation.ChatMessages, conversation.Invoice);
+		UpdateMessages(conversation.ChatMessages);
 
 		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
 		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
 		{
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
-		}
-
-		if (conversation.ConversationStatus == ConversationStatus.InvoiceReceived &&
-		    GetMessageByTag(ChatMessageMetaData.ChatMessageTag.PaymentInfo) is null &&
-		    conversation.Invoice is { } invoice)
-		{
-			AddAssistantMessage(new PayNowAssistantMessageViewModel(invoice, new ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag.PaymentInfo)));
-			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
 		}
 
 		var conversationStatusString = conversation.ConversationStatus.ToString();
@@ -218,7 +210,8 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		var assistantMessage = new AssistantMessageViewModel(null, null, metaData)
 		{
-			Message = message
+			UiMessage = message,
+			OriginalMessage = message,
 		};
 
 		AddAssistantMessage(assistantMessage);
@@ -239,7 +232,7 @@ public partial class OrderViewModel : ReactiveObject
 				return;
 			}
 
-			workflowStep.UserInputValidator.Message = userMessage.Message;
+			workflowStep.UserInputValidator.Message = userMessage.UiMessage;
 
 			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(
 				workflowStep.UserInputValidator,
@@ -249,7 +242,7 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
 				{
-					userMessage.Message = editedMessage;
+					userMessage.UiMessage = editedMessage;
 				}
 			}
 		};
@@ -258,7 +251,8 @@ public partial class OrderViewModel : ReactiveObject
 
 		userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
 		{
-			Message = message
+			UiMessage = message,
+			OriginalMessage = message
 		};
 
 		_messagesList.Edit(x =>
@@ -291,9 +285,9 @@ public partial class OrderViewModel : ReactiveObject
 		await StartConversationAsync("Started", null);
 	}
 
-	public void UpdateMessages(Chat chat, Invoice? conversationInvoice)
+	public void UpdateMessages(Chat chat)
 	{
-		var messages = CreateMessages(chat, conversationInvoice);
+		var messages = CreateMessages(chat);
 
 		_messagesList.Edit(x =>
 		{
@@ -315,14 +309,14 @@ public partial class OrderViewModel : ReactiveObject
 		return _messages
 			.Select(x =>
 			{
-				var message = x.Message ?? "";
+				var message = x.OriginalMessage ?? "";
 
-				if (x is AssistantMessageViewModel)
+				return x switch
 				{
-					return new ChatMessage(false, message, x.IsUnread, x.MetaData);
-				}
-
-				return new ChatMessage(true, message, x.IsUnread, x.MetaData);
+					PayNowAssistantMessageViewModel invoiceMessage => new SystemChatMessage(message, invoiceMessage.Invoice, invoiceMessage.IsUnread, invoiceMessage.MetaData),
+					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
+					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
+				};
 			})
 			.ToArray();
 	}
@@ -347,38 +341,64 @@ public partial class OrderViewModel : ReactiveObject
 		return buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
 	}
 
-	private static List<MessageViewModel> CreateMessages(Chat chat, Invoice? conversationInvoice)
+	private static List<MessageViewModel> CreateMessages(Chat chat)
 	{
 		var orderMessages = new List<MessageViewModel>();
 
 		foreach (var message in chat)
 		{
+			// TODO: message variable can be a SystemChatMessage which carriers strongly-typed elements
+			// containing Invoice, Attachments, OfferDetails, etc. You can display/render these elements
+			// without having to parse the message.
+			//
+			// The `Message` string is still there for compatibility, however, the text to display should
+			// be a UI decision (tomorrow it could be Japanese or aligned in reverse for Arabic language, etc)
+			//
+			// Below a crap code to demo the idea:
+
+			//if (message is SystemChatMessage systemMessage)
+			//{
+			//	var model = systemMessage.Data switch
+			//	{
+			//		Invoice invoice => new SystemMessageInvoiceViewModel(invoice.Bip21Link),
+			//		AttachmentLinks attachmentLinks => throw new NotImplementedException(),
+			//		NoData noData => throw new NotImplementedException(),
+			//		OfferCarrier offerCarrier => throw new NotImplementedException(),
+			//		TrackingCodes trackingCodes => throw new NotImplementedException(),
+
+			//	};
+			//}
+
 			if (message.IsMyMessage)
 			{
 				var userMessage = new UserMessageViewModel(null, null, null, message.MetaData)
 				{
-					Message = message.Message,
+					UiMessage = message.Message,
+					OriginalMessage = message.Message,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
 			}
 			else
 			{
-				if (message.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.PaymentInfo &&
-				    conversationInvoice is { } invoice)
+				if (message is SystemChatMessage systemChatMessage)
 				{
-					var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+					if (systemChatMessage.Data is Invoice invoice)
 					{
-						Message = message.Message,
-						IsUnread = message.IsUnread
-					};
-					orderMessages.Add(paymentMessage);
-					continue;
+						var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+						{
+							OriginalMessage = message.Message,
+							IsUnread = message.IsUnread
+						};
+						orderMessages.Add(paymentMessage);
+						continue;
+					}
 				}
 
 				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
-					Message = message.Message,
+					UiMessage = message.Message,
+					OriginalMessage = message.Message,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
@@ -475,6 +495,6 @@ public partial class OrderViewModel : ReactiveObject
 
 	private string? GetMessageByTag(ChatMessageMetaData.ChatMessageTag tag)
 	{
-		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.Message;
+		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.OriginalMessage;
 	}
 }

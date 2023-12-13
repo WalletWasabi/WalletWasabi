@@ -205,7 +205,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			cancellationToken);
 
 		order.WorkflowManager.UpdateConversationId(conversation.Id);
-		order.UpdateMessages(conversation.ChatMessages, conversation.Invoice);
+		order.UpdateMessages(conversation.ChatMessages);
 
 		var country = GetCountryFromConversation(conversation);
 		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), country);

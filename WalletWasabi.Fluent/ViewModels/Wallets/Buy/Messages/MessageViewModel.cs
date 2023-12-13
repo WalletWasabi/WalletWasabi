@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 public abstract partial class MessageViewModel : ReactiveObject
 {
 	[AutoNotify] private string? _id;
-	[AutoNotify] private string? _message;
+	[AutoNotify] private string? _uiMessage;
 	[AutoNotify] private bool _isUnread;
 	[AutoNotify] private bool _isPaid; // TODO: Should only be in PayNowAssistantMessageViewModel
 
@@ -20,6 +20,8 @@ public abstract partial class MessageViewModel : ReactiveObject
 		CanEditObservable = canEditObservable;
 		MetaData = metaData;
 	}
+
+	public string? OriginalMessage { get; set; }
 
 	public ICommand? EditCommand { get; }
 
