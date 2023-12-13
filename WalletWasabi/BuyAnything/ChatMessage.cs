@@ -10,13 +10,16 @@ public abstract record DataCarrier
 public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) : DataCarrier;
 
 public record OfferItem(float Quantity, string Description, float UnitPrice, float TotalPrice);
+
 public record OfferCarrier(IEnumerable<OfferItem> Items) : DataCarrier;
 
 public record TrackingCodes(IEnumerable<string> Codes) : DataCarrier;
+
 public record AttachmentLinks(IEnumerable<string> Codes) : DataCarrier;
+
 public record NoData : DataCarrier;
 
-public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag)
+public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool IsPaid = false)
 {
 	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
 
