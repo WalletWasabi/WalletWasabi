@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -12,11 +13,21 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ScrollToEndOnItemsChangedBehavior : AttachedToVisualTreeBehavior<ItemsControl>
 {
+	public static readonly StyledProperty<ScrollViewer?> ScrollViewerProperty =
+		AvaloniaProperty.Register<ScrollToEndOnItemsChangedBehavior, ScrollViewer?>(nameof(ScrollViewer));
+
+	[ResolveByName]
+	public ScrollViewer? ScrollViewer
+	{
+		get => GetValue(ScrollViewerProperty);
+		set => SetValue(ScrollViewerProperty, value);
+	}
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var contextChanges = this.WhenAnyValue(x => x.AssociatedObject, x => x.AssociatedObject!.DataContext, (control, _) => control)
 			.Select(control => control!.Items.Cast<object>().LastOrDefault());
-			
+
 		var itemCollectionChanges = this.WhenAnyValue(x => x.AssociatedObject, x => x.AssociatedObject!.DataContext, x => x.AssociatedObject!.Items, (associateControl, _, _) => associateControl)
 			.WhereNotNull()
 			.Select(x => x.Items as INotifyCollectionChanged)
@@ -44,9 +55,7 @@ public class ScrollToEndOnItemsChangedBehavior : AttachedToVisualTreeBehavior<It
 	private void ScrollTo(object obj)
 	{
 		// Avalonia doesn't provide any method to scroll to a given item, so we just scroll to end.
-		var descendant = AssociatedObject.FindDescendantOfType<ScrollViewer>();
-		var ancestor = AssociatedObject.FindAncestorOfType<ScrollViewer>();
-		var scrollViewer = descendant ?? ancestor ?? throw new InvalidOperationException("We can't find any ScrollViewer we can scroll.");
+		var scrollViewer = ScrollViewer ?? throw new InvalidOperationException("We can't find any ScrollViewer we can scroll.");
 
 		Dispatcher.UIThread.Post(scrollViewer.ScrollToEnd, DispatcherPriority.Input);
 	}
