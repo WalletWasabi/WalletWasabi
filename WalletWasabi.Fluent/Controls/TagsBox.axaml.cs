@@ -379,7 +379,7 @@ public class TagsBox : TemplatedControl
 
 		if (InternalTextBox is null)
 		{
-			// Issue a Focus in the InternalTextBox when it becomes available.
+			// Issue a Focus request in the InternalTextBox when it becomes available.
 			this.WhenAnyValue(x => x.InternalTextBox)
 				.WhereNotNull()
 				.Take(1)
