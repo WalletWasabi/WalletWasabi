@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BuyAnything;
@@ -90,8 +89,8 @@ public partial class OrderViewModel : ReactiveObject
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
 		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages)
-			.Where(x => x == false)
+		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
+			.Merge(_messagesList.Connect().AutoRefresh(x => x.IsPaid).ToSignal())
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
 			.Subscribe();
 	}
@@ -162,10 +161,6 @@ public partial class OrderViewModel : ReactiveObject
 			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
 		}
 
-		if (conversation.ConversationStatus == ConversationStatus.OfferAccepted)
-		{
-		}
-
 		var conversationStatusString = conversation.ConversationStatus.ToString();
 		if (_conversationStatus != conversationStatusString)
 		{
@@ -205,19 +200,21 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
+	private void AddAssistantMessage<T>(T assistantMessage) where T : AssistantMessageViewModel
+	{
+		_messagesList.Edit(x => x.Add(assistantMessage));
+		SelectedMessage = assistantMessage;
+	}
+
 	private void AddAssistantMessage(string message, ChatMessageMetaData metaData)
 	{
 		var assistantMessage = new AssistantMessageViewModel(null, null, metaData)
 		{
-			Message = message
+			UiMessage = message,
+			OriginalMessage = message,
 		};
 
-		_messagesList.Edit(x =>
-		{
-			x.Add(assistantMessage);
-		});
-
-		SelectedMessage = assistantMessage;
+		AddAssistantMessage(assistantMessage);
 	}
 
 	private void AddUserMessage(string message, ChatMessageMetaData metaData)
@@ -235,7 +232,7 @@ public partial class OrderViewModel : ReactiveObject
 				return;
 			}
 
-			workflowStep.UserInputValidator.Message = userMessage.Message;
+			workflowStep.UserInputValidator.Message = userMessage.UiMessage;
 
 			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(
 				workflowStep.UserInputValidator,
@@ -245,7 +242,7 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
 				{
-					userMessage.Message = editedMessage;
+					userMessage.UiMessage = editedMessage;
 				}
 			}
 		};
@@ -254,7 +251,8 @@ public partial class OrderViewModel : ReactiveObject
 
 		userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
 		{
-			Message = message
+			UiMessage = message,
+			OriginalMessage = message
 		};
 
 		_messagesList.Edit(x =>
@@ -311,14 +309,14 @@ public partial class OrderViewModel : ReactiveObject
 		return _messages
 			.Select(x =>
 			{
-				var message = x.Message ?? "";
+				var message = x.OriginalMessage ?? "";
 
-				if (x is AssistantMessageViewModel)
+				return x switch
 				{
-					return new ChatMessage(false, message, x.IsUnread, x.MetaData);
-				}
-
-				return new ChatMessage(true, message, x.IsUnread, x.MetaData);
+					PayNowAssistantMessageViewModel invoiceMessage => new SystemChatMessage(message, invoiceMessage.Invoice, invoiceMessage.IsUnread, invoiceMessage.MetaData),
+					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
+					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
+				};
 			})
 			.ToArray();
 	}
@@ -349,45 +347,62 @@ public partial class OrderViewModel : ReactiveObject
 
 		foreach (var message in chat)
 		{
+			// TODO: message variable can be a SystemChatMessage which carriers strongly-typed elements
+			// containing Invoice, Attachments, OfferDetails, etc. You can display/render these elements
+			// without having to parse the message.
+			//
+			// The `Message` string is still there for compatibility, however, the text to display should
+			// be a UI decision (tomorrow it could be Japanese or aligned in reverse for Arabic language, etc)
+			//
+			// Below a crap code to demo the idea:
+
+			//if (message is SystemChatMessage systemMessage)
+			//{
+			//	var model = systemMessage.Data switch
+			//	{
+			//		Invoice invoice => new SystemMessageInvoiceViewModel(invoice.Bip21Link),
+			//		AttachmentLinks attachmentLinks => throw new NotImplementedException(),
+			//		NoData noData => throw new NotImplementedException(),
+			//		OfferCarrier offerCarrier => throw new NotImplementedException(),
+			//		TrackingCodes trackingCodes => throw new NotImplementedException(),
+
+			//	};
+			//}
+
 			if (message.IsMyMessage)
 			{
 				var userMessage = new UserMessageViewModel(null, null, null, message.MetaData)
 				{
-					Message = message.Message,
+					UiMessage = message.Message,
+					OriginalMessage = message.Message,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
 			}
 			else
 			{
-				// TODO: message variable can be a SystemChatMessage which carriers strongly-typed elements
-				// containing Invoice, Attachments, OfferDetails, etc. You can display/render these elements
-				// without having to parse the message.
-				//
-				// The `Message` string is still there for compatibility, however, the text to display should
-				// be a UI decision (tomorrow it could be Japanese or aligned in reverse for Arabic language, etc)
-				//
-				// Below a crap code to demo the idea:
-
-				//if (message is SystemChatMessage systemMessage)
-				//{
-				//	var model = systemMessage.Data switch
-				//	{
-				//		Invoice invoice => new SystemMessageInvoiceViewModel(invoice.Bip21Link),
-				//		AttachmentLinks attachmentLinks => throw new NotImplementedException(),
-				//		NoData noData => throw new NotImplementedException(),
-				//		OfferCarrier offerCarrier => throw new NotImplementedException(),
-				//		TrackingCodes trackingCodes => throw new NotImplementedException(),
-
-				//	};
-				//}
+				if (message is SystemChatMessage systemChatMessage)
+				{
+					if (systemChatMessage.Data is Invoice invoice)
+					{
+						var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+						{
+							OriginalMessage = message.Message,
+							IsUnread = message.IsUnread
+						};
+						orderMessages.Add(paymentMessage);
+						continue;
+					}
+				}
 
 				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
-					Message = message.Message,
+					UiMessage = message.Message,
+					OriginalMessage = message.Message,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
+
 			}
 		}
 
@@ -480,6 +495,6 @@ public partial class OrderViewModel : ReactiveObject
 
 	private string? GetMessageByTag(ChatMessageMetaData.ChatMessageTag tag)
 	{
-		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.Message;
+		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.OriginalMessage;
 	}
 }

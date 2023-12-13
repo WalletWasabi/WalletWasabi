@@ -32,27 +32,57 @@
 
       <SelectingItemsControl.DataTemplates>
         <DataTemplate DataType="vmMessage:UserMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding Message}"
+          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Left"
                                 HorizontalAlignment="Right"
                                 EditCommand="{Binding EditCommand}"
                                 IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
             <Border Background="{DynamicResource UserMessageBackground}">
-              <TextBlock Text="{Binding Message}" />
+              <TextBlock Text="{Binding UiMessage}" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
-        <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding Message}"
+
+        <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
-              <TextBlock Text="{Binding Message}" />
+              <DockPanel>
+                <Panel DockPanel.Dock="Bottom"
+                       HorizontalAlignment="Center"
+                       Height="40"
+                       Margin="0 10 0 0">
+                  <Viewbox Height="30" IsVisible="{Binding IsBusy}" VerticalAlignment="Center">
+                    <c:ProgressRing Height="50" Width="50" Name="LoadingRing" IsIndeterminate="True" />
+                  </Viewbox>
+
+                  <Button Command="{Binding PayNowCommand}"
+                          Classes="action"
+                          IsVisible="{Binding !IsBusy}"
+                          VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <PathIcon Data="{StaticResource checkmark_filled}" Height="11" IsVisible="{Binding IsPaid}" VerticalAlignment="Center" Foreground="{DynamicResource ActionForegroundColor}" />
+                      <TextBlock Text="{Binding PayButtonText}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                </Panel>
+                <TextBlock Text="{Binding UiMessage}" />
+              </DockPanel>
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+
+        <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+                                CopyButtonPlacement="Right"
+                                HorizontalAlignment="Left">
+            <Border Background="{DynamicResource AssistantMessageBackground}">
+              <TextBlock Text="{Binding UiMessage}" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
       </SelectingItemsControl.DataTemplates>
     </SelectingItemsControl>
   </ScrollViewer>
-
 </UserControl>

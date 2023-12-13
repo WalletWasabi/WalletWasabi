@@ -13,4 +13,3 @@ public class ConversationUpdateTrack
 	public Conversation Conversation { get; set; }
 	public NetworkCredential Credential => new(Conversation.Id.EmailAddress, Conversation.Id.Password);
 }
-

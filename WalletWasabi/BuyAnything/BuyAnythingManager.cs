@@ -50,7 +50,7 @@ public class BuyAnythingManager : PeriodicRunner
 		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 		string fileContent = File.ReadAllText(countriesFilePath);
 		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-		                      ?? throw new InvalidOperationException("Couldn't read the countries list.");
+							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
 
 		Countries = new List<Country>(countries);
 	}
@@ -119,7 +119,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
 				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 10 minutes",
+					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
 					new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination),
 					order.UpdatedAt, ConversationStatus.InvoiceReceived,
 					cancel).ConfigureAwait(false);
@@ -166,18 +166,18 @@ public class BuyAnythingManager : PeriodicRunner
 			// Payment is confirmed and status is SHIPPED the we have a tracking link to display
 			case ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.SendOrder):
-			{
-				var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
-
-				if (trackingCodes.Any())
 				{
-					var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
-					await SendSystemChatLinesAsync(track,
-						$"{newMessage}:\n {string.Join("\n", trackingCodes)}",
-						new TrackingCodes(trackingCodes),
-						order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
+
+					if (trackingCodes.Any())
+					{
+						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
+						await SendSystemChatLinesAsync(track,
+							$"{newMessage}:\n {string.Join("\n", trackingCodes)}",
+							new TrackingCodes(trackingCodes),
+							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					}
 				}
-			}
 				break;
 
 			// This is an special case when the order is cancelled after the payment was confirmed.
@@ -405,7 +405,6 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				events |= ServerEvent.CloseCancelled;
 			}
-
 		}
 
 		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
@@ -464,8 +463,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
+		JsonSerializerSettings settings = new JsonSerializerSettings
+		{
+			TypeNameHandling = TypeNameHandling.All
+		};
+
 		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented);
+		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented, settings);
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -510,8 +514,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 		try
 		{
+			JsonSerializerSettings settings = new JsonSerializerSettings
+			{
+				TypeNameHandling = TypeNameHandling.All
+			};
+
 			string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json) ?? new();
+			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json, settings) ?? new();
 			ConversationTracking.Load(conversations);
 		}
 		catch (JsonException ex)
