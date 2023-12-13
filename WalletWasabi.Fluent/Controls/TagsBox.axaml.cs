@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -91,7 +90,7 @@ public class TagsBox : TemplatedControl
 	public static readonly StyledProperty<bool> EnableDeleteProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
 
-	public static readonly DirectProperty<TagsBox, TextBox?> InternalTextBoxProperty =
+	private static readonly DirectProperty<TagsBox, TextBox?> InternalTextBoxProperty =
 		AvaloniaProperty.RegisterDirect<TagsBox, TextBox?>(nameof(InternalTextBox), o => o.InternalTextBox, (o, v) => o.InternalTextBox = v);
 
 	private TextBox? _internalTextBox;
@@ -380,6 +379,7 @@ public class TagsBox : TemplatedControl
 
 		if (InternalTextBox is null)
 		{
+			// Issue a Focus in the InternalTextBox when it becomes available.
 			this.WhenAnyValue(x => x.InternalTextBox)
 				.WhereNotNull()
 				.Take(1)
