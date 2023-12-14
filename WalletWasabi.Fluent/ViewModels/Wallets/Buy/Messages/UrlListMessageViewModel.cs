@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Helpers;
@@ -35,7 +37,10 @@ internal class HyperlinkViewModel
 		Text = text;
 		Url = url;
 		OpenLinkCommand = ReactiveCommand.Create(() => IoHelpers.OpenBrowserAsync(url));
+		CopyCommand = ReactiveCommand.CreateFromTask(() => Application.Current?.Clipboard?.SetTextAsync(Url) ?? Task.CompletedTask);
 	}
 
 	public ICommand OpenLinkCommand { get; set; }
+
+	public ICommand CopyCommand { get; set; }
 }
