@@ -83,7 +83,7 @@
           </c:PreviewMessageItem>
         </DataTemplate>
 
-        <DataTemplate DataType="vmMessage:AttachmentMessageViewModel">
+        <DataTemplate DataType="vmMessage:UrlListMessageViewModel">
           <ItemsControl Items="{Binding Links}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vmMessage:HyperlinkViewModel">

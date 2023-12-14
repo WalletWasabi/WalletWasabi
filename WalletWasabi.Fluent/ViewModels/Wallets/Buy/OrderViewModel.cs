@@ -373,13 +373,18 @@ public partial class OrderViewModel : ReactiveObject
 							continue;
 						}
 						case AttachmentLinks attachmentLinks:
-							orderMessages.Add(new AttachmentMessageViewModel(attachmentLinks, message.MetaData)
+							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks.Links, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = string.Join(Environment.NewLine, attachmentLinks.Codes)
+								UiMessage = string.Join(Environment.NewLine, attachmentLinks.Links)
 							});
 							break;
 						case TrackingCodes trackingCodes:
+							orderMessages.Add(new UrlListMessageViewModel(trackingCodes.Codes, message.MetaData)
+							{
+								OriginalMessage = message.Message,
+								UiMessage = string.Join(Environment.NewLine, trackingCodes.Codes)
+							});
 							break;
 					}
 				}

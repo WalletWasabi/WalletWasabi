@@ -7,11 +7,11 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
-internal class AttachmentMessageViewModel : MessageViewModel
+internal class UrlListMessageViewModel : MessageViewModel
 {
-	public AttachmentMessageViewModel(AttachmentLinks attachmentLinks, ChatMessageMetaData metaData) : base(null, null, metaData)
+	public UrlListMessageViewModel(IEnumerable<string> urls, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{
-		Links = attachmentLinks.Codes.Select(url => new HyperlinkViewModel(url, url));
+		Links = urls.Select(url => new HyperlinkViewModel(url, url));
 	}
 
 	public IEnumerable<HyperlinkViewModel> Links { get; }
