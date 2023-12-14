@@ -341,14 +341,6 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		var orderMessages = new List<MessageViewModel>();
 
-		var attachmentMessageViewModel = new AttachmentMessageViewModel(new AttachmentLinks(new List<string> { "https://www.google.es", }), ChatMessageMetaData.Empty)
-		{
-			OriginalMessage = "You",
-			UiMessage = "Salute all",
-		};
-
-		orderMessages.Add(attachmentMessageViewModel);
-
 		foreach (var message in chat)
 		{
 			if (message.IsMyMessage)
