@@ -21,4 +21,9 @@ public static class ConversationExtensions
 			ChatMessages = conversation.ChatMessages.AddReceivedMessage(message, data),
 			ConversationStatus = newStatus
 		};
+
+	public static Conversation2 UpdateMetadata(this Conversation2 conversation, Func<ConversationMetaData2, ConversationMetaData2> updateMetadata)
+	{
+		return conversation with { MetaData = updateMetadata(conversation.MetaData) };
+	}
 }

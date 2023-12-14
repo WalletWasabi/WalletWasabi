@@ -3,6 +3,15 @@ using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
+public abstract partial class UserInput2 : ReactiveObject
+{
+	public virtual void OnActivation()
+	{
+	}
+
+	public abstract string ToMessage();
+}
+
 public abstract partial class InputValidator : ReactiveObject
 {
 	private readonly Func<string?>? _messageProvider;

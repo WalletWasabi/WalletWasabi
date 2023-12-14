@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.BuyAnything;
 
 public abstract record DataCarrier
 {
-	public static DataCarrier NoData = new NoData();
+	public static readonly DataCarrier NoData = new NoData();
 }
 
 public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) : DataCarrier;
@@ -41,6 +42,18 @@ public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool I
 }
 
 public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
+
+public record ChatMessage2(MessageSource Source, string Message, bool IsUnread, string StepName)
+{
+	public bool IsMyMessage => Source == MessageSource.User;
+}
+
+public enum MessageSource
+{
+	User = 1,
+	Agent = 2,
+	Bot = 3
+}
 
 public record SystemChatMessage(string Message, DataCarrier Data, bool IsUnread, ChatMessageMetaData MetaData)
 	: ChatMessage(false, Message, IsUnread, MetaData);

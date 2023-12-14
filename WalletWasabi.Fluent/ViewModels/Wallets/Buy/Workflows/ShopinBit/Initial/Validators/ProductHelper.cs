@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
 internal static class ProductHelper
 {
-	public static string GetDescription(BuyAnythingClient.Product product)
+	public static string GetDescription<T>(this T product) where T : Enum
 	{
 		var fieldInfo = product.GetType().GetField(product.ToString());
 		var attribArray = fieldInfo!.GetCustomAttributes(false);
