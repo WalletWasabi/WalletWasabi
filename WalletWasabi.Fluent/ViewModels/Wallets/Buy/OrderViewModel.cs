@@ -35,7 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
-	
+
 	public OrderViewModel(UiContext uiContext,
 		int id,
 		ConversationMetaData metaData,
@@ -309,8 +309,9 @@ public partial class OrderViewModel : ReactiveObject
 
 				return x switch
 				{
-					PayNowAssistantMessageViewModel invoiceMessage => new SystemChatMessage(message, invoiceMessage.Invoice, invoiceMessage.IsUnread, invoiceMessage.MetaData),
+					PayNowAssistantMessageViewModel payVm => new SystemChatMessage(message, payVm.Invoice, payVm.IsUnread, payVm.MetaData),
 					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
+					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
 					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
 				};
 			})
@@ -363,19 +364,26 @@ public partial class OrderViewModel : ReactiveObject
 						case OfferCarrier offerCarrier:
 							break;
 						case Invoice invoice:
-						{
-							var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{
 								OriginalMessage = message.Message,
 								IsUnread = message.IsUnread
-							};
-							orderMessages.Add(paymentMessage);
+							});
 							continue;
-						}
 						case AttachmentLinks attachmentLinks:
-							break;
+							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
+							{
+								OriginalMessage = message.Message,
+								UiMessage = "Download your files:"
+							});
+							continue;
 						case TrackingCodes trackingCodes:
-							break;
+							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
+							{
+								OriginalMessage = message.Message,
+								UiMessage = "For shipping updates:"
+							});
+							continue;
 					}
 				}
 
@@ -386,7 +394,6 @@ public partial class OrderViewModel : ReactiveObject
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
-
 			}
 		}
 
