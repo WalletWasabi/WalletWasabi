@@ -85,7 +85,7 @@
       </SelectingItemsControl.DataTemplates>
 
       <Interaction.Behaviors>
-        <behaviors:ScrollToNewItemBehavior />
+        <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
       </Interaction.Behaviors>
 
     </SelectingItemsControl>
