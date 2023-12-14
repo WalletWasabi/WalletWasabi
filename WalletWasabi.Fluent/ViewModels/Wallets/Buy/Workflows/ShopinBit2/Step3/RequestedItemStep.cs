@@ -25,7 +25,7 @@ public class RequestedItemStep : WorkflowStep2<string>
 	protected override string? RetrieveValue(Conversation2 conversation) => conversation.MetaData.RequestedItem;
 
 	// This Step is only valid if the Value is actual text
-	protected override bool IsValidValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
+	protected override bool ValidateUserValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
 
 	protected override string StringValue(string? value) => value ?? "";
 }

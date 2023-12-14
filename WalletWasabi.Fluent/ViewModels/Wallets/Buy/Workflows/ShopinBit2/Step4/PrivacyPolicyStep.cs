@@ -36,7 +36,7 @@ public class PrivacyPolicyStep : WorkflowStep2<bool>
 		conversation.MetaData.PrivacyPolicyAccepted;
 
 	// This Step is only valid if the Privacy Policy has effectively been accepted (Value is true)
-	protected override bool IsValidValue(bool value) => value;
+	protected override bool ValidateUserValue(bool value) => value;
 
 	protected override string? StringValue(bool value) => null;
 }

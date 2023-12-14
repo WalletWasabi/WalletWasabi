@@ -8,20 +8,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class Workflow2 : ReactiveObject
 {
+	private readonly object _lock = new();
+
 	[AutoNotify] private IWorkflowStep2? _currentStep;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private Conversation2 _conversation;
 
-	public async Task<Conversation2> ExecuteAsync(Conversation2 conversation)
+	protected Workflow2(Conversation2 conversation)
 	{
-		var steps = GetSteps(conversation).ToArray();
-
-		foreach (var step in steps)
-		{
-			CurrentStep = step;
-			conversation = await step.ExecuteAsync(conversation);
-		}
-
-		return conversation;
+		_conversation = conversation;
 	}
 
-	public abstract IEnumerable<IWorkflowStep2> GetSteps(Conversation2 conversation);
+	public abstract Task<Conversation2> ExecuteAsync();
+
+	protected async Task ExecuteStepAsync(IWorkflowStep2 step)
+	{
+		CurrentStep = step;
+		var conversation = await step.ExecuteAsync(Conversation);
+		SetConversation(conversation);
+	}
+
+	protected void SetConversation(Conversation2 conversation)
+	{
+		lock (_lock)
+		{
+			Conversation = conversation;
+		}
+	}
 }

@@ -1,15 +1,15 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace WalletWasabi.BuyAnything;
 
-public class ConversationTracking
+public class ConversationTracking2
 {
 	public Dictionary<string, int> NextConversationIds { get; private set; } = new();
-	public List<ConversationUpdateTrack> Conversations { get; } = new();
+	public List<ConversationUpdateTrack2> Conversations { get; } = new();
 	private readonly object _syncObj = new();
 
-	public void Load(ConversationTracking conversations)
+	public void Load(ConversationTracking2 conversations)
 	{
 		lock (_syncObj)
 		{
@@ -18,7 +18,7 @@ public class ConversationTracking
 		}
 	}
 
-	public ConversationUpdateTrack[] GetUpdatableConversations()
+	public ConversationUpdateTrack2[] GetUpdatableConversations()
 	{
 		lock (_syncObj)
 		{
@@ -26,7 +26,7 @@ public class ConversationTracking
 		}
 	}
 
-	public Conversation[] GetConversationsByWalletId(string walletId)
+	public Conversation2[] GetConversationsByWalletId(string walletId)
 	{
 		lock (_syncObj)
 		{
@@ -37,7 +37,7 @@ public class ConversationTracking
 		}
 	}
 
-	public ConversationUpdateTrack GetConversationTrackByd(ConversationId conversationId)
+	public ConversationUpdateTrack2 GetConversationTrackByd(ConversationId conversationId)
 	{
 		lock (_syncObj)
 		{
@@ -45,10 +45,10 @@ public class ConversationTracking
 		}
 	}
 
-	public Conversation GetConversationsById(ConversationId conversationId) =>
+	public Conversation2 GetConversationsById(ConversationId conversationId) =>
 		GetConversationTrackByd(conversationId).Conversation;
 
-	public void Add(ConversationUpdateTrack conversationUpdateTrack)
+	public void Add(ConversationUpdateTrack2 conversationUpdateTrack)
 	{
 		lock (_syncObj)
 		{
@@ -60,7 +60,7 @@ public class ConversationTracking
 		}
 	}
 
-	public int RemoveAll(Predicate<ConversationUpdateTrack> predicate)
+	public int RemoveAll(Predicate<ConversationUpdateTrack2> predicate)
 	{
 		lock (_syncObj)
 		{

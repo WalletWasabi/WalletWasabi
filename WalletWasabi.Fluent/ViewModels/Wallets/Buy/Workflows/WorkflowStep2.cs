@@ -1,3 +1,4 @@
+using NBitcoin.Protocol;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,14 +35,14 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 
 		// if this step already contains data previously stored in the Conversation (retrieved by RetrieveData),
 		// then set the Step as completed so the parent workflow can move on.
-		if (_value is { })
+		if (ValidateInitialValue(_value))
 		{
 			_userInputTcs.SetResult();
 		}
 
 		// When Value changes, call IsValidValue(Value) and set IsValid property accordingly.
 		this.WhenAnyValue(x => x.Value)
-			.Select(IsValidValue)
+			.Select(ValidateUserValue)
 			.BindTo(this, x => x.IsValid);
 
 		SendCommand = ReactiveCommand.Create(Send, this.WhenAnyValue(x => x.IsValid));
@@ -49,9 +50,11 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 
 	public ICommand SendCommand { get; }
 
+	public Func<Conversation2, Task<Conversation2>>? OnCompleted { get; init; }
+
 	private string StepName => GetType().Name;
 
-	public async Task<Conversation2> ExecuteAsync(Conversation2 conversation)
+	public virtual async Task<Conversation2> ExecuteAsync(Conversation2 conversation)
 	{
 		// Only ask the question if it hasn't been asked before
 		if (!conversation.ChatMessages.Any(x => x.StepName == StepName && x.Source == MessageSource.Bot))
@@ -60,7 +63,7 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 
 			foreach (var message in botMessages)
 			{
-				conversation = conversation with { ChatMessages = conversation.ChatMessages.AddBotMessage(message, StepName) };
+				conversation = AddBotMessage(conversation, message);
 			}
 		}
 
@@ -79,6 +82,11 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 			}
 		}
 
+		if (OnCompleted is { })
+		{
+			conversation = await OnCompleted(conversation);
+		}
+
 		return conversation;
 	}
 
@@ -90,13 +98,23 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 		yield break;
 	}
 
-	/// <summary>
-	/// Validate the Step's Value. Fires when Value changes and is used to set IsValid property and the CanExecute of the SendCommand
-	/// </summary>
-	protected virtual bool IsValidValue(TValue? value)
+	protected Conversation2 AddBotMessage(Conversation2 conversation, string message)
 	{
-		return value is { };
+		conversation = conversation with { ChatMessages = conversation.ChatMessages.AddBotMessage(message, StepName) };
+		return conversation;
 	}
+
+	/// <summary>
+	/// Validate the Step's Value entered by the User. Fires when Value changes and is used to set IsValid property and the CanExecute of the SendCommand
+	/// </summary>
+	protected virtual bool ValidateUserValue(TValue? value) => value is { };
+
+	/// <summary>
+	/// Validate the Step's initial value retrieved from an existing Conversation.
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	protected virtual bool ValidateInitialValue(TValue? value) => value is { };
 
 	/// <summary>
 	/// Retrieve the Step's Value from the Conversation Metadata
@@ -111,7 +129,7 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 	/// <summary>
 	/// String representation of the Step's value (to show it as a User message)
 	/// </summary>
-	protected abstract string? StringValue(TValue value);
+	protected virtual string? StringValue(TValue value) => null;
 
 	/// <summary>
 	/// This is called when the user presses the "Send" button. It simply signals the TaskCompletionSource so that ExecuteAsync() can move on.
