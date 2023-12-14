@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls.Mixins;
 using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
@@ -88,9 +89,32 @@ public partial class OrderViewModel : ReactiveObject
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
 		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
-			.Merge(_messagesList.Connect().AutoRefresh(x => x.IsPaid).ToSignal())
-			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
+		SaveConversationToFileWhenNeeded();
+	}
+
+	private IDisposable SaveConversationToFileWhenNeeded()
+	{
+		var flowCompleted = this.WhenAnyValue(x => x.WorkflowManager.CurrentWorkflow.IsCompleted)
+			.DistinctUntilChanged()
+			.Where(x => x).ToSignal()
+			.Do(_ => Logger.LogInfo($"{Title}: Flow completed"));
+
+		var hasUnreadMessages = this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
+			.Do(_ => Logger.LogInfo($"{Title}: Flow completed"));
+
+		var paidCountChanged = _messagesList
+			.Connect()
+			.AutoRefresh(x => x.IsPaid)
+			.Filter(o => o.IsPaid)
+			.Count()
+			.Select(x => x > 0)
+			.Where(b => b)
+			.ToSignal()
+			.Do(_ => Logger.LogInfo($"{Title}: Paid count > 0"));
+
+		return Observable.Merge(flowCompleted, hasUnreadMessages, paidCountChanged)
+			.Throttle(TimeSpan.FromSeconds(1)) // Don't push too hard
+			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, CancellationToken.None))
 			.Subscribe();
 	}
 
@@ -320,14 +344,14 @@ public partial class OrderViewModel : ReactiveObject
 			.ToArray();
 	}
 
-	private Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	private async Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, metaData, cancellationToken);
+		await buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, metaData, cancellationToken);
 	}
 
 	private Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
