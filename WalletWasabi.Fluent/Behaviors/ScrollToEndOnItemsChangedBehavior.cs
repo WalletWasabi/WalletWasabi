@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using DynamicData.Binding;
 using ReactiveUI;
 
@@ -26,7 +25,7 @@ public class ScrollToEndOnItemsChangedBehavior : AttachedToVisualTreeBehavior<It
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var contextChanges = this.WhenAnyValue(x => x.AssociatedObject, x => x.AssociatedObject!.DataContext, (control, _) => control)
-			.Select(control => control!.Items.Cast<object>().LastOrDefault());
+			.Select(control => control?.Items?.Cast<object>().LastOrDefault());
 
 		var itemCollectionChanges = this.WhenAnyValue(x => x.AssociatedObject, x => x.AssociatedObject!.DataContext, x => x.AssociatedObject!.Items, (associateControl, _, _) => associateControl)
 			.WhereNotNull()
