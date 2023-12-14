@@ -202,7 +202,6 @@ public partial class OrderViewModel : ReactiveObject
 	private void AddAssistantMessage<T>(T assistantMessage) where T : AssistantMessageViewModel
 	{
 		_messagesList.Edit(x => x.Add(assistantMessage));
-		SelectedMessage = assistantMessage;
 	}
 
 	private void AddAssistantMessage(string message, ChatMessageMetaData metaData)
