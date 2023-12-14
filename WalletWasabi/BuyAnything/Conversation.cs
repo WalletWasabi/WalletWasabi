@@ -27,7 +27,6 @@ public enum ConversationStatus
 	Shipped,
 	Finished,
 	WaitingForInvoice,
-	End,
 	Deleted
 }
 
