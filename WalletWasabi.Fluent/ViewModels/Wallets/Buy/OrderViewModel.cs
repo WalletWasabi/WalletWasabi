@@ -88,7 +88,6 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		// Update file on disk
 		SaveConversationToFileWhenNeeded();
 	}
 
