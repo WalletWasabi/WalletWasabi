@@ -35,7 +35,7 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
-	
+
 	public OrderViewModel(UiContext uiContext,
 		int id,
 		ConversationMetaData metaData,
@@ -66,7 +66,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Connect()
 			.Bind(out _messages)
 			.Subscribe();
-		
+
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowState.IsValidObservable);
@@ -309,8 +309,9 @@ public partial class OrderViewModel : ReactiveObject
 
 				return x switch
 				{
-					PayNowAssistantMessageViewModel invoiceMessage => new SystemChatMessage(message, invoiceMessage.Invoice, invoiceMessage.IsUnread, invoiceMessage.MetaData),
+					PayNowAssistantMessageViewModel payVm => new SystemChatMessage(message, payVm.Invoice, payVm.IsUnread, payVm.MetaData),
 					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
+					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
 					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
 				};
 			})
@@ -363,29 +364,26 @@ public partial class OrderViewModel : ReactiveObject
 						case OfferCarrier offerCarrier:
 							break;
 						case Invoice invoice:
-						{
-							var paymentMessage = new PayNowAssistantMessageViewModel(invoice, message.MetaData)
+							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{
 								OriginalMessage = message.Message,
 								IsUnread = message.IsUnread
-							};
-							orderMessages.Add(paymentMessage);
+							});
 							continue;
-						}
 						case AttachmentLinks attachmentLinks:
-							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks.Links, message.MetaData)
+							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = string.Join(Environment.NewLine, attachmentLinks.Links)
+								UiMessage = "Download your files:"
 							});
-							break;
+							continue;
 						case TrackingCodes trackingCodes:
-							orderMessages.Add(new UrlListMessageViewModel(trackingCodes.Codes, message.MetaData)
+							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = string.Join(Environment.NewLine, trackingCodes.Codes)
+								UiMessage = "For shipping updates:"
 							});
-							break;
+							continue;
 					}
 				}
 
