@@ -29,7 +29,13 @@ public record Order
 	LineItem[] LineItems,
 	string Id,
 	OrderCustomFields? CustomFields,
-	string Btcpay_PaymentLink
+	string Btcpay_PaymentLink,
+	ShippingCosts ShippingCosts
+);
+
+public record ShippingCosts
+(
+	string TotalPrice
 );
 public record Deliveries
 (

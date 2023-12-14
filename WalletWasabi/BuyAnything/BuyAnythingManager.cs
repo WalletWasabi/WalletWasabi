@@ -496,7 +496,9 @@ public class BuyAnythingManager : PeriodicRunner
 				sb.AppendLine($"A {lineItem.Label} for ${lineItem.UnitPrice}.");
 			}
 		}
+
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
+		sb.AppendLine($"(Including ${order.ShippingCosts.TotalPrice} shipping cost.)");
 		return sb.ToString();
 	}
 
