@@ -67,6 +67,10 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
+		// TODO: Remove this test code
+		var attachmentLinks = new AttachmentLinks(new[]{ "A", "B", "C"});
+		_messagesList.Add(new AttachmentMessageViewModel(attachmentLinks, ChatMessageMetaData.Empty));
+
 		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
 
 		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowState.IsValidObservable);
@@ -373,6 +377,11 @@ public partial class OrderViewModel : ReactiveObject
 							continue;
 						}
 						case AttachmentLinks attachmentLinks:
+							orderMessages.Add(new AttachmentMessageViewModel(attachmentLinks, message.MetaData)
+							{
+								OriginalMessage = message.Message,
+								UiMessage = string.Join(";", attachmentLinks.Codes)
+							});
 							break;
 						case TrackingCodes trackingCodes:
 							break;
@@ -386,7 +395,6 @@ public partial class OrderViewModel : ReactiveObject
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
-
 			}
 		}
 

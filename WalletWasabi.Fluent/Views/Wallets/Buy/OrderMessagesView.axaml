@@ -82,6 +82,11 @@
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
+
+        <DataTemplate DataType="vmMessage:AttachmentMessageViewModel">
+          <TextBox>Hoho</TextBox>
+        </DataTemplate>
+
       </SelectingItemsControl.DataTemplates>
 
       <Interaction.Behaviors>
