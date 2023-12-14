@@ -84,19 +84,24 @@
         </DataTemplate>
 
         <DataTemplate DataType="vmMessage:UrlListMessageViewModel">
-          <ItemsControl Items="{Binding Links}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="vmMessage:HyperlinkViewModel">
-                <c:PreviewMessageItem
-                  CopyableContent="{Binding Url}"
-                  HorizontalAlignment="Left"
-                  CopyButtonPlacement="Right">
-                  <Button Classes="activeHyperLink"
-                          Content="{Binding Text}" Command="{Binding OpenLinkCommand}" />
-                </c:PreviewMessageItem>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <Border Background="{DynamicResource AssistantMessageBackground}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding UiMessage}" />
+              <ItemsControl Items="{Binding Links}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vmMessage:HyperlinkViewModel">
+                    <c:PreviewMessageItem
+                      CopyableContent="{Binding Url}"
+                      HorizontalAlignment="Left"
+                      CopyButtonPlacement="Right">
+                      <Button Classes="activeHyperLink"
+                              Content="{Binding Text, StringFormat={}- {0}}" Command="{Binding OpenLinkCommand}" />
+                    </c:PreviewMessageItem>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
         </DataTemplate>
 
       </SelectingItemsControl.DataTemplates>
