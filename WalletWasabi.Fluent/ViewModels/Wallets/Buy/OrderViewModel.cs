@@ -343,14 +343,14 @@ public partial class OrderViewModel : ReactiveObject
 			.ToArray();
 	}
 
-	private async Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	private Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
 	{
 		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		await buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, metaData, cancellationToken);
+		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, metaData, cancellationToken);
 	}
 
 	private Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
