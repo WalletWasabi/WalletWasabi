@@ -84,7 +84,19 @@
         </DataTemplate>
 
         <DataTemplate DataType="vmMessage:AttachmentMessageViewModel">
-          <TextBox>Hoho</TextBox>
+          <ItemsControl Items="{Binding Links}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vmMessage:HyperlinkViewModel">
+                <c:PreviewMessageItem
+                  CopyableContent="{Binding Url}"
+                  HorizontalAlignment="Left"
+                  CopyButtonPlacement="Right">
+                  <Button Classes="activeHyperLink"
+                          Content="{Binding Text}" Command="{Binding OpenLinkCommand}" />
+                </c:PreviewMessageItem>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </DataTemplate>
 
       </SelectingItemsControl.DataTemplates>
