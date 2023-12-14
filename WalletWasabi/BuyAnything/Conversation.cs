@@ -177,10 +177,13 @@ public record Chat2 : IReadOnlyCollection<ChatMessage2>
 			}
 
 			bool isMine = items[0] == "WASABI";
+			// TODO
+			var source = isMine ? MessageSource.User : MessageSource.Bot;
+
 			string chatLine = EnsureProperRawMessage(items[1]);
 			bool isUnread = !oldConversation.Contains(chatLine, isMine);
 			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
-			chatEntries.Add(new ChatMessage2(isMine, chatLine, isUnread, metaData));
+			chatEntries.Add(new ChatMessage2(source, chatLine, isUnread, metaData));
 		}
 
 		return new Chat2(chatEntries);
@@ -234,4 +237,10 @@ public record ConversationMetaData2(
 	BuyAnythingClient.Product? Product = null,
 	Country? Country = null,
 	string? RequestedItem = null,
-	bool PrivacyPolicyAccepted = false);
+	bool PrivacyPolicyAccepted = false,
+	string? FirstName = null,
+	string? LastName = null,
+	string? StreetName = null,
+	string? HouseNumber = null,
+	string? PostalCode = null,
+	string? City = null);

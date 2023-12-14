@@ -1,14 +1,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class StartConversationStep : WorkflowStep2<ConversationId>
 {
-	public StartConversationStep(Conversation2 conversation) : base(conversation)
+	private readonly Wallet _wallet;
+
+	public StartConversationStep(Conversation2 conversation, Wallet wallet) : base(conversation)
 	{
+		_wallet = wallet;
 	}
 
 	public override async Task<Conversation2> ExecuteAsync(Conversation2 conversation)

@@ -17,6 +17,9 @@ using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
 
+// Event that is raised when we detect an update in the server
+public record ConversationUpdateEvent2(Conversation2 Conversation, DateTimeOffset LastUpdate);
+
 // Class to manage the conversation updates
 public class BuyAnythingManager2 : PeriodicRunner
 {
@@ -107,7 +110,7 @@ public class BuyAnythingManager2 : PeriodicRunner
 			ConversationStatus.Started,
 			conversation.MetaData with { Title = $"Order {GetNextConversationId(walletId)}" });
 
-		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
+		ConversationTracking.Add(new ConversationUpdateTrack2(conversation));
 
 		//ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 
@@ -194,10 +197,6 @@ public class BuyAnythingManager2 : PeriodicRunner
 		}
 		return events;
 	}
-
-	private Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DateTimeOffset? updatedAt,
-		ConversationStatus newStatus, CancellationToken cancellationToken) =>
-		SendSystemChatLinesAsync(track, message, DataCarrier.NoData, updatedAt, newStatus, cancellationToken);
 
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
 	{

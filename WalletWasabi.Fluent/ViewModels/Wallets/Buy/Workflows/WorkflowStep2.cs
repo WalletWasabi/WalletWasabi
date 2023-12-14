@@ -1,4 +1,3 @@
-using NBitcoin.Protocol;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +36,7 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 		// then set the Step as completed so the parent workflow can move on.
 		if (ValidateInitialValue(_value))
 		{
-			_userInputTcs.SetResult();
+			SetCompleted();
 		}
 
 		// When Value changes, call IsValidValue(Value) and set IsValid property accordingly.
@@ -98,11 +97,10 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 		yield break;
 	}
 
-	protected Conversation2 AddBotMessage(Conversation2 conversation, string message)
-	{
-		conversation = conversation with { ChatMessages = conversation.ChatMessages.AddBotMessage(message, StepName) };
-		return conversation;
-	}
+	protected Conversation2 AddBotMessage(Conversation2 conversation, string message) =>
+		conversation with { ChatMessages = conversation.ChatMessages.AddBotMessage(message, StepName) };
+
+	protected void SetCompleted() => _userInputTcs.SetResult();
 
 	/// <summary>
 	/// Validate the Step's Value entered by the User. Fires when Value changes and is used to set IsValid property and the CanExecute of the SendCommand
@@ -138,7 +136,7 @@ public abstract partial class WorkflowStep2<TValue> : ReactiveObject, IWorkflowS
 	{
 		if (IsValid)
 		{
-			_userInputTcs.SetResult();
+			SetCompleted();
 		}
 	}
 }

@@ -46,8 +46,8 @@ public partial class WelcomeStep : WorkflowStep2<BuyAnythingClient.Product>
 		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more";
 	}
 
-	protected override BuyAnythingClient.Product? RetrieveValue(Conversation2 conversation) =>
-		conversation.MetaData.Product;
+	protected override BuyAnythingClient.Product RetrieveValue(Conversation2 conversation) =>
+		conversation.MetaData.Product.HasValue ? conversation.MetaData.Product.Value : null;
 
 	protected override Conversation2 PutValue(Conversation2 conversation, BuyAnythingClient.Product value) =>
 		conversation.UpdateMetadata(x => x with { Product = value });
