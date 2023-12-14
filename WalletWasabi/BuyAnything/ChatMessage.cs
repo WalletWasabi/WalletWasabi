@@ -16,7 +16,7 @@ public record OfferCarrier(IEnumerable<OfferItem> Items) : DataCarrier;
 
 public record TrackingCodes(IEnumerable<string> Codes) : DataCarrier;
 
-public record AttachmentLinks(IEnumerable<string> Codes) : DataCarrier;
+public record AttachmentLinks(IEnumerable<string> Links) : DataCarrier;
 
 public record NoData : DataCarrier;
 

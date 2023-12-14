@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
@@ -14,18 +15,17 @@
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
     <SelectingItemsControl x:Name="MessagesItemsControl"
-                           Items="{Binding Messages}"
-                           SelectedItem="{Binding SelectedMessage}">
+                           Items="{Binding Messages}">
       <SelectingItemsControl.Styles>
         <Style Selector="ContentPresenter > c|PreviewMessageItem">
           <Setter Property="Margin" Value="5 5 5 0" />
         </Style>
         <Style Selector="ContentPresenter > c|PreviewMessageItem > Border">
           <Setter Property="CornerRadius" Value="10" />
+          <Setter Property="MaxWidth" Value="330" />
           <Setter Property="Padding" Value="15 10" />
         </Style>
         <Style Selector="TextBlock">
-          <Setter Property="MaxWidth" Value="330" />
           <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
       </SelectingItemsControl.Styles>
@@ -82,7 +82,39 @@
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
+
+        <DataTemplate DataType="vmMessage:UrlListMessageViewModel">
+          <c:PreviewMessageItem HorizontalAlignment="Left">
+            <Border Background="{DynamicResource AssistantMessageBackground}">
+              <StackPanel>
+                <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
+                <ItemsControl Items="{Binding Links}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vmMessage:HyperlinkViewModel">
+                      <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0 1 0 1">
+                        <TextBlock Grid.Column="0" Text="- " />
+                        <Button MaxWidth="250" Grid.Column="1" ToolTip.Tip="{Binding Url}" Classes="activeHyperLink" Content="{Binding Text}" Command="{Binding OpenLinkCommand}" />
+                        <c:AnimatedButton Grid.Column="2"
+                                          Margin="5 0 0 0"
+                                          ToolTip.Tip="Copy"
+                                          Command="{Binding CopyCommand}"
+                                          NormalIcon="{StaticResource copy_regular}"
+                                          ClickIcon="{StaticResource copy_confirmed}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+
       </SelectingItemsControl.DataTemplates>
+
+      <Interaction.Behaviors>
+        <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
+      </Interaction.Behaviors>
+
     </SelectingItemsControl>
   </ScrollViewer>
 </UserControl>

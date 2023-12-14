@@ -203,14 +203,14 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.FinishConversation):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished.",
-					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			case not ConversationStatus.Finished
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
 					"Conversation Finished (Order cancelled).",
-					order.UpdatedAt, ConversationStatus.End, cancel).ConfigureAwait(false);
+					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
 			default:
@@ -533,7 +533,9 @@ public class BuyAnythingManager : PeriodicRunner
 				sb.AppendLine($"A {lineItem.Label} for ${lineItem.UnitPrice}.");
 			}
 		}
+
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
+		sb.AppendLine($"(Including ${order.ShippingCosts.TotalPrice} shipping cost.)");
 		return sb.ToString();
 	}
 

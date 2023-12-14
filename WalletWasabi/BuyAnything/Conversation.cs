@@ -28,7 +28,6 @@ public enum ConversationStatus
 	Shipped,
 	Finished,
 	WaitingForInvoice,
-	End,
 	Deleted
 }
 
@@ -82,6 +81,13 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			bool isUnread = !oldConversation.Contains(chatLine, isMine);
 			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
 			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, metaData));
+		}
+
+		var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
+		foreach (var message in systemMessages)
+		{
+			int index = oldConversation.ToList().IndexOf(message);
+			chatEntries[index] = message;
 		}
 
 		return new Chat(chatEntries);
