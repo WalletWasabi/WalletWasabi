@@ -366,8 +366,8 @@ public partial class OrderViewModel : ReactiveObject
 						case OfferCarrier offerCarrier:
 							orderMessages.Add(new OfferMessageViewModel(offerCarrier, message.MetaData)
 							{
-								UiMessage = "Our offer:",
 								OriginalMessage = message.Message,
+								UiMessage = "I can offer you:",
 								IsUnread = message.IsUnread
 							});
 							continue;
@@ -382,14 +382,16 @@ public partial class OrderViewModel : ReactiveObject
 							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = "Download your files:"
+								UiMessage = "Download your files:",
+								IsUnread = message.IsUnread
 							});
 							continue;
 						case TrackingCodes trackingCodes:
 							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = "For shipping updates:"
+								UiMessage = "For shipping updates:",
+								IsUnread = message.IsUnread
 							});
 							continue;
 					}

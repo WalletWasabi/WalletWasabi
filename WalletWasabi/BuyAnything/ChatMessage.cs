@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
 
@@ -11,7 +12,7 @@ public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) :
 
 public record OfferItem(float Quantity, string Description, float UnitPrice, float TotalPrice);
 
-public record OfferCarrier(IEnumerable<OfferItem> Items) : DataCarrier;
+public record OfferCarrier(IEnumerable<OfferItem> Items, ShippingCosts ShippingCost) : DataCarrier;
 
 public record TrackingCodes(IEnumerable<string> Codes) : DataCarrier;
 

@@ -72,18 +72,20 @@
             <Border Background="{DynamicResource AssistantMessageBackground}">
               <StackPanel>
                 <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
-                <ItemsControl Items="{Binding OfferCarrier.Items}">
+                <Separator />
+                <ItemsControl Items="{Binding OfferCarrier.Items}" Margin="0 2">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="buyAnything:OfferItem">
-                      <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0 1 0 1">
-                        <TextBlock Grid.Column="0" Text="{Binding Quantity}" />
-                        <TextBlock Grid.Column="1" MaxWidth="250" TextWrapping="Wrap" Text="{Binding Description}" />
-                        <TextBlock Grid.Column="2" TextWrapping="Wrap" Text="{Binding UnitPrice}" />
-                        <TextBlock Grid.Column="3" TextWrapping="Wrap" Text="{Binding TotalPrice}" />
+                      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 1 0 1">
+                        <TextBlock Classes="monoSpaced" Grid.Column="0" Text="{Binding Quantity, StringFormat={}{0}x}" />
+                        <TextBlock Classes="monoSpaced" Grid.Column="1" Margin="15 0 15 0" Text="{Binding Description}" />
+                        <TextBlock Classes="monoSpaced" Grid.Column="2" TextWrapping="Wrap" Text="{Binding TotalPrice, StringFormat={}{0} USD}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <Separator />
+                <TextBlock HorizontalAlignment="Left" Text="{Binding TotalMessage}" Margin="0 8 0 0" />
               </StackPanel>
             </Border>
           </c:PreviewMessageItem>
