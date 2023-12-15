@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -11,6 +12,11 @@ public partial class StateStep : WorkflowStep<CountryState>
 
 	public StateStep(Conversation conversation) : base(conversation)
 	{
+	}
+
+	protected override IEnumerable<string> BotMessages(Conversation conversation)
+	{
+		yield return "State:";
 	}
 
 	public override async Task<Conversation> ExecuteAsync(Conversation conversation)
