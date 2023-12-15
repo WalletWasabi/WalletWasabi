@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using WalletWasabi.BuyAnything;
+﻿using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 

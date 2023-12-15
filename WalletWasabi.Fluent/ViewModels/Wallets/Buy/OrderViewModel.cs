@@ -313,7 +313,8 @@ public partial class OrderViewModel : ReactiveObject
 					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
 					OfferMessageViewModel offerVm => new SystemChatMessage(message, offerVm.OfferCarrier, offerVm.IsUnread, offerVm.MetaData),
 					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
-					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
+					UserMessageViewModel => new ChatMessage(true, message, x.IsUnread, x.MetaData),
+					_ => throw new InvalidOperationException($"Cannot convert {x.GetType()}!")
 				};
 			})
 			.ToArray();
