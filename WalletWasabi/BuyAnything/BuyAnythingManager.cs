@@ -111,7 +111,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
-					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice))),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.ShippingCosts),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
@@ -502,7 +502,7 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		JsonSerializerSettings settings = new JsonSerializerSettings
 		{
-			TypeNameHandling = TypeNameHandling.All
+			TypeNameHandling = TypeNameHandling.Objects
 		};
 
 		IoHelpers.EnsureFileExists(FilePath);
@@ -555,7 +555,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			JsonSerializerSettings settings = new JsonSerializerSettings
 			{
-				TypeNameHandling = TypeNameHandling.All
+				TypeNameHandling = TypeNameHandling.Objects
 			};
 
 			string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);

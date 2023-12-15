@@ -282,9 +282,11 @@ public partial class OrderViewModel : ReactiveObject
 				return x switch
 				{
 					PayNowAssistantMessageViewModel payVm => new SystemChatMessage(message, payVm.Invoice, payVm.IsUnread, payVm.MetaData),
-					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
 					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
-					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
+					OfferMessageViewModel offerVm => new SystemChatMessage(message, offerVm.OfferCarrier, offerVm.IsUnread, offerVm.MetaData),
+					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
+					UserMessageViewModel => new ChatMessage(true, message, x.IsUnread, x.MetaData),
+					_ => throw new InvalidOperationException($"Cannot convert {x.GetType()}!")
 				};
 			})
 			.ToArray();
@@ -330,12 +332,16 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				if (message is SystemChatMessage systemChatMessage)
 				{
-					// TODO: Implement missing stuff
 					switch (systemChatMessage.Data)
 					{
 						case OfferCarrier offerCarrier:
-							break;
-
+							orderMessages.Add(new OfferMessageViewModel(offerCarrier, message.MetaData)
+							{
+								OriginalMessage = message.Message,
+								UiMessage = "I can offer you:",
+								IsUnread = message.IsUnread
+							});
+							continue;
 						case Invoice invoice:
 							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{
@@ -347,14 +353,16 @@ public partial class OrderViewModel : ReactiveObject
 							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = "Download your files:"
+								UiMessage = "Download your files:",
+								IsUnread = message.IsUnread
 							});
 							continue;
 						case TrackingCodes trackingCodes:
 							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
 							{
 								OriginalMessage = message.Message,
-								UiMessage = "For shipping updates:"
+								UiMessage = "For shipping updates:",
+								IsUnread = message.IsUnread
 							});
 							continue;
 					}
