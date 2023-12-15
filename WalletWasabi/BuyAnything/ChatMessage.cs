@@ -43,7 +43,7 @@ public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool I
 
 public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
 
-public record ChatMessage2(MessageSource Source, string Message, bool IsUnread, string StepName)
+public record ChatMessage2(MessageSource Source, string Message, bool IsUnread, string? StepName, DataCarrier? Data = null)
 {
 	public bool IsMyMessage => Source == MessageSource.User;
 }

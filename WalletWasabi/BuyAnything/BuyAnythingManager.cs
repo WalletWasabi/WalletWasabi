@@ -295,43 +295,6 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>
-	/// Replacement for the above method
-	/// </summary>
-	public async Task<Conversation2> StartNewConversationAsync2(Wallet wallet, Conversation2 conversation, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-		var country = conversation.MetaData.Country;
-		var product = conversation.MetaData.Product;
-
-		if (country is not { } || product is not { })
-		{
-			throw new ArgumentException("Conversation is missing Country or Product.");
-		}
-
-		var fullChat = new Chat2(conversation.ChatMessages);
-		var credential = GenerateRandomCredential();
-		var walletId = GetWalletId(wallet);
-
-		var orderId =
-			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
-						.ConfigureAwait(false);
-
-		conversation = new Conversation2(
-			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-			fullChat,
-			OrderStatus.Open,
-			ConversationStatus.Started,
-			conversation.MetaData with { Title = $"Order {GetNextConversationId(walletId)}" });
-
-		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
-
-		//ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
-
-		await SaveAsync(cancellationToken).ConfigureAwait(false);
-	}
-
 	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);

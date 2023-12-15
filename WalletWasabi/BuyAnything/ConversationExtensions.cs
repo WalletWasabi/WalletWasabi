@@ -22,6 +22,9 @@ public static class ConversationExtensions
 			ConversationStatus = newStatus
 		};
 
+	public static bool IsUpdatable(this Conversation2 conversation) =>
+		true;
+
 	public static Conversation2 UpdateMetadata(this Conversation2 conversation, Func<ConversationMetaData2, ConversationMetaData2> updateMetadata)
 	{
 		return conversation with { MetaData = updateMetadata(conversation.MetaData) };

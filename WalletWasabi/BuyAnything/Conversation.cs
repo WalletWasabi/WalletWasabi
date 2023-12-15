@@ -181,10 +181,11 @@ public record Chat2 : IReadOnlyCollection<ChatMessage2>
 			// TODO
 			var source = isMine ? MessageSource.User : MessageSource.Bot;
 
-			string chatLine = EnsureProperRawMessage(items[1]);
-			bool isUnread = !oldConversation.Contains(chatLine, isMine);
-			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
-			chatEntries.Add(new ChatMessage2(source, chatLine, isUnread, metaData));
+			string text = EnsureProperRawMessage(items[1]);
+			bool isUnread = !oldConversation.Contains(text, isMine);
+			var data = oldConversation.FirstOrDefault(x => x.Message == text)?.Data;
+			var stepName = oldConversation.FirstOrDefault(x => x.Message == text)?.StepName;
+			chatEntries.Add(new ChatMessage2(source, text, isUnread, stepName, data));
 		}
 
 		return new Chat2(chatEntries);
