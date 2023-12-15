@@ -110,7 +110,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
-					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice))),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)).ToArray(), order.ShippingCosts),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
