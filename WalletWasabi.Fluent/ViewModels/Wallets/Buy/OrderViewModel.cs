@@ -43,18 +43,13 @@ public partial class OrderViewModel : ReactiveObject
 		CancellationToken cancellationToken)
 	{
 		Id = id;
-		_title = metaData.Title;
+		_title = workflow.Conversation.MetaData.Title;
 
 		_uiContext = uiContext;
-		_metaData = metaData;
+
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-
-		WorkflowManager.WorkflowState.NextStepObservable.Skip(1).Subscribe(async _ =>
-		{
-			await SendAsync(_cancellationToken);
-		});
 
 		_messagesList = new SourceList<MessageViewModel>();
 
@@ -63,9 +58,11 @@ public partial class OrderViewModel : ReactiveObject
 			.Bind(out _messages)
 			.Subscribe();
 
-		HasUnreadMessagesObs = _messagesList.Connect().AutoRefresh(x => x.IsUnread).Filter(x => x.IsUnread is true).Count().Select(i => i > 0);
-
-		SendCommand = ReactiveCommand.CreateFromTask(SendAsync, WorkflowManager.WorkflowState.IsValidObservable);
+		HasUnreadMessagesObs = _messagesList.Connect()
+											.AutoRefresh(x => x.IsUnread)
+											.Filter(x => x.IsUnread is true)
+											.Count()
+											.Select(i => i > 0);
 
 		CanRemoveObs = this.WhenAnyValue(x => x.WorkflowManager.Id).Select(id => id != ConversationId.Empty);
 
@@ -100,18 +97,11 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
-	public ICommand SendCommand { get; }
-
 	public ICommand RemoveOrderCommand { get; }
 
 	public ICommand ResetOrderCommand { get; }
 
 	public int Id { get; }
-
-	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
-	public async Task StartConversationAsync(string conversationStatus, Country? country)
-	{
-	}
 
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
@@ -371,59 +361,5 @@ public partial class OrderViewModel : ReactiveObject
 		}
 
 		return orderMessages;
-	}
-
-	private async Task SendApiRequestAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
-	{
-		if (WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
-		{
-			return;
-		}
-
-		switch (WorkflowManager.CurrentWorkflow)
-		{
-			case InitialWorkflow:
-				{
-					var country = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
-
-					// TODO: Ugly
-					(BuyAnythingClient.Product, string)? product = Enum.GetValues<BuyAnythingClient.Product>()
-						.Select(x => (Product: x, Desc: ProductHelper.GetDescription(x)))
-						.FirstOrDefault(x => x.Desc == GetMessageByTag(ChatMessageMetaData.ChatMessageTag.AssistantType));
-
-					if (country is not { } ||
-						product is not { })
-					{
-						throw new ArgumentException("Argument was not provided!");
-					}
-
-					await buyAnythingManager.StartNewConversationAsync(
-						WorkflowManager.WalletId,
-						country,
-						product.Value.Item1,
-						chatMessages,
-						metaData,
-						cancellationToken);
-
-					var hourRange = product.Value.Item1 switch
-					{
-						BuyAnythingClient.Product.ConciergeRequest => "24-48 hours",
-						BuyAnythingClient.Product.FastTravelBooking => "24-48 hours",
-						BuyAnythingClient.Product.TravelConcierge => "48-72 hours",
-						_ => "a few days"
-					};
-					AddAssistantMessage($"Thank you! We've received your request and will get in touch with you within {hourRange} (Monday to Friday).", ChatMessageMetaData.Empty);
-
-					break;
-				}
-			case DeliveryWorkflow:
-				{
-				}
-		}
-	}
-
-	private string? GetMessageByTag(ChatMessageMetaData.ChatMessageTag tag)
-	{
-		return Messages.FirstOrDefault(x => x.MetaData.Tag == tag)?.OriginalMessage;
 	}
 }
