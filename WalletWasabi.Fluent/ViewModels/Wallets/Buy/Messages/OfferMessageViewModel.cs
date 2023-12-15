@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
@@ -9,8 +9,9 @@ public class OfferMessageViewModel : AssistantMessageViewModel
 	{
 		OfferCarrier = offerCarrier;
 
-		var total = OfferCarrier.Items.Sum(x => x.TotalPrice);
-		TotalMessage = $"For a total price of {total} USD, which includes {OfferCarrier.ShippingCost.TotalPrice} USD shipping cost.";
+		var shippingCost = float.Parse(OfferCarrier.ShippingCost.TotalPrice);
+		var total = OfferCarrier.Items.Sum(x => x.TotalPrice) + shippingCost;
+		TotalMessage = $"For a total price of {total} USD, which includes {shippingCost} USD shipping cost.";
 	}
 
 	public OfferCarrier OfferCarrier { get; }
