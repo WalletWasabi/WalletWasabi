@@ -15,6 +15,7 @@ using DynamicData.Binding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
 using Country = WalletWasabi.BuyAnything.Country;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -38,6 +39,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly Country[] _countries;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
+	[AutoNotify] private OrderViewModel? _emptyOrder; // Used to track the "Empty" order (with empty ConversationId)
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -53,15 +55,21 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.Id);
+		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.OrderNumber);
 
 		_ordersCache
 			.Connect()
-			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.Id))
+			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.OrderNumber))
 			.Bind(out _orders)
 			.Subscribe();
 
 		_cts = new CancellationTokenSource();
+
+		// When the Empty Order stops being empty, create a new Empty Order
+		this.WhenAnyValue(x => x.EmptyOrder.Workflow.Conversation)
+			.Where(x => x.Id != ConversationId.Empty)
+			.Do(_ => EmptyOrder = NewEmptyOrder())
+			.Subscribe();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -83,10 +91,10 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	private void SelectNewOrderIfAny()
 	{
-		// We should always have a new order, but this condition is for safety, just in case we change this axiom.
-		if (Orders.FirstOrDefault(x => x.BackendId == ConversationId.Empty) is { } newOrder)
+		// We should always have an empty order, but this condition is for safety, just in case we change this axiom.
+		if (EmptyOrder is { } emptyOrder)
 		{
-			SelectedOrder = newOrder;
+			SelectedOrder = emptyOrder;
 		}
 	}
 
@@ -94,7 +102,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		try
 		{
-			await InitializeOrdersAsync(_cts.Token, disposable);
+			await UpdateOrdersAsync();
+
+			if (_orders.Count == 0 || _orders.All(x => x.ConversationId != ConversationId.Empty))
+			{
+				NewEmptyOrder();
+			}
+
 			SelectedOrder = _orders.FirstOrDefault();
 		}
 		catch (Exception exception)
@@ -118,116 +132,43 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Subscribe();
 	}
 
-	private async Task InitializeOrdersAsync(CancellationToken cancellationToken, CompositeDisposable disposable)
+	private async Task UpdateOrdersAsync()
 	{
-		await UpdateOrdersAsync(cancellationToken, _buyAnythingManager);
+		var currentConversations = await _buyAnythingManager.GetConversationsAsync(_wallet, _cts.Token);
 
-		if (_orders.Count == 0 || _orders.All(x => x.BackendId != ConversationId.Empty))
-		{
-			await CreateAndAddEmptyOrderAsync(_cts.Token);
-		}
-
-		Observable
-			.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager,
-				nameof(BuyAnythingManager.ConversationUpdated))
-			.Select(args => args.EventArgs)
-			.Where(e => e.Conversation.Id.WalletId == BuyAnythingManager.GetWalletId(_wallet))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.SubscribeAsync(async e => { await OnConversationUpdated(e, cancellationToken); })
-			.DisposeWith(disposable);
-	}
-
-	private async Task OnConversationUpdated(ConversationUpdateEvent e, CancellationToken cancellationToken)
-	{
-		var conversation = e.Conversation;
-
-		// This handles the unbound conversation.
-		// The unbound conversation is a conversation that only exists in the UI (yet)
-		if (Orders.All(x => x.BackendId != e.Conversation.Id)) // If the update event belongs has an Id that doesn't match any of the existing orders
-		{
-			// It is because the incoming event has the freshly assigned BackedId.
-			// We should lookup for the unbound order and assign its BackendId
-			// and update it with the data in the conversation.
-			var unboundOrder = Orders.First(x => x.BackendId == ConversationId.Empty);
-			unboundOrder.WorkflowManager.UpdateConversationId(e.Conversation.Id); // The order is no longer unbound ;)
-
-			// We cannot have two fake conversation at a time, because we cannot distinguish them due the missing proper ID.
-			await CreateAndAddEmptyOrderAsync(_cts.Token);
-		}
-
-		if (Orders.FirstOrDefault(x => x.BackendId == conversation.Id) is { } orderToUpdate)
-		{
-			await orderToUpdate.UpdateOrderAsync(conversation, cancellationToken);
-
-			Logger.LogDebug($"{nameof(BuyAnythingManager)}.{nameof(BuyAnythingManager.ConversationUpdated)}: OrderId={e.Conversation.Id.OrderId}, ConversationStatus={e.Conversation.ConversationStatus}, OrderStatus={e.Conversation.OrderStatus}");
-		}
-	}
-
-	private async Task UpdateOrdersAsync(CancellationToken cancellationToken, BuyAnythingManager buyAnythingManager)
-	{
-		var walletId = BuyAnythingManager.GetWalletId(_wallet);
-		var currentConversations = await buyAnythingManager.GetConversationsAsync(walletId, cancellationToken);
-
-		await CreateAndAddOrdersAsync(currentConversations.ToList(), cancellationToken);
-	}
-
-	private async Task CreateAndAddOrdersAsync(IReadOnlyList<Conversation> conversations, CancellationToken cancellationToken)
-	{
-		var orders = new List<OrderViewModel>();
-
-		for (var i = 0; i < conversations.Count; i++)
-		{
-			var conversation = conversations[i];
-			orders.Add(await CreateOrderAsync(conversation, i, cancellationToken));
-		}
+		var orders =
+			currentConversations.Select((conversation, index) =>
+			{
+				var workflow = Workflow.Create(_wallet, conversation);
+				var order = new OrderViewModel(UiContext, workflow, this, index, _cts.Token);
+				return order;
+			})
+			.ToArray();
 
 		_ordersCache.AddOrUpdate(orders);
 	}
 
-	private async Task<OrderViewModel> CreateOrderAsync(Conversation conversation, int id, CancellationToken cancellationToken)
+	private OrderViewModel NewEmptyOrder()
 	{
-		var order = new OrderViewModel(
-			UiContext,
-			id,
-			conversation.MetaData,
-			conversation.ConversationStatus.ToString(),
-			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _countries),
-			this,
-			cancellationToken);
+		var nextOrderNumber = Orders.Count > 0 ? Orders.Max(x => x.OrderNumber) + 1 : 1;
+		var title = "New Order";
 
-		order.WorkflowManager.UpdateConversationId(conversation.Id);
-		order.UpdateMessages(conversation.ChatMessages);
+		var conversation = new Conversation(ConversationId.Empty, Chat.Empty, OrderStatus.Open, ConversationStatus.Started, new ConversationMetaData(title));
 
-		var country = conversation.MetaData.Country;
-		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), country);
+		var workflow = Workflow.Create(_wallet, conversation);
+
+		var order = new OrderViewModel(UiContext, workflow, this, nextOrderNumber, _cts.Token);
+
+		_ordersCache.AddOrUpdate(order);
 
 		return order;
 	}
 
-	private async Task CreateAndAddEmptyOrderAsync(CancellationToken cancellationToken)
-	{
-		var nextId = Orders.Count > 0 ? Orders.Max(x => x.Id) + 1 : 1;
-		var title = "New Order";
-
-		var order = new OrderViewModel(
-			UiContext,
-			nextId,
-			new ConversationMetaData(title),
-			"Started",
-			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _countries),
-			this,
-			cancellationToken);
-
-		await order.StartConversationAsync("Started", null);
-
-		_ordersCache.AddOrUpdate(order);
-	}
-
 	async Task IOrderManager.RemoveOrderAsync(int id)
 	{
-		if (Orders.FirstOrDefault(x => x.Id == id) is { } orderToRemove)
+		if (Orders.FirstOrDefault(x => x.OrderNumber == id) is { } orderToRemove)
 		{
-			await _buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.BackendId }, _cts.Token);
+			await _buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.ConversationId }, _cts.Token);
 		}
 
 		_ordersCache.RemoveKey(id);

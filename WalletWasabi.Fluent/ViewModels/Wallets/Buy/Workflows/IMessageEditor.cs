@@ -2,9 +2,9 @@ using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public interface IChatMessageEditor
+public interface IMessageEditor
 {
 	bool IsEditable(ChatMessage chatMessage);
 
-	IWorkflowStep? GetEditor(ChatMessage chatMessage);
+	IWorkflowStep? Get(ChatMessage chatMessage);
 }

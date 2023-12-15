@@ -1,12 +1,12 @@
-﻿using WalletWasabi.BuyAnything;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public class ShopinBitChatMessageEditor : IChatMessageEditor
+public class ShopinBitMessageEditor : IMessageEditor
 {
 	private readonly ShopinBitWorkflow _workflow;
 
-	public ShopinBitChatMessageEditor(ShopinBitWorkflow workflow)
+	public ShopinBitMessageEditor(ShopinBitWorkflow workflow)
 	{
 		_workflow = workflow;
 	}
@@ -30,7 +30,7 @@ public class ShopinBitChatMessageEditor : IChatMessageEditor
 			};
 	}
 
-	public IWorkflowStep? GetEditor(ChatMessage chatMessage)
+	public IWorkflowStep? Get(ChatMessage chatMessage)
 	{
 		return chatMessage.StepName switch
 		{

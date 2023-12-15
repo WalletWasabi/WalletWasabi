@@ -5,9 +5,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public class OfferMessageViewModel : AssistantMessageViewModel
 {
-	public OfferMessageViewModel(OfferCarrier offerCarrier, ChatMessageMetaData metaData) : base(null, null, metaData)
+	public OfferMessageViewModel(ChatMessage message) : base(message)
 	{
-		OfferCarrier = offerCarrier;
+		if (message.Data is not OfferCarrier carrier)
+		{
+			throw new InvalidOperationException($"Invalid Data Type: {message.Data?.GetType().Name}");
+		}
+
+		OfferCarrier = carrier;
 
 		var shippingCost = float.Parse(OfferCarrier.ShippingCost.TotalPrice);
 		var total = OfferCarrier.Items.Sum(x => x.TotalPrice) + shippingCost;

@@ -246,8 +246,9 @@ public class BuyAnythingManager : PeriodicRunner
 	public int GetNextConversationId(string walletId) =>
 		ConversationTracking.GetNextConversationId(walletId);
 
-	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
+	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
+		var walletId = GetWalletId(wallet);
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		return ConversationTracking.GetConversationsByWalletId(walletId);
 	}
@@ -315,30 +316,30 @@ public class BuyAnythingManager : PeriodicRunner
 			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
 						.ConfigureAwait(false);
 
-		conversation = new Conversation(
-			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-			fullChat,
-			OrderStatus.Open,
-			ConversationStatus.Started,
-			conversation.MetaData with { Title = $"Order {GetNextConversationId(walletId)}" });
+		conversation =
+			conversation with
+			{
+				Id = new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+				OrderStatus = OrderStatus.Open,
+				ConversationStatus = ConversationStatus.Started,
+				MetaData = conversation.MetaData with
+				{
+					Title = $"Order {GetNextConversationId(walletId)}"
+				},
+			};
 
 		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
-
-		//ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 
 		return conversation;
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
+	public async Task UpdateConversationAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
-		track.Conversation = track.Conversation with
-		{
-			ChatMessages = new(chatMessages),
-		};
+		var track = ConversationTracking.GetConversationTrackByd(conversation.Id);
+		track.Conversation = conversation;
 		track.LastUpdate = DateTimeOffset.Now;
 
 		var rawText = track.Conversation.ChatMessages.ToText();
@@ -384,15 +385,15 @@ public class BuyAnythingManager : PeriodicRunner
 
 	// This method is used to mark conversations as read without sending requests to the webshop.
 	// ChatMessage.IsUnread will arrive as false from the ViewModel, all we need to do is update the track and save to disk.
-	public async Task UpdateConversationOnlyLocallyAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	public async Task UpdateConversationOnlyLocallyAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		var track = ConversationTracking.GetConversationTrackByd(conversation.Id);
 
 		track.Conversation = track.Conversation with
 		{
-			ChatMessages = new(chatMessages),
-			MetaData = metaData,
+			ChatMessages = new(conversation.ChatMessages),
+			MetaData = conversation.MetaData,
 		};
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -510,7 +511,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
-	public static string GetWalletId(Wallet wallet) =>
+	private static string GetWalletId(Wallet wallet) =>
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";

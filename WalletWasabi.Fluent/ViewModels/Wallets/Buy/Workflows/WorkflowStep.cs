@@ -13,6 +13,8 @@ public interface IWorkflowStep
 	Task<Conversation> ExecuteAsync(Conversation conversation);
 
 	Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
+
+	ICommand SendCommand { get; }
 }
 
 /// <summary>

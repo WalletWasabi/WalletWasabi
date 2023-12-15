@@ -35,12 +35,12 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _hasUnreadMessages;
 
 	public OrderViewModel(UiContext uiContext,
-		int id,
 		Workflow workflow,
 		IOrderManager orderManager,
+		int orderNumber,
 		CancellationToken cancellationToken)
 	{
-		Id = id;
+		OrderNumber = orderNumber;
 		Workflow = workflow;
 
 		_title = workflow.Conversation.MetaData.Title;
@@ -85,12 +85,18 @@ public partial class OrderViewModel : ReactiveObject
 
 		// Update file on disk
 		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
-			.Merge(_messagesList.Connect().AutoRefresh(x => x.IsPaid).ToSignal())
+			.Merge(_messagesList.Connect().ToSignal())
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
 			.Subscribe();
+
+		RefreshMessageList();
+
+		Workflow.ExecuteAsync();
 	}
 
 	public Workflow Workflow { get; }
+
+	public ConversationId ConversationId => Workflow.Conversation.Id;
 
 	public IObservable<bool> HasUnreadMessagesObs { get; }
 
@@ -104,7 +110,11 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ICommand ResetOrderCommand { get; }
 
-	public int Id { get; }
+	public int OrderNumber { get; }
+
+	public void SetConversationId(ConversationId conversationId)
+	{
+	}
 
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
@@ -117,19 +127,7 @@ public partial class OrderViewModel : ReactiveObject
 		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
 		Title = conversation.MetaData.Title;
 
-		UpdateMessages(conversation.ChatMessages);
-
-		var country = conversation.MetaData.Country;
-		if (_statesSource.IsEmpty() && country is { })
-		{
-			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
-		}
-
-		var conversationStatusString = conversation.ConversationStatus.ToString();
-		if (_conversationStatus != conversationStatusString)
-		{
-			WorkflowManager.OnInvokeNextWorkflow(conversationStatusString, _statesSource, AddAssistantMessage, cancellationToken);
-		}
+		UpdateMessages();
 	}
 
 	private async Task SendAsync(CancellationToken cancellationToken)
@@ -170,7 +168,7 @@ public partial class OrderViewModel : ReactiveObject
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrderAsync(Id);
+			_orderManager.RemoveOrderAsync(OrderNumber);
 		}
 	}
 
@@ -181,14 +179,14 @@ public partial class OrderViewModel : ReactiveObject
 
 	private async Task ResetOrderAsync()
 	{
-		ClearMessages();
+		ClearMessageList();
 		WorkflowManager.ResetWorkflow();
 		await StartConversationAsync("Started", null);
 	}
 
-	public void UpdateMessages(Chat chat)
+	public void RefreshMessageList()
 	{
-		var messages = CreateMessages(chat);
+		var messages = CreateMessages(Workflow.Conversation.ChatMessages);
 
 		_messagesList.Edit(x =>
 		{
@@ -197,7 +195,7 @@ public partial class OrderViewModel : ReactiveObject
 		});
 	}
 
-	private void ClearMessages()
+	private void ClearMessageList()
 	{
 		_messagesList.Edit(x =>
 		{
@@ -225,24 +223,24 @@ public partial class OrderViewModel : ReactiveObject
 			.ToArray();
 	}
 
-	private Task UpdateConversationLocallyAsync(ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	private Task UpdateConversationLocallyAsync(CancellationToken cancellationToken)
 	{
-		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		if (ConversationId == ConversationId.Empty)
 		{
 			return Task.CompletedTask;
 		}
 
-		return buyAnythingManager.UpdateConversationOnlyLocallyAsync(WorkflowManager.Id, chatMessages, metaData, cancellationToken);
+		return _buyAnythingManager.UpdateConversationOnlyLocallyAsync(Workflow.Conversation, cancellationToken);
 	}
 
 	private Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
 	{
-		if (WorkflowManager.Id == ConversationId.Empty || WorkflowManager.CurrentWorkflow is null || Services.HostedServices.GetOrDefault<BuyAnythingManager>() is not { } buyAnythingManager)
+		if (ConversationId == ConversationId.Empty)
 		{
 			return Task.CompletedTask;
 		}
 
-		return buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
+		return _buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
 	}
 
 	private static List<MessageViewModel> CreateMessages(Chat chat)

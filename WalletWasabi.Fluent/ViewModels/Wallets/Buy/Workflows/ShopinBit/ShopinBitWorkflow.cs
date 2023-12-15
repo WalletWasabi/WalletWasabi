@@ -18,7 +18,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 	}
 
-	public override async Task<Conversation> ExecuteAsync()
+	public override async Task ExecuteAsync()
 	{
 		// Initial message + Select Product
 		await ExecuteStepAsync(new WelcomeStep(Conversation));
@@ -77,7 +77,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		return Conversation;
 	}
 
-	public override IChatMessageEditor GetChatMessageEditor() => new ShopinBitChatMessageEditor(this);
+	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);
 
 	/// <summary>
 	/// Listen to Conversation Updates from the Server waiting for the specified Status. Upon that, it updates the Conversation, and optionally Ignores the current Chat Support Step.
