@@ -93,6 +93,11 @@ public partial class OrderViewModel : ReactiveObject
 
 	private IDisposable SaveConversationToFileWhenNeeded()
 	{
+		var flowCompleted = this.WhenAnyValue(x => x.WorkflowManager.CurrentWorkflow!.IsCompleted)
+			.DistinctUntilChanged()
+			.Where(x => x)
+			.ToSignal();
+
 		var hasUnreadMessages = this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal();
 
 		var paidCountChanged = _messagesList
