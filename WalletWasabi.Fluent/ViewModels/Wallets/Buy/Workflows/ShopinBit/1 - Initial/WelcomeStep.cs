@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.WebClients.BuyAnything;
@@ -21,7 +22,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 	{
 		var productsEnum = Enum.GetValues<BuyAnythingClient.Product>();
 
-		Products = new(productsEnum.Select(x => new EnumValue<BuyAnythingClient.Product>(x, x.GetDescription())));
+		Products = new(productsEnum.Select(x => new EnumValue<BuyAnythingClient.Product>(x, x.GetDescription() ?? "")));
 		_product = Products.FirstOrDefault(x => x.Value == Value);
 
 		this.WhenAnyValue(x => x.Product)

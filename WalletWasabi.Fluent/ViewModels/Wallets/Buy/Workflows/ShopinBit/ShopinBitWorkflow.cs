@@ -69,6 +69,9 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		// Accept Terms of service
 		await ExecuteStepAsync(new ConfirmTosStep(Conversation));
 
+		// Accept Offer
+		await ExecuteStepAsync(new AcceptOfferStep(Conversation));
+
 		// TODO: The wording is reviewed until this point.
 
 		return Conversation;
@@ -89,7 +92,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 					  .Where(x => x.EventArgs.Conversation.ConversationStatus == status)
 					  .Do(x =>
 					  {
-						  SetConversation(x.EventArgs.Conversation);
+						  Conversation = x.EventArgs.Conversation;
 						  if (ignoreCurrentSupportStep)
 						  {
 							  IgnoreCurrentSupportChatStep();

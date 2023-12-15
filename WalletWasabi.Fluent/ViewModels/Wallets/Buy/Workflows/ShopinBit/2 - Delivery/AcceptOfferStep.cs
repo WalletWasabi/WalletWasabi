@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 
@@ -66,5 +66,7 @@ public class AcceptOfferStep : WorkflowStep<object>
 			state is not null ? state.Id : "",
 			country.Id,
 			cancellationToken);
+
+		// TODO: Save conversation
 	}
 }

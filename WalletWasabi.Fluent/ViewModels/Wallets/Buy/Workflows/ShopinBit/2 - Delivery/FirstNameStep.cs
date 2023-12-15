@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -21,4 +21,6 @@ public class FirstNameStep : TextInputStep
 
 	protected override string? RetrieveValue(Conversation conversation) =>
 		conversation.MetaData.FirstName;
+
+	protected override bool ValidateUserValue(string? value) => string.IsNullOrWhiteSpace(value?.Trim());
 }
