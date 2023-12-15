@@ -20,6 +20,11 @@ public abstract partial class Workflow : ReactiveObject
 
 	public abstract Task<Conversation> ExecuteAsync();
 
+	/// <summary>
+	/// Determines if the given ChatMessage is editable, depending on workflow conditions
+	/// </summary>
+	public abstract bool IsEditable(ChatMessage chatMessage);
+
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
 		CurrentStep = step;

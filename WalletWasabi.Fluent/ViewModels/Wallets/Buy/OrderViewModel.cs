@@ -29,8 +29,6 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
 
-	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
-
 	[AutoNotify] private string _title;
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
@@ -43,12 +41,15 @@ public partial class OrderViewModel : ReactiveObject
 		CancellationToken cancellationToken)
 	{
 		Id = id;
+		Workflow = workflow;
+
 		_title = workflow.Conversation.MetaData.Title;
 
 		_uiContext = uiContext;
 
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
+
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		_messagesList = new SourceList<MessageViewModel>();
@@ -64,16 +65,18 @@ public partial class OrderViewModel : ReactiveObject
 											.Count()
 											.Select(i => i > 0);
 
-		CanRemoveObs = this.WhenAnyValue(x => x.WorkflowManager.Id).Select(id => id != ConversationId.Empty);
+		CanRemoveObs = this.WhenAnyValue(x => x.Workflow.Conversation.Id)
+						   .Select(id => id != ConversationId.Empty);
 
 		RemoveOrderCommand = ReactiveCommand.CreateFromTask(RemoveOrderAsync, CanRemoveObs);
 
 		var hasUserMessages =
 			_messagesList.CountChanged.Select(_ => _messagesList.Items.Any(x => x is UserMessageViewModel));
 
-		CanResetObs = WorkflowManager.IdChangedObservable
-			.Select(x => BackendId == ConversationId.Empty)
-			.CombineLatest(hasUserMessages, (a, b) => a && b);
+		CanResetObs =
+			 this.WhenAnyValue(x => x.Workflow.Conversation.Id)
+				 .Select(id => id == ConversationId.Empty)
+				 .CombineLatest(hasUserMessages, (a, b) => a && b);
 
 		ResetOrderCommand = ReactiveCommand.CreateFromTask(ResetOrderAsync, CanResetObs);
 
@@ -87,13 +90,13 @@ public partial class OrderViewModel : ReactiveObject
 			.Subscribe();
 	}
 
+	public Workflow Workflow { get; }
+
 	public IObservable<bool> HasUnreadMessagesObs { get; }
 
 	public IObservable<bool> CanRemoveObs { get; }
 
 	public IObservable<bool> CanResetObs { get; }
-
-	public ConversationId BackendId => WorkflowManager.Id;
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
@@ -105,7 +108,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
-		if (conversation.Id != BackendId)
+		if (conversation.Id != Workflow.Conversation.Id)
 		{
 			return;
 		}
@@ -161,26 +164,8 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void AddAssistantMessage<T>(T assistantMessage) where T : AssistantMessageViewModel
-	{
-		_messagesList.Edit(x => x.Add(assistantMessage));
-	}
-
-	private void AddAssistantMessage(string message, ChatMessageMetaData metaData)
-	{
-		var assistantMessage = new AssistantMessageViewModel(null, null, metaData)
-		{
-			UiMessage = message,
-			OriginalMessage = message,
-		};
-
-		AddAssistantMessage(assistantMessage);
-	}
-
 	private void AddUserMessage(string message, ChatMessageMetaData metaData)
 	{
-		var currentWorkflow = WorkflowManager.CurrentWorkflow;
-		var canEditObservable = currentWorkflow.CanEditObservable;
 		var workflowStep = currentWorkflow.CurrentStep;
 
 		UserMessageViewModel? userMessage = null;

@@ -72,6 +72,23 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		return Conversation;
 	}
 
+	public override bool IsEditable(ChatMessage chatMessage)
+	{
+		return
+			Conversation.ConversationStatus switch
+			{
+				ConversationStatus.OfferReceived =>
+					chatMessage.StepName is nameof(FirstNameStep)
+										 or nameof(LastNameStep)
+										 or nameof(StreetNameStep)
+										 or nameof(HouseNumberStep)
+										 or nameof(ZipPostalCodeStep)
+										 or nameof(CityStep)
+										 or nameof(StateStep)
+				_ => false
+			};
+	}
+
 	/// <summary>
 	/// Listen to Conversation Updates from the Server waiting for the specified Status. Upon that, it updates the Conversation, and optionally Ignores the current Chat Support Step.
 	/// </summary>
