@@ -6,8 +6,13 @@ namespace WalletWasabi.Extensions;
 
 public static class EnumExtensions
 {
-	public static string GetDescription<T>(this T value) where T : Enum
+	public static string? GetDescription<T>(this T? value) where T : Enum
 	{
+		if (value is null)
+		{
+			return null;
+		}
+
 		var fieldInfo = value.GetType().GetField(value.ToString());
 		var attribArray = fieldInfo!.GetCustomAttributes(false);
 

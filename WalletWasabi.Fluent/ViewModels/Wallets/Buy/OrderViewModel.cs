@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BuyAnything;
@@ -24,11 +25,10 @@ public partial class OrderViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly UiContext _uiContext;
-	private readonly string _conversationStatus;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
-	private ConversationMetaData _metaData;
+
 	private WebClients.ShopWare.Models.State[] _statesSource = Array.Empty<WebClients.ShopWare.Models.State>();
 
 	[AutoNotify] private string _title;
@@ -38,9 +38,7 @@ public partial class OrderViewModel : ReactiveObject
 
 	public OrderViewModel(UiContext uiContext,
 		int id,
-		ConversationMetaData metaData,
-		string conversationStatus,
-		ShopinBitWorkflowManager workflowManager,
+		Workflow workflow,
 		IOrderManager orderManager,
 		CancellationToken cancellationToken)
 	{
@@ -49,8 +47,6 @@ public partial class OrderViewModel : ReactiveObject
 
 		_uiContext = uiContext;
 		_metaData = metaData;
-		_conversationStatus = conversationStatus;
-		WorkflowManager = workflowManager;
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
@@ -104,8 +100,6 @@ public partial class OrderViewModel : ReactiveObject
 
 	public ReadOnlyObservableCollection<MessageViewModel> Messages => _messages;
 
-	public ShopinBitWorkflowManager WorkflowManager { get; }
-
 	public ICommand SendCommand { get; }
 
 	public ICommand RemoveOrderCommand { get; }
@@ -117,28 +111,6 @@ public partial class OrderViewModel : ReactiveObject
 	// TODO: Fragile as f*ck! Workflow management needs to be rewritten.
 	public async Task StartConversationAsync(string conversationStatus, Country? country)
 	{
-		if (country != null)
-		{
-			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country, _cancellationToken);
-		}
-
-		// The conversation is empty so just start from the beginning
-		if (conversationStatus == "Started" && !Messages.Any())
-		{
-			WorkflowManager.TryToSetNextWorkflow(null, _statesSource);
-			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
-			return;
-		}
-
-		if (conversationStatus == "Started")
-		{
-			WorkflowManager.TryToSetNextWorkflow("Support", _statesSource);
-			WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
-			return;
-		}
-
-		WorkflowManager.TryToSetNextWorkflow(conversationStatus, _statesSource);
-		WorkflowManager.InvokeOutputWorkflows(AddAssistantMessage, _cancellationToken);
 	}
 
 	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)

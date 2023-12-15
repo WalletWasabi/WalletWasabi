@@ -1,12 +1,31 @@
-﻿using WalletWasabi.BuyAnything;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.BuyAnything;
 using CountryState = WalletWasabi.WebClients.ShopWare.Models.State;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public class StateStep : WorkflowStep<CountryState>
+public partial class StateStep : WorkflowStep<CountryState>
 {
+	[AutoNotify] private CountryState[] _states = Array.Empty<CountryState>();
+
 	public StateStep(Conversation conversation) : base(conversation)
 	{
+	}
+
+	public override async Task<Conversation> ExecuteAsync(Conversation conversation)
+	{
+		// TODO: pass CancellationToken
+		var cancellationToken = CancellationToken.None;
+
+		if (conversation.MetaData.Country is { } country)
+		{
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+
+			States = await buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
+		}
+
+		return await base.ExecuteAsync(conversation);
 	}
 
 	protected override Conversation PutValue(Conversation conversation, CountryState value) =>

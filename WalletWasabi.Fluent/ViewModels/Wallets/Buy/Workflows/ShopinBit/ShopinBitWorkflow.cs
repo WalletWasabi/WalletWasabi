@@ -1,7 +1,9 @@
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 

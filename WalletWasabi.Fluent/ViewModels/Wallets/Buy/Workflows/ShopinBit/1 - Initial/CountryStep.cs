@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
