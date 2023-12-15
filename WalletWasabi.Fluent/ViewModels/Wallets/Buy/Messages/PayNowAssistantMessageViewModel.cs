@@ -21,7 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
-	public Invoice Invoice { get; }
 	[AutoNotify] private string _payButtonText = "";
 	[AutoNotify] private bool _isBusy;
 
@@ -40,6 +39,8 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 			.Select(x => x ? "Paid" : "Pay Now")
 			.BindTo(this, x => x.PayButtonText);
 	}
+
+	public Invoice Invoice { get; }
 
 	public UiContext UiContext { get; set; }
 

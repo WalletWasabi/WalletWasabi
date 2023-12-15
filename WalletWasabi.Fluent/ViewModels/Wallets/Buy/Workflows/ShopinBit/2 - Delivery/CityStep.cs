@@ -11,7 +11,7 @@ public class CityStep : TextInputStep
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		yield return "City";
+		yield return "City:";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, string value) =>

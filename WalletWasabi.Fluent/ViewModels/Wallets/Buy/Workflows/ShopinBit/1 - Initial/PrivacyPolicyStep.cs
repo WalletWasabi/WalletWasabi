@@ -26,7 +26,7 @@ public class PrivacyPolicyStep : WorkflowStep<bool>
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		// Request received + accept Privacy Policy
-		yield return "Please accept our Privacy Policy.";
+		yield return "Please accept our Privacy Policy so we can process your request.";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, bool value) =>

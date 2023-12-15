@@ -11,7 +11,7 @@ public class LastNameStep : TextInputStep
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		yield return "Your Last Name:";
+		yield return "Last Name:";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, string value) => conversation.UpdateMetadata(m => m with { LastName = value });

@@ -43,7 +43,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 		yield return "General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.";
 
 		// All-Purpose Concierge Assistant
-		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more";
+		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from tech gadgets to vehicles and more.";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
