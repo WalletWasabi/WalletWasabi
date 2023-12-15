@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// <summary>
 /// ShopinBit Step #1: Welcome and Select Assistant Type
 /// </summary>
-public partial class WelcomeStep : WorkflowStep2<BuyAnythingClient.Product>
+public partial class WelcomeStep : WorkflowStep2<BuyAnythingClient.Product?>
 {
 	[AutoNotify] private EnumValue<BuyAnythingClient.Product>? _product;
 
@@ -46,12 +46,12 @@ public partial class WelcomeStep : WorkflowStep2<BuyAnythingClient.Product>
 		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from vehicles to tech gadgets and more";
 	}
 
-	protected override BuyAnythingClient.Product RetrieveValue(Conversation2 conversation) =>
-		conversation.MetaData.Product.HasValue ? conversation.MetaData.Product.Value : null;
+	protected override BuyAnythingClient.Product? RetrieveValue(Conversation2 conversation) =>
+		conversation.MetaData.Product;
 
-	protected override Conversation2 PutValue(Conversation2 conversation, BuyAnythingClient.Product value) =>
+	protected override Conversation2 PutValue(Conversation2 conversation, BuyAnythingClient.Product? value) =>
 		conversation.UpdateMetadata(x => x with { Product = value });
 
-	protected override string StringValue(BuyAnythingClient.Product value) =>
-		value.GetDescription();
+	protected override string? StringValue(BuyAnythingClient.Product? value) =>
+		value?.GetDescription();
 }

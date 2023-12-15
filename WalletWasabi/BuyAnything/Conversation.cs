@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare.Models;
 using Enumerable = System.Linq.Enumerable;
 
 namespace WalletWasabi.BuyAnything;
@@ -243,4 +244,6 @@ public record ConversationMetaData2(
 	string? StreetName = null,
 	string? HouseNumber = null,
 	string? PostalCode = null,
-	string? City = null);
+	string? City = null,
+	State? State = null,
+	bool TermsAccepted = false);

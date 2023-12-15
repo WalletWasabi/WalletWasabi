@@ -14,6 +14,8 @@ public sealed partial class ShopinBitWorkflow2 : Workflow2
 		_wallet = wallet;
 	}
 
+	private BuyAnythingManager2? BuyAnythingManager => Services.HostedServices.GetOrDefault<BuyAnythingManager2>();
+
 	public override async Task<Conversation2> ExecuteAsync()
 	{
 		// Initial message + Select Product
@@ -41,15 +43,31 @@ public sealed partial class ShopinBitWorkflow2 : Workflow2
 			}
 		}
 
-		return Conversation;
-	}
+		// Firstname
+		await ExecuteStepAsync(new FirstNameStep(Conversation));
 
-	private void IgnoreCurrentSupportChatStep()
-	{
-		if (CurrentStep is SupportChatStep support)
-		{
-			support.Ignore();
-		}
+		// Lastname
+		await ExecuteStepAsync(new LastNameStep(Conversation));
+
+		// Streetname
+		await ExecuteStepAsync(new StreetNameStep(Conversation));
+
+		// Housenumber
+		await ExecuteStepAsync(new HouseNumberStep(Conversation));
+
+		// ZIP/Postalcode
+		await ExecuteStepAsync(new ZipPostalCodeStep(Conversation));
+
+		// City
+		await ExecuteStepAsync(new CityStep(Conversation));
+
+		// State
+		await ExecuteStepAsync(new StateStep(Conversation));
+
+		// Accept Terms of service
+		await ExecuteStepAsync(new ConfirmTosStep(Conversation));
+
+		return Conversation;
 	}
 
 	/// <summary>
@@ -79,5 +97,11 @@ public sealed partial class ShopinBitWorkflow2 : Workflow2
 						  .Subscribe();
 	}
 
-	private BuyAnythingManager2? BuyAnythingManager => Services.HostedServices.GetOrDefault<BuyAnythingManager2>();
+	private void IgnoreCurrentSupportChatStep()
+	{
+		if (CurrentStep is SupportChatStep support)
+		{
+			support.Ignore();
+		}
+	}
 }
