@@ -69,6 +69,8 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		// Accept Terms of service
 		await ExecuteStepAsync(new ConfirmTosStep(Conversation));
 
+		// TODO: The wording is reviewed until this point.
+
 		return Conversation;
 	}
 

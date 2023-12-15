@@ -11,9 +11,9 @@ public class FirstNameStep : TextInputStep
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		yield return "To proceed, I'll need some details to ensure a smooth delivery. Please provide the following information:";
+		yield return "To proceed, we'll need some details for delivery and billing.";
 
-		yield return "Your First Name:";
+		yield return "First Name:";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, string value) =>
