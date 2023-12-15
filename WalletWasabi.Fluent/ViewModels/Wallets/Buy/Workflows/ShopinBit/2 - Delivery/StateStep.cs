@@ -23,6 +23,12 @@ public partial class StateStep : WorkflowStep<CountryState>
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 			States = await buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
+
+			if (States.Length == 0)
+			{
+				SetCompleted();
+				return conversation;
+			}
 		}
 
 		return await base.ExecuteAsync(conversation);
