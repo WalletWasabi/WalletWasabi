@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
@@ -20,15 +18,7 @@ public abstract partial class Workflow : ReactiveObject
 
 	public abstract Task<Conversation> ExecuteAsync();
 
-	/// <summary>
-	/// Determines if the given ChatMessage is editable, depending on workflow conditions
-	/// </summary>
-	public abstract bool IsEditable(ChatMessage chatMessage);
-
-	/// <summary>
-	/// Returns a WorkflowStep which can edit the given ChatMessage
-	/// </summary>
-	public abstract IWorkflowStep? GetEditor(ChatMessage chatMessage);
+	public abstract IChatMessageEditor GetChatMessageEditor();
 
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{

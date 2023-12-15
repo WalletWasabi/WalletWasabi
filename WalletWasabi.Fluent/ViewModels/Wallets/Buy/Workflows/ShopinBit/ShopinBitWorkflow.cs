@@ -74,38 +74,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		return Conversation;
 	}
 
-	public override bool IsEditable(ChatMessage chatMessage)
-	{
-		return
-			Conversation.ConversationStatus switch
-			{
-				ConversationStatus.OfferReceived =>
-					chatMessage.StepName is nameof(FirstNameStep)
-										 or nameof(LastNameStep)
-										 or nameof(StreetNameStep)
-										 or nameof(HouseNumberStep)
-										 or nameof(ZipPostalCodeStep)
-										 or nameof(CityStep)
-										 or nameof(StateStep),
-				_ => false
-			};
-	}
-
-	public override IWorkflowStep? GetEditor(ChatMessage chatMessage)
-	{
-		return chatMessage.StepName switch
-		{
-			// I could have used reflection (or a Source Generator LOL)
-			nameof(FirstNameStep) => new FirstNameStep(Conversation),
-			nameof(LastNameStep) => new LastNameStep(Conversation),
-			nameof(StreetNameStep) => new StreetNameStep(Conversation),
-			nameof(HouseNumberStep) => new HouseNumberStep(Conversation),
-			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation),
-			nameof(CityStep) => new CityStep(Conversation),
-			nameof(StateStep) => new StateStep(Conversation),
-			_ => null
-		};
-	}
+	public override IChatMessageEditor GetChatMessageEditor() => new ShopinBitChatMessageEditor(this);
 
 	/// <summary>
 	/// Listen to Conversation Updates from the Server waiting for the specified Status. Upon that, it updates the Conversation, and optionally Ignores the current Chat Support Step.
@@ -137,5 +106,3 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		}
 	}
 }
-
-\

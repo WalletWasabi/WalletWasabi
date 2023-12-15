@@ -15,7 +15,7 @@ public partial class UserMessageViewModel : MessageViewModel
 
 		var canEdit =
 			this.WhenAnyValue(x => x.Workflow.Conversation)
-				.Select(_ => Workflow.IsEditable(message));
+				.Select(_ => Workflow.GetChatMessageEditor().IsEditable(message));
 
 		EditCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), canEdit);
 	}
@@ -27,9 +27,9 @@ public partial class UserMessageViewModel : MessageViewModel
 
 	private async Task EditAsync(ChatMessage message)
 	{
-		var editor = Workflow.GetEditor(message);
+		var editor = Workflow.GetChatMessageEditor().GetEditor(message);
 
-		// TODO: navigate to edit dialog, show editor (requires datatemplate)
+		// TODO: navigate to edit dialog, (**** OR EVEN BETTER, ENABLE IN PLACE EDITION IN THE CHAT WINDOW ***) show editor (requires datatemplate)
 
 		// TODO: if editor is null do not crash
 		var conversation = await editor.EditMessageAsync(Workflow.Conversation, message);
