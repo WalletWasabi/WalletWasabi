@@ -9,7 +9,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
-internal class UrlListMessageViewModel : MessageViewModel
+internal class UrlListMessageViewModel : AssistantMessageViewModel
 {
 	public UrlListMessageViewModel(DataCarrier data, ChatMessageMetaData metaData) : base(null, null, metaData)
 	{

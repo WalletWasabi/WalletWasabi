@@ -310,8 +310,9 @@ public partial class OrderViewModel : ReactiveObject
 				return x switch
 				{
 					PayNowAssistantMessageViewModel payVm => new SystemChatMessage(message, payVm.Invoice, payVm.IsUnread, payVm.MetaData),
-					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
 					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
+					OfferMessageViewModel offerVm => new SystemChatMessage(message, offerVm.OfferCarrier, offerVm.IsUnread, offerVm.MetaData),
+					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
 					_ => new ChatMessage(true, message, x.IsUnread, x.MetaData)
 				};
 			})
@@ -362,7 +363,13 @@ public partial class OrderViewModel : ReactiveObject
 					switch (systemChatMessage.Data)
 					{
 						case OfferCarrier offerCarrier:
-							break;
+							orderMessages.Add(new OfferMessageViewModel(offerCarrier, message.MetaData)
+							{
+								UiMessage = "Our offer:",
+								OriginalMessage = message.Message,
+								IsUnread = message.IsUnread
+							});
+							continue;
 						case Invoice invoice:
 							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{

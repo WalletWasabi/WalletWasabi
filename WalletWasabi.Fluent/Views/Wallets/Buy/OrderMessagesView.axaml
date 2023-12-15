@@ -6,6 +6,7 @@
              xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:buyAnything="clr-namespace:WalletWasabi.BuyAnything;assembly=WalletWasabi"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
@@ -31,18 +32,8 @@
       </SelectingItemsControl.Styles>
 
       <SelectingItemsControl.DataTemplates>
-        <DataTemplate DataType="vmMessage:UserMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
-                                CopyButtonPlacement="Left"
-                                HorizontalAlignment="Right"
-                                EditCommand="{Binding EditCommand}"
-                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
-            <Border Background="{DynamicResource UserMessageBackground}">
-              <TextBlock Text="{Binding UiMessage}" />
-            </Border>
-          </c:PreviewMessageItem>
-        </DataTemplate>
 
+        <!-- Pay chat bubble -->
         <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
           <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Right"
@@ -73,16 +64,32 @@
           </c:PreviewMessageItem>
         </DataTemplate>
 
-        <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
+        <!-- Offer chat bubble -->
+        <DataTemplate DataType="vmMessage:OfferMessageViewModel">
           <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
-              <TextBlock Text="{Binding UiMessage}" />
+              <StackPanel>
+                <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
+                <ItemsControl Items="{Binding OfferCarrier.Items}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="buyAnything:OfferItem">
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0 1 0 1">
+                        <TextBlock Grid.Column="0" Text="{Binding Quantity}" />
+                        <TextBlock Grid.Column="1" MaxWidth="250" TextWrapping="Wrap" Text="{Binding Description}" />
+                        <TextBlock Grid.Column="2" TextWrapping="Wrap" Text="{Binding UnitPrice}" />
+                        <TextBlock Grid.Column="3" TextWrapping="Wrap" Text="{Binding TotalPrice}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
 
+        <!-- Link chat bubble -->
         <DataTemplate DataType="vmMessage:UrlListMessageViewModel">
           <c:PreviewMessageItem HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
@@ -105,6 +112,30 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+
+        <!-- Generic Assistant chat bubble-->
+        <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+                                CopyButtonPlacement="Right"
+                                HorizontalAlignment="Left">
+            <Border Background="{DynamicResource AssistantMessageBackground}">
+              <TextBlock Text="{Binding UiMessage}" />
+            </Border>
+          </c:PreviewMessageItem>
+        </DataTemplate>
+
+        <!-- Generic User chat bubble -->
+        <DataTemplate DataType="vmMessage:UserMessageViewModel">
+          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+                                CopyButtonPlacement="Left"
+                                HorizontalAlignment="Right"
+                                EditCommand="{Binding EditCommand}"
+                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
+            <Border Background="{DynamicResource UserMessageBackground}">
+              <TextBlock Text="{Binding UiMessage}" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
