@@ -119,7 +119,7 @@ public partial class OrderViewModel : ReactiveObject
 	{
 		if (country != null)
 		{
-			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country.Name, _cancellationToken);
+			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country, _cancellationToken);
 		}
 
 		// The conversation is empty so just start from the beginning
@@ -154,10 +154,10 @@ public partial class OrderViewModel : ReactiveObject
 
 		UpdateMessages(conversation.ChatMessages);
 
-		var countryName = GetMessageByTag(ChatMessageMetaData.ChatMessageTag.Country);
-		if (_statesSource.IsEmpty() && !string.IsNullOrEmpty(countryName))
+		var country = conversation.MetaData.Country;
+		if (_statesSource.IsEmpty() && country is { })
 		{
-			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(countryName, cancellationToken);
+			_statesSource = await _buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
 		}
 
 		var conversationStatusString = conversation.ConversationStatus.ToString();
@@ -363,6 +363,7 @@ public partial class OrderViewModel : ReactiveObject
 					{
 						case OfferCarrier offerCarrier:
 							break;
+
 						case Invoice invoice:
 							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{
@@ -431,7 +432,6 @@ public partial class OrderViewModel : ReactiveObject
 						chatMessages,
 						metaData,
 						cancellationToken);
-
 
 					var hourRange = product.Value.Item1 switch
 					{

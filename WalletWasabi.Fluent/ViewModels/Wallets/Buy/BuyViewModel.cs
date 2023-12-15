@@ -8,15 +8,12 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
 using DynamicData.Binding;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.ShopWare.Models;
 using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
@@ -38,7 +35,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 	private readonly BuyAnythingManager _buyAnythingManager;
-	private readonly Country[] _counties;
+	private readonly Country[] _countries;
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
@@ -50,7 +47,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_wallet = walletVm.Wallet;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-		_counties = _buyAnythingManager.Countries.ToArray();
+		_countries = _buyAnythingManager.Countries.ToArray();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -73,7 +70,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 	public void Activate(CompositeDisposable disposable)
 	{
-		Task.Run(async () => { await InitializeAsync(disposable); }, _cts.Token);
+		Task.Run(async () => await InitializeAsync(disposable), _cts.Token);
 	}
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -187,12 +184,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_ordersCache.AddOrUpdate(orders);
 	}
 
-	private Country? GetCountryFromConversation(Conversation conversation)
-	{
-		var countryName = conversation.ChatMessages.FirstOrDefault(x => x.MetaData.Tag == ChatMessageMetaData.ChatMessageTag.Country)?.Message;
-		return _counties.FirstOrDefault(x => x.Name == countryName);
-	}
-
 	private async Task<OrderViewModel> CreateOrderAsync(Conversation conversation, int id, CancellationToken cancellationToken)
 	{
 		var order = new OrderViewModel(
@@ -200,14 +191,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			id,
 			conversation.MetaData,
 			conversation.ConversationStatus.ToString(),
-			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
+			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _countries),
 			this,
 			cancellationToken);
 
 		order.WorkflowManager.UpdateConversationId(conversation.Id);
 		order.UpdateMessages(conversation.ChatMessages);
 
-		var country = GetCountryFromConversation(conversation);
+		var country = conversation.MetaData.Country;
 		await order.StartConversationAsync(conversation.ConversationStatus.ToString(), country);
 
 		return order;
@@ -223,7 +214,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			nextId,
 			new ConversationMetaData(title),
 			"Started",
-			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _counties),
+			new ShopinBitWorkflowManager(BuyAnythingManager.GetWalletId(_wallet), _countries),
 			this,
 			cancellationToken);
 

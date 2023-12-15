@@ -1,122 +1,37 @@
 using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Windows.Input;
+using System.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class Workflow : ReactiveObject
 {
-	[AutoNotify] private List<WorkflowStep>? _steps;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowStep? _currentStep;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCompleted;
+	private readonly object _lock = new();
 
-	private int _nextStepIndex = 0;
+	[AutoNotify] private IWorkflowStep? _currentStep;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private Conversation _conversation;
 
-	public IObservable<bool>? CanEditObservable { get; protected set; }
-
-	public WorkflowStep? PeekNextStep()
+	protected Workflow(Conversation conversation)
 	{
-		if (_steps is null)
-		{
-			return null;
-		}
-
-		if (_nextStepIndex >= _steps.Count || IsCompleted)
-		{
-			return null;
-		}
-
-		return _steps[_nextStepIndex];
+		_conversation = conversation;
 	}
 
-	public WorkflowStep? TryToGetNextStep(CancellationToken cancellationToken)
+	public abstract Task<Conversation> ExecuteAsync();
+
+	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
-		if (_steps is null)
-		{
-			CurrentStep = null;
-			return null;
-		}
-
-		if (_nextStepIndex >= _steps.Count || IsCompleted)
-		{
-			CurrentStep = null;
-			return null;
-		}
-
-		for (var i = _nextStepIndex; i < _steps.Count; i++)
-		{
-			if (cancellationToken.IsCancellationRequested)
-			{
-				CurrentStep = null;
-				return null;
-			}
-
-			var result = true;
-			var step = _steps[_nextStepIndex];
-
-			if (step.SkipStep())
-			{
-				if (_nextStepIndex + 1 >= _steps.Count)
-				{
-					IsCompleted = true;
-					CurrentStep = step;
-					return step;
-				}
-
-				_nextStepIndex++;
-				continue;
-			}
-
-			step.UserInputValidator.OnActivation();
-
-			if (step.RequiresUserInput)
-			{
-				result = step.UserInputValidator.IsValid();
-			}
-
-			if (result)
-			{
-				step.IsCompleted = true;
-			}
-
-			if (result)
-			{
-				if (_nextStepIndex + 1 >= _steps.Count)
-				{
-					IsCompleted = true;
-				}
-				else
-				{
-					_nextStepIndex++;
-				}
-			}
-
-			CurrentStep = step;
-			return step;
-		}
-
-		return null;
+		CurrentStep = step;
+		var conversation = await step.ExecuteAsync(Conversation);
+		SetConversation(conversation);
 	}
 
-	public virtual bool TryToEditStep(WorkflowStep step, string message)
+	protected void SetConversation(Conversation conversation)
 	{
-		// TODO: Make sure WorkflowRequest is in valid state and dependant steps are updated.
-		return true;
-	}
-
-	protected virtual void CreateCanEditObservable()
-	{
-		CanEditObservable = Observable.Return(false);
-	}
-
-	/// <summary>
-	/// Determines whether the workflow instance can be canceled or not.
-	/// </summary>
-	/// <returns>True if the workflow can be canceled, otherwise False.</returns>
-	public virtual bool CanCancel()
-	{
-		return true;
+		lock (_lock)
+		{
+			Conversation = conversation;
+		}
 	}
 }

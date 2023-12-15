@@ -211,7 +211,6 @@ public class Global
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
 				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
-				HostedServices.Register<BuyAnythingManager2>(() => new BuyAnythingManager2(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager2");
 				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
 				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 

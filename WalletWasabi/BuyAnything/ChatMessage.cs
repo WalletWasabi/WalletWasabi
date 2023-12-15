@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.BuyAnything;
 
@@ -20,30 +19,7 @@ public record AttachmentLinks(IEnumerable<string> Links) : DataCarrier;
 
 public record NoData : DataCarrier;
 
-public record ChatMessageMetaData(ChatMessageMetaData.ChatMessageTag Tag, bool IsPaid = false)
-{
-	public static readonly ChatMessageMetaData Empty = new(ChatMessageTag.None);
-
-	public enum ChatMessageTag
-	{
-		None = 0,
-
-		AssistantType = 11,
-		Country = 12,
-
-		FirstName = 21,
-		LastName = 22,
-		StreetName = 23,
-		HouseNumber = 24,
-		PostalCode = 25,
-		City = 26,
-		State = 27,
-	}
-}
-
-public record ChatMessage(bool IsMyMessage, string Message, bool IsUnread, ChatMessageMetaData MetaData);
-
-public record ChatMessage2(MessageSource Source, string Message, bool IsUnread, string? StepName, DataCarrier? Data = null)
+public record ChatMessage(MessageSource Source, string Message, bool IsUnread, string? StepName, DataCarrier? Data = null)
 {
 	public bool IsMyMessage => Source == MessageSource.User;
 }
@@ -54,6 +30,3 @@ public enum MessageSource
 	Agent = 2,
 	Bot = 3
 }
-
-public record SystemChatMessage(string Message, DataCarrier Data, bool IsUnread, ChatMessageMetaData MetaData)
-	: ChatMessage(false, Message, IsUnread, MetaData);

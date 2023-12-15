@@ -49,12 +49,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	private readonly ChatMessage[] _messages;
 	public ChatMessage this[int i] => _messages[i];
 
-	public Chat AddSentMessage(string msg) =>
-		new(this.Append(new ChatMessage(true, msg, IsUnread: false, ChatMessageMetaData.Empty)));
-
-	public Chat AddReceivedMessage(string msg, DataCarrier data) =>
-		new(this.Append(new SystemChatMessage(msg, data, IsUnread: true, ChatMessageMetaData.Empty)));
-
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
 
@@ -78,18 +72,19 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			}
 
 			bool isMine = items[0] == "WASABI";
-			string chatLine = EnsureProperRawMessage(items[1]);
-			bool isUnread = !oldConversation.Contains(chatLine, isMine);
-			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
-			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, metaData));
+			var source = isMine ? MessageSource.User : MessageSource.Bot;
+			string text = EnsureProperRawMessage(items[1]);
+			bool isUnread = !oldConversation.Contains(text, isMine);
+			var data = oldConversation.FirstOrDefault(x => x.Message == text)?.Data;
+			chatEntries.Add(new ChatMessage(source, text, isUnread, null, data));
 		}
 
-		var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
-		foreach (var message in systemMessages)
-		{
-			int index = oldConversation.ToList().IndexOf(message);
-			chatEntries[index] = message;
-		}
+		//var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
+		//foreach (var message in systemMessages)
+		//{
+		//	int index = oldConversation.ToList().IndexOf(message);
+		//	chatEntries[index] = message;
+		//}
 
 		return new Chat(chatEntries);
 	}
@@ -131,110 +126,9 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	}
 }
 
-public record Chat2 : IReadOnlyCollection<ChatMessage2>
-{
-	public static readonly Chat2 Empty = new(Array.Empty<ChatMessage2>());
-	[JsonConstructor]
-	public Chat2(IEnumerable<ChatMessage2> messages)
-	{
-		_messages = Enumerable.ToArray(messages);
-	}
-
-	private readonly ChatMessage2[] _messages;
-	public ChatMessage2 this[int i] => _messages[i];
-
-	public Chat2 AddBotMessage(string msg, string stepName) =>
-		new(this.Append(new ChatMessage2(MessageSource.Bot, msg, IsUnread: true, stepName)));
-
-	public Chat2 AddUserMessage(string msg, string stepName) =>
-		new(this.Append(new ChatMessage2(MessageSource.User, msg, IsUnread: false, stepName)));
-
-	//public Chat2 AddSentMessage(string msg) =>
-	//	new(this.Append(new ChatMessage2(MessageSource.User, msg, IsUnread: false, DataCarrier.NoData)));
-
-	//public Chat2 AddReceivedMessage(string msg, DataCarrier data) =>
-	//	new(this.Append(new ChatMessage2(MessageSource.Agent, msg, IsUnread: true, data)));
-
-	public IEnumerator<ChatMessage2> GetEnumerator() =>
-		Enumerable.AsEnumerable(_messages).GetEnumerator();
-
-	IEnumerator IEnumerable.GetEnumerator() =>
-		GetEnumerator();
-
-	public int Count => _messages.Length;
-
-	public static Chat2 FromText(string updatedConversation, Chat2 oldConversation)
-	{
-		var messages = updatedConversation.Split("||", StringSplitOptions.RemoveEmptyEntries);
-
-		var chatEntries = new List<ChatMessage2>();
-		foreach (var message in messages)
-		{
-			var items = message.Split("#", StringSplitOptions.RemoveEmptyEntries);
-
-			if (items.Length != 2)
-			{
-				break;
-			}
-
-			bool isMine = items[0] == "WASABI";
-			// TODO
-			var source = isMine ? MessageSource.User : MessageSource.Bot;
-
-			string text = EnsureProperRawMessage(items[1]);
-			bool isUnread = !oldConversation.Contains(text, isMine);
-			var data = oldConversation.FirstOrDefault(x => x.Message == text)?.Data;
-			var stepName = oldConversation.FirstOrDefault(x => x.Message == text)?.StepName;
-			chatEntries.Add(new ChatMessage2(source, text, isUnread, stepName, data));
-		}
-
-		return new Chat2(chatEntries);
-	}
-
-	public string ToText()
-	{
-		StringBuilder result = new();
-
-		foreach (var chatMessage in this)
-		{
-			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
-		}
-
-		result.Append("||");
-
-		return result.ToString();
-	}
-
-	public bool Contains(string singleMessage, bool isMine)
-	{
-		foreach (var chatMessage in this)
-		{
-			if (chatMessage.IsMyMessage == isMine && chatMessage.Message == singleMessage)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	// Makes sure that the raw message doesn't contain characters that are used in the protocol. These chars are '#' and '||'.
-	private static string EnsureProperRawMessage(string message)
-	{
-		message = message.Replace("||", " ");
-		message = message.Replace('#', '-');
-		return message;
-	}
-}
-
 public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, ConversationMetaData MetaData);
 
-public record ConversationMetaData(string Title, BuyAnythingClient.Product? Product = null);
-
-public record Conversation2(ConversationId Id, Chat2 ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, ConversationMetaData2 MetaData);
-
-public record ConversationMetaData2(
+public record ConversationMetaData(
 	string Title,
 	BuyAnythingClient.Product? Product = null,
 	Country? Country = null,

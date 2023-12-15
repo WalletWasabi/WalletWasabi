@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -269,9 +270,8 @@ public class BuyAnythingManager : PeriodicRunner
 		return removedCount;
 	}
 
-	public async Task<State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken)
+	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
-		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -293,6 +293,42 @@ public class BuyAnythingManager : PeriodicRunner
 
 		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+		var country = conversation.MetaData.Country;
+		var product = conversation.MetaData.Product;
+
+		if (country is not { } || product is not { })
+		{
+			throw new ArgumentException("Conversation is missing Country or Product.");
+		}
+
+		var fullChat = new Chat(conversation.ChatMessages);
+		var credential = GenerateRandomCredential();
+		var walletId = GetWalletId(wallet);
+
+		var orderId =
+			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
+						.ConfigureAwait(false);
+
+		conversation = new Conversation(
+			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+			fullChat,
+			OrderStatus.Open,
+			ConversationStatus.Started,
+			conversation.MetaData with { Title = $"Order {GetNextConversationId(walletId)}" });
+
+		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
+
+		//ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
+
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
+
+		return conversation;
 	}
 
 	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
@@ -326,7 +362,8 @@ public class BuyAnythingManager : PeriodicRunner
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
 		var newConversation = track.Conversation with
 		{
-			ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted")
+			// ??????????????
+			//ChatMessages = track.Conversation.ChatMessages.AddUserMessage("Offer accepted")
 		};
 		await HandlePaymentAsync(track, newConversation, cancellationToken).ConfigureAwait(false);
 	}
