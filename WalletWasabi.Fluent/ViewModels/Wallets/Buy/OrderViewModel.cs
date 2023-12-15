@@ -93,13 +93,6 @@ public partial class OrderViewModel : ReactiveObject
 
 	private IDisposable SaveConversationToFileWhenNeeded()
 	{
-		var flowCompleted = this.WhenAnyValue(x => x.WorkflowManager.CurrentWorkflow!.IsCompleted)
-			.DistinctUntilChanged()
-			.Where(x => x)
-			.ToSignal();
-
-		var hasUnreadMessages = this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal();
-
 		var paidCountChanged = _messagesList
 			.Connect()
 			.AutoRefresh(x => x.IsPaid)
@@ -109,7 +102,7 @@ public partial class OrderViewModel : ReactiveObject
 			.Where(b => b)
 			.ToSignal();
 
-		return Observable.Merge(hasUnreadMessages, paidCountChanged)
+		return Observable.Merge(paidCountChanged)
 			.Throttle(TimeSpan.FromSeconds(1)) // Don't push too hard
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, CancellationToken.None))
 			.Subscribe();
