@@ -423,15 +423,11 @@ public class CoinsRegistry : ICoinsView
 		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
 	}
 
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
-
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
 	public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
-
-	public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
 	public Money TotalAmount() => AsCoinsView().TotalAmount();
 

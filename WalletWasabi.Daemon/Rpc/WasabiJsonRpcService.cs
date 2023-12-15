@@ -17,6 +17,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -138,7 +139,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isRedCoinIsolation"] = activeWallet.KeyManager.RedCoinIsolation,
-			["accounts"] = new [] { segwit }
+			["accounts"] = new[] { segwit }
 		};
 
 		if (km.TaprootExtPubKey is { } taprootExtPubKey)
@@ -157,11 +158,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		if (activeWallet.State == WalletState.Started)
 		{
-				// The following elements are valid only after the wallet is fully synchronized
-				info["balance"] = activeWallet.Coins
-					.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-					.Sum(c => c.Amount.Satoshi);
-				info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
+			// The following elements are valid only after the wallet is fully synchronized
+			info["balance"] = activeWallet.Coins
+				.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
+				.Sum(c => c.Amount.Satoshi);
+			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
 		}
 
 		return info;
@@ -261,6 +262,74 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
 		return activeWallet.AddCoinJoinPayment(address, amount);
+	}
+
+	[JsonRpcMethod("listpaymentsincoinjoin")]
+	public JsonRpcResultList ListPaymentsInCoinJoin()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		var payments = activeWallet.BatchedPayments.GetPayments();
+		return payments.Select(x =>
+		{
+			var paymentResult = new JsonRpcResult
+			{
+				["id"] = x.Id,
+				["amount"] = x.Amount.Satoshi,
+				["destination"] = x.Destination.ScriptPubKey.ToHex()
+			};
+
+			var state = x.State;
+			var stateHistory = new List<JsonRpcResult>();
+			while (state != null)
+			{
+				switch (state)
+				{
+					case PendingPayment pending:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Pending"
+						});
+						break;
+
+					case InProgressPayment inProgress:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "In progress",
+							["round"] = inProgress.RoundId.ToString()
+						});
+						break;
+
+					case FinishedPayment finished:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Finished",
+							["txid"] = finished.TransactionId.ToString()
+						});
+						break;
+
+					default:
+						throw new NotSupportedException($"Unrecognized state: {state.GetType().Name}.");
+				}
+
+				state = state.PreviousState;
+			}
+
+			paymentResult["state"] = stateHistory;
+
+			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
+			{
+				paymentResult["address"] = address;
+			}
+			return paymentResult;
+		}).ToImmutableArray();
+	}
+
+	[JsonRpcMethod("cancelpaymentincoinjoin")]
+	public void CancelPayment(Guid paymentId)
+	{
+		AssertWalletIsLoaded();
+		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
 	}
 
 	[JsonRpcMethod("send")]

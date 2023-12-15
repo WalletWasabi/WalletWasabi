@@ -406,6 +406,8 @@ public class Global
 				UpdateManager.Dispose();
 				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
 
+				CoinPrison.Dispose();
+
 				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));

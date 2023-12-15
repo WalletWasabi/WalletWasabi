@@ -25,6 +25,7 @@ public class TransactionSummary
 	public bool IsCPFPd => Transaction.IsCPFPd;
 
 	public Money? GetFee() => Transaction.GetFee();
+	public FeeRate? FeeRate() => Transaction.TryGetFeeRate(out var feeRate) ? feeRate : null;
 	public uint256 GetHash() => Transaction.GetHash();
 	public bool IsOwnCoinjoin() => Transaction.IsOwnCoinjoin();
 }
