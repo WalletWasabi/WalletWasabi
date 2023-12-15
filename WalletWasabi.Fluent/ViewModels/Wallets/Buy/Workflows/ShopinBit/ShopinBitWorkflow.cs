@@ -5,16 +5,16 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
-public sealed partial class ShopinBitWorkflow2 : Workflow
+public sealed partial class ShopinBitWorkflow : Workflow
 {
+	private readonly BuyAnythingManager _buyAnythingManager;
 	private readonly Wallet _wallet;
 
-	public ShopinBitWorkflow2(Wallet wallet, Conversation conversation) : base(conversation)
+	public ShopinBitWorkflow(Wallet wallet, Conversation conversation) : base(conversation)
 	{
 		_wallet = wallet;
+		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 	}
-
-	private BuyAnythingManager2? BuyAnythingManager => Services.HostedServices.GetOrDefault<BuyAnythingManager2>();
 
 	public override async Task<Conversation> ExecuteAsync()
 	{
@@ -77,24 +77,19 @@ public sealed partial class ShopinBitWorkflow2 : Workflow
 	/// <exception cref="InvalidOperationException"></exception>
 	private IDisposable WaitForConversationStatus(ConversationStatus status, bool ignoreCurrentSupportStep)
 	{
-		if (BuyAnythingManager is not { })
-		{
-			throw new InvalidOperationException($"BuyAnythingManager not initialized.");
-		}
-
 		return
-			Observable.FromEventPattern<ConversationUpdateEvent2>(BuyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
-						  .Where(x => x.EventArgs.Conversation.Id == Conversation.Id)
-						  .Where(x => x.EventArgs.Conversation.ConversationStatus == status)
-						  .Do(x =>
+			Observable.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
+					  .Where(x => x.EventArgs.Conversation.Id == Conversation.Id)
+					  .Where(x => x.EventArgs.Conversation.ConversationStatus == status)
+					  .Do(x =>
+					  {
+						  SetConversation(x.EventArgs.Conversation);
+						  if (ignoreCurrentSupportStep)
 						  {
-							  SetConversation(x.EventArgs.Conversation);
-							  if (ignoreCurrentSupportStep)
-							  {
-								  IgnoreCurrentSupportChatStep();
-							  }
-						  })
-						  .Subscribe();
+							  IgnoreCurrentSupportChatStep();
+						  }
+					  })
+					  .Subscribe();
 	}
 
 	private void IgnoreCurrentSupportChatStep()

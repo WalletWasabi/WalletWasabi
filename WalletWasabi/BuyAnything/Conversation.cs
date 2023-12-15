@@ -141,4 +141,5 @@ public record ConversationMetaData(
 	string? PostalCode = null,
 	string? City = null,
 	State? State = null,
-	bool TermsAccepted = false);
+	bool TermsAccepted = false,
+	bool OfferAccepted = false);

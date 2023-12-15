@@ -33,10 +33,7 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 
 	private async Task<Conversation> StartNewConversationAsync(Conversation conversation)
 	{
-		if (Services.HostedServices.GetOrDefault<BuyAnythingManager2>() is not { } buyAnythingManager)
-		{
-			return conversation;
-		}
+		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		conversation = await buyAnythingManager.StartNewConversationAsync(_wallet, conversation, CancellationToken.None);
 
@@ -48,7 +45,7 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 			_ => "a few days"
 		};
 
-		conversation = AddBotMessage(conversation, $"Thank you! We've received your request and will get in touch with you within {hourRange} (Monday to Friday).");
+		conversation = conversation.AddBotMessage($"Thank you! We've received your request and will get in touch with you within {hourRange} (Monday to Friday).");
 
 		return conversation;
 	}
