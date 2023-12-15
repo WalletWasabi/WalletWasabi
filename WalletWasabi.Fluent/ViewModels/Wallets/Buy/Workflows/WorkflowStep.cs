@@ -12,7 +12,7 @@ public interface IWorkflowStep
 {
 	Task<Conversation> ExecuteAsync(Conversation conversation);
 
-	Task<Conversation> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
+	Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
 }
 
 /// <summary>
@@ -88,10 +88,13 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 		return conversation;
 	}
 
-	public virtual async Task<Conversation> EditMessageAsync(Conversation conversation, ChatMessage chatMessage)
+	public virtual async Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage)
 	{
 		// Wait for user confirmation (Send button)
 		await _userInputTcs.Task;
+
+		// TODO:
+		ChatMessage newMessage = null;
 
 		if (Value is { } value)
 		{
@@ -106,7 +109,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			}
 		}
 
-		return conversation;
+		return (conversation, newMessage);
 	}
 
 	/// <summary>

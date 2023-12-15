@@ -29,12 +29,14 @@ public partial class UserMessageViewModel : MessageViewModel
 	{
 		var editor = Workflow.GetChatMessageEditor().GetEditor(message);
 
-		// TODO: navigate to edit dialog, (**** OR EVEN BETTER, ENABLE IN PLACE EDITION IN THE CHAT WINDOW ***) show editor (requires datatemplate)
+		// TODO: navigate to edit dialog, (**** OR EVEN BETTER, ENABLE IN PLACE EDITION IN THE CHAT WINDOW ****) show editor (requires datatemplate)
 
 		// TODO: if editor is null do not crash
-		var conversation = await editor.EditMessageAsync(Workflow.Conversation, message);
+		var (conversation, newMessage) = await editor.EditMessageAsync(Workflow.Conversation, message);
 
 		// TODO:
 		//Workflow.SetConversation(conversation);
+
+		// TODO: refresh viewmodel values from new message
 	}
 }

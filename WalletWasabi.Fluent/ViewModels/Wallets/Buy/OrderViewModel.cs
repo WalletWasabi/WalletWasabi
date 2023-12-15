@@ -164,48 +164,6 @@ public partial class OrderViewModel : ReactiveObject
 		}
 	}
 
-	private void AddUserMessage(string message, ChatMessageMetaData metaData)
-	{
-		var workflowStep = currentWorkflow.CurrentStep;
-
-		UserMessageViewModel? userMessage = null;
-
-		var editMessageAsync = async () =>
-		{
-			if (userMessage is null)
-			{
-				return;
-			}
-
-			workflowStep.UserInputValidator.Message = userMessage.UiMessage;
-
-			var editedMessage = await _uiContext.Navigate().To().EditMessageDialog(
-				workflowStep.UserInputValidator,
-				WorkflowManager.WorkflowState).GetResultAsync();
-
-			if (!string.IsNullOrEmpty(editedMessage))
-			{
-				if (currentWorkflow.TryToEditStep(workflowStep, editedMessage))
-				{
-					userMessage.UiMessage = editedMessage;
-				}
-			}
-		};
-
-		var editMessageCommand = ReactiveCommand.CreateFromTask(editMessageAsync, currentWorkflow.CanEditObservable);
-
-		userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
-		{
-			UiMessage = message,
-			OriginalText = message
-		};
-
-		_messagesList.Edit(x =>
-		{
-			x.Add(userMessage);
-		});
-	}
-
 	private async Task RemoveOrderAsync()
 	{
 		var confirmed = await _uiContext.Navigate().To().ConfirmDeleteOrderDialog(this).GetResultAsync();
