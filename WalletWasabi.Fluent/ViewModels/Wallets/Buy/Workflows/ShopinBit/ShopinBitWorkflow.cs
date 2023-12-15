@@ -86,9 +86,25 @@ public sealed partial class ShopinBitWorkflow : Workflow
 										 or nameof(HouseNumberStep)
 										 or nameof(ZipPostalCodeStep)
 										 or nameof(CityStep)
-										 or nameof(StateStep)
+										 or nameof(StateStep),
 				_ => false
 			};
+	}
+
+	public override IWorkflowStep? GetEditor(ChatMessage chatMessage)
+	{
+		return chatMessage.StepName switch
+		{
+			// I could have used reflection (or a Source Generator LOL)
+			nameof(FirstNameStep) => new FirstNameStep(Conversation),
+			nameof(LastNameStep) => new LastNameStep(Conversation),
+			nameof(StreetNameStep) => new StreetNameStep(Conversation),
+			nameof(HouseNumberStep) => new HouseNumberStep(Conversation),
+			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation),
+			nameof(CityStep) => new CityStep(Conversation),
+			nameof(StateStep) => new StateStep(Conversation),
+			_ => null
+		};
 	}
 
 	/// <summary>
@@ -121,3 +137,5 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		}
 	}
 }
+
+\

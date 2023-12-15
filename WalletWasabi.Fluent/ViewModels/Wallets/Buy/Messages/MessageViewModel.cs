@@ -13,19 +13,12 @@ public abstract partial class MessageViewModel : ReactiveObject
 	[AutoNotify] private bool _isUnread;
 	[AutoNotify] private bool _isPaid; // TODO: Should only be in PayNowAssistantMessageViewModel
 
-	protected MessageViewModel(
-		ChatMessage message,
-		ICommand? editCommand,
-		IObservable<bool>? canEditObservable)
+	protected MessageViewModel(ChatMessage message)
 	{
 		_message = message;
-		EditCommand = editCommand;
-		CanEditObservable = canEditObservable;
+		IsUnread = message.IsUnread;
+		OriginalText = message.Text;
 	}
 
-	public string? OriginalMessage { get; set; }
-
-	public ICommand? EditCommand { get; }
-
-	public IObservable<bool>? CanEditObservable { get; }
+	public string? OriginalText { get; set; }
 }

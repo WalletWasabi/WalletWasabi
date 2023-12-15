@@ -197,7 +197,7 @@ public partial class OrderViewModel : ReactiveObject
 		userMessage = new UserMessageViewModel(editMessageCommand, canEditObservable, workflowStep, metaData)
 		{
 			UiMessage = message,
-			OriginalMessage = message
+			OriginalText = message
 		};
 
 		_messagesList.Edit(x =>
@@ -252,7 +252,7 @@ public partial class OrderViewModel : ReactiveObject
 		return _messages
 			.Select(x =>
 			{
-				var message = x.OriginalMessage ?? "";
+				var message = x.OriginalText ?? "";
 
 				return x switch
 				{
@@ -297,8 +297,8 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				var userMessage = new UserMessageViewModel(null, null, null, message.MetaData)
 				{
-					UiMessage = message.Message,
-					OriginalMessage = message.Message,
+					UiMessage = message.Text,
+					OriginalText = message.Text,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);
@@ -312,7 +312,7 @@ public partial class OrderViewModel : ReactiveObject
 						case OfferCarrier offerCarrier:
 							orderMessages.Add(new OfferMessageViewModel(offerCarrier, message.MetaData)
 							{
-								OriginalMessage = message.Message,
+								OriginalText = message.Text,
 								UiMessage = "I can offer you:",
 								IsUnread = message.IsUnread
 							});
@@ -320,14 +320,14 @@ public partial class OrderViewModel : ReactiveObject
 						case Invoice invoice:
 							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
 							{
-								OriginalMessage = message.Message,
+								OriginalText = message.Text,
 								IsUnread = message.IsUnread
 							});
 							continue;
 						case AttachmentLinks attachmentLinks:
 							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
 							{
-								OriginalMessage = message.Message,
+								OriginalText = message.Text,
 								UiMessage = "Download your files:",
 								IsUnread = message.IsUnread
 							});
@@ -335,7 +335,7 @@ public partial class OrderViewModel : ReactiveObject
 						case TrackingCodes trackingCodes:
 							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
 							{
-								OriginalMessage = message.Message,
+								OriginalText = message.Text,
 								UiMessage = "For shipping updates:",
 								IsUnread = message.IsUnread
 							});
@@ -345,8 +345,8 @@ public partial class OrderViewModel : ReactiveObject
 
 				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
 				{
-					UiMessage = message.Message,
-					OriginalMessage = message.Message,
+					UiMessage = message.Text,
+					OriginalText = message.Text,
 					IsUnread = message.IsUnread
 				};
 				orderMessages.Add(userMessage);

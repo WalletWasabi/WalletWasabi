@@ -75,7 +75,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			var source = isMine ? MessageSource.User : MessageSource.Bot;
 			string text = EnsureProperRawMessage(items[1]);
 			bool isUnread = !oldConversation.Contains(text, isMine);
-			var data = oldConversation.FirstOrDefault(x => x.Message == text)?.Data;
+			var data = oldConversation.FirstOrDefault(x => x.Text == text)?.Data;
 			chatEntries.Add(new ChatMessage(source, text, isUnread, null, data));
 		}
 
@@ -96,7 +96,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		foreach (var chatMessage in this)
 		{
 			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
+			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Text)}");
 		}
 
 		result.Append("||");
@@ -108,7 +108,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	{
 		foreach (var chatMessage in this)
 		{
-			if (chatMessage.IsMyMessage == isMine && chatMessage.Message == singleMessage)
+			if (chatMessage.IsMyMessage == isMine && chatMessage.Text == singleMessage)
 			{
 				return true;
 			}

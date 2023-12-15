@@ -10,7 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowStep
 {
-	public abstract Task<Conversation> ExecuteAsync(Conversation conversation);
+	Task<Conversation> ExecuteAsync(Conversation conversation);
+
+	Task<Conversation> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
 }
 
 /// <summary>
@@ -49,10 +51,12 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	public ICommand SendCommand { get; }
 
-	public Func<Conversation, Task<Conversation>>? OnCompleted { get; init; }
-
 	private string StepName => GetType().Name;
 
+	/// <summary>
+	/// Executes the Step, adding any relevant Bot Messages, waiting for user input, and updating Conversation Metadata accordingly
+	/// </summary>
+	/// <returns>The updated Conversation with newly added Bot messages (if any), User messages, and Metadata</returns>
 	public virtual async Task<Conversation> ExecuteAsync(Conversation conversation)
 	{
 		// Only ask the question if it hasn't been asked before
@@ -81,9 +85,25 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			}
 		}
 
-		if (OnCompleted is { })
+		return conversation;
+	}
+
+	public virtual async Task<Conversation> EditMessageAsync(Conversation conversation, ChatMessage chatMessage)
+	{
+		// Wait for user confirmation (Send button)
+		await _userInputTcs.Task;
+
+		if (Value is { } value)
 		{
-			conversation = await OnCompleted(conversation);
+			// Update the Conversation Metadata with the current user-input value
+			conversation = PutValue(conversation, value);
+
+			if (StringValue(value) is { } userMessage)
+			{
+				// TODO: remove the existing chatMessage from conversation.Chat and insert the new one
+				// this will create an entire new Conversation object, because it's fully immutable
+				// conversation = conversation.ReplaceMessage(chatMessage, newChatMessage);
+			}
 		}
 
 		return conversation;

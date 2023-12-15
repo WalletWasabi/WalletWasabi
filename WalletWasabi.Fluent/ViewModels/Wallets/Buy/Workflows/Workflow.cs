@@ -25,6 +25,11 @@ public abstract partial class Workflow : ReactiveObject
 	/// </summary>
 	public abstract bool IsEditable(ChatMessage chatMessage);
 
+	/// <summary>
+	/// Returns a WorkflowStep which can edit the given ChatMessage
+	/// </summary>
+	public abstract IWorkflowStep? GetEditor(ChatMessage chatMessage);
+
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
 		CurrentStep = step;

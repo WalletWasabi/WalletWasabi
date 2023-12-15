@@ -20,7 +20,7 @@ public record AttachmentLinks(IEnumerable<string> Links) : DataCarrier;
 
 public record NoData : DataCarrier;
 
-public record ChatMessage(MessageSource Source, string Message, bool IsUnread, string? StepName, DataCarrier? Data = null)
+public record ChatMessage(MessageSource Source, string Text, bool IsUnread, string? StepName, DataCarrier? Data = null)
 {
 	public bool IsMyMessage => Source == MessageSource.User;
 }
