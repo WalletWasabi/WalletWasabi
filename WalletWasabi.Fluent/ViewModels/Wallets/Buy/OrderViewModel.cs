@@ -360,7 +360,6 @@ public partial class OrderViewModel : ReactiveObject
 			{
 				if (message is SystemChatMessage systemChatMessage)
 				{
-					// TODO: Implement missing stuff
 					switch (systemChatMessage.Data)
 					{
 						case OfferCarrier offerCarrier:
