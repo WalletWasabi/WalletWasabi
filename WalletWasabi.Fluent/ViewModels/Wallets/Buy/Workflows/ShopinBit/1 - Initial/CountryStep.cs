@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive.Linq;
+using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Extensions;
 
@@ -10,13 +13,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// </summary>
 public class CountryStep : WorkflowStep<Country>
 {
-	public CountryStep(Conversation conversation) : base(conversation)
+	public CountryStep(Conversation conversation, IReadOnlyList<Country> countries) : base(conversation)
 	{
-		// TODO
-		Countries = new();
+		Countries = new ObservableCollection<string>(countries.Select(x => x.Name));
+
+		// TODO: TagsBox provide a list as result, so it cannot be directly bound to Value. Fede, better idea?
+		this.WhenAnyValue(x => x.SelectedCountries.Count)
+			.Select(_ => SelectedCountries.FirstOrDefault())
+			.Select(countryString => countries.FirstOrDefault(x => x.Name == countryString))
+			.BindTo(this, x => x.Value);
 	}
 
-	public ObservableCollection<Country> Countries { get; }
+	public ObservableCollection<string> Countries { get; }
+
+	public ObservableCollection<string> SelectedCountries { get; } = new();
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{

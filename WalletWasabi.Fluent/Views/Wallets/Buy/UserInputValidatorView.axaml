@@ -168,7 +168,7 @@
                      ItemCountLimit="1"
                      TagSeparator=";"
                      EnableDelete="False"
-                     Items="{Binding Value}"
+                     Items="{Binding SelectedCountries}"
                      Suggestions="{Binding Countries}">
             <i:Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
