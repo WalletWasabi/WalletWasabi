@@ -91,6 +91,9 @@ public partial class OrderViewModel : ViewModelBase
 			.Do(_ => RefreshMessageList())
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.Workflow.CurrentStep.IsBusy)
+			.BindTo(this, x => x.IsBusy);
+
 		RxApp.MainThreadScheduler.Schedule(StartWorkflow);
 	}
 

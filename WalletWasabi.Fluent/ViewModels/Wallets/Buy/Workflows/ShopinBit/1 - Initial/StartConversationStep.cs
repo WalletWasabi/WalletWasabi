@@ -23,9 +23,13 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 			yield break;
 		}
 
+		IsBusy = true;
+
 		conversation = await StartNewConversationAsync(conversation);
 
 		yield return conversation;
+
+		IsBusy = false;
 	}
 
 	protected override Conversation PutValue(Conversation conversation, ConversationId value) => conversation with { Id = value };

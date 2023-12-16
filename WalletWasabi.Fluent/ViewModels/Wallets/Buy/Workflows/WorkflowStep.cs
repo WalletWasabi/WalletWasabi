@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowStep
 {
-	//Conversation Conversation { get; set; }
+	bool IsBusy { get; }
 
 	IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation);
 
@@ -35,10 +35,12 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	//[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private string _caption = "Send";
+
 	[AutoNotify] private string _watermark = "Type here...";
 
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
+	[AutoNotify] private bool _isBusy;
 	private bool _ignored;
 
 	public WorkflowStep(Conversation conversation)
@@ -83,6 +85,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 				conversation = conversation.AddBotMessage(message, null, StepName);
 			}
 
+			// Return conversation updated with Bot Messages
 			yield return conversation;
 		}
 
