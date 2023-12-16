@@ -52,19 +52,32 @@
     <ContentControl.DataTemplates>
 
       <DataTemplate DataType="vm:TextInputStep">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Value}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- While conversation is being started, this will give a default look for the input field -->
+      <DataTemplate DataType="vm:StartConversationStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
 
       <!-- <DataTemplate DataType="shopinBit:DefaultInputValidator"> -->
       <!--   <TextBox VerticalAlignment="Center" -->
