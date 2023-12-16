@@ -66,7 +66,5 @@ public class AcceptOfferStep : WorkflowStep<object>
 			state is not null ? state.Id : "",
 			country.Id,
 			cancellationToken);
-
-		// TODO: Save conversation
 	}
 }

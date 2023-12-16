@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Wallets;
@@ -69,6 +70,9 @@ public sealed partial class ShopinBitWorkflow : Workflow
 
 		// Accept Offer
 		await ExecuteStepAsync(new AcceptOfferStep(Conversation));
+
+		// Save Conversation
+		await ExecuteStepAsync(new SaveConversationStep(Conversation));
 
 		// TODO: The wording is reviewed until this point.
 	}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
@@ -27,6 +28,12 @@ public abstract partial class Workflow : ReactiveObject
 	{
 		CurrentStep = step;
 		Conversation = await step.ExecuteAsync(Conversation);
+	}
+
+	public void Reset()
+	{
+		// TODO: abort workflow execution using CancellationToken
+		CurrentStep?.Ignore();
 	}
 
 	public static Workflow Create(Wallet wallet, Conversation conversation)

@@ -16,11 +16,6 @@ public class SupportChatStep : WorkflowStep<string>
 		// TODO: send full conversation to backend for save.
 	}
 
-	/// <summary>
-	/// Ignores the Support Chat message entered by the user. Used when another step is executed due to external reasons (such as Offer Received)
-	/// </summary>
-	public void Ignore() => SetCompleted();
-
 	protected override Conversation PutValue(Conversation conversation, string value) => conversation;
 
 	protected override string? RetrieveValue(Conversation conversation) => null;

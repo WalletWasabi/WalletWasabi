@@ -109,27 +109,27 @@ public partial class OrderViewModel : ViewModelBase
 
 	public int OrderNumber { get; }
 
-	private async Task SendAsync(CancellationToken cancellationToken)
-	{
-		IsBusy = true;
+	//private async Task SendAsync(CancellationToken cancellationToken)
+	//{
+	//	IsBusy = true;
 
-		try
-		{
-			if (WorkflowManager.CurrentWorkflow.IsCompleted)
-			{
-				await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
-			}
-		}
-		catch (Exception exception)
-		{
-			await ShowErrorAsync("Error while processing order.");
-			Logger.LogError($"Error while processing order: {exception}).");
-		}
-		finally
-		{
-			IsBusy = false;
-		}
-	}
+	//	try
+	//	{
+	//		if (WorkflowManager.CurrentWorkflow.IsCompleted)
+	//		{
+	//			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
+	//		}
+	//	}
+	//	catch (Exception exception)
+	//	{
+	//		await ShowErrorAsync("Error while processing order.");
+	//		Logger.LogError($"Error while processing order: {exception}).");
+	//	}
+	//	finally
+	//	{
+	//		IsBusy = false;
+	//	}
+	//}
 
 	private async Task RemoveOrderAsync()
 	{
@@ -149,8 +149,7 @@ public partial class OrderViewModel : ViewModelBase
 	private async Task ResetOrderAsync()
 	{
 		ClearMessageList();
-		WorkflowManager.ResetWorkflow();
-		await StartConversationAsync("Started", null);
+		Workflow.Reset();
 	}
 
 	public void RefreshMessageList()
@@ -186,7 +185,7 @@ public partial class OrderViewModel : ViewModelBase
 			return Task.CompletedTask;
 		}
 
-		return _buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
+		return _buyAnythingManager.UpdateConversationAsync(Workflow.Conversation, cancellationToken);
 	}
 
 	private MessageViewModel CreateMessageViewModel(ChatMessage message)

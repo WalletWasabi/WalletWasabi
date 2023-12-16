@@ -14,6 +14,8 @@ public interface IWorkflowStep
 
 	Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
 
+	void Ignore();
+
 	ICommand SendCommand { get; }
 }
 
@@ -30,6 +32,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	[AutoNotify] private string _caption = "Send";
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
+	private bool _ignored;
 
 	public WorkflowStep(Conversation conversation)
 	{
@@ -75,6 +78,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 		// Wait for user confirmation (Send button)
 		await _userInputTcs.Task;
 
+		if (_ignored)
+		{
+			return conversation;
+		}
+
 		if (Value is { } value)
 		{
 			// Update the Conversation Metadata with the current user-input value
@@ -94,6 +102,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	{
 		// Wait for user confirmation (Send button)
 		await _userInputTcs.Task;
+
+		if (_ignored)
+		{
+			return (conversation, chatMessage);
+		}
 
 		// TODO:
 		ChatMessage newMessage = null;
@@ -126,6 +139,15 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	/// Signal Step completion.
 	/// </summary>
 	protected void SetCompleted() => _userInputTcs.SetResult();
+
+	/// <summary>
+	/// Ignores the Step. Used when another step is executed due to external reasons (such as Offer Received)
+	/// </summary>
+	public void Ignore()
+	{
+		_ignored = true;
+		SetCompleted();
+	}
 
 	/// <summary>
 	/// Validate the Step's Value entered by the User. Fires when Value changes and is used to set IsValid property and the CanExecute of the SendCommand
