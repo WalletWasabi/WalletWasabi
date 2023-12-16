@@ -86,7 +86,9 @@ public partial class OrderViewModel : ViewModelBase
 			.DoAsync(async _ => await UpdateConversationLocallyAsync(cancellationToken))
 			.Subscribe();
 
-		RefreshMessageList();
+		this.WhenAnyValue(x => x.Workflow.Conversation)
+			.Do(_ => RefreshMessageList())
+			.Subscribe();
 
 		StartWorkflow();
 	}
