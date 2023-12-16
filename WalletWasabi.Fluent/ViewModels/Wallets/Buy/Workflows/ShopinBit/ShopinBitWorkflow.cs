@@ -23,7 +23,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		await ExecuteStepAsync(new WelcomeStep(Conversation));
 
 		// Select Country
-		await ExecuteStepAsync(new CountryStep(Conversation));
+		await ExecuteStepAsync(new CountryStep(Conversation, _buyAnythingManager.Countries));
 
 		// Specify your request
 		await ExecuteStepAsync(new RequestedItemStep(Conversation));
