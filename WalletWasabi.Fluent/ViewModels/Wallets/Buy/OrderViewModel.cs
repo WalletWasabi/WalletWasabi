@@ -178,16 +178,6 @@ public partial class OrderViewModel : ViewModelBase
 		return _buyAnythingManager.UpdateConversationOnlyLocallyAsync(Workflow.Conversation, cancellationToken);
 	}
 
-	private Task SendChatHistoryAsync(ChatMessage[] chatMessages, CancellationToken cancellationToken)
-	{
-		if (ConversationId == ConversationId.Empty)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _buyAnythingManager.UpdateConversationAsync(Workflow.Conversation, cancellationToken);
-	}
-
 	private MessageViewModel CreateMessageViewModel(ChatMessage message)
 	{
 		if (message.IsMyMessage)
