@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Wallets;
 
@@ -90,6 +91,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			Observable.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
 					  .Where(x => x.EventArgs.Conversation.Id == Conversation.Id)
 					  .Where(x => x.EventArgs.Conversation.ConversationStatus == status)
+					  .ObserveOn(RxApp.MainThreadScheduler)
 					  .Do(x =>
 					  {
 						  Conversation = x.EventArgs.Conversation;
