@@ -14,6 +14,7 @@ internal class UrlListMessageViewModel : AssistantMessageViewModel
 	public UrlListMessageViewModel(ChatMessage message) : base(message)
 	{
 		Data = message.Data;
+		UiMessage = "For shipping updates:";
 		Links = Data switch
 		{
 			AttachmentLinks linkData => linkData.Links.Select(url => new HyperlinkViewModel(url, url)),

@@ -17,6 +17,8 @@ public class OfferMessageViewModel : AssistantMessageViewModel
 		var shippingCost = float.Parse(OfferCarrier.ShippingCost.TotalPrice);
 		var total = OfferCarrier.Items.Sum(x => x.TotalPrice) + shippingCost;
 		TotalMessage = $"For a total price of {total} USD, which includes {shippingCost} USD shipping cost.";
+
+		UiMessage = "I can offer you:";
 	}
 
 	public OfferCarrier OfferCarrier { get; }

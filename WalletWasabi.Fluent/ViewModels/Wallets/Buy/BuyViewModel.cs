@@ -102,7 +102,18 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		try
 		{
-			await UpdateOrdersAsync();
+			var currentConversations = await _buyAnythingManager.GetConversationsAsync(_wallet, _cts.Token);
+
+			var orders =
+				currentConversations.Select((conversation, index) =>
+				{
+					var workflow = Workflow.Create(_wallet, conversation);
+					var order = new OrderViewModel(UiContext, workflow, this, index, _cts.Token);
+					return order;
+				})
+				.ToArray();
+
+			_ordersCache.AddOrUpdate(orders);
 
 			if (_orders.Count == 0 || _orders.All(x => x.ConversationId != ConversationId.Empty))
 			{
@@ -130,22 +141,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Switch()
 			.OnItemAdded(x => x.IsUnread = false)
 			.Subscribe();
-	}
-
-	private async Task UpdateOrdersAsync()
-	{
-		var currentConversations = await _buyAnythingManager.GetConversationsAsync(_wallet, _cts.Token);
-
-		var orders =
-			currentConversations.Select((conversation, index) =>
-			{
-				var workflow = Workflow.Create(_wallet, conversation);
-				var order = new OrderViewModel(UiContext, workflow, this, index, _cts.Token);
-				return order;
-			})
-			.ToArray();
-
-		_ordersCache.AddOrUpdate(orders);
 	}
 
 	private OrderViewModel NewEmptyOrder()

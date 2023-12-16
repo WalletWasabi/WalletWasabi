@@ -10,21 +10,18 @@ using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
-public partial class OrderViewModel : ReactiveObject
+public partial class OrderViewModel : ViewModelBase
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
-	private readonly UiContext _uiContext;
+
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
@@ -33,23 +30,13 @@ public partial class OrderViewModel : ReactiveObject
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
+	[AutoNotify] private bool _isSelected;
 
-	public OrderViewModel(UiContext uiContext,
-		Workflow workflow,
-		IOrderManager orderManager,
-		int orderNumber,
-		CancellationToken cancellationToken)
+	public OrderViewModel(UiContext uiContext, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
 	{
-		OrderNumber = orderNumber;
-		Workflow = workflow;
-
-		_title = workflow.Conversation.MetaData.Title;
-
-		_uiContext = uiContext;
-
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
-
+		_title = workflow.Conversation.MetaData.Title;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		_messagesList = new SourceList<MessageViewModel>();
@@ -58,6 +45,10 @@ public partial class OrderViewModel : ReactiveObject
 			.Connect()
 			.Bind(out _messages)
 			.Subscribe();
+
+		UiContext = uiContext;
+		Workflow = workflow;
+		OrderNumber = orderNumber;
 
 		HasUnreadMessagesObs = _messagesList.Connect()
 											.AutoRefresh(x => x.IsUnread)
@@ -83,15 +74,21 @@ public partial class OrderViewModel : ReactiveObject
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
+		// TODO
+		//this.WhenAnyValue(x => x.IsSelected)
+		//	.Where(x => x)
+		//	.DoAsync(_ => Workflow.MarkConversationAsRead())
+		//	.Subscribe();
+
 		// Update file on disk
 		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
 			.Merge(_messagesList.Connect().ToSignal())
-			.DoAsync(async _ => await UpdateConversationLocallyAsync(GetChatMessages(), _metaData, cancellationToken))
+			.DoAsync(async _ => await UpdateConversationLocallyAsync(cancellationToken))
 			.Subscribe();
 
 		RefreshMessageList();
 
-		Workflow.ExecuteAsync();
+		StartWorkflow();
 	}
 
 	public Workflow Workflow { get; }
@@ -112,43 +109,15 @@ public partial class OrderViewModel : ReactiveObject
 
 	public int OrderNumber { get; }
 
-	public void SetConversationId(ConversationId conversationId)
-	{
-	}
-
-	public async Task UpdateOrderAsync(Conversation conversation, CancellationToken cancellationToken)
-	{
-		if (conversation.Id != Workflow.Conversation.Id)
-		{
-			return;
-		}
-
-		_metaData = conversation.MetaData;
-		IsCompleted = conversation.OrderStatus == OrderStatus.Done;
-		Title = conversation.MetaData.Title;
-
-		UpdateMessages();
-	}
-
 	private async Task SendAsync(CancellationToken cancellationToken)
 	{
 		IsBusy = true;
 
 		try
 		{
-			var result = WorkflowManager.InvokeInputWorkflows(AddUserMessage, AddAssistantMessage, _statesSource, cancellationToken);
-			if (!result)
-			{
-				return;
-			}
-
 			if (WorkflowManager.CurrentWorkflow.IsCompleted)
 			{
-				var chatMessages = GetChatMessages();
-				await SendApiRequestAsync(chatMessages, _metaData, cancellationToken);
 				await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
-
-				WorkflowManager.OnInvokeNextWorkflow(null, _statesSource, AddAssistantMessage, cancellationToken);
 			}
 		}
 		catch (Exception exception)
@@ -164,17 +133,17 @@ public partial class OrderViewModel : ReactiveObject
 
 	private async Task RemoveOrderAsync()
 	{
-		var confirmed = await _uiContext.Navigate().To().ConfirmDeleteOrderDialog(this).GetResultAsync();
+		var confirmed = await UiContext.Navigate().To().ConfirmDeleteOrderDialog(this).GetResultAsync();
 
 		if (confirmed)
 		{
-			_orderManager.RemoveOrderAsync(OrderNumber);
+			await _orderManager.RemoveOrderAsync(OrderNumber);
 		}
 	}
 
 	private async Task ShowErrorAsync(string message)
 	{
-		await _uiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
+		await UiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
 	}
 
 	private async Task ResetOrderAsync()
@@ -186,7 +155,10 @@ public partial class OrderViewModel : ReactiveObject
 
 	public void RefreshMessageList()
 	{
-		var messages = CreateMessages(Workflow.Conversation.ChatMessages);
+		var messages =
+			Workflow.Conversation.ChatMessages
+								 .Select(CreateMessageViewModel)
+								 .ToArray();
 
 		_messagesList.Edit(x =>
 		{
@@ -195,33 +167,7 @@ public partial class OrderViewModel : ReactiveObject
 		});
 	}
 
-	private void ClearMessageList()
-	{
-		_messagesList.Edit(x =>
-		{
-			x.Clear();
-		});
-	}
-
-	private ChatMessage[] GetChatMessages()
-	{
-		return _messages
-			.Select(x =>
-			{
-				var message = x.OriginalText ?? "";
-
-				return x switch
-				{
-					PayNowAssistantMessageViewModel payVm => new SystemChatMessage(message, payVm.Invoice, payVm.IsUnread, payVm.MetaData),
-					UrlListMessageViewModel urlVm => new SystemChatMessage(message, urlVm.Data, urlVm.IsUnread, urlVm.MetaData),
-					OfferMessageViewModel offerVm => new SystemChatMessage(message, offerVm.OfferCarrier, offerVm.IsUnread, offerVm.MetaData),
-					AssistantMessageViewModel => new ChatMessage(false, message, x.IsUnread, x.MetaData),
-					UserMessageViewModel => new ChatMessage(true, message, x.IsUnread, x.MetaData),
-					_ => throw new InvalidOperationException($"Cannot convert {x.GetType()}!")
-				};
-			})
-			.ToArray();
-	}
+	private void ClearMessageList() => _messagesList.Edit(x => x.Clear());
 
 	private Task UpdateConversationLocallyAsync(CancellationToken cancellationToken)
 	{
@@ -243,72 +189,42 @@ public partial class OrderViewModel : ReactiveObject
 		return _buyAnythingManager.UpdateConversationAsync(WorkflowManager.Id, chatMessages, cancellationToken);
 	}
 
-	private static List<MessageViewModel> CreateMessages(Chat chat)
+	private MessageViewModel CreateMessageViewModel(ChatMessage message)
 	{
-		var orderMessages = new List<MessageViewModel>();
-
-		foreach (var message in chat)
+		if (message.IsMyMessage)
 		{
-			if (message.IsMyMessage)
+			return new UserMessageViewModel(Workflow, message)
 			{
-				var userMessage = new UserMessageViewModel(null, null, null, message.MetaData)
-				{
-					UiMessage = message.Text,
-					OriginalText = message.Text,
-					IsUnread = message.IsUnread
-				};
-				orderMessages.Add(userMessage);
-			}
-			else
-			{
-				if (message is SystemChatMessage systemChatMessage)
-				{
-					switch (systemChatMessage.Data)
-					{
-						case OfferCarrier offerCarrier:
-							orderMessages.Add(new OfferMessageViewModel(offerCarrier, message.MetaData)
-							{
-								OriginalText = message.Text,
-								UiMessage = "I can offer you:",
-								IsUnread = message.IsUnread
-							});
-							continue;
-						case Invoice invoice:
-							orderMessages.Add(new PayNowAssistantMessageViewModel(invoice, message.MetaData)
-							{
-								OriginalText = message.Text,
-								IsUnread = message.IsUnread
-							});
-							continue;
-						case AttachmentLinks attachmentLinks:
-							orderMessages.Add(new UrlListMessageViewModel(attachmentLinks, message.MetaData)
-							{
-								OriginalText = message.Text,
-								UiMessage = "Download your files:",
-								IsUnread = message.IsUnread
-							});
-							continue;
-						case TrackingCodes trackingCodes:
-							orderMessages.Add(new UrlListMessageViewModel(trackingCodes, message.MetaData)
-							{
-								OriginalText = message.Text,
-								UiMessage = "For shipping updates:",
-								IsUnread = message.IsUnread
-							});
-							continue;
-					}
-				}
-
-				var userMessage = new AssistantMessageViewModel(null, null, message.MetaData)
-				{
-					UiMessage = message.Text,
-					OriginalText = message.Text,
-					IsUnread = message.IsUnread
-				};
-				orderMessages.Add(userMessage);
-			}
+				UiMessage = message.Text,
+				OriginalText = message.Text,
+				IsUnread = message.IsUnread
+			};
 		}
 
-		return orderMessages;
+		return
+			message.Data switch
+			{
+				OfferCarrier => new OfferMessageViewModel(message),
+				Invoice => new PayNowAssistantMessageViewModel(Workflow.Conversation, message),
+				AttachmentLinks => new UrlListMessageViewModel(message),
+				TrackingCodes => new UrlListMessageViewModel(message),
+				_ => new AssistantMessageViewModel(message)
+			};
+	}
+
+	/// <summary>
+	/// Fire and Forget method to start the workflow, and listen to any exceptions
+	/// </summary>
+	private async void StartWorkflow()
+	{
+		try
+		{
+			await Workflow.ExecuteAsync();
+		}
+		catch (Exception ex)
+		{
+			await ShowErrorAsync("Error while processing order.");
+			Logger.LogError($"Error while processing order: {ex}).");
+		}
 	}
 }

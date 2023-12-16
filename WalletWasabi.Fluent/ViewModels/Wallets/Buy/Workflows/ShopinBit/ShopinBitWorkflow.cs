@@ -1,9 +1,7 @@
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 
@@ -73,8 +71,6 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		await ExecuteStepAsync(new AcceptOfferStep(Conversation));
 
 		// TODO: The wording is reviewed until this point.
-
-		return Conversation;
 	}
 
 	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);

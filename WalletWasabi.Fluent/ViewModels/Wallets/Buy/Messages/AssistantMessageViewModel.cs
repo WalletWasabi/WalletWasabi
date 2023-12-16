@@ -6,5 +6,6 @@ public partial class AssistantMessageViewModel : MessageViewModel
 {
 	public AssistantMessageViewModel(ChatMessage message) : base(message)
 	{
+		UiMessage = message.Text;
 	}
 }

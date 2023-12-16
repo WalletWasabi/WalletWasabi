@@ -37,4 +37,22 @@ public static class ConversationExtensions
 	{
 		return conversation with { MetaData = updateMetadata(conversation.MetaData) };
 	}
+
+	public static Conversation MarkAsRead(this Conversation conversation)
+	{
+		return conversation with
+		{
+			ChatMessages = new(conversation.ChatMessages.Select(m => m with { IsUnread = false }))
+		};
+	}
+
+	public static Conversation ReplaceMessage(this Conversation conversation, ChatMessage message, ChatMessage newMessage)
+	{
+		var messageList = conversation.ChatMessages.ToList();
+
+		var index = messageList.IndexOf(message);
+		messageList[index] = newMessage;
+
+		return conversation with { ChatMessages = new(messageList) };
+	}
 }
