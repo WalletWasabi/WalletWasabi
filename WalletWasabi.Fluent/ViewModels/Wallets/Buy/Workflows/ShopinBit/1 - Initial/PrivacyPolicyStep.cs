@@ -13,10 +13,12 @@ public class PrivacyPolicyStep : WorkflowStep<bool>
 
 	public PrivacyPolicyStep(Conversation conversation) : base(conversation)
 	{
+		Caption = "Accept";
+
 		PrivacyPolicyLink = new LinkViewModel
 		{
 			Link = PrivacyPolicyUrl,
-			Description = "Privacy Policy",
+			Description = "Accept the Privacy Policy",
 			IsClickable = true
 		};
 	}

@@ -52,7 +52,8 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		// if this step already contains data previously stored in the Conversation (retrieved by RetrieveData),
 		// then set the Step as completed so the parent workflow can move on.
-		if (ValidateInitialValue(_value))
+		// TODO: Bool values are false by default so this would set the workflow completed. ValidateUserValue(_value) prevents it, fix it properly.
+		if (ValidateInitialValue(_value) && ValidateUserValue(_value))
 		{
 			SetCompleted();
 		}
