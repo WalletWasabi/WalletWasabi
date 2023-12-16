@@ -20,13 +20,13 @@ public abstract partial class Workflow : ReactiveObject
 	{
 		_conversation = conversation;
 
-		this.WhenAnyValue(x => x.CurrentStep.Conversation)
-			.BindTo(this, x => x.Conversation);
+		//this.WhenAnyValue(x => x.CurrentStep.Conversation)
+		//	.BindTo(this, x => x.Conversation);
 
-		this.WhenAnyValue(x => x.Conversation)
-			.Where(x => CurrentStep is { })
-			.Do(x => CurrentStep.Conversation = x)
-			.Subscribe();
+		//this.WhenAnyValue(x => x.Conversation)
+		//	.Where(x => CurrentStep is { })
+		//	.Do(x => CurrentStep.Conversation = x)
+		//	.Subscribe();
 	}
 
 	public abstract Task ExecuteAsync();
@@ -36,8 +36,11 @@ public abstract partial class Workflow : ReactiveObject
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
 		CurrentStep = step;
-		step.Conversation = Conversation;
-		Conversation = await step.ExecuteAsync(Conversation);
+		//step.Conversation = Conversation;
+		await foreach (var c in step.ExecuteAsync(Conversation))
+		{
+			Conversation = c;
+		}
 	}
 
 	public void Reset()

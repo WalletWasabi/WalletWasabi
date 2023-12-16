@@ -19,7 +19,7 @@ public partial class StateStep : WorkflowStep<CountryState>
 		yield return "State:";
 	}
 
-	public override async Task<Conversation> ExecuteAsync(Conversation conversation)
+	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
 	{
 		// TODO: pass CancellationToken
 		var cancellationToken = CancellationToken.None;
@@ -33,11 +33,14 @@ public partial class StateStep : WorkflowStep<CountryState>
 			if (States.Length == 0)
 			{
 				SetCompleted();
-				return conversation;
+				yield break;
 			}
 		}
 
-		return await base.ExecuteAsync(conversation);
+		await foreach (var c in base.ExecuteAsync(conversation))
+		{
+			yield return c;
+		}
 	}
 
 	protected override Conversation PutValue(Conversation conversation, CountryState value) =>

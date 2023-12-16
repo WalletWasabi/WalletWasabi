@@ -9,12 +9,12 @@ public class SupportChatStep : WorkflowStep<string>
 	{
 	}
 
-	public override Task<Conversation> ExecuteAsync(Conversation conversation)
-	{
-		return base.ExecuteAsync(conversation);
+	//public override Task<Conversation> ExecuteAsync(Conversation conversation)
+	//{
+	//	return base.ExecuteAsync(conversation);
 
-		// TODO: send full conversation to backend for save.
-	}
+	//	// TODO: send full conversation to backend for save.
+	//}
 
 	protected override Conversation PutValue(Conversation conversation, string value) => conversation;
 

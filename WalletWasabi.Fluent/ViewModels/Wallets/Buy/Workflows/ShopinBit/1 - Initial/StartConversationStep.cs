@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -15,16 +16,16 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 		_wallet = wallet;
 	}
 
-	public override async Task<Conversation> ExecuteAsync(Conversation conversation)
+	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
 	{
 		if (conversation.Id != ConversationId.Empty)
 		{
-			return conversation;
+			yield break;
 		}
 
 		conversation = await StartNewConversationAsync(conversation);
 
-		return conversation;
+		yield return conversation;
 	}
 
 	protected override Conversation PutValue(Conversation conversation, ConversationId value) => conversation with { Id = value };

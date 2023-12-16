@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -10,16 +11,16 @@ public class AcceptOfferStep : WorkflowStep<object>
 	{
 	}
 
-	public override async Task<Conversation> ExecuteAsync(Conversation conversation)
+	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
 	{
 		if (conversation.MetaData.OfferAccepted)
 		{
-			return conversation;
+			yield break;
 		}
 
 		await AcceptOfferAsync(conversation);
 
-		return conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+		yield return conversation.UpdateMetadata(m => m with { OfferAccepted = true });
 	}
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;
