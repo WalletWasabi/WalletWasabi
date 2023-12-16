@@ -28,10 +28,10 @@ public static class ConversationExtensions
 		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.User, msg, IsUnread: false, stepName))) };
 
 	public static Conversation AddBotMessage(this Conversation conversation, string msg, DataCarrier? data = null, string? stepName = null) =>
-		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.User, msg, IsUnread: true, stepName))) };
+		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.Bot, msg, IsUnread: true, stepName))) };
 
 	public static Conversation AddAgentMessage(this Conversation conversation, string msg) =>
-		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.User, msg, IsUnread: true, null))) };
+		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.Agent, msg, IsUnread: true, null))) };
 
 	public static Conversation UpdateMetadata(this Conversation conversation, Func<ConversationMetaData, ConversationMetaData> updateMetadata)
 	{

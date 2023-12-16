@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowStep
 {
+	Conversation Conversation { get; set; }
+
 	Task<Conversation> ExecuteAsync(Conversation conversation);
 
 	Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage);
@@ -29,6 +31,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 {
 	private readonly TaskCompletionSource _userInputTcs = new();
 
+	[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private string _caption = "Send";
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
@@ -36,6 +39,8 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	public WorkflowStep(Conversation conversation)
 	{
+		_conversation = conversation;
+
 		// Retrieve initial value from the conversation. If the conversation was already stored it might contain a value for this Step, and thus this Step will not wait for user input.
 		_value = RetrieveValue(conversation);
 
@@ -62,16 +67,16 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	/// Executes the Step, adding any relevant Bot Messages, waiting for user input, and updating Conversation Metadata accordingly
 	/// </summary>
 	/// <returns>The updated Conversation with newly added Bot messages (if any), User messages, and Metadata</returns>
-	public virtual async Task<Conversation> ExecuteAsync(Conversation conversation)
+	public virtual async Task<Conversation> ExecuteAsync(Conversation conversation1)
 	{
 		// Only ask the question if it hasn't been asked before
-		if (!conversation.ChatMessages.Any(x => x.StepName == StepName && x.Source == MessageSource.Bot))
+		if (!Conversation.ChatMessages.Any(x => x.StepName == StepName && x.Source == MessageSource.Bot))
 		{
-			var botMessages = BotMessages(conversation).ToArray();
+			var botMessages = BotMessages(Conversation).ToArray();
 
 			foreach (var message in botMessages)
 			{
-				conversation = conversation.AddBotMessage(message, null, StepName);
+				Conversation = Conversation.AddBotMessage(message, null, StepName);
 			}
 		}
 
@@ -80,22 +85,22 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		if (_ignored)
 		{
-			return conversation;
+			return Conversation;
 		}
 
 		if (Value is { } value)
 		{
 			// Update the Conversation Metadata with the current user-input value
-			conversation = PutValue(conversation, value);
+			Conversation = PutValue(Conversation, value);
 
 			if (StringValue(value) is { } userMessage)
 			{
 				// Update the Conversation and add a User Message with the current user-input value represented as text (if any)
-				conversation = conversation.AddUserMessage(userMessage, StepName);
+				Conversation = Conversation.AddUserMessage(userMessage, StepName);
 			}
 		}
 
-		return conversation;
+		return Conversation;
 	}
 
 	public virtual async Task<(Conversation Conversation, ChatMessage NewMessage)> EditMessageAsync(Conversation conversation, ChatMessage chatMessage)
