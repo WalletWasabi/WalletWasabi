@@ -19,6 +19,8 @@ public interface IWorkflowStep
 	void Ignore();
 
 	ICommand SendCommand { get; }
+
+	string Caption { get; }
 }
 
 /// <summary>
@@ -33,6 +35,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	//[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private string _caption = "Send";
+	[AutoNotify] private string _watermark = "Type here...";
 
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
