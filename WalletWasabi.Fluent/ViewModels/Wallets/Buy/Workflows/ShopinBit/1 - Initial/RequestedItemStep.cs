@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -8,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// </summary>
 public class RequestedItemStep : WorkflowStep<string>
 {
-	public RequestedItemStep(Conversation conversation) : base(conversation)
+	public RequestedItemStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		Caption = "Request";
 	}

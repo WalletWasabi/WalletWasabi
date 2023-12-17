@@ -33,6 +33,8 @@ public partial class OrderViewModel : ViewModelBase
 	[AutoNotify] private bool _hasUnreadMessages;
 	[AutoNotify] private bool _isSelected;
 
+	private CancellationTokenSource _cts;
+
 	public OrderViewModel(UiContext uiContext, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
 	{
 		_orderManager = orderManager;
@@ -70,7 +72,7 @@ public partial class OrderViewModel : ViewModelBase
 				 .Select(id => id == ConversationId.Empty)
 				 .CombineLatest(hasUserMessages, (a, b) => a && b);
 
-		ResetOrderCommand = ReactiveCommand.CreateFromTask(ResetOrderAsync, CanResetObs);
+		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
@@ -98,7 +100,8 @@ public partial class OrderViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.Workflow.CurrentStep.IsBusy)
 			.BindTo(this, x => x.IsBusy);
 
-		RxApp.MainThreadScheduler.Schedule(StartWorkflow);
+		_cts = new CancellationTokenSource();
+		StartWorkflow(_cts.Token);
 	}
 
 	public Workflow Workflow { get; }
@@ -156,10 +159,15 @@ public partial class OrderViewModel : ViewModelBase
 		await UiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
 	}
 
-	private async Task ResetOrderAsync()
+	private void ResetOrder()
 	{
+		_cts.Cancel();
+		_cts.Dispose();
+		_cts = new CancellationTokenSource();
 		ClearMessageList();
-		Workflow.Reset();
+
+		Workflow.Conversation = new Conversation(ConversationId.Empty, Chat.Empty, OrderStatus.Open, ConversationStatus.Started, new ConversationMetaData("New Order"));
+		StartWorkflow(_cts.Token);
 	}
 
 	private void RefreshMessageList(Conversation conversation)
@@ -214,16 +222,23 @@ public partial class OrderViewModel : ViewModelBase
 	/// <summary>
 	/// Fire and Forget method to start the workflow, and listen to any exceptions
 	/// </summary>
-	private async void StartWorkflow()
+	private void StartWorkflow(CancellationToken token)
 	{
-		try
+		RxApp.MainThreadScheduler.ScheduleAsync(async (_, _) =>
 		{
-			await Workflow.ExecuteAsync();
-		}
-		catch (Exception ex)
-		{
-			await ShowErrorAsync("Error while processing order.");
-			Logger.LogError($"Error while processing order: {ex}).");
-		}
+			try
+			{
+				await Workflow.ExecuteAsync(token);
+			}
+			catch (OperationCanceledException)
+			{
+				// Ignore.
+			}
+			catch (Exception ex)
+			{
+				await ShowErrorAsync("Error while processing order.");
+				Logger.LogError($"Error while processing order: {ex}).");
+			}
+		});
 	}
 }

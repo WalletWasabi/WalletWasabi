@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -11,7 +12,7 @@ public class PrivacyPolicyStep : WorkflowStep<bool>
 {
 	private const string PrivacyPolicyUrl = "https://shopinbit.com/Information/Privacy-Policy/";
 
-	public PrivacyPolicyStep(Conversation conversation) : base(conversation)
+	public PrivacyPolicyStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		Caption = "Accept";
 

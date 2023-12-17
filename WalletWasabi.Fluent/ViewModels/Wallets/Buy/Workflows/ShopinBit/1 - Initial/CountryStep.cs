@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Extensions;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// </summary>
 public class CountryStep : WorkflowStep<Country>
 {
-	public CountryStep(Conversation conversation, IReadOnlyList<Country> countries) : base(conversation)
+	public CountryStep(Conversation conversation, IReadOnlyList<Country> countries, CancellationToken token) : base(conversation, token)
 	{
 		Countries = new ObservableCollection<string>(countries.Select(x => x.Name));
 

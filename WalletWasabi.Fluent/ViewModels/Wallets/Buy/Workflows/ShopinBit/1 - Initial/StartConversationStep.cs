@@ -10,10 +10,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 public class StartConversationStep : WorkflowStep<ConversationId>
 {
 	private readonly Wallet _wallet;
+	private readonly CancellationToken _token;
 
-	public StartConversationStep(Conversation conversation, Wallet wallet) : base(conversation)
+	public StartConversationStep(Conversation conversation, Wallet wallet, CancellationToken token) : base(conversation, token)
 	{
 		_wallet = wallet;
+		_token = token;
 	}
 
 	public override async Task ExecuteAsync()
@@ -38,7 +40,7 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 	{
 		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		conversation = await buyAnythingManager.StartNewConversationAsync(_wallet, conversation, CancellationToken.None);
+		conversation = await buyAnythingManager.StartNewConversationAsync(_wallet, conversation, _token);
 
 		var hourRange = conversation.MetaData.Product switch
 		{

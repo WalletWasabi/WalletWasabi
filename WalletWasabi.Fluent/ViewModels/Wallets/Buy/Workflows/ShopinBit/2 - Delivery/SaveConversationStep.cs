@@ -6,8 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class SaveConversationStep : WorkflowStep<object>
 {
-	public SaveConversationStep(Conversation conversation) : base(conversation)
+	private readonly CancellationToken _token;
+
+	public SaveConversationStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
+		_token = token;
 	}
 
 	public override async Task ExecuteAsync()
@@ -21,10 +24,7 @@ public class SaveConversationStep : WorkflowStep<object>
 
 		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		// TODO: pass cancellationToken
-		var cancellationToken = CancellationToken.None;
-
-		await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, cancellationToken));
+		await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, _token));
 
 		IsBusy = false;
 	}

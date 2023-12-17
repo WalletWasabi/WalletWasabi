@@ -2,6 +2,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.BuyAnything;
@@ -45,9 +46,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	[AutoNotify] private bool _isBusy;
 	private bool _ignored;
 
-	public WorkflowStep(Conversation conversation)
+	public WorkflowStep(Conversation conversation, CancellationToken token)
 	{
 		_conversation = conversation;
+
+		token.Register(() => _userInputTcs.TrySetCanceled());
 
 		// Retrieve initial value from the conversation. If the conversation was already stored it might contain a value for this Step, and thus this Step will not wait for user input.
 		_value = RetrieveValue(conversation);

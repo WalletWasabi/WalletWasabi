@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class ZipPostalCodeStep : TextInputStep
 {
-	public ZipPostalCodeStep(Conversation conversation) : base(conversation)
+	public ZipPostalCodeStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 	}
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
@@ -18,7 +19,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 {
 	[AutoNotify] private EnumValue<BuyAnythingClient.Product>? _product;
 
-	public WelcomeStep(Conversation conversation) : base(conversation)
+	public WelcomeStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		var productsEnum = Enum.GetValues<BuyAnythingClient.Product>();
 

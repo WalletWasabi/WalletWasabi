@@ -1,3 +1,4 @@
+using System.Threading;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -5,10 +6,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 public class ShopinBitMessageEditor : IMessageEditor
 {
 	private readonly ShopinBitWorkflow _workflow;
+	private readonly CancellationToken? _token;
 
-	public ShopinBitMessageEditor(ShopinBitWorkflow workflow)
+	public ShopinBitMessageEditor(ShopinBitWorkflow workflow, CancellationToken? token)
 	{
 		_workflow = workflow;
+		_token = token;
 	}
 
 	private Conversation Conversation => _workflow.Conversation;
@@ -32,16 +35,21 @@ public class ShopinBitMessageEditor : IMessageEditor
 
 	public IWorkflowStep? Get(ChatMessage chatMessage)
 	{
+		if (_token is not { } token)
+		{
+			return null;
+		}
+
 		return chatMessage.StepName switch
 		{
 			// I could have used reflection (or a Source Generator LOL)
-			nameof(FirstNameStep) => new FirstNameStep(Conversation),
-			nameof(LastNameStep) => new LastNameStep(Conversation),
-			nameof(StreetNameStep) => new StreetNameStep(Conversation),
-			nameof(HouseNumberStep) => new HouseNumberStep(Conversation),
-			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation),
-			nameof(CityStep) => new CityStep(Conversation),
-			nameof(StateStep) => new StateStep(Conversation),
+			nameof(FirstNameStep) => new FirstNameStep(Conversation, token),
+			nameof(LastNameStep) => new LastNameStep(Conversation, token),
+			nameof(StreetNameStep) => new StreetNameStep(Conversation, token),
+			nameof(HouseNumberStep) => new HouseNumberStep(Conversation, token),
+			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation, token),
+			nameof(CityStep) => new CityStep(Conversation, token),
+			nameof(StateStep) => new StateStep(Conversation, token),
 			_ => null
 		};
 	}
