@@ -117,7 +117,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 			if (_orders.Count == 0 || _orders.All(x => x.ConversationId != ConversationId.Empty))
 			{
-				NewEmptyOrder();
+				EmptyOrder = NewEmptyOrder();
 			}
 
 			SelectedOrder = _orders.FirstOrDefault();
