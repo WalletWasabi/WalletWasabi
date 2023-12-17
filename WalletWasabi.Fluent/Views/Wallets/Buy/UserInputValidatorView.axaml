@@ -62,22 +62,6 @@
       </Style>
     </ContentControl.Styles>
     <ContentControl.DataTemplates>
-
-      <DataTemplate DataType="vm:TextInputStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 Watermark="{Binding Watermark}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ DataValidationErrors">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-          </TextBox.Styles>
-        </TextBox>
-      </DataTemplate>
-
       <!-- Default views for steps that don't require user interaction -->
       <DataTemplate DataType="vm:StartConversationStep">
         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
@@ -89,101 +73,17 @@
         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
       </DataTemplate>
 
-      <!-- <DataTemplate DataType="shopinBit:DefaultInputValidator"> -->
-      <!--   <TextBox VerticalAlignment="Center" -->
-      <!--            Text="{Binding Message}" -->
-      <!--            Watermark="{Binding Watermark}"> -->
-      <!--     <i:Interaction.Behaviors> -->
-      <!--       <behaviors:FocusOnAttachedBehavior /> -->
-      <!--     </i:Interaction.Behaviors> -->
-      <!--     <TextBox.Styles> -->
-      <!--       <Style Selector="TextBox /template/ DataValidationErrors"> -->
-      <!--         <Setter Property="IsVisible" Value="False" /> -->
-      <!--       </Style> -->
-      <!--     </TextBox.Styles> -->
-      <!--   </TextBox> -->
-      <!-- </DataTemplate> -->
-
-      <DataTemplate DataType="vm:SupportChatStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 Watermark="{Binding Watermark}">
+      <!-- WelcomeStep -->
+      <DataTemplate DataType="vm:WelcomeStep">
+        <ComboBox Items="{Binding Products}"
+                  SelectedItem="{Binding Product, Mode=TwoWay}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ DataValidationErrors">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-          </TextBox.Styles>
-        </TextBox>
+        </ComboBox>
       </DataTemplate>
 
-      <!-- <DataTemplate DataType="shopinBit:NoInputInputValidator"> -->
-      <!--   <Panel /> -->
-      <!-- </DataTemplate> -->
-
-      <DataTemplate DataType="vm:PrivacyPolicyStep">
-        <StackPanel Orientation="Horizontal">
-          <CheckBox VerticalAlignment="Center"
-                    IsChecked="{Binding Value}"
-                    Margin="8 0 0 0">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </CheckBox>
-          <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
-            <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
-          </StackPanel>
-        </StackPanel>
-      </DataTemplate>
-
-      <DataTemplate DataType="vm:ConfirmTosStep">
-        <StackPanel Orientation="Horizontal">
-          <CheckBox VerticalAlignment="Center"
-                    IsChecked="{Binding Value}"
-                    Margin="8 0 0 0">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </CheckBox>
-          <helpAndSupport:LinkView
-            DataContext="{Binding Link}" />
-        </StackPanel>
-      </DataTemplate>
-
-      <!-- <DataTemplate DataType="shopinBit:ConfirmInitialInputValidator"> -->
-      <!--   <Panel /> -->
-      <!-- </DataTemplate> -->
-
-      <!-- <DataTemplate DataType="shopinBit:ConfirmDeliveryInputValidator"> -->
-      <!--   <Panel /> -->
-      <!-- </DataTemplate> -->
-
-      <!-- <DataTemplate DataType="shopinBit:PaymentInputValidator"> -->
-      <!--   <Panel /> -->
-      <!-- </DataTemplate> -->
-
-      <!-- <DataTemplate DataType="shopinBit:PackageInputValidator"> -->
-      <!--   <Panel /> -->
-      <!-- </DataTemplate> -->
-
-      <DataTemplate DataType="vm:RequestedItemStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 Watermark="{Binding Watermark}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ DataValidationErrors">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-          </TextBox.Styles>
-        </TextBox>
-      </DataTemplate>
-
+      <!-- CountryStep -->
       <DataTemplate DataType="vm:CountryStep">
         <c:TagsBox VerticalAlignment="Center"
                    RestrictInputToSuggestions="True"
@@ -201,6 +101,72 @@
         </c:TagsBox>
       </DataTemplate>
 
+      <!-- RequestedItemStep -->
+      <DataTemplate DataType="vm:RequestedItemStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- PrivacyPolicyStep-->
+      <DataTemplate DataType="vm:PrivacyPolicyStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox VerticalAlignment="Center"
+                    IsChecked="{Binding Value}"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
+          </StackPanel>
+        </StackPanel>
+      </DataTemplate>
+
+      <!-- SupportChatStep -->
+      <DataTemplate DataType="vm:SupportChatStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- TextInputStep -->
+      <DataTemplate DataType="vm:TextInputStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- StateStep -->
       <DataTemplate DataType="vm:StateStep">
         <c:TagsBox VerticalAlignment="Center"
                    RestrictInputToSuggestions="True"
@@ -218,13 +184,21 @@
         </c:TagsBox>
       </DataTemplate>
 
-      <DataTemplate DataType="vm:WelcomeStep">
-        <ComboBox Items="{Binding Products}"
-                  SelectedItem="{Binding Product, Mode=TwoWay}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-        </ComboBox>
+      <!-- ConfirmTosStep -->
+      <DataTemplate DataType="vm:ConfirmTosStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox VerticalAlignment="Center"
+                    IsChecked="{Binding Value}"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding Link}" />
+          </StackPanel>
+        </StackPanel>
       </DataTemplate>
     </ContentControl.DataTemplates>
   </ContentControl>

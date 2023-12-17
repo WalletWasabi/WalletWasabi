@@ -15,7 +15,7 @@ public class ConfirmTosStep : WorkflowStep<bool>
 		Link = new LinkViewModel
 		{
 			Link = TermsOfServiceUrl,
-			Description = "Accept the Terms of service",
+			Description = "Terms of service",
 			IsClickable = true
 		};
 	}
