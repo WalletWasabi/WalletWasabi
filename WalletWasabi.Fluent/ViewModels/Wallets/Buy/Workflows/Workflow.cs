@@ -54,6 +54,41 @@ public abstract partial class Workflow : ReactiveObject
 		CurrentStep?.Ignore();
 	}
 
+	/// <summary>
+	/// Marks the conversation messages as read and Saves to disk.
+	/// </summary>
+	public async Task MarkConversationAsReadAsync()
+	{
+		if (CurrentStep is { })
+		{
+			CurrentStep.IsBusy = true;
+		}
+
+		try
+		{
+			// TODO: pass cancellationtoken
+			var cancellationToken = CancellationToken.None;
+
+			Conversation = Conversation.MarkAsRead();
+
+			if (Conversation.Id == ConversationId.Empty)
+			{
+				return;
+			}
+
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
+		}
+		finally
+		{
+			if (CurrentStep is { })
+			{
+				CurrentStep.IsBusy = false;
+			}
+		}
+	}
+
 	public static Workflow Create(Wallet wallet, Conversation conversation)
 	{
 		// If another type of workflow is required in the future this is the place where it should be defined

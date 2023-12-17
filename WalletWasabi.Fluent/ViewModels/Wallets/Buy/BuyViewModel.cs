@@ -85,7 +85,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
-		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
+		// Mark Conversation as read for selected order
+		this.WhenAnyValue(x => x.SelectedOrder)
+			.WhereNotNull()
+			.DoAsync(async order => await order.Workflow.MarkConversationAsReadAsync())
+			.Subscribe()
+			.DisposeWith(disposables);
+
 		SelectNewOrderIfAny();
 	}
 
@@ -130,17 +136,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		{
 			IsBusy = false;
 		}
-	}
-
-	private IDisposable MarkNewMessagesFromSelectedOrderAsRead()
-	{
-		return this
-			.WhenAnyValue(x => x.SelectedOrder)
-			.WhereNotNull()
-			.Select(x => x.Messages.ToObservableChangeSet())
-			.Switch()
-			.OnItemAdded(x => x.IsUnread = false)
-			.Subscribe();
 	}
 
 	private OrderViewModel NewEmptyOrder()

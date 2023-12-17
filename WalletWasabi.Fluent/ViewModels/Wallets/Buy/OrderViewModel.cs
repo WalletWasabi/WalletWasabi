@@ -77,12 +77,6 @@ public partial class OrderViewModel : ViewModelBase
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		// TODO
-		//this.WhenAnyValue(x => x.IsSelected)
-		//	.Where(x => x)
-		//	.DoAsync(_ => Workflow.MarkConversationAsRead())
-		//	.Subscribe();
-
 		// Update file on disk
 		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
 			.Merge(_messagesList.Connect().ToSignal())
@@ -122,27 +116,20 @@ public partial class OrderViewModel : ViewModelBase
 
 	public int OrderNumber { get; }
 
-	//private async Task SendAsync(CancellationToken cancellationToken)
-	//{
-	//	IsBusy = true;
-
-	//	try
-	//	{
-	//		if (WorkflowManager.CurrentWorkflow.IsCompleted)
-	//		{
-	//			await SendChatHistoryAsync(GetChatMessages(), cancellationToken);
-	//		}
-	//	}
-	//	catch (Exception exception)
-	//	{
-	//		await ShowErrorAsync("Error while processing order.");
-	//		Logger.LogError($"Error while processing order: {exception}).");
-	//	}
-	//	finally
-	//	{
-	//		IsBusy = false;
-	//	}
-	//}
+	public async Task MarkAsReadAsync()
+	{
+		if (ConversationId == ConversationId.Empty)
+		{
+			foreach (var message in Messages)
+			{
+				message.IsUnread = false;
+			}
+		}
+		else
+		{
+			await Workflow.MarkConversationAsReadAsync();
+		}
+	}
 
 	private async Task RemoveOrderAsync()
 	{

@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public interface IWorkflowStep
 {
-	bool IsBusy { get; }
+	bool IsBusy { get; set; }
 
 	Conversation Conversation { get; set; }
 
