@@ -15,6 +15,17 @@
   <ContentControl Content="{Binding .}">
     <ContentControl.Resources>
       <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
+
+      <TextBox x:Key="DefaultChatInput" VerticalAlignment="Center"
+               Text=""
+               Watermark="{Binding Watermark}">
+        <TextBox.Styles>
+          <Style Selector="TextBox /template/ DataValidationErrors">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+        </TextBox.Styles>
+      </TextBox>
+
     </ContentControl.Resources>
     <ContentControl.Styles>
 
@@ -66,17 +77,15 @@
         </TextBox>
       </DataTemplate>
 
-      <!-- While conversation is being started, this will give a default look for the input field -->
+      <!-- Default views for steps that don't require user interaction -->
       <DataTemplate DataType="vm:StartConversationStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 Watermark="{Binding Watermark}">
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ DataValidationErrors">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-          </TextBox.Styles>
-        </TextBox>
+        <ContentControl Content="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:AcceptOfferStep">
+        <ContentControl Content="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:SaveConversationStep">
+        <ContentControl Content="{StaticResource DefaultChatInput}" />
       </DataTemplate>
 
       <!-- <DataTemplate DataType="shopinBit:DefaultInputValidator"> -->

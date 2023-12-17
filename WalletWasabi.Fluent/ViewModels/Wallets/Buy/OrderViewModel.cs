@@ -88,7 +88,11 @@ public partial class OrderViewModel : ViewModelBase
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.Workflow.Conversation)
-			.Do(_ => RefreshMessageList())
+			.Do(conversation =>
+			{
+				Title = conversation.MetaData.Title;
+				RefreshMessageList(conversation);
+			})
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.Workflow.CurrentStep.IsBusy)
@@ -158,12 +162,12 @@ public partial class OrderViewModel : ViewModelBase
 		Workflow.Reset();
 	}
 
-	public void RefreshMessageList()
+	private void RefreshMessageList(Conversation conversation)
 	{
 		var messages =
-			Workflow.Conversation.ChatMessages
-								 .Select(CreateMessageViewModel)
-								 .ToArray();
+			conversation.ChatMessages
+						.Select(CreateMessageViewModel)
+						.ToArray();
 
 		_messagesList.Edit(x =>
 		{
