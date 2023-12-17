@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -11,11 +10,11 @@ public class SaveConversationStep : WorkflowStep<object>
 	{
 	}
 
-	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
+	public override async Task ExecuteAsync()
 	{
-		if (conversation.Id == ConversationId.Empty)
+		if (Conversation.Id == ConversationId.Empty)
 		{
-			yield break;
+			return;
 		}
 
 		IsBusy = true;
@@ -25,9 +24,7 @@ public class SaveConversationStep : WorkflowStep<object>
 		// TODO: pass cancellationToken
 		var cancellationToken = CancellationToken.None;
 
-		await buyAnythingManager.UpdateConversationAsync(conversation, cancellationToken);
-
-		yield return conversation;
+		await buyAnythingManager.UpdateConversationAsync(Conversation, cancellationToken);
 
 		IsBusy = false;
 	}

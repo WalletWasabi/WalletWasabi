@@ -21,4 +21,6 @@ public class SupportChatStep : WorkflowStep<string>
 	protected override string? RetrieveValue(Conversation conversation) => null;
 
 	protected override bool ValidateUserValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
+
+	protected override string? StringValue(string value) => value.Trim();
 }

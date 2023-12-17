@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -11,18 +10,18 @@ public class AcceptOfferStep : WorkflowStep<object>
 	{
 	}
 
-	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
+	public override async Task ExecuteAsync()
 	{
-		if (conversation.MetaData.OfferAccepted)
+		if (Conversation.MetaData.OfferAccepted)
 		{
-			yield break;
+			return;
 		}
 
 		IsBusy = true;
 
-		await AcceptOfferAsync(conversation);
+		await AcceptOfferAsync(Conversation);
 
-		yield return conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+		Conversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
 
 		IsBusy = false;
 	}

@@ -16,18 +16,16 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 		_wallet = wallet;
 	}
 
-	public override async IAsyncEnumerable<Conversation> ExecuteAsync(Conversation conversation)
+	public override async Task ExecuteAsync()
 	{
-		if (conversation.Id != ConversationId.Empty)
+		if (Conversation.Id != ConversationId.Empty)
 		{
-			yield break;
+			return;
 		}
 
 		IsBusy = true;
 
-		conversation = await StartNewConversationAsync(conversation);
-
-		yield return conversation;
+		Conversation = await StartNewConversationAsync(Conversation);
 
 		IsBusy = false;
 	}

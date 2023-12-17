@@ -32,7 +32,7 @@ public partial class UserMessageViewModel : MessageViewModel
 		// TODO: navigate to edit dialog, (**** OR EVEN BETTER, ENABLE IN PLACE EDITION IN THE CHAT WINDOW ****) show editor (requires datatemplate)
 
 		// TODO: if editor is null do not crash
-		var (conversation, newMessage) = await editor.EditMessageAsync(Workflow.Conversation, message);
+		var newMessage = await editor.EditMessageAsync(message);
 
 		// TODO:
 		//Workflow.SetConversation(conversation);
