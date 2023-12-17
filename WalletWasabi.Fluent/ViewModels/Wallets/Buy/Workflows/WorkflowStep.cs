@@ -76,25 +76,31 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	/// </summary>
 	public virtual async Task ExecuteAsync()
 	{
-		var updatedConversation = Conversation;
+		if (_ignored)
+		{
+			return;
+		}
+
+		var newConversation = Conversation;
 
 		// Only ask the question if it hasn't been asked before
-		if (!Conversation.ChatMessages.Any(x => x.StepName == StepName && x.Source == MessageSource.Bot))
+		if (!newConversation.ChatMessages.Any(x => x.StepName == StepName && x.Source == MessageSource.Bot))
 		{
-			var botMessages = BotMessages(Conversation).ToArray();
+			var botMessages = BotMessages(newConversation).ToArray();
 
 			foreach (var message in botMessages)
 			{
-				updatedConversation = Conversation.AddBotMessage(message, null, StepName);
+				newConversation = newConversation.AddBotMessage(message, null, StepName);
 			}
 
 			// Set Conversation updated with Bot Messages
-			Conversation = updatedConversation;
+			Conversation = newConversation;
 		}
 
 		// Wait for user confirmation (Send button)
 		await _userInputTcs.Task;
 
+		// this *must* be checked twice (before and after user input)
 		if (_ignored)
 		{
 			return;
@@ -103,15 +109,15 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 		if (Value is { } value)
 		{
 			// Update the Conversation Metadata with the current user-input value
-			updatedConversation = PutValue(Conversation, value);
+			newConversation = PutValue(newConversation, value);
 
 			if (StringValue(value) is { } userMessage)
 			{
 				// Update the Conversation and add a User Message with the current user-input value represented as text (if any)
-				updatedConversation = Conversation.AddUserMessage(userMessage, StepName);
+				newConversation = newConversation.AddUserMessage(userMessage, StepName);
 			}
 
-			Conversation = updatedConversation;
+			Conversation = newConversation;
 		}
 	}
 

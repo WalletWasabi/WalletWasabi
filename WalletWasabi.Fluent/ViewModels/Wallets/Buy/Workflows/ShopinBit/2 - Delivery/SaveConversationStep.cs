@@ -24,7 +24,7 @@ public class SaveConversationStep : WorkflowStep<object>
 		// TODO: pass cancellationToken
 		var cancellationToken = CancellationToken.None;
 
-		await buyAnythingManager.UpdateConversationAsync(Conversation, cancellationToken);
+		await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, cancellationToken));
 
 		IsBusy = false;
 	}

@@ -35,13 +35,18 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		// Start Conversation (only if it's a new Conversation)
 		await ExecuteStepAsync(new StartConversationStep(Conversation, _wallet));
 
-		// Wait until the Offer is received
-		using (WaitForConversationStatus(ConversationStatus.OfferReceived, true))
+		// Save the entire conversation
+		await ExecuteStepAsync(new SaveConversationStep(Conversation));
+
+		using (ListenToServerUpdates())
 		{
-			// Support Chat (loops until Conversation Updates)
+			// Wait until the Offer is received
 			while (Conversation.ConversationStatus != ConversationStatus.OfferReceived)
 			{
+				// User might send chat messages to Support Agent
 				await ExecuteStepAsync(new SupportChatStep(Conversation));
+
+				// Save the entire conversation
 				await ExecuteStepAsync(new SaveConversationStep(Conversation));
 			}
 		}
@@ -82,33 +87,17 @@ public sealed partial class ShopinBitWorkflow : Workflow
 	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);
 
 	/// <summary>
-	/// Listen to Conversation Updates from the Server waiting for the specified Status. Upon that, it updates the Conversation, and optionally Ignores the current Chat Support Step.
+	/// Listen to Conversation Updates from the Server. Upon that, it updates the Conversation
 	/// </summary>
 	/// <returns>an IDisposable for the event subscription.</returns>
 	/// <exception cref="InvalidOperationException"></exception>
-	private IDisposable WaitForConversationStatus(ConversationStatus status, bool ignoreCurrentSupportStep)
+	private IDisposable ListenToServerUpdates()
 	{
 		return
 			Observable.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
 					  .Where(x => x.EventArgs.Conversation.Id == Conversation.Id)
-					  .Where(x => x.EventArgs.Conversation.ConversationStatus == status)
 					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Do(x =>
-					  {
-						  Conversation = x.EventArgs.Conversation;
-						  if (ignoreCurrentSupportStep)
-						  {
-							  IgnoreCurrentSupportChatStep();
-						  }
-					  })
+					  .Do(x => Conversation = x.EventArgs.Conversation)
 					  .Subscribe();
-	}
-
-	private void IgnoreCurrentSupportChatStep()
-	{
-		if (CurrentStep is SupportChatStep support)
-		{
-			support.Ignore();
-		}
 	}
 }

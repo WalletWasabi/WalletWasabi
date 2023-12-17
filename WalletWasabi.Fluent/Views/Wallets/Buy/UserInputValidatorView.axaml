@@ -132,7 +132,7 @@
             </i:Interaction.Behaviors>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBlock Text="Accept the" VerticalAlignment="Center" />
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
             <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
           </StackPanel>
         </StackPanel>
