@@ -78,7 +78,17 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		// Save Conversation
 		await ExecuteStepAsync(new SaveConversationStep(Conversation));
 
-		// TODO: The wording is reviewed until this point.
+		using (ListenToServerUpdates())
+		{
+			// Wait until the Conversation is finished
+			while (Conversation.ConversationStatus != ConversationStatus.Finished)
+			{
+				// User might send chat messages to Support Agent
+				await ExecuteStepAsync(new SupportChatStep(Conversation));
+			}
+		}
+
+		CurrentStep = null;
 	}
 
 	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);
