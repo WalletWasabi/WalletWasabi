@@ -108,6 +108,9 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		if (Value is { } value)
 		{
+			// refresh in case there was an update while awaiting
+			newConversation = Conversation;
+
 			// Update the Conversation Metadata with the current user-input value
 			newConversation = PutValue(newConversation, value);
 
