@@ -22,5 +22,5 @@ public class FirstNameStep : TextInputStep
 	protected override string? RetrieveValue(Conversation conversation) =>
 		conversation.MetaData.FirstName;
 
-	protected override bool ValidateUserValue(string? value) => string.IsNullOrWhiteSpace(value?.Trim());
+	protected override bool ValidateUserValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
 }

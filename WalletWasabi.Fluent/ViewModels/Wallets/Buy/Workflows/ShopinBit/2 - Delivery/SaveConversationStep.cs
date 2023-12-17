@@ -18,6 +18,8 @@ public class SaveConversationStep : WorkflowStep<object>
 			yield break;
 		}
 
+		IsBusy = true;
+
 		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		// TODO: pass cancellationToken
@@ -26,6 +28,8 @@ public class SaveConversationStep : WorkflowStep<object>
 		await buyAnythingManager.UpdateConversationAsync(conversation, cancellationToken);
 
 		yield return conversation;
+
+		IsBusy = false;
 	}
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;

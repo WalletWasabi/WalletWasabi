@@ -18,9 +18,13 @@ public class AcceptOfferStep : WorkflowStep<object>
 			yield break;
 		}
 
+		IsBusy = true;
+
 		await AcceptOfferAsync(conversation);
 
 		yield return conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+
+		IsBusy = false;
 	}
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;
@@ -65,7 +69,7 @@ public class AcceptOfferStep : WorkflowStep<object>
 			postalCode,
 			city,
 			state is not null ? state.Id : "",
-			country.Id,
+			country.Name,
 			cancellationToken);
 	}
 }

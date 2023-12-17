@@ -19,8 +19,6 @@
             IsDefault="True"
             Command="{Binding Workflow.CurrentStep.SendCommand}"
             Content="{Binding Workflow.CurrentStep.Caption}">
-      <!-- IsVisible="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}" -->
-
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
