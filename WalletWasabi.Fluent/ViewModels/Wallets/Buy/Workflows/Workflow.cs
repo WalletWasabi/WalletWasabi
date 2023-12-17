@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
@@ -30,7 +31,7 @@ public abstract partial class Workflow : ReactiveObject
 			.Subscribe();
 	}
 
-	public abstract Task ExecuteAsync();
+	public abstract Task ExecuteAsync(CancellationToken token);
 
 	public abstract IMessageEditor MessageEditor { get; }
 

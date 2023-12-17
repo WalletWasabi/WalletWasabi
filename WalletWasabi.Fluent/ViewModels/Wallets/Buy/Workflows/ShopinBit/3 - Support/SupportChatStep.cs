@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 
@@ -5,8 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class SupportChatStep : WorkflowStep<string>
 {
-	public SupportChatStep(Conversation conversation) : base(conversation)
+	private readonly CancellationToken _token;
+
+	public SupportChatStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
+		_token = token;
 	}
 
 	public override async Task ExecuteAsync()
@@ -15,7 +19,7 @@ public class SupportChatStep : WorkflowStep<string>
 
 		IsBusy = true;
 
-		await new SaveConversationStep(Conversation).ExecuteAsync();
+		await new SaveConversationStep(Conversation, _token).ExecuteAsync();
 
 		IsBusy = false;
 	}

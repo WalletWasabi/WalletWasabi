@@ -12,31 +12,35 @@ public sealed partial class ShopinBitWorkflow : Workflow
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private readonly Wallet _wallet;
 
+	private CancellationToken? _token;
+
 	public ShopinBitWorkflow(Wallet wallet, Conversation conversation) : base(conversation)
 	{
 		_wallet = wallet;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 	}
 
-	public override async Task ExecuteAsync()
+	public override async Task ExecuteAsync(CancellationToken token)
 	{
+		_token = token;
+
 		// Initial message + Select Product
-		await ExecuteStepAsync(new WelcomeStep(Conversation));
+		await ExecuteStepAsync(new WelcomeStep(Conversation, token));
 
 		// Select Country
-		await ExecuteStepAsync(new CountryStep(Conversation, _buyAnythingManager.Countries));
+		await ExecuteStepAsync(new CountryStep(Conversation, _buyAnythingManager.Countries, token));
 
 		// Specify your request
-		await ExecuteStepAsync(new RequestedItemStep(Conversation));
+		await ExecuteStepAsync(new RequestedItemStep(Conversation, token));
 
 		// Accept Privacy Policy
-		await ExecuteStepAsync(new PrivacyPolicyStep(Conversation));
+		await ExecuteStepAsync(new PrivacyPolicyStep(Conversation, token));
 
 		// Start Conversation (only if it's a new Conversation)
-		await ExecuteStepAsync(new StartConversationStep(Conversation, _wallet));
+		await ExecuteStepAsync(new StartConversationStep(Conversation, _wallet, token));
 
 		// Save the entire conversation
-		await ExecuteStepAsync(new SaveConversationStep(Conversation));
+		await ExecuteStepAsync(new SaveConversationStep(Conversation, token));
 
 		using (ListenToServerUpdates())
 		{
@@ -44,39 +48,39 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			while (!Conversation.MetaData.OfferReceived)
 			{
 				// User might send chat messages to Support Agent
-				await ExecuteStepAsync(new SupportChatStep(Conversation));
+				await ExecuteStepAsync(new SupportChatStep(Conversation, token));
 			}
 		}
 
 		// Firstname
-		await ExecuteStepAsync(new FirstNameStep(Conversation));
+		await ExecuteStepAsync(new FirstNameStep(Conversation, token));
 
 		// Lastname
-		await ExecuteStepAsync(new LastNameStep(Conversation));
+		await ExecuteStepAsync(new LastNameStep(Conversation, token));
 
 		// Streetname
-		await ExecuteStepAsync(new StreetNameStep(Conversation));
+		await ExecuteStepAsync(new StreetNameStep(Conversation, token));
 
 		// Housenumber
-		await ExecuteStepAsync(new HouseNumberStep(Conversation));
+		await ExecuteStepAsync(new HouseNumberStep(Conversation, token));
 
 		// ZIP/Postalcode
-		await ExecuteStepAsync(new ZipPostalCodeStep(Conversation));
+		await ExecuteStepAsync(new ZipPostalCodeStep(Conversation, token));
 
 		// City
-		await ExecuteStepAsync(new CityStep(Conversation));
+		await ExecuteStepAsync(new CityStep(Conversation, token));
 
 		// State
-		await ExecuteStepAsync(new StateStep(Conversation));
+		await ExecuteStepAsync(new StateStep(Conversation, token));
 
 		// Accept Terms of service
-		await ExecuteStepAsync(new ConfirmTosStep(Conversation));
+		await ExecuteStepAsync(new ConfirmTosStep(Conversation, token));
 
 		// Accept Offer
-		await ExecuteStepAsync(new AcceptOfferStep(Conversation));
+		await ExecuteStepAsync(new AcceptOfferStep(Conversation, token));
 
 		// Save Conversation
-		await ExecuteStepAsync(new SaveConversationStep(Conversation));
+		await ExecuteStepAsync(new SaveConversationStep(Conversation, token));
 
 		using (ListenToServerUpdates())
 		{
@@ -84,14 +88,14 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			while (Conversation.ConversationStatus != ConversationStatus.Finished)
 			{
 				// User might send chat messages to Support Agent
-				await ExecuteStepAsync(new SupportChatStep(Conversation));
+				await ExecuteStepAsync(new SupportChatStep(Conversation, token));
 			}
 		}
 
 		WorkflowCompleted();
 	}
 
-	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);
+	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this, _token);
 
 	/// <summary>
 	/// Listen to Conversation Updates from the Server. Upon that, it updates the Conversation

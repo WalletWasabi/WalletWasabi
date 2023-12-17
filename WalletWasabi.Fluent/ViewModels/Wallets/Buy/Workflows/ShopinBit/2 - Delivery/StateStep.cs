@@ -16,7 +16,7 @@ public partial class StateStep : WorkflowStep<CountryState>
 
 	private CountryState[] _statesArray = Array.Empty<CountryState>();
 
-	public StateStep(Conversation conversation) : base(conversation)
+	public StateStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		// TODO: TagsBox provide a list as result, so it cannot be directly bound to Value. Fede, better idea?
 		this.WhenAnyValue(x => x.SelectedStates.Count)

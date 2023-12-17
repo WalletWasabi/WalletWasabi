@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class FirstNameStep : TextInputStep
 {
-	public FirstNameStep(Conversation conversation) : base(conversation)
+	public FirstNameStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 	}
 

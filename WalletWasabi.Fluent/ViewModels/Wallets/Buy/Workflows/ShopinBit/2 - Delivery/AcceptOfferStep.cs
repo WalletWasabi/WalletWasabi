@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class AcceptOfferStep : WorkflowStep<object>
 {
-	public AcceptOfferStep(Conversation conversation) : base(conversation)
+	public AcceptOfferStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 	}
 

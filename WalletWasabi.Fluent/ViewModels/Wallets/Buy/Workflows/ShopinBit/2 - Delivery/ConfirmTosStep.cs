@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -8,7 +9,7 @@ public class ConfirmTosStep : WorkflowStep<bool>
 {
 	public const string TermsOfServiceUrl = "https://shopinbit.com/Information/Terms-Conditions/";
 
-	public ConfirmTosStep(Conversation conversation) : base(conversation)
+	public ConfirmTosStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		Caption = "BUY NOW";
 
