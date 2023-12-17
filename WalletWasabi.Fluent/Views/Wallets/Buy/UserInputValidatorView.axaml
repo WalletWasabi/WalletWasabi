@@ -95,37 +95,39 @@
       <!-- </DataTemplate> -->
 
       <DataTemplate DataType="vm:SupportChatStep">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Value}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
 
       <!-- <DataTemplate DataType="shopinBit:NoInputInputValidator"> -->
       <!--   <Panel /> -->
       <!-- </DataTemplate> -->
 
       <DataTemplate DataType="vm:PrivacyPolicyStep">
-          <StackPanel Orientation="Horizontal">
-            <CheckBox VerticalAlignment="Center"
-                      IsChecked="{Binding Value}"
-                      Margin="8 0 0 0">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </CheckBox>
-            <helpAndSupport:LinkView
-              DataContext="{Binding PrivacyPolicyLink}" />
+        <StackPanel Orientation="Horizontal">
+          <CheckBox VerticalAlignment="Center"
+                    IsChecked="{Binding Value}"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
           </StackPanel>
-        </DataTemplate>
+        </StackPanel>
+      </DataTemplate>
 
       <DataTemplate DataType="vm:ConfirmTosStep">
         <StackPanel Orientation="Horizontal">
@@ -158,61 +160,61 @@
       <!-- </DataTemplate> -->
 
       <DataTemplate DataType="vm:RequestedItemStep">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Value}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
 
       <DataTemplate DataType="vm:CountryStep">
-          <c:TagsBox VerticalAlignment="Center"
-                     RestrictInputToSuggestions="True"
-                     SuggestionsAreCaseSensitive="False"
-                     Watermark="{Binding Watermark}"
-                     MaxTextLength="5000"
-                     ItemCountLimit="1"
-                     TagSeparator=";"
-                     EnableDelete="False"
-                     Items="{Binding SelectedCountries}"
-                     Suggestions="{Binding Countries}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </c:TagsBox>
-        </DataTemplate>
+        <c:TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding SelectedCountries}"
+                   Suggestions="{Binding Countries}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </DataTemplate>
 
       <DataTemplate DataType="vm:StateStep">
-          <c:TagsBox VerticalAlignment="Center"
-                     RestrictInputToSuggestions="True"
-                     SuggestionsAreCaseSensitive="False"
-                     Watermark="{Binding Watermark}"
-                     MaxTextLength="5000"
-                     ItemCountLimit="1"
-                     TagSeparator=";"
-                     EnableDelete="False"
-                     Items="{Binding Value}"
-                     Suggestions="{Binding States}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </c:TagsBox>
-        </DataTemplate>
+        <c:TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding Value}"
+                   Suggestions="{Binding States}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </DataTemplate>
 
       <DataTemplate DataType="vm:WelcomeStep">
-          <ComboBox Items="{Binding Products}"
-                    SelectedItem="{Binding Product, Mode=TwoWay}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </ComboBox>
+        <ComboBox Items="{Binding Products}"
+                  SelectedItem="{Binding Product, Mode=TwoWay}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </ComboBox>
       </DataTemplate>
     </ContentControl.DataTemplates>
   </ContentControl>

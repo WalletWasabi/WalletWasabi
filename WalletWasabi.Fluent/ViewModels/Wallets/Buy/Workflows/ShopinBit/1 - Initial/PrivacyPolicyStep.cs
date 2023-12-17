@@ -18,7 +18,7 @@ public class PrivacyPolicyStep : WorkflowStep<bool>
 		PrivacyPolicyLink = new LinkViewModel
 		{
 			Link = PrivacyPolicyUrl,
-			Description = "Accept the Privacy Policy",
+			Description = "Privacy Policy",
 			IsClickable = true
 		};
 	}

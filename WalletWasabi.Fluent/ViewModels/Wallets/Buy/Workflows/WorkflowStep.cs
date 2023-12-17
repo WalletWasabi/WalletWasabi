@@ -51,10 +51,10 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 		_value = RetrieveValue(conversation);
 
 		// if this step already contains data previously stored in the Conversation (retrieved by RetrieveData),
-		// then set the Step as completed so the parent workflow can move on.
+		// then ignore the step so the parent workflow can move on and no changes are made.
 		if (ValidateInitialValue(_value))
 		{
-			SetCompleted();
+			Ignore();
 		}
 
 		// When Value changes, call IsValidValue(Value) and set IsValid property accordingly.
@@ -94,7 +94,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		if (_ignored)
 		{
-			yield return conversation;
+			yield break;
 		}
 
 		if (Value is { } value)
