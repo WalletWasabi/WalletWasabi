@@ -348,7 +348,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(Conversation conversation, CancellationToken cancellationToken)
+	public async Task<Conversation> AcceptOfferAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -380,10 +380,10 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, streetName, houseNumber, postalCode, city, stateId, country.Id, cancellationToken).ConfigureAwait(false);
-		await HandlePaymentAsync(track, conversation, cancellationToken).ConfigureAwait(false);
+		return await HandlePaymentAsync(track, conversation, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
+	private async Task<Conversation> HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
 		CancellationToken cancellationToken)
 	{
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken)
@@ -395,6 +395,8 @@ public class BuyAnythingManager : PeriodicRunner
 		track.LastUpdate = DateTimeOffset.Now;
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
+
+		return track.Conversation;
 	}
 
 	// This method is used to mark conversations as read without sending requests to the webshop.

@@ -23,9 +23,11 @@ public class AcceptOfferStep : WorkflowStep<object>
 
 		// TODO: pass cancellationtoken
 		var cancellationToken = CancellationToken.None;
-		await buyAnythingManager.AcceptOfferAsync(Conversation, cancellationToken);
 
-		Conversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+		var newConversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+		newConversation = await buyAnythingManager.AcceptOfferAsync(newConversation, cancellationToken);
+
+		Conversation = newConversation;
 
 		IsBusy = false;
 	}
