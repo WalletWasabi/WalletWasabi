@@ -85,7 +85,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 			foreach (var message in botMessages)
 			{
-				updatedConversation = Conversation.AddBotMessage(message, null, StepName);
+				updatedConversation = updatedConversation.AddBotMessage(message, null, StepName);
 			}
 
 			// Set Conversation updated with Bot Messages
@@ -108,7 +108,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			if (StringValue(value) is { } userMessage)
 			{
 				// Update the Conversation and add a User Message with the current user-input value represented as text (if any)
-				updatedConversation = Conversation.AddUserMessage(userMessage, StepName);
+				updatedConversation = updatedConversation.AddUserMessage(userMessage, StepName);
 			}
 
 			Conversation = updatedConversation;
