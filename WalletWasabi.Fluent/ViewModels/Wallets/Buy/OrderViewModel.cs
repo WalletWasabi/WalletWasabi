@@ -205,8 +205,8 @@ public partial class OrderViewModel : ViewModelBase
 			{
 				OfferCarrier => new OfferMessageViewModel(message),
 				Invoice => new PayNowAssistantMessageViewModel(Workflow.Conversation, message),
-				AttachmentLinks => new UrlListMessageViewModel(message),
-				TrackingCodes => new UrlListMessageViewModel(message),
+				AttachmentLinks => new UrlListMessageViewModel(message, "Download your files:"),
+				TrackingCodes => new UrlListMessageViewModel(message, "For shipping updates:"),
 				_ => new AssistantMessageViewModel(message)
 			};
 	}

@@ -11,10 +11,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 internal class UrlListMessageViewModel : AssistantMessageViewModel
 {
-	public UrlListMessageViewModel(ChatMessage message) : base(message)
+	public UrlListMessageViewModel(ChatMessage message, string uiMessage) : base(message)
 	{
 		Data = message.Data;
-		UiMessage = "For shipping updates:";
+		UiMessage = uiMessage;
 		Links = Data switch
 		{
 			AttachmentLinks linkData => linkData.Links.Select(url => new HyperlinkViewModel(url, url)),
