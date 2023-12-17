@@ -210,7 +210,7 @@
                    ItemCountLimit="1"
                    TagSeparator=";"
                    EnableDelete="False"
-                   Items="{Binding Value}"
+                   Items="{Binding SelectedStates}"
                    Suggestions="{Binding States}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />

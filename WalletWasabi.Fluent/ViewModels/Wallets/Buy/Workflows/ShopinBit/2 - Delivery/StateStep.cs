@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using CountryState = WalletWasabi.WebClients.ShopWare.Models.State;
 
@@ -8,11 +12,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public partial class StateStep : WorkflowStep<CountryState>
 {
-	[AutoNotify] private CountryState[] _states = Array.Empty<CountryState>();
+	[AutoNotify] private ObservableCollection<string> _states = new();
+
+	private CountryState[] _statesArray = Array.Empty<CountryState>();
 
 	public StateStep(Conversation conversation) : base(conversation)
 	{
+		// TODO: TagsBox provide a list as result, so it cannot be directly bound to Value. Fede, better idea?
+		this.WhenAnyValue(x => x.SelectedStates.Count)
+			.Select(_ => SelectedStates.FirstOrDefault())
+			.Select(stateString => _statesArray.FirstOrDefault(x => x.Name == stateString))
+			.BindTo(this, x => x.Value);
 	}
+
+	public ObservableCollection<string> SelectedStates { get; } = new();
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
@@ -26,14 +39,19 @@ public partial class StateStep : WorkflowStep<CountryState>
 
 		if (Conversation.MetaData.Country is { } country)
 		{
+			IsBusy = true;
+
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-			States = await buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
+			_statesArray = await buyAnythingManager.GetStatesForCountryAsync(country, cancellationToken);
+			States = new ObservableCollection<string>(_statesArray.Select(x => x.Name));
 
-			if (States.Length == 0)
+			if (!States.Any())
 			{
-				SetCompleted();
+				Ignore();
 			}
+
+			IsBusy = false;
 		}
 
 		await base.ExecuteAsync();
@@ -43,4 +61,6 @@ public partial class StateStep : WorkflowStep<CountryState>
 		conversation.UpdateMetadata(m => m with { State = value });
 
 	protected override CountryState? RetrieveValue(Conversation conversation) => conversation.MetaData.State;
+
+	protected override string? StringValue(CountryState value) => value.Name;
 }
