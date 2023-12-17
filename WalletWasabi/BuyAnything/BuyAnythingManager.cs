@@ -140,7 +140,7 @@ public class BuyAnythingManager : PeriodicRunner
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
 
-				track.Conversation = track.Conversation.UpdateMetadata(m => m.PaymentConfirmed = true);
+				track.Conversation = track.Conversation.UpdateMetadata(m => m with { PaymentConfirmed = true });
 
 				await SendSystemChatLinesAsync(track,
 					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
