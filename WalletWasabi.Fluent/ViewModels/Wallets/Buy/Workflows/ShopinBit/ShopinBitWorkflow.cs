@@ -45,9 +45,6 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			{
 				// User might send chat messages to Support Agent
 				await ExecuteStepAsync(new SupportChatStep(Conversation));
-
-				// Save the entire conversation
-				await ExecuteStepAsync(new SaveConversationStep(Conversation));
 			}
 		}
 
@@ -90,6 +87,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 	/// Listen to Conversation Updates from the Server. Upon that, it updates the Conversation
 	/// </summary>
 	/// <returns>an IDisposable for the event subscription.</returns>
+	/// <remarks>if the ConversationStatus changes, this handler will Ignore the Current Step</remarks>
 	/// <exception cref="InvalidOperationException"></exception>
 	private IDisposable ListenToServerUpdates()
 	{
@@ -97,7 +95,18 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			Observable.FromEventPattern<ConversationUpdateEvent>(_buyAnythingManager, nameof(BuyAnythingManager.ConversationUpdated))
 					  .Where(x => x.EventArgs.Conversation.Id == Conversation.Id)
 					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Do(x => Conversation = x.EventArgs.Conversation)
+					  .Do(x =>
+					  {
+						  var oldStatus = Conversation.ConversationStatus;
+						  var newStatus = x.EventArgs.Conversation.ConversationStatus;
+
+						  Conversation = x.EventArgs.Conversation;
+
+						  if (oldStatus != newStatus)
+						  {
+							  CurrentStep?.Ignore();
+						  }
+					  })
 					  .Subscribe();
 	}
 }

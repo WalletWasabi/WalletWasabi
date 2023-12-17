@@ -64,7 +64,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			.Select(ValidateUserValue)
 			.BindTo(this, x => x.IsValid);
 
-		SendCommand = ReactiveCommand.Create(Send, this.WhenAnyValue(x => x.IsValid));
+		var canExecuteSendCommand =
+			this.WhenAnyValue(x => x.IsValid, x => x.IsBusy)
+				.Select(t => t.Item1 && !t.Item2);
+
+		SendCommand = ReactiveCommand.Create(Send, canExecuteSendCommand);
 	}
 
 	public ICommand SendCommand { get; }

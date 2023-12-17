@@ -9,6 +9,17 @@ public class SupportChatStep : WorkflowStep<string>
 	{
 	}
 
+	public override async Task ExecuteAsync()
+	{
+		await base.ExecuteAsync();
+
+		IsBusy = true;
+
+		await new SaveConversationStep(Conversation).ExecuteAsync();
+
+		IsBusy = false;
+	}
+
 	protected override Conversation PutValue(Conversation conversation, string value) => conversation;
 
 	protected override string? RetrieveValue(Conversation conversation) => null;
