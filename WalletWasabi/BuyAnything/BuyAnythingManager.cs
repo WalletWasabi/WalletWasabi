@@ -109,6 +109,10 @@ public class BuyAnythingManager : PeriodicRunner
 			// This means that in "lineItems" we have the offer data
 			case ConversationStatus.Started
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
+
+				// Update Offer Received metadata value
+				track.Conversation = track.Conversation.UpdateMetadata(m => m with { OfferReceived = true });
+
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
 					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.ShippingCosts),
@@ -135,6 +139,9 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
+
+				track.Conversation = track.Conversation.UpdateMetadata(m => m.PaymentConfirmed = true);
+
 				await SendSystemChatLinesAsync(track,
 					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
@@ -501,9 +508,9 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DataCarrier data, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
 		var updatedConversation = track.Conversation.AddSystemChatLine(message, data, newStatus);
-		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 		track.Conversation = updatedConversation;
 		await UpdateConversationAsync(track.Conversation, cancellationToken).ConfigureAwait(false);
+		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 	}
 
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)

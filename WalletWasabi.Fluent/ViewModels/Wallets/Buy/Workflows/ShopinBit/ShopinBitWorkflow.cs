@@ -41,7 +41,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		using (ListenToServerUpdates())
 		{
 			// Wait until the Offer is received
-			while (Conversation.ConversationStatus != ConversationStatus.OfferReceived)
+			while (!Conversation.MetaData.OfferReceived)
 			{
 				// User might send chat messages to Support Agent
 				await ExecuteStepAsync(new SupportChatStep(Conversation));
@@ -88,7 +88,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			}
 		}
 
-		CurrentStep = null;
+		WorkflowCompleted();
 	}
 
 	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this);

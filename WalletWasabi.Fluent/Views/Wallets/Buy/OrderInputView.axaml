@@ -11,7 +11,8 @@
              x:DataType="vm:OrderViewModel"
              x:CompileBindings="True">
 
-  <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10">
+  <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10"
+             IsVisible="{Binding !Workflow.IsCompleted}">
 
     <Button DockPanel.Dock="Right"
             Margin="10 0 0 0"

@@ -134,6 +134,7 @@ public record ConversationMetaData(
 	Country? Country = null,
 	string? RequestedItem = null,
 	bool PrivacyPolicyAccepted = false,
+	bool OfferReceived = false,
 	string? FirstName = null,
 	string? LastName = null,
 	string? StreetName = null,
@@ -142,4 +143,5 @@ public record ConversationMetaData(
 	string? City = null,
 	State? State = null,
 	bool TermsAccepted = false,
-	bool OfferAccepted = false);
+	bool OfferAccepted = false,
+	bool PaymentConfirmed = false);

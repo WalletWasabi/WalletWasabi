@@ -11,6 +11,7 @@ public abstract partial class Workflow : ReactiveObject
 {
 	[AutoNotify] private IWorkflowStep? _currentStep;
 	[AutoNotify] private Conversation _conversation;
+	[AutoNotify] private bool _isCompleted;
 
 	protected Workflow(Conversation conversation)
 	{
@@ -38,6 +39,12 @@ public abstract partial class Workflow : ReactiveObject
 		CurrentStep = step;
 		step.Conversation = Conversation;
 		await step.ExecuteAsync();
+	}
+
+	protected void WorkflowCompleted()
+	{
+		CurrentStep = null;
+		IsCompleted = true;
 	}
 
 	public void Reset()

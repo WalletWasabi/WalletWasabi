@@ -35,7 +35,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		Invoice = invoice;
 		Amount = invoice.Amount;
 		Address = invoice.BitcoinAddress;
-		IsPaid = conversation.ConversationStatus == ConversationStatus.PaymentConfirmed;
+		IsPaid = conversation.MetaData.PaymentConfirmed;
 		UiMessage = $"To finalize your order, please pay {Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.";
 
 		UiContext = UiContext.Default;
