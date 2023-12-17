@@ -42,6 +42,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			while (Conversation.ConversationStatus != ConversationStatus.OfferReceived)
 			{
 				await ExecuteStepAsync(new SupportChatStep(Conversation));
+				await ExecuteStepAsync(new SaveConversationStep(Conversation));
 			}
 		}
 

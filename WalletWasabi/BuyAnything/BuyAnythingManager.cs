@@ -338,7 +338,7 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task UpdateConversationAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversation.Id);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
 		track.Conversation = conversation;
 		track.LastUpdate = DateTimeOffset.Now;
 
@@ -348,25 +348,39 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryName, CancellationToken cancellationToken)
+	public async Task AcceptOfferAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
 		if (track.Conversation.ConversationStatus == ConversationStatus.InvoiceExpired)
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
 
-		string countryId = Countries.Single(c => c.Name == countryName).Id;
+		var firstName = conversation.MetaData.FirstName;
+		var lastName = conversation.MetaData.LastName;
+		var streetName = conversation.MetaData.StreetName;
+		var houseNumber = conversation.MetaData.HouseNumber;
+		var postalCode = conversation.MetaData.PostalCode;
+		var city = conversation.MetaData.City;
+		var stateId = conversation.MetaData.State?.Id ?? "";
+		var country = conversation.MetaData.Country;
 
-		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
-		var newConversation = track.Conversation with
+		if (firstName is not { } ||
+			lastName is not { } ||
+			streetName is not { } ||
+			houseNumber is not { } ||
+			postalCode is not { } ||
+			city is not { } ||
+			country is not { }
+		   )
 		{
-			// ??????????????
-			//ChatMessages = track.Conversation.ChatMessages.AddUserMessage("Offer accepted")
-		};
-		await HandlePaymentAsync(track, newConversation, cancellationToken).ConfigureAwait(false);
+			throw new ArgumentException($"Conversation {conversation.Id} is missing Delivery information.");
+		}
+
+		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, streetName, houseNumber, postalCode, city, stateId, country.Id, cancellationToken).ConfigureAwait(false);
+		await HandlePaymentAsync(track, conversation, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
@@ -388,7 +402,7 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task UpdateConversationOnlyLocallyAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversation.Id);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
 
 		track.Conversation = track.Conversation with
 		{

@@ -37,7 +37,7 @@ public class ConversationTracking
 		}
 	}
 
-	public ConversationUpdateTrack GetConversationTrackByd(ConversationId conversationId)
+	public ConversationUpdateTrack GetConversationTrackById(ConversationId conversationId)
 	{
 		lock (_syncObj)
 		{
@@ -46,7 +46,7 @@ public class ConversationTracking
 	}
 
 	public Conversation GetConversationsById(ConversationId conversationId) =>
-		GetConversationTrackByd(conversationId).Conversation;
+		GetConversationTrackById(conversationId).Conversation;
 
 	public void Add(ConversationUpdateTrack conversationUpdateTrack)
 	{
