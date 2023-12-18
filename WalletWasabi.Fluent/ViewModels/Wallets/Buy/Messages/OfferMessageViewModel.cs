@@ -18,7 +18,10 @@ public class OfferMessageViewModel : AssistantMessageViewModel
 		Items = new List<OfferItem>(OfferCarrier.Items);
 
 		var shippingCost = float.Parse(carrier.ShippingCost.TotalPrice);
-		Items.Add(new OfferItem(1, "Shipping Cost", shippingCost, shippingCost));
+		if (shippingCost > 0)
+		{
+			Items.Add(new OfferItem(1, "Shipping Cost", shippingCost, shippingCost));
+		}
 
 		var total = Items.Sum(x => x.TotalPrice);
 
