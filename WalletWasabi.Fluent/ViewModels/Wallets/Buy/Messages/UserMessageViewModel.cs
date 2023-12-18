@@ -15,8 +15,9 @@ public partial class UserMessageViewModel : MessageViewModel
 		Workflow = workflow;
 
 		CanEditObservable =
-			this.WhenAnyValue(x => x.Workflow.Conversation)
-				.Select(_ => Workflow.MessageEditor.IsEditable(message));
+			this.WhenAnyValue(x => x.Workflow.Conversation).Select(_ => Workflow.MessageEditor.IsEditable(message))
+				.CombineLatest(this.WhenAnyValue(x => x.Workflow.CurrentStep).WhereNotNull().Select(x => x.IsEditing))
+				.Select(tup => tup.First && !tup.Second);
 
 		EditCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), CanEditObservable);
 	}

@@ -13,6 +13,8 @@ public interface IWorkflowStep
 {
 	bool IsBusy { get; set; }
 
+	bool IsEditing { get; }
+
 	Conversation Conversation { get; set; }
 
 	Task ExecuteAsync();
@@ -48,6 +50,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	public WorkflowStep(Conversation conversation, CancellationToken token, bool isEditing = false)
 	{
+		IsEditing = isEditing;
 		_conversation = conversation;
 		_caption = isEditing ? "Edit" : "Send";
 
@@ -74,6 +77,8 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		SendCommand = ReactiveCommand.Create(Send, canExecuteSendCommand);
 	}
+
+	public bool IsEditing { get; }
 
 	public ICommand SendCommand { get; }
 
