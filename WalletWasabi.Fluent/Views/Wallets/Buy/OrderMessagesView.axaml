@@ -134,8 +134,8 @@
           <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Left"
                                 HorizontalAlignment="Right"
+                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}"
                                 EditCommand="{Binding EditCommand}">
-            <!-- IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}"-->
             <Border Background="{DynamicResource UserMessageBackground}">
               <TextBlock Text="{Binding UiMessage}" />
             </Border>

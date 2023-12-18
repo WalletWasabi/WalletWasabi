@@ -13,12 +13,14 @@ public partial class UserMessageViewModel : MessageViewModel
 	{
 		Workflow = workflow;
 
-		var canEdit =
+		CanEditObservable =
 			this.WhenAnyValue(x => x.Workflow.Conversation)
 				.Select(_ => Workflow.MessageEditor.IsEditable(message));
 
-		EditCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), canEdit);
+		EditCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), CanEditObservable);
 	}
+
+	public IObservable<bool> CanEditObservable { get; }
 
 	public ICommand EditCommand { get; }
 
