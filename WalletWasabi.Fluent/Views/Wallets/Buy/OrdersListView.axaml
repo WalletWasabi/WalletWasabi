@@ -59,7 +59,6 @@
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="CanRemoveObs^" />
                     <Binding Path="!CanResetObs^" />
-                    <Binding Path="!IsBusy" />
                   </MultiBinding>
                 </Button.IsVisible>
                 <PathIcon Classes="RemoveOrderIcon" />

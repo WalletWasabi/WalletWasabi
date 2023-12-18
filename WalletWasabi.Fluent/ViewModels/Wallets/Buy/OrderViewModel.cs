@@ -140,6 +140,8 @@ public partial class OrderViewModel : ViewModelBase
 
 		if (confirmed)
 		{
+			_cts.Cancel();
+			_cts.Dispose();
 			await _orderManager.RemoveOrderAsync(OrderNumber);
 		}
 	}
