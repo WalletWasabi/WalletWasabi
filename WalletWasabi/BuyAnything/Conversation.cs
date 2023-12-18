@@ -144,5 +144,4 @@ public record ConversationMetaData(
 	State? State = null,
 	bool TermsAccepted = false,
 	bool OfferAccepted = false,
-	bool PaymentConfirmed = false,
-	bool OrderFinished = false);
+	bool PaymentConfirmed = false);
