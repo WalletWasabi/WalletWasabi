@@ -196,8 +196,10 @@ public class TorHttpPoolTests
 	/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, ICircuit, CancellationToken)"/> can handle <see cref="HttpStatusCode.Found"/> (302)
 	/// and redirects to the provided location.
 	/// </summary>
-	[Fact]
-	public async Task RedirectSupportAsync()
+	[Theory]
+	[InlineData(0)]
+	[InlineData(1)]
+	public async Task RedirectSupportAsync(int maximumRedirects)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(5));
 
@@ -230,9 +232,13 @@ public class TorHttpPoolTests
 		{
 			Debug.WriteLine("[client] About to send HTTP request.");
 
-			// Note that we allow a single redirect here.
-			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, maximumRedirects: 1, timeoutCts.Token).ConfigureAwait(false);
-			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+			// Note we either allow or disallow redirects here. The behavior mimics what .NET HTTP client does - i.e. it does not throw an exception when
+			// redirects are not allowed.
+			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, maximumRedirects: maximumRedirects, timeoutCts.Token)
+				.ConfigureAwait(false);
+
+			HttpStatusCode expectedStatusCode = maximumRedirects > 0 ? HttpStatusCode.OK : HttpStatusCode.Found;
+			Assert.Equal(expectedStatusCode, httpResponseMessage.StatusCode);
 
 			Debug.WriteLine("[client] Done sending HTTP request.");
 		});
@@ -282,27 +288,30 @@ public class TorHttpPoolTests
 			serverWriter1.Close();
 		}
 
-		Debug.WriteLine("[server] Handle second request.");
+		// Only if redirects are allowed, then the server should get another request.
+		if (maximumRedirects > 0)
 		{
-			// We expect to get this plaintext HTTP request headers from the client.
-			string[] expectedServerResponse2 = new[]
+			Debug.WriteLine("[server] Handle second request.");
 			{
+				// We expect to get this plaintext HTTP request headers from the client.
+				string[] expectedServerResponse2 = new[]
+				{
 				"GET /github-production-release-asset-2e65be/55341469/84261958-b5b5-45dc-a1fe-3bd96253e120?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20221211%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221211T094726Z&X-Amz-Expires=300&X-Amz-Signature=bee3014421243a64ae1d2ffc7ca5e3693cbbd49b08b386df7bd7569494d04a7f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=55341469&response-content-disposition=attachment%3B%20filename%3DWasabi-2.0.1.4.msi&response-content-type=application%2Foctet-stream HTTP/1.1",
 				"Accept-Encoding:gzip",
 				"Host:objects.githubusercontent.com",
 				""
 			};
 
-			// Assert server replies line by line.
-			foreach (string expectedLine in expectedServerResponse2)
-			{
-				string? actualLine = await serverReader2.ReadLineAsync(timeoutCts.Token);
-				Assert.Equal(expectedLine, actualLine);
-			}
+				// Assert server replies line by line.
+				foreach (string expectedLine in expectedServerResponse2)
+				{
+					string? actualLine = await serverReader2.ReadLineAsync(timeoutCts.Token);
+					Assert.Equal(expectedLine, actualLine);
+				}
 
-			// We respond to the client with the following content.
-			Debug.WriteLine("[server] Send response for the request.");
-			string serverResponse2 = """
+				// We respond to the client with the following content.
+				Debug.WriteLine("[server] Send response for the request.");
+				string serverResponse2 = """
 				HTTP/1.1 200 OK
 				Server: GitHub.com
 				Date: Sun, 11 Dec 2022 09:47:26 GMT
@@ -313,9 +322,10 @@ public class TorHttpPoolTests
 				You got here. Congratulations.
 				""".ReplaceLineEndings("\r\n");
 
-			await serverWriter2.WriteAsync(serverResponse2.AsMemory(), timeoutCts.Token);
-			await serverWriter2.FlushAsync().WaitAsync(timeoutCts.Token);
-			serverWriter2.Close();
+				await serverWriter2.WriteAsync(serverResponse2.AsMemory(), timeoutCts.Token);
+				await serverWriter2.FlushAsync().WaitAsync(timeoutCts.Token);
+				serverWriter2.Close();
+			}
 		}
 
 		// Make sure that the original HTTP request object was not changed.
