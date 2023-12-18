@@ -82,7 +82,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 	public ICommand SendCommand { get; }
 
-	private string StepName => GetType().Name;
+	protected string StepName => GetType().Name;
 
 	/// <summary>
 	/// Executes the Step, adding any relevant Bot Messages, waiting for user input, and updating Conversation Metadata accordingly
