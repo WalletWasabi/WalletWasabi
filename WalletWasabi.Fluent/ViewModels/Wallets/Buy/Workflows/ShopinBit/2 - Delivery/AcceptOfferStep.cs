@@ -6,8 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class AcceptOfferStep : WorkflowStep<object>
 {
+	private readonly CancellationToken _token;
+
 	public AcceptOfferStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
+		_token = token;
 	}
 
 	public override async Task ExecuteAsync()
@@ -21,11 +24,8 @@ public class AcceptOfferStep : WorkflowStep<object>
 
 		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		// TODO: pass cancellationtoken
-		var cancellationToken = CancellationToken.None;
-
 		var newConversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
-		newConversation = await buyAnythingManager.AcceptOfferAsync(newConversation, cancellationToken);
+		newConversation = await buyAnythingManager.AcceptOfferAsync(newConversation, _token);
 
 		Conversation = newConversation;
 
