@@ -20,16 +20,21 @@ public class AcceptOfferStep : WorkflowStep<object>
 			return;
 		}
 
-		IsBusy = true;
+		try
+		{
+			IsBusy = true;
 
-		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		var newConversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
-		newConversation = await buyAnythingManager.AcceptOfferAsync(newConversation, _token);
+			var newConversation = Conversation.UpdateMetadata(m => m with { OfferAccepted = true });
+			newConversation = await buyAnythingManager.AcceptOfferAsync(newConversation, _token);
 
-		Conversation = newConversation;
-
-		IsBusy = false;
+			Conversation = newConversation;
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;

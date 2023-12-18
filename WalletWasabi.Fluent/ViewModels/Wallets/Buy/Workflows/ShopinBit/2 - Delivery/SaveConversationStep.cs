@@ -22,11 +22,16 @@ public class SaveConversationStep : WorkflowStep<object>
 
 		IsBusy = true;
 
-		var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+		try
+		{
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-		await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, _token));
-
-		IsBusy = false;
+			await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, _token));
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;

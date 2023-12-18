@@ -25,11 +25,16 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 			return;
 		}
 
-		IsBusy = true;
+		try
+		{
+			IsBusy = true;
 
-		Conversation = await StartNewConversationAsync(Conversation);
-
-		IsBusy = false;
+			Conversation = await StartNewConversationAsync(Conversation);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 
 	protected override Conversation PutValue(Conversation conversation, ConversationId value) => conversation with { Id = value };

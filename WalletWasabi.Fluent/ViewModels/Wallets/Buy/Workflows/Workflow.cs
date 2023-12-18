@@ -5,6 +5,8 @@ using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Wallets;
+using WalletWasabi.Extensions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -32,15 +34,34 @@ public abstract partial class Workflow : ReactiveObject
 			.Subscribe();
 	}
 
-	public abstract Task ExecuteAsync(CancellationToken token);
+	public event EventHandler<Exception>? OnStepError;
 
 	public abstract IMessageEditor MessageEditor { get; }
+
+	public abstract Task ExecuteAsync(CancellationToken token);
 
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
 		CurrentStep = step;
 		step.Conversation = Conversation;
-		await step.ExecuteAsync();
+
+		// this is looped until Step execution is successfully completed.
+		// If it errors out, then the Workflow won't move forward to the next step.
+		// All Steps should be be able to be re-executed more than once, gracefully.
+		while (true)
+		{
+			try
+			{
+				await step.ExecuteAsync();
+				break;
+			}
+			catch (Exception ex)
+			{
+				step.Reset();
+				Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+				OnStepError.SafeInvoke(this, ex);
+			}
+		}
 	}
 
 	protected void WorkflowCompleted()
