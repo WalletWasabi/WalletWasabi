@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class ZipPostalCodeStep : TextInputStep
 {
-	public ZipPostalCodeStep(Conversation conversation, CancellationToken token) : base(conversation, token)
+	public ZipPostalCodeStep(Conversation conversation, CancellationToken token, bool isEditing = false) : base(conversation, token, isEditing)
 	{
 	}
 

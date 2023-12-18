@@ -2,6 +2,7 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData.Tests;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -31,14 +32,22 @@ public partial class UserMessageViewModel : MessageViewModel
 	{
 		var editor = Workflow.MessageEditor.Get(message);
 
-		// TODO: navigate to edit dialog, (**** OR EVEN BETTER, ENABLE IN PLACE EDITION IN THE CHAT WINDOW ****) show editor (requires datatemplate)
+		if (editor is null)
+		{
+			return;
+		}
 
-		// TODO: if editor is null do not crash
+		var currentStep = Workflow.CurrentStep;
+		Workflow.CurrentStep = editor;
+
 		var newMessage = await editor.EditMessageAsync(message);
 
-		// TODO:
-		//Workflow.SetConversation(conversation);
+		Message = newMessage;
+		IsUnread = newMessage.IsUnread;
+		OriginalText = newMessage.Text;
+		UiMessage = newMessage.Text;
 
-		// TODO: refresh viewmodel values from new message
+		Workflow.CurrentStep = currentStep;
+		Workflow.Conversation = editor.Conversation;
 	}
 }

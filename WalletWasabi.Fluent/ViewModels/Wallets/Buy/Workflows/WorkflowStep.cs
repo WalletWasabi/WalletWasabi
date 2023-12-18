@@ -46,7 +46,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	[AutoNotify] private bool _isBusy;
 	private bool _ignored;
 
-	public WorkflowStep(Conversation conversation, CancellationToken token)
+	public WorkflowStep(Conversation conversation, CancellationToken token, bool isEditing = false)
 	{
 		_conversation = conversation;
 
@@ -57,7 +57,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 		// if this step already contains data previously stored in the Conversation (retrieved by RetrieveData),
 		// then ignore the step so the parent workflow can move on and no changes are made.
-		if (ValidateInitialValue(_value))
+		if (!isEditing && ValidateInitialValue(_value))
 		{
 			Ignore();
 		}
@@ -141,8 +141,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			return chatMessage;
 		}
 
-		// TODO:
-		ChatMessage newMessage = null;
+		ChatMessage newMessage = chatMessage;
 		var updatedConversation = Conversation;
 
 		if (Value is { } value)
@@ -152,9 +151,8 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 			if (StringValue(value) is { } userMessage)
 			{
-				// TODO: remove the existing chatMessage from conversation.Chat and insert the new one
-				// this will create an entire new Conversation object, because it's fully immutable
-				// conversation = conversation.ReplaceMessage(chatMessage, newChatMessage);
+				newMessage = newMessage with { Text = userMessage };
+				updatedConversation = updatedConversation.ReplaceMessage(chatMessage, newMessage);
 			}
 
 			Conversation = updatedConversation;

@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class CityStep : TextInputStep
 {
-	public CityStep(Conversation conversation, CancellationToken token) : base(conversation, token)
+	public CityStep(Conversation conversation, CancellationToken token, bool isEditing = false) : base(conversation, token, isEditing)
 	{
 	}
 

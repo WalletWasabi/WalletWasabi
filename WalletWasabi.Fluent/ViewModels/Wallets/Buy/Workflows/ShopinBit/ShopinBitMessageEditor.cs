@@ -43,13 +43,13 @@ public class ShopinBitMessageEditor : IMessageEditor
 		return chatMessage.StepName switch
 		{
 			// I could have used reflection (or a Source Generator LOL)
-			nameof(FirstNameStep) => new FirstNameStep(Conversation, token),
-			nameof(LastNameStep) => new LastNameStep(Conversation, token),
-			nameof(StreetNameStep) => new StreetNameStep(Conversation, token),
-			nameof(HouseNumberStep) => new HouseNumberStep(Conversation, token),
-			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation, token),
-			nameof(CityStep) => new CityStep(Conversation, token),
-			nameof(StateStep) => new StateStep(Conversation, token),
+			nameof(FirstNameStep) => new FirstNameStep(Conversation, token, true),
+			nameof(LastNameStep) => new LastNameStep(Conversation, token, true),
+			nameof(StreetNameStep) => new StreetNameStep(Conversation, token, true),
+			nameof(HouseNumberStep) => new HouseNumberStep(Conversation, token, true),
+			nameof(ZipPostalCodeStep) => new ZipPostalCodeStep(Conversation, token, true),
+			nameof(CityStep) => new CityStep(Conversation, token, true),
+			nameof(StateStep) => new StateStep(Conversation, token, true),
 			_ => null
 		};
 	}

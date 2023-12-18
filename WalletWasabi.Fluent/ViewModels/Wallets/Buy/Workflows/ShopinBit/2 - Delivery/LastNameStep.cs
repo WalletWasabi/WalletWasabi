@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public class LastNameStep : TextInputStep
 {
-	public LastNameStep(Conversation conversation, CancellationToken token) : base(conversation, token)
+	public LastNameStep(Conversation conversation, CancellationToken token, bool isEditing = false) : base(conversation, token, isEditing)
 	{
 	}
 

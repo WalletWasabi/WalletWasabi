@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract class TextInputStep : WorkflowStep<string>
 {
-	protected TextInputStep(Conversation conversation, CancellationToken token) : base(conversation, token)
+	protected TextInputStep(Conversation conversation, CancellationToken token, bool isEditing = false) : base(conversation, token, isEditing)
 	{
 	}
 
