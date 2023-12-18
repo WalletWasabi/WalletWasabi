@@ -120,11 +120,16 @@
       <!-- PrivacyPolicyStep-->
       <DataTemplate DataType="vm:PrivacyPolicyStep">
         <StackPanel Orientation="Horizontal">
-          <CheckBox VerticalAlignment="Center"
+          <CheckBox x:Name="CheckBox"
+                    VerticalAlignment="Center"
+                    TabIndex="0"
                     IsChecked="{Binding Value}"
                     Margin="8 0 0 0">
             <i:Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
+              <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+                <behaviors:FocusNextControlAction />
+              </DataTriggerBehavior>
             </i:Interaction.Behaviors>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="5">
