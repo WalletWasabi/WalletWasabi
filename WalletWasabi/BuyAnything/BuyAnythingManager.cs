@@ -122,10 +122,12 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+				var invoice = new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination);
 				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
-					new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination),
+					// $"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
+					$"To finalize your order, please pay {invoice.Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.",
+					invoice,
 					order.UpdatedAt, ConversationStatus.InvoiceReceived,
 					cancel).ConfigureAwait(false);
 				break;

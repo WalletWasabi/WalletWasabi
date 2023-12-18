@@ -18,6 +18,8 @@ public partial class StateStep : WorkflowStep<CountryState>
 
 	public StateStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
+		Watermark = "Type in a state...";
+
 		// TODO: TagsBox provide a list as result, so it cannot be directly bound to Value. Fede, better idea?
 		this.WhenAnyValue(x => x.SelectedStates.Count)
 			.Select(_ => SelectedStates.FirstOrDefault())

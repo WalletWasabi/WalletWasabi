@@ -16,6 +16,7 @@ public class CountryStep : WorkflowStep<Country>
 {
 	public CountryStep(Conversation conversation, IReadOnlyList<Country> countries, CancellationToken token) : base(conversation, token)
 	{
+		Watermark = "Type in a country...";
 		Countries = new ObservableCollection<string>(countries.Select(x => x.Name));
 
 		// TODO: TagsBox provide a list as result, so it cannot be directly bound to Value. Fede, better idea?
