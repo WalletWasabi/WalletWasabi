@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -55,7 +54,7 @@ public partial class OrderViewModel : ViewModelBase
 
 		HasUnreadMessagesObs = _messagesList.Connect()
 											.AutoRefresh(x => x.IsUnread)
-											.Filter(x => x.IsUnread is true)
+											.Filter(x => x.IsUnread)
 											.Count()
 											.Select(i => i > 0);
 
@@ -74,6 +73,17 @@ public partial class OrderViewModel : ViewModelBase
 
 		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
+		var userMessages = _messagesList.Connect()
+			.Filter(model => model is UserMessageViewModel)
+			.Cast(o => (UserMessageViewModel) o);
+
+		IsEditingUserMessage = userMessages
+			.AutoRefresh(model => model.IsEditing)
+			.Filter(model => model.IsEditing)
+			.Count()
+			.Select(i => i > 0)
+			.StartWith(false);
+
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
@@ -91,12 +101,14 @@ public partial class OrderViewModel : ViewModelBase
 			})
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.Workflow.CurrentStep.IsBusy)
+		this.WhenAnyValue(x => x.Workflow.CurrentStep!.IsBusy)
 			.BindTo(this, x => x.IsBusy);
 
 		_cts = new CancellationTokenSource();
 		StartWorkflow(_cts.Token);
 	}
+
+	public IObservable<bool> IsEditingUserMessage { get; }
 
 	public Workflow Workflow { get; }
 
@@ -187,7 +199,7 @@ public partial class OrderViewModel : ViewModelBase
 	{
 		if (message.IsMyMessage)
 		{
-			return new UserMessageViewModel(Workflow, message)
+			return new UserMessageViewModel(Workflow, message, IsEditingUserMessage)
 			{
 				UiMessage = message.Text,
 				OriginalText = message.Text,

@@ -2,7 +2,6 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData.Tests;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -10,18 +9,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class UserMessageViewModel : MessageViewModel
 {
-	public UserMessageViewModel(Workflow workflow, ChatMessage message) : base(message)
+	[AutoNotify] private bool _isEditing;
+
+	public UserMessageViewModel(Workflow workflow, ChatMessage message, IObservable<bool> isEditing) : base(message)
 	{
 		Workflow = workflow;
 
-		CanEditObservable =
-			this.WhenAnyValue(x => x.Workflow.Conversation)
-				.Select(_ => Workflow.MessageEditor.IsEditable(message));
-
-		EditCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), CanEditObservable);
+		var messageIsEditable = this.WhenAnyValue(x => x.Workflow.Conversation)
+			.Select(_ => Workflow.MessageEditor.IsEditable(message));
+		var canEdit = isEditing.CombineLatest(messageIsEditable, (isEd, canE) => !isEd && canE);
+		IsEditable = canEdit;
+		var editCommand = ReactiveCommand.CreateFromTask(() => EditAsync(message), canEdit);
+		editCommand.IsExecuting.BindTo(this, x => x.IsEditing);
+		EditCommand = editCommand;
 	}
 
-	public IObservable<bool> CanEditObservable { get; }
+	public IObservable<bool> IsEditable { get; }
 
 	public ICommand EditCommand { get; }
 
