@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.BuyAnything;
 
@@ -14,14 +15,20 @@ public class OfferMessageViewModel : AssistantMessageViewModel
 
 		OfferCarrier = carrier;
 
-		var shippingCost = float.Parse(OfferCarrier.ShippingCost.TotalPrice);
-		var total = OfferCarrier.Items.Sum(x => x.TotalPrice) + shippingCost;
-		TotalMessage = $"For a total price of {total} USD, which includes {shippingCost} USD shipping cost.";
+		Items = new List<OfferItem>(OfferCarrier.Items);
 
-		UiMessage = "I can offer you:";
+		var shippingCost = float.Parse(carrier.ShippingCost.TotalPrice);
+		Items.Add(new OfferItem(1, "Shipping Cost", shippingCost, shippingCost));
+
+		var total = Items.Sum(x => x.TotalPrice);
+
+		TotalMessage = $"For a total price of {total} USD.";
+		UiMessage = "Our offer includes:";
 	}
 
 	public OfferCarrier OfferCarrier { get; }
+
+	public List<OfferItem> Items { get; }
 
 	public string TotalMessage { get; }
 }

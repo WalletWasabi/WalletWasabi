@@ -73,7 +73,7 @@
               <StackPanel>
                 <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
                 <Separator />
-                <ItemsControl Items="{Binding OfferCarrier.Items}" Margin="0 2">
+                <ItemsControl Items="{Binding Items}" Margin="0 2">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="buyAnything:OfferItem">
                       <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 1 0 1">
