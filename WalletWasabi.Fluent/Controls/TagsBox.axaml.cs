@@ -101,6 +101,11 @@ public class TagsBox : TemplatedControl
 		set => SetAndRaise(InternalTextBoxProperty, ref _internalTextBox, value);
 	}
 
+	public TagsBox()
+	{
+		this.WhenAnyValue(box => box.Items).Do(_ => InvalidateWatermark()).Subscribe();
+	}
+
 	[Content]
 	public IEnumerable<string>? Items
 	{
