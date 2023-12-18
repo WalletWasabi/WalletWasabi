@@ -85,15 +85,15 @@ public sealed partial class ShopinBitWorkflow : Workflow
 
 		using (ListenToServerUpdates())
 		{
-			if (Conversation.ConversationStatus == ConversationStatus.Finished)
-			{
-				IsCompleted = true;
-				await ExecuteStepAsync(new OrderFinishedMessage(Conversation, token));
-			}
-
 			// Wait until the Conversation is deleted on SIB side
 			while (Conversation.ConversationStatus != ConversationStatus.Deleted)
 			{
+				if (Conversation.ConversationStatus == ConversationStatus.Finished)
+				{
+					IsCompleted = true;
+					await ExecuteStepAsync(new OrderFinishedMessage(Conversation, token));
+				}
+
 				// User might send chat messages to Support Agent
 				await ExecuteStepAsync(new SupportChatStep(Conversation, token));
 			}
