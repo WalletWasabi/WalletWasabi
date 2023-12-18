@@ -95,7 +95,7 @@ public class BuyAnythingManager : PeriodicRunner
 		if (orders.FirstOrDefault() is not { } order)
 		{
 			await SendSystemChatLinesAsync(track,
-				$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order ID: {track.Conversation.Id.OrderId}",
+				$"Order was removed from the Concierge server. Remember this order id: {track.Conversation.Id.OrderId}",
 				DateTimeOffset.Now, ConversationStatus.Deleted, cancel).ConfigureAwait(false);
 			return;
 		}
@@ -142,7 +142,7 @@ public class BuyAnythingManager : PeriodicRunner
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
 
 				await SendSystemChatLinesAsync(track,
-					"We received your payment. Thank you! I will keep you updated here on the progress of your order. If you have any questions, feel free to ask here.",
+					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
@@ -150,7 +150,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
 				await SendSystemChatLinesAsync(track,
-					"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
+					"Invoice Expired. Please send us your Bitcoin Transaction ID if you already have sent coins.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
 
@@ -158,7 +158,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
 				await SendSystemChatLinesAsync(track,
-					"Payment was received after the invoice had expired. If this presents any issue, I will get in contact with you.",
+					"Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
 					order.UpdatedAt, ConversationStatus.InvoicePaidAfterExpiration, cancel).ConfigureAwait(false);
 				break;
 
@@ -166,7 +166,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceExpired
 				when serverEvent.HasFlag(ServerEvent.GenerateNewInvoice):
 				await SendSystemChatLinesAsync(track,
-					"Our team is currently working on reactivating the payment process.",
+					"Our Team is reactivating the payment process.",
 					order.UpdatedAt, ConversationStatus.WaitingForInvoice, cancel).ConfigureAwait(false);
 				break;
 
@@ -192,7 +192,7 @@ public class BuyAnythingManager : PeriodicRunner
 				or ConversationStatus.InvoicePaidAfterExpiration
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
-					"The order was cancelled. Please contact me directly to resolve this issue.",
+					"Order was cancelled. Please contact the agent to solve the problem.",
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
@@ -200,7 +200,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
 				await SendSystemChatLinesAsync(track,
-					$"Check the attached file \n {string.Join("\n", GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links))}",
+					$"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
 					new AttachmentLinks(GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)),
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
