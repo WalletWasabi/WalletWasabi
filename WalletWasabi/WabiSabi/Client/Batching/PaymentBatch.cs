@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using NBitcoin;
+using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -21,18 +23,43 @@ public class PaymentBatch
 {
 	private readonly List<Payment> _payments = new();
 	private readonly object _syncObj = new();
-	private IEnumerable<PendingPayment> PendingPayments => GetPayments().OfType<PendingPayment>();
-	private IEnumerable<InProgressPayment> InProgressPayments => GetPayments().OfType<InProgressPayment>();
+	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
+	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
-		var payment = new PendingPayment(destination, amount);
+		var payment = new Payment(destination, amount);
 		lock (_syncObj)
 		{
 			_payments.Add(payment);
 		}
-		Logger.LogInfo($"Payment for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
+		Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
 		return payment.Id;
+	}
+
+	public void AbortPayment(Guid id)
+	{
+		lock (_syncObj)
+		{
+			if (_payments.FirstOrDefault(p => p.Id == id) is { } payment)
+			{
+				if (payment.State is PendingPayment)
+				{
+					_payments.Remove(payment);
+					Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey} was canceled.");
+				}
+				else
+				{
+					Logger.LogInfo($"Payment {payment.Id} could not be canceled because it is not pending.");
+					throw new InvalidOperationException("Payment could not be canceled because it is not pending.");
+				}
+			}
+			else
+			{
+				Logger.LogInfo($"Payment {id} was not found.");
+				throw new InvalidOperationException("Payment was not found.");
+			}
+		}
 	}
 
 	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters)
@@ -54,7 +81,7 @@ public class PaymentBatch
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
 			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount
 				? paymentSet.TotalVSize <= availableVsize
-				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize )
+				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize)
 			.DefaultIfEmpty(PaymentSet.Empty)
 			.MaxBy(x => x.PaymentCount)!;
 
@@ -62,17 +89,17 @@ public class PaymentBatch
 		return bestPaymentSet;
 	}
 
-	public IEnumerable<InProgressPayment> MovePaymentsToInProgress(IEnumerable<PendingPayment> payments, uint256 roundId)
+	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
-		MovePaymentsTo(payments, p => p.ToInProgressPayment(roundId));
+		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId) });
 		return InProgressPayments;
 	}
 
 	public void MovePaymentsToFinished(uint256 txId) =>
-		MovePaymentsTo(InProgressPayments, p => p.ToFinished(txId));
+		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
 	public void MovePaymentsToPending() =>
-		MovePaymentsTo(InProgressPayments, p => p.ToPending());
+		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
 	public bool AreTherePendingPayments => PendingPayments.Any();
 
@@ -91,13 +118,14 @@ public class PaymentBatch
 		}
 	}
 
-	private List<Payment> GetPayments()
+	public ReadOnlyCollection<Payment> GetPayments()
 	{
 		lock (_syncObj)
 		{
-			return new List<Payment>(_payments);
+			return _payments.AsReadOnly();
 		}
 	}
+
 	private static void LogPaymentSetDetails(PaymentSet paymentSet)
 	{
 		Logger.LogInfo($"Best payment set contains {paymentSet.PaymentCount} payments.");
