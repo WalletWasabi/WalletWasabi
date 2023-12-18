@@ -15,7 +15,7 @@ public class SaveConversationStep : WorkflowStep<object>
 
 	public override async Task ExecuteAsync()
 	{
-		if (Conversation.Id == ConversationId.Empty)
+		if (Conversation.Id == ConversationId.Empty || _ignored)
 		{
 			return;
 		}

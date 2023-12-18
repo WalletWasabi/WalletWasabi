@@ -88,7 +88,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		// Mark Conversation as read for selected order
 		this.WhenAnyValue(x => x.SelectedOrder)
 			.WhereNotNull()
-			.DoAsync(async order => await order.Workflow.MarkConversationAsReadAsync())
+			.DoAsync(async order => await order.MarkAsReadAsync())
 			.Subscribe()
 			.DisposeWith(disposables);
 

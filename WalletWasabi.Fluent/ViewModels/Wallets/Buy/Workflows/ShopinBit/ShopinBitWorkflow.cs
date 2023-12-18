@@ -84,6 +84,11 @@ public sealed partial class ShopinBitWorkflow : Workflow
 
 		using (ListenToServerUpdates())
 		{
+			if (Conversation.ConversationStatus == ConversationStatus.Finished)
+			{
+				IsCompleted = true;
+			}
+
 			// Wait until the Conversation is deleted on SIB side
 			while (Conversation.ConversationStatus != ConversationStatus.Deleted)
 			{

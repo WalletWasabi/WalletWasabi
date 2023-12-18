@@ -37,18 +37,19 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	private readonly TaskCompletionSource _userInputTcs = new();
 
 	[AutoNotify] private Conversation _conversation;
-	[AutoNotify] private string _caption = "Send";
+	[AutoNotify] private string _caption;
 
 	[AutoNotify] private string _watermark = "Type here...";
 
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
 	[AutoNotify] private bool _isBusy;
-	private bool _ignored;
+	protected bool _ignored;
 
 	public WorkflowStep(Conversation conversation, CancellationToken token, bool isEditing = false)
 	{
 		_conversation = conversation;
+		_caption = isEditing ? "Edit" : "Send";
 
 		token.Register(() => _userInputTcs.TrySetCanceled());
 
