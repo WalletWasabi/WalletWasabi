@@ -11,8 +11,6 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView Available();
 
-	ICoinsView CoinJoinInProcess();
-
 	ICoinsView Confirmed();
 
 	ICoinsView CreatedBy(uint256 txid);
