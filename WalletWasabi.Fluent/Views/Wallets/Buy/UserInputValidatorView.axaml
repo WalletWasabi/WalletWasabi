@@ -180,6 +180,7 @@
                    MaxTextLength="5000"
                    ItemCountLimit="1"
                    TagSeparator=";"
+                   IsVisible="{Binding !IsBusy}"
                    EnableDelete="False"
                    Items="{Binding SelectedStates}"
                    Suggestions="{Binding States}">
