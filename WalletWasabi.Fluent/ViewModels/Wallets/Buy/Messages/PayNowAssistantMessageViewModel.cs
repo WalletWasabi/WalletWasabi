@@ -23,14 +23,20 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
 	[AutoNotify] private string _payButtonText = "";
 	[AutoNotify] private bool _isBusy;
+	[AutoNotify] private bool _isPaid;
 
-	public PayNowAssistantMessageViewModel(Invoice invoice, ChatMessageMetaData metaData) : base(null, null, metaData)
+	public PayNowAssistantMessageViewModel(Conversation conversation, ChatMessage message) : base(message)
 	{
+		if (message.Data is not Invoice invoice)
+		{
+			throw new InvalidOperationException($"Invalid Data Type: {message.Data?.GetType().Name}");
+		}
+
 		Invoice = invoice;
 		Amount = invoice.Amount;
 		Address = invoice.BitcoinAddress;
-		IsPaid = metaData.IsPaid;
-		UiMessage = $"To finalize your order, please pay {Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.";
+		IsPaid = conversation.MetaData.PaymentConfirmed;
+		UiMessage = message.Text;
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
@@ -80,7 +86,6 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
 				wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				MetaData = MetaData with { IsPaid = true };
 				IsPaid = true;
 			}
 		}

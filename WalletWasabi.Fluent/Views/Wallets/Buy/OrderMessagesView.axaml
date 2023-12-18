@@ -56,7 +56,7 @@
                       <PathIcon Data="{StaticResource checkmark_filled}" Height="11" IsVisible="{Binding IsPaid}" VerticalAlignment="Center" Foreground="{DynamicResource ActionForegroundColor}" />
                       <TextBlock Text="{Binding PayButtonText}" VerticalAlignment="Center" />
                     </StackPanel>
-                </Button>
+                  </Button>
                 </Panel>
                 <TextBlock Text="{Binding UiMessage}" />
               </DockPanel>
@@ -73,7 +73,7 @@
               <StackPanel>
                 <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
                 <Separator />
-                <ItemsControl Items="{Binding OfferCarrier.Items}" Margin="0 2">
+                <ItemsControl Items="{Binding Items}" Margin="0 2">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="buyAnything:OfferItem">
                       <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 1 0 1">
@@ -134,20 +134,18 @@
           <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Left"
                                 HorizontalAlignment="Right"
-                                EditCommand="{Binding EditCommand}"
-                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}">
+                                IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}"
+                                EditCommand="{Binding EditCommand}">
             <Border Background="{DynamicResource UserMessageBackground}">
               <TextBlock Text="{Binding UiMessage}" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
-
       </SelectingItemsControl.DataTemplates>
 
       <Interaction.Behaviors>
         <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
       </Interaction.Behaviors>
-
     </SelectingItemsControl>
   </ScrollViewer>
 </UserControl>

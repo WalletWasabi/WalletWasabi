@@ -1,122 +1,114 @@
-using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Windows.Input;
+using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class Workflow : ReactiveObject
 {
-	[AutoNotify] private List<WorkflowStep>? _steps;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private WorkflowStep? _currentStep;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCompleted;
+	[AutoNotify] private IWorkflowStep? _currentStep;
+	[AutoNotify] private Conversation _conversation;
+	[AutoNotify] private bool _isCompleted;
+	[AutoNotify] private bool _isDeletedInSib;
 
-	private int _nextStepIndex = 0;
-
-	public IObservable<bool>? CanEditObservable { get; protected set; }
-
-	public WorkflowStep? PeekNextStep()
+	protected Workflow(Conversation conversation)
 	{
-		if (_steps is null)
-		{
-			return null;
-		}
+		_conversation = conversation;
 
-		if (_nextStepIndex >= _steps.Count || IsCompleted)
-		{
-			return null;
-		}
+		BindCurrentStepConversation();
 
-		return _steps[_nextStepIndex];
+		this.WhenAnyValue(x => x.Conversation)
+			.Do(x =>
+			{
+				if (CurrentStep is { } step)
+				{
+					step.Conversation = x;
+				}
+			})
+			.Subscribe();
 	}
 
-	public WorkflowStep? TryToGetNextStep(CancellationToken cancellationToken)
+	public abstract Task ExecuteAsync(CancellationToken token);
+
+	public abstract IMessageEditor MessageEditor { get; }
+
+	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
-		if (_steps is null)
-		{
-			CurrentStep = null;
-			return null;
-		}
-
-		if (_nextStepIndex >= _steps.Count || IsCompleted)
-		{
-			CurrentStep = null;
-			return null;
-		}
-
-		for (var i = _nextStepIndex; i < _steps.Count; i++)
-		{
-			if (cancellationToken.IsCancellationRequested)
-			{
-				CurrentStep = null;
-				return null;
-			}
-
-			var result = true;
-			var step = _steps[_nextStepIndex];
-
-			if (step.SkipStep())
-			{
-				if (_nextStepIndex + 1 >= _steps.Count)
-				{
-					IsCompleted = true;
-					CurrentStep = step;
-					return step;
-				}
-
-				_nextStepIndex++;
-				continue;
-			}
-
-			step.UserInputValidator.OnActivation();
-
-			if (step.RequiresUserInput)
-			{
-				result = step.UserInputValidator.IsValid();
-			}
-
-			if (result)
-			{
-				step.IsCompleted = true;
-			}
-
-			if (result)
-			{
-				if (_nextStepIndex + 1 >= _steps.Count)
-				{
-					IsCompleted = true;
-				}
-				else
-				{
-					_nextStepIndex++;
-				}
-			}
-
-			CurrentStep = step;
-			return step;
-		}
-
-		return null;
+		CurrentStep = step;
+		step.Conversation = Conversation;
+		await step.ExecuteAsync();
 	}
 
-	public virtual bool TryToEditStep(WorkflowStep step, string message)
+	protected void WorkflowCompleted()
 	{
-		// TODO: Make sure WorkflowRequest is in valid state and dependant steps are updated.
-		return true;
+		CurrentStep = null;
+		IsDeletedInSib = true;
 	}
 
-	protected virtual void CreateCanEditObservable()
+	public void Reset()
 	{
-		CanEditObservable = Observable.Return(false);
+		// TODO: abort workflow execution using CancellationToken
+		CurrentStep?.Ignore();
 	}
 
 	/// <summary>
-	/// Determines whether the workflow instance can be canceled or not.
+	/// Marks the conversation messages as read and Saves to disk.
 	/// </summary>
-	/// <returns>True if the workflow can be canceled, otherwise False.</returns>
-	public virtual bool CanCancel()
+	public async Task MarkConversationAsReadAsync()
 	{
-		return true;
+		if (CurrentStep is { })
+		{
+			CurrentStep.IsBusy = true;
+		}
+
+		try
+		{
+			// TODO: pass cancellationtoken
+			var cancellationToken = CancellationToken.None;
+
+			Conversation = Conversation.MarkAsRead();
+
+			if (Conversation.Id == ConversationId.Empty)
+			{
+				return;
+			}
+
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
+		}
+		finally
+		{
+			if (CurrentStep is { })
+			{
+				CurrentStep.IsBusy = false;
+			}
+		}
+	}
+
+	public static Workflow Create(Wallet wallet, Conversation conversation)
+	{
+		// If another type of workflow is required in the future this is the place where it should be defined
+		var workflow = new ShopinBitWorkflow(wallet, conversation);
+
+		return workflow;
+	}
+
+	private void BindCurrentStepConversation()
+	{
+#pragma warning disable CS8602
+		// Dereference of a possibly null reference.
+		// Reason: this warning is dubious here.
+		// The parameter of WhenAnyValue() is an Expression (from System.Linq.Expressions).
+		// It's not directly executable code and therefore it cannot raise a NullReferenceException
+		// Also, null propagation isn't allowed by the compiler inside such an Expression,
+		// so the only way to remove this warning is to make CurrentStep non-nullable, which doesn't make sense by design.
+		this.WhenAnyValue(x => x.CurrentStep.Conversation)
+			.BindTo(this, x => x.Conversation);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 	}
 }

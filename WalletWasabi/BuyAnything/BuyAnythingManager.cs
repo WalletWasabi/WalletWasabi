@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -108,6 +109,10 @@ public class BuyAnythingManager : PeriodicRunner
 			// This means that in "lineItems" we have the offer data
 			case ConversationStatus.Started
 				when serverEvent.HasFlag(ServerEvent.MakeOffer):
+
+				// Update Offer Received metadata value
+				track.Conversation = track.Conversation.UpdateMetadata(m => m with { OfferReceived = true });
+
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
 					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.ShippingCosts),
@@ -117,10 +122,12 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
+				var invoice = new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination);
 				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
-					$"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
-					new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination),
+					// $"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
+					$"To finalize your order, please pay {invoice.Amount} BTC in 30 minutes, the latest by {(DateTimeOffset.Now + TimeSpan.FromMinutes(30)).ToLocalTime():HH:mm}.",
+					invoice,
 					order.UpdatedAt, ConversationStatus.InvoiceReceived,
 					cancel).ConfigureAwait(false);
 				break;
@@ -134,6 +141,9 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
+
+				track.Conversation = track.Conversation.UpdateMetadata(m => m with { PaymentConfirmed = true });
+
 				await SendSystemChatLinesAsync(track,
 					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
@@ -245,8 +255,9 @@ public class BuyAnythingManager : PeriodicRunner
 	public int GetNextConversationId(string walletId) =>
 		ConversationTracking.GetNextConversationId(walletId);
 
-	public async Task<Conversation[]> GetConversationsAsync(string walletId, CancellationToken cancellationToken)
+	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
+		var walletId = GetWalletId(wallet);
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		return ConversationTracking.GetConversationsByWalletId(walletId);
 	}
@@ -269,9 +280,8 @@ public class BuyAnythingManager : PeriodicRunner
 		return removedCount;
 	}
 
-	public async Task<State[]> GetStatesForCountryAsync(string countryName, CancellationToken cancellationToken)
+	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
-		var country = Countries.FirstOrDefault(c => c.Name == countryName) ?? throw new InvalidOperationException($"Country {countryName} doesn't exist.");
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -295,14 +305,50 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task UpdateConversationAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken)
+	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
-		track.Conversation = track.Conversation with
+
+		var country = conversation.MetaData.Country;
+		var product = conversation.MetaData.Product;
+
+		if (country is not { } || product is not { })
 		{
-			ChatMessages = new(chatMessages),
-		};
+			throw new ArgumentException("Conversation is missing Country or Product.");
+		}
+
+		var fullChat = new Chat(conversation.ChatMessages);
+		var credential = GenerateRandomCredential();
+		var walletId = GetWalletId(wallet);
+
+		var orderId =
+			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
+						.ConfigureAwait(false);
+
+		conversation =
+			conversation with
+			{
+				Id = new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+				OrderStatus = OrderStatus.Open,
+				ConversationStatus = ConversationStatus.Started,
+				MetaData = conversation.MetaData with
+				{
+					Title = $"Order {GetNextConversationId(walletId)}"
+				},
+			};
+
+		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
+
+		await SaveAsync(cancellationToken).ConfigureAwait(false);
+
+		return conversation;
+	}
+
+	public async Task UpdateConversationAsync(Conversation conversation, CancellationToken cancellationToken)
+	{
+		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
+		track.Conversation = conversation;
 		track.LastUpdate = DateTimeOffset.Now;
 
 		var rawText = track.Conversation.ChatMessages.ToText();
@@ -311,27 +357,42 @@ public class BuyAnythingManager : PeriodicRunner
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task AcceptOfferAsync(ConversationId conversationId, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryName, CancellationToken cancellationToken)
+	public async Task<Conversation> AcceptOfferAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
 		if (track.Conversation.ConversationStatus == ConversationStatus.InvoiceExpired)
 		{
 			throw new InvalidOperationException("Invoice has expired.");
 		}
 
-		string countryId = Countries.Single(c => c.Name == countryName).Id;
+		var firstName = conversation.MetaData.FirstName;
+		var lastName = conversation.MetaData.LastName;
+		var streetName = conversation.MetaData.StreetName;
+		var houseNumber = conversation.MetaData.HouseNumber;
+		var postalCode = conversation.MetaData.PostalCode;
+		var city = conversation.MetaData.City;
+		var stateId = conversation.MetaData.State?.Id ?? "";
+		var country = conversation.MetaData.Country;
 
-		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId, cancellationToken).ConfigureAwait(false);
-		var newConversation = track.Conversation with
+		if (firstName is not { } ||
+			lastName is not { } ||
+			streetName is not { } ||
+			houseNumber is not { } ||
+			postalCode is not { } ||
+			city is not { } ||
+			country is not { }
+		   )
 		{
-			ChatMessages = track.Conversation.ChatMessages.AddSentMessage("Offer accepted")
-		};
-		await HandlePaymentAsync(track, newConversation, cancellationToken).ConfigureAwait(false);
+			throw new ArgumentException($"Conversation {conversation.Id} is missing Delivery information.");
+		}
+
+		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, streetName, houseNumber, postalCode, city, stateId, country.Id, cancellationToken).ConfigureAwait(false);
+		return await HandlePaymentAsync(track, conversation, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
+	private async Task<Conversation> HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
 		CancellationToken cancellationToken)
 	{
 		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken)
@@ -343,19 +404,21 @@ public class BuyAnythingManager : PeriodicRunner
 		track.LastUpdate = DateTimeOffset.Now;
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
+
+		return track.Conversation;
 	}
 
 	// This method is used to mark conversations as read without sending requests to the webshop.
 	// ChatMessage.IsUnread will arrive as false from the ViewModel, all we need to do is update the track and save to disk.
-	public async Task UpdateConversationOnlyLocallyAsync(ConversationId conversationId, IEnumerable<ChatMessage> chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
+	public async Task UpdateConversationOnlyLocallyAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackByd(conversationId);
+		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
 
 		track.Conversation = track.Conversation with
 		{
-			ChatMessages = new(chatMessages),
-			MetaData = metaData,
+			ChatMessages = new(conversation.ChatMessages),
+			MetaData = conversation.MetaData,
 		};
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -447,10 +510,9 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DataCarrier data, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
 		var updatedConversation = track.Conversation.AddSystemChatLine(message, data, newStatus);
-		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 		track.Conversation = updatedConversation;
-		await UpdateConversationAsync(track.Conversation.Id, track.Conversation.ChatMessages, cancellationToken)
-			.ConfigureAwait(false);
+		await UpdateConversationAsync(track.Conversation, cancellationToken).ConfigureAwait(false);
+		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 	}
 
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
@@ -473,7 +535,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
 	}
 
-	public static string GetWalletId(Wallet wallet) =>
+	private static string GetWalletId(Wallet wallet) =>
 		wallet.KeyManager.MasterFingerprint is { } masterFingerprint
 			? masterFingerprint.ToString()
 			: "readonly wallet";

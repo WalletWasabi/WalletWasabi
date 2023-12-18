@@ -16,6 +16,6 @@
                  EnableNext="True"
                  NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <viewsBuy:UserInputValidatorView DataContext="{Binding UserInputValidator}" VerticalAlignment="Top" />
+    <!--<viewsBuy:UserInputValidatorView DataContext="{Binding UserInputValidator}" VerticalAlignment="Top" />-->
   </c:ContentArea>
 </UserControl>

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare.Models;
 using Enumerable = System.Linq.Enumerable;
 
 namespace WalletWasabi.BuyAnything;
@@ -47,12 +49,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	private readonly ChatMessage[] _messages;
 	public ChatMessage this[int i] => _messages[i];
 
-	public Chat AddSentMessage(string msg) =>
-		new(this.Append(new ChatMessage(true, msg, IsUnread: false, ChatMessageMetaData.Empty)));
-
-	public Chat AddReceivedMessage(string msg, DataCarrier data) =>
-		new(this.Append(new SystemChatMessage(msg, data, IsUnread: true, ChatMessageMetaData.Empty)));
-
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
 
@@ -76,18 +72,19 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			}
 
 			bool isMine = items[0] == "WASABI";
-			string chatLine = EnsureProperRawMessage(items[1]);
-			bool isUnread = !oldConversation.Contains(chatLine, isMine);
-			var metaData = oldConversation.FirstOrDefault(x => x.Message == chatLine)?.MetaData ?? ChatMessageMetaData.Empty;
-			chatEntries.Add(new ChatMessage(isMine, chatLine, isUnread, metaData));
+			var source = isMine ? MessageSource.User : MessageSource.Bot;
+			string text = EnsureProperRawMessage(items[1]);
+			bool isUnread = !oldConversation.Contains(text, isMine);
+			var data = oldConversation.FirstOrDefault(x => x.Text == text)?.Data;
+			chatEntries.Add(new ChatMessage(source, text, isUnread, null, data));
 		}
 
-		var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
-		foreach (var message in systemMessages)
-		{
-			int index = oldConversation.ToList().IndexOf(message);
-			chatEntries[index] = message;
-		}
+		//var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
+		//foreach (var message in systemMessages)
+		//{
+		//	int index = oldConversation.ToList().IndexOf(message);
+		//	chatEntries[index] = message;
+		//}
 
 		return new Chat(chatEntries);
 	}
@@ -99,7 +96,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		foreach (var chatMessage in this)
 		{
 			var prefix = chatMessage.IsMyMessage ? "WASABI" : "SIB";
-			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Message)}");
+			result.Append($"||#{prefix}#{EnsureProperRawMessage(chatMessage.Text)}");
 		}
 
 		result.Append("||");
@@ -111,7 +108,7 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	{
 		foreach (var chatMessage in this)
 		{
-			if (chatMessage.IsMyMessage == isMine && chatMessage.Message == singleMessage)
+			if (chatMessage.IsMyMessage == isMine && chatMessage.Text == singleMessage)
 			{
 				return true;
 			}
@@ -131,4 +128,20 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 
 public record Conversation(ConversationId Id, Chat ChatMessages, OrderStatus OrderStatus, ConversationStatus ConversationStatus, ConversationMetaData MetaData);
 
-public record ConversationMetaData(string Title);
+public record ConversationMetaData(
+	string Title,
+	BuyAnythingClient.Product? Product = null,
+	Country? Country = null,
+	string? RequestedItem = null,
+	bool PrivacyPolicyAccepted = false,
+	bool OfferReceived = false,
+	string? FirstName = null,
+	string? LastName = null,
+	string? StreetName = null,
+	string? HouseNumber = null,
+	string? PostalCode = null,
+	string? City = null,
+	State? State = null,
+	bool TermsAccepted = false,
+	bool OfferAccepted = false,
+	bool PaymentConfirmed = false);

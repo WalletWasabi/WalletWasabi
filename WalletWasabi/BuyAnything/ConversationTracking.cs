@@ -5,7 +5,7 @@ namespace WalletWasabi.BuyAnything;
 
 public class ConversationTracking
 {
-	public Dictionary<string,int> NextConversationIds { get; private set; } = new();
+	public Dictionary<string, int> NextConversationIds { get; private set; } = new();
 	public List<ConversationUpdateTrack> Conversations { get; } = new();
 	private readonly object _syncObj = new();
 
@@ -37,7 +37,7 @@ public class ConversationTracking
 		}
 	}
 
-	public ConversationUpdateTrack GetConversationTrackByd(ConversationId conversationId)
+	public ConversationUpdateTrack GetConversationTrackById(ConversationId conversationId)
 	{
 		lock (_syncObj)
 		{
@@ -46,7 +46,7 @@ public class ConversationTracking
 	}
 
 	public Conversation GetConversationsById(ConversationId conversationId) =>
-		GetConversationTrackByd(conversationId).Conversation;
+		GetConversationTrackById(conversationId).Conversation;
 
 	public void Add(ConversationUpdateTrack conversationUpdateTrack)
 	{
@@ -67,7 +67,6 @@ public class ConversationTracking
 			return Conversations.RemoveAll(predicate);
 		}
 	}
-
 
 	public int GetNextConversationId(string walletId)
 	{

@@ -9,198 +9,203 @@
              xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
              xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.UserInputValidatorView"
-             x:DataType="vm:InputValidator"
-             x:CompileBindings="True">
-    <ContentControl Content="{Binding .}">
-      <ContentControl.Resources>
-        <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
-      </ContentControl.Resources>
-      <ContentControl.Styles>
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.UserInputValidatorView">
+  <!-- x:DataType="vm:InputValidator" -->
+  <!-- x:CompileBindings="True" -->
+  <ContentControl Content="{Binding .}">
+    <ContentControl.Resources>
+      <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
 
-        <Style Selector="c|TagControl /template/ Panel#PART_TagPanel">
-          <Setter Property="Margin" Value="0,0,0,-1" />
-        </Style>
+      <DataTemplate x:Key="DefaultChatInput">
+        <TextBox  VerticalAlignment="Center"
+                 Text=""
+                 Watermark="{Binding Watermark}">
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+    </ContentControl.Resources>
+    <ContentControl.Styles>
 
-        <Style Selector="TextBox">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="c|TagsBox">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="ComboBox">
-          <Setter Property="HorizontalAlignment" Value="Stretch" />
-          <Setter Property="VerticalAlignment" Value="Stretch" />
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-        <Style Selector="ComboBox:pointerover /template/ Border#Background">
-          <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-        </Style>
-      </ContentControl.Styles>
-      <ContentControl.DataTemplates>
+      <Style Selector="c|TagControl /template/ Panel#PART_TagPanel">
+        <Setter Property="Margin" Value="0,0,0,-1" />
+      </Style>
 
-        <DataTemplate DataType="shopinBit:TextInputInputValidator">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Message}"
-                   Watermark="{Binding Watermark}">
+      <Style Selector="TextBox">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="c|TagsBox">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="ComboBox">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="ComboBox:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+    </ContentControl.Styles>
+    <ContentControl.DataTemplates>
+      <!-- Default views for steps that don't require user interaction -->
+      <DataTemplate DataType="vm:StartConversationStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:AcceptOfferStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:SaveConversationStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+
+      <!-- WelcomeStep -->
+      <DataTemplate DataType="vm:WelcomeStep">
+        <ComboBox Items="{Binding Products}"
+                  SelectedItem="{Binding Product, Mode=TwoWay}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </ComboBox>
+      </DataTemplate>
+
+      <!-- CountryStep -->
+      <DataTemplate DataType="vm:CountryStep">
+        <c:TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding SelectedCountries}"
+                   Suggestions="{Binding Countries}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </DataTemplate>
+
+      <!-- RequestedItemStep -->
+      <DataTemplate DataType="vm:RequestedItemStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- PrivacyPolicyStep-->
+      <DataTemplate DataType="vm:PrivacyPolicyStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox x:Name="CheckBox"
+                    VerticalAlignment="Center"
+                    TabIndex="0"
+                    IsChecked="{Binding Value}"
+                    Margin="8 0 0 0">
             <i:Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
+              <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+                <behaviors:FocusNextControlAction />
+              </DataTriggerBehavior>
             </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:DefaultInputValidator">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Message}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:ChatMessageInputValidator">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Message}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:NoInputInputValidator">
-          <Panel />
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:ConfirmPrivacyPolicyInputValidator">
-          <StackPanel Orientation="Horizontal">
-            <CheckBox VerticalAlignment="Center"
-                      IsChecked="{Binding HasAcceptedPrivacyPolicy}"
-                      Margin="8 0 0 0">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </CheckBox>
-            <helpAndSupport:LinkView
-              DataContext="{Binding Link}" />
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
           </StackPanel>
-        </DataTemplate>
+        </StackPanel>
+      </DataTemplate>
 
-        <DataTemplate DataType="shopinBit:ConfirmTosInputValidator">
-          <StackPanel Orientation="Horizontal">
-            <CheckBox VerticalAlignment="Center"
-                      IsChecked="{Binding HasAcceptedTermsOfService}"
-                      Margin="8 0 0 0">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-            </CheckBox>
-            <helpAndSupport:LinkView
-              DataContext="{Binding Link}" />
+      <!-- SupportChatStep -->
+      <DataTemplate DataType="vm:SupportChatStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- TextInputStep -->
+      <DataTemplate DataType="vm:TextInputStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- StateStep -->
+      <DataTemplate DataType="vm:StateStep">
+        <c:TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding SelectedStates}"
+                   Suggestions="{Binding States}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </DataTemplate>
+
+      <!-- ConfirmTosStep -->
+      <DataTemplate DataType="vm:ConfirmTosStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox VerticalAlignment="Center"
+                    IsChecked="{Binding Value}"
+                    TabIndex="0"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding Link}" />
           </StackPanel>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:ConfirmInitialInputValidator">
-          <Panel />
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:ConfirmDeliveryInputValidator">
-          <Panel />
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:PaymentInputValidator">
-          <Panel />
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:PackageInputValidator">
-          <Panel />
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:RequestInputValidator">
-          <TextBox VerticalAlignment="Center"
-                   Text="{Binding Message}"
-                   Watermark="{Binding Watermark}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-            <TextBox.Styles>
-              <Style Selector="TextBox /template/ DataValidationErrors">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
-            </TextBox.Styles>
-          </TextBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:LocationInputValidator">
-          <c:TagsBox VerticalAlignment="Center"
-                     RestrictInputToSuggestions="True"
-                     SuggestionsAreCaseSensitive="False"
-                     Watermark="{Binding Watermark}"
-                     MaxTextLength="5000"
-                     ItemCountLimit="1"
-                     TagSeparator=";"
-                     EnableDelete="False"
-                     Items="{Binding Country}"
-                     Suggestions="{Binding Countries}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </c:TagsBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:StateInputValidator">
-          <c:TagsBox VerticalAlignment="Center"
-                     RestrictInputToSuggestions="True"
-                     SuggestionsAreCaseSensitive="False"
-                     Watermark="{Binding Watermark}"
-                     MaxTextLength="5000"
-                     ItemCountLimit="1"
-                     TagSeparator=";"
-                     EnableDelete="False"
-                     Items="{Binding State}"
-                     Suggestions="{Binding States}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </c:TagsBox>
-        </DataTemplate>
-
-        <DataTemplate DataType="shopinBit:ProductInputValidator">
-          <ComboBox Items="{Binding Products}"
-                    SelectedItem="{Binding Product, Mode=TwoWay}">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-            </i:Interaction.Behaviors>
-          </ComboBox>
-        </DataTemplate>
-      </ContentControl.DataTemplates>
-    </ContentControl>
+        </StackPanel>
+      </DataTemplate>
+    </ContentControl.DataTemplates>
+  </ContentControl>
 </UserControl>

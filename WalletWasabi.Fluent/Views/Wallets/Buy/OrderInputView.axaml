@@ -5,30 +5,29 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
-             xmlns:viewsBuy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderInputView"
              x:DataType="vm:OrderViewModel"
              x:CompileBindings="True">
 
-  <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10">
+  <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10"
+             IsVisible="{Binding !Workflow.IsDeletedInSib}">
 
     <Button DockPanel.Dock="Right"
-            Command="{Binding SendCommand}"
             Margin="10 0 0 0"
-            Content="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator.Content}"
-            IsVisible="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.RequiresUserInput, FallbackValue=False}"
             Classes="action"
-            IsDefault="True">
+            IsDefault="True"
+            TabIndex="1"
+            Command="{Binding Workflow.CurrentStep.SendCommand}"
+            Content="{Binding Workflow.CurrentStep.Caption}">
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
     </Button>
 
     <Panel IsEnabled="{Binding !IsBusy}">
-      <viewsBuy:UserInputValidatorView DataContext="{Binding WorkflowManager.CurrentWorkflow.CurrentStep.UserInputValidator}"/>
+      <buy:UserInputValidatorView DataContext="{Binding Workflow.CurrentStep}" />
     </Panel>
-
   </DockPanel>
-
 </UserControl>
