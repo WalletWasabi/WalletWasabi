@@ -11,6 +11,7 @@ public class SaveConversationStep : WorkflowStep<object>
 	public SaveConversationStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		_token = token;
+		_ignored = false;
 	}
 
 	public override async Task ExecuteAsync()
