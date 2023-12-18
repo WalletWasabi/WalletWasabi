@@ -193,6 +193,140 @@ public class TorHttpPoolTests
 	}
 
 	/// <summary>
+	/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, ICircuit, CancellationToken)"/> can handle <see cref="HttpStatusCode.Found"/> (302)
+	/// and redirects to the provided location.
+	/// </summary>
+	[Fact]
+	public async Task RedirectSupportAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(5));
+
+		// TODO: Test with OneOffCircuit (disposing?)
+		INamedCircuit circuit = DefaultCircuit.Instance;
+
+		// Set up server handling for the first HTTP request (containing 'location' HTTP header).
+		await using TransportStream transportStream1 = new($"{nameof(RedirectSupportAsync)}.1");
+		await transportStream1.ConnectAsync(timeoutCts.Token);
+		using StreamReader serverReader1 = new(transportStream1.Server);
+		using StreamWriter serverWriter1 = new(transportStream1.Server);
+		using TorTcpConnection connection1 = new(tcpClient: null!, transportStream1.Client, circuit, allowRecycling: true);
+
+		// Set up server handling for the second HTTP request (the final destination).
+		await using TransportStream transportStream2 = new($"{nameof(RedirectSupportAsync)}.2");
+		await transportStream2.ConnectAsync(timeoutCts.Token);
+		using StreamReader serverReader2 = new(transportStream2.Server);
+		using StreamWriter serverWriter2 = new(transportStream2.Server);
+		using TorTcpConnection connection2 = new(tcpClient: null!, transportStream2.Client, circuit, allowRecycling: true);
+
+		Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
+		mockFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<INamedCircuit>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(connection1)
+			.ReturnsAsync(connection2);
+
+		await using TorHttpPool pool = new(mockFactory.Object);
+		using HttpRequestMessage request = new(HttpMethod.Get, "http://api.github.com/redirect/123456");
+
+		Task sendTask = Task.Run(async () =>
+		{
+			Debug.WriteLine("[client] About to send HTTP request.");
+
+			// Note that we allow a single redirect here.
+			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, maximumRedirects: 1, timeoutCts.Token).ConfigureAwait(false);
+			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+
+			Debug.WriteLine("[client] Done sending HTTP request.");
+		});
+
+		Debug.WriteLine("[server] Handle the first request.");
+		{
+			// We expect to get this plaintext HTTP request headers from the client.
+			string[] expectedServerResponse1 = new[]
+			{
+				"GET /redirect/123456 HTTP/1.1",
+				"Accept-Encoding:gzip",
+				"Host:api.github.com",
+				""
+			};
+
+			// Assert server replies line by line.
+			foreach (string expectedLine in expectedServerResponse1)
+			{
+				string? actualLine = await serverReader1.ReadLineAsync(timeoutCts.Token);
+				Assert.Equal(expectedLine, actualLine);
+			}
+
+			// We respond to the client with the following content.
+			Debug.WriteLine("[server] Send response for the request.");
+			string serverResponse1 = """
+				HTTP/1.1 302 Found
+				Server: GitHub.com
+				Date: Sun, 11 Dec 2022 09:47:26 GMT
+				Content-Type: text/html; charset=utf-8
+				Vary: X-PJAX, X-PJAX-Container, Turbo-Visit, Turbo-Frame, Accept-Encoding, Accept, X-Requested-With
+				Location: https://objects.githubusercontent.com/github-production-release-asset-2e65be/55341469/84261958-b5b5-45dc-a1fe-3bd96253e120?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20221211%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221211T094726Z&X-Amz-Expires=300&X-Amz-Signature=bee3014421243a64ae1d2ffc7ca5e3693cbbd49b08b386df7bd7569494d04a7f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=55341469&response-content-disposition=attachment%3B%20filename%3DWasabi-2.0.1.4.msi&response-content-type=application%2Foctet-stream
+				Cache-Control: no-cache
+				Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+				X-Frame-Options: deny
+				X-Content-Type-Options: nosniff
+				X-XSS-Protection: 0
+				Referrer-Policy: no-referrer-when-downgrade
+				Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; child-src github.com/assets-cdn/worker/ gist.github.com/assets-cdn/worker/; connect-src 'self' uploads.github.com objects-origin.githubusercontent.com www.githubstatus.com collector.github.com raw.githubusercontent.com api.github.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com cdn.optimizely.com logx.optimizely.com/v1/events *.actions.githubusercontent.com wss://*.actions.githubusercontent.com online.visualstudio.com/api/v1/locations github-production-repository-image-32fea6.s3.amazonaws.com github-production-release-asset-2e65be.s3.amazonaws.com insights.github.com wss://alive.github.com; font-src github.githubassets.com; form-action 'self' github.com gist.github.com objects-origin.githubusercontent.com; frame-ancestors 'none'; frame-src viewscreen.githubusercontent.com notebooks.githubusercontent.com; img-src 'self' data: github.githubassets.com media.githubusercontent.com camo.githubusercontent.com identicons.github.com avatars.githubusercontent.com github-cloud.s3.amazonaws.com objects.githubusercontent.com objects-origin.githubusercontent.com secured-user-images.githubusercontent.com/ opengraph.githubassets.com github-production-user-asset-6210df.s3.amazonaws.com customer-stories-feed.github.com spotlights-feed.github.com *.githubusercontent.com; manifest-src 'self'; media-src github.com user-images.githubusercontent.com/ secured-user-images.githubusercontent.com/; script-src github.githubassets.com; style-src 'unsafe-inline' github.githubassets.com; worker-src github.com/assets-cdn/worker/ gist.github.com/assets-cdn/worker/
+				Content-Length: 0
+				X-GitHub-Request-Id: AFCA:0EE6:208343C:21F2436:6395A726
+
+
+				""".ReplaceLineEndings("\r\n");
+
+			await serverWriter1.WriteAsync(serverResponse1.AsMemory(), timeoutCts.Token);
+			await serverWriter1.FlushAsync().WaitAsync(timeoutCts.Token);
+			serverWriter1.Close();
+		}
+
+		Debug.WriteLine("[server] Handle second request.");
+		{
+			// We expect to get this plaintext HTTP request headers from the client.
+			string[] expectedServerResponse2 = new[]
+			{
+				"GET /github-production-release-asset-2e65be/55341469/84261958-b5b5-45dc-a1fe-3bd96253e120?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20221211%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221211T094726Z&X-Amz-Expires=300&X-Amz-Signature=bee3014421243a64ae1d2ffc7ca5e3693cbbd49b08b386df7bd7569494d04a7f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=55341469&response-content-disposition=attachment%3B%20filename%3DWasabi-2.0.1.4.msi&response-content-type=application%2Foctet-stream HTTP/1.1",
+				"Accept-Encoding:gzip",
+				"Host:objects.githubusercontent.com",
+				""
+			};
+
+			// Assert server replies line by line.
+			foreach (string expectedLine in expectedServerResponse2)
+			{
+				string? actualLine = await serverReader2.ReadLineAsync(timeoutCts.Token);
+				Assert.Equal(expectedLine, actualLine);
+			}
+
+			// We respond to the client with the following content.
+			Debug.WriteLine("[server] Send response for the request.");
+			string serverResponse2 = """
+				HTTP/1.1 200 OK
+				Server: GitHub.com
+				Date: Sun, 11 Dec 2022 09:47:26 GMT
+				Content-Type: text/html; charset=utf-8
+				Cache-Control: no-cache
+				Content-Length: 30
+
+				You got here. Congratulations.
+				""".ReplaceLineEndings("\r\n");
+
+			await serverWriter2.WriteAsync(serverResponse2.AsMemory(), timeoutCts.Token);
+			await serverWriter2.FlushAsync().WaitAsync(timeoutCts.Token);
+			serverWriter2.Close();
+		}
+
+		// Make sure that the original HTTP request object was not changed.
+		Assert.Equal(new Uri("http://api.github.com/redirect/123456"), request.RequestUri);
+
+		Debug.WriteLine("[server] Wait for the sendTask to finish.");
+		await sendTask;
+		Debug.WriteLine("[server] Send task finished.");
+	}
+
+	/// <summary>
 	/// Tests that <see cref="TorHttpPool.PrebuildCircuitsUpfront(Uri, int, TimeSpan)"/> method creates
 	/// the correct number of Tor circuits.
 	/// </summary>
@@ -223,7 +357,7 @@ public class TorHttpPoolTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-		PersonCircuit aliceCircuit = new();
+		using PersonCircuit aliceCircuit = new();
 		using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));

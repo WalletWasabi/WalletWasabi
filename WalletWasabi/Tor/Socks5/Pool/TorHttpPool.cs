@@ -173,6 +173,7 @@ public class TorHttpPool : IAsyncDisposable
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
 
+                    // Support for redirects if allowed.
 					// See https://github.com/dotnet/runtime/blob/47071da67320985a10f4b70f50f894ab411f4994/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/RedirectHandler.cs#L91-L96.
 					if (response.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect or HttpStatusCode.MultipleChoices or HttpStatusCode.PermanentRedirect)
 					{
