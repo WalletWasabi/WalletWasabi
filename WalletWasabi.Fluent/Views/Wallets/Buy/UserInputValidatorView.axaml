@@ -195,9 +195,13 @@
           <CheckBox VerticalAlignment="Center"
                     IsChecked="{Binding Value}"
                     TabIndex="0"
+                    x:Name="CheckBox"
                     Margin="8 0 0 0">
             <i:Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
+              <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+                <behaviors:FocusNextControlAction />
+              </DataTriggerBehavior>
             </i:Interaction.Behaviors>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="5">
