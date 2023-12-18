@@ -285,26 +285,6 @@ public class BuyAnythingManager : PeriodicRunner
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task StartNewConversationAsync(string walletId, string countryName, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		string countryId = Countries.Single(c => c.Name == countryName).Id;
-		var fullChat = new Chat(chatMessages);
-		var credential = GenerateRandomCredential();
-		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, fullChat.ToText(), cancellationToken)
-			.ConfigureAwait(false);
-		var conversation = new Conversation(
-			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-			fullChat,
-			OrderStatus.Open,
-			ConversationStatus.Started,
-			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
-		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
-
-		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
-		await SaveAsync(cancellationToken).ConfigureAwait(false);
-	}
-
 	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
