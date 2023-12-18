@@ -12,7 +12,7 @@
              x:CompileBindings="True">
 
   <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10"
-             IsVisible="{Binding !Workflow.IsCompleted}">
+             IsVisible="{Binding !Workflow.IsDeletedInSib}">
 
     <Button DockPanel.Dock="Right"
             Margin="10 0 0 0"

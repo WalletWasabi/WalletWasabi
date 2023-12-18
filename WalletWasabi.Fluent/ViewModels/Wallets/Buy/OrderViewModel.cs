@@ -94,6 +94,9 @@ public partial class OrderViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.Workflow.CurrentStep.IsBusy)
 			.BindTo(this, x => x.IsBusy);
 
+		this.WhenAnyValue(x => x.Workflow.IsCompleted)
+			.BindTo(this, x => x.IsCompleted);
+
 		_cts = new CancellationTokenSource();
 		StartWorkflow(_cts.Token);
 	}

@@ -13,6 +13,7 @@ public abstract partial class Workflow : ReactiveObject
 	[AutoNotify] private IWorkflowStep? _currentStep;
 	[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private bool _isCompleted;
+	[AutoNotify] private bool _isDeletedInSib;
 
 	protected Workflow(Conversation conversation)
 	{
@@ -45,7 +46,7 @@ public abstract partial class Workflow : ReactiveObject
 	protected void WorkflowCompleted()
 	{
 		CurrentStep = null;
-		IsCompleted = true;
+		IsDeletedInSib = true;
 	}
 
 	public void Reset()
