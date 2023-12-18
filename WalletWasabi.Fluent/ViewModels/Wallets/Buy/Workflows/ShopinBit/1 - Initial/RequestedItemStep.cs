@@ -11,6 +11,7 @@ public class RequestedItemStep : WorkflowStep<string>
 {
 	public RequestedItemStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
+		Watermark = "Describe here...";
 		Caption = "Request";
 	}
 
