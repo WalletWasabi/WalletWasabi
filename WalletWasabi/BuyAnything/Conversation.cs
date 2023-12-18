@@ -143,5 +143,4 @@ public record ConversationMetaData(
 	string? City = null,
 	State? State = null,
 	bool TermsAccepted = false,
-	bool OfferAccepted = false,
-	bool PaymentConfirmed = false);
+	bool OfferAccepted = false);

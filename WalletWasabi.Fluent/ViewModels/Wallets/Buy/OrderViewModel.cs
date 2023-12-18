@@ -204,7 +204,7 @@ public partial class OrderViewModel : ViewModelBase
 			message.Data switch
 			{
 				OfferCarrier => new OfferMessageViewModel(message),
-				Invoice => new PayNowAssistantMessageViewModel(Workflow.Conversation, message),
+				Invoice => new PayNowAssistantMessageViewModel(Workflow, message),
 				AttachmentLinks => new UrlListMessageViewModel(message, "Download your files:"),
 				TrackingCodes => new UrlListMessageViewModel(message, "For shipping updates:"),
 				_ => new AssistantMessageViewModel(message)

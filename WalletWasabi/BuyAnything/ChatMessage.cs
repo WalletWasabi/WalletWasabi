@@ -8,7 +8,7 @@ public abstract record DataCarrier
 	public static readonly DataCarrier NoData = new NoData();
 }
 
-public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress) : DataCarrier;
+public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress, bool IsPaid) : DataCarrier;
 
 public record OfferItem(float Quantity, string Description, float UnitPrice, float TotalPrice);
 
