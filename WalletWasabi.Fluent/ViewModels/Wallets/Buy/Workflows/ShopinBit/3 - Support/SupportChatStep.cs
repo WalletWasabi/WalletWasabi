@@ -7,7 +7,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 public class SupportChatStep : WorkflowStep<string>
 {
 	private readonly CancellationToken _token;
-	private bool crash = true;
 
 	public SupportChatStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
@@ -22,12 +21,6 @@ public class SupportChatStep : WorkflowStep<string>
 
 		try
 		{
-			if (crash)
-			{
-				crash = false;
-				throw new InvalidOperationException($"Prueba");
-			}
-
 			await new SaveConversationStep(Conversation, _token).ExecuteAsync();
 		}
 		finally
