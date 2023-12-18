@@ -95,9 +95,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 		{
 			var botMessages = BotMessages(newConversation).ToArray();
 
+			var addAsUnread = Conversation.Id != ConversationId.Empty;
+
 			foreach (var message in botMessages)
 			{
-				newConversation = newConversation.AddBotMessage(message, null, StepName);
+				newConversation = newConversation.AddBotMessage(message, null, StepName, isUnread: addAsUnread);
 			}
 
 			// Set Conversation updated with Bot Messages

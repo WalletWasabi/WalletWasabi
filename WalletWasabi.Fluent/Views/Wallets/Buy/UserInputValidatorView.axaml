@@ -194,6 +194,7 @@
         <StackPanel Orientation="Horizontal">
           <CheckBox VerticalAlignment="Center"
                     IsChecked="{Binding Value}"
+                    TabIndex="0"
                     Margin="8 0 0 0">
             <i:Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
