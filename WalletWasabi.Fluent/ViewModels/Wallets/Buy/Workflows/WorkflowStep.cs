@@ -44,7 +44,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
 	[AutoNotify] private bool _isBusy;
-	private bool _ignored;
+	protected bool _ignored;
 
 	public WorkflowStep(Conversation conversation, CancellationToken token, bool isEditing = false)
 	{

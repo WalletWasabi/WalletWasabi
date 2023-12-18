@@ -37,6 +37,11 @@ public partial class StateStep : WorkflowStep<CountryState>
 
 	public override async Task ExecuteAsync()
 	{
+		if (_ignored)
+		{
+			return;
+		}
+
 		if (Conversation.MetaData.Country is { } country)
 		{
 			IsBusy = true;
