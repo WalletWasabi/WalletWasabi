@@ -38,14 +38,14 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 		// Welcome
 		yield return "Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.";
 
+		// All-Purpose Concierge Assistant
+		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from tech gadgets to vehicles and more.";
+
 		// Fast Travel Assistant
 		yield return "Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.";
 
 		// General Travel Assistant
 		yield return "General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.";
-
-		// All-Purpose Concierge Assistant
-		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from tech gadgets to vehicles and more.";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
