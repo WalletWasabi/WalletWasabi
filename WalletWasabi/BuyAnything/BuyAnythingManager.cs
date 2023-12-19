@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -57,12 +58,13 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private BuyAnythingClient Client { get; }
 	public IReadOnlyList<Country> Countries { get; }
-
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
 	private string FilePath { get; }
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
+
+	private AsyncLock FileLock { get; } = new();
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -517,10 +519,12 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			TypeNameHandling = TypeNameHandling.Objects
 		};
-
-		IoHelpers.EnsureFileExists(FilePath);
-		string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented, settings);
-		await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
+		using (await FileLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			IoHelpers.EnsureFileExists(FilePath);
+			string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented, settings);
+			await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
+		}
 	}
 
 	private static string GetWalletId(Wallet wallet) =>
@@ -562,31 +566,34 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadConversationsAsync(CancellationToken cancellationToken)
 	{
-		IoHelpers.EnsureFileExists(FilePath);
-
-		try
+		using (await FileLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			JsonSerializerSettings settings = new JsonSerializerSettings
+			IoHelpers.EnsureFileExists(FilePath);
+
+			try
 			{
-				TypeNameHandling = TypeNameHandling.Objects
-			};
+				JsonSerializerSettings settings = new JsonSerializerSettings
+				{
+					TypeNameHandling = TypeNameHandling.Objects
+				};
 
-			string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-			var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json, settings) ?? new();
-			ConversationTracking.Load(conversations);
-		}
-		catch (JsonException ex)
-		{
-			// Something happened with the file.
-			var bakFilePath = $"{FilePath}.bak";
-			Logger.LogError($"Wasabi was not able to load conversations file. Resetting the onversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
-			File.Move(FilePath, bakFilePath, true);
-			ConversationTracking.Load(new ConversationTracking());
-			await SaveAsync(cancellationToken).ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"Wasabi was not able to load conversations file. Reason: '{ex}'.");
+				string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+				var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json, settings) ?? new();
+				ConversationTracking.Load(conversations);
+			}
+			catch (JsonException ex)
+			{
+				// Something happened with the file.
+				var bakFilePath = $"{FilePath}.bak";
+				Logger.LogError($"Wasabi was not able to load conversations file. Resetting the onversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
+				File.Move(FilePath, bakFilePath, true);
+				ConversationTracking.Load(new ConversationTracking());
+				await SaveAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Wasabi was not able to load conversations file. Reason: '{ex}'.");
+			}
 		}
 
 		IsConversationsLoaded = true;
