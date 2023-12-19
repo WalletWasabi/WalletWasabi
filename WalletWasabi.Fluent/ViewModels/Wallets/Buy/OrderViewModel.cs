@@ -98,6 +98,12 @@ public partial class OrderViewModel : ViewModelBase
 			.BindTo(this, x => x.IsCompleted);
 
 		_cts = new CancellationTokenSource();
+
+		// Handle Workflow Step Execution Errors and show UI message
+		Observable.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
+				  .DoAsync(async e => await ShowErrorAsync("Error while processing order."))
+				  .Subscribe();
+
 		StartWorkflow(_cts.Token);
 	}
 
