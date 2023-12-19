@@ -27,7 +27,7 @@ public class SaveConversationStep : WorkflowStep<object>
 		{
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-			await Task.Run(() => buyAnythingManager.UpdateConversationAsync(Conversation, _token));
+			await buyAnythingManager.UpdateConversationAsync(Conversation, _token);
 		}
 		finally
 		{
