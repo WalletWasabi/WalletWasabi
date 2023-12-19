@@ -240,8 +240,6 @@ public class CoreNode
 			await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 		}
 
-		cancel.ThrowIfCancellationRequested();
-
 		// If it isn't already running, then we run it.
 		if (await coreNode.RpcClient.TestAsync(cancel).ConfigureAwait(false) is null)
 		{
@@ -254,12 +252,8 @@ public class CoreNode
 			Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 		}
 
-		cancel.ThrowIfCancellationRequested();
-
 		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-
-		cancel.ThrowIfCancellationRequested();
 
 		return coreNode;
 	}
