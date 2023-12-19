@@ -272,6 +272,11 @@ public class CoreNode
 		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
+	/// <summary>
+	/// This method disposes resources but it does not necessarily mean that we need to stop bitcoind process
+	/// because it might not have been started by us.
+	/// <para>Use <see cref="TryStopAsync(bool, CancellationToken)"/> to stop bitcoind process.</para>
+	/// </summary>
 	public async Task DisposeAsync()
 	{
 		if (P2pNode is { } p2pNode)
