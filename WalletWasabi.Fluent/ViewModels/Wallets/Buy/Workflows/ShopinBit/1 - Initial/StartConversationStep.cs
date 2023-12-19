@@ -55,7 +55,7 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 			_ => "a few days"
 		};
 
-		conversation = conversation.AddBotMessage($"Thank you! We've received your request and will get in touch with you within {hourRange} (Monday to Friday).");
+		conversation = conversation.AddBotMessage($"Thank you! We've received your request and we'll get in touch with you within {hourRange} (Monday to Friday).");
 
 		return conversation;
 	}

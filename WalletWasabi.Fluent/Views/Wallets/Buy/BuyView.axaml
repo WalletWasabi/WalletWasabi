@@ -16,7 +16,7 @@
                  NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
-                 Caption="Simply tell us what you're looking for, and we'll handle the rest from start to finish."
+                 Caption="Tell us what you want, and we'll handle the rest from start to finish."
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <DockPanel>
