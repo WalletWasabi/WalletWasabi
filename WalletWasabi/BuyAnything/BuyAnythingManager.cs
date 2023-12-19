@@ -325,6 +325,12 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
+
+		if (track.Conversation != conversation)
+		{
+			return;
+		}
+
 		track.Conversation = conversation;
 		track.LastUpdate = DateTimeOffset.Now;
 
