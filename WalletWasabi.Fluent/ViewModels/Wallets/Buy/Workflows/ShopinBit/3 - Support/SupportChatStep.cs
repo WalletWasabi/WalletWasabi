@@ -19,9 +19,14 @@ public class SupportChatStep : WorkflowStep<string>
 
 		IsBusy = true;
 
-		await new SaveConversationStep(Conversation, _token).ExecuteAsync();
-
-		IsBusy = false;
+		try
+		{
+			await new SaveConversationStep(Conversation, _token).ExecuteAsync();
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 
 	protected override Conversation PutValue(Conversation conversation, string value) => conversation;

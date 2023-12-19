@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -21,30 +22,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 {
-	[AutoNotify] private string _payButtonText = "";
-	[AutoNotify] private bool _isBusy;
-	[AutoNotify] private bool _isPaid;
+	private readonly Workflow _workflow;
 
-	public PayNowAssistantMessageViewModel(Conversation conversation, ChatMessage message) : base(message)
+	[AutoNotify] private bool _isBusy;
+
+	public PayNowAssistantMessageViewModel(Workflow workflow, ChatMessage message) : base(message)
 	{
 		if (message.Data is not Invoice invoice)
 		{
 			throw new InvalidOperationException($"Invalid Data Type: {message.Data?.GetType().Name}");
 		}
 
+		_workflow = workflow;
+
 		Invoice = invoice;
 		Amount = invoice.Amount;
 		Address = invoice.BitcoinAddress;
-		IsPaid = conversation.MetaData.PaymentConfirmed;
+		IsPaid = invoice.IsPaid;
+		PayButtonText = IsPaid ? "Paid" : "Pay Now";
 		UiMessage = message.Text;
 
 		UiContext = UiContext.Default;
 		PayNowCommand = ReactiveCommand.CreateFromTask(PayNowAsync, this.WhenAnyValue(x => x.IsPaid).Select(x => !x));
-
-		this.WhenAnyValue(x => x.IsPaid)
-			.Select(x => x ? "Paid" : "Pay Now")
-			.BindTo(this, x => x.PayButtonText);
 	}
+
+	public string PayButtonText { get; set; }
 
 	public Invoice Invoice { get; }
 
@@ -53,6 +55,8 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 	public decimal Amount { get; }
 
 	public string Address { get; }
+
+	public bool IsPaid { get; }
 
 	public ICommand PayNowCommand { get; }
 
@@ -86,7 +90,10 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
 				wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
-				IsPaid = true;
+
+				var updatedMessage = Message with { Data = Invoice with { IsPaid = true } };
+				var updatedConversation = _workflow.Conversation.ReplaceMessage(Message, updatedMessage);
+				_workflow.Conversation = updatedConversation;
 			}
 		}
 		catch (Exception ex)

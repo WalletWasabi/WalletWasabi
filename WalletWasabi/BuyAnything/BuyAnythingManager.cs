@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -96,7 +95,7 @@ public class BuyAnythingManager : PeriodicRunner
 		if (orders.FirstOrDefault() is not { } order)
 		{
 			await SendSystemChatLinesAsync(track,
-				$"Order was removed from the Concierge server. Remember this order id: {track.Conversation.Id.OrderId}",
+				$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order ID: {track.Conversation.Id.OrderId}",
 				DateTimeOffset.Now, ConversationStatus.Deleted, cancel).ConfigureAwait(false);
 			return;
 		}
@@ -122,7 +121,7 @@ public class BuyAnythingManager : PeriodicRunner
 			// Once the user accepts the offer, the system generates a bitcoin address and amount
 			case ConversationStatus.OfferAccepted
 				when serverEvent.HasFlag(ServerEvent.ReceiveInvoice):
-				var invoice = new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination);
+				var invoice = new Invoice(orderCustomFields.Btcpay_PaymentLink, decimal.Parse(orderCustomFields.Btcpay_Amount), orderCustomFields.Btcpay_Destination, false);
 				// Remove sending this chat once the UI can handle the track.Invoice and save the track.
 				await SendSystemChatLinesAsync(track,
 					// $"Pay to: {orderCustomFields.Btcpay_PaymentLink}. The invoice expires in 30 minutes",
@@ -142,10 +141,8 @@ public class BuyAnythingManager : PeriodicRunner
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
 
-				track.Conversation = track.Conversation.UpdateMetadata(m => m with { PaymentConfirmed = true });
-
 				await SendSystemChatLinesAsync(track,
-					"Your payment is confirmed. Thank you for ordering with us. We will keep you updated here on the progress of your order.",
+					"We received your payment. Thank you! I will keep you updated here on the progress of your order. If you have any questions, feel free to ask here.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
 
@@ -153,7 +150,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
 				await SendSystemChatLinesAsync(track,
-					"Invoice Expired. Please send us your Bitcoin Transaction ID if you already have sent coins.",
+					"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
 
@@ -161,7 +158,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
 				await SendSystemChatLinesAsync(track,
-					"Payment received after invoice expiration. In case this is a problem, an agent will get in contact with you.",
+					"Payment was received after the invoice had expired. If this presents any issue, I will get in contact with you.",
 					order.UpdatedAt, ConversationStatus.InvoicePaidAfterExpiration, cancel).ConfigureAwait(false);
 				break;
 
@@ -169,7 +166,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceExpired
 				when serverEvent.HasFlag(ServerEvent.GenerateNewInvoice):
 				await SendSystemChatLinesAsync(track,
-					"Our Team is reactivating the payment process.",
+					"Our team is currently working on reactivating the payment process.",
 					order.UpdatedAt, ConversationStatus.WaitingForInvoice, cancel).ConfigureAwait(false);
 				break;
 
@@ -195,7 +192,7 @@ public class BuyAnythingManager : PeriodicRunner
 				or ConversationStatus.InvoicePaidAfterExpiration
 				when serverEvent.HasFlag(ServerEvent.CloseCancelled):
 				await SendSystemChatLinesAsync(track,
-					"Order was cancelled. Please contact the agent to solve the problem.",
+					"The order was cancelled. Please contact me directly to resolve this issue.",
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
 
@@ -203,7 +200,7 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.Shipped or ConversationStatus.PaymentConfirmed
 				when serverEvent.HasFlag(ServerEvent.CloseOfferSuccessfully):
 				await SendSystemChatLinesAsync(track,
-					$"Check the attached file \n {GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)}",
+					$"Check the attached file \n {string.Join("\n", GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links))}",
 					new AttachmentLinks(GetLinksByLine(orderCustomFields.Concierge_Request_Attachements_Links)),
 					order.UpdatedAt, ConversationStatus.Finished, cancel).ConfigureAwait(false);
 				break;
@@ -283,26 +280,6 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
 		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task StartNewConversationAsync(string walletId, string countryName, BuyAnythingClient.Product product, ChatMessage[] chatMessages, ConversationMetaData metaData, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		string countryId = Countries.Single(c => c.Name == countryName).Id;
-		var fullChat = new Chat(chatMessages);
-		var credential = GenerateRandomCredential();
-		var orderId = await Client.CreateNewConversationAsync(credential.UserName, credential.Password, countryId, product, fullChat.ToText(), cancellationToken)
-			.ConfigureAwait(false);
-		var conversation = new Conversation(
-			new ConversationId(walletId, credential.UserName, credential.Password, orderId),
-			fullChat,
-			OrderStatus.Open,
-			ConversationStatus.Started,
-			new ConversationMetaData($"Order {GetNextConversationId(walletId)}"));
-		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
-
-		ConversationUpdated?.SafeInvoke(this, new(conversation, DateTimeOffset.Now));
-		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)

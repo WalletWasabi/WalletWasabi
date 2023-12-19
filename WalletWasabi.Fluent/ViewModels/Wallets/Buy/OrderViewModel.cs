@@ -98,6 +98,12 @@ public partial class OrderViewModel : ViewModelBase
 			.BindTo(this, x => x.IsCompleted);
 
 		_cts = new CancellationTokenSource();
+
+		// Handle Workflow Step Execution Errors and show UI message
+		Observable.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
+				  .DoAsync(async e => await ShowErrorAsync("Error while processing order."))
+				  .Subscribe();
+
 		StartWorkflow(_cts.Token);
 	}
 
@@ -130,7 +136,7 @@ public partial class OrderViewModel : ViewModelBase
 		}
 		else
 		{
-			await Workflow.MarkConversationAsReadAsync();
+			await Workflow.MarkConversationAsReadAsync(_cts.Token);
 		}
 	}
 
@@ -204,7 +210,7 @@ public partial class OrderViewModel : ViewModelBase
 			message.Data switch
 			{
 				OfferCarrier => new OfferMessageViewModel(message),
-				Invoice => new PayNowAssistantMessageViewModel(Workflow.Conversation, message),
+				Invoice => new PayNowAssistantMessageViewModel(Workflow, message),
 				AttachmentLinks => new UrlListMessageViewModel(message, "Download your files:"),
 				TrackingCodes => new UrlListMessageViewModel(message, "For shipping updates:"),
 				_ => new AssistantMessageViewModel(message)

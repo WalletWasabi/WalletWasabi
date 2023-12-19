@@ -23,6 +23,8 @@ public interface IWorkflowStep
 
 	void Ignore();
 
+	void Reset();
+
 	ICommand SendCommand { get; }
 
 	string Caption { get; }
@@ -36,7 +38,7 @@ public interface IWorkflowStep
 /// <remarks>this Class works in a stateless fashion. ExecuteAsync() receives a Conversation and returns the modified version of that same conversation, including bot messages, user messages, and metadata.</remarks>
 public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowStep
 {
-	private readonly TaskCompletionSource _userInputTcs = new();
+	private TaskCompletionSource _userInputTcs = new();
 
 	[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private string _caption;
@@ -181,6 +183,11 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	/// Signal Step completion.
 	/// </summary>
 	protected void SetCompleted() => _userInputTcs.SetResult();
+
+	/// <summary>
+	/// Remove completion status.
+	/// </summary>
+	public void Reset() => _userInputTcs = new();
 
 	/// <summary>
 	/// Ignores the Step. Used when another step is executed due to external reasons (such as Offer Received)

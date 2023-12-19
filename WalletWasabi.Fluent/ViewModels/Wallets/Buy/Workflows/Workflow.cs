@@ -5,6 +5,8 @@ using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Wallets;
+using WalletWasabi.Extensions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -32,15 +34,34 @@ public abstract partial class Workflow : ReactiveObject
 			.Subscribe();
 	}
 
-	public abstract Task ExecuteAsync(CancellationToken token);
+	public event EventHandler<Exception>? OnStepError;
 
 	public abstract IMessageEditor MessageEditor { get; }
+
+	public abstract Task ExecuteAsync(CancellationToken token);
 
 	protected async Task ExecuteStepAsync(IWorkflowStep step)
 	{
 		CurrentStep = step;
 		step.Conversation = Conversation;
-		await step.ExecuteAsync();
+
+		// this is looped until Step execution is successfully completed.
+		// If it errors out, then the Workflow won't move forward to the next step.
+		// All Steps should be be able to be re-executed more than once, gracefully.
+		while (true)
+		{
+			try
+			{
+				await step.ExecuteAsync();
+				break;
+			}
+			catch (Exception ex)
+			{
+				step.Reset();
+				Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+				OnStepError.SafeInvoke(this, ex);
+			}
+		}
 	}
 
 	protected void WorkflowCompleted()
@@ -49,16 +70,11 @@ public abstract partial class Workflow : ReactiveObject
 		IsDeletedInSib = true;
 	}
 
-	public void Reset()
-	{
-		// TODO: abort workflow execution using CancellationToken
-		CurrentStep?.Ignore();
-	}
-
 	/// <summary>
 	/// Marks the conversation messages as read and Saves to disk.
 	/// </summary>
-	public async Task MarkConversationAsReadAsync()
+	/// <param name="cts"></param>
+	public async Task MarkConversationAsReadAsync(CancellationToken token)
 	{
 		if (CurrentStep is { })
 		{
@@ -67,9 +83,6 @@ public abstract partial class Workflow : ReactiveObject
 
 		try
 		{
-			// TODO: pass cancellationtoken
-			var cancellationToken = CancellationToken.None;
-
 			Conversation = Conversation.MarkAsRead();
 
 			if (Conversation.Id == ConversationId.Empty)
@@ -79,7 +92,7 @@ public abstract partial class Workflow : ReactiveObject
 
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, token));
 		}
 		finally
 		{
