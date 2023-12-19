@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,13 +75,17 @@ public class BuyAnythingManager : PeriodicRunner
 		// Iterate over the conversations that are updatable
 		foreach (var track in ConversationTracking.GetUpdatableConversations())
 		{
-			// Check if there is new info in the chat
-			await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
-
-			// Check if the order state has changed and update the conversation status.
-			if (track.Conversation.ConversationStatus != ConversationStatus.Deleted)
+			try
 			{
+				// Check if there is new info in the chat
+				await CheckUpdateInChatAsync(track, cancel).ConfigureAwait(false);
+
+				// Check if the order state has changed and update the conversation status.
 				await CheckUpdateInOrderStatusAsync(track, cancel).ConfigureAwait(false);
+			}
+			catch (HttpRequestException ex) when (ex.Message.Contains("No matching customer for the email", StringComparison.InvariantCultureIgnoreCase))
+			{
+				await FinishConversationAsync(track, cancel).ConfigureAwait(false);
 			}
 		}
 	}
@@ -96,9 +101,7 @@ public class BuyAnythingManager : PeriodicRunner
 		// deleted and then we can have zero orders
 		if (orders.FirstOrDefault() is not { } order)
 		{
-			await SendSystemChatLinesAsync(track,
-				$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order ID: {track.Conversation.Id.OrderId}",
-				DateTimeOffset.Now, ConversationStatus.Deleted, cancel).ConfigureAwait(false);
+			await FinishConversationAsync(track, cancel).ConfigureAwait(false);
 			return;
 		}
 
@@ -142,35 +145,35 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
-			{
-				if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice invoiceData } invoiceMessage)
 				{
-					var updatedMessageData = invoiceData with { IsPaid = true };
-					var updatedMessage = invoiceMessage with { Data = updatedMessageData };
+					if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice invoiceData } invoiceMessage)
+					{
+						var updatedMessageData = invoiceData with { IsPaid = true };
+						var updatedMessage = invoiceMessage with { Data = updatedMessageData };
 
-					track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
+						track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
+					}
+
+					await SendSystemChatLinesAsync(track,
+						"We received your payment. Thank you! I will keep you updated here on the progress of your order. If you have any questions, feel free to ask here.",
+						order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
+					break;
 				}
-
-				await SendSystemChatLinesAsync(track,
-					"We received your payment. Thank you! I will keep you updated here on the progress of your order. If you have any questions, feel free to ask here.",
-					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
-				break;
-			}
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
-			{
-				if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice { IsPaid: false } } invoiceMessage)
 				{
-					var updatedMessage = invoiceMessage with { Data = null };
-					track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
-				}
+					if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice { IsPaid: false } } invoiceMessage)
+					{
+						var updatedMessage = invoiceMessage with { Data = null };
+						track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
+					}
 
-				await SendSystemChatLinesAsync(track,
-					"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
-					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
-				break;
-			}
+					await SendSystemChatLinesAsync(track,
+						"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
+						order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
+					break;
+				}
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
@@ -535,10 +538,9 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
 	{
-		var updatedConversation = track.Conversation.AddSystemChatLine("Conversation finished.", DataCarrier.NoData, ConversationStatus.Finished);
-		track.Conversation = updatedConversation;
-		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, DateTimeOffset.Now));
-		await SaveAsync(cancellationToken).ConfigureAwait(false);
+		await SendSystemChatLinesAsync(track,
+			$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order ID: {track.Conversation.Id.OrderId}",
+			DateTimeOffset.Now, ConversationStatus.Deleted, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task SaveAsync(CancellationToken cancellationToken)
