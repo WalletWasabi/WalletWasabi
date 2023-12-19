@@ -142,29 +142,35 @@ public class BuyAnythingManager : PeriodicRunner
 			case ConversationStatus.InvoiceReceived
 				or ConversationStatus.InvoicePaidAfterExpiration // if we paid a bit late but the order was sent, that means everything is alright
 				when serverEvent.HasFlag(ServerEvent.ConfirmPayment):
+			{
+				if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice invoiceData } invoiceMessage)
+				{
+					var updatedMessageData = invoiceData with { IsPaid = true };
+					var updatedMessage = invoiceMessage with { Data = updatedMessageData };
+
+					track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
+				}
 
 				await SendSystemChatLinesAsync(track,
 					"We received your payment. Thank you! I will keep you updated here on the progress of your order. If you have any questions, feel free to ask here.",
 					order.UpdatedAt, ConversationStatus.PaymentConfirmed, cancel).ConfigureAwait(false);
 				break;
-
+			}
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
-
+			{
 				if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice { IsPaid: false } } invoiceMessage)
 				{
-					var originalMessage = invoiceMessage;
-					var updatedMessageData = originalMessage with { Data = null };
-
-					track.Conversation = track.Conversation.ReplaceMessage(originalMessage, updatedMessageData);
+					var updatedMessage = invoiceMessage with { Data = null };
+					track.Conversation = track.Conversation.ReplaceMessage(invoiceMessage, updatedMessage);
 				}
 
 				await SendSystemChatLinesAsync(track,
 					"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
 				break;
-
+			}
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.ReceivePaymentAfterExpiration):
