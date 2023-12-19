@@ -99,7 +99,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await UiContext.Default.Navigate().DialogScreen.ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
+			await UiContext.Default.Navigate().CompactDialogScreen.ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
 		}
 		finally
 		{
