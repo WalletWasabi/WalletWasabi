@@ -70,16 +70,11 @@ public abstract partial class Workflow : ReactiveObject
 		IsDeletedInSib = true;
 	}
 
-	public void Reset()
-	{
-		// TODO: abort workflow execution using CancellationToken
-		CurrentStep?.Ignore();
-	}
-
 	/// <summary>
 	/// Marks the conversation messages as read and Saves to disk.
 	/// </summary>
-	public async Task MarkConversationAsReadAsync()
+	/// <param name="cts"></param>
+	public async Task MarkConversationAsReadAsync(CancellationToken token)
 	{
 		if (CurrentStep is { })
 		{
@@ -88,9 +83,6 @@ public abstract partial class Workflow : ReactiveObject
 
 		try
 		{
-			// TODO: pass cancellationtoken
-			var cancellationToken = CancellationToken.None;
-
 			Conversation = Conversation.MarkAsRead();
 
 			if (Conversation.Id == ConversationId.Empty)
@@ -100,7 +92,7 @@ public abstract partial class Workflow : ReactiveObject
 
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, token));
 		}
 		finally
 		{

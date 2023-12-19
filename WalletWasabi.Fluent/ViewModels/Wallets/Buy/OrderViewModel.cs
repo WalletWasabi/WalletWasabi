@@ -136,7 +136,7 @@ public partial class OrderViewModel : ViewModelBase
 		}
 		else
 		{
-			await Workflow.MarkConversationAsReadAsync();
+			await Workflow.MarkConversationAsReadAsync(_cts.Token);
 		}
 	}
 
