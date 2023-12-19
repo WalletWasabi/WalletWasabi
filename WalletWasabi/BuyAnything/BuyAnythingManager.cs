@@ -202,6 +202,9 @@ public class BuyAnythingManager : PeriodicRunner
 						break;
 					}
 
+					// TODO: Sorry Lucas.
+					await SendSystemChatLinesAsync(track, "Fantastic! Your order is now completed.", order.UpdatedAt ?? DateTimeOffset.Now, track.Conversation.ConversationStatus, cancel).ConfigureAwait(false);
+
 					// Otherwise not having tracking number is OK.
 					if (trackingCodes.Any())
 					{
