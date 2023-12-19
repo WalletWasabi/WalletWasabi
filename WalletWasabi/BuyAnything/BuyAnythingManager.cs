@@ -331,14 +331,14 @@ public class BuyAnythingManager : PeriodicRunner
 		var credential = GenerateRandomCredential();
 		var walletId = GetWalletId(wallet);
 
-		var orderId =
+		var (orderId, orderNumber) =
 			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
 						.ConfigureAwait(false);
 
 		conversation =
 			conversation with
 			{
-				Id = new ConversationId(walletId, credential.UserName, credential.Password, orderId),
+				Id = new ConversationId(walletId, credential.UserName, credential.Password, orderId, orderNumber),
 				OrderStatus = OrderStatus.Open,
 				ConversationStatus = ConversationStatus.Started,
 				MetaData = conversation.MetaData with
@@ -539,7 +539,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task FinishConversationAsync(ConversationUpdateTrack track, CancellationToken cancellationToken)
 	{
 		await SendSystemChatLinesAsync(track,
-			$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order ID: {track.Conversation.Id.OrderId}",
+			$"Live support for your order has now concluded. If you require any additional assistance, please don't hesitate to contact us and mention your order number: {track.Conversation.Id.OrderNumber}",
 			DateTimeOffset.Now, ConversationStatus.Deleted, cancellationToken).ConfigureAwait(false);
 	}
 

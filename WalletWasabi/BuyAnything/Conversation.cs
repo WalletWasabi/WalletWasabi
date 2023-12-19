@@ -32,9 +32,9 @@ public enum ConversationStatus
 	Deleted
 }
 
-public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId)
+public record ConversationId(string WalletId, string EmailAddress, string Password, string OrderId, string OrderNumber)
 {
-	public static ConversationId Empty { get; } = new("", "", "", "");
+	public static ConversationId Empty { get; } = new("", "", "", "", "");
 }
 
 public record Chat : IReadOnlyCollection<ChatMessage>
