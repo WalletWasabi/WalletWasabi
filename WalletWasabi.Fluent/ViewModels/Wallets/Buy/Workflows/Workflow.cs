@@ -91,8 +91,7 @@ public abstract partial class Workflow : ReactiveObject
 			}
 
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-
-			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, token));
+			await buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, token);
 		}
 		finally
 		{

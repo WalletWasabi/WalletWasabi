@@ -175,11 +175,7 @@ public partial class OrderViewModel : ViewModelBase
 						.Select(CreateMessageViewModel)
 						.ToArray();
 
-		_messagesList.Edit(x =>
-		{
-			x.Clear();
-			x.Add(messages);
-		});
+		_messagesList.EditDiff(messages);
 	}
 
 	private void ClearMessageList() => _messagesList.Edit(x => x.Clear());
