@@ -38,6 +38,9 @@ public static class ConversationExtensions
 		return conversation with { MetaData = updateMetadata(conversation.MetaData) };
 	}
 
+	public static Conversation UpdateStatus(this Conversation conversation, ConversationStatus newStatus) =>
+		conversation with { ConversationStatus = newStatus };
+
 	public static Conversation MarkAsRead(this Conversation conversation)
 	{
 		return conversation with

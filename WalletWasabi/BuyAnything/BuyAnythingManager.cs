@@ -178,6 +178,13 @@ public class BuyAnythingManager : PeriodicRunner
 				{
 					var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
 
+					// We do not step the state machine until the tracking number is added, but only in the case of ConciergeRequest.
+					if (!trackingCodes.Any() && track.Conversation.MetaData.Product is BuyAnythingClient.Product.ConciergeRequest)
+					{
+						break;
+					}
+
+					// Otherwise not having tracking number is OK.
 					if (trackingCodes.Any())
 					{
 						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
@@ -185,6 +192,12 @@ public class BuyAnythingManager : PeriodicRunner
 							$"{newMessage}:\n {string.Join("\n", trackingCodes)}",
 							new TrackingCodes(trackingCodes),
 							order.UpdatedAt, ConversationStatus.Shipped, cancel).ConfigureAwait(false);
+					}
+					else
+					{
+						var updatedConversation = track.Conversation.UpdateStatus(ConversationStatus.Shipped);
+						await UpdateConversationOnlyLocallyAsync(updatedConversation, cancel).ConfigureAwait(false);
+						ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, order.UpdatedAt ?? DateTimeOffset.Now));
 					}
 				}
 				break;
