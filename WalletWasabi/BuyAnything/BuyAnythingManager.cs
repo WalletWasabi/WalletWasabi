@@ -151,6 +151,15 @@ public class BuyAnythingManager : PeriodicRunner
 			// In case the invoice expires we communicate this fact to the chat
 			case ConversationStatus.InvoiceReceived
 				when serverEvent.HasFlag(ServerEvent.InvalidateInvoice):
+
+				if (track.Conversation.ChatMessages.LastOrDefault(x => x.Data is Invoice) is { Data: Invoice { IsPaid: false } } invoiceMessage)
+				{
+					var originalMessage = invoiceMessage;
+					var updatedMessageData = originalMessage with { Data = null };
+
+					track.Conversation = track.Conversation.ReplaceMessage(originalMessage, updatedMessageData);
+				}
+
 				await SendSystemChatLinesAsync(track,
 					"Your invoice has expired. If you've already made the payment, please share your Transaction ID with me to assist in finalizing the process.",
 					order.UpdatedAt, ConversationStatus.InvoiceExpired, cancel).ConfigureAwait(false);
