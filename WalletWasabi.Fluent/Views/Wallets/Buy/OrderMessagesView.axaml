@@ -35,7 +35,7 @@
 
         <!-- Pay chat bubble -->
         <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+          <c:PreviewMessageItem CopyableContent="{Binding PaymentUrl}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
