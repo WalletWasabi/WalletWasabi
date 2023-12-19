@@ -379,8 +379,6 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
-	public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
-
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
 	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>

@@ -20,8 +20,6 @@ public class CoinsView : ICoinsView
 
 	public ICoinsView Available() => new CoinsView(Coins.Where(x => x.IsAvailable()));
 
-	public ICoinsView CoinJoinInProcess() => new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
-
 	public ICoinsView Confirmed() => new CoinsView(Coins.Where(x => x.Confirmed));
 
 	public ICoinsView Unconfirmed() => new CoinsView(Coins.Where(x => !x.Confirmed));
