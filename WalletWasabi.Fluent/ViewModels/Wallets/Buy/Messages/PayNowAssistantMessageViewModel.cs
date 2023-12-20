@@ -40,7 +40,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 		Address = invoice.BitcoinAddress;
 		IsPaid = invoice.IsPaid;
 		PaymentUrl = invoice.Bip21Link;
-		PayButtonText = IsPaid ? "Paid" : "Pay Now";
+		PayButtonText = IsPaid ? "Paid" : "Pay";
 		UiMessage = message.Text;
 
 		UiContext = UiContext.Default;
