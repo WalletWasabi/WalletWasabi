@@ -1,18 +1,9 @@
-using Avalonia.Controls.Primitives;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Helpers;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WalletWasabi.Tests.UnitTests.BuyAnything;
 
@@ -24,7 +15,7 @@ public class BuyAnythingSerializationTests
 		ConversationTracking conversationTracking = new();
 
 		var conversation = new Conversation(
-			new ConversationId("myWalletId", "myUserName", "myPassword", "myOrderId"),
+			new ConversationId("myWalletId", "myUserName", "myPassword", "myOrderId", "myOrderNumber"),
 			Chat.Empty,
 			OrderStatus.Open,
 			ConversationStatus.Started,
@@ -43,12 +34,7 @@ public class BuyAnythingSerializationTests
 			.AddSystemChatLine("my offer arrive", new OfferCarrier(lineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), new ShippingCosts("599")), ConversationStatus.OfferReceived)
 			.AddSystemChatLine("my tracking arrived", new TrackingCodes(new[] { "www.mytacking.com/44343", "www.mytacking.com/1234" }), ConversationStatus.PaymentConfirmed);
 
-		updatedConversation = updatedConversation with
-		{
-			ChatMessages = updatedConversation.ChatMessages
-				.AddSentMessage("My sent message")
-				.AddReceivedMessage("My reveived message", DataCarrier.NoData)
-		};
+		updatedConversation = track.Conversation.AddUserMessage("My sent message").AddBotMessage("My received message", DataCarrier.NoData);
 
 		track.Conversation = updatedConversation;
 		track.LastUpdate = DateTimeOffset.Now;

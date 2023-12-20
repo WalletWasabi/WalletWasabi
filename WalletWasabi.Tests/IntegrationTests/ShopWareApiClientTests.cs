@@ -7,12 +7,9 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
-using WalletWasabi.BuyAnything;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
-using System.Net.Http;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -96,29 +93,6 @@ public class ShopWareApiClientTests
 	}
 
 	[Fact]
-	public async Task GetExistingOrderAsync()
-	{
-		await using TestSetup testSetup = TestSetup.ForClearnet();
-		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
-
-		BuyAnythingClient bac = new(shopWareApiClient);
-		using BuyAnythingManager bam = new(Common.DataDir, TimeSpan.FromSeconds(5), bac);
-
-		var argentina = bam.Countries.First(c => c.Name == "Argentina");
-
-		await bam.StartAsync(CancellationToken.None);
-
-		await bam.StartNewConversationAsync("1", argentina.Name, BuyAnythingClient.Product.ConciergeRequest, new ChatMessage[] { new(true, "From StartNewConversationAsync", false, ChatMessageMetaData.Empty) }, new ConversationMetaData("Title"), CancellationToken.None).ConfigureAwait(false);
-
-		var conversations = await bam.GetConversationsAsync("1", CancellationToken.None);
-		var conversation = conversations.Last();
-		var stateId = "none";
-
-		// Not sure why we accept any offer in this simple test.
-		await bam.AcceptOfferAsync(conversation.Id, "Watoshi", "Sabimoto", "Evergreen", "321", "5000", "Cordoba", stateId, argentina.Name, CancellationToken.None);
-	}
-
-	[Fact]
 	public async Task CanFetchCountriesAndStatesAsync()
 	{
 		await using TestSetup testSetup = TestSetup.ForClearnet();
@@ -148,7 +122,7 @@ public class ShopWareApiClientTests
 
 		// If a country is added or removed, test will fail and we will be notified.
 		// We could go further and verify equality.
-		Assert.Equal(246, toSerialize.Count);
+		Assert.Equal(244, toSerialize.Count);
 
 		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("none", toSerialize.First(c => c.Name == "United States of America").Id, CancellationToken.None);
 		Assert.Equal(51, stateResponse.Elements.Count);
