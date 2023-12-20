@@ -64,24 +64,9 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<Avaloni
 
 	private void RemoveClasses(TreeDataGridRow row)
 	{
-		if (row.Classes.Contains(TransactionClass))
-		{
-			row.Classes.Remove(TransactionClass);
-		}
-
-		if (row.Classes.Contains(CoinJoinClass))
-		{
-			row.Classes.Remove(CoinJoinClass);
-		}
-
-		if (row.Classes.Contains(CoinJoinsClass))
-		{
-			row.Classes.Remove(CoinJoinsClass);
-		}
-
-		if (row.Classes.Contains(SpeedUpClass))
-		{
-			row.Classes.Remove(SpeedUpClass);
-		}
+		_ = row.Classes.Remove(TransactionClass);
+		_ = row.Classes.Remove(CoinJoinClass);
+		_ = row.Classes.Remove(CoinJoinsClass);
+		_ = row.Classes.Remove(SpeedUpClass);
 	}
 }

@@ -4,11 +4,18 @@
     <AvaloniaVersion>11.0.5</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
+	<!-- AspNetCore. -->
+	<PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+	<PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <!-- JSON. -->
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
     <!-- SQLite. -->
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="7.0.9" />
-    <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
+	<PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
@@ -30,13 +37,20 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="System.Runtime" Version="4.3.1" />
     <PackageVersion Include="QRackers" Version="1.1.0" />
-	<PackageVersion Include="DynamicData" Version="8.1.1" />
-	<!-- UI Testing. -->
+    <PackageVersion Include="DynamicData" Version="8.1.1" />
+    <!-- TODO: HarfBuzzSharp can be removed when Avalonia.Skia gets updated version. -->
+    <PackageVersion Include="HarfBuzzSharp" Version="2.8.2.5" />
+    <!-- UI Mobile. -->
+    <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.AppCompat" Version="1.3.1.3" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.3.1.3" />
+    <PackageVersion Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
+    <!-- UI Testing. -->
     <PackageVersion Include="Avalonia.Headless.XUnit" Version="$(AvaloniaVersion)" />
     <!-- Testing. -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.9" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Moq" Version="[4.18.4]" />
     <PackageVersion Include="xunit" Version="2.5.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />

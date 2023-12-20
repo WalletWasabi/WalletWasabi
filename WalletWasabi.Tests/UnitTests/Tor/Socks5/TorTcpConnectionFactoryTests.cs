@@ -91,7 +91,7 @@ public class TorTcpConnectionFactoryTests
 		}
 		finally
 		{
-			listener?.Stop();
+			listener?.Dispose();
 		}
 	}
 
@@ -224,7 +224,7 @@ public class TorTcpConnectionFactoryTests
 		}
 		finally
 		{
-			listener?.Stop();
+			listener?.Dispose();
 		}
 	}
 }

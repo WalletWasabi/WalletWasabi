@@ -35,6 +35,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = wallet.AmountProvider.Create(model.Fee);
+		FeeRate = model.FeeRate;
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
@@ -43,6 +44,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		UpdateValues(model);
 	}
+
+	public FeeRate? FeeRate { get; set; }
 
 	public uint256 TransactionId { get; }
 

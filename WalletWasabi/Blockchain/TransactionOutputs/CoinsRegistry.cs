@@ -379,8 +379,6 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
-	public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
-
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
 	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
@@ -423,15 +421,11 @@ public class CoinsRegistry : ICoinsView
 		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
 	}
 
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
-
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
 	public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
-
-	public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
 	public Money TotalAmount() => AsCoinsView().TotalAmount();
 

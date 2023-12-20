@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
 
@@ -72,15 +73,11 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 			})
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.SelectedWallet)
-			.Select(x => x?.WalletViewModel?.WalletModel)
-			.BindTo(this, x => x.SelectedWalletModel);
-
 		this.WhenAnyValue(x => x.SelectedWalletModel)
 			.Select(model => Wallets.FirstOrDefault(w => w.WalletModel == model))
 			.BindTo(this, x => x.SelectedWallet);
 
-		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName);
+		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName) ?? Wallets.FirstOrDefault();
 	}
 
 	public async Task InitialiseAsync()
