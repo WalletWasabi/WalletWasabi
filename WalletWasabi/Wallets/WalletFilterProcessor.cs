@@ -57,20 +57,10 @@ public class WalletFilterProcessor : BackgroundService
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
-	private Dictionary<uint, FilterModel> FiltersCache { get; } = new ();
+	private Dictionary<uint, FilterModel> FiltersCache { get; } = new();
 	
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private AsyncLock ReorgLock { get; } = new ();
-
-	private void Add(SyncRequest request)
-	{
-		lock (SynchronizationRequestsLock)
-		{
-			Priority priority = new(request.SyncType);
-			SynchronizationRequests.Enqueue(request, priority);
-			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
-		}
-	}
 
 	public async Task ProcessAsync(IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
 	{
@@ -80,9 +70,16 @@ public class WalletFilterProcessor : BackgroundService
 	
 	public async Task ProcessAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
-		var tcs = new TaskCompletionSource();
-		Add(new SyncRequest(syncType, tcs));
-		await tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+		SyncRequest request = new(syncType, new TaskCompletionSource());
+
+		lock (SynchronizationRequestsLock)
+		{
+			Priority priority = new(request.SyncType);
+			SynchronizationRequests.Enqueue(request, priority);
+			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
+		}
+
+		await request.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
