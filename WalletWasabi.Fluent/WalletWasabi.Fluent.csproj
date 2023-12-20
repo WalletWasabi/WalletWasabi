@@ -25,9 +25,6 @@
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
-		<!-- TODO: Required HarfBuzzSharp version bump to make iossimulator-arm64 RID work for iOS project -->
-		<!-- TODO: Can be removed after Avalonia update and HarfBuzzSharp >= 2.8.2.5 -->
-		<PackageReference Include="HarfBuzzSharp" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
