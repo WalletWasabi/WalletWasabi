@@ -1,3 +1,4 @@
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -56,6 +57,7 @@ public class BuyAnythingClient
 	}
 
 	private IShopWareApiClient ApiClient { get; }
+	private AsyncLock ContextTokenCacheLock { get; } = new ();
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
@@ -129,17 +131,20 @@ public class BuyAnythingClient
 	// This method implements a caching mechanism to avoid multiple login requests.
 	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
-		if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
+		using (await ContextTokenCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			if (cacheEntry.expriresAt > DateTimeOffset.UtcNow)
+			if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
 			{
-				return cacheEntry.token;
+				if (cacheEntry.expriresAt > DateTimeOffset.UtcNow)
+				{
+					return cacheEntry.token;
+				}
 			}
+			var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
+			var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
+			ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
+			return response.ContextToken;
 		}
-		var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
-		var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
-		ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
-		return response.ContextToken;
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
