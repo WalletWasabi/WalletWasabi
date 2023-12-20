@@ -18,6 +18,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 	{
 		_wallet = wallet;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+		IsCompleted = conversation.ConversationStatus >= ConversationStatus.Finished;
 	}
 
 	public override async Task ExecuteAsync(CancellationToken token)
