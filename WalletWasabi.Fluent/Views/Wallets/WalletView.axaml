@@ -73,8 +73,8 @@
                 <FlyoutBase.AttachedFlyout>
                   <Flyout ShowMode="Transient" Placement="Left" FlyoutPresenterClasses="Bubble">
                     <StackPanel Spacing="6">
-                      <TextBlock FontWeight="SemiBold" TextAlignment="Left">Your Bitcoin wallet is now an Anything wallet!</TextBlock>
-                      <TextBlock Opacity="0.6">Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will find what you want and send it to you, privately.</TextBlock>
+                      <TextBlock FontWeight="SemiBold" TextAlignment="Left">Buy anything with bitcoin through your Wasabi wallet!</TextBlock>
+                      <TextBlock Opacity="0.6">Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will get you that, privately.</TextBlock>
                     </StackPanel>
                   </Flyout>
                 </FlyoutBase.AttachedFlyout>

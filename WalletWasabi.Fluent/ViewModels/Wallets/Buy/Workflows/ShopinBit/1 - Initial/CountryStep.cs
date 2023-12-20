@@ -33,10 +33,10 @@ public class CountryStep : WorkflowStep<Country>
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		// Assistant greeting, min order limit
-		yield return $"Hello, I am your chosen {GetAssistantName(conversation)}. At present, we focus on requests where the value of the goods or services is at least $1,000 USD.\nPlease keep in mind that we can only organize legal products.";
+		yield return $"Hello, I am your chosen {GetAssistantName(conversation)}.\nFor now we only accept requests for legal goods or services of at least $1,000 USD.";
 
 		// Ask for Location
-		yield return "To start, please indicate your country. If your order involves shipping, provide the destination country. For non-shipping orders, please specify your nationality.";
+		yield return "If your order involves shipping, provide the destination country. For non-shipping orders, specify your nationality.";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, Country value) =>

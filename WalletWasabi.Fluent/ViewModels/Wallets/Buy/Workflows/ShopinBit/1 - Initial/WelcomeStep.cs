@@ -36,16 +36,16 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		// Welcome
-		yield return "Welcome to our 'Buy Anything' service! To get started, please select the assistant that best fits your needs.";
+		yield return "Please select the assistant that best fits your needs:";
 
 		// All-Purpose Concierge Assistant
-		yield return "All-Purpose Concierge Assistant\n\nOur all-purpose assistant, ready to help with a wide range of purchases, from tech gadgets to vehicles and more.";
+		yield return "All-Purpose Concierge Assistant\n\nFor a wide range of purchases, from vehicles to tech gadgets and more.";
 
 		// Fast Travel Assistant
-		yield return "Fast Travel Assistant\n\nChoose this option if you have a specific flight or hotel in mind and need quick assistance with booking.";
+		yield return "Fast Travel Assistant\n\nIf you've a specific flight or hotel in mind and need quick assistance with booking.";
 
 		// General Travel Assistant
-		yield return "General Travel Assistant\n\nSelect this if you're just starting to plan your travel and don't have any travel details yet.";
+		yield return "General Travel Assistant\n\nIf you're just starting to plan your travel and don't have any details yet.";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
