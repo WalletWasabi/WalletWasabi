@@ -534,8 +534,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task SendSystemChatLinesAsync(ConversationUpdateTrack track, string message, DataCarrier data, DateTimeOffset? updatedAt, ConversationStatus newStatus, CancellationToken cancellationToken)
 	{
 		var updatedConversation = track.Conversation.AddSystemChatLine(message, data, newStatus);
-		track.Conversation = updatedConversation;
-		await UpdateConversationAsync(track.Conversation, cancellationToken).ConfigureAwait(false);
+		await UpdateConversationAsync(updatedConversation, cancellationToken).ConfigureAwait(false);
 		ConversationUpdated.SafeInvoke(this, new ConversationUpdateEvent(updatedConversation, updatedAt ?? DateTimeOffset.Now));
 	}
 
