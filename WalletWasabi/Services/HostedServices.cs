@@ -79,6 +79,7 @@ public class HostedServices : IDisposable
 		}
 	}
 
+	/// <remarks>This method does not throw exceptions.</remarks>
 	public async Task StopAllAsync(CancellationToken token = default)
 	{
 		var tasks = CloneServices().Select(x => x.Service.StopAsync(token).ContinueWith(y =>
