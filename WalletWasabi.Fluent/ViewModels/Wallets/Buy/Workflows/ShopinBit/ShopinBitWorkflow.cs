@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit._4___Finished;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
@@ -88,7 +87,7 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			// Wait until the Conversation is deleted on SIB side
 			while (Conversation.ConversationStatus != ConversationStatus.Deleted)
 			{
-				if (Conversation.ConversationStatus == ConversationStatus.Finished)
+				if (Conversation.ConversationStatus == ConversationStatus.Finished && !IsCompleted)
 				{
 					IsCompleted = true;
 					await ExecuteStepAsync(new OrderFinishedMessage(Conversation, token));

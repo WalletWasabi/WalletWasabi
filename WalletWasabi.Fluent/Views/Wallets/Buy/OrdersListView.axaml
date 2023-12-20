@@ -48,7 +48,7 @@
              DockPanel.Dock="Left">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <DockPanel>
+          <DockPanel ToolTip.Tip="{Binding SibId}">
             <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Right">
               <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
                         Classes.UnreadMessagesIcon="{Binding HasUnreadMessagesObs^}" />

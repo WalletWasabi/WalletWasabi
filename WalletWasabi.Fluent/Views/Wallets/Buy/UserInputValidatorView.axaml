@@ -72,6 +72,9 @@
       <DataTemplate DataType="vm:SaveConversationStep">
         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
       </DataTemplate>
+      <DataTemplate DataType="vm:OrderFinishedMessage">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
 
       <!-- WelcomeStep -->
       <DataTemplate DataType="vm:WelcomeStep">
