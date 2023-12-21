@@ -25,6 +25,8 @@ namespace WalletWasabi.Packager;
 public static class Program
 {
 	public const string PfxPath = "C:\\digicert.pfx";
+
+	public const string DaemonExecutableName = Constants.DaemonExecutableName;
 	public const string ExecutableName = Constants.ExecutableName;
 
 	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
@@ -34,7 +36,7 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"win7-x64",
+		"win-x64",
 		"linux-x64",
 		"osx-x64",
 		"osx-arm64"
@@ -318,27 +320,19 @@ public static class Program
 				}
 			}
 
-			// Rename the final exe.
-			string oldExecutablePath;
-			string newExecutablePath;
-			if (target.StartsWith("win"))
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop.exe");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
-			}
-			else // Linux & OSX
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
-			}
-
+			// Rename WalletWasabi.Fluent.Desktop(.exe) -> wassabee(.exe).
+			string executableExtension = target.StartsWith("win") ? ".exe" : "";
+			string oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent.Desktop{executableExtension}");
+			string newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}{executableExtension}");
 			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Rename WalletWasabi.Daemon(.exe) -> wassabeed(.exe).
+			oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Daemon{executableExtension}");
+			newExecutablePath = Path.Combine(currentBinDistDirectory, $"{DaemonExecutableName}{executableExtension}");
+			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Delete unused executables.
+			File.Delete(Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent{executableExtension}"));
 
 			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 			if (OnlyBinaries)
@@ -413,7 +407,7 @@ public static class Program
 				Console.WriteLine($"# Move '{publishedFolder}' to '{newFolderPath}'.");
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
-				string chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
+				string chmodExecutablesArgs = $$"""-type f \( -name '{{ExecutableName}}' -o -name '{{DaemonExecutableName}}' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \) -exec chmod +x {} \;""";
 
 				string[] commands = new string[]
 				{
@@ -454,9 +448,9 @@ public static class Program
 					var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
 					if (number.Length == 1 && int.TryParse(number.First(), out int size))
 					{
-						string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
-						Directory.CreateDirectory(destFolder);
-						file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
+						string destinationFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
+						Directory.CreateDirectory(destinationFolder);
+						file.CopyTo(Path.Combine(destinationFolder, $"{ExecutableName}.png"));
 					}
 				}
 
@@ -495,20 +489,25 @@ public static class Program
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
+				const string Shebang = "#!/usr/bin/env sh\n";
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
-				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
+				var wasabiStarterScriptContent = Shebang +
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
+				var wasabiDaemonStarterScriptContent = Shebang +
+				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
+				File.WriteAllText(wasabiDaemonStarterScriptPath, wasabiDaemonStarterScriptContent, Encoding.ASCII);
 
-				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
+				string debDesktopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
 				commands = new string[]
 				{
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
+					$"sudo chmod -R 0644 {debDesktopFileLinuxPath}",
 					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 				};
 
@@ -599,12 +598,8 @@ public static class Program
 			RedirectStandardInput = isWriteToStandardInput,
 			RedirectStandardOutput = redirectStandardOutput,
 			WorkingDirectory = workingDirectory
-		});
-
-		if (process is null)
-		{
-			throw new InvalidOperationException($"Process '{command}' is invalid.");
-		}
+		})
+		?? throw new InvalidOperationException($"Process '{command}' is invalid.");
 
 		if (isWriteToStandardInput)
 		{

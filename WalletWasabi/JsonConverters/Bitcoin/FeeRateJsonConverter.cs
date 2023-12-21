@@ -15,7 +15,8 @@ public class FeeRateJsonConverter : JsonConverter<FeeRate>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, FeeRate? value, JsonSerializer serializer)
 	{
-		var longValue = value?.FeePerK.Satoshi ?? throw new ArgumentNullException(nameof(value));
+		long longValue = value?.FeePerK.Satoshi
+			?? throw new ArgumentNullException(nameof(value));
 		writer.WriteValue(longValue);
 	}
 }

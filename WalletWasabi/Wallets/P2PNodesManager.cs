@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -30,10 +31,10 @@ public class P2PNodesManager
 		}
 
 		// Select a random node we are connected to.
-		return Nodes.ConnectedNodes.RandomElement();
+		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
 	}
 
-	public void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
+	public void DisconnectNodeIfEnoughPeers(Node node, string logIfDisconnect, bool force = false)
 	{
 		if (Nodes.ConnectedNodes.Count > 3 || force)
 		{

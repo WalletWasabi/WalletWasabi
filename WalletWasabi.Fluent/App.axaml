@@ -6,7 +6,8 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.App">
+             x:Class="WalletWasabi.Fluent.App"
+             RequestedThemeVariant="Dark">
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
@@ -17,32 +18,24 @@
   <Application.Resources>
     <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
     <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
+    <NativeMenu x:Key="DefaultNativeMenu">
+      <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
+      <NativeMenuItemSeparator />
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
+    <NativeMenu x:Key="MacOsNativeMenu">
+      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
+    </NativeMenu>
   </Application.Resources>
 
   <Application.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.axaml" />
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRingArc.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRing.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/QuestionControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBar.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBoxAutoCompleteBox.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
@@ -52,13 +45,14 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
-        <NativeMenu.Menu>
+        <!-- TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed. -->
+        <!--<NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
-        </NativeMenu.Menu>
+        </NativeMenu.Menu>-->
       </TrayIcon>
     </TrayIcons>
   </TrayIcon.Icons>

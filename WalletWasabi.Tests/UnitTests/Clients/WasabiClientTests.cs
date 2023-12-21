@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using SQLitePCL;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -41,11 +42,11 @@ public class WasabiClientTests
 			return response;
 		}
 
-		var mockTorHttpClient = new Mock<IHttpClient>();
-		mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
-			.Returns(async (HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation) => await FakeServerCodeAsync(method, relativeUri, content, cancellation));
+		var mockTorHttpClient = new MockIHttpClient();
+		mockTorHttpClient.OnSendAsync = req =>
+			FakeServerCodeAsync(req.Method, req.RequestUri.PathAndQuery, req.Content, CancellationToken.None);
 
-		var client = new WasabiClient(mockTorHttpClient.Object);
+		var client = new WasabiClient(mockTorHttpClient);
 		Assert.Empty(WasabiClient.TransactionCache);
 
 		// Requests one transaction
@@ -70,16 +71,16 @@ public class WasabiClientTests
 		Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 
 		// Requests transactions that are already in the cache
-		mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
-			.ThrowsAsync(new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
+		mockTorHttpClient.OnSendAsync = req =>
+			Task.FromException<HttpResponseMessage>(new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
 
 		var expectedTobeCachedTxId = mempool.Last().GetHash();
 		txs = await client.GetTransactionsAsync(Network.Main, new[] { expectedTobeCachedTxId }, CancellationToken.None);
 		Assert.Equal(expectedTobeCachedTxId, txs.Last().GetHash());
 
 		// Requests fails with Bad Request
-		mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.BadRequest)
+		mockTorHttpClient.OnSendAsync = req =>
+			Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
 			{
 				Content = new StringContent("\"Some RPC problem...\"")
 			});

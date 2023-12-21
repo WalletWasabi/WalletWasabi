@@ -63,9 +63,10 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 			return;
 		}
 
-		if (control.GetVisualRoot() is IInputElement inputRoot)
+		if (control.GetVisualRoot() is InputElement inputRoot)
 		{
-			inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown, EventRoutingStrategy)
+			inputRoot
+				.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown, EventRoutingStrategy)
 				.DisposeWith(disposable);
 		}
 	}

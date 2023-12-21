@@ -24,7 +24,6 @@
         </DockPanel>
       </Button>
     </DataTemplate>
-
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
@@ -41,7 +40,6 @@
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
-
   </UserControl.Styles>
 
   <c:ContentArea
@@ -58,14 +56,7 @@
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
             <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-              <TextBlock DataContext="{Binding Balance}">
-                <TextBlock.Text>
-                  <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-                    <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
-                  </MultiBinding>
-                </TextBlock.Text>
-              </TextBlock>
+              <c:AmountControl Amount="{Binding Balance^}" />
             </Button>
           </c:PrivacyContentControl>
         </StackPanel>
@@ -144,14 +135,16 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balance^.Btc}"
+                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  ValidatePasteBalance="True">
             <c:DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
-                                           TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}"
-                                           FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}">
+                                           TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
+                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}">
               </converters:BooleanConverter>
-
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"

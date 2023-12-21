@@ -1,24 +1,24 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
       <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
-        <c:LabelsItemsPresenter.Items>
+        <c:LabelsItemsPresenter.ItemsSource>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
             <x:String>Label 2</x:String>
             <x:String>Label 3</x:String>
             <x:String>Label 4</x:String>
           </g:List>
-        </c:LabelsItemsPresenter.Items>
+        </c:LabelsItemsPresenter.ItemsSource>
       </c:LabelsItemsPresenter>
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="Border.label">
+  <ControlTheme x:Key="LabelBorder" TargetType="Border">
     <Setter Property="Margin" Value="0" />
     <Setter Property="Padding" Value="12,5,12,5" />
     <Setter Property="VerticalAlignment" Value="Top" />
@@ -28,35 +28,56 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
     <Setter Property="CornerRadius" Value="2" />
-  </Style>
+  </ControlTheme>
 
-  <Style Selector="c|LabelsItemsPresenter">
+  <ControlTheme x:Key="{x:Type c:LabelsItemsPresenter}" TargetType="c:LabelsItemsPresenter">
+
     <Setter Property="Margin" Value="0" />
-    <Setter Property="VirtualizationMode" Value="Simple" />
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="MaxLabelWidth" Value="{DynamicResource LabelMaxWidth}" />
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                VerticalAlignment="{TemplateBinding VerticalAlignment}">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          ItemsPanel="{TemplateBinding ItemsPanel}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
-          <Border Classes="label" ToolTip.Tip="{Binding}" BorderBrush="{Binding $parent[c:LabelsItemsPresenter].BorderBrush}">
+          <Border Theme="{StaticResource LabelBorder}"
+                  ToolTip.Tip="{Binding}"
+                  BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
             <TextBlock Text="{Binding}"
                        TextTrimming="CharacterEllipsis"
                        TextWrapping="NoWrap"
-                       Foreground="{Binding $parent[c:LabelsItemsPresenter].Foreground}"
-                       MaxWidth="{Binding $parent[c:LabelsItemsPresenter].MaxLabelWidth}" />
+                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
+                       MaxWidth="{Binding MaxLabelWidth, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}" />
           </Border>
         </Panel>
       </DataTemplate>
     </Setter>
+
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal" Spacing="2"
-                       HorizontalAlignment="{Binding $parent[c:LabelsItemsPresenter].HorizontalAlignment}">
+        <c:LabelsPanel HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
+                       InfiniteWidthMeasure="{Binding InfiniteWidthMeasure, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
-              <Border Classes="label" BorderBrush="{Binding $parent[c:LabelsItemsPresenter].BorderBrush}">
+              <Border Theme="{StaticResource LabelBorder}"
+                      BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
                 <ToolTip.Tip>
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
@@ -67,7 +88,7 @@
                 <TextBlock Text="..."
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
-                           Foreground="{Binding $parent[c:LabelsItemsPresenter].Foreground}"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
                            MaxWidth="{DynamicResource LabelMaxWidth}" />
               </Border>
             </Panel>
@@ -75,5 +96,7 @@
         </c:LabelsPanel>
       </ItemsPanelTemplate>
     </Setter>
-  </Style>
-</Styles>
+
+  </ControlTheme>
+
+</ResourceDictionary>

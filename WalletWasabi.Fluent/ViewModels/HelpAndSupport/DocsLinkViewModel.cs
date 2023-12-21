@@ -1,6 +1,5 @@
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -16,6 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	IconName = "book_question_mark_regular")]
 public partial class DocsLinkViewModel : TriggerCommandViewModel
 {
-	public override ICommand TargetCommand =>
-		ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.DocsLink));
+	private DocsLinkViewModel()
+	{
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.DocsLink));
+	}
+
+	public override ICommand TargetCommand { get; }
 }

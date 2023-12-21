@@ -30,74 +30,40 @@
     <DockPanel LastChildFill="True">
 
       <!-- Indicator & Buttons -->
-      <Panel DockPanel.Dock="Bottom">
-
-        <ListBox HorizontalAlignment="Center"
-                 SelectedIndex="{Binding SelectedIndex}"
-                 Background="Transparent"
-                 IsHitTestVisible="False">
-          <ListBox.Styles>
-            <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="Transparent" />
-            </Style>
-            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="ListBoxItem">
-              <Setter Property="Opacity" Value="0.3" />
-            </Style>
-            <Style Selector="ListBoxItem:selected">
-              <Setter Property="Opacity" Value="1" />
-            </Style>
-            <Style Selector="Ellipse">
-              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}" />
-              <Setter Property="Width" Value="9" />
-              <Setter Property="Height" Value="9" />
-            </Style>
-          </ListBox.Styles>
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="5" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <Ellipse />
-          <Ellipse />
-        </ListBox>
-
-        <!-- Carousel nav buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-          <StackPanel.Styles>
-            <Style Selector="Button">
-              <Setter Property="Width" Value="30" />
-              <Setter Property="Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackground}" />
-              <Setter Property="Height" Value="30" />
-              <Setter Property="HorizontalContentAlignment" Value="Center" />
-              <Setter Property="VerticalContentAlignment" Value="Center" />
-              <Setter Property="Padding" Value="0" />
-              <Setter Property="BorderThickness" Value="0" />
-            </Style>
-            <Style Selector="Button:disabled">
-              <Setter Property="Opacity" Value="0.2" />
-            </Style>
-            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
-            </Style>
-            <Style Selector="Button > PathIcon">
-              <Setter Property="Width" Value="5" />
-            </Style>
-          </StackPanel.Styles>
-        </StackPanel>
-      </Panel>
-
+      <ListBox HorizontalAlignment="Center"
+               SelectedIndex="{Binding SelectedIndex}"
+               Background="Transparent"
+               IsHitTestVisible="False"
+               DockPanel.Dock="Bottom">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+          </Style>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Opacity" Value="0.3" />
+          </Style>
+          <Style Selector="ListBoxItem:selected">
+            <Setter Property="Opacity" Value="1" />
+          </Style>
+          <Style Selector="Ellipse">
+            <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}" />
+            <Setter Property="Width" Value="9" />
+            <Setter Property="Height" Value="9" />
+          </Style>
+        </ListBox.Styles>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="5" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <Ellipse />
+        <Ellipse />
+      </ListBox>
       <!-- Pages -->
       <Carousel SelectedIndex="{Binding SelectedIndex}"
-                ClipToBounds="False"
                 DockPanel.Dock="Top"
                 Margin="0 10">
         <i:Interaction.Behaviors>
@@ -108,26 +74,22 @@
         </i:Interaction.Behaviors>
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
-            <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Opacity" Value="0.5" />
             <Setter Property="FontWeight" Value="Light" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0 0 0 6" />
           </Style>
 
           <Style Selector="TextBlock.title2">
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="FontSize" Value="16" />
+            <Setter Property="Padding" Value="0 4 8 4" />
           </Style>
 
           <Style Selector="TextBlock.title1">
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="TextAlignment" Value="Left" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="FontSize" Value="31" />
-            <Setter Property="Margin" Value="0 0 0 20" />
           </Style>
 
           <Style Selector="Viewbox.icon">
@@ -135,83 +97,30 @@
             <Setter Property="DockPanel.Dock" Value="Bottom" />
             <Setter Property="HorizontalAlignment" Value="Left" />
           </Style>
+
+          <Style Selector="Grid TextBlock">
+            <Setter Property="TextAlignment" Value="Left" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+
+          <Style Selector="Grid StackPanel">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="230" />
+          </Style>
         </Carousel.Styles>
         <Carousel.PageTransition>
           <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
                      SlideInEasing="{StaticResource FluentEasing}" />
         </Carousel.PageTransition>
 
-        <!-- Welcome to Wasabi -->
-        <DockPanel LastChildFill="True" VerticalAlignment="Center">
-          <TextBlock Classes="title1" FontWeight="Bold" DockPanel.Dock="Top" HorizontalAlignment="Center">
-            Welcome to Wasabi Wallet!
-          </TextBlock>
-          <DockPanel LastChildFill="True">
-            <Panel DockPanel.Dock="Right"
-                   MaxWidth="230"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Right">
-              <ExperimentalAcrylicBorder Margin="2">
-                <ExperimentalAcrylicBorder.Material>
-                  <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                               TintColor="White"
-                                               TintOpacity="0"
-                                               FallbackColor="White"
-                                               MaterialOpacity="0" />
-                </ExperimentalAcrylicBorder.Material>
-              </ExperimentalAcrylicBorder>
-              <Viewbox>
-                <Panel>
-                  <Border Width="465.5" Height="465.5" />
-                  <Path Fill="{DynamicResource TextControlForeground}" Opacity="0.75"
-                        Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z " />
-                  <Path Fill="#FF77C200" Opacity="0.75" Data="M 322 18 H 458 V 189 H 322 Z" />
-                  <Path Fill="{DynamicResource RegionColor}"
-                        Data="M0 0v465.5h465.5V0H0zm363.6 76.1h74.6v73.3h-74.6V76zM91.1 81.6a479.5 479.5 0 0 0 54.2 142.3l6.8 9.5h84a474.6 474.6 0 0 1-43.3-115.2L255 82.9a528 528 0 0 0 55.6 141l6.8 9.5h119.3v58.3h-65c19 20.4 40.6 35.3 59.6 47.5l-51.5 50.2c-25.8-17.7-70.5-50.2-107.1-97.7H209c20.4 17.7 44.8 39.4 58.3 47.5l-54.2 50.2A430 430 0 0 1 96.5 274.1a481 481 0 0 1-69.2-156c23-13.5 40.7-21.6 63.8-36.5z" />
-                </Panel>
-              </Viewbox>
-            </Panel>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Classes="title2">
-                Bitcoin wallet
-              </TextBlock>
-              <TextBlock Classes="text">
-                Receive and send money, securely and privately.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Non-custodial
-              </TextBlock>
-              <TextBlock Classes="text">
-                You are in full control, nobody can steal from you.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Private by default
-              </TextBlock>
-              <TextBlock Classes="text">
-                Because your transactions are nobody else's business.
-              </TextBlock>
-              <TextBlock Classes="title2">
-                Open Source
-              </TextBlock>
-              <TextBlock Classes="text">
-                     Verify what’s going on and help us improve.
-              </TextBlock>
-            </StackPanel>
-
-          </DockPanel>
-
-        </DockPanel>
         <!-- Get started -->
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock TextAlignment="Center"
-                     Text="The 1st Rule of Wasabi: Wasabi is for self defense and self defense only"
-                     Opacity="0.6"
-                     FontWeight="Light"
-                     LineHeight="22"
-                     DockPanel.Dock="Bottom"
-                     Margin="0 15" />
-          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
-                     DockPanel.Dock="Bottom" />
+          <StackPanel DockPanel.Dock="Bottom" Spacing="10">
+            <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
+
+            <TextBlock TextAlignment="Center" Text="Rule #1: Wasabi is for defense only" FontWeight="Light" />
+          </StackPanel>
           <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
             <ExperimentalAcrylicBorder Margin="2">
               <ExperimentalAcrylicBorder.Material>
@@ -234,6 +143,110 @@
             </Viewbox>
           </Panel>
         </DockPanel>
+
+        <!-- Get started -->
+        <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" MaxHeight="350">
+          <Grid.Styles>
+            <Style Selector="TextBlock.AnimatedOrange">
+              <Setter Property="Background">
+                <Setter.Value>
+                  <LinearGradientBrush>
+                    <GradientStop Offset="0" Color="#6E4035" />
+                    <GradientStop Offset="1" Color="#8A4F42" />
+                  </LinearGradientBrush>
+                </Setter.Value>
+              </Setter>
+              <Style.Animations>
+                <Animation Duration="0:0:1.5" Delay="0:0:1" Easing="{StaticResource FluentEasing}">
+                  <KeyFrame Cue="0%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="Transparent" />
+                          <GradientStop Offset="0" Color="Transparent" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                  <KeyFrame Cue="5%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="#6E4035" />
+                          <GradientStop Offset="1" Color="#8A4F42" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+            <Style Selector="TextBlock.AnimatedGreen">
+              <Setter Property="Background">
+                <Setter.Value>
+                  <LinearGradientBrush>
+                    <GradientStop Offset="0" Color="#3234D286" />
+                    <GradientStop Offset="1" Color="#1D8653" />
+                  </LinearGradientBrush>
+                </Setter.Value>
+              </Setter>
+              <Style.Animations>
+                <Animation Duration="0:0:1.5" Delay="0:0:1" Easing="{StaticResource FluentEasing}">
+                  <KeyFrame Cue="0%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="Transparent" />
+                          <GradientStop Offset="0" Color="Transparent" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                  <KeyFrame Cue="5%">
+                    <Setter Property="Background">
+                      <Setter.Value>
+                        <LinearGradientBrush>
+                          <GradientStop Offset="0" Color="#1F34D286" />
+                          <GradientStop Offset="1" Color="#2934D286" />
+                        </LinearGradientBrush>
+                      </Setter.Value>
+                    </Setter>
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+          </Grid.Styles>
+          <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{Binding SelectedIndex}" Value="1">
+              <AddClassAction ClassName="AnimatedGreen" StyledElement="PlebsTextBlock" />
+              <AddClassAction ClassName="AnimatedGreen" StyledElement="FriendsTextBlock" />
+              <AddClassAction ClassName="AnimatedOrange" StyledElement="CoinjoinFeeTextBlock" />
+              <AddClassAction ClassName="AnimatedOrange" StyledElement="MiningFeeTextBlock" />
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
+
+          <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Coinjoin Fees" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+          <StackPanel Grid.Column="0" Grid.Row="1">
+            <TextBlock Name="CoinjoinFeeTextBlock" Text="Service Fee" Classes="title2" />
+            <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Grid.Row="1">
+            <TextBlock Name="MiningFeeTextBlock" Text="Network Fee" Classes="title2" />
+            <TextBlock Text="The market standard in mining fee always applies." Classes="text" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="0" Grid.Row="2">
+            <TextBlock Name="PlebsTextBlock" Text="Plebs Don't Pay" Classes="title2" />
+            <TextBlock Text="You won't pay service fee for coins that are less than or equal to 0.01 BTC." Classes="text" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Grid.Row="2">
+            <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
+            <TextBlock Text="You won't pay service fee for coins received from other Wasabi users." Classes="text" />
+          </StackPanel>
+        </Grid>
       </Carousel>
     </DockPanel>
   </controls:ContentArea>

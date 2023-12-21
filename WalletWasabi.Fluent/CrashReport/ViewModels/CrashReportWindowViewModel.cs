@@ -17,11 +17,11 @@ public class CrashReportWindowViewModel : ViewModelBase
 		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
 		NextCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
 
-		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
+		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(Link));
 
 		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (Application.Current is { Clipboard: { } clipboard })
+			if (ApplicationHelper.Clipboard is { } clipboard)
 			{
 				await clipboard.SetTextAsync(Trace);
 			}
@@ -39,6 +39,8 @@ public class CrashReportWindowViewModel : ViewModelBase
 	public ICommand CopyTraceCommand { get; }
 
 	public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
+
+	public string Link => AboutViewModel.BugReportLink;
 
 	public string Trace => SerializedException.ToString();
 

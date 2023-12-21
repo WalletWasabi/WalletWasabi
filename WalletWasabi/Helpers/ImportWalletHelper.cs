@@ -31,8 +31,7 @@ public static class ImportWalletHelper
 			km.SetIcon(WalletType.Coldcard);
 		}
 
-		km.SetBestHeight(0);
-
+		km.SetBestHeights(height: 0, turboSyncHeight: 0);
 		return km;
 	}
 
@@ -92,6 +91,8 @@ public static class ImportWalletHelper
 			? NBitcoinHelpers.BetterParseExtPubKey(taprootXpubString)
 			: null;
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
+		var km = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
+		km.PreferPsbtWorkflow = true;
+		return km;
 	}
 }

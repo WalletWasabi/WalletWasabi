@@ -10,7 +10,7 @@ insert_final_newline = true
 # Formatting - remove any whitespace characters preceding newline characters
 trim_trailing_whitespace = true
 
-[*.{cs,csproj}]
+[*.{cs,csproj,props}]
 
 # use hard tabs for indentation
 indent_style = tab
@@ -34,11 +34,6 @@ spelling_exclusion_path = .\exclusion.dic
 
 # require braces to be on a new line for all
 csharp_new_line_before_open_brace = all
-
-# Formatting - organize using options
-
-# do not place System.* using directives before other using directives
-dotnet_sort_system_directives_first = true:error
 
 # Formatting - spacing options
 
@@ -301,3 +296,6 @@ dotnet_diagnostic.CA1827.severity = warning
 
 # CA1822: This complains to make functions static. Static is evil. Don't let it complain.
 dotnet_diagnostic.CA1822.severity = none
+
+# CA1868: Unnecessary call to Set.Contains(item)
+dotnet_diagnostic.CA1868.severity = warning

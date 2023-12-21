@@ -40,6 +40,7 @@ public class ActionsSearchSource : ISearchSource
 				{
 					Icon = m.IconName,
 					IsDefault = true,
+					Priority = m.Order,
 				};
 				return searchItem;
 			});
@@ -49,15 +50,15 @@ public class ActionsSearchSource : ISearchSource
 	{
 		return async () =>
 		{
-			var vm = await NavigationManager.MaterialiseViewModelAsync(navigationMetaData);
+			var vm = await NavigationManager.MaterializeViewModelAsync(navigationMetaData);
 			if (vm is null)
 			{
 				return;
 			}
 
-			if (vm is NavBarItemViewModel item && item.OpenCommand.CanExecute(default))
+			if (vm is INavBarButton navBarButton)
 			{
-				item.OpenCommand.Execute(default);
+				await navBarButton.Activate();
 			}
 			else if (vm is TriggerCommandViewModel triggerCommandViewModel && triggerCommandViewModel.TargetCommand.CanExecute(default))
 			{

@@ -24,8 +24,18 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl Items="{Binding MnemonicWords}">
+      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+        <Panel.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy recovery words"
+                      Command="{Binding CopyToClipboardCommand}">
+              <MenuItem.Icon>
+                <PathIcon Data="{StaticResource clipboard_text_regular}" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </Panel.ContextMenu>
+        <ItemsControl ItemsSource="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />

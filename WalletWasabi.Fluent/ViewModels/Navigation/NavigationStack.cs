@@ -179,6 +179,11 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		}
 	}
 
+	public FluentNavigate To()
+	{
+		return new FluentNavigate(UiContext);
+	}
+
 	private void UpdateCanNavigateBack()
 	{
 		CanNavigateBack = _backStack.Count > 0;
@@ -190,7 +195,10 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		var t = dialog as T;
 
-		To(t, navigationMode);
+		if (CurrentPage != t)
+		{
+			To(t, navigationMode);
+		}
 
 		var result = await dialogTask;
 

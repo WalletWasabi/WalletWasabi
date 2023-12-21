@@ -15,8 +15,8 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <DockPanel>
-      <Button DockPanel.Dock="Bottom" Focusable="False" Content="Unused Receive Addresses"
-              IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+      <Button DockPanel.Dock="Bottom" Focusable="False" Content="Addresses Awaiting Payment"
+              IsVisible="{Binding AddressesModel.HasUnusedAddresses^, FallbackValue=True}"
               Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
               HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 0" />
       <StackPanel HorizontalAlignment="Stretch" Spacing="10">
@@ -35,7 +35,8 @@
                    Watermark="{StaticResource LabelsWatermarkText}"
                    Suggestions="{Binding Suggestions}"
                    MaxTextLength="{StaticResource MaxLabelLength}"
-                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
+                   ForceAdd="{Binding ForceAdd}">
           <c:TagsBox.Styles>
             <Style Selector="c|TagsBox AutoCompleteBox">
               <Setter Property="MinimumPrefixLength" Value="0" />

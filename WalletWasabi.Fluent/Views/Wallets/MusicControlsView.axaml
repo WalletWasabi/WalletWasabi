@@ -37,7 +37,7 @@
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
           Classes.IsActive="{Binding IsMusicBoxVisible^}"
-          TextBlock.FontFamily="{StaticResource MonospacedFont}"
+          TextElement.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
@@ -55,20 +55,11 @@
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
               <TransitioningContentControl.PageTransition>
-                <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
+                <PageSlide Duration="0:0:0.125" Orientation="Vertical" SlideInEasing="0.4,0,0.6,1" SlideOutEasing="0.4,0,0.6,1" />
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
                 <DataTemplate DataType="x:String">
-                  <TextBlock Text="{Binding .}">
-                    <TextBlock.OpacityMask>
-                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
-                        <LinearGradientBrush.GradientStops>
-                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
-                          <GradientStop Color="#FFFFFFFF" Offset="1" />
-                        </LinearGradientBrush.GradientStops>
-                      </LinearGradientBrush>
-                    </TextBlock.OpacityMask>
-                  </TextBlock>
+                  <TextBlock Text="{Binding .}" />
                 </DataTemplate>
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>

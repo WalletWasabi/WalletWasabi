@@ -52,40 +52,35 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	#region Modifiers
 
-	private void AddOrUpdateNoLock(SmartTransaction tx)
-	{
-		var hash = tx.GetHash();
-
-		if (tx.Confirmed)
-		{
-			if (MempoolStore.TryRemove(hash, out var found))
-			{
-				found.TryUpdate(tx);
-				ConfirmedStore.TryAddOrUpdate(found);
-			}
-			else
-			{
-				ConfirmedStore.TryAddOrUpdate(tx);
-			}
-		}
-		else
-		{
-			if (!ConfirmedStore.TryUpdate(tx))
-			{
-				MempoolStore.TryAddOrUpdate(tx);
-			}
-		}
-	}
-
 	public void AddOrUpdate(SmartTransaction tx)
 	{
 		lock (Lock)
 		{
-			AddOrUpdateNoLock(tx);
+			var hash = tx.GetHash();
+
+			if (tx.Confirmed)
+			{
+				if (MempoolStore.TryRemove(hash, out var found))
+				{
+					found.TryUpdate(tx);
+					ConfirmedStore.TryAddOrUpdate(found);
+				}
+				else
+				{
+					ConfirmedStore.TryAddOrUpdate(tx);
+				}
+			}
+			else
+			{
+				if (!ConfirmedStore.TryUpdate(tx))
+				{
+					MempoolStore.TryAddOrUpdate(tx);
+				}
+			}
 		}
 	}
 
-	public bool TryUpdate(SmartTransaction tx)
+	internal bool TryUpdate(SmartTransaction tx)
 	{
 		var hash = tx.GetHash();
 		lock (Lock)
@@ -153,7 +148,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
-	public IEnumerable<uint256> GetTransactionHashes()
+	internal IEnumerable<uint256> GetTransactionHashes()
 	{
 		lock (Lock)
 		{
@@ -161,7 +156,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
-	public bool IsEmpty()
+	internal bool IsEmpty()
 	{
 		lock (Lock)
 		{
@@ -169,7 +164,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
-	public bool Contains(uint256 hash)
+	internal bool Contains(uint256 hash)
 	{
 		lock (Lock)
 		{
@@ -201,7 +196,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	}
 
 	/// <returns>Labels ordered by blockchain.</returns>
-	public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
+	public IEnumerable<LabelsArray> GetLabels() => GetTransactions().Select(x => x.Labels);
 
 	#endregion Accessors
 

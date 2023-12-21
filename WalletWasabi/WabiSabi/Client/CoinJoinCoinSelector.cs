@@ -5,43 +5,55 @@ using System.Diagnostics;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.Wallets;
+using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public static class CoinJoinCoinSelector
+public class CoinJoinCoinSelector
 {
-	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
+	public const int MaxInputsRegistrableByWallet = 10; // how many
+	public const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
 
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
-	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
-		IEnumerable<TCoin> coins,
-		UtxoSelectionParameters parameters,
+	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
-		Money liquidityClue,
-		WasabiRandom rnd)
+		CoinJoinCoinSelectorRandomnessGenerator? generator = null)
+	{
+		ConsolidationMode = consolidationMode;
+		AnonScoreTarget = anonScoreTarget;
+		SemiPrivateThreshold = semiPrivateThreshold;
+
+		Generator = generator ?? new(MaxInputsRegistrableByWallet, SecureRandom.Instance);
+	}
+
+	public bool ConsolidationMode { get; }
+	public int AnonScoreTarget { get; }
+	public int SemiPrivateThreshold { get; }
+	private WasabiRandom Rnd => Generator.Rnd;
+	private CoinJoinCoinSelectorRandomnessGenerator Generator { get; }
+
+	public static CoinJoinCoinSelector FromWallet(IWallet wallet) =>
+		new(
+			wallet.ConsolidationMode,
+			wallet.AnonScoreTarget,
+			wallet.RedCoinIsolation ? Constants.SemiPrivateThreshold : 0);
+
+	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
+	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, bool stopWhenAllMixed, UtxoSelectionParameters parameters, Money liquidityClue)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
-		if (semiPrivateThreshold < 0)
-		{
-			throw new ArgumentException("Cannot be negative", nameof(semiPrivateThreshold));
-		}
-
-		// Sanity check.
-		if (liquidityClue <= Money.Zero)
-		{
-			liquidityClue = Constants.MaximumNumberOfBitcoinsMoney;
-		}
+		liquidityClue = liquidityClue > Money.Zero
+			? liquidityClue
+			: Constants.MaximumNumberOfBitcoinsMoney;
 
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -49,21 +61,28 @@ public static class CoinJoinCoinSelector
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		// Sanity check.
+		if (!filteredCoins.Any())
+		{
+			Logger.LogDebug("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
+		}
+
 		var privateCoins = filteredCoins
-			.Where(x => x.IsPrivate(anonScoreTarget))
+			.Where(x => x.IsPrivate(AnonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.IsSemiPrivate(anonScoreTarget, semiPrivateThreshold))
+			.Where(x => x.IsSemiPrivate(AnonScoreTarget, SemiPrivateThreshold))
 			.ToArray();
 
-		// redCoins will only fill up if redCoinIsolaton is turned on. Otherwise the coin will be in semiPrivateCoins.
+		// redCoins will only fill up if redCoinIsolation is turned on. Otherwise the coin will be in semiPrivateCoins.
 		var redCoins = filteredCoins
-			.Where(x => x.IsRedCoin(semiPrivateThreshold))
+			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
-		if (semiPrivateCoins.Length + redCoins.Length == 0)
+		if (stopWhenAllMixed && semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			// Let's not mess up the logs when this function gets called many times.
+			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -75,7 +94,7 @@ public static class CoinJoinCoinSelector
 
 		// We want to isolate red coins from each other. We only let a single red coin get into our selection candidates.
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
-		var red = redCoins.RandomElement();
+		var red = redCoins.RandomElement(Rnd);
 		if (red is not null)
 		{
 			allowedNonPrivateCoins.Add(red);
@@ -86,8 +105,8 @@ public static class CoinJoinCoinSelector
 
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(rnd));
-		if (consolidationMode)
+			ConsolidationMode ? MaxInputsRegistrableByWallet : Generator.GetInputTarget());
+		if (ConsolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
 		}
@@ -108,6 +127,27 @@ public static class CoinJoinCoinSelector
 
 		// Shuffle coins, while randomly biasing towards lower AS.
 		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
+
+		// If the command is given to not stop when everything is coinjoined and the allowed private coins are empty, then we shortcircuit the selection.
+		if (!stopWhenAllMixed && !allowedNonPrivateCoins.Any())
+		{
+			var largestAllowedCoin = orderedAllowedCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
+			if (largestAllowedCoin is null)
+			{
+				Logger.LogDebug($"Couldn't select any coins, ending.");
+				return ImmutableList<TCoin>.Empty;
+			}
+			else
+			{
+				// orderedAllowedCoins at this point is going to have inputCount - 1 coins, so add another coin to it.
+				var selectedPrivateCoins = orderedAllowedCoins
+					.Concat(smallerPrivateCoins.Concat(largerPrivateCoins).Except(orderedAllowedCoins).Take(1))
+					.Take(inputCount) // This is just sanity check, it should never have an effect, unless someone touches computations above.
+					.ToList();
+				selectedPrivateCoins.Shuffle(Rnd);
+				return selectedPrivateCoins.ToImmutableList();
+			}
+		}
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins
@@ -166,10 +206,10 @@ public static class CoinJoinCoinSelector
 		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
-		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
+		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(Rnd); // Select randomly at first just to have a starting value.
 		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
-			if (rnd.GetInt(1, 101) <= 50)
+			if (Rnd.GetInt(1, 101) <= 50)
 			{
 				selectedNonPrivateCoin = coin;
 				break;
@@ -184,7 +224,7 @@ public static class CoinJoinCoinSelector
 
 		var finalCandidate = bestRepGroups
 			.Where(x => x.Contains(selectedNonPrivateCoin))
-			.RandomElement();
+			.RandomElement(Rnd);
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
@@ -225,7 +265,7 @@ public static class CoinJoinCoinSelector
 			percent = 80;
 		}
 
-		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
+		int sameTxAllowance = Generator.GetRandomBiasedSameTxAllowance(percent);
 
 		List<TCoin> winner = new()
 		{
@@ -259,7 +299,7 @@ public static class CoinJoinCoinSelector
 		{
 			List<TCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;
-			bool winnerchanged = false;
+			bool winnerChanged = false;
 
 			// We always want to keep the non-private coins.
 			foreach (TCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
@@ -271,11 +311,11 @@ public static class CoinJoinCoinSelector
 				{
 					bestAnonLoss = anonLoss;
 					bestReducedWinner = reducedWinner.ToList();
-					winnerchanged = true;
+					winnerChanged = true;
 				}
 			}
 
-			if (!winnerchanged)
+			if (!winnerChanged)
 			{
 				break;
 			}
@@ -313,10 +353,10 @@ public static class CoinJoinCoinSelector
 			}
 		}
 
-		return winner.ToShuffled().ToImmutableList();
+		return winner.ToShuffled(Rnd).ToImmutableList();
 	}
 
-	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
+	private IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
 		where TCoin : ISmartCoin
 	{
 		var orderedCoins = new List<TCoin>();
@@ -341,12 +381,7 @@ public static class CoinJoinCoinSelector
 			}
 			alternating.AddRange(skipped);
 
-			var coin = alternating.BiasedRandomElement(50);
-			if (coin is null)
-			{
-				throw new NotSupportedException("This is impossible.");
-			}
-
+			var coin = alternating.BiasedRandomElement(biasPercent: 50, Rnd)!;
 			orderedCoins.Add(coin);
 			yield return coin;
 		}
@@ -355,9 +390,8 @@ public static class CoinJoinCoinSelector
 	private static bool TryAddGroup<TCoin>(UtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
 		where TCoin : ISmartCoin
 	{
-		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
-		var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
-		if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+		if (effectiveInputSum >= parameters.AllowedOutputAmounts.Min)
 		{
 			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
 			return groups.TryAdd(k, group);
@@ -373,47 +407,7 @@ public static class CoinJoinCoinSelector
 		return coins.Sum(x => (x.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
 	}
 
-	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
-	{
-		for (int num = 0; num <= 100; num++)
-		{
-			if (rnd.GetInt(1, 101) <= percent)
-			{
-				return num;
-			}
-		}
-
-		return 0;
-	}
-
 	private static int GetReps<TCoin>(IEnumerable<TCoin> group)
 		where TCoin : ISmartCoin
 		=> group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1);
-
-	/// <summary>
-	/// Calculates how many inputs are desirable to be registered.
-	/// Note: random biasing is applied.
-	/// </summary>
-	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(WasabiRandom rnd)
-	{
-		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
-		int targetInputCount = MaxInputsRegistrableByWallet;
-
-		var distance = new Dictionary<int, int>();
-		for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)
-		{
-			distance.TryAdd(i, Math.Abs(i - targetInputCount));
-		}
-
-		foreach (var best in distance.OrderBy(x => x.Value))
-		{
-			if (rnd.GetInt(0, 10) < 5)
-			{
-				return best.Key;
-			}
-		}
-
-		return targetInputCount;
-	}
 }

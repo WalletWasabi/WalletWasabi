@@ -11,7 +11,7 @@ public static class SystemNetExtensions
 	/// <returns><c>true</c> when port can be returned for <paramref name="endPoint"/>, <c>false</c> otherwise.</returns>
 	public static bool TryGetPort(this EndPoint endPoint, [NotNullWhen(true)] out int? port)
 	{
-		return endPoint.TryGetHostAndPort(out var _, out port);
+		return endPoint.TryGetHostAndPort(out _, out port);
 	}
 
 	/// <summary>
@@ -20,7 +20,7 @@ public static class SystemNetExtensions
 	/// <returns><c>true</c> when host can be returned for <paramref name="endPoint"/>, <c>false</c> otherwise.</returns>
 	public static bool TryGetHost(this EndPoint endPoint, [NotNullWhen(true)] out string? host)
 	{
-		return endPoint.TryGetHostAndPort(out host, out var _);
+		return endPoint.TryGetHostAndPort(out host, out _);
 	}
 
 	/// <summary>

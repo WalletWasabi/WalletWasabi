@@ -22,8 +22,8 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsIconVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
-	public static readonly StyledProperty<string> TextValueProperty =
-		AvaloniaProperty.Register<PreviewItem, string>(nameof(TextValue));
+	public static readonly StyledProperty<object> CopyableContentProperty =
+		AvaloniaProperty.Register<PreviewItem, object>(nameof(CopyableContent));
 
 	public static readonly StyledProperty<ICommand> CopyCommandProperty =
 		AvaloniaProperty.Register<PreviewItem, ICommand>(nameof(CopyCommand));
@@ -58,10 +58,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(IsIconVisibleProperty, value);
 	}
 
-	public string TextValue
+	public object CopyableContent
 	{
-		get => GetValue(TextValueProperty);
-		set => SetValue(TextValueProperty, value);
+		get => GetValue(CopyableContentProperty);
+		set => SetValue(CopyableContentProperty, value);
 	}
 
 	public ICommand CopyCommand
@@ -88,10 +88,10 @@ public class PreviewItem : ContentControl
 
 		var isCopyButtonVisible =
 			button.CopyCommand.IsExecuting
-			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b)))
+			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
 			.Select(x => x.First || x.Second);
 
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
 		base.OnApplyTemplate(e);
 	}

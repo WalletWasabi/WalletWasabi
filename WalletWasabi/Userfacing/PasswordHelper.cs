@@ -14,10 +14,10 @@ public static class PasswordHelper
 {
 	public const int MaxPasswordLength = 150;
 	public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
-	public static readonly string PasswordTooLongMessage = $"Password is too long.";
 	public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
 	public const string MatchingMessage = "Passwords don't match.";
 	public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
+	public static readonly string PasswordTooLongMessage = $"Password is too long.";
 
 	public static string[] GetPossiblePasswords(string? originalPassword)
 	{
@@ -109,13 +109,13 @@ public static class PasswordHelper
 		}
 	}
 
-	public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string? compatiblityPassword)
+	public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string? compatibilityPassword)
 	{
 		password = Helpers.Guard.Correct(password); // Correct the password to ensure compatibility. User will be notified about this through TogglePasswordBox.
 
 		Guard(password);
 
-		compatiblityPassword = null;
+		compatibilityPassword = null;
 
 		Exception? resultException = null;
 
@@ -128,7 +128,7 @@ public static class PasswordHelper
 				// Now the password is OK but if we had SecurityException before then we used a compatibility password.
 				if (resultException is not null)
 				{
-					compatiblityPassword = pw;
+					compatibilityPassword = pw;
 					Logger.LogError(CompatibilityPasswordWarnMessage);
 				}
 

@@ -27,9 +27,9 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 
 	public bool AnyWarnings => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Warning));
 
-	public bool AnyInfos => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Info));
+	public bool AnyInfoItems => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Info));
 
-	IEnumerable<string> IValidations.Infos => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Info).Select(error => error.Message));
+	IEnumerable<string> IValidations.InfoItems => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Info).Select(error => error.Message));
 
 	IEnumerable<string> IValidations.Warnings => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Warning).Select(error => error.Message));
 
@@ -114,7 +114,7 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 	{
 		static string Selector(ErrorSeverity x) => x switch
 		{
-			ErrorSeverity.Info => nameof(AnyInfos),
+			ErrorSeverity.Info => nameof(AnyInfoItems),
 			ErrorSeverity.Warning => nameof(AnyWarnings),
 			ErrorSeverity.Error => nameof(AnyErrors),
 			_ => throw new NotImplementedException(),

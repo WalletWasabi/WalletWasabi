@@ -2,44 +2,48 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
+using Microsoft.Extensions.Hosting;
+using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
-/// <summary>
-/// Serializes and releases the prison population periodically.
-/// </summary>
-public class Warden : PeriodicRunner
+public class Warden : BackgroundService
 {
-	/// <param name="period">How often to serialize and release inmates.</param>
-	public Warden(TimeSpan period, string prisonFilePath, WabiSabiConfig config) : base(period)
+	public Warden(string prisonFilePath, ICoinJoinIdStore coinjoinIdStore, WabiSabiConfig config)
 	{
 		PrisonFilePath = prisonFilePath;
 		Config = config;
-		Prison = DeserializePrison(PrisonFilePath);
-		LastKnownChange = Prison.ChangeId;
+		OffendersToSaveChannel = Channel.CreateUnbounded<Offender>();
+
+		Prison = DeserializePrison(PrisonFilePath, coinjoinIdStore, OffendersToSaveChannel.Writer);
 	}
 
 	public Prison Prison { get; }
-	public Guid LastKnownChange { get; private set; }
 
 	public string PrisonFilePath { get; }
-	public WabiSabiConfig Config { get; }
+	private WabiSabiConfig Config { get; }
 
-	private static Prison DeserializePrison(string prisonFilePath)
+	private Channel<Offender> OffendersToSaveChannel { get; }
+
+	private static Prison DeserializePrison(
+		string prisonFilePath,
+		ICoinJoinIdStore coinjoinIdStore,
+		ChannelWriter<Offender> channelWriter)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(prisonFilePath);
-		var inmates = new List<Inmate>();
+		var offenders = new List<Offender>();
 		if (File.Exists(prisonFilePath))
 		{
 			try
 			{
-				foreach (var inmate in File.ReadAllLines(prisonFilePath).Select(Inmate.FromString))
+				foreach (var offender in File.ReadAllLines(prisonFilePath).Select(Offender.FromStringLine))
 				{
-					inmates.Add(inmate);
+					offenders.Add(offender);
 				}
 			}
 			catch (Exception ex)
@@ -50,47 +54,36 @@ public class Warden : PeriodicRunner
 			}
 		}
 
-		var prison = new Prison(inmates);
-
-		var (noted, banned, longBanned) = prison.CountInmates();
-		if (noted > 0)
-		{
-			Logger.LogInfo($"{noted} noted UTXOs are found in prison.");
-		}
-
-		if (banned > 0)
-		{
-			Logger.LogInfo($"{banned} banned UTXOs are found in prison.");
-		}
-
-		if (longBanned > 0)
-		{
-			Logger.LogInfo($"{longBanned} long-banned UTXOs are found in prison.");
-		}
-
-		return prison;
+		return new Prison(coinjoinIdStore, offenders, channelWriter);
 	}
 
-	public async Task SerializePrisonAsync()
+	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
-		IoHelpers.EnsureContainingDirectoryExists(PrisonFilePath);
-		await File.WriteAllLinesAsync(PrisonFilePath, Prison.GetInmates().Select(x => x.ToString())).ConfigureAwait(false);
+		try
+		{
+			while (!cancel.IsCancellationRequested)
+			{
+				await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+				{
+					var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
+					await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+				}
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogInfo("Warden was requested to stop.");
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			throw;
+		}
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	public override Task StopAsync(CancellationToken cancellationToken)
 	{
-		var count = Prison.ReleaseEligibleInmates(Config.ReleaseUtxoFromPrisonAfter, Config.ReleaseUtxoFromPrisonAfterLongBan).Count();
-
-		if (count > 0)
-		{
-			Logger.LogInfo($"{count} UTXOs are released from prison.");
-		}
-
-		// If something changed, send prison to file.
-		if (LastKnownChange != Prison.ChangeId)
-		{
-			await SerializePrisonAsync().ConfigureAwait(false);
-			LastKnownChange = Prison.ChangeId;
-		}
+		OffendersToSaveChannel.Writer.Complete();
+		return base.StopAsync(cancellationToken);
 	}
 }

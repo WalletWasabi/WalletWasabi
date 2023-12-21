@@ -14,7 +14,7 @@ namespace WalletWasabi.Tor;
 public class TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
-	private const string TorBinaryFileName = "tor";
+	public const string TorBinaryFileName = "tor";
 
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
@@ -63,6 +63,8 @@ public class TorSettings
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
+	public int RpcVirtualPort => 80;
+	public int RpcOnionPort => 37129;
 
 	private string GeoIpPath { get; }
 	private string GeoIp6Path { get; }
@@ -72,15 +74,7 @@ public class TorSettings
 	{
 		platform ??= MicroserviceHelpers.GetCurrentPlatform();
 
-		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
-		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
-	}
-
-	/// <returns>Tor binary file name for selected <paramref name="platform"/>.</returns>
-	public static string GetTorBinaryFileName(OSPlatform? platform = null)
-	{
-		platform ??= MicroserviceHelpers.GetCurrentPlatform();
-		return platform == OSPlatform.OSX ? $"{TorBinaryFileName}.real" : TorBinaryFileName;
+		return MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
 	}
 
 	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>
@@ -98,6 +92,7 @@ public class TorSettings
 		List<string> arguments = new()
 		{
 			$"--LogTimeGranularity 1",
+			$"--TruncateLogFile 1",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
 			$"--SocksTimeout 30", // Default is 2 minutes.

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
-using Avalonia.Controls.Generators;
 using Avalonia.Styling;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -37,59 +36,50 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 		}
 
 		Observable
-			.FromEventPattern<ItemContainerEventArgs>(AssociatedObject.ItemContainerGenerator, nameof(ItemContainerGenerator.Materialized))
+			.FromEventPattern<ContainerPreparedEventArgs>(AssociatedObject, nameof(ItemsControl.ContainerPrepared))
 			.Select(x => x.EventArgs)
 			.Subscribe(e =>
 			{
-				foreach (var c in e.Containers)
+				if (e.Container is not Visual v)
 				{
-					if (c.ContainerControl is not Visual v)
-					{
-						continue;
-					}
+					return;
+				}
 
-					var duration = ItemDuration * (c.Index + 1);
-					var totalDuration = InitialDelay + (duration * 2);
+				var duration = ItemDuration * (e.Index + 1);
+				var totalDuration = InitialDelay + (duration * 2);
 
-					var animation = new Animation
+				var animation = new Animation
+				{
+					Duration = totalDuration,
+					Children =
 					{
-						Duration = totalDuration,
-						Children =
+						new KeyFrame
 						{
-							new KeyFrame
+							KeyTime = TimeSpan.Zero,
+							Setters =
 							{
-								KeyTime = TimeSpan.Zero,
-								Setters =
-								{
-									new Setter(Visual.OpacityProperty, 0d),
-								}
-							},
-							new KeyFrame
+								new Setter(Visual.OpacityProperty, 0d),
+							}
+						},
+						new KeyFrame
+						{
+							KeyTime = duration + InitialDelay,
+							Setters =
 							{
-								KeyTime = duration + InitialDelay,
-								Setters =
-								{
-									new Setter(Visual.OpacityProperty, 0d),
-								}
-							},
-							new KeyFrame
+								new Setter(Visual.OpacityProperty, 0d),
+							}
+						},
+						new KeyFrame
+						{
+							KeyTime = totalDuration,
+							Setters =
 							{
-								KeyTime = totalDuration,
-								Setters =
-								{
-									new Setter(Visual.OpacityProperty, 1d),
-								}
+								new Setter(Visual.OpacityProperty, 1d),
 							}
 						}
-					};
-
-					Dispatcher.UIThread.InvokeAsync(async () =>
-					{
-						v.Opacity = 0;
-						await animation.RunAsync(v, null);
-						v.Opacity = 1;
-					});
-				}
+					}
+				};
+				animation.RunAsync(v);
 			})
 			.DisposeWith(disposable);
 	}

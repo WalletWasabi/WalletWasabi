@@ -1,7 +1,4 @@
 version = 1
 
 [[analyzers]]
-name = "csharp"
-
-[[analyzers]]
 name = "shell"

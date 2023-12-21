@@ -41,7 +41,7 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 			return;
 		}
 
-		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerLeave))
+		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerExited))
 			.Subscribe(_ => ClearPreviewItem(0))
 			.DisposeWith(disposables);
 
@@ -73,8 +73,8 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 		if (delay > 0)
 		{
 			Observable.Timer(TimeSpan.FromMilliseconds(delay))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Subscribe(_ => PreviewItem = null, _clearItemCts.Token);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => PreviewItem = null, _clearItemCts.Token);
 		}
 		else
 		{

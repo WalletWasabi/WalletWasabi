@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Daemon</PathMap>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>zkSNACKs Ltd</Authors>
+		<Company>zkSNACKs Ltd</Company>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
+		<Description>
+			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, coinjoin, payjoin and coin control features.
+		</Description>
+		<Copyright>MIT</Copyright>
+		<PackageId>Wasabi Wallet Daemon</PackageId>
+		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
+		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;wabisabi;coinjoin;tor</PackageTags>
+		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+		<Product>Wasabi Wallet Fluent Daemon</Product>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+	</ItemGroup>
+
+</Project>

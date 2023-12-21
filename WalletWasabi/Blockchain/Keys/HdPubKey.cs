@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -15,29 +15,31 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
+	private readonly Lazy<Script> _p2pkScript;
+	private readonly Lazy<Script> _p2pkhScript;
+	private readonly Lazy<Script> _p2wpkhScript;
+	private readonly Lazy<Script> _p2shOverP2wpkhScript;
+	private readonly Lazy<Script> _p2Taproot;
+
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
-	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
+	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 		_cluster = new Cluster(this);
-		Label = label;
+		Labels = labels;
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
-		P2pkScript = PubKey.ScriptPubKey;
-		P2pkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
-		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
-		P2shOverP2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH);
-		P2Taproot = PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
-
-		PubKeyHash = PubKey.Hash;
-		HashCode = PubKeyHash.GetHashCode();
+		_p2pkScript = new Lazy<Script>(() => PubKey.ScriptPubKey, isThreadSafe: true);
+		_p2pkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), isThreadSafe: true);
+		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
+		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
+		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
 		Index = (int)FullKeyPath.Indexes[4];
-		NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
 
 		int change = (int)FullKeyPath.Indexes[3];
 		if (change == 0)
@@ -68,8 +70,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 	}
 
-	public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
-
 	[JsonProperty(Order = 1)]
 	[JsonConverter(typeof(PubKeyJsonConverter))]
 	public PubKey PubKey { get; }
@@ -78,26 +78,25 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	[JsonConverter(typeof(KeyPathJsonConverter))]
 	public KeyPath FullKeyPath { get; }
 
-	[JsonProperty(Order = 3)]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
-	public SmartLabel Label { get; private set; }
+	[JsonProperty(Order = 3, PropertyName = "Label")]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
+	public LabelsArray Labels { get; private set; }
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
 
-	public Script P2pkScript { get; }
-	public Script P2pkhScript { get; }
-	public Script P2wpkhScript { get; }
-	public Script P2shOverP2wpkhScript { get; }
-	public Script P2Taproot { get; }
+	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>
+	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
+	public Height? LatestSpendingHeight { get; set; }
 
-	public KeyId PubKeyHash { get; }
+	public Script P2pkScript => _p2pkScript.Value;
+	public Script P2pkhScript => _p2pkhScript.Value;
+	public Script P2wpkhScript => _p2wpkhScript.Value;
+	public Script P2shOverP2wpkhScript => _p2shOverP2wpkhScript.Value;
+	public Script P2Taproot => _p2Taproot.Value;
 
 	public int Index { get; }
-	public KeyPath NonHardenedKeyPath { get; }
 	public bool IsInternal { get; }
-
-	private int HashCode { get; }
 
 	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReason = null)
 	{
@@ -109,16 +108,14 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		AnonymitySet = anonset;
 	}
 
-	public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)
+	public void SetLabel(LabelsArray labels, KeyManager? kmToFile = null)
 	{
-		label ??= SmartLabel.Empty;
-
-		if (Label == label)
+		if (Labels == labels)
 		{
 			return;
 		}
 
-		Label = label;
+		Labels = labels;
 		Cluster.UpdateLabels();
 
 		kmToFile?.ToFile();
@@ -146,12 +143,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
 		var scripts = new[]
 		{
-				P2pkScript,
-				P2pkhScript,
-				P2wpkhScript,
-				P2shOverP2wpkhScript,
-				P2Taproot
-			};
+			P2pkScript,
+			P2pkhScript,
+			P2wpkhScript,
+			P2shOverP2wpkhScript,
+			P2Taproot
+		};
 
 		return scripts.Contains(scriptPubKey);
 	}
@@ -162,9 +159,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public bool Equals(HdPubKey? other) => this == other;
 
-	public override int GetHashCode() => HashCode;
+	public override int GetHashCode() => PubKey.GetHashCode();
 
-	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKeyHash == y?.PubKeyHash;
+	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKey == y?.PubKey;
 
 	public static bool operator !=(HdPubKey? x, HdPubKey? y) => !(x == y);
 

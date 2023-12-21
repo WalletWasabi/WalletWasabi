@@ -1,7 +1,8 @@
+using Microsoft.Data.Sqlite;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,12 +10,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Stores;
 
@@ -23,153 +21,224 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class IndexStore : IAsyncDisposable
 {
-	private int _throttleId;
-
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
+		SmartHeaderChain = smartHeaderChain;
+
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
-		var indexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
-		MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, useLastCharacterDigest: true);
-		var immatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
-		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, useLastCharacterDigest: true);
 
-		Network = network;
-		StartingFilter = StartingFilters.GetStartingFilter(Network);
-		SmartHeaderChain = smartHeaderChain;
+		// Migration data.
+		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
+		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+		RunMigration = File.Exists(OldIndexFilePath);
+
+		if (network == Network.RegTest)
+		{
+			File.Delete(NewIndexFilePath);
+		}
+
+		try
+		{
+			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{NewIndexFilePath}'.");
+
+			// The database file can still be in use, clear all pools to unlock the filter database file.
+			SqliteConnection.ClearAllPools();
+			File.Delete(NewIndexFilePath);
+			throw;
+		}
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
 
-	public event EventHandler<FilterModel>? NewFilter;
+	public event EventHandler<IEnumerable<FilterModel>>? NewFilters;
 
-	private AbandonedTasks AbandonedTasks { get; } = new();
+	/// <summary>Mature index path for migration purposes.</summary>
+	private string OldIndexFilePath { get; }
 
-	private Network Network { get; }
-	private DigestableSafeIoManager MatureIndexFileManager { get; }
-	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
+	/// <summary>Immature index path for migration purposes.</summary>
+	private string OldImmatureIndexFilePath { get; }
 
-	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
+	/// <summary>SQLite file path for migration purposes.</summary>
+	private string NewIndexFilePath { get; }
+
+	/// <summary>Run migration if SQLite file does not exist.</summary>
+	private bool RunMigration { get; }
+
+	private SmartHeaderChain SmartHeaderChain { get; }
+
+	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
+	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
+	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
+
+	/// <summary>Filter disk storage.</summary>
+	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
+	private BlockFilterSqliteStorage IndexStorage { get; }
+
+	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
 	private AsyncLock IndexLock { get; } = new();
-
-	/// <summary>Lock for accessing <see cref="MatureIndexFileManager"/>. This should be lock #2.</summary>
-	private AsyncLock MatureIndexAsyncLock { get; } = new();
-
-	/// <summary>Lock for accessing <see cref="ImmatureIndexFileManager"/>. This should be lock #3.</summary>
-	private AsyncLock ImmatureIndexAsyncLock { get; } = new();
-
-	public SmartHeaderChain SmartHeaderChain { get; }
-
-	private FilterModel StartingFilter { get; }
-	private uint StartingHeight => StartingFilter.Header.Height;
-	private List<FilterModel> ImmatureFilters { get; } = new(150);
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		using (await ImmatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		try
 		{
-			if (Network == Network.RegTest)
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-				ImmatureIndexFileManager.DeleteMe();
+				cancellationToken.ThrowIfCancellationRequested();
+
+				// Migration code.
+				if (RunMigration)
+				{
+					MigrateToSqliteNoLock(cancellationToken);
+				}
+
+				// If the automatic migration to SQLite is stopped, we would not delete the old index data.
+				// So check it every time.
+				RemoveOldIndexFilesIfExist();
+
+				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+
+				// Initialization succeeded.
+				InitializedTcs.SetResult(true);
 			}
-
-			cancellationToken.ThrowIfCancellationRequested();
-
-			if (!MatureIndexFileManager.Exists())
-			{
-				await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
-			}
-
-			cancellationToken.ThrowIfCancellationRequested();
-
-			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception)
+		{
+			InitializedTcs.SetResult(false);
+			throw;
 		}
 	}
 
-	/// <remarks>Guarded by <see cref="IndexLock"/>, <see cref="MatureIndexAsyncLock"/> and <see cref="ImmatureIndexAsyncLock"/>.</remarks>
-	private async Task InitializeFiltersNoLockAsync(CancellationToken cancellationToken)
+	private void RemoveOldIndexFilesIfExist()
 	{
+		if (File.Exists(OldIndexFilePath))
+		{
+			try
+			{
+				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete(OldImmatureIndexFilePath);
+				File.Delete($"{OldIndexFilePath}.dig");
+				File.Delete(OldIndexFilePath);
+
+				Logger.LogInfo("Removed old index file data.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+		}
+	}
+
+	private void MigrateToSqliteNoLock(CancellationToken cancel)
+	{
+		int i = 0;
+
 		try
 		{
-			if (MatureIndexFileManager.Exists())
+			Logger.LogWarning("Migration of block filters to SQLite format is about to begin. Please wait a moment.");
+
+			Stopwatch stopwatch = Stopwatch.StartNew();
+
+			IndexStorage.Clear();
+
+			List<string> filters = new(capacity: 10_000);
+			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (BufferedStream bs = new(fs))
+			using (StreamReader sr = new(bs))
 			{
-				using (BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading"))
+				while (true)
 				{
-					int i = 0;
-					using StreamReader sr = MatureIndexFileManager.OpenText();
+					cancel.ThrowIfCancellationRequested();
 
-					if (!sr.EndOfStream)
+					i++;
+					string? line = sr.ReadLine();
+
+					if (line is null)
 					{
-						while (true)
-						{
-							i++;
-							cancellationToken.ThrowIfCancellationRequested();
-							string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
-
-							if (line is null)
-							{
-								break;
-							}
-
-							ProcessLineNoLock(line, enqueue: false);
-						}
+						break;
 					}
 
-					Logger.LogDebug($"Loaded {i} lines from the mature index file.");
+					// Starting filter is already added at this point.
+					if (i == 1)
+					{
+						continue;
+					}
+
+					filters.Add(line);
+
+					if (i % 10_000 == 0)
+					{
+						IndexStorage.BulkAppend(filters);
+						filters.Clear();
+					}
 				}
 			}
+
+			IndexStorage.BulkAppend(filters);
+
+			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
 		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
+		catch (OperationCanceledException)
 		{
-			// We found a corrupted entry. Stop here.
-			// Delete the corrupted file.
-			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-			Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
-			MatureIndexFileManager.DeleteMe();
-			ImmatureIndexFileManager.DeleteMe();
+			SqliteConnection.ClearAllPools();
 			throw;
 		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 
-		cancellationToken.ThrowIfCancellationRequested();
+			SqliteConnection.ClearAllPools();
 
+			// Do not run migration code again if it fails.
+			File.Delete(NewIndexFilePath);
+			File.Delete(OldIndexFilePath);
+		}
+	}
+
+	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
+	private Task InitializeFiltersNoLockAsync(CancellationToken cancellationToken)
+	{
 		try
 		{
-			if (ImmatureIndexFileManager.Exists())
+			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "Block filters loading");
+
+			int i = 0;
+
+			// Read last N filters. There is no need to read all of them.
+			foreach (FilterModel filter in IndexStorage.FetchLast(n: 5000))
 			{
-				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
+				i++;
+
+				if (!TryProcessFilterNoLock(filter, enqueue: false))
 				{
-					ProcessLineNoLock(line, enqueue: true);
-					cancellationToken.ThrowIfCancellationRequested();
+					throw new InvalidOperationException("Index file inconsistency detected.");
 				}
+
+				cancellationToken.ThrowIfCancellationRequested();
 			}
+
+			Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
+		catch (InvalidOperationException ex)
 		{
-			// We found a corrupted entry. Stop here.
-			// Delete the corrupted file.
-			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-			Logger.LogError("Immature index got corrupted. Deleting it...");
-			ImmatureIndexFileManager.DeleteMe();
+			// We found a corrupted entry. Clear the corrupted database and stop here.
+			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
+			Logger.LogDebug(ex);
+			IndexStorage.Clear();
 			throw;
 		}
+
+		return Task.CompletedTask;
 	}
 
-	/// <remarks>Requires <see cref="ImmatureIndexAsyncLock"/> lock acquired.</remarks>
-	private void ProcessLineNoLock(string line, bool enqueue)
-	{
-		var filter = FilterModel.FromLine(line);
-		if (!TryProcessFilterNoLock(filter, enqueue))
-		{
-			throw new InvalidOperationException("Index file inconsistency detected.");
-		}
-	}
-
-	/// <remarks>Requires <see cref="ImmatureIndexAsyncLock"/> lock acquired.</remarks>
+	/// <remarks>Requires <see cref="IndexLock"/> lock acquired.</remarks>
 	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
 	{
 		try
@@ -178,7 +247,10 @@ public class IndexStore : IAsyncDisposable
 
 			if (enqueue)
 			{
-				ImmatureFilters.Add(filter);
+				if (!IndexStorage.TryAppend(filter))
+				{
+					throw new InvalidOperationException("Failed to append filter to the database.");
+				}
 			}
 
 			return true;
@@ -192,204 +264,100 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		var successAny = false;
-
-		foreach (var filter in filters)
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			var success = false;
+			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
-			using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+			int processed = 0;
+
+			try
 			{
-				success = TryProcessFilterNoLock(filter, enqueue: true);
+				foreach (FilterModel filter in filters)
+				{
+					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					{
+						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
+
+					processed++;
+				}
 			}
-
-			successAny = successAny || success;
-
-			if (success)
+			finally
 			{
-				NewFilter?.Invoke(this, filter); // Event always outside the lock.
-			}
-		}
+				sqliteTransaction.Commit();
 
-		if (successAny)
-		{
-			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3)));
+				if (processed > 0)
+				{
+					NewFilters?.Invoke(this, filters.Take(processed));
+				}
+			}
 		}
 	}
 
-	public async Task<FilterModel> RemoveLastFilterAsync()
+	public async Task<FilterModel[]> FetchBatchAsync(Height fromHeight, int batchSize, CancellationToken cancellationToken)
 	{
-		FilterModel? filter = null;
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			return IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: batchSize).ToArray();
+		}
+	}
+
+	public Task<FilterModel?> TryRemoveLastFilterAsync()
+	{
+		return TryRemoveLastFilterIfNewerThanAsync(height: null);
+	}
+
+	private async Task<FilterModel?> TryRemoveLastFilterIfNewerThanAsync(uint? height)
+	{
+		FilterModel? filter;
 
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			filter = ImmatureFilters.Last();
-			ImmatureFilters.RemoveLast();
+			if (height is null)
+			{
+				if (!IndexStorage.TryRemoveLast(out filter))
+				{
+					throw new InvalidOperationException("No last filter.");
+				}
+			}
+			else
+			{
+				if (!IndexStorage.TryRemoveLastIfNewerThan(height.Value, out filter))
+				{
+					throw new InvalidOperationException("No last filter.");
+				}
+			}
+
 			if (SmartHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
 			}
+
 			SmartHeaderChain.RemoveTip();
 		}
 
 		Reorged?.Invoke(this, filter);
 
-		AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3)));
-
 		return filter;
 	}
 
-	public async Task<IEnumerable<FilterModel>> RemoveAllImmatureFiltersAsync()
+	public async Task RemoveAllNewerThanAsync(uint height)
 	{
-		var removed = new List<FilterModel>();
-		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+		while (true)
 		{
-			if (ImmatureFilters.Any())
+			FilterModel? filterModel = await TryRemoveLastFilterIfNewerThanAsync(height).ConfigureAwait(false);
+
+			if (filterModel is null)
 			{
-				Logger.LogWarning($"Filters got corrupted. Reorging {ImmatureFilters.Count} immature filters in an attempt to fix them.");
-			}
-			else
-			{
-				Logger.LogCritical("Filters got corrupted and have no more immature filters. Deleting all filters and crashing the software...");
-
-				using (await MatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				using (await ImmatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					ImmatureIndexFileManager.DeleteMe();
-					MatureIndexFileManager.DeleteMe();
-				}
-
-				Environment.Exit(2);
-			}
-		}
-
-		while (ImmatureFilters.Any())
-		{
-			removed.Add(await RemoveLastFilterAsync().ConfigureAwait(false));
-		}
-
-		return removed;
-	}
-
-	/// <summary>
-	/// It'll LogError the exceptions.
-	/// If cancelled, it'll LogTrace the exception.
-	/// </summary>
-	private async Task TryCommitToFileAsync(TimeSpan throttle)
-	{
-		try
-		{
-			// If throttle is requested, then throttle.
-			if (throttle != TimeSpan.Zero)
-			{
-				// Increment the throttle ID and remember the incremented value.
-				int incremented = Interlocked.Increment(ref _throttleId);
-
-				if (incremented < 21)
-				{
-					await Task.Delay(throttle, CancellationToken.None).ConfigureAwait(false);
-				}
-
-				// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
-				//	In this case I want to make the _throttledId 0 and go ahead and do the writeline.
-				// If the _throttledId is not the incremented value anymore then I am not the latest request here,
-				//	So just return, the latest request will do the file write in its own time.
-				if (Interlocked.CompareExchange(ref _throttleId, 0, incremented) != incremented)
-				{
-					return;
-				}
-			}
-			else
-			{
-				Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
-			}
-
-			using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-			{
-				// Do not feed the cancellationToken here I always want this to finish running for safety.
-				var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
-				var matureLinesToAppend = currentImmatureLines.SkipLast(100);
-				var immatureLines = currentImmatureLines.TakeLast(100);
-
-				// The order of the following lines is important.
-
-				// 1) First delete the immature index. If we lose it because the mature index writing fails, we are OK with that.
-				ImmatureIndexFileManager.DeleteMe();
-
-				// 2) Attempt to update the mature index.
-				await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None).ConfigureAwait(false);
-
-				// 3) Create new immature index.
-				await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None).ConfigureAwait(false);
-
-				while (ImmatureFilters.Count > 100)
-				{
-					ImmatureFilters.RemoveFirst();
-				}
-			}
-		}
-		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
-		{
-			Logger.LogTrace(ex);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
-	}
-
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
-	{
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		using (await MatureIndexAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
-			if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
-			{
-				if (MatureIndexFileManager.Exists())
-				{
-					uint height = StartingHeight;
-					using var sr = MatureIndexFileManager.OpenText();
-
-					while (true)
-					{
-						if (firstImmatureHeight == height)
-						{
-							break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
-						}
-
-						string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
-
-						if (line is null)
-						{
-							break;
-						}
-
-						if (height < fromHeight.Value)
-						{
-							height++;
-							continue;
-						}
-
-						FilterModel filter = FilterModel.FromLine(line);
-
-						await todo(filter).ConfigureAwait(false);
-						height++;
-					}
-				}
-			}
-
-			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray())
-			{
-				await todo(filter).ConfigureAwait(false);
+				break;
 			}
 		}
 	}
 
-	public async ValueTask DisposeAsync()
+	/// <inheritdoc/>
+	public ValueTask DisposeAsync()
 	{
-		await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
+		IndexStorage.Dispose();
+		return ValueTask.CompletedTask;
 	}
 }

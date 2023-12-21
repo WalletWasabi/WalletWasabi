@@ -176,7 +176,8 @@
                 TickFrequency="1"
                 Minimum="{Binding SliderMinimum}"
                 Maximum="{Binding SliderMaximum}"
-                Value="{Binding SliderValue}">
+                Value="{Binding SliderValue}"
+                IsVisible="{Binding EnableCursor}">
           <i:Interaction.Behaviors>
             <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
             <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
@@ -187,7 +188,8 @@
                      XAxisValues="{Binding ConfirmationTargetValues}"
                      XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
                      YAxisLabels="{Binding SatoshiPerByteLabels}"
-                     YAxisValues="{Binding SatoshiPerByteValues}">
+                     YAxisValues="{Binding SatoshiPerByteValues}"
+                     EnableCursor="{Binding EnableCursor}">
           <c:LineChart.Styles>
             <Style Selector="c|LineChart">
               <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />

@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -32,23 +33,24 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		foreach (var child in ((IPanel)AssociatedObject).Children)
+		var children = AssociatedObject.GetVisualChildren();
+		foreach (var child in children)
 		{
 			if (child is { })
 			{
-				InvalidateSeparator(child, presenter);
+				InvalidateSeparator((Control)child, presenter);
 			}
 		}
 	}
 
-	private void InvalidateSeparator(IControl control, TreeDataGridRowsPresenter presenter)
+	private void InvalidateSeparator(Control control, TreeDataGridRowsPresenter presenter)
 	{
 		if (control.DataContext is not HistoryItemViewModelBase currentHistoryItem)
 		{
 			return;
 		}
 
-		if (currentHistoryItem.IsConfirmed)
+		if (currentHistoryItem.Transaction.IsConfirmed)
 		{
 			if (control.Classes.Contains(ClassName))
 			{
@@ -74,7 +76,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		{
 			return presenter.Items is { } items
 				   && items.Count > index + 1
-				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
+				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase vm && vm.Transaction.IsConfirmed;
 		}
 	}
 }

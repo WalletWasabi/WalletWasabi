@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Wallets;
 
@@ -18,14 +20,18 @@ public interface IWallet
 	IKeyChain? KeyChain { get; }
 
 	IDestinationProvider DestinationProvider { get; }
+	OutputProvider OutputProvider => new OutputProvider(DestinationProvider);
+	PaymentBatch BatchedPayments => new PaymentBatch();
+		
 	int AnonScoreTarget { get; }
 	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
+	CoinjoinSkipFactors CoinjoinSkipFactors { get; }
 
-	bool IsWalletPrivate();
+	Task<bool> IsWalletPrivateAsync();
 
-	IEnumerable<SmartCoin> GetCoinjoinCoinCandidates();
+	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
 }

@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Hwi.Models;
 
@@ -39,6 +40,16 @@ public class HwiEnumerateEntry
 	public bool? NeedsPassphraseSent { get; }
 	public string? Error { get; }
 	public HwiErrorCode? Code { get; }
+
+	public WalletType WalletType =>
+		Model switch
+		{
+			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
+			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => WalletType.Ledger,
+			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
+			HardwareWalletModels.Jade => WalletType.Jade,
+			_ => WalletType.Hardware
+		};
 
 	public bool IsInitialized()
 	{

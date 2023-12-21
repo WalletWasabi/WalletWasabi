@@ -8,7 +8,7 @@
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
-  <c:ContentArea Title="Unused Receive Address"
+  <c:ContentArea Title="Address Awaiting Payment"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
@@ -28,21 +28,21 @@
                               Command="{Binding CopyAddressCommand}"
                               NormalIcon="{StaticResource copy_regular}"
                               ClickIcon="{StaticResource copy_confirmed}"
-                              ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
+                              AnimateIcon="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
           <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
 
       <c:AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
-          <Panel Margin="0 0 -5 20">
-            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
+          <Panel Margin="5 0 -5 20">
+            <Button Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
               <PathIcon Data="{StaticResource save_regular}" />
             </Button>
@@ -50,7 +50,7 @@
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MaxHeight="270" MinHeight="100">
           <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
-            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
+            <c:QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
           </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>

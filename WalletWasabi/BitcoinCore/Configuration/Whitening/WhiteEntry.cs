@@ -14,6 +14,7 @@ public abstract class WhiteEntry
 	public static bool TryParse<T>(string value, Network network, [NotNullWhen(true)] out T? whiteEntry) where T : WhiteEntry, new()
 	{
 		whiteEntry = null;
+
 		// https://github.com/bitcoin/bitcoin/pull/16248
 		var parts = value?.Split('@');
 		if (parts is { })

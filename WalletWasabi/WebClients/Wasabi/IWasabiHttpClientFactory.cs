@@ -5,11 +5,11 @@ namespace WalletWasabi.WebClients.Wasabi;
 
 public interface IWasabiHttpClientFactory
 {
-	PersonCircuit NewHttpClientWithPersonCircuit(out IHttpClient httpClient)
+	(PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit()
 	{
 		PersonCircuit personCircuit = new();
-		httpClient = NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit);
-		return personCircuit;
+		var httpClient = NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit);
+		return (personCircuit, httpClient);
 	}
 
 	IHttpClient NewHttpClientWithDefaultCircuit()

@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -35,6 +36,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
+
+		IsBusy = true;
 	}
 
 	public LabelSelectionViewModel LabelSelection { get; }
@@ -50,7 +53,10 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		await LabelSelection.ResetAsync(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
+		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		var coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList();
+
+		await LabelSelection.ResetAsync(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray(), coinsToExclude);
 		await LabelSelection.SetUsedLabelAsync(_usedCoins, privateThreshold);
 	}
 

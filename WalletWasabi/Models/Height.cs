@@ -59,21 +59,15 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 			: int.MaxValue;
 	}
 
-	/// <summary>
-	/// Gets a new Height instance for mempool
-	/// </summary>
+	/// <summary>Gets a new Height instance for mempool</summary>
 	public static Height Mempool { get; } = new Height(HeightType.Mempool);
 
-	/// <summary>
-	/// Gets a new Height instance for unknown (no chain, no mempool)
-	/// </summary>
+	/// <summary>Gets a new Height instance for unknown (no chain, no mempool)</summary>
 	public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
 	public HeightType Type { get; }
 
-	/// <summary>
-	/// Gets the height value according to the Height type.
-	/// </summary>
+	/// <summary>Gets the height value according to the Height type.</summary>
 	public int Value { get; }
 
 	/// <param name="heightOrHeightType">The height numerical value as its string representation
@@ -151,10 +145,10 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 	public static int operator +(int value, Height height) => height.Value + value;
 
 	/// <summary>
-	/// Unary or binary operator for substracting a value to height.
+	/// Unary or binary operator for subtracting a value to height.
 	/// </summary>
 	/// <param name="value">The Int32 value.</param>
-	/// <param name="height">The height value to be substracted from.</param>
+	/// <param name="height">The height value to be subtracted from.</param>
 	public static int operator -(int value, Height height) => value - height.Value;
 
 	/// <summary>
@@ -165,9 +159,9 @@ public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable
 	public static int operator +(Height height, int value) => height.Value + value;
 
 	/// <summary>
-	/// Unary or binary operator for substracting a value to height.
+	/// Unary or binary operator for subtracting a value to height.
 	/// </summary>
-	/// <param name="height">The height value to be substracted from.</param>
+	/// <param name="height">The height value to be subtracted from.</param>
 	/// <param name="value">The Int32 value.</param>
 	public static int operator -(Height height, int value) => height.Value - value;
 

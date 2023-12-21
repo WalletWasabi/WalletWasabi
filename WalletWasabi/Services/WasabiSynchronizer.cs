@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -39,19 +40,17 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
+	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory)
 	{
 		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
 		_running = StateNotStarted;
-		BitcoinStore = bitcoinStore;
-		FilterProcessor = new FilterProcessor(BitcoinStore);
+		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
+		FilterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClientFactory = httpClientFactory;
 		WasabiClient = httpClientFactory.SharedWasabiClient;
-
-		StopCts = new CancellationTokenSource();
 	}
 
 	#region EventsPropertiesMembers
@@ -62,9 +61,12 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
+	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
+	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
+
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public HttpClientFactory HttpClientFactory { get; }
-	public WasabiClient WasabiClient { get; }
+	public WasabiHttpClientFactory HttpClientFactory { get; }
+	private WasabiClient WasabiClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
@@ -95,13 +97,13 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
-	public BitcoinStore BitcoinStore { get; }
-	public FilterProcessor FilterProcessor { get; }
+	private SmartHeaderChain SmartHeaderChain { get; }
+	private FilterProcessor FilterProcessor { get; }
 
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
 	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
-	private CancellationTokenSource StopCts { get; }
+	private CancellationTokenSource StopCts { get; } = new();
 
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
@@ -120,8 +122,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 		Task.Run(async () =>
 		{
-			Logger.LogTrace("> Wasabi synchronizer thread starts.");
-
 			try
 			{
 				bool ignoreRequestInterval = false;
@@ -136,7 +136,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						try
 						{
 							response = await WasabiClient
-								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
+								.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
 							// NOT GenSocksServErr
@@ -295,11 +295,13 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private void DoGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(false);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
 	}
 
 	private void DoNotGenSocksServFail()
 	{
+		InitialRequestTcs.TrySetResult(true);
 		ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 	}
 

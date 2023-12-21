@@ -1,6 +1,6 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <c:TileControl Height="140" Width="310" Title="Tile">
       <c:TileControl.BottomContent>
@@ -10,9 +10,11 @@
     </c:TileControl>
   </Design.PreviewWith>
 
-  <Style Selector="c|TileControl">
+  <ControlTheme x:Key="{x:Type c:TileControl}" TargetType="c:TileControl">
+
     <Setter Property="SeparatorMargin" Value="0 6" />
     <Setter Property="BottomPartHeight" Value="22" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <Border CornerRadius="2" BorderThickness="1" Background="{DynamicResource TileRegionColor}"
@@ -30,5 +32,7 @@
         </Border>
       </ControlTemplate>
     </Setter>
-  </Style>
-</Styles>
+
+  </ControlTheme>
+
+</ResourceDictionary>

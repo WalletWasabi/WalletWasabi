@@ -5,9 +5,8 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -16,18 +15,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
-	public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
+	private DetectedHardwareWalletViewModel(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
-		WalletName = walletName;
-		CancelCts = new CancellationTokenSource();
+		var (walletName, device) = options;
 
-		Type = device.Model switch
-		{
-			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
-			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => WalletType.Ledger,
-			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
-			_ => WalletType.Hardware
-		};
+		ArgumentException.ThrowIfNullOrEmpty(walletName);
+		ArgumentNullException.ThrowIfNull(device);
+
+		WalletName = walletName;
+
+		Type = device.WalletType;
 
 		TypeName = device.Model.FriendlyName();
 
@@ -35,14 +32,14 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
 
 		EnableAutoBusyOn(NextCommand);
 	}
 
-	public CancellationTokenSource CancelCts { get; }
+	public CancellationTokenSource? CancelCts { get; private set; }
 
 	public string WalletName { get; }
 
@@ -52,15 +49,13 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 	public ICommand NoCommand { get; }
 
-	private async Task OnNextAsync(HwiEnumerateEntry device)
+	private async Task OnNextAsync(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
 		try
 		{
-			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
-			km.SetIcon(Type);
-
-			Navigate().To(new AddedWalletPageViewModel(km));
+			CancelCts ??= new CancellationTokenSource();
+			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options, CancelCts.Token);
+			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
 		catch (Exception ex)
 		{
@@ -79,13 +74,14 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var enableCancel = Services.WalletManager.HasWallet();
+		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		disposables.Add(Disposable.Create(() =>
 		{
-			CancelCts.Cancel();
-			CancelCts.Dispose();
+			CancelCts?.Cancel();
+			CancelCts?.Dispose();
+			CancelCts = null;
 		}));
 	}
 }

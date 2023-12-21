@@ -83,7 +83,7 @@ public class JsonRpcRequest
 	{
 		try
 		{
-			isBatch = rawJson.TrimStart().StartsWith("[");
+			isBatch = rawJson.TrimStart().StartsWith('[');
 			rawJson = isBatch ? rawJson : $"[{rawJson}]";
 			requests = JsonConvert.DeserializeObject<JsonRpcRequest[]>(rawJson);
 

@@ -1,21 +1,22 @@
 using System.Threading.Tasks;
-using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 
 [NavigationMetaData(Title = "Enter your password", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 	[AutoNotify] private string _password;
 
-	public PasswordAuthDialogViewModel(Wallet wallet)
+	public PasswordAuthDialogViewModel(IWalletModel wallet, string continueText = "Continue")
 	{
-		if (wallet.KeyManager.IsHardwareWallet)
+		if (wallet.IsHardwareWallet)
 		{
 			throw new InvalidOperationException("Password authorization is not possible on hardware wallets.");
 		}
+
+		ContinueText = continueText;
 
 		_wallet = wallet;
 		_password = "";
@@ -27,9 +28,11 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 		AuthorizationFailedMessage = $"The password is incorrect.{Environment.NewLine}Please try again.";
 	}
 
+	public string ContinueText { get; init; }
+
 	protected override async Task<bool> AuthorizeAsync()
 	{
-		var success = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
+		var success = await _wallet.Auth.TryPasswordAsync(Password);
 		Password = "";
 		return success;
 	}

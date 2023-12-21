@@ -4,6 +4,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Tests.UnitTests.Wallet;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -20,24 +21,17 @@ public class SmartBlockProviderTests
 	[Fact]
 	public async void GettingBlocksFromP2pTestAsync()
 	{
+		var emptyDict = new Dictionary<uint256, Block>();
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
 		// Dummy block repository that does not gets (or stores) anything from the file-storage.
-		Mock<IRepository<uint256, Block>> mockBlockRepository = new(MockBehavior.Strict);
-		_ = mockBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-		_ = mockBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
-			.Returns(Task.CompletedTask);
+		MockBlockRepository mockBlockRepository = new(emptyDict);
 
 		// Rpc block provider returns nothing. Simulate that it's not enabled.
-		Mock<IBlockProvider> mockRpcBlockProvider = new(MockBehavior.Strict);
-		_ = mockRpcBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
+		var mockRpcBlockProvider = new TestBlockProvider(emptyDict);
 
 		// Local block provider returns nothing. Simulate that it's not enabled.
-		Mock<IBlockProvider> mockLocalBlockProvider = new(MockBehavior.Strict);
-		_ = mockLocalBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
+		var mockLocalBlockProvider = new TestBlockProvider(emptyDict);
 
 		// P2P block provider with predefined blocks.
 		Dictionary<uint256, Block> blocks = new()
@@ -50,9 +44,9 @@ public class SmartBlockProviderTests
 
 		using MemoryCache cache = new(new MemoryCacheOptions());
 		IBlockProvider smartBlockProvider = new SmartBlockProvider(
-			mockBlockRepository.Object,
-			rpcBlockProvider: mockRpcBlockProvider.Object,
-			specificNodeBlockProvider: mockLocalBlockProvider.Object,
+			mockBlockRepository,
+			rpcBlockProvider: mockRpcBlockProvider,
+			specificNodeBlockProvider: mockLocalBlockProvider,
 			p2PBlockProvider: p2PBlockProvider,
 			cache);
 
@@ -81,7 +75,7 @@ public class SmartBlockProviderTests
 
 		public Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancel)
 		{
-			return Task.FromResult<Block?>(Blocks[hash]);
+			return Task.FromResult<Block?>(Blocks.GetValueOrDefault(hash));
 		}
 	}
 }

@@ -1,16 +1,40 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
+using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Views;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class ApplicationHelper
 {
+	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+	public static IClipboard? Clipboard => GetClipboard();
+
+	public static IClipboard? GetClipboard()
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+		{
+			return window.Clipboard;
+		}
+
+		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
+		{
+			var visualRoot = mainView.GetVisualRoot();
+			if (visualRoot is TopLevel topLevel)
+			{
+				return topLevel.Clipboard;
+			}
+		}
+
+		return null;
+	}
 
 	public static IObservable<bool> MainWindowActivated
 	{
@@ -35,11 +59,15 @@ public static class ApplicationHelper
 
 	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default)
 	{
-		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
-			.SelectMany(
-				_ => Application.Current?.Clipboard?.GetTextAsync()
-					.ToObservable() ?? Observable.Return<string?>(null)
-					.WhereNotNull())
+		if (Clipboard == null)
+		{
+			return Observable.Return<string?>(null);
+		}
+
+		return Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
+			.Repeat()
+			.Select(_ => Observable.FromAsync(() => Clipboard.GetTextAsync(), RxApp.MainThreadScheduler))
+			.Merge(1)
 			.DistinctUntilChanged();
 	}
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -22,11 +23,35 @@ public class UpdateManager : IDisposable
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient, UpdateChecker updateChecker)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
-		DownloadNewVersion = downloadNewVersion;
+
+		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
+		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+
+		UpdateChecker = updateChecker;
+		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+	}
+
+	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
+
+	public string InstallerDir { get; }
+	private IHttpClient HttpClient { get; }
+
+	///<summary>Whether to download the new installer in the background or not.</summary>
+	private bool DownloadNewVersion { get; }
+
+	///<summary>Install new version on shutdown or not.</summary>
+	public bool DoUpdateOnClose { get; set; }
+
+	private UpdateChecker UpdateChecker { get; }
+	private CancellationToken CancellationToken { get; set; }
+
+	public void Initialize(CancellationToken cancelationToken)
+	{
+		CancellationToken = cancelationToken;
 	}
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
@@ -42,7 +67,7 @@ public class UpdateManager : IDisposable
 			return;
 		}
 
-		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		if (DownloadNewVersion)
 		{
 			do
 			{
@@ -51,7 +76,7 @@ public class UpdateManager : IDisposable
 				{
 					(string installerPath, Version newVersion) = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
 					InstallerPath = installerPath;
-					Logger.LogInfo($"Version {newVersion} downloaded successfuly.");
+					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
 					updateStatus.IsReadyToInstall = true;
 					updateStatus.ClientVersion = newVersion;
 					break;
@@ -134,11 +159,8 @@ public class UpdateManager : IDisposable
 	private async Task<string> GetHashFromSha256SumsFileAsync(string installerFileName, string sha256SumsFilePath)
 	{
 		string[] lines = await File.ReadAllLinesAsync(sha256SumsFilePath).ConfigureAwait(false);
-		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName));
-		if (correctLine == null)
-		{
-			throw new InvalidOperationException($"{installerFileName} was not found.");
-		}
+		var correctLine = lines.FirstOrDefault(line => line.Contains(installerFileName))
+			?? throw new InvalidOperationException($"{installerFileName} was not found.");
 		return correctLine.Split(" ")[0];
 	}
 
@@ -170,7 +192,7 @@ public class UpdateManager : IDisposable
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
-		// "tag_name" will have a 'v' at the beggining, needs to be removed.
+		// "tag_name" will have a 'v' at the beginning, needs to be removed.
 		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
@@ -178,18 +200,18 @@ public class UpdateManager : IDisposable
 			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
-		// Get all asset names and download urls to find the correct one.
-		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
-		List<string> assetDownloadUrls = new();
-		foreach (JToken asset in assetsInfos)
+		// Get all asset names and download URLs to find the correct one.
+		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
+		List<string> assetDownloadURLs = new();
+		foreach (JToken asset in assetsInfo)
 		{
-			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
+			assetDownloadURLs.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		string sha256SumsUrl = assetDownloadUrls.First(url => url.Contains("SHA256SUMS.asc"));
-		string wasabiSigUrl = assetDownloadUrls.First(url => url.Contains("SHA256SUMS.wasabisig"));
+		string sha256SumsUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.asc"));
+		string wasabiSigUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.wasabisig"));
 
-		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
+		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
 
 		return (githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
@@ -214,10 +236,10 @@ public class UpdateManager : IDisposable
 
 			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 		}
-		catch (HttpRequestException exc)
+		catch (HttpRequestException ex)
 		{
 			string message = "";
-			if (exc.StatusCode is HttpStatusCode.NotFound)
+			if (ex.StatusCode is HttpStatusCode.NotFound)
 			{
 				message = "Wasabi signature files were not found under the API.";
 			}
@@ -225,7 +247,7 @@ public class UpdateManager : IDisposable
 			{
 				message = "Something went wrong while getting Wasabi signature files.";
 			}
-			throw new InvalidOperationException(message, exc);
+			throw new InvalidOperationException(message, ex);
 		}
 		catch (IOException)
 		{
@@ -235,11 +257,11 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	private (string url, string fileName) GetAssetToDownload(List<string> urls)
+	private (string url, string fileName) GetAssetToDownload(List<string> assetDownloadURLs)
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var url = urls.First(url => url.Contains(".msi"));
+			var url = assetDownloadURLs.First(url => url.Contains(".msi"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -247,10 +269,10 @@ public class UpdateManager : IDisposable
 			var cpu = RuntimeInformation.ProcessArchitecture;
 			if (cpu.ToString() == "Arm64")
 			{
-				var arm64url = urls.First(url => url.Contains("arm64.dmg"));
+				var arm64url = assetDownloadURLs.First(url => url.Contains("arm64.dmg"));
 				return (arm64url, arm64url.Split("/").Last());
 			}
-			var url = urls.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
+			var url = assetDownloadURLs.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -291,20 +313,6 @@ public class UpdateManager : IDisposable
 			Logger.LogError("Failed to delete installer directory.", exc);
 		}
 	}
-
-	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
-
-	public string InstallerDir { get; }
-	public IHttpClient HttpClient { get; }
-
-	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
-	public bool DownloadNewVersion { get; }
-
-	///<summary> Install new version on shutdown or not.</summary>
-	public bool DoUpdateOnClose { get; set; }
-
-	private UpdateChecker? UpdateChecker { get; set; }
-	private CancellationToken CancellationToken { get; set; }
 
 	public void StartInstallingNewVersion()
 	{
@@ -350,18 +358,8 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
-	{
-		UpdateChecker = updateChecker;
-		CancellationToken = cancelationToken;
-		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-	}
-
 	public void Dispose()
 	{
-		if (UpdateChecker is { } updateChecker)
-		{
-			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
-		}
+		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 	}
 }

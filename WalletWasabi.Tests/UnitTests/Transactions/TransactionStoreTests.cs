@@ -55,6 +55,8 @@ public class TransactionStoreTests
 				stx.BlockIndex,
 				"totally random new label",
 				stx.IsReplacement,
+				stx.IsSpeedup,
+				stx.IsCancellation,
 				stx.FirstSeen));
 		Assert.False(operation.isAdded);
 		Assert.True(operation.isUpdated);

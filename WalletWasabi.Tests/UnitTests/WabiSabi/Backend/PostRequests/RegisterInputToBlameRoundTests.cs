@@ -16,14 +16,16 @@ public class RegisterInputToBlameRoundTests
 	public async Task InputNotWhitelistedAsync()
 	{
 		WabiSabiConfig cfg = new();
+		using Key key = new();
+		var coin = WabiSabiFactory.CreateCoin(key);
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round, blameRound);
-		using Key key = new();
-		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round, blameRound);
 
-		var req = WabiSabiFactory.CreateInputRegistrationRequest(round: blameRound);
+		var req = WabiSabiFactory.CreateInputRegistrationRequest(round: blameRound, key, coin.Outpoint);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterInputAsync(req, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputNotWhitelisted, ex.ErrorCode);
 
@@ -54,7 +56,7 @@ public class RegisterInputToBlameRoundTests
 	[Fact]
 	public async Task InputWhitelistedButBannedAsync()
 	{
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();
@@ -65,10 +67,10 @@ public class RegisterInputToBlameRoundTests
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(alice.Coin);
 
-		Prison prison = new();
+		Prison prison = WabiSabiFactory.CreatePrison();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync(round, blameRound);
 
-		prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
+		prison.FailedToConfirm(bannedCoin, alice.Coin.Amount, round.Id);
 
 		var req = WabiSabiFactory.CreateInputRegistrationRequest(key: key, round: blameRound, prevout: bannedCoin);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterInputAsync(req, CancellationToken.None));

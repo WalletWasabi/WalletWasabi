@@ -21,14 +21,16 @@
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}"
         Focusable="{Binding SearchBar.IsSearchListVisible}"
-        Icon="/Assets/WasabiLogo.ico">
+        Icon="/Assets/WasabiLogo.ico"
+        RenderOptions.BitmapInterpolationMode="HighQuality"
+        RenderOptions.TextRenderingMode="Antialias">
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
   </Window.Styles>
   <i:Interaction.Behaviors>
-    <behaviors:RegisterNotificationHostBehavior />
+    <behaviors:ContextFlyoutWorkaroundBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

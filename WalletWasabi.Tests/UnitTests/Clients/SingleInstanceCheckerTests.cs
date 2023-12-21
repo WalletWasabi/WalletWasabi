@@ -33,24 +33,35 @@ public class SingleInstanceCheckerTests
 		// Disposal test.
 		await using (SingleInstanceChecker sic = new(mainNetPort, TimeoutMultiplier))
 		{
-			await sic.EnsureSingleOrThrowAsync();
+			await sic.CheckSingleInstanceAsync();
 		}
 
 		// Check different networks.
 		await using SingleInstanceChecker sicMainNet = new(mainNetPort, TimeoutMultiplier);
-		await sicMainNet.EnsureSingleOrThrowAsync();
+		var status = await sicMainNet.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
+
 		await using SingleInstanceChecker sicMainNet2 = new(mainNetPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(sicMainNet2.EnsureSingleOrThrowAsync);
+		status = await sicMainNet.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 
-		await using SingleInstanceChecker sicTestNet = new(testNetPort, TimeoutMultiplier);
-		await sicTestNet.EnsureSingleOrThrowAsync();
+		// testnet
+		await using SingleInstanceChecker sicTestNet1 = new(testNetPort, TimeoutMultiplier);
+		status = await sicTestNet1.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
+
 		await using SingleInstanceChecker sicTestNet2 = new(testNetPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(sicTestNet2.EnsureSingleOrThrowAsync);
+		status = await sicTestNet2.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 
-		await using SingleInstanceChecker sicRegTest = new(regTestPort, TimeoutMultiplier);
-		await sicRegTest.EnsureSingleOrThrowAsync();
-		await using SingleInstanceChecker sicRegTest2 = new(regTestPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(sicRegTest2.EnsureSingleOrThrowAsync);
+		// regtest
+		await using SingleInstanceChecker sicRegNet1 = new(regTestPort, TimeoutMultiplier);
+		status = await sicRegNet1.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
+
+		await using SingleInstanceChecker sicRegNet2 = new(regTestPort, TimeoutMultiplier);
+		status = await sicRegNet2.CheckSingleInstanceAsync();
+		Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, status);
 	}
 
 	[Fact]
@@ -67,14 +78,16 @@ public class SingleInstanceCheckerTests
 		try
 		{
 			// I am the first instance this should be fine.
-			await firstInstance.EnsureSingleOrThrowAsync();
+			var status = await firstInstance.CheckSingleInstanceAsync();
+			Assert.Equal(WasabiInstanceStatus.NoOtherInstanceIsRunning, status);
 
 			await using SingleInstanceChecker secondInstance = new(mainNetPort, TimeoutMultiplier);
 
 			for (int i = 0; i < 2; i++)
 			{
 				// I am the second one.
-				await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
+				var secondInstanceStatus = await secondInstance.CheckSingleInstanceAsync();
+				Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, secondInstanceStatus);
 			}
 
 			// Overall Timeout.
@@ -92,7 +105,7 @@ public class SingleInstanceCheckerTests
 				networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
 				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 				await writer.WriteAsync(new StringBuilder("fake message"), cts.Token);
-				await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+				await writer.FlushAsync().WaitAsync(cts.Token);
 				await networkStream.FlushAsync(cts.Token);
 			}
 
@@ -116,7 +129,7 @@ public class SingleInstanceCheckerTests
 
 				// This won't throw if the connection is lost, just continues.
 				await writer.WriteAsync(new StringBuilder("late message"), cts.Token);
-				await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+				await writer.FlushAsync().WaitAsync(cts.Token);
 				await networkStream.FlushAsync(cts.Token);
 			}
 			catch (IOException)
@@ -125,7 +138,8 @@ public class SingleInstanceCheckerTests
 			}
 
 			// One more to check if the first instance was able to recover from the port scan operation.
-			await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
+			var statusAfterPortScan = await secondInstance.CheckSingleInstanceAsync();
+			Assert.Equal(WasabiInstanceStatus.AnotherInstanceIsRunning, statusAfterPortScan);
 
 			while (Interlocked.Read(ref eventCalled) != 3)
 			{

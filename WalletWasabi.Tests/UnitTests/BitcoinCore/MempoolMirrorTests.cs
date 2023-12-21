@@ -224,7 +224,6 @@ public class MempoolMirrorTests
 			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
 			var localMempoolAfterSend = mempoolInstance.GetMempoolHashes();
-			Assert.Equal(1, localMempoolAfterSend.Count);
 			Assert.Single(localMempoolAfterSend);
 
 			await rpc.GenerateAsync(1);

@@ -278,13 +278,13 @@ public class Dialog : ContentControl
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			var isOpen = change.NewValue.GetValueOrDefault<bool>();
+			var isOpen = change.GetNewValue<bool>();
 
 			PseudoClasses.Set(":open", isOpen);
 
@@ -298,12 +298,12 @@ public class Dialog : ContentControl
 
 		if (change.Property == IsBusyProperty)
 		{
-			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":busy", change.GetNewValue<bool>());
 		}
 
 		if (change.Property == ShowAlertProperty)
 		{
-			PseudoClasses.Set(":alert", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":alert", change.GetNewValue<bool>());
 		}
 	}
 

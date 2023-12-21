@@ -30,6 +30,7 @@ public class P2pNode
 	}
 
 	public event EventHandler<uint256>? BlockInv;
+	public event EventHandler<Transaction>? OnTransactionArrived;
 
 	private Node? Node { get; set; }
 	private TrustedP2pBehavior? TrustedP2pBehavior { get; set; }
@@ -79,6 +80,7 @@ public class P2pNode
 			Node.StateChanged += P2pNode_StateChanged;
 			Node.Disconnected += Node_DisconnectedAsync;
 			TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
+			TrustedP2pBehavior.OnTransactionArrived += TrustedP2pBehavior_OnTransactionArrived;
 			NodeEventsSubscribed = true;
 			MempoolService.TrustedNodeMode = Node.IsConnected;
 		}
@@ -104,6 +106,11 @@ public class P2pNode
 	private void TrustedP2pBehavior_BlockInv(object? sender, uint256 e)
 	{
 		BlockInv?.Invoke(this, e);
+	}
+
+	private void TrustedP2pBehavior_OnTransactionArrived(object? sender, Transaction tx)
+	{
+		OnTransactionArrived.SafeInvoke(this, tx);
 	}
 
 	private void P2pNode_StateChanged(Node node, NodeState oldState)
@@ -155,6 +162,7 @@ public class P2pNode
 					if (TrustedP2pBehavior is { } trustedP2pBehavior)
 					{
 						trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+						trustedP2pBehavior.OnTransactionArrived -= TrustedP2pBehavior_OnTransactionArrived;
 					}
 					node.Disconnected -= Node_DisconnectedAsync;
 					node.StateChanged -= P2pNode_StateChanged;

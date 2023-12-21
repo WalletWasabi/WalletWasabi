@@ -1,22 +1,25 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Reactive.Linq;
 using DynamicData;
+using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public class SettingsSearchSource : ISearchSource
+public class SettingsSearchSource : ReactiveObject, ISearchSource
 {
-	private readonly SettingsPageViewModel _settingsPage;
+	private readonly UiContext _uiContext;
+	private readonly IApplicationSettings _applicationSettings;
 
-	public SettingsSearchSource(SettingsPageViewModel settingsPage, IObservable<string> query)
+	public SettingsSearchSource(UiContext uiContext, IObservable<string> query)
 	{
-		_settingsPage = settingsPage;
+		_uiContext = uiContext;
+		_applicationSettings = uiContext.ApplicationSettings;
 
 		var filter = query.Select(SearchSource.DefaultFilter);
 
@@ -30,18 +33,71 @@ public class SettingsSearchSource : ISearchSource
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
 	{
-		return new ISearchItem[]
+		var isEnabled = !_applicationSettings.IsOverridden;
+
+		yield return new ContentSearchItem(content: Setting(selector: x => x.DarkModeEnabled), name: "Dark mode", category: "Appearance", keywords: new List<string> { "Black", "White", "Theme", "Dark", "Light" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 1 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoCopy), name: "Auto copy addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 2 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoPaste), name: "Auto paste addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 3 };
+
+		if (App.EnableFeatureHide)
 		{
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.DarkModeEnabled), "Dark mode", "Appearance", new List<string> { "Black", "White", "Theme", "Dark", "Light" }, "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.AutoCopy), "Auto copy addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.AutoPaste), "Auto paste addresses", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.HideOnClose), "Run in background when closed", "Settings", new List<string>() { "hide", "tray" }, "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.RunOnSystemStartup), "Run Wasabi when computer starts", "Settings", new List<string>() { "startup", "boot" }, "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.UseTor), "Network anonymization (Tor)", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.TerminateTorOnExit), "Terminate Tor when Wasabi shuts down", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StartLocalBitcoinCoreOnStartup), "Run Bitcoin Knots on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StopLocalBitcoinCoreOnShutdown), "Stop Bitcoin Knots on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<AdvancedSettingsTabViewModel, bool>(_settingsPage.AdvancedSettingsTab, b => b.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-		};
+			yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: "Run in background when closed", category: "Settings", keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 4 };
+		}
+
+		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 5 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
+
+		yield return ContentSearchItemNode.Create(
+			searchSource: _uiContext.EditableSearchSource,
+			setting: Setting(selector: x => x.UseTor),
+			name: "Network anonymization (Tor)",
+			category: "Settings",
+			isDefault: false,
+			keywords: new List<string>(),
+			icon: "nav_settings_regular",
+			priority: 7,
+			isEnabled,
+			nestedItemConfiguration: new NestedItemConfiguration<bool>(
+				isDisplayed: isVisible => isVisible,
+				item: new ContentSearchItem(
+					content: Setting(selector: x => x.TerminateTorOnExit),
+					name: "Terminate Tor when Wasabi shuts down",
+					category: "Settings",
+					keywords: new List<string>(),
+					icon: "nav_settings_regular",
+					isEnabled)
+				{
+					IsDefault = false,
+					Priority = 8
+				}));
+
+		yield return ContentSearchItemNode.Create(
+			searchSource: _uiContext.EditableSearchSource,
+			setting: Setting(selector: x => x.StartLocalBitcoinCoreOnStartup),
+			name: "Run Bitcoin Knots on startup",
+			category: "Settings",
+			isDefault: false,
+			keywords: new List<string>(),
+			icon: "nav_settings_regular",
+			priority: 7,
+			isEnabled,
+			nestedItemConfiguration: new NestedItemConfiguration<bool>(
+				isDisplayed: isVisible => isVisible,
+				item: new ContentSearchItem(
+					content: Setting(selector: x => x.StopLocalBitcoinCoreOnShutdown),
+					name: "Stop Bitcoin Knots on shutdown",
+					category: "Settings",
+					keywords: new List<string>(),
+					icon: "nav_settings_regular",
+					isEnabled)
+				{
+					IsDefault = false,
+					Priority = 8
+				}));
+	}
+
+	private Setting<IApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<IApplicationSettings, TProperty>> selector)
+	{
+		return new Setting<IApplicationSettings, TProperty>(_applicationSettings, selector);
 	}
 }

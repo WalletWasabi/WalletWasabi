@@ -35,17 +35,14 @@ public class KeyChain : IKeyChain
 		{
 			KeyManager.SetKeyState(state, hdPubKey);
 		}
+
+		KeyManager.ToFile();
 	}
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		ExtKey? hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), destination.ScriptPubKey).SingleOrDefault();
-
-		if (hdKey is null)
-		{
-			throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
-		}
-
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), destination.ScriptPubKey).SingleOrDefault()
+			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
 		Key masterKey = GetMasterKey();
 		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), destination.ScriptPubKey);
 
@@ -61,20 +58,10 @@ public class KeyChain : IKeyChain
 			throw new ArgumentException("No inputs to sign.", nameof(transaction));
 		}
 
-		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
-
-		if (txInput is null)
-		{
-			throw new InvalidOperationException("Missing input.");
-		}
-
-		ExtKey? hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).SingleOrDefault();
-
-		if (hdKey is null)
-		{
-			throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
-		}
-
+		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint)
+			?? throw new InvalidOperationException("Missing input.");
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).SingleOrDefault()
+			?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
 		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), coin.ScriptPubKey);
 
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();

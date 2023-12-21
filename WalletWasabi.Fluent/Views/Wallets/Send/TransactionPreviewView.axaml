@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
@@ -27,7 +27,7 @@
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
@@ -39,130 +39,79 @@
             </Viewbox>
           </Button>
 
-          <Border Padding="10 0 10 10" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+          <Border Padding="10 0 10 10">
+            <Border.Styles>
+              <Style Selector="FlyoutPresenter">
+                <Setter Property="MaxHeight" Value="1200" />
+                <Setter Property="MinWidth" Value="400" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+              </Style>
+              <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
+                <Setter Property="MaxHeight" Value="1200" />
+              </Style>
+
+              <Style Selector="PathIcon.noPrivacy">
+                <Setter Property="Data" Value="{StaticResource warning_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+              </Style>
+              <Style Selector="PathIcon.badPrivacy">
+                <Setter Property="Data" Value="{StaticResource warning_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+              </Style>
+              <Style Selector="PathIcon.goodPrivacy">
+                <Setter Property="Data" Value="{StaticResource shield_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+              </Style>
+              <Style Selector="PathIcon.maxPrivacy">
+                <Setter Property="Data" Value="{StaticResource shield_tick_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+              </Style>
+              <Style Selector="PathIcon.isBusy">
+                <Setter Property="Data" Value="{StaticResource shield_regular}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+                <Style.Animations>
+                  <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate" Easing="{StaticResource FluentEasing}">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="0.2" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                      <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
+            </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <DockPanel>
-                  <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" />
-                  <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
-                </DockPanel>
-              </Flyout>
-            </FlyoutBase.AttachedFlyout>
-            <Viewbox Height="20">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
-            </Viewbox>
-          </Border>
+                <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
+                  <!-- Warnings -->
+                  <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
 
-          <Border Cursor="Hand" Padding="10 0 10 10">
-            <Border.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsVisible" />
-                <Binding Path="CurrentTransactionSummary.MaxPrivacy" Converter="{x:Static BoolConverters.Not}" />
-              </MultiBinding>
-            </Border.IsVisible>
-            <Border.Styles>
-              <Style Selector="FlyoutPresenter">
-                <Setter Property="MaxWidth" Value="1000" />
-              </Style>
-            </Border.Styles>
-            <Interaction.Behaviors>
-              <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
-            </Interaction.Behaviors>
-            <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
-                      IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
-                <Panel DataContext="{Binding PrivacySuggestions}">
-                  <DockPanel>
-                    <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                      <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
-                        <i:Interaction.Behaviors>
-                          <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
-                        </i:Interaction.Behaviors>
-                        <ListBox.Styles>
-                          <Style Selector="ListBoxItem">
-                            <Setter Property="Cursor" Value="Hand" />
-                          </Style>
-                          <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="Background" Value="Transparent" />
-                          </Style>
-
-                          <Style
-                            Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="Background" Value="Transparent" />
-                          </Style>
-
-                          <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-                            <Setter Property="Padding" Value="30,25,30,25" />
-                            <Setter Property="CornerRadius" Value="4" />
-                            <Setter Property="MaxWidth" Value="250" />
-                            <Setter Property="MaxHeight" Value="300" />
-                          </Style>
-
-                          <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-                            <Setter Property="Padding" Value="15 25 15 25" />
-                            <Setter Property="CornerRadius" Value="4" />
-                            <Setter Property="Margin" Value="5" />
-
-                            <Setter Property="BorderBrush" Value="#14FFFFFF" />
-                            <Setter Property="BorderThickness" Value="1" />
-                            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-                            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
-                          </Style>
-
-                          <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-                            <Setter Property="Padding" Value="15 25 15 25" />
-                            <Setter Property="CornerRadius" Value="4" />
-                            <Setter Property="Margin" Value="5" />
-
-                            <Setter Property="BorderBrush" Value="#2AFFFFFF" />
-                            <Setter Property="BorderThickness" Value="1" />
-                            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-                            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
-
-                            <Setter Property="Opacity" Value="0" />
-                          </Style>
-
-                          <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
-                            <Setter Property="Opacity" Value="1" />
-                          </Style>
-                        </ListBox.Styles>
-                        <ListBox.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" />
-                          </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                        <ListBox.DataTemplates>
-                          <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
-                            <c:SuggestionItem>
-                              <send:ChangeAvoidanceSuggestionControl />
-                            </c:SuggestionItem>
-                          </DataTemplate>
-                        </ListBox.DataTemplates>
-                      </ListBox>
-
-                      <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
-                        <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
-                      </Viewbox>
-                    </StackPanel>
+                  <!-- Full privacy message -->
+                  <DockPanel IsVisible="{Binding MaxPrivacy}">
+                    <TextBlock Text="This transaction is well optimized" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                    <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
                   </DockPanel>
                 </Panel>
               </Flyout>
             </FlyoutBase.AttachedFlyout>
             <Viewbox Height="20">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
+              <Panel>
+                <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
+                          Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
+                          Classes.badPrivacy="{Binding PrivacySuggestions.BadPrivacy}"
+                          Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
+                          Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+              </Panel>
             </Viewbox>
           </Border>
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <Carousel Items="{Binding TransactionSummaries}" IsVirtualized="False"
+    <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
         <CrossFade Duration="0.75" />
