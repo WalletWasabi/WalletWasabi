@@ -60,12 +60,12 @@ public class UpdateManager : IDisposable
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
 
-		//if (!updateAvailable)
-		//{
-		//	// After updating Wasabi, remove old installer file.
-		//	Cleanup();
-		//	return;
-		//}
+		if (!updateAvailable)
+		{
+			// After updating Wasabi, remove old installer file.
+			Cleanup();
+			return;
+		}
 
 		if (DownloadNewVersion)
 		{
@@ -108,12 +108,11 @@ public class UpdateManager : IDisposable
 	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
 	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(Version targetVersion)
 	{
-		targetVersion = new Version(2, 0, 4, 1);
 		var result = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		// await DownloadAndValidateWasabiSignatureAsync(result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
 
 		var installerFilePath = Path.Combine(InstallerDir, result.InstallerFileName);
 
@@ -128,8 +127,6 @@ public class UpdateManager : IDisposable
 				Logger.LogInfo($"Trying to download new version: {result.LatestVersion}");
 
 				// Get file stream and copy it to downloads folder to access.
-				// using var stream = await HttpClient.GetStreamAsync(result.InstallerDownloadUrl, CancellationToken).ConfigureAwait(false);
-
 				using HttpRequestMessage request = new(HttpMethod.Get, result.InstallerDownloadUrl);
 				using HttpResponseMessage response = await HttpClient.SendAsync(request, CancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(CancellationToken).ConfigureAwait(false);
@@ -170,14 +167,6 @@ public class UpdateManager : IDisposable
 		return correctLine.Split(" ")[0];
 	}
 
-	private string GetHashFromPgpSignatureMessageAsync(string pgpMessage, string installerFileName)
-	{
-		var correctLine = pgpMessage.Split("\n").FirstOrDefault(line => line.Contains(installerFileName))
-			?? throw new InvalidOperationException($"{installerFileName} was not found.");
-
-		return correctLine.Split(" ")[0];
-	}
-
 	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
 	{
 		if (File.Exists(filePath))
@@ -207,13 +196,12 @@ public class UpdateManager : IDisposable
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// "tag_name" will have a 'v' at the beginning, needs to be removed.
-		Version githubVersion = new(2,0,4,1);
-		// Version githubVersion = new(softwareVersion[1..]);
+		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
-		//if (targetVersion != shortGithubVersion)
-		//{
-		//	throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
-		//}
+		if (targetVersion != shortGithubVersion)
+		{
+			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
+		}
 
 		// Get all asset names and download URLs to find the correct one.
 		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
@@ -231,33 +219,18 @@ public class UpdateManager : IDisposable
 		return (githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
 
-	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsUrl, string wasabiSigUrl)
+	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl)
 	{
 		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
 
 		try
 		{
-			// using HttpClient oldHttpClient = new();
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
 			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
-			string sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
 			File.WriteAllText(sha256SumsFilePath, sha256Content, Encoding.UTF8);
-
-			//string sha256ContentString = Encoding.UTF8.GetString(sha256Content);
-
-			//using (var stream = await oldHttpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
-			//{
-			//	string sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
-			//	await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
-			//}
-
-			//using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false))
-			//{
-			//	await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
-			//}
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
 			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, CancellationToken).ConfigureAwait(false);
@@ -266,9 +239,6 @@ public class UpdateManager : IDisposable
 			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
 			File.WriteAllText(wasabiSigFilePath, signatureContent, Encoding.UTF8);
 
-			//byte[] signatureBytes = Convert.FromBase64String(signatureContent);
-
-			// WasabiSignerHelpers.VerifySha256Sum(sha256Content, signatureBytes);
 			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 		}
 		catch (HttpRequestException ex)
