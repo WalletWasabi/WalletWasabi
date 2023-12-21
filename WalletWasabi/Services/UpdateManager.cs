@@ -28,7 +28,7 @@ public class UpdateManager : IDisposable
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
 
-		// The feature is disable on linux at the moment because we install Wasabi Wallet as a Debian package.
+		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		UpdateChecker = updateChecker;
@@ -40,7 +40,7 @@ public class UpdateManager : IDisposable
 	public string InstallerDir { get; }
 	private IHttpClient HttpClient { get; }
 
-	///<summary>Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
+	///<summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
 
 	///<summary>Install new version on shutdown or not.</summary>
