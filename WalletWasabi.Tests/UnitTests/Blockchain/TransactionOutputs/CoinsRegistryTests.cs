@@ -153,8 +153,8 @@ public class CoinsRegistryTests
 
 			SmartCoin unconfirmedCoin1 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
 			SmartCoin unconfirmedCoin2 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "C");
-			Assert.True(unconfirmedCoin1.Transaction.IsReplaceable());
-			Assert.True(unconfirmedCoin2.Transaction.IsReplaceable());
+			Assert.True(unconfirmedCoin1.Transaction.IsRBF);
+			Assert.True(unconfirmedCoin2.Transaction.IsRBF);
 
 			Assert.True(Coins.IsKnown(tx0.GetHash()));
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
