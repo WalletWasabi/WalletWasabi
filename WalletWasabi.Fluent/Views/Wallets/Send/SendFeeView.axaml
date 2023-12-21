@@ -137,7 +137,7 @@
     <Style Selector="TextBlock.currentValue">
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-      <Setter Property="Opacity" Value="0.5" />
+      <Setter Property="Opacity" Value="0.6" />
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
@@ -150,7 +150,7 @@
     <DockPanel>
 
       <!-- Advanced -->
-      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+      <Button Classes="h8 plain activeHyperLink" Margin="0 15 0 0"
               Command="{Binding AdvancedOptionsCommand}"
               DockPanel.Dock="Bottom"
               HorizontalAlignment="Center"
