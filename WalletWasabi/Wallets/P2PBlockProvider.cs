@@ -57,11 +57,11 @@ public class P2PBlockProvider : IBlockProvider
 					// Validate block
 					if (!block.Check())
 					{
-						P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+						P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 						continue;
 					}
 
-					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 				}
@@ -69,13 +69,13 @@ public class P2PBlockProvider : IBlockProvider
 				{
 					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 
-					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
 				}
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
-					P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
 					continue;
 				}
 
