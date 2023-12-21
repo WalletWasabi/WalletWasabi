@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -22,11 +23,35 @@ public class UpdateManager : IDisposable
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient, UpdateChecker updateChecker)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
-		DownloadNewVersion = downloadNewVersion;
+
+		// The feature is disable on linux at the moment because we install Wasabi Wallet as a Debian package.
+		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+
+		UpdateChecker = updateChecker;
+		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+	}
+
+	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
+
+	public string InstallerDir { get; }
+	private IHttpClient HttpClient { get; }
+
+	///<summary>Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
+	private bool DownloadNewVersion { get; }
+
+	///<summary>Install new version on shutdown or not.</summary>
+	public bool DoUpdateOnClose { get; set; }
+
+	private UpdateChecker UpdateChecker { get; }
+	private CancellationToken CancellationToken { get; set; }
+
+	public void Initialize(CancellationToken cancelationToken)
+	{
+		CancellationToken = cancelationToken;
 	}
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
@@ -42,7 +67,7 @@ public class UpdateManager : IDisposable
 			return;
 		}
 
-		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		if (DownloadNewVersion)
 		{
 			do
 			{
@@ -211,10 +236,10 @@ public class UpdateManager : IDisposable
 
 			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 		}
-		catch (HttpRequestException exc)
+		catch (HttpRequestException ex)
 		{
 			string message = "";
-			if (exc.StatusCode is HttpStatusCode.NotFound)
+			if (ex.StatusCode is HttpStatusCode.NotFound)
 			{
 				message = "Wasabi signature files were not found under the API.";
 			}
@@ -222,7 +247,7 @@ public class UpdateManager : IDisposable
 			{
 				message = "Something went wrong while getting Wasabi signature files.";
 			}
-			throw new InvalidOperationException(message, exc);
+			throw new InvalidOperationException(message, ex);
 		}
 		catch (IOException)
 		{
@@ -289,20 +314,6 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
-
-	public string InstallerDir { get; }
-	public IHttpClient HttpClient { get; }
-
-	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
-	public bool DownloadNewVersion { get; }
-
-	///<summary> Install new version on shutdown or not.</summary>
-	public bool DoUpdateOnClose { get; set; }
-
-	private UpdateChecker? UpdateChecker { get; set; }
-	private CancellationToken CancellationToken { get; set; }
-
 	public void StartInstallingNewVersion()
 	{
 		try
@@ -347,18 +358,8 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
-	{
-		UpdateChecker = updateChecker;
-		CancellationToken = cancelationToken;
-		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-	}
-
 	public void Dispose()
 	{
-		if (UpdateChecker is { } updateChecker)
-		{
-			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
-		}
+		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 	}
 }
