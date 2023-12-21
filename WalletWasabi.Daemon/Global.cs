@@ -65,8 +65,12 @@ public class Global
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		Synchronizer = new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory);
-		LegalChecker = new(DataDir);
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
+
+		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromSeconds(5), Synchronizer), "Software Update Checker");
+		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
+		LegalChecker = new(DataDir, updateChecker);
+
+		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -181,11 +185,8 @@ public class Global
 			{
 				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
-				var updateChecker = HostedServices.Get<UpdateChecker>();
-
-				UpdateManager.Initialize(updateChecker, cancel);
-				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+				UpdateManager.Initialize(cancel);
+				await LegalChecker.InitializeAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
