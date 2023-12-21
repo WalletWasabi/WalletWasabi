@@ -221,7 +221,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null, bool overrideFeeOverpaymentProtection = false)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
@@ -250,7 +250,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 			payment,
 			feeStrategy,
 			allowUnconfirmed: true,
-			allowedInputs: coins);
+			allowedInputs: coins,
+			overrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 		var smartTx = result.Transaction;
 
 		return smartTx.Transaction.ToHex();
