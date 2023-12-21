@@ -14,7 +14,7 @@ steps:
 - task: UseDotNet@2
   displayName: 'Install .NET'
   inputs:
-    version: 7.0.x
+    version: 8.0.x
 
 - task: PowerShell@2
   displayName: 'Build and compare'
@@ -32,7 +32,7 @@ steps:
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*linux-x64.zip" | Expand-Archive -DestinationPath temp\linux-x64
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*macOS-x64.zip" | Expand-Archive -DestinationPath temp\osx-x64
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*macOS-arm64.zip" | Expand-Archive -DestinationPath temp\osx-arm64
-      Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*win7-x64.zip" | Expand-Archive -DestinationPath temp\win7-x64
+      Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*win-x64.zip" | Expand-Archive -DestinationPath temp\win-x64
 
       git diff --no-index WalletWasabi\WalletWasabi.Fluent.Desktop\bin\dist temp
       if (0 -eq $LASTEXITCODE)
