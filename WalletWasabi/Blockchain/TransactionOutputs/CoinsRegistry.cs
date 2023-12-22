@@ -229,13 +229,15 @@ public class CoinsRegistry : ICoinsView
 		{
 			foreach (SmartCoin coin in Coins)
 			{
-				if (coin.Height == blockHeight)
+				if (coin.Height != blockHeight)
 				{
-					var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
-					foreach (var toSwitch in descendantCoins)
-					{
-						toSwitch.Height = Height.Mempool;
-					}
+					continue;
+				}
+
+				var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
+				foreach (var toSwitch in descendantCoins)
+				{
+					toSwitch.Height = Height.Mempool;
 				}
 			}
 		}
