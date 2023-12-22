@@ -90,11 +90,10 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			while (true)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
-
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 				SyncRequest? request;
+
 				lock (Lock)
 				{
 					if (!SynchronizationRequests.TryPeek(out request, out _))
