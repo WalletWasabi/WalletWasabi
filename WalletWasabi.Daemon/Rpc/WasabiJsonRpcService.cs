@@ -256,6 +256,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return smartTx.Transaction.ToHex();
 	}
 
+	/// <summary>
+	/// Unsafe, because no matter how big fee the user chooses, Wasabi will build the transaction.
+	/// Potentially, the user can burn his money using this method, so be careful!
+	/// </summary>
 	[JsonRpcMethod("buildunsafetransaction")]
 	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
 	{
