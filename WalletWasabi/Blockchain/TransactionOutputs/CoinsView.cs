@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -23,8 +22,6 @@ public class CoinsView : ICoinsView
 	public ICoinsView Confirmed() => new CoinsView(Coins.Where(x => x.Confirmed));
 
 	public ICoinsView Unconfirmed() => new CoinsView(Coins.Where(x => !x.Confirmed));
-
-	public ICoinsView AtBlockHeight(Height height) => new CoinsView(Coins.Where(x => x.Height == height));
 
 	public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
 

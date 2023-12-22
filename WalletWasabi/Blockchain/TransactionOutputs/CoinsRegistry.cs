@@ -227,8 +227,13 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
+			foreach (SmartCoin coin in Coins)
 			{
+				if (coin.Height != blockHeight)
+				{
+					continue;
+				}
+
 				var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
 				foreach (var toSwitch in descendantCoins)
 				{
@@ -374,8 +379,6 @@ public class CoinsRegistry : ICoinsView
 	}
 
 	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
-
-	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
