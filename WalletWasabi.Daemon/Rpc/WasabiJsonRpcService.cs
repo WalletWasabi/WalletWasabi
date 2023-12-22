@@ -256,8 +256,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return smartTx.Transaction.ToHex();
 	}
 
-	[JsonRpcMethod("buildtransactionwithoutoverpaymentprotection")]
-	public string BuildTransactionWithoutOverpaymentProtection(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	[JsonRpcMethod("buildunsafetransaction")]
+	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
