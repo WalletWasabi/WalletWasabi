@@ -128,7 +128,16 @@ public class WalletFilterProcessor : BackgroundService
 						var heightToTest = (uint)currentHeight.Value + 1;
 						if (!FiltersCache.TryGetValue(heightToTest, out var filterToProcess))
 						{
-							filterToProcess = await UpdateFiltersCacheAndReturnFirstAsync(heightToTest, cancellationToken).ConfigureAwait(false);
+							// We don't have the next filter to process, so fetch another batch of filters from the database.
+							FiltersCache.Clear();
+
+							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(heightToTest), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+							foreach (var filter in filtersBatch)
+							{
+								FiltersCache[filter.Header.Height] = filter;
+							}
+
+							filterToProcess = filtersBatch.First();
 						}
 
 						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
@@ -196,18 +205,6 @@ public class WalletFilterProcessor : BackgroundService
 			}
 			FiltersCache.Clear();
 		}
-	}
-
-	private async Task<FilterModel> UpdateFiltersCacheAndReturnFirstAsync(uint startingHeight, CancellationToken cancellationToken)
-	{
-		FiltersCache.Clear();
-		var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(startingHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-		foreach (var filter in filtersBatch)
-		{
-			FiltersCache[filter.Header.Height] = filter;
-		}
-
-		return filtersBatch.First();
 	}
 
 	/// <summary>
