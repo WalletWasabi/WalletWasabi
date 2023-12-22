@@ -34,7 +34,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		_wallet = wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(UiContext, wallet, false);
+		PrivacyTile = new PrivacyControlTileViewModel(UiContext, wallet);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);
@@ -71,7 +71,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		_wallet.Privacy.ProgressUpdated
 					   .Merge(sizeTrigger)
-					   .WithLatestFrom(_wallet.Coins.List.ToObservableChangeSet(model => model.Key).ToCollection().Select(x => x.Distinct()))
+					   .WithLatestFrom(_wallet.Coins.List.Connect(suppressEmptyChangeSets: false).ToCollection().Select(x => x.Distinct()))
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Do(t => RenderRing(itemsSourceList, t.Second))
 					   .Subscribe()

@@ -8,6 +8,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -38,11 +39,11 @@ public static class NotificationHelpers
 		}
 	}
 
-	public static void Show(Wallet wallet, ProcessedResult result, Action onClick)
+	public static void Show(IWalletModel wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(result, wallet.Synchronizer.UsdExchangeRate, out var message))
+		if (TryGetNotificationInputs(result, wallet.AmountProvider.UsdExchangeRate, out var message))
 		{
-			Show(wallet.WalletName, message, onClick);
+			Show(wallet.Name, message, onClick);
 		}
 	}
 

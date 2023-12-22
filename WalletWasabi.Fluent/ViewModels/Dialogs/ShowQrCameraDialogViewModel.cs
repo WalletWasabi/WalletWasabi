@@ -61,14 +61,11 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 						QrImage = result.bitmap;
 					}
 				},
-				onError: error =>
-				{
-					Dispatcher.UIThread.Post(async () =>
+				onError: error => Dispatcher.UIThread.Post(async () =>
 					{
 						Close();
 						await ShowErrorAsync(Title, error.Message, "Something went wrong", NavigationTarget.CompactDialogScreen);
-					});
-				})
+					}))
 			.DisposeWith(disposables);
 	}
 }

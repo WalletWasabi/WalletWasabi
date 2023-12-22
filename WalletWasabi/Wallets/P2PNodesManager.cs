@@ -34,7 +34,7 @@ public class P2PNodesManager
 		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
 	}
 
-	public void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
+	public void DisconnectNodeIfEnoughPeers(Node node, string logIfDisconnect, bool force = false)
 	{
 		if (Nodes.ConnectedNodes.Count > 3 || force)
 		{

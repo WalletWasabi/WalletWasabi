@@ -8,9 +8,18 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class PrivacyTextPresenter : UserControl
 {
+	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
+		AvaloniaProperty.Register<PrivacyTextPresenter, int>(nameof(MaxPrivacyChars), int.MaxValue);
+
 	private GlyphRun? _glyphRun;
 	private double _width;
 	private FormattedText? _formattedText;
+
+	public int MaxPrivacyChars
+	{
+		get => GetValue(MaxPrivacyCharsProperty);
+		set => SetValue(MaxPrivacyCharsProperty, value);
+	}
 
 	private FormattedText CreateFormattedText()
 	{
@@ -38,7 +47,7 @@ public class PrivacyTextPresenter : UserControl
 		var scale = FontSize / glyphTypeface.Metrics.DesignEmHeight;
 		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
 
-		var count = width > 0 && width < advance ? 1 : (int)(width / advance);
+		var count = Math.Min(width > 0 && width < advance ? 1 : (int)(width / advance), MaxPrivacyChars);
 		if (count == 0)
 		{
 			return null;

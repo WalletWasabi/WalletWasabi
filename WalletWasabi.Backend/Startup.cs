@@ -45,7 +45,11 @@ public class Startup
 
 		services.AddMemoryCache();
 
-		services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
+		services.AddMvc(options =>
+			{
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
+			})
 			.AddControllersAsServices();
 
 		services.AddMvc()

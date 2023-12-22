@@ -40,15 +40,13 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		// Close dialog if target transaction is already confirmed.
-		_wallet.Transactions.List
-							.ToObservableChangeSet(x => x.Id)
-							.ToCollection()
-							.Select(col => col.FirstOrDefault(x => x.Id == _speedupTransaction.TargetTransaction.GetHash()))
-							.WhereNotNull()
-							.Where(s => s.IsConfirmed)
-							.Do(_ => Navigate().Back())
-							.Subscribe()
-							.DisposeWith(disposables);
+		_wallet.Transactions.Cache
+			.Connect()
+			.Watch(_speedupTransaction.TargetTransaction.GetHash())
+			.Where(change => change.Current.IsConfirmed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
@@ -65,10 +63,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 				await _wallet.Transactions.SendAsync(speedupTransaction);
 				var (title, caption) = ("Success", "Your transaction has been successfully accelerated.");
 
-				// TODO: Remove this after SendSuccessViewModel is decoupled
-				var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).Wallet;
-
-				UiContext.Navigate().To().SendSuccess(wallet, speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
+				UiContext.Navigate().To().SendSuccess(speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}
 		}
 		catch (Exception ex)

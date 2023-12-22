@@ -5,7 +5,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Threading;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
@@ -72,26 +71,4 @@ public class WalletBuilder : IAsyncDisposable
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
 	}
-}
-
-public class MockBlockRepository : IRepository<uint256, Block>
-{
-	public MockBlockRepository(Dictionary<uint256, Block> blocks)
-	{
-		Blocks = blocks;
-	}
-
-	public Dictionary<uint256, Block> Blocks { get; }
-
-	public Task<Block?> TryGetAsync(uint256 id, CancellationToken cancel) =>
-		Task.FromResult(Blocks.GetValueOrDefault(id));
-
-	public Task SaveAsync(Block element, CancellationToken cancel) =>
-		Task.CompletedTask;
-
-	public Task RemoveAsync(uint256 id, CancellationToken cancel) =>
-		Task.CompletedTask;
-
-	public Task<int> CountAsync(CancellationToken cancel) =>
-		Task.FromResult(Blocks.Count);
 }

@@ -1,0 +1,8 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WalletWasabi.Tests.UnitTests.Fluent.Controls.AmountControlTests.AmountControl_Defaults"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
+        Title="AmountControl001">
+  <c:AmountControl Name="TargetAmountControl"
+                   Amount="{Binding .}"/>
+</Window>

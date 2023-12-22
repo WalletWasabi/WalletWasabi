@@ -93,12 +93,7 @@ public class WalletFilterProcessorTests
 
 		// This emulates first synchronization
 		var turboSyncTask = Task.Run(
-			async () =>
-			{
-				await realWallet.WalletFilterProcessor.ProcessAsync(
-					SyncType.Turbo,
-					testDeadlineCts.Token);
-			},
+			async () => await realWallet.WalletFilterProcessor.ProcessAsync(SyncType.Turbo, testDeadlineCts.Token),
 			testDeadlineCts.Token);
 		allTurboTasks.Add(turboSyncTask);
 
@@ -120,12 +115,7 @@ public class WalletFilterProcessorTests
 
 		// This emulates final synchronization
 		var nonTurboSyncTask = Task.Run(
-			async () =>
-			{
-				await realWallet.WalletFilterProcessor.ProcessAsync(
-					SyncType.NonTurbo,
-					testDeadlineCts.Token);
-			},
+			async () => await realWallet.WalletFilterProcessor.ProcessAsync(SyncType.NonTurbo, testDeadlineCts.Token),
 			testDeadlineCts.Token);
 		allNonTurboTasks.Add(nonTurboSyncTask);
 
@@ -150,8 +140,8 @@ public class WalletFilterProcessorTests
 		await whenAllNonTurbo;
 
 		// Blockchain Tip should be reach for both SyncTypes.
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint) realWallet.KeyManager.GetBestHeight().Value);
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint) realWallet.KeyManager.GetBestTurboSyncHeight().Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight().Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestTurboSyncHeight().Value);
 	}
 
 	// This emulates the NewFiltersProcessed event with SyncType separation to keep the track of the order.

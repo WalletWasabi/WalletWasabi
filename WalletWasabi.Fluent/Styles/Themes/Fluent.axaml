@@ -35,8 +35,6 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
       </ResourceDictionary.MergedDictionaries>
-      <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
-      <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
     </ResourceDictionary>
   </Styles.Resources>
 </Styles>

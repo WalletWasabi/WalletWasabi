@@ -45,15 +45,8 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	{
 		foreach (var nestedItem in _nestedItems)
 		{
-			var isVisible = nestedItem.IsVisibleSelector(property);
-			if (isVisible)
-			{
-				_editableSearchSource.Add(nestedItem.Item);
-			}
-			else
-			{
-				_editableSearchSource.Remove(nestedItem.Item);
-			}
+			var isDisplayed = nestedItem.IsDisplayed(property);
+			_editableSearchSource.Toggle(nestedItem.Item, isDisplayed);
 		}
 	}
 }

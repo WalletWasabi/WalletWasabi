@@ -1,7 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Linq;
-using DynamicData;
+using System.Reactive.Subjects;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -11,11 +12,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IWalletModel : INotifyPropertyChanged
+{
+}
+
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
+	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
+
+	[AutoNotify] private bool _isLoggedIn;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -31,10 +39,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		Addresses =
-			Observable.Defer(() => GetAddresses().ToObservable())
-					  .Concat(Transactions.TransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-					  .ToObservableChangeSet(x => x.Text);
+		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -43,11 +48,9 @@ public partial class WalletModel : ReactiveObject
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		Balances =
-			Observable.Defer(() => Observable.Return(Wallet.Coins.TotalAmount()))
-					  .Concat(Transactions.TransactionProcessed
-					  .Select(_ => Wallet.Coins.TotalAmount()))
-					  .Select(AmountProvider.Create);
+		Balances = Transactions.TransactionProcessed
+			.Select(_ => Wallet.Coins.TotalAmount())
+			.Select(AmountProvider.Create);
 
 		HasBalance = Balances.Select(x => x.HasBalance);
 
@@ -62,7 +65,11 @@ public partial class WalletModel : ReactiveObject
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
+
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
+
+	public IAddressesModel AddressesModel { get; }
 
 	internal Wallet Wallet { get; }
 
@@ -88,8 +95,6 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
 
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
-
 	public IObservable<WalletState> State { get; }
 
 	public IAmountProvider AmountProvider { get; }
@@ -97,7 +102,10 @@ public partial class WalletModel : ReactiveObject
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
-		return new Address(Wallet.KeyManager, pubKey);
+		var nextReceiveAddress = new Address(Wallet.KeyManager, pubKey);
+		_newAddressGenerated.OnNext(nextReceiveAddress);
+
+		return nextReceiveAddress;
 	}
 
 	public IWalletInfoModel GetWalletInfo()
@@ -117,13 +125,5 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
-	}
-
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return Wallet.KeyManager
-			.GetKeys()
-			.Reverse()
-			.Select(x => new Address(Wallet.KeyManager, x));
 	}
 }

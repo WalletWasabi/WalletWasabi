@@ -1,14 +1,16 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 
 namespace WalletWasabi.Fluent.Helpers;
 
+// TODO: See https://github.com/zkSNACKs/WalletWasabi/issues/12053.
+#pragma warning disable CS0618 // Type or member is obsolete
 public static class FileDialogHelper
 {
 	public static async Task<string?> ShowOpenFileDialogAsync(string title)
@@ -130,3 +132,4 @@ public static class FileDialogHelper
 		}
 	}
 }
+#pragma warning restore CS0618 // Type or member is obsolete

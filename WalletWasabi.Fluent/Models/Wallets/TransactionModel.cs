@@ -2,7 +2,6 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -10,37 +9,39 @@ public partial class TransactionModel : ReactiveObject
 {
 	private readonly List<TransactionModel> _children = new();
 
-	public int OrderIndex { get; init; }
+	public required int OrderIndex { get; init; }
 
-	public uint256 Id { get; init; }
+	public required uint256 Id { get; init; }
 
-	public LabelsArray Labels { get; init; }
+	public required LabelsArray Labels { get; init; }
 
-	public DateTimeOffset Date { get; set; }
+	public required DateTimeOffset Date { get; set; }
 
-	public string DateString { get; set; }
+	public required string DateString { get; set; }
 
-	public int Confirmations { get; init; }
+	public required int Confirmations { get; init; }
 
-	public string ConfirmedTooltip { get; set; }
+	public int BlockHeight { get; init; }
 
-	public TransactionType Type { get; init; }
+	public uint256? BlockHash { get; init; }
 
-	public TransactionStatus Status { get; set; }
+	public required string ConfirmedTooltip { get; set; }
 
-	public TransactionSummary TransactionSummary { get; init; }
+	public required TransactionType Type { get; init; }
+
+	public required TransactionStatus Status { get; set; }
 
 	public bool IsChild { get; set; }
 
 	public Money? Balance { get; set; }
 
-	public Money? IncomingAmount { get; set; }
+	public required Money Amount { get; set; }
 
-	public Money? OutgoingAmount { get; set; }
+	public Money? IncomingAmount => GetAmounts().IncomingAmount;
 
-	public Money? Fee { get; init; }
+	public Money? OutgoingAmount => GetAmounts().OutgoingAmount;
 
-	public Money Amount => Math.Abs(IncomingAmount ?? OutgoingAmount ?? Money.Zero);
+	public Money? Fee { get; set; }
 
 	public bool CanCancelTransaction { get; init; }
 
@@ -55,6 +56,25 @@ public partial class TransactionModel : ReactiveObject
 	public bool IsCoinjoinGroup => Type == TransactionType.CoinjoinGroup;
 
 	public bool IsCancellation => Type == TransactionType.Cancellation;
+
+	public FeeRate? FeeRate { get; set; }
+
+	private (Money? IncomingAmount, Money? OutgoingAmount) GetAmounts()
+	{
+		Money? incomingAmount = null;
+		Money? outgoingAmount = null;
+
+		if (Amount < Money.Zero)
+		{
+			outgoingAmount = -Amount - (Fee ?? Money.Zero);
+		}
+		else
+		{
+			incomingAmount = Amount;
+		}
+
+		return (incomingAmount, outgoingAmount);
+	}
 
 	public void Add(TransactionModel child)
 	{

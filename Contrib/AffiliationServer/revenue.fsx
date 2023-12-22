@@ -1,6 +1,6 @@
 #r "nuget:fstoolkit.errorhandling"
 #r "nuget:nbitcoin"
-#r "../../WalletWasabi/bin/Debug/net7.0/WalletWasabi.dll"
+#r "../../WalletWasabi/bin/Debug/net8.0/WalletWasabi.dll"
 #r "System.Security.Cryptography.dll"
 
 open System.Security.Cryptography

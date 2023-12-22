@@ -58,7 +58,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			priority: 7,
 			isEnabled,
 			nestedItemConfiguration: new NestedItemConfiguration<bool>(
-				isVisibleSelector: isVisible => isVisible,
+				isDisplayed: isVisible => isVisible,
 				item: new ContentSearchItem(
 					content: Setting(selector: x => x.TerminateTorOnExit),
 					name: "Terminate Tor when Wasabi shuts down",
@@ -82,7 +82,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			priority: 7,
 			isEnabled,
 			nestedItemConfiguration: new NestedItemConfiguration<bool>(
-				isVisibleSelector: isVisible => isVisible,
+				isDisplayed: isVisible => isVisible,
 				item: new ContentSearchItem(
 					content: Setting(selector: x => x.StopLocalBitcoinCoreOnShutdown),
 					name: "Stop Bitcoin Knots on shutdown",

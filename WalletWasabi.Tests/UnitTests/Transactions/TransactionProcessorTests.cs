@@ -393,8 +393,8 @@ public class TransactionProcessorTests
 
 		var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
 		var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
-		Assert.True(unconfirmedCoin1.IsReplaceable());
-		Assert.True(unconfirmedCoin2.IsReplaceable());
+		Assert.True(unconfirmedCoin1.Transaction.IsRBF);
+		Assert.True(unconfirmedCoin2.Transaction.IsRBF);
 
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
@@ -411,7 +411,7 @@ public class TransactionProcessorTests
 		Assert.True(relevant3.IsNews);
 		Assert.Equal(1, replaceTransactionReceivedCalled);
 		var finalCoin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(finalCoin.IsReplaceable());
+		Assert.True(finalCoin.Transaction.IsRBF);
 		Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
 		Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
@@ -514,9 +514,9 @@ public class TransactionProcessorTests
 
 		var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.True(coinB.IsReplaceable());
-		Assert.True(coinC.IsReplaceable());
-		Assert.True(coinD.IsReplaceable());
+		Assert.True(coinB.Transaction.IsRBF);
+		Assert.True(coinC.Transaction.IsRBF);
+		Assert.True(coinD.Transaction.IsRBF);
 
 		// Now it is confirmed
 		var blockHeight = new Height(77551);
@@ -526,8 +526,8 @@ public class TransactionProcessorTests
 		coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
 		coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.False(coinC.IsReplaceable());
-		Assert.False(coinD.IsReplaceable());
+		Assert.False(coinC.Transaction.IsRBF);
+		Assert.False(coinD.Transaction.IsRBF);
 	}
 
 	[Fact]
@@ -654,7 +654,7 @@ public class TransactionProcessorTests
 
 		Assert.True(relevant2.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(coin.IsReplaceable());
+		Assert.True(coin.Transaction.IsRBF);
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -708,10 +708,10 @@ public class TransactionProcessorTests
 		relevant = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant.IsNews);
-		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable());
+		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.Transaction.IsRBF);
 		Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
-		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.IsReplaceable());
+		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.Transaction.IsRBF);
 		Assert.Equal(tx1.Transaction.GetHash(), nonReplaceableCoin.TransactionId);
 
 		// Transaction store assertions
@@ -976,10 +976,8 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-		var txOut = new TxOut(amount, BitcoinFactory.CreateScript());
-		tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txOutputs
-		tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
-
+		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, count: 5));
+		tx.Inputs.AddRange(CreateRandomInputs(count: 4));
 		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
 		// It is relevant even when all the coins can be dust.
@@ -1006,9 +1004,9 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-		tx.Outputs.AddRange(Common.Repeat(() => new TxOut(Money.Coins(0.1m), BitcoinFactory.CreateScript()), 5)); // 6 indistinguishable txOutputs
+		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, 5));
 		tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
-		tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
+		tx.Inputs.AddRange(CreateRandomInputs(4));
 
 		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
@@ -1519,5 +1517,29 @@ public class TransactionProcessorTests
 			null,
 			keyManager,
 			Money.Coins(0.0001m));
+	}
+
+	private List<TxOut> CreateRandomIndistinguishableOutputs(long amount, int count)
+	{
+		List<TxOut> outputs = new(capacity: count);
+
+		for (int i = 0; i < count; i++)
+		{
+			outputs.Add(new TxOut(amount, BitcoinFactory.CreateScript()));
+		}
+
+		return outputs;
+	}
+
+	private List<TxIn> CreateRandomInputs(int count)
+	{
+		List<TxIn> inputs = new(capacity: count);
+
+		for (int i = 0; i < count; i++)
+		{
+			inputs.Add(new TxIn(GetRandomOutPoint(), Script.Empty));
+		}
+
+		return inputs;
 	}
 }

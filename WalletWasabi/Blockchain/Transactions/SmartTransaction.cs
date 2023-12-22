@@ -126,8 +126,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
+					.GroupBy(i => i.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
@@ -139,8 +139,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
+					.GroupBy(o => o.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
@@ -221,7 +221,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
 	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 	/// </summary>
-	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
+	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.Transaction.IsRBF));
+
+	public bool IsImmature(int bestHeight)
+	{
+		return Transaction.IsCoinBase && Height >= bestHeight - 100;
+	}
 
 	#endregion Members
 

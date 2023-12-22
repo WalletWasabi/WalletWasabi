@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToUsd =
-		new FuncValueConverter<decimal, string>(n => n.ToUsd());
+	public static readonly IValueConverter ToUsdFormatted =
+		new FuncValueConverter<decimal, string>(n => n.ToUsdFormatted());
 
 	public static readonly IValueConverter ToUsdNumber =
 		new FuncValueConverter<decimal, string>(n => n.WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));

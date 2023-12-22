@@ -8,6 +8,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public partial interface IWalletStatsModel : IDisposable
+{
+}
+
 [AutoInterface]
 public partial class WalletStatsModel : ReactiveObject, IDisposable
 {
@@ -61,18 +65,18 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 		GeneratedUsedKeyCount = wallet.KeyManager.GetKeys(KeyState.Used).Count();
 
 		var singleCoinjoins =
-			walletModel.Transactions.List
+			walletModel.Transactions.Cache.Items
 									.Where(x => x.Type == TransactionType.Coinjoin)
 									.ToList();
 
 		var groupedCoinjoins =
-			walletModel.Transactions.List
+			walletModel.Transactions.Cache.Items
 									.Where(x => x.Type == TransactionType.CoinjoinGroup)
 									.ToList();
 
 		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
 		var nonCoinjoins =
-			walletModel.Transactions.List
+			walletModel.Transactions.Cache.Items
 									.Where(x => !x.IsCoinjoin)
 									.ToList();
 
@@ -80,8 +84,4 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 		NonCoinjointransactionCount = nonCoinjoins.Count;
 		CoinjoinTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count;
 	}
-}
-
-public partial interface IWalletStatsModel : IDisposable
-{
 }

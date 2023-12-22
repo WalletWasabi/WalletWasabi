@@ -15,6 +15,7 @@
                            HorizontalContentAlignment="Left"
                            Classes="monoSpacedPrivacyReplacement"
                            UseOpacity="True"
+                           MaxPrivacyChars="11"
                            MinWidth="100"
                            Margin="0 0 7 0">
     <c:LabelsItemsPresenter ItemsSource="{Binding Transaction.Labels}"

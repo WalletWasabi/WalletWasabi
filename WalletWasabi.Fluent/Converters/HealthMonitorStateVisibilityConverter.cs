@@ -5,17 +5,17 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Converters;
 
-public class StatusIconStateVisibilityConverter : IValueConverter
+public class HealthMonitorStateVisibilityConverter : IValueConverter
 {
-	public static readonly StatusIconStateVisibilityConverter Instance = new();
+	public static readonly HealthMonitorStateVisibilityConverter Instance = new();
 
-	private StatusIconStateVisibilityConverter()
+	private HealthMonitorStateVisibilityConverter()
 	{
 	}
 
 	object IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (value is StatusIconState state && parameter is StatusIconState paramState)
+		if (value is HealthMonitorState state && parameter is HealthMonitorState paramState)
 		{
 			return state == paramState;
 		}

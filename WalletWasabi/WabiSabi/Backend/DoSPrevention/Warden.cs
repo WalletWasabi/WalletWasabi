@@ -17,29 +17,21 @@ public class Warden : BackgroundService
 	public Warden(string prisonFilePath, ICoinJoinIdStore coinjoinIdStore, WabiSabiConfig config)
 	{
 		PrisonFilePath = prisonFilePath;
+		Config = config;
 		OffendersToSaveChannel = Channel.CreateUnbounded<Offender>();
 
-		var dosConfig = new DoSConfiguration(
-			SeverityInBitcoinsPerHour: config.DoSSeverity.ToDecimal(MoneyUnit.BTC),
-			MinTimeForFailedToVerify: config.DoSMinTimeForFailedToVerify,
-			MinTimeForCheating: config.DoSMinTimeForCheating,
-			PenaltyFactorForDisruptingConfirmation: (decimal) config.DoSPenaltyFactorForDisruptingConfirmation,
-			PenaltyFactorForDisruptingSignalReadyToSign: (decimal) config.DoSPenaltyFactorForDisruptingSignalReadyToSign,
-			PenaltyFactorForDisruptingSigning: (decimal) config.DoSPenaltyFactorForDisruptingSigning,
-			PenaltyFactorForDisruptingByDoubleSpending: (decimal) config.DoSPenaltyFactorForDisruptingByDoubleSpending,
-			MinTimeInPrison: config.DoSMinTimeInPrison);
-		Prison = DeserializePrison(PrisonFilePath, dosConfig, coinjoinIdStore, OffendersToSaveChannel.Writer);
+		Prison = DeserializePrison(PrisonFilePath, coinjoinIdStore, OffendersToSaveChannel.Writer);
 	}
 
 	public Prison Prison { get; }
 
 	public string PrisonFilePath { get; }
+	private WabiSabiConfig Config { get; }
 
 	private Channel<Offender> OffendersToSaveChannel { get; }
 
 	private static Prison DeserializePrison(
 		string prisonFilePath,
-		DoSConfiguration config,
 		ICoinJoinIdStore coinjoinIdStore,
 		ChannelWriter<Offender> channelWriter)
 	{
@@ -62,7 +54,7 @@ public class Warden : BackgroundService
 			}
 		}
 
-		return new Prison(config, coinjoinIdStore, offenders, channelWriter);
+		return new Prison(coinjoinIdStore, offenders, channelWriter);
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)

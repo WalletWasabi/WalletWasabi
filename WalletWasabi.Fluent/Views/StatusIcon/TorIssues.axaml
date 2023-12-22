@@ -7,12 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.StatusIcon.TorIssues"
              x:CompileBindings="True"
-             x:DataType="statusIcon:IStatusIconViewModel">
-
-  <Design.DataContext>
-    <statusIcon:StatusIconDesignViewModel />
-  </Design.DataContext>
-
+             x:DataType="statusIcon:StatusIconViewModel">
   <Button Classes="activeHyperLink" VerticalAlignment="Center" Foreground="Gold"
           Command="{Binding OpenTorStatusSiteCommand}">
     <Button.Content>
@@ -22,16 +17,14 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
         <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
-        <ItemsControl Margin="8" ItemsSource="{Binding TorIssues}">
+        <ItemsControl Margin="8" ItemsSource="{Binding HealthMonitor.TorIssues}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="tor:Issue">
               <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-
       </DockPanel>
     </ToolTip.Tip>
   </Button>
-
 </UserControl>

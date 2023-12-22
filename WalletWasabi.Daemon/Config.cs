@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -14,6 +15,8 @@ namespace WalletWasabi.Daemon;
 
 public class Config
 {
+	public static readonly IDictionary EnvironmentVariables = Environment.GetEnvironmentVariables();
+
 	public Config(PersistentConfig persistentConfig, string[] cliArgs)
 	{
 		PersistentConfig = persistentConfig;
@@ -21,36 +24,88 @@ public class Config
 
 		Data = new()
 		{
-			{ nameof(Network), GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs) },
-			{ nameof(MainNetBackendUri), GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs) },
-			{ nameof(TestNetBackendUri), GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs) },
-			{ nameof(RegTestBackendUri), GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs) },
-			{ nameof(MainNetCoordinatorUri), GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs) },
-			{ nameof(TestNetCoordinatorUri), GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)},
-			{ nameof(RegTestCoordinatorUri), GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)},
-			{ nameof(UseTor), GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs) },
-			{ nameof(TerminateTorOnExit), GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs) },
-			{ nameof(DownloadNewVersion), GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs) },
-			{ nameof(StartLocalBitcoinCoreOnStartup), GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs) },
-			{ nameof(StopLocalBitcoinCoreOnShutdown), GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs) },
-			{ nameof(LocalBitcoinCoreDataDir), GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs) },
-			{ nameof(MainNetBitcoinP2pEndPoint), GetEndPointValue("MainNetBitcoinP2pEndPoint", PersistentConfig.MainNetBitcoinP2pEndPoint, cliArgs) },
-			{ nameof(TestNetBitcoinP2pEndPoint), GetEndPointValue("TestNetBitcoinP2pEndPoint", PersistentConfig.TestNetBitcoinP2pEndPoint, cliArgs) },
-			{ nameof(RegTestBitcoinP2pEndPoint), GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs) },
-			{ nameof(JsonRpcServerEnabled), GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs) },
-			{ nameof(JsonRpcUser), GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs) },
-			{ nameof(JsonRpcPassword), GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs) },
-			{ nameof(JsonRpcServerPrefixes), GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs) },
-			{ nameof(RpcOnionEnabled), GetBoolValue("RpcOnionEnabled", value: false, cliArgs) },
-			{ nameof(DustThreshold), GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs) },
-			{ nameof(BlockOnlyMode), GetBoolValue("BlockOnly", value: false, cliArgs) },
-			{ nameof(LogLevel), GetStringValue("LogLevel", value: "", cliArgs) },
-			{ nameof(EnableGpu), GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs) },
-			{ nameof(CoordinatorIdentifier), GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs) },
+			[ nameof(Network)] = (
+				"The Bitcoin network to use: main, testnet, or regtest",
+				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
+			[ nameof(MainNetBackendUri)] = (
+				"The backend server's URL to connect to when the Bitcoin network is main",
+				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs)),
+			[ nameof(TestNetBackendUri)] = (
+				"The backend server's URL to connect to when the Bitcoin network is testnet",
+				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs)),
+			[ nameof(RegTestBackendUri)] = (
+				"The backend server's URL to connect to when the Bitcoin network is regtest",
+				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
+			[ nameof(MainNetCoordinatorUri)] = (
+				"The coordinator server's URL to connect to when the Bitcoin network is main",
+				GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
+			[ nameof(TestNetCoordinatorUri)] = (
+				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
+				GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
+			[ nameof(RegTestCoordinatorUri)] = (
+				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
+				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
+			[ nameof(UseTor)] = (
+				"All the communications go through the Tor network",
+				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+			[ nameof(TerminateTorOnExit)] = (
+				"Stop the Tor process when Wasabi is closed",
+				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
+			[ nameof(DownloadNewVersion)] = (
+				"Automatically download any new released version of Wasabi",
+				GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs)),
+			[ nameof(StartLocalBitcoinCoreOnStartup)] = (
+				"Start a local bitcoin node when Wasabi starts",
+				GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs)),
+			[ nameof(StopLocalBitcoinCoreOnShutdown)] = (
+				"Stop the local bitcoin node when Wasabi is closed",
+				GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs)),
+			[ nameof(LocalBitcoinCoreDataDir)] = (
+				"The path of the data directory to be used by the local bitcoin node",
+				GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs)),
+			[ nameof(MainNetBitcoinP2pEndPoint)] = (
+				"-",
+				GetEndPointValue("MainNetBitcoinP2pEndPoint", PersistentConfig.MainNetBitcoinP2pEndPoint, cliArgs)),
+			[ nameof(TestNetBitcoinP2pEndPoint)] = (
+				"-",
+				GetEndPointValue("TestNetBitcoinP2pEndPoint", PersistentConfig.TestNetBitcoinP2pEndPoint, cliArgs)),
+			[ nameof(RegTestBitcoinP2pEndPoint)] = (
+				"-",
+				GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs)),
+			[ nameof(JsonRpcServerEnabled)] = (
+				"Start the Json RPC Server and accept requests",
+				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
+			[ nameof(JsonRpcUser)] = (
+				"The user name that is authorized to make requests to the Json RPC server",
+				GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs)),
+			[ nameof(JsonRpcPassword)] = (
+				"The user password that is authorized to make requests to the Json RPC server",
+				GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs)),
+			[ nameof(JsonRpcServerPrefixes)] = (
+				"The Json RPC server prefixes",
+				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs)),
+			[ nameof(RpcOnionEnabled)] = (
+				"Publish the Json RPC Server as a Tor Onion service",
+				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),
+			[ nameof(DustThreshold)] = (
+				"The amount threshold under which coins received from others to already used addresses are considered a dust attack",
+				GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs)),
+			[ nameof(BlockOnlyMode)] = (
+				"Wasabi listens only for blocks and not for transactions",
+				GetBoolValue("BlockOnly", value: false, cliArgs)),
+			[ nameof(LogLevel)] = (
+				"The level of detail in the logs: trace, debug, info, warning, error, or critical",
+				GetStringValue("LogLevel", value: "", cliArgs)),
+			[ nameof(EnableGpu)] = (
+				"Use a GPU to render the user interface",
+				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
+			[ nameof(CoordinatorIdentifier)] = (
+				"-",
+				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
-		foreach (IValue optionValue in Data.Values)
+		foreach ((_, IValue optionValue) in Data.Values)
 		{
 			if (optionValue.Overridden)
 			{
@@ -62,7 +117,7 @@ public class Config
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
-	private Dictionary<string, IValue> Data { get; }
+	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
 	public PersistentConfig PersistentConfig { get; }
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
@@ -154,6 +209,9 @@ public class Config
 
 		return result is null ? GetBackendUri() : new Uri(result);
 	}
+
+	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
+		Data.Select(x => (x.Key, x.Value.Hint));
 
 	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
 	{
@@ -264,7 +322,7 @@ public class Config
 
 	private static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
 	{
-		if (ArgumentHelpers.TryGetValue(key, cliArgs, x => x, out cliArgsValue))
+		if (ArgumentHelpers.TryGetValue(key, cliArgs, out cliArgsValue))
 		{
 			return true;
 		}
@@ -275,12 +333,11 @@ public class Config
 
 	private static bool GetEnvironmentVariable(string key, [NotNullWhen(true)] out string? envValue)
 	{
-		string envKey = "WASABI-" + key.ToUpperInvariant();
-		IDictionary environmentVariables = Environment.GetEnvironmentVariables();
+		string envKey = $"WASABI-{key.ToUpperInvariant()}";
 
-		if (environmentVariables.Contains(envKey))
+		if (EnvironmentVariables.Contains(envKey))
 		{
-			if (environmentVariables[envKey] is string envVar)
+			if (EnvironmentVariables[envKey] is string envVar)
 			{
 				envValue = envVar;
 				return true;
@@ -293,7 +350,7 @@ public class Config
 
 	private TValue GetEffectiveValue<TStorage, TValue>(string key) where TStorage : ITypedValue<TValue>
 	{
-		if (Data.TryGetValue(key, out IValue? valueObject) && valueObject is ITypedValue<TValue> typedValue)
+		if (Data.TryGetValue(key, out (string, IValue value) valueObject) && valueObject.value is ITypedValue<TValue> typedValue)
 		{
 			return typedValue.EffectiveValue;
 		}

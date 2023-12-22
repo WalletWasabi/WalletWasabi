@@ -8,10 +8,10 @@ namespace WalletWasabi.Fluent.Behaviors;
 public class FadeInBehavior : AttachedToVisualTreeBehavior<Visual>
 {
 	public static readonly StyledProperty<TimeSpan> InitialDelayProperty =
-		AvaloniaProperty.Register<ItemsControlAnimationBehavior, TimeSpan>(nameof(InitialDelay), TimeSpan.FromMilliseconds(500));
+		AvaloniaProperty.Register<FadeInBehavior, TimeSpan>(nameof(InitialDelay), TimeSpan.FromMilliseconds(500));
 
 	public static readonly StyledProperty<TimeSpan> DurationProperty =
-		AvaloniaProperty.Register<ItemsControlAnimationBehavior, TimeSpan>(nameof(Duration), TimeSpan.FromMilliseconds(250));
+		AvaloniaProperty.Register<FadeInBehavior, TimeSpan>(nameof(Duration), TimeSpan.FromMilliseconds(250));
 
 	public TimeSpan InitialDelay
 	{

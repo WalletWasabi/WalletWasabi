@@ -1,4 +1,3 @@
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -63,11 +62,12 @@ public class UtxoPrisonWardenTests
 		using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coinjoinIdStoreMock.Object, coordinatorParameters2.RuntimeCoordinatorConfig);
 		await w2.StartAsync(CancellationToken.None);
 
-		Assert.True(w2.Prison.IsBanned(i1, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i2, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i3, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i4, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i5, DateTimeOffset.UtcNow));
+		var dosConfig = coordinatorParameters2.RuntimeCoordinatorConfig.GetDoSConfiguration();
+		Assert.True(w2.Prison.IsBanned(i1, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i2, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i3, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i4, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i5, dosConfig, DateTimeOffset.UtcNow));
 
 		await w2.StopAsync(CancellationToken.None);
 	}

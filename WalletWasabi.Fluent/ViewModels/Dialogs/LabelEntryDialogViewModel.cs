@@ -49,7 +49,8 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Coins.List.ToObservableChangeSet(model => model.Key)
+		_wallet.Coins.List
+			.Connect()
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())

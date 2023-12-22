@@ -90,7 +90,7 @@ public class CoinJoinClient
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
-					&& roundState.BlameOf == uint256.Zero
+					&& !roundState.IsBlame
 					&& roundState.Id != excludeRound,
 				linkedCts.Token)
 			.ConfigureAwait(false);
@@ -120,7 +120,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
-		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
+		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
@@ -143,13 +143,16 @@ public class CoinJoinClient
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
 
-			if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+			if (!currentRoundState.IsBlame)
 			{
-				throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
-			}
-			if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
-			{
-				throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, "Round skipped randomly for better privacy.");
+				if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+				{
+					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
+				}
+				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
+				{
+					throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, "Round skipped randomly for better privacy.");
+				}
 			}
 
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
@@ -536,7 +539,8 @@ public class CoinJoinClient
 
 		// Decrease the available time, so the clients hurry up.
 		var safetyBuffer = TimeSpan.FromMinutes(1);
-		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd - safetyBuffer);
+		var remainingTime = roundState.InputRegistrationEnd - safetyBuffer;
+		var scheduledDates = remainingTime.GetScheduledDates(smartCoins.Count());
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -611,7 +615,7 @@ public class CoinJoinClient
 		// Maximum signing request delay is 50 seconds, because
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingStartTime, signingEndTime, maximumSigningRequestDelay);
+		var scheduledDates = signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,
@@ -642,7 +646,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = readyToSignEndTime.GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(
 			aliceClients,
@@ -671,21 +675,9 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	private ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime)
-	{
-		return GetScheduledDates(howMany, DateTimeOffset.UtcNow, endTime, TimeSpan.MaxValue);
-	}
-
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
-		var remainingTime = endTime - startTime;
-
-		if (remainingTime > maximumRequestDelay)
-		{
-			remainingTime = maximumRequestDelay;
-		}
-
-		return remainingTime.SamplePoisson(howMany, startTime);
+		return endTime.GetScheduledDates(howMany, startTime, maximumRequestDelay);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
@@ -781,7 +773,7 @@ public class CoinJoinClient
 			// Output registration.
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, outputRegistrationEndTime, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = outputRegistrationEndTime.GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
 			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
 		}

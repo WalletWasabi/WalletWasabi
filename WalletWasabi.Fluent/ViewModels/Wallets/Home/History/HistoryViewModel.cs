@@ -1,7 +1,5 @@
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -23,19 +21,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 public partial class HistoryViewModel : ActivatableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly WalletViewModel _walletVm; // TODO: Remove this
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	// TODO: Remove walletViewModel parameter
-	public HistoryViewModel(UiContext uiContext, WalletViewModel walletViewModel, IWalletModel wallet)
+	public HistoryViewModel(UiContext uiContext, IWalletModel wallet)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
-
-		// TODO: Remove this
-		_walletVm = walletViewModel;
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
@@ -218,19 +211,19 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_wallet.Transactions.List
-							.ToObservableChangeSet(model => model.Id)
-							.Transform(x => CreateViewModel(x))
-							.Sort(SortExpressionComparer<HistoryItemViewModelBase>
-								.Ascending(x => x.Transaction.IsConfirmed)
-								.ThenByDescending(x => x.Transaction.OrderIndex))
-							.Bind(Transactions)
-							.Subscribe()
-							.DisposeWith(disposables);
+		_wallet.Transactions.Cache.Connect()
+			.Transform(x => CreateViewModel(x))
+			.Sort(
+				SortExpressionComparer<HistoryItemViewModelBase>
+					.Ascending(x => x.Transaction.IsConfirmed)
+					.ThenByDescending(x => x.Transaction.OrderIndex))
+			.Bind(Transactions)
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		_wallet.Transactions.IsEmpty
-							.BindTo(this, x => x.IsTransactionHistoryEmpty)
-							.DisposeWith(disposables);
+			.BindTo(this, x => x.IsTransactionHistoryEmpty)
+			.DisposeWith(disposables);
 	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)

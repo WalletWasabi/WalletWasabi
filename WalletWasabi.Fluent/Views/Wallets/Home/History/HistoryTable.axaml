@@ -125,6 +125,7 @@
                   IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
       <i:Interaction.Behaviors>
         <behaviors:ScrollToSelectedItemBehavior />
+        <behaviors:HistoryItemTypeClassBehavior />
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PrivacyElementFactory />
@@ -192,17 +193,6 @@
         <Style Selector="PathIcon.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
-
-        <Style Selector="TreeDataGridRow" x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:HistoryItemTypeClassBehavior />
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
-
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridExpanderCell}" />
         </Style>

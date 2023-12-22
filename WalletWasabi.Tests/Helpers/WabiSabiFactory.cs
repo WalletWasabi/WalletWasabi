@@ -19,6 +19,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.UnitTests;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -363,35 +364,41 @@ public static class WabiSabiFactory
 
 	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
 
-	public static (Prison, ChannelReader<Offender>, DoSConfiguration) CreateObservablePrison()
+	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
 	{
 		var coinjoinIdStore = CreateCoinJoinIdStore();
 		var channel = Channel.CreateUnbounded<Offender>();
-		var dosConfiguration = CreateDoSConfiguration();
 		var prison = new Prison(
-			dosConfiguration,
 			coinjoinIdStore,
 			Enumerable.Empty<Offender>(),
 			channel.Writer);
-		return (prison, channel.Reader, dosConfiguration);
+		return (prison, channel.Reader);
 	}
 
 	public static Prison CreatePrison()
 	{
-		var (prison, _, _) = CreateObservablePrison();
+		var (prison, _) = CreateObservablePrison();
 		return prison;
 	}
 
-	internal static DoSConfiguration CreateDoSConfiguration() =>
-		new (
-			SeverityInBitcoinsPerHour: 1.0m,
-			MinTimeForFailedToVerify: TimeSpan.FromDays(30),
-			MinTimeForCheating: TimeSpan.FromDays(1),
-			MinTimeInPrison: TimeSpan.FromHours(1),
-			PenaltyFactorForDisruptingConfirmation: 1.0m,
-			PenaltyFactorForDisruptingSignalReadyToSign: 1.5m,
-			PenaltyFactorForDisruptingSigning: 1.5m,
-			PenaltyFactorForDisruptingByDoubleSpending: 3.0m);
+	internal static WabiSabiConfig CreateWabiSabiConfig()
+	{
+		return new WabiSabiConfig
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice),
+
+			DoSSeverity = Money.Coins(1.0m),
+			DoSMinTimeForFailedToVerify = TimeSpan.FromDays(30),
+			DoSMinTimeForCheating = TimeSpan.FromDays(1),
+			DoSMinTimeInPrison = TimeSpan.FromHours(1),
+			DoSPenaltyFactorForDisruptingConfirmation = 1.0d,
+			DoSPenaltyFactorForDisruptingSignalReadyToSign = 1.5d,
+			DoSPenaltyFactorForDisruptingSigning = 1.5d,
+			DoSPenaltyFactorForDisruptingByDoubleSpending = 3.0d
+		};
+	}
 
 	internal static ICoinJoinIdStore CreateCoinJoinIdStore()
 	{
