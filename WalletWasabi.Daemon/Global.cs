@@ -185,7 +185,6 @@ public class Global
 			{
 				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				UpdateManager.Initialize(cancel);
 				await LegalChecker.InitializeAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();

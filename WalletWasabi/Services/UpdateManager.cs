@@ -31,6 +31,8 @@ public class UpdateManager : IDisposable
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
+		CancellationTokenSource = new CancellationTokenSource();
+
 		UpdateChecker = updateChecker;
 		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
@@ -47,12 +49,7 @@ public class UpdateManager : IDisposable
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker UpdateChecker { get; }
-	private CancellationToken CancellationToken { get; set; }
-
-	public void Initialize(CancellationToken cancelationToken)
-	{
-		CancellationToken = cancelationToken;
-	}
+	private CancellationTokenSource CancellationTokenSource { get; set; }
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
 	{
@@ -128,7 +125,7 @@ public class UpdateManager : IDisposable
 				using HttpClient httpClient = new();
 
 				// Get file stream and copy it to downloads folder to access.
-				using var stream = await httpClient.GetStreamAsync(result.InstallerDownloadUrl, CancellationToken).ConfigureAwait(false);
+				using var stream = await httpClient.GetStreamAsync(result.InstallerDownloadUrl, CancellationTokenSource.Token).ConfigureAwait(false);
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				await CopyStreamContentToFileAsync(stream, installerFilePath).ConfigureAwait(false);
@@ -138,7 +135,7 @@ public class UpdateManager : IDisposable
 		}
 		catch (IOException)
 		{
-			CancellationToken.ThrowIfCancellationRequested();
+			CancellationTokenSource.Token.ThrowIfCancellationRequested();
 			throw;
 		}
 
@@ -147,7 +144,7 @@ public class UpdateManager : IDisposable
 
 	private async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash)
 	{
-		var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(installerFilePath, CancellationToken).ConfigureAwait(false);
+		var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(installerFilePath, CancellationTokenSource.Token).ConfigureAwait(false);
 		string downloadedHash = Convert.ToHexString(bytes).ToLower();
 
 		if (expectedHash != downloadedHash)
@@ -174,7 +171,7 @@ public class UpdateManager : IDisposable
 		IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
 		using (var file = File.OpenWrite(tmpFilePath))
 		{
-			await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
+			await stream.CopyToAsync(file, CancellationTokenSource.Token).ConfigureAwait(false);
 
 			// Closing the file to rename.
 			file.Close();
@@ -186,9 +183,9 @@ public class UpdateManager : IDisposable
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await HttpClient.SendAsync(message, CancellationToken).ConfigureAwait(false);
+		var response = await HttpClient.SendAsync(message, CancellationTokenSource.Token).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false));
+		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(CancellationTokenSource.Token).ConfigureAwait(false));
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
@@ -224,12 +221,12 @@ public class UpdateManager : IDisposable
 
 		try
 		{
-			using (var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
+			using (var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationTokenSource.Token).ConfigureAwait(false))
 			{
 				await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
 			}
 
-			using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false))
+			using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationTokenSource.Token).ConfigureAwait(false))
 			{
 				await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
 			}
@@ -252,7 +249,7 @@ public class UpdateManager : IDisposable
 		catch (IOException)
 		{
 			// There's a chance to get IOException when closing Wasabi during stream copying. Throw OperationCancelledException instead.
-			CancellationToken.ThrowIfCancellationRequested();
+			CancellationTokenSource.Token.ThrowIfCancellationRequested();
 			throw;
 		}
 	}
@@ -360,6 +357,8 @@ public class UpdateManager : IDisposable
 
 	public void Dispose()
 	{
+		CancellationTokenSource.Cancel();
+		CancellationTokenSource.Dispose();
 		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 	}
 }
