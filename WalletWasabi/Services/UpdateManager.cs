@@ -230,14 +230,14 @@ public class UpdateManager : IDisposable
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
-			File.WriteAllText(sha256SumsFilePath, sha256Content, Encoding.UTF8);
+			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
 			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, CancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
-			File.WriteAllText(wasabiSigFilePath, signatureContent, Encoding.UTF8);
+			File.WriteAllText(wasabiSigFilePath, signatureContent);
 
 			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 		}
