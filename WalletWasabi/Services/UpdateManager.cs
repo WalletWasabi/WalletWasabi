@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -31,8 +30,6 @@ public class UpdateManager : IDisposable
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
-		CancellationTokenSource = new CancellationTokenSource();
-
 		UpdateChecker = updateChecker;
 		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
@@ -49,7 +46,7 @@ public class UpdateManager : IDisposable
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker UpdateChecker { get; }
-	private CancellationTokenSource CancellationTokenSource { get; set; }
+	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
 	{
@@ -357,8 +354,9 @@ public class UpdateManager : IDisposable
 
 	public void Dispose()
 	{
+		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+
 		CancellationTokenSource.Cancel();
 		CancellationTokenSource.Dispose();
-		UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 	}
 }
