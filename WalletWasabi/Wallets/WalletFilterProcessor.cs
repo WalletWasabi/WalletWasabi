@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Hosting;
+using NBitcoin;
+using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -16,10 +16,14 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets;
 
+/// <summary>
+/// Service that keeps processing block filters.
+/// </summary>
+/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
 	private const int MaxNumberFiltersInMemory = 1000;
-	
+
 	public static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
 		(x, y) =>
 		{
@@ -28,7 +32,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				return -1;
 			}
-			
+
 			if (y.SyncType != SyncType.NonTurbo && x.SyncType == SyncType.NonTurbo)
 			{
 				return 1;
@@ -36,7 +40,7 @@ public class WalletFilterProcessor : BackgroundService
 
 			return 0;
 		});
-	
+
 	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
 		KeyManager = keyManager;
@@ -47,7 +51,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
-	
+
 	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
 	private object Lock { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
@@ -57,17 +61,19 @@ public class WalletFilterProcessor : BackgroundService
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
 	public FilterModel? LastProcessedFilter { get; private set; }
-	private Dictionary<uint, FilterModel> FiltersCache { get; } = new();
-	
+
+	/// <remarks>Internal only to allow modifications in tests.</remarks>
+	internal Dictionary<uint, FilterModel> FiltersCache { get; } = new();
+
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
-	private AsyncLock ReorgLock { get; } = new ();
+	private AsyncLock ReorgLock { get; } = new();
 
 	public async Task ProcessAsync(IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
 	{
 		var tasks = syncTypes.Select(syncType => ProcessAsync(syncType, cancellationToken)).ToList();
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
-	
+
 	public async Task ProcessAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
 		SyncRequest request = new(syncType, new TaskCompletionSource());
@@ -160,7 +166,7 @@ public class WalletFilterProcessor : BackgroundService
 					{
 						Logger.LogWarning($"Tried to set exception for {request.SyncType.FriendlyName()} but status was already {request.Tcs.Task.Status}.");
 					}
-					
+
 					throw;
 				}
 
@@ -191,7 +197,7 @@ public class WalletFilterProcessor : BackgroundService
 			FiltersCache.Clear();
 		}
 	}
-	
+
 	private async Task<FilterModel> UpdateFiltersCacheAndReturnFirstAsync(uint startingHeight, CancellationToken cancellationToken)
 	{
 		FiltersCache.Clear();
@@ -203,25 +209,13 @@ public class WalletFilterProcessor : BackgroundService
 
 		return filtersBatch.First();
 	}
-	
-	/// <summary>
-	/// Used by test to emulate database.
-	/// </summary>
-	internal void AddToCache(IEnumerable<FilterModel> filters)
-	{
-		foreach (var filter in filters)
-		{
-			FiltersCache[filter.Header.Height] = filter;
-		}
-	}
-	
+
 	/// <summary>
 	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
 	/// </summary>
 	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
 	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
-	/// <returns>Keys to test against this filter</returns>
-	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
+	/// <returns>Keys to test against this filter.</returns>
 	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
 	{
 		if (syncType == SyncType.Complete)
@@ -268,7 +262,7 @@ public class WalletFilterProcessor : BackgroundService
 		LastProcessedFilter = filter;
 		return matchFound;
 	}
-	
+
 	private async void ReorgedAsync(object? sender, FilterModel invalidFilter)
 	{
 		try
@@ -298,7 +292,7 @@ public class WalletFilterProcessor : BackgroundService
 		BitcoinStore.IndexStore.Reorged += ReorgedAsync;
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
-	
+
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		BitcoinStore.IndexStore.Reorged -= ReorgedAsync;
