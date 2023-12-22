@@ -129,4 +129,25 @@ public static class TransactionBuilderWalletExtensions
 
 		return txRes;
 	}
+
+	public static BuildTransactionResult BuildTransactionWithoutOverpaymentProtection(
+		this Wallet wallet,
+		string password,
+		PaymentIntent payments,
+		FeeStrategy feeStrategy,
+		bool allowUnconfirmed = false,
+		IEnumerable<OutPoint>? allowedInputs = null,
+		IPayjoinClient? payjoinClient = null,
+		bool allowDoubleSpend = false)
+		=> BuildTransaction(
+			wallet,
+			password,
+			payments,
+			feeStrategy,
+			allowUnconfirmed,
+			allowedInputs,
+			payjoinClient,
+			allowDoubleSpend,
+			tryToSign: true,
+			overrideFeeOverpaymentProtection: true);
 }
