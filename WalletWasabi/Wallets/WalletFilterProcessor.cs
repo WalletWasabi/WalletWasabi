@@ -45,11 +45,11 @@ public class WalletFilterProcessor : BackgroundService
 		BlockProvider = blockProvider;
 	}
 
-	/// <remarks>Guarded by <see cref="SynchronizationRequestsLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
 	
 	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
-	private object SynchronizationRequestsLock { get; } = new();
+	private object Lock { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
 	private KeyManager KeyManager { get; }
@@ -71,10 +71,10 @@ public class WalletFilterProcessor : BackgroundService
 	public async Task ProcessAsync(SyncType syncType, CancellationToken cancellationToken)
 	{
 		SyncRequest request = new(syncType, new TaskCompletionSource());
+		Priority priority = new(request.SyncType);
 
-		lock (SynchronizationRequestsLock)
+		lock (Lock)
 		{
-			Priority priority = new(request.SyncType);
 			SynchronizationRequests.Enqueue(request, priority);
 			SynchronizationRequestsSemaphore.Release(releaseCount: 1);
 		}
@@ -95,7 +95,7 @@ public class WalletFilterProcessor : BackgroundService
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 				SyncRequest? request;
-				lock (SynchronizationRequestsLock)
+				lock (Lock)
 				{
 					if (!SynchronizationRequests.TryPeek(out request, out _))
 					{
@@ -113,7 +113,7 @@ public class WalletFilterProcessor : BackgroundService
 						if (currentHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
 							request.Tcs.SetResult();
-							lock (SynchronizationRequestsLock)
+							lock (Lock)
 							{
 								SynchronizationRequests.Dequeue();
 							}
@@ -145,7 +145,7 @@ public class WalletFilterProcessor : BackgroundService
 					if (reachedBlockChainTip)
 					{
 						request.Tcs.SetResult();
-						lock (SynchronizationRequestsLock)
+						lock (Lock)
 						{
 							SynchronizationRequests.Dequeue();
 						}
@@ -182,7 +182,7 @@ public class WalletFilterProcessor : BackgroundService
 		}
 		finally
 		{
-			lock (SynchronizationRequestsLock)
+			lock (Lock)
 			{
 				while (SynchronizationRequests.TryDequeue(out var request, out _))
 				{
