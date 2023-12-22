@@ -64,7 +64,7 @@ public class IdempotencyRequestCache
 		{
 			try
 			{
-				TResponse? result = await action(request, cancellationToken).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
+				TResponse? result = await action(request, cancellationToken).WaitAsync(cancellationToken).ConfigureAwait(false);
 				responseTcs!.SetResult(result);
 				return result;
 			}
