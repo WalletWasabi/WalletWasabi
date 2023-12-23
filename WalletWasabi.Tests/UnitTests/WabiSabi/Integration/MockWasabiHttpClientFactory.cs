@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -22,6 +22,6 @@ public class MockWasabiHttpClientFactory : IWasabiHttpClientFactory
 		OnNewHttpClientWithDefaultCircuit?.Invoke()
 			?? throw new NotImplementedException($"{nameof(NewHttpClientWithDefaultCircuit)} was called but never assigned.");
 
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null) =>
+	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null, int maximumRedirects = 0) =>
 		throw new NotImplementedException();
 }
