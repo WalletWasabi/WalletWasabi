@@ -127,13 +127,13 @@ public class UpdateManager : IDisposable
 
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, result.InstallerDownloadUrl);
-				using HttpResponseMessage response = await HttpClient.SendAsync(request, CancellationToken).ConfigureAwait(false);
-				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(CancellationToken).ConfigureAwait(false);
+				using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				using MemoryStream stream = new(installerFileBytes);
-				await CopyStreamContentToFileAsync(stream, installerFilePath).ConfigureAwait(false);
+				await CopyStreamContentToFileAsync(stream, installerFilePath, cancellationToken).ConfigureAwait(false);
 			}
 			string expectedHash = await GetHashFromSha256SumsFileAsync(result.InstallerFileName, sha256SumsFilePath).ConfigureAwait(false);
 			await VerifyInstallerHashAsync(installerFilePath, expectedHash, cancellationToken).ConfigureAwait(false);
@@ -225,15 +225,15 @@ public class UpdateManager : IDisposable
 		try
 		{
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
-			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, CancellationToken).ConfigureAwait(false);
-			string sha256Content = await sha256Response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
+			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
-			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, CancellationToken).ConfigureAwait(false);
-			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
+			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
 			File.WriteAllText(wasabiSigFilePath, signatureContent);
