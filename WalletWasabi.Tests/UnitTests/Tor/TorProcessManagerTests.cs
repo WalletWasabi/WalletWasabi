@@ -1,4 +1,5 @@
 using Moq;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -7,11 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Microservices;
-using WalletWasabi.Tests.UnitTests.Helpers.PowerSaving;
-using WalletWasabi.Tests.UnitTests.Tor.Socks5.Pool;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Socks5;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
@@ -39,17 +39,20 @@ public class TorProcessManagerTests
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
-		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
-		mockProcess.OnWaitForExitAsync = cancellationToken => Task.Delay(torProcessCrashPeriod, cancellationToken);
+		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
+		mockProcess.Setup(p => p.WaitForExitAsync(It.IsAny<CancellationToken>()))
+			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
+		mockProcess.Setup(p => p.Dispose());
 
 		// Set TorTcpConnectionFactory.
-		MockTorTcpConnectionFactory mockTcpConnectionFactory = new(DummyTorControlEndpoint);
-		mockTcpConnectionFactory.OnIsTorRunningAsync = () => Task.FromResult(false);
+		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
+		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(false);
 
 		// Mock TorProcessManager.
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory) { CallBase = true };
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory.Object) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
-			.Returns(mockProcess);
+			.Returns(mockProcess.Object);
 		mockTorProcessManager.Setup(c => c.EnsureRunningAsync(It.IsAny<ProcessAsync>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 		mockTorProcessManager.SetupSequence(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
@@ -67,6 +70,9 @@ public class TorProcessManagerTests
 			// Wait until TorProcessManager is stopped (see (2)).
 			await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await manager.WaitForNextAttemptAsync(timeoutCts.Token).ConfigureAwait(false));
 		}
+
+		mockTorProcessManager.Verify(c => c.StartProcess(It.IsAny<string>()), Times.Exactly(2));
+		mockTorProcessManager.VerifyAll();
 	}
 
 	/// <summary>
@@ -86,15 +92,17 @@ public class TorProcessManagerTests
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
-		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
-		mockProcess.OnHandle = () => IntPtr.Zero; // Any value is fine.
+		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
+		mockProcess.SetupGet(p => p.Handle).Returns(IntPtr.Zero); // Any value is fine.
+		mockProcess.Setup(p => p.Dispose());
 
-		MockTorTcpConnectionFactory mockTcpConnectionFactory = new(DummyTorControlEndpoint);
+		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
 
 		// Port is a shared resource, so any user can connect to it.
-		mockTcpConnectionFactory.OnIsTorRunningAsync = () => Task.FromResult(true);
+		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
 
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory) { CallBase = true };
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory.Object) { CallBase = true };
 
 		mockTorProcessManager.Setup(c => c.GetTorProcesses())
 			.Returns(runningTorOsProcesses == 0 ? Array.Empty<Process>() : new[] { new Process() /* Dummy process */ });

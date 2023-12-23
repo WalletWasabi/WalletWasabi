@@ -101,6 +101,10 @@ public class TorHttpPool : IAsyncDisposable
 		}
 	}
 
+	/// <inheritdoc cref="SendAsync(HttpRequestMessage, ICircuit, int, CancellationToken)"/>
+	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+		=> SendAsync(request, circuit, maximumRedirects: 0, cancellationToken);
+
 	/// <summary>
 	/// Sends an HTTP(s) request.
 	/// <para>HTTP(s) requests with loopback destination after forwarded to <see cref="ClearnetHttpClient"/> and that's it.</para>
@@ -113,9 +117,10 @@ public class TorHttpPool : IAsyncDisposable
 	/// </para>
 	/// <para><see cref="ConnectionsLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
 	/// </summary>
+	/// <param name="maximumRedirects"><c>0</c> to disable redirecting altogether, otherwise a maximum allowed number of hops.</param>
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, int maximumRedirects, CancellationToken cancellationToken)
 	{
 		int i = 0;
 		int attemptsNo = 3;
@@ -123,6 +128,8 @@ public class TorHttpPool : IAsyncDisposable
 
 		try
 		{
+			Uri requestUriOverride = request.RequestUri!;
+
 			do
 			{
 				i++;
@@ -149,11 +156,11 @@ public class TorHttpPool : IAsyncDisposable
 
 				try
 				{
-					connection = await ObtainFreeConnectionAsync(request.RequestUri!, namedCircuit, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(requestUriOverride, namedCircuit, cancellationToken).ConfigureAwait(false);
 					connectionToDispose = connection;
 
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
-					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
+					HttpResponseMessage response = await SendCoreAsync(connection, request, requestUriOverride, cancellationToken).ConfigureAwait(false);
 
 					// Client works OK, no need to dispose.
 					connectionToDispose = null;
@@ -165,6 +172,22 @@ public class TorHttpPool : IAsyncDisposable
 					attemptSuccessful = true;
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
+
+					// Support for redirects if allowed.
+					// See https://github.com/dotnet/runtime/blob/47071da67320985a10f4b70f50f894ab411f4994/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/RedirectHandler.cs#L91-L96.
+					if (response.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect or HttpStatusCode.MultipleChoices or HttpStatusCode.PermanentRedirect)
+					{
+						if (maximumRedirects > 0)
+						{
+							maximumRedirects--;
+							requestUriOverride = GetUriForRedirect(response, requestUriOverride);
+
+							// Do not return response now, but try again with the new request URI.
+							continue;
+						}
+
+						Logger.LogDebug($"['{connection}'][Attempt #{i}] Redirect limit reached.");
+					}
 
 					return response;
 				}
@@ -268,6 +291,42 @@ public class TorHttpPool : IAsyncDisposable
 		}
 
 		throw new NotImplementedException("This should never happen.");
+	}
+
+	private static Uri GetUriForRedirect(HttpResponseMessage response, Uri currentUri)
+	{
+		if (!response.Headers.TryGetValues("location", out IEnumerable<string>? locations))
+		{
+			throw new HttpRequestException("'location' HTTP header is missing.");
+		}
+
+		Uri result = new(locations.Last());
+
+		// Ensure the redirect location is an absolute URI.
+		if (!result.IsAbsoluteUri)
+		{
+			result = new Uri(currentUri, result);
+		}
+
+		// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a fragment should
+		// inherit the fragment from the original URI.
+		string requestFragment = currentUri.Fragment;
+		if (!string.IsNullOrEmpty(requestFragment))
+		{
+			string redirectFragment = result.Fragment;
+			if (string.IsNullOrEmpty(redirectFragment))
+			{
+				result = new UriBuilder(result) { Fragment = requestFragment }.Uri;
+			}
+		}
+
+		string debugMessage = (locations.Count() > 1)
+			? $"Multiple 'location' headers found for '{currentUri}'."
+			: $"Redirecting '{currentUri}' to '{result}'.";
+
+		Logger.LogDebug(debugMessage);
+
+		return result;
 	}
 
 	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken token)
@@ -410,9 +469,11 @@ public class TorHttpPool : IAsyncDisposable
 		return connection;
 	}
 
+	/// <param name="requestUriOverride">URI that should be used instead of <paramref name="request"/>'s request URI. Useful for HTTP redirect support.</param>
 	/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
 	/// <exception cref="TorConnectionReadException">When a failure during receiving HTTP response from Tor SOCKS5 occurs.</exception>
-	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token)
+	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
+	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, Uri requestUriOverride, CancellationToken token)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-2.6
 		// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -426,7 +487,7 @@ public class TorHttpPool : IAsyncDisposable
 			request.Headers.AcceptEncoding.Add(GzipEncoding);
 		}
 
-		string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
+		string requestString = await request.ToHttpStringAsync(requestUriOverride, token).ConfigureAwait(false);
 		byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
 		Stream transportStream = connection.GetTransportStream();
