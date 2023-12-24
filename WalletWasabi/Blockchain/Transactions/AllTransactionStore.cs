@@ -27,8 +27,9 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		{
 			mempoolStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
 			confirmedStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
-
-		} else {
+		}
+		else
+		{
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 			mempoolStoreDataSource = Path.Combine(WorkFolderPath, "Mempool");
 			confirmedStoreDataSource = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
@@ -37,8 +38,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		MempoolStore = new TransactionStore(workFolderPath: mempoolStoreDataSource, network, migrateData);
 		ConfirmedStore = new TransactionStore(workFolderPath: confirmedStoreDataSource, network, migrateData);
 	}
-
-	#region Initializers
 
 	private string WorkFolderPath { get; }
 
@@ -64,10 +63,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		long ms = sw.ElapsedMilliseconds;
 		Logger.LogInfo($"XXX: Both stores initialized in {ms} ms");
 	}
-
-	#endregion Initializers
-
-	#region Modifiers
 
 	public void AddOrUpdate(SmartTransaction tx)
 	{
@@ -140,10 +135,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 			}
 		}
 	}
-
-	#endregion Modifiers
-
-	#region Accessors
 
 	public virtual bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 	{
@@ -218,8 +209,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<LabelsArray> GetLabels() => GetTransactions().Select(x => x.Labels);
-
-	#endregion Accessors
 
 	public async ValueTask DisposeAsync()
 	{
