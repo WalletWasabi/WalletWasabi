@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
@@ -208,6 +209,10 @@ public class TransactionSqliteStorage : IDisposable
 		return changedRows;
 	}
 
+	/// <inheritdoc cref="BulkInsert(IEnumerable{SmartTransaction}, bool)"/>
+	public int BulkInsert(params SmartTransaction[] transactions)
+		=> BulkInsert(transactions as IEnumerable<SmartTransaction>);
+
 	/// <summary>
 	/// Update transactions in bulk.
 	/// </summary>
@@ -375,7 +380,7 @@ public class TransactionSqliteStorage : IDisposable
 		return true;
 	}
 
-	public IEnumerable<SmartTransaction> GetAll()
+	public IEnumerable<SmartTransaction> GetAll(CancellationToken cancellationToken)
 	{
 		using SqliteTransaction transaction = Connection.BeginTransaction();
 		using SqliteCommand command = Connection.CreateCommand();
@@ -390,8 +395,16 @@ public class TransactionSqliteStorage : IDisposable
 
 		using SqliteDataReader reader = command.ExecuteReader();
 
+		int i = 0;
 		while (reader.Read())
 		{
+			i++;
+
+			if (i % 100 == 0)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+			}
+
 			SmartTransaction filter = ReadRow(reader);
 			yield return filter;
 		}
