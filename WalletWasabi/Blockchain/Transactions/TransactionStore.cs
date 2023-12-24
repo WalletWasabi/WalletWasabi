@@ -21,7 +21,6 @@ public class TransactionStore : IAsyncDisposable
 	public TransactionStore(string workFolderPath, Network network, bool migrateData = true)
 	{
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
 		{

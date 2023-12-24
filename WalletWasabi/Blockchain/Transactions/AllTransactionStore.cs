@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
@@ -16,11 +18,24 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
 	public AllTransactionStore(string workFolderPath, Network network, bool migrateData = true)
 	{
-		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+		WorkFolderPath = workFolderPath;
 
-		MempoolStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "Mempool"), network, migrateData);
-		ConfirmedStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion), network, migrateData);
+		string mempoolStoreDataSource;
+		string confirmedStoreDataSource;
+
+		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
+		{
+			mempoolStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
+			confirmedStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
+
+		} else {
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			mempoolStoreDataSource = Path.Combine(WorkFolderPath, "Mempool");
+			confirmedStoreDataSource = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
+		}
+
+		MempoolStore = new TransactionStore(workFolderPath: mempoolStoreDataSource, network, migrateData);
+		ConfirmedStore = new TransactionStore(workFolderPath: confirmedStoreDataSource, network, migrateData);
 	}
 
 	#region Initializers
@@ -35,6 +50,8 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
+		Stopwatch sw = Stopwatch.StartNew();
+
 		var initTasks = new[]
 		{
 			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancellationToken),
@@ -43,6 +60,9 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 		await Task.WhenAll(initTasks).ConfigureAwait(false);
 		EnsureConsistency();
+
+		long ms = sw.ElapsedMilliseconds;
+		Logger.LogInfo($"XXX: Both stores initialized in {ms} ms");
 	}
 
 	#endregion Initializers
