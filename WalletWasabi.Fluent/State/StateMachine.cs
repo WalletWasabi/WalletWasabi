@@ -11,11 +11,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	private StateContext _currentState;
 	private OnTransitionedDelegate? _onTransitioned;
 
-	public bool IsInState(TState state)
-	{
-		return IsAncestorOf(_currentState.StateId, state);
-	}
-
 	public StateMachine(TState initialState)
 	{
 		_states = new Dictionary<TState, StateContext>();
@@ -28,6 +23,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	public delegate void OnTransitionedDelegate(TState from, TState to);
 
 	public TState State => _currentState.StateId;
+
+	public bool IsInState(TState state)
+	{
+		return IsAncestorOf(_currentState.StateId, state);
+	}
 
 	private void RegisterStates()
 	{
