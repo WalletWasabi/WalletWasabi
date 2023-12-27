@@ -7,13 +7,9 @@ namespace WalletWasabi.Fluent.State;
 /// </summary>
 public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
-	private StateContext _currentState;
 	private readonly Dictionary<TState, StateContext> _states;
+	private StateContext _currentState;
 	private OnTransitionedDelegate? _onTransitioned;
-
-	public delegate void OnTransitionedDelegate(TState from, TState to);
-
-	public TState State => _currentState.StateId;
 
 	public bool IsInState(TState state)
 	{
@@ -28,6 +24,10 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		_currentState = Configure(initialState);
 	}
+
+	public delegate void OnTransitionedDelegate(TState from, TState to);
+
+	public TState State => _currentState.StateId;
 
 	private void RegisterStates()
 	{
@@ -143,12 +143,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		private readonly List<Action> _exitActions;
 		private readonly Dictionary<TTrigger, List<Action>> _triggerActions;
 
-		public TState StateId { get; }
-
-		public StateContext? Parent { get; private set; }
-
-		internal TState? InitialTransitionTo { get; private set; }
-
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
 			_owner = owner;
@@ -159,6 +153,12 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_triggerActions = new();
 			_permittedTransitions = new();
 		}
+
+		public TState StateId { get; }
+
+		public StateContext? Parent { get; private set; }
+
+		internal TState? InitialTransitionTo { get; private set; }
 
 		public StateContext InitialTransition(TState? state)
 		{
