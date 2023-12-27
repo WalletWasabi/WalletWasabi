@@ -27,8 +27,11 @@ public class CoinJoinMempoolManager : IDisposable
 	private void Mempool_Tick(object? sender, TimeSpan e)
 	{
 		var mempoolHashes = MempoolMirror.GetMempoolHashes();
-		var coinJoinsInMempool = mempoolHashes.Where(CoinJoinIdStore.Contains);
-		CoinJoinIds = coinJoinsInMempool.ToImmutableArray();
+
+		CoinJoinIds = CoinJoinIdStore
+			.GetCoinJoinIds()
+			.Where(mempoolHashes.Contains)
+			.ToImmutableArray();
 	}
 
 	protected virtual void Dispose(bool disposing)

@@ -20,7 +20,7 @@ public class CoinjoinIdStoreTests
 		cjIdStore.TryAdd(uint256.One);
 		cjIdStore.TryAdd(uint256.One);
 
-		Assert.Single(cjIdStore.GetCoinJoinIds);
+		Assert.Single(cjIdStore.GetCoinJoinIds());
 	}
 
 	[Fact]
