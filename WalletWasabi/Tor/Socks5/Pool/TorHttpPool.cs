@@ -455,12 +455,13 @@ public class TorHttpPool : IAsyncDisposable
 				{
 					string host = GetRequestHost(requestUri);
 
-					if (!ConnectionPerHost.ContainsKey(host))
+					if (!ConnectionPerHost.TryGetValue(host, out List<TorTcpConnection>? value))
 					{
-						ConnectionPerHost.Add(host, new List<TorTcpConnection>());
+						value = new List<TorTcpConnection>();
+						ConnectionPerHost.Add(host, value);
 					}
 
-					ConnectionPerHost[host].Add(connection);
+					value.Add(connection);
 				}
 			}
 		}
@@ -570,12 +571,13 @@ public class TorHttpPool : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="ConnectionsLock"/>.</remarks>
 	private bool GetPoolConnectionNoLock(string host, ICircuit circuit, out TorTcpConnection? connection)
 	{
-		if (!ConnectionPerHost.ContainsKey(host))
+		if (!ConnectionPerHost.TryGetValue(host, out List<TorTcpConnection>? value))
 		{
-			ConnectionPerHost.Add(host, new());
+			value = new();
+			ConnectionPerHost.Add(host, value);
 		}
 
-		List<TorTcpConnection> hostConnections = ConnectionPerHost[host];
+		List<TorTcpConnection> hostConnections = value;
 
 		// Find TCP connections to dispose.
 		foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
