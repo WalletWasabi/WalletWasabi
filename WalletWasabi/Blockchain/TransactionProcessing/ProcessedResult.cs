@@ -20,14 +20,14 @@ public class ProcessedResult
 	public SmartTransaction Transaction { get; }
 
 	public bool IsNews =>
-		SuccessfullyDoubleSpentCoins.Any()
-		|| ReplacedCoins.Any()
-		|| RestoredCoins.Any()
-		|| NewlyReceivedCoins.Any()
-		|| NewlyConfirmedReceivedCoins.Any()
-		|| NewlySpentCoins.Any()
-		|| NewlyConfirmedSpentCoins.Any()
-		|| ReceivedDusts.Any(); // To be fair it isn't necessarily news, the algorithm of the processor can be improved for that. Not sure it is worth it though.
+		SuccessfullyDoubleSpentCoins.Count != 0
+		|| ReplacedCoins.Count != 0
+		|| RestoredCoins.Count != 0
+		|| NewlyReceivedCoins.Count != 0
+		|| NewlyConfirmedReceivedCoins.Count != 0
+		|| NewlySpentCoins.Count != 0
+		|| NewlyConfirmedSpentCoins.Count != 0
+		|| ReceivedDusts.Count != 0; // To be fair it isn't necessarily news, the algorithm of the processor can be improved for that. Not sure it is worth it though.
 
 	public bool IsOwnCoinJoin => _isOwnCoinJoin.Value;
 

@@ -29,7 +29,7 @@ internal abstract class CombinedGenerator : ISourceGenerator
 			});
 		}
 
-		if (StepFactories.Any())
+		if (StepFactories.Count != 0)
 		{
 			context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
 		}

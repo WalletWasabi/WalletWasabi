@@ -77,7 +77,7 @@ public class CoinVerifier : IAsyncDisposable
 
 		try
 		{
-			while (tasks.Any())
+			while (tasks.Count != 0)
 			{
 				var completedTask = await Task.WhenAny(tasks).WaitAsync(linkedCts.Token).ConfigureAwait(false);
 				tasks.Remove(completedTask);

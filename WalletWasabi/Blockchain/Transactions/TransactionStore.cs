@@ -231,7 +231,7 @@ public class TransactionStore : IAsyncDisposable
 	{
 		lock (TransactionsLock)
 		{
-			return !Transactions.Any();
+			return Transactions.Count == 0;
 		}
 	}
 
@@ -288,7 +288,7 @@ public class TransactionStore : IAsyncDisposable
 			// Make sure that only one call can continue.
 			lock (OperationsLock)
 			{
-				var isRunning = Operations.Any();
+				var isRunning = Operations.Count != 0;
 				Operations.Add(operation);
 				if (isRunning)
 				{

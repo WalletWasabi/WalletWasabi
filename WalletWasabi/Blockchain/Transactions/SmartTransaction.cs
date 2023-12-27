@@ -190,7 +190,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// Parent transactions this transaction is paying for.
 	/// </summary>
 	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
-		IsSpeedup && !IsCancellation && !ForeignInputs.Any() && !ForeignOutputs.Any()
+		IsSpeedup && !IsCancellation && ForeignInputs.Count == 0 && ForeignOutputs.Count == 0
 			? WalletInputs
 				.Select(x => x.Transaction)
 				.Where(x => x.Height == Height
@@ -457,7 +457,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsOwnCoinjoin()
-	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
+	   => WalletInputs.Count != 0 // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	public bool IsSegwitWithoutWitness => !Transaction.HasWitness && Transaction.Inputs.Any(x => x.ScriptSig == Script.Empty);
@@ -467,7 +467,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool TryGetFee([NotNullWhen(true)] out Money? fee)
 	{
-		if (ForeignInputs.Any())
+		if (ForeignInputs.Count != 0)
 		{
 			fee = null;
 			return false;
@@ -484,7 +484,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
 	{
-		if (ForeignInputs.Any() || IsSegwitWithoutWitness)
+		if (ForeignInputs.Count != 0 || IsSegwitWithoutWitness)
 		{
 			feeRate = null;
 			return false;

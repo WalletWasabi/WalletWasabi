@@ -583,7 +583,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
 	{
-		if (!hdPubKeysWithLabels.Any())
+		if (hdPubKeysWithLabels.Count == 0)
 		{
 			return;
 		}
