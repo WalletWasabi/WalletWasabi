@@ -196,10 +196,14 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 				if (ConfirmedStore.TryRemove(txHash, out var removedTx))
 				{
 					removedTx.SetUnconfirmed();
+
 					if (MempoolStore.TryAdd(removedTx))
 					{
-						_ = MempoolStore.TryUpdate(removedTx);
 						reorgedTxs.Add(removedTx);
+					}
+					else
+					{
+						_ = MempoolStore.TryUpdate(removedTx);
 					}
 				}
 			}
