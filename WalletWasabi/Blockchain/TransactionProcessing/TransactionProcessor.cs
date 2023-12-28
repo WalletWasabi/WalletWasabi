@@ -272,7 +272,7 @@ public class TransactionProcessor
 			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
 		}
 
-		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
+		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)
 		{
 			TransactionStore.AddOrUpdate(tx);
 		}

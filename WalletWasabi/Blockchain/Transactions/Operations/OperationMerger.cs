@@ -84,17 +84,17 @@ public static class OperationMerger
 			prevOperation = op;
 		}
 
-		if (tempToAppends.Any())
+		if (tempToAppends.Count != 0)
 		{
 			yield return new Append(tempToAppends);
 		}
 
-		if (tempToRemoves.Any())
+		if (tempToRemoves.Count != 0)
 		{
 			yield return new Remove(tempToRemoves);
 		}
 
-		if (tempToUpdates.Any())
+		if (tempToUpdates.Count != 0)
 		{
 			yield return new Update(tempToUpdates);
 		}

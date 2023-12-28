@@ -65,7 +65,7 @@ public class AmountDecomposer
 		foreach (var denom in preFilteredDenoms)
 		{
 			var filterSeverity = 1 + currentLength * increment;
-			if (!denoms.Any() || denom.Amount.Satoshi <= (long)(denoms.Last().Amount.Satoshi / filterSeverity))
+			if (denoms.Count == 0 || denom.Amount.Satoshi <= (long)(denoms.Last().Amount.Satoshi / filterSeverity))
 			{
 				denoms.Add(denom);
 			}
@@ -121,7 +121,7 @@ public class AmountDecomposer
 
 		// If there are changeless candidates, don't even consider ones with change.
 		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
-		var changeAvoided = changelessCandidates.Any();
+		var changeAvoided = changelessCandidates.Count != 0;
 		if (changeAvoided)
 		{
 			preCandidates = changelessCandidates;
