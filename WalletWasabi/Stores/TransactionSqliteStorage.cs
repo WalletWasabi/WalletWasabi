@@ -58,9 +58,9 @@ public class TransactionSqliteStorage : IDisposable
 						block_index INTEGER NOT NULL,
 						labels TEXT NOT NULL, /* empty string ~ no labels */
 						first_seen INTEGER NOT NULL, /* UNIX timestamp in seconds */
-						is_replacement INTEGER NOT NULL, /* 0 ~ no, 1 ~ yes */
-						is_speedup INTEGER NOT NULL, /* 0 ~ no, 1 ~ yes */
-						is_cancellation INTEGER NOT NULL, /* 0 ~ no, 1 ~ yes */
+						is_replacement BOOLEAN NOT NULL,
+						is_speedup BOOLEAN NOT NULL,
+						is_cancellation BOOLEAN NOT NULL,
 						tx BLOB NOT NULL /* transaction as a binary array */
 					);
 					CREATE INDEX IF NOT EXISTS transaction_blockchain_idx ON "transaction" (block_height, block_index, first_seen);
