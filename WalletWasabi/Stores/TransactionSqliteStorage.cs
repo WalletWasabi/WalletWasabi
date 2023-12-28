@@ -449,8 +449,7 @@ public class TransactionSqliteStorage : IDisposable
 		LabelsArray labelsArray = new(labelsString);
 		DateTimeOffset firstSeen = DateTimeOffset.FromUnixTimeSeconds(firstSeenLong);
 
-		// TODO: Assert stx.txid against uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0));?
-		SmartTransaction stx = new SmartTransaction(transaction, height, blockHash, blockIndex, labelsArray, isReplacement, isSpeedup, isCancellation, firstSeen);
+		SmartTransaction stx = new(transaction, height, blockHash, blockIndex, labelsArray, isReplacement, isSpeedup, isCancellation, firstSeen);
 
 		if (stx.GetHash() != txid)
 		{
