@@ -62,8 +62,6 @@ public class TransactionStore : IAsyncDisposable
 		{
 			SqliteStorage.Clear();
 
-			IoManager transactionsFileManager = new(filePath: oldPath);
-
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
 			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
 
