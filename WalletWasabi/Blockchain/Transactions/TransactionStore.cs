@@ -1,4 +1,3 @@
-using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
@@ -253,66 +251,6 @@ public class TransactionStore : IAsyncDisposable
 		lock (SqliteStorageLock)
 		{
 			return Transactions.ContainsKey(hash);
-		}
-	}
-
-	private int BulkInsert(params SmartTransaction[] transactions)
-		=> BulkInsert(transactions as IEnumerable<SmartTransaction>);
-
-	private int BulkInsert(IEnumerable<SmartTransaction> transactions)
-	{
-		try
-		{
-			lock (SqliteStorageLock)
-			{
-				return SqliteStorage.BulkInsert(transactions.OrderByBlockchain());
-			}
-		}
-		catch (SqliteException ex)
-		{
-			Logger.LogError(ex);
-			throw;
-		}
-	}
-
-	private void BulkDelete(params uint256[] transactionIds)
-		=> BulkDelete(transactionIds as IReadOnlyList<uint256>);
-
-	private void BulkDelete(IReadOnlyList<uint256> transactionIds)
-	{
-		try
-		{
-			lock (SqliteStorageLock)
-			{
-				SqliteStorage.BulkRemove(transactionIds);
-			}
-		}
-		catch (SqliteException ex)
-		{
-			Logger.LogError(ex);
-			throw;
-		}
-	}
-
-	/// <inheritdoc cref="BulkUpdate(IEnumerable{SmartTransaction})"/>
-	private int BulkUpdate(params SmartTransaction[] transactions)
-		=> BulkUpdate(transactions as IEnumerable<SmartTransaction>);
-
-	/// <returns>Number of modified rows.</returns>
-	/// <exception cref="SqliteException">If there is an issue with the operation.</exception>
-	private int BulkUpdate(IEnumerable<SmartTransaction> transactions)
-	{
-		try
-		{
-			lock (SqliteStorageLock)
-			{
-				return SqliteStorage.BulkUpdate(transactions);
-			}
-		}
-		catch (SqliteException ex)
-		{
-			Logger.LogError(ex);
-			throw;
 		}
 	}
 
