@@ -34,6 +34,7 @@ public class TransactionStore : IAsyncDisposable
 
 		if (migrateData)
 		{
+			Logger.LogWarning("Migration of transactions to SQLite format is about to begin. Please wait a moment.");
 			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
 			Import(oldPath, network, deleteAfterImport: false);
 		}
