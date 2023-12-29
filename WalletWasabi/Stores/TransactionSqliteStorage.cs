@@ -240,40 +240,31 @@ public class TransactionSqliteStorage : IDisposable
 
 		command.CommandText = commandText;
 
-		SqliteParameter txidParameter = command.CreateParameter();
-		txidParameter.ParameterName = "$txid";
+		SqliteParameter txidParameter = CreateParameter(command, "$txid");
 		command.Parameters.Add(txidParameter);
 
-		SqliteParameter blockHeightParameter = command.CreateParameter();
-		blockHeightParameter.ParameterName = "$block_height";
+		SqliteParameter blockHeightParameter = CreateParameter(command, "$block_height");
 		command.Parameters.Add(blockHeightParameter);
 
-		SqliteParameter blockHashParameter = command.CreateParameter();
-		blockHashParameter.ParameterName = "$block_hash";
+		SqliteParameter blockHashParameter = CreateParameter(command, "$block_hash");
 		command.Parameters.Add(blockHashParameter);
 
-		SqliteParameter blockIndexParameter = command.CreateParameter();
-		blockIndexParameter.ParameterName = "$block_index";
+		SqliteParameter blockIndexParameter = CreateParameter(command, "$block_index");
 		command.Parameters.Add(blockIndexParameter);
 
-		SqliteParameter labelsParameter = command.CreateParameter();
-		labelsParameter.ParameterName = "$labels";
+		SqliteParameter labelsParameter = CreateParameter(command, "$labels");
 		command.Parameters.Add(labelsParameter);
 
-		SqliteParameter firstSeenParameter = command.CreateParameter();
-		firstSeenParameter.ParameterName = "$first_seen";
+		SqliteParameter firstSeenParameter = CreateParameter(command, "$first_seen");
 		command.Parameters.Add(firstSeenParameter);
 
-		SqliteParameter isReplacementParameter = command.CreateParameter();
-		isReplacementParameter.ParameterName = "$is_replacement";
+		SqliteParameter isReplacementParameter = CreateParameter(command, "$is_replacement");
 		command.Parameters.Add(isReplacementParameter);
 
-		SqliteParameter isSpeedupParameter = command.CreateParameter();
-		isSpeedupParameter.ParameterName = "$is_speedup";
+		SqliteParameter isSpeedupParameter = CreateParameter(command, "$is_speedup");
 		command.Parameters.Add(isSpeedupParameter);
 
-		SqliteParameter isCancellationParameter = command.CreateParameter();
-		isCancellationParameter.ParameterName = "$is_cancellation";
+		SqliteParameter isCancellationParameter = CreateParameter(command, "$is_cancellation");
 		command.Parameters.Add(isCancellationParameter);
 
 		int changedRows = 0;
