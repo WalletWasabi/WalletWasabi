@@ -34,8 +34,8 @@ public class TransactionStore : IAsyncDisposable
 
 		if (migrateData)
 		{
-			Logger.LogWarning("Migration of transactions to SQLite format is about to begin. Please wait a moment.");
 			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
+			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
 			Import(oldPath, network, deleteAfterImport: false);
 		}
 	}
