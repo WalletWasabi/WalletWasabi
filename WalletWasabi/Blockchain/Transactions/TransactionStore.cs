@@ -28,12 +28,6 @@ public class TransactionStore : IAsyncDisposable
 		{
 			IoHelpers.EnsureDirectoryExists(workFolderPath);
 			DataSource = Path.Combine(workFolderPath, "Transactions.sqlite");
-
-			// TODO: Remove. Useful for testing.
-			// if (File.Exists(dataSource))
-			// {
-			// 	 File.Delete(dataSource);
-			// }
 		}
 
 		SqliteStorage = TransactionSqliteStorage.FromFile(dataSource: DataSource, network);
