@@ -155,7 +155,7 @@ public static class HttpMessageHelper
 
 			contentHeaders.ContentEncoding.Remove("gzip");
 
-			if (!contentHeaders.ContentEncoding.Any())
+			if (contentHeaders.ContentEncoding.Count == 0)
 			{
 				contentHeaders.Remove("Content-Encoding");
 			}

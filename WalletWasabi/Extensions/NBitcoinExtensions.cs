@@ -201,7 +201,7 @@ public static class NBitcoinExtensions
 			}
 		}
 		var nodes = lookup.Values;
-		return nodes.Where(x => !x.Parents.Any());
+		return nodes.Where(x => x.Parents.Count == 0);
 	}
 
 	public static IEnumerable<Transaction> OrderByDependency(this IEnumerable<TransactionDependencyNode> roots)

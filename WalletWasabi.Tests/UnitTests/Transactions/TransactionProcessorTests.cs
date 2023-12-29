@@ -282,7 +282,7 @@ public class TransactionProcessorTests
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
 			var doubleSpentCoins = e.SuccessfullyDoubleSpentCoins;
-			if (doubleSpentCoins.Any())
+			if (doubleSpentCoins.Count != 0)
 			{
 				var coin = Assert.Single(doubleSpentCoins);
 
@@ -358,9 +358,9 @@ public class TransactionProcessorTests
 		int replaceTransactionReceivedCalled = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
+			if (e.ReplacedCoins.Count != 0 || e.RestoredCoins.Count != 0)
 			{
-				if (e.RestoredCoins.Any())
+				if (e.RestoredCoins.Count != 0)
 				{
 					// Move the original coin from spent to unspent - so add.
 					var originalCoin = Assert.Single(e.RestoredCoins);
@@ -540,11 +540,11 @@ public class TransactionProcessorTests
 		int confirmed = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				throw new InvalidOperationException("We are not spending the coin.");
 			}
-			else if (e.NewlyConfirmedSpentCoins.Any())
+			else if (e.NewlyConfirmedSpentCoins.Count != 0)
 			{
 				confirmed++;
 			}
@@ -760,7 +760,7 @@ public class TransactionProcessorTests
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				spentCoin = e.NewlySpentCoins.Single();
 			}
@@ -798,7 +798,7 @@ public class TransactionProcessorTests
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				spentCoin = e.NewlySpentCoins.Single();
 			}

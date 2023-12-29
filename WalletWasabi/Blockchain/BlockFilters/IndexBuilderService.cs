@@ -249,7 +249,7 @@ public class IndexBuilderService
 	{
 		var scripts = FetchScripts(block, pubKeyTypes);
 
-		if (scripts.Any())
+		if (scripts.Count != 0)
 		{
 			return new GolombRiceFilterBuilder()
 				.SetKey(block.Hash)

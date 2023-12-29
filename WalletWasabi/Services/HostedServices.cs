@@ -73,7 +73,7 @@ public class HostedServices : IDisposable
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 
-		if (exceptions.Any())
+		if (exceptions.Count != 0)
 		{
 			throw new AggregateException(exceptions);
 		}

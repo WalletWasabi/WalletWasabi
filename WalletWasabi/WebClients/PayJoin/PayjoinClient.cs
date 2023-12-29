@@ -108,7 +108,7 @@ public class PayjoinClient : IPayjoinClient
 		var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
 		// Checking that the PSBT of the receiver is clean
-		if (newPSBT.GlobalXPubs.Any())
+		if (newPSBT.GlobalXPubs.Count != 0)
 		{
 			throw new PayjoinSenderException("GlobalXPubs should not be included in the receiver's PSBT");
 		}

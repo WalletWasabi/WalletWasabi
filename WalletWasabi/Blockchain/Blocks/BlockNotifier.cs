@@ -84,7 +84,7 @@ public class BlockNotifier : PeriodicRunner
 		//   - That was the largest recorded reorg so far.
 		//   - Reorg in this point of time would be very unlikely anyway.
 		//   - 100 blocks would be the sure, but that'd be a huge performance overkill.
-		if (!ProcessedBlocks.Any())
+		if (ProcessedBlocks.Count == 0)
 		{
 			var reorgProtection7Headers = new List<BlockHeader>()
 				{

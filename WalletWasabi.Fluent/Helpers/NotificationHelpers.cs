@@ -58,10 +58,10 @@ public static class NotificationHelpers
 
 		try
 		{
-			bool isSpent = result.NewlySpentCoins.Any();
-			bool isReceived = result.NewlyReceivedCoins.Any();
-			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
-			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
+			bool isSpent = result.NewlySpentCoins.Count != 0;
+			bool isReceived = result.NewlyReceivedCoins.Count != 0;
+			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Count != 0;
+			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Count != 0;
 			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
 
 			if (isReceived || isSpent)

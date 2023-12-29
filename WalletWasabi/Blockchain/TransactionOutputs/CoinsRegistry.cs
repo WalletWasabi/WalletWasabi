@@ -177,7 +177,7 @@ public class CoinsRegistry : ICoinsView
 
 			coins.RemoveWhere(x => coinsToRemove.Contains(x));
 
-			if (coins.Any())
+			if (coins.Count != 0)
 			{
 				continue;
 			}
