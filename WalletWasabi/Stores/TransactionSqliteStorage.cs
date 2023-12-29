@@ -172,10 +172,10 @@ public class TransactionSqliteStorage : IDisposable
 
 		foreach (SmartTransaction tx in transactions)
 		{
-			txidParameter.Value = tx.GetHash().ToBytes(lendian: true);
+			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
 			blockHeightParameter.Value = tx.Height.Value;
 
-			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: true);
+			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
 
 			blockIndexParameter.Value = tx.BlockIndex;
@@ -271,10 +271,10 @@ public class TransactionSqliteStorage : IDisposable
 
 		foreach (SmartTransaction tx in transactions)
 		{
-			txidParameter.Value = tx.GetHash().ToBytes(lendian: true);
+			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
 			blockHeightParameter.Value = tx.Height.Value;
 
-			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: true);
+			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
 
 			blockIndexParameter.Value = tx.BlockIndex;
@@ -318,7 +318,7 @@ public class TransactionSqliteStorage : IDisposable
 		// Bind all parameters.
 		for (int i = 0; i < txids.Count; i++)
 		{
-			command.Parameters.Add(new SqliteParameter("@para" + i, txids[i].ToBytes(lendian: true)));
+			command.Parameters.Add(new SqliteParameter("@para" + i, txids[i].ToBytes(lendian: false)));
 		}
 
 		int deleted = command.ExecuteNonQuery();
@@ -347,17 +347,16 @@ public class TransactionSqliteStorage : IDisposable
 		return result;
 	}
 
-	private bool TryReadSingleRecord(uint256 hash, string query, out SmartTransaction? tx)
+	private bool TryReadSingleRecord(uint256 txid, string query, out SmartTransaction? tx)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
 
 		command.CommandText = query;
 
-		SqliteParameter txidParameter = command.CreateParameter();
-		txidParameter.ParameterName = "$txid";
+		SqliteParameter txidParameter = CreateParameter(command, "$txid");
 		command.Parameters.Add(txidParameter);
 
-		txidParameter.Value = hash.ToBytes(lendian: true);
+		txidParameter.Value = txid.ToBytes(lendian: false);
 
 		using SqliteDataReader reader = command.ExecuteReader();
 
@@ -416,16 +415,16 @@ public class TransactionSqliteStorage : IDisposable
 
 		while (reader.Read())
 		{
-			uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0));
+			uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0), lendian: false);
 			yield return txid;
 		}
 	}
 
 	private SmartTransaction ReadRow(SqliteDataReader reader)
 	{
-		uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0));
+		uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0), lendian: false);
 		int blockHeight = reader.GetInt32(ordinal: 1);
-		uint256? blockHash = reader.IsDBNull(ordinal: 2) ? null : new(reader.GetFieldValue<byte[]>(ordinal: 2));
+		uint256? blockHash = reader.IsDBNull(ordinal: 2) ? null : new(reader.GetFieldValue<byte[]>(ordinal: 2), lendian: false);
 		int blockIndex = reader.GetInt32(ordinal: 3);
 		string labelsString = reader.GetString(ordinal: 4);
 		long firstSeenLong = reader.GetInt64(ordinal: 5);
@@ -472,11 +471,10 @@ public class TransactionSqliteStorage : IDisposable
 		using SqliteCommand command = Connection.CreateCommand();
 		command.CommandText = """SELECT EXISTS(SELECT 1 FROM "transaction" WHERE txid=$txid);""";
 
-		SqliteParameter txidParameter = command.CreateParameter();
-		txidParameter.ParameterName = "$txid";
+		SqliteParameter txidParameter = CreateParameter(command, "$txid");
 		command.Parameters.Add(txidParameter);
 
-		txidParameter.Value = txid.ToBytes(lendian: true);
+		txidParameter.Value = txid.ToBytes(lendian: false);
 
 		object? result = command.ExecuteScalar();
 
