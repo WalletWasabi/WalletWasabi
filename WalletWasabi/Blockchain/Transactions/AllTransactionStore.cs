@@ -15,14 +15,15 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
-	public AllTransactionStore(string workFolderPath, Network network, bool migrateData = true)
+	/// <param name="dataSource">Work folder, or <see cref="SqliteStorageHelper.InMemoryDatabase"/> to use an empty in-memory database in tests.</param>
+	public AllTransactionStore(string dataSource, Network network, bool migrateData = true)
 	{
-		WorkFolderPath = workFolderPath;
+		WorkFolderPath = dataSource;
 
 		string mempoolStoreDataSource;
 		string confirmedStoreDataSource;
 
-		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
+		if (dataSource == SqliteStorageHelper.InMemoryDatabase)
 		{
 			mempoolStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
 			confirmedStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
