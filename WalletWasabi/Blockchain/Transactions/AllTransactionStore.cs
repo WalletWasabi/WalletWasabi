@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -49,8 +48,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		Stopwatch sw = Stopwatch.StartNew();
-
 		var initTasks = new[]
 		{
 			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancellationToken),
@@ -59,9 +56,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 		await Task.WhenAll(initTasks).ConfigureAwait(false);
 		EnsureConsistency();
-
-		long ms = sw.ElapsedMilliseconds;
-		Logger.LogInfo($"XXX: Both stores initialized in {ms} ms");
 	}
 
 	public void AddOrUpdate(SmartTransaction tx)
