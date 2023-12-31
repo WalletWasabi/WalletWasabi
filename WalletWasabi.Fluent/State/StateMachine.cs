@@ -46,9 +46,9 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private bool IsAncestorOf(TState state, TState parent)
 	{
-		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? value))
+		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? stateContext))
 		{
-			StateContext current = value;
+			StateContext current = stateContext;
 
 			while (true)
 			{
@@ -84,7 +84,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			var destination = _currentState.GetDestination(trigger);
 
-			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext? value) && value.Parent is { } parent && !IsInState(parent.StateId))
+			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext? stateContext) && stateContext.Parent is { } parent && !IsInState(parent.StateId))
 			{
 				Goto(parent.StateId);
 			}
@@ -115,7 +115,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private void Goto(TState state, bool exit = true, bool enter = true)
 	{
-		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? value))
+		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? stateContext))
 		{
 			if (exit && !IsAncestorOf(state, _currentState.StateId))
 			{
@@ -124,7 +124,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			var old = _currentState.StateId;
 
-			_currentState = value;
+			_currentState = stateContext;
 
 			_onTransitioned?.Invoke(old, _currentState.StateId);
 
