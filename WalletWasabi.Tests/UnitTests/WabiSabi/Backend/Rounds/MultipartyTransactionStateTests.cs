@@ -104,7 +104,7 @@ public class MultipartyTransactionStateTests
 			}
 			else
 			{
-				histogram[maxSuggested] = ++value;
+				histogram[maxSuggested] = value + 1;
 			}
 		}
 
