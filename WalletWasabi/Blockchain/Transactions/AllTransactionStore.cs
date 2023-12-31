@@ -9,48 +9,55 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
 public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
-	public AllTransactionStore(string workFolderPath, Network network)
+	/// <param name="dataSource">Work folder, or <see cref="SqliteStorageHelper.InMemoryDatabase"/> to use an empty in-memory database in tests.</param>
+	public AllTransactionStore(string dataSource, Network network, bool migrateData = true)
 	{
-		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+		WorkFolderPath = dataSource;
 
-		Network = network;
+		string mempoolStoreDataSource;
+		string confirmedStoreDataSource;
 
-		MempoolStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "Mempool"), network);
-		ConfirmedStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion), network);
+		if (dataSource == SqliteStorageHelper.InMemoryDatabase)
+		{
+			mempoolStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
+			confirmedStoreDataSource = SqliteStorageHelper.InMemoryDatabase;
+		}
+		else
+		{
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			mempoolStoreDataSource = Path.Combine(WorkFolderPath, "Mempool");
+			confirmedStoreDataSource = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
+		}
+
+		MempoolStore = new TransactionStore(workFolderPath: mempoolStoreDataSource, network, migrateData);
+		ConfirmedStore = new TransactionStore(workFolderPath: confirmedStoreDataSource, network, migrateData);
 	}
 
-	#region Initializers
-
 	private string WorkFolderPath { get; }
-	private Network Network { get; }
 
 	public TransactionStore MempoolStore { get; }
 	public TransactionStore ConfirmedStore { get; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 
-	public async Task InitializeAsync(CancellationToken cancel = default)
+	public async Task InitializeAsync(CancellationToken cancellationToken = default)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
 		var initTasks = new[]
 		{
-			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-			ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
+			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancellationToken),
+			ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancellationToken)
 		};
 
 		await Task.WhenAll(initTasks).ConfigureAwait(false);
 		EnsureConsistency();
 	}
-
-	#endregion Initializers
-
-	#region Modifiers
 
 	public void AddOrUpdate(SmartTransaction tx)
 	{
@@ -82,7 +89,8 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	internal bool TryUpdate(SmartTransaction tx)
 	{
-		var hash = tx.GetHash();
+		uint256 hash = tx.GetHash();
+
 		lock (Lock)
 		{
 			// Do Contains first, because it's fast.
@@ -90,7 +98,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 			{
 				return true;
 			}
-			else if (tx.Confirmed && MempoolStore.TryRemove(hash, out var originalTx))
+			else if (tx.Confirmed && MempoolStore.TryRemove(hash, out SmartTransaction? originalTx))
 			{
 				originalTx.TryUpdate(tx);
 				ConfirmedStore.TryAddOrUpdate(originalTx);
@@ -109,22 +117,19 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		lock (Lock)
 		{
-			var mempoolTransactions = MempoolStore.GetTransactionHashes();
-			foreach (var hash in mempoolTransactions)
+			List<uint256> mempoolTransactions = MempoolStore.GetTransactionHashes();
+
+			foreach (uint256 txid in mempoolTransactions)
 			{
 				// Contains is fast, so do this first.
-				if (ConfirmedStore.Contains(hash)
-					&& MempoolStore.TryRemove(hash, out var uTx))
+				if (ConfirmedStore.Contains(txid)
+					&& MempoolStore.TryRemove(txid, out var uTx))
 				{
 					ConfirmedStore.TryAddOrUpdate(uTx);
 				}
 			}
 		}
 	}
-
-	#endregion Modifiers
-
-	#region Accessors
 
 	public virtual bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 	{
@@ -164,6 +169,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 	}
 
+	/// <remarks>Only used by tests.</remarks>
 	internal bool Contains(uint256 hash)
 	{
 		lock (Lock)
@@ -185,9 +191,14 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 				if (ConfirmedStore.TryRemove(txHash, out var removedTx))
 				{
 					removedTx.SetUnconfirmed();
-					if (MempoolStore.TryAddOrUpdate(removedTx).isAdded)
+
+					if (MempoolStore.TryAdd(removedTx))
 					{
 						reorgedTxs.Add(removedTx);
+					}
+					else
+					{
+						_ = MempoolStore.TryUpdate(removedTx);
 					}
 				}
 			}
@@ -197,8 +208,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<LabelsArray> GetLabels() => GetTransactions().Select(x => x.Labels);
-
-	#endregion Accessors
 
 	public async ValueTask DisposeAsync()
 	{
