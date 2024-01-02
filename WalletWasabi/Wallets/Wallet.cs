@@ -22,7 +22,6 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
@@ -372,6 +371,9 @@ public class Wallet : BackgroundService, IWallet
 
 				if (prevState >= WalletState.Initialized)
 				{
+					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
+					WalletFilterProcessor.Dispose();
+
 					UnregisterNewFiltersEvent();
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
