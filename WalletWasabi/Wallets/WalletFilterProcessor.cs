@@ -41,6 +41,9 @@ public class WalletFilterProcessor : BackgroundService
 			return 0;
 		});
 
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private FilterModel? _lastProcessedFilter;
+
 	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
 		KeyManager = keyManager;
@@ -52,7 +55,7 @@ public class WalletFilterProcessor : BackgroundService
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
 
-	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
+	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
@@ -60,7 +63,23 @@ public class WalletFilterProcessor : BackgroundService
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
-	public FilterModel? LastProcessedFilter { get; private set; }
+
+	public FilterModel? LastProcessedFilter
+	{
+		get {
+			lock (Lock)
+			{
+				return _lastProcessedFilter;
+			}
+		}
+		set
+		{
+			lock (Lock)
+			{
+				_lastProcessedFilter = value;
+			}
+		}
+	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
 	internal Dictionary<uint, FilterModel> FiltersCache { get; } = new();
