@@ -90,7 +90,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		wallet.Coins.Pockets
 					.Connect()
 					.ToCollection()
-					.SkipWhile(pockets => !pockets.Any())
+					.SkipWhile(pockets => pockets.Count == 0)
 					.Do(
 						pockets =>
 						{

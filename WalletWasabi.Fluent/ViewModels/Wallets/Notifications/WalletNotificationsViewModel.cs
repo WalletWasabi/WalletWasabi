@@ -53,7 +53,7 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 			NotificationHelpers.Show(wallet, e, OnClick);
 		}
 
-		if (_walletSelector.SelectedWalletModel == wallet && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
+		if (_walletSelector.SelectedWalletModel == wallet && (e.NewlyReceivedCoins.Count != 0 || e.NewlyConfirmedReceivedCoins.Count != 0))
 		{
 			await Task.Delay(200);
 			_walletSelector.SelectedWallet?.SelectTransaction(e.Transaction.GetHash());
