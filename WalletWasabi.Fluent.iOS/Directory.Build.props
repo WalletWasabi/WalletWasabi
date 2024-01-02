@@ -1,6 +1,6 @@
 <Project>
  <PropertyGroup>
-	<TargetFramework>net8.0</TargetFramework>
+	<TargetFramework>net8.0-ios</TargetFramework>
 	 <!--<RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>-->
 	<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 	 <!--<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>-->
