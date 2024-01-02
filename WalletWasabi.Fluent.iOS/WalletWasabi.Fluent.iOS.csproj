@@ -6,7 +6,7 @@
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
 		<!--<RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>-->
-		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+		<!--<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>-->
 		<!--<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>-->
 		<UseInterpreter>True</UseInterpreter>
 		<IsPackable>False</IsPackable>
