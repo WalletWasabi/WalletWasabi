@@ -9,6 +9,10 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<IsPackable>False</IsPackable>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 	</PropertyGroup>
 	<ItemGroup>
 		<AndroidResource Include="Icon.png">

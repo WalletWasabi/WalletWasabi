@@ -8,6 +8,10 @@
 		<UseInterpreter>True</UseInterpreter>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 	</PropertyGroup>
 	<PropertyGroup>
 		<!-- Error NETSDK1150 : The referenced project '../WalletWasabi.Daemon/WalletWasabi.Daemon.csproj' is a non self-contained executable.  A non self-contained executable cannot be referenced by a self-contained executable.  For more information, see https://aka.ms/netsdk1150 -->
