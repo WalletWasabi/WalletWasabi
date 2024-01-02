@@ -66,7 +66,8 @@ public class WalletFilterProcessor : BackgroundService
 
 	public FilterModel? LastProcessedFilter
 	{
-		get {
+		get
+		{
 			lock (Lock)
 			{
 				return _lastProcessedFilter;
