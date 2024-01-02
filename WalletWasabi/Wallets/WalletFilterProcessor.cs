@@ -132,9 +132,9 @@ public class WalletFilterProcessor : BackgroundService
 					bool reachedBlockChainTip;
 					using (await ReorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						var currentHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
+						Height lastHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
 
-						if (currentHeight == BitcoinStore.SmartHeaderChain.TipHeight)
+						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
 							request.Tcs.SetResult();
 							lock (Lock)
@@ -144,13 +144,13 @@ public class WalletFilterProcessor : BackgroundService
 							continue;
 						}
 
-						var heightToTest = (uint)currentHeight.Value + 1;
-						if (!FiltersCache.TryGetValue(heightToTest, out var filterToProcess))
+						uint currentHeight = (uint)lastHeight.Value + 1;
+						if (!FiltersCache.TryGetValue(currentHeight, out var filterToProcess))
 						{
 							// We don't have the next filter to process, so fetch another batch of filters from the database.
 							FiltersCache.Clear();
 
-							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(heightToTest), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(currentHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 							foreach (var filter in filtersBatch)
 							{
 								FiltersCache[filter.Header.Height] = filter;
@@ -161,17 +161,17 @@ public class WalletFilterProcessor : BackgroundService
 
 						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
 
-						reachedBlockChainTip = filterToProcess.Header.Height == BitcoinStore.SmartHeaderChain.TipHeight;
+						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
 						var saveNewHeightToFile = matchFound || reachedBlockChainTip;
 						if (request.SyncType == SyncType.Turbo)
 						{
 							// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-							KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+							KeyManager.SetBestTurboSyncHeight(new Height(currentHeight), saveNewHeightToFile);
 						}
 						else
 						{
 							// All keys were tested at this height, update the Height.
-							KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
+							KeyManager.SetBestHeight(new Height(currentHeight), saveNewHeightToFile);
 						}
 					}
 
