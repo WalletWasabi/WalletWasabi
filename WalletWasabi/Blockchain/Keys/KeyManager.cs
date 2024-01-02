@@ -640,6 +640,20 @@ public class KeyManager
 		return BlockchainState.Network;
 	}
 
+	public void SetBestHeight(SyncType syncType, Height height, bool toFile = true)
+	{
+		if (syncType == SyncType.Turbo)
+		{
+			// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight.
+			SetBestTurboSyncHeight(height, toFile);
+		}
+		else
+		{
+			// All keys were tested at this height, update the Height.
+			SetBestHeight(height, toFile);
+		}
+	}
+
 	public void SetBestHeight(Height height, bool toFile = true)
 	{
 		lock (CriticalStateLock)

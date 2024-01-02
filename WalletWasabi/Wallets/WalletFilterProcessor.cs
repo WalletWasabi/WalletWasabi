@@ -162,17 +162,8 @@ public class WalletFilterProcessor : BackgroundService
 						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
 
 						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
-						var saveNewHeightToFile = matchFound || reachedBlockChainTip;
-						if (request.SyncType == SyncType.Turbo)
-						{
-							// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-							KeyManager.SetBestTurboSyncHeight(new Height(currentHeight), saveNewHeightToFile);
-						}
-						else
-						{
-							// All keys were tested at this height, update the Height.
-							KeyManager.SetBestHeight(new Height(currentHeight), saveNewHeightToFile);
-						}
+						bool storeToDisk = matchFound || reachedBlockChainTip;
+						KeyManager.SetBestHeight(request.SyncType, new Height(currentHeight), storeToDisk);
 					}
 
 					if (reachedBlockChainTip)
