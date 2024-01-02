@@ -1196,46 +1196,7 @@
         }
       }
     },
-    "net8.0-android34.0/android-arm": {
-      "HarfBuzzSharp.NativeAssets.Android": {
-        "type": "Transitive",
-        "resolved": "7.3.0",
-        "contentHash": "C2GP9q7M2p8hqk57+4HpcY6oG3nUoa4W4Th+1YKnvrAhbykdlXzFO+jp21EP+CMFqYQ/Jg8iSnb4PuwGpEZYqw=="
-      },
-      "HarfBuzzSharp.NativeAssets.Linux": {
-        "type": "Transitive",
-        "resolved": "7.3.0",
-        "contentHash": "m6F2pEBTN0zTRgQ3caJQRGQkZZizZwHHCbu+rTv+gvwteNBOpqOLD5GE4dB9TFjNNpnyHXtfuMD86JuUra9UvA==",
-        "dependencies": {
-          "HarfBuzzSharp": "7.3.0"
-        }
-      },
-      "SkiaSharp.NativeAssets.Android": {
-        "type": "Transitive",
-        "resolved": "2.88.6",
-        "contentHash": "yFtWleVp7hRhSPuyEJPlTRsiEQANTHJuREcpIFiFG9bdGmYgAS5CMJXOiO67jyUT7v7vSj3Qk34I7P5FRm1wUg=="
-      },
-      "SkiaSharp.NativeAssets.Linux": {
-        "type": "Transitive",
-        "resolved": "2.88.6",
-        "contentHash": "iQcOUE0tPZvBUxOdZaP3LIdAC21H8BEMhDvpCQ/mUUvbKGLd5rF7veJVSZBNu20SuCC0oZpEdGxB+mLVOK8uzw==",
-        "dependencies": {
-          "SkiaSharp": "2.88.6"
-        }
-      },
-      "System.Text.Encoding.CodePages": {
-        "type": "Transitive",
-        "resolved": "4.5.1",
-        "contentHash": "4J2JQXbftjPMppIHJ7IC+VXQ9XfEagN92vZZNoG12i+zReYlim5dMoXFC1Zzg7tsnKDM7JPo5bYfFK4Jheq44w=="
-      },
-      "Microsoft.Win32.SystemEvents": {
-        "type": "CentralTransitive",
-        "requested": "[8.0.0, )",
-        "resolved": "8.0.0",
-        "contentHash": "9opKRyOKMCi2xJ7Bj7kxtZ1r9vbzosMvRrdEhVhDz8j8MoBGgB+WmC94yH839NPH+BclAjtQ/pyagvi/8gDLkw=="
-      }
-    },
-    "net8.0-android34.0/android-x86": {
+    "net8.0-android34.0/android-arm64": {
       "HarfBuzzSharp.NativeAssets.Android": {
         "type": "Transitive",
         "resolved": "7.3.0",
