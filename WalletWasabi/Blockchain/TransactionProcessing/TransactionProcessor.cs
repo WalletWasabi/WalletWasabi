@@ -148,7 +148,7 @@ public class TransactionProcessor
 				// if the received transaction is spending at least one input already
 				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 				// spending transaction but a replacement transaction.
-				var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
+				var isReplacementTx = doubleSpentSpenders.Any(x => x.Transaction.IsRBF);
 				if (isReplacementTx)
 				{
 					// Undo the replaced transaction by removing the coins it created (if other coin
@@ -272,7 +272,7 @@ public class TransactionProcessor
 			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
 		}
 
-		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
+		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)
 		{
 			TransactionStore.AddOrUpdate(tx);
 		}

@@ -2,9 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -134,12 +133,12 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		PersistentConfig persistentConfig = ConfigManager.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
+		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
 		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
 			persistentConfig = newConfig;
-			ConfigManager.ToFile(ConfigFilePath, persistentConfig);
+			ConfigManagerNg.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;

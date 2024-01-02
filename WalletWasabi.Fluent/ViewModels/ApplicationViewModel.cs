@@ -96,12 +96,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		UiContext.Navigate().To().ShuttingDown(this, restartRequest);
 	}
 
-	public bool CanShutdown(bool restart)
+	public bool CanShutdown(bool restart, out bool isShutdownEnforced)
 	{
-		if (Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully)
-		{
-			return true;
-		}
+		isShutdownEnforced = Services.TerminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully;
 
 		if (!MainViewCanShutdown() && !restart)
 		{
@@ -117,6 +114,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		// - no open dialog
 		// - or no wallets available
 		return !MainViewModel.Instance.IsDialogOpen()
-		       || !MainViewModel.Instance.NavBar.Wallets.Any();
+			   || !MainViewModel.Instance.NavBar.Wallets.Any();
 	}
 }
