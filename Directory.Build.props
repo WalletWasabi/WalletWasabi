@@ -1,8 +1,7 @@
 <Project>
  <PropertyGroup>
 	<TargetFramework>net8.0</TargetFramework>
-	 <!-- TODO: Temporary workaround for WalletWasabi.Fluent.iOS/Android build -->
-	<!--<RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>-->
+	<RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 	<AnalysisLevel>latest</AnalysisLevel>
 	<LangVersion>12</LangVersion>
 	<Nullable>enable</Nullable>
