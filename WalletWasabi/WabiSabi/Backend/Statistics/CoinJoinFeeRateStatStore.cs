@@ -58,7 +58,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
-		while (CoinJoinFeeRateStats.Any() && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
+		while (CoinJoinFeeRateStats.Count != 0 && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
 		{
 			CoinJoinFeeRateStats.RemoveAt(0);
 		}

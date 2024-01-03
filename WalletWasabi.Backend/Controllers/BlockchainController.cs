@@ -184,7 +184,7 @@ public class BlockchainController : ControllerBase
 				}
 			}
 
-			if (missingTxs.Any())
+			if (missingTxs.Count != 0)
 			{
 				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
 				{

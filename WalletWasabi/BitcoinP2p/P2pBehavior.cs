@@ -72,7 +72,7 @@ public abstract class P2pBehavior : NodeBehavior
 				getDataPayload.Inventory.Add(new InventoryVector(node.AddSupportedOptions(inv.Type), inv.Hash));
 			}
 		}
-		if (getDataPayload.Inventory.Any() && node.IsConnected)
+		if (getDataPayload.Inventory.Count != 0 && node.IsConnected)
 		{
 			await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
 		}

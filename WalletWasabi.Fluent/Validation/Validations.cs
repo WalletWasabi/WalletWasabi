@@ -122,7 +122,7 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 
 		var propertiesToNotify = categoriesToNotify.Select(Selector).ToList();
 
-		if (propertiesToNotify.Any())
+		if (propertiesToNotify.Count != 0)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 			this.RaisePropertyChanged(nameof(Any));
