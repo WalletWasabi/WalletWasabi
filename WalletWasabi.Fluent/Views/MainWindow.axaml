@@ -23,7 +23,8 @@
         Focusable="{Binding SearchBar.IsSearchListVisible}"
         Icon="/Assets/WasabiLogo.ico"
         RenderOptions.BitmapInterpolationMode="HighQuality"
-        RenderOptions.TextRenderingMode="Antialias">
+        RenderOptions.TextRenderingMode="SubpixelAntialias"
+        RenderOptions.RequiresFullOpacityHandling="True">
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
@@ -34,6 +35,13 @@
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
+    <Panel.OpacityMask>
+      <LinearGradientBrush StartPoint="0%,0%"
+                           EndPoint="100%,0%">
+        <GradientStop Color="White" Offset="0" />
+        <GradientStop Color="White" Offset="1" />
+      </LinearGradientBrush>
+    </Panel.OpacityMask>
     <shell:Shell />
   </Panel>
 </Window>
