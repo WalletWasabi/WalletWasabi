@@ -69,8 +69,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
-		CanBuy = walletModel.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
-
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
@@ -105,6 +103,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
 
 		Tiles = GetTiles().ToList();
+
+		CanBuy = walletModel.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
 
 		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x.UiContext.ApplicationSettings.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
 
