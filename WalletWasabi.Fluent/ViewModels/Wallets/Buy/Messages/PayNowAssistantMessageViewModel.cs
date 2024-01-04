@@ -66,7 +66,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 
 	private async Task PayNowAsync()
 	{
-		// TODO: This is a dirty hack to obtain the current wallet. Please remove it before merging.
+		// TODO @SuperJMN: This is a dirty hack to obtain the current wallet. Please remove it before merging.
 		var walletVm = MainViewModel.Instance.NavBar.SelectedWallet;
 		if (walletVm == null)
 		{
@@ -80,7 +80,7 @@ public partial class PayNowAssistantMessageViewModel : AssistantMessageViewModel
 			IsFixedAmount = true
 		};
 
-		// TODO: We don't want to have Wallet, but IWalletModel instead.
+		// TODO @SuperJMN: We don't want to have Wallet, but IWalletModel instead.
 		await SendAsync(walletVm.Wallet, transactionInfo, walletVm.WalletModel);
 	}
 

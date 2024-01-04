@@ -14,7 +14,7 @@ public class ConfirmTosStep : WorkflowStep<bool>
 	{
 		Caption = "BUY NOW";
 
-		// TODO: Explore if there's a better option than passing UiContext.Default here. It breaks testing even more.
+		// TODO @SuperJMN: Explore if there's a better option than passing UiContext.Default here. It breaks testing even more.
 		Link = new LinkViewModel(UiContext.Default)
 		{
 			Link = TermsOfServiceUrl,
