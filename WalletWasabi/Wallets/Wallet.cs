@@ -104,7 +104,7 @@ public class Wallet : BackgroundService, IWallet
 	public HybridFeeProvider FeeProvider { get; }
 
 	public WalletFilterProcessor WalletFilterProcessor { get; }
-	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
+	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; }
 
 	public bool IsLoggedIn { get; private set; }
