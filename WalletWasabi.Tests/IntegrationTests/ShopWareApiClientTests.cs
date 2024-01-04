@@ -195,7 +195,7 @@ public class ShopWareApiClientTests
 			ShopWareApiClient = new(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 		}
 
-		private HttpClientFactory HttpClientFactory { get; }
+		private WasabiHttpClientFactory HttpClientFactory { get; }
 		public ShopWareApiClient ShopWareApiClient { get; }
 
 		public static TestSetup ForClearnet()
