@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -20,7 +19,6 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
-using DynamicData.Aggregation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -107,9 +105,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
-		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x._uiConfig.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
+		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x.UiContext.ApplicationSettings.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
 
-		DismissBuyInfoCommand = ReactiveCommand.Create(() => Services.UiConfig.ShowBuyAnythingInfo = false);
+		DismissBuyInfoCommand = ReactiveCommand.Create(() => UiContext.ApplicationSettings.ShowBuyAnythingInfo = false);
 
 		HasUnreadConversations = BuyViewModel.Orders
 			.ToObservableChangeSet(x => x.OrderNumber)
@@ -145,8 +143,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 #endif
 		return false;
 	}
-
-	private readonly UiConfig _uiConfig;
 
 	// TODO: Remove this
 	public Wallet Wallet { get; }

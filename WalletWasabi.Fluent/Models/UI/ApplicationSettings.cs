@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -158,6 +157,12 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
+	}
+
+	public bool ShowBuyAnythingInfo
+	{
+		get => _uiConfig.ShowBuyAnythingInfo;
+		set => _uiConfig.ShowBuyAnythingInfo = value;
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
