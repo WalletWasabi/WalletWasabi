@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.RegularExpressions;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -17,6 +18,7 @@ public partial class CurrencyFormat : ReactiveObject
 		DefaultWatermark = "0 BTC",
 		MaxFractionalDigits = 8,
 		MaxIntegralDigits = 8,
+		MaxLength = 20,
 		Format = FormatBtcWithExactFractionals
 	};
 
@@ -27,6 +29,7 @@ public partial class CurrencyFormat : ReactiveObject
 		DefaultWatermark = "0.00 USD",
 		MaxFractionalDigits = 2,
 		MaxIntegralDigits = 12,
+		MaxLength = 20,
 		Format = FormatFiatWithExactFractionals,
 	};
 
@@ -36,14 +39,16 @@ public partial class CurrencyFormat : ReactiveObject
 		IsApproximate = false,
 		MaxFractionalDigits = 2,
 		MaxIntegralDigits = 8,
+		MaxLength = 20,
 		Format = FormatBtcWithExactFractionals
 	};
 
-	public required string CurrencyCode { get; init; }
+	public string CurrencyCode { get; init; }
 	public bool IsApproximate { get; init; }
 	public int? MaxIntegralDigits { get; init; }
 	public int? MaxFractionalDigits { get; init; }
-	public required Func<decimal, string> Format { get; init; }
+	public int? MaxLength { get; init; }
+	public Func<decimal, string> Format { get; init; }
 	public string? DefaultWatermark { get; set; }
 
 	/// <summary>
@@ -81,40 +86,62 @@ public partial class CurrencyFormat : ReactiveObject
 	/// </summary>
 	/// <param name="preComposedText"></param>
 	/// <returns>The decimal value resulting from the parse</returns>
-	public decimal? Parse(string preComposedText)
+	public CurrencyFormatParseResult Parse(string preComposedText)
 	{
-		var parsable = CleanInvalidCharacters().Replace(preComposedText, "");
+		var parsable =
+			preComposedText.Replace(CurrencyInput.GroupSeparator, "");
+
+		if (parsable.Any(c => InvalidCharacters().IsMatch(c.ToString())))
+		{
+			return new CurrencyFormatParseResult.Nan();
+		}
+
+		parsable = InvalidCharacters().Replace(preComposedText, "");
 
 		// Parse string value to decimal using Invariant Localization
 		if (CurrencyInput.TryParse(parsable) is not { } value)
 		{
-			return null;
+			return new CurrencyFormatParseResult.Nan();
+		}
+
+		if (parsable.StartsWith(CurrencyInput.DecimalSeparator))
+		{
+			return new CurrencyFormatParseResult.Nan();
 		}
 
 		// reject negative numbers
 		if (value < 0)
 		{
-			return null;
+			return new CurrencyFormatParseResult.OutOfRange(value);
 		}
 
 		// Reject numbers above the Max Integral number of Digits
 		if (MaxIntegralDigits is { } maxIntegral && value.CountIntegralDigits() > maxIntegral)
 		{
-			return null;
+			return new CurrencyFormatParseResult.OutOfRange(value);
 		}
 
 		// Reject numbers above the Max Fractional number of Digits
 		if (MaxFractionalDigits is { } maxFractional && value.CountFractionalDigits() > maxFractional)
 		{
-			return null;
+			return new CurrencyFormatParseResult.OutOfRange(value);
 		}
 
-		return value;
+		return new CurrencyFormatParseResult.Ok(value);
 	}
 
 	/// <summary>
 	/// Used to clean any character except digits and decimal separator
 	/// </summary>
 	[GeneratedRegex($"[^0-9{CurrencyInput.DecimalSeparator}]")]
-	private static partial Regex CleanInvalidCharacters();
+	private static partial Regex InvalidCharacters();
+}
+
+public abstract record CurrencyFormatParseResult
+{
+	public record Nan : CurrencyFormatParseResult;
+
+	public record OutOfRange(decimal Value) : CurrencyFormatParseResult;
+
+	public record Ok(decimal Value) : CurrencyFormatParseResult;
 }

@@ -48,7 +48,7 @@ public partial class SendViewModel : RoutableViewModel
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
-	[AutoNotify] private Amount _amount;
+	[AutoNotify] private Amount? _amount;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
@@ -103,7 +103,7 @@ public partial class SendViewModel : RoutableViewModel
 				.Select(tup =>
 				{
 					var (amount, to) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amount.Btc > Money.Zero;
+					var allFilled = !string.IsNullOrEmpty(to) && amount is { } a && a.Btc > Money.Zero;
 					var hasError = Validations.Any;
 
 					return allFilled && !hasError;
@@ -211,6 +211,12 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateAmount(IValidationErrors errors)
 	{
+		if (Amount is null)
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid Amount.");
+			return;
+		}
+
 		if (Amount.BtcValue > Constants.MaximumNumberOfBitcoins)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");

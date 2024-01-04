@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -48,18 +49,20 @@ public class CurrencyEntryBoxClipboardBehavior : Avalonia.Xaml.Interactions.Cust
 			.Do(x =>
 			{
 				// Validate that value can be parsed with current CurrencyFormat
-				var value = box.CurrencyFormat.Parse(x ?? "");
+				var result = box.CurrencyFormat.Parse(x ?? "");
 
-				if (value is null)
+				if (result is not CurrencyFormatParseResult.Ok ok)
 				{
 					box.ClipboardSuggestion = null;
 					return;
 				}
 
+				var value = ok.Value;
+
 				var isValidValue = value >= MinValue && (box.MaxValue is null || box.MaxValue >= value);
 				if (isValidValue)
 				{
-					box.ClipboardSuggestion = box.CurrencyFormat.Format(value.Value);
+					box.ClipboardSuggestion = box.CurrencyFormat.Format(value);
 				}
 				else
 				{

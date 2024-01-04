@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 public partial class CurrencyConversionViewModel : ViewModelBase
 {
 	private bool _isUpdating;
-	[AutoNotify] private Amount _amount;
+	[AutoNotify] private Amount? _amount;
 	[AutoNotify] private CurrencyViewModel _left;
 	[AutoNotify] private CurrencyViewModel _right;
 	[AutoNotify] private bool _isConversionReversed;
@@ -19,8 +19,6 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 	{
 		UiContext = uiContext;
 		Wallet = wallet;
-
-		_amount = Amount.Zero;
 
 		// TODO: this could be used to show conversion to currencies other than USD
 		var btc = new CurrencyViewModel(wallet, CurrencyFormat.Btc);
@@ -51,7 +49,7 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromBtc(btcValue);
-			   usd.Value = Amount.UsdValue;
+			   usd.Value = Amount?.UsdValue;
 
 			   _isUpdating = false;
 		   })
@@ -65,7 +63,7 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromUsd(usdValue);
-			   btc.Value = Amount.BtcValue;
+			   btc.Value = Amount?.BtcValue;
 
 			   _isUpdating = false;
 		   })
@@ -91,6 +89,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.IsConversionAvailable)
 			.Where(x => !x)
 			.BindTo(this, x => x.IsConversionReversed);
+
+		Amount = Amount.Zero;
 	}
 
 	public IWalletModel Wallet { get; }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
@@ -31,6 +33,8 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<string?> ClipboardSuggestionProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string?>(nameof(ClipboardSuggestion), defaultBindingMode: BindingMode.TwoWay);
 
+	private string _currentText;
+
 	public CurrencyEntryBox()
 	{
 		Text = "";
@@ -44,12 +48,34 @@ public partial class CurrencyEntryBox : TextBox
 				_isUpdating = true;
 
 				// Validate that value can be parsed with current CurrencyFormat
-				var value = CurrencyFormat.Parse(x ?? "");
+				var result = CurrencyFormat.Parse(x ?? "");
+
+				decimal? value =
+					result switch
+					{
+						CurrencyFormatParseResult.Nan => null,
+						CurrencyFormatParseResult.OutOfRange => null,
+						CurrencyFormatParseResult.Ok ok => ok.Value
+					};
+
 				SetCurrentValue(ValueProperty, value);
-				Format();
+
+				if (result is CurrencyFormatParseResult.Ok)
+				{
+					var formattedDifference = Format(x);
+					if (formattedDifference != 0 && CaretIndex < Text.Length)
+					{
+						Console.WriteLine($"Moving Caret Index: {CaretIndex} => {CaretIndex + formattedDifference}");
+						// and move caret index accordingly
+						Dispatcher.UIThread.InvokeAsync(() => SetCurrentValue(CaretIndexProperty, CaretIndex + formattedDifference));
+					}
+				}
+
+				_currentText = Text;
 
 				_isUpdating = false;
 			})
+			.Skip(1)
 			.Subscribe();
 
 		// Format Text after Value changes
@@ -74,6 +100,14 @@ public partial class CurrencyEntryBox : TextBox
 			.Throttle(TimeSpan.FromMilliseconds(50))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => SelectAll())
+			.Subscribe();
+
+		// Set MaxLength according to CurrencyFormat
+		this.GetObservable(CurrencyFormatProperty)
+			.WhereNotNull()
+			.Select(x => x.MaxLength)
+			.WhereNotNull()
+			.Do(maxLength => SetCurrentValue(MaxLengthProperty, maxLength))
 			.Subscribe();
 	}
 
@@ -126,33 +160,28 @@ public partial class CurrencyEntryBox : TextBox
 			var preComposedText = PreComposeText(input);
 
 			// Reject multiple Decimal Separators
-			if (preComposedText.CountOccurrencesOf(CurrencyInput.DecimalSeparator) > 1)
+			if (input == CurrencyInput.DecimalSeparator && Text is { } && Text.Contains(CurrencyInput.DecimalSeparator))
 			{
-				return;
+				// Unless replacing the whole text
+				if (input != preComposedText)
+				{
+					return;
+				}
 			}
 
-			// Allow appending dot, do not parse
-			if (input == CurrencyInput.DecimalSeparator && Text is { } && CaretIndex == Text.Length)
+			// Automatically add integral zero when typing only "."
+			if (preComposedText == CurrencyInput.DecimalSeparator)
 			{
-				var finalText = Text + CurrencyInput.DecimalSeparator;
-
-				// Add trailing zero if it's just the dot
-				if (finalText == CurrencyInput.DecimalSeparator)
-				{
-					finalText = "0" + finalText;
-				}
-
-				SetCurrentValue(TextProperty, finalText);
-				SetCurrentValue(CaretIndexProperty, finalText.Length);
-				ClearSelection();
+				preComposedText = "0" + CurrencyInput.DecimalSeparator;
+				base.OnTextInput(new TextInputEventArgs { Text = preComposedText });
 				return;
 			}
 
 			// Validate that value can be parsed with current CurrencyFormat
-			var value = CurrencyFormat.Parse(preComposedText);
+			var result = CurrencyFormat.Parse(preComposedText);
 
 			// reject input otherwise.
-			if (value is null)
+			if (result is not CurrencyFormatParseResult.Ok ok)
 			{
 				return;
 			}
@@ -160,8 +189,15 @@ public partial class CurrencyEntryBox : TextBox
 			// Accept input
 			base.OnTextInput(e);
 
+			decimal? value = ok.Value;
+
 			// Set Value for Binding
 			SetCurrentValue(ValueProperty, value);
+
+			if (result is not CurrencyFormatParseResult.Ok)
+			{
+				return;
+			}
 
 			// Trim Trailing Zeros
 			var trimmedZeros = TrimTrailingZeros();
@@ -179,6 +215,8 @@ public partial class CurrencyEntryBox : TextBox
 				// and move caret index accordingly
 				SetCurrentValue(CaretIndexProperty, CaretIndex + formattedDifference);
 			}
+
+			_currentText = preComposedText;
 		}
 		finally
 		{
@@ -268,7 +306,7 @@ public partial class CurrencyEntryBox : TextBox
 	/// Formats Text according to CurrencyFormat
 	/// </summary>
 	/// <returns>The number of group separator characters added.</returns>
-	private int Format()
+	private int Format(string? oldValue = null)
 	{
 		if (Value is null || Text is null)
 		{
@@ -276,14 +314,16 @@ public partial class CurrencyEntryBox : TextBox
 			return 0;
 		}
 
+		var currentText = oldValue ?? Text;
+
 		var formatted = CurrencyFormat.Format(Value.Value);
 
-		if (formatted != Text)
+		if (formatted != currentText)
 		{
-			var difference = formatted.CountOccurrencesOf(CurrencyInput.GroupSeparator) - Text.CountOccurrencesOf(CurrencyInput.GroupSeparator);
+			var difference = formatted.CountOccurrencesOf(CurrencyInput.GroupSeparator) - currentText.CountOccurrencesOf(CurrencyInput.GroupSeparator);
 
 			// Edge case: hitting backspace in for example "45.1", leaving "45.", in this case we don't want to change the text to "45", because it worsens UX
-			if (!Text.EndsWith(CurrencyInput.DecimalSeparator))
+			if (!currentText.EndsWith(CurrencyInput.DecimalSeparator))
 			{
 				SetCurrentValue(TextProperty, formatted);
 			}

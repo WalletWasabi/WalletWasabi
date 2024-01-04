@@ -20,26 +20,31 @@ public partial class AmountProvider : ReactiveObject
 
 	public IObservable<decimal> BtcToUsdExchangeRates { get; }
 
-	public Amount Create(Money? money)
+	public Amount? Create(Money? money)
 	{
-		return new Amount(money ?? Money.Zero, this);
+		if (money is null)
+		{
+			return null;
+		}
+
+		return new Amount(money, this);
 	}
 
-	public Amount CreateFromBtc(decimal? btcAmount)
+	public Amount? CreateFromBtc(decimal? btcAmount)
 	{
 		if (btcAmount is null)
 		{
-			return Create(Money.Zero);
+			return null;
 		}
 
 		return Create(new Money(btcAmount.Value, MoneyUnit.BTC));
 	}
 
-	public Amount CreateFromUsd(decimal? usdAmount)
+	public Amount? CreateFromUsd(decimal? usdAmount)
 	{
 		if (usdAmount is null || UsdExchangeRate == 0)
 		{
-			return Create(Money.Zero);
+			return null;
 		}
 
 		var btcAmount = usdAmount.Value / UsdExchangeRate;
