@@ -162,7 +162,11 @@ public partial class ApplicationSettings : ReactiveObject
 	public bool ShowBuyAnythingInfo
 	{
 		get => _uiConfig.ShowBuyAnythingInfo;
-		set => _uiConfig.ShowBuyAnythingInfo = value;
+		set
+		{
+			_uiConfig.ShowBuyAnythingInfo = value;
+			this.RaisePropertyChanged();
+		}
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
