@@ -368,7 +368,7 @@ public class KeyManager
 	{
 		if (TaprootExternalKeyGenerator is not { } nonNullTaprootExternalKeyGenerator)
 		{
-			throw new NotSupportedException($"Taproot is not supported in this wallet.");
+			throw new NotSupportedException("Taproot is not supported in this wallet.");
 		}
 		var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(nonNullTaprootExternalKeyGenerator);
 		TaprootExternalKeyGenerator = newHdPubKeyGenerator;
