@@ -16,6 +16,7 @@
                  NextContent="Continue"
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Grid x:Name="Layout">
       <Grid.RowDefinitions>
@@ -26,7 +27,10 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ItemsControl ItemsSource="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
+      <ItemsControl ItemsSource="{Binding AvailableWords}"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Margin="30 0"
+                    MaxWidth="475">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -70,7 +74,7 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
