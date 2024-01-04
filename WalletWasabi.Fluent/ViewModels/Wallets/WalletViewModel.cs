@@ -128,10 +128,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public IObservable<bool> IsBuyInfoDisplayed { get; }
 
-	private static bool GetIsBuyButtonVisible(bool hasBalance)
+	private bool GetIsBuyButtonVisible(bool hasBalance)
 	{
-		// TODO: Replace this with proper UI Decoupling abstraction.
-		var network = Services.PersistentConfig.Network;
+		var network = UiContext.ApplicationSettings.Network;
 
 		if (network == Network.Main && hasBalance)
 		{
