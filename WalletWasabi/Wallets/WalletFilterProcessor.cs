@@ -151,7 +151,7 @@ public class WalletFilterProcessor : BackgroundService
 							// We don't have the next filter to process, so fetch another batch of filters from the database.
 							FiltersCache.Clear();
 
-							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(currentHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(currentHeight, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 							foreach (var filter in filtersBatch)
 							{
 								FiltersCache[filter.Header.Height] = filter;
