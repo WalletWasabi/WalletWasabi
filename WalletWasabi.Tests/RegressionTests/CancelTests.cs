@@ -115,7 +115,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					throw new InvalidOperationException($"Funding transaction to the wallet {wallet} did not arrive.");
+					throw new InvalidOperationException($"Funding transaction to the wallet {wallet.WalletName} did not arrive.");
 				}
 			}
 
