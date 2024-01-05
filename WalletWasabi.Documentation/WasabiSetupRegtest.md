@@ -34,6 +34,7 @@ Todo:
     regtest.rpcport = 18443
     regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
     regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
+    regtest.disablewallet = 0
     ```
 5. Save it.
 6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
