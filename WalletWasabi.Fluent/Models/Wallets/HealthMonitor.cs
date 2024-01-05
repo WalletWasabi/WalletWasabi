@@ -182,7 +182,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 	/// </summary>
 	private async Task WaitForRpcMonitorAsync()
 	{
-		while (true)
+		while (!Disposables.IsDisposed)
 		{
 			var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
 			if (rpcMonitor is { })
