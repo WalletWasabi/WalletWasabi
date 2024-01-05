@@ -52,19 +52,19 @@ public class BlockFilterIterator
 		}
 
 		// Cache filters.
-		uint i = height + 1;
+		uint expectedHeight = height + 1;
 
 		// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
 		foreach (FilterModel filter in filtersBatch.Skip(1))
 		{
 			// Make sure that the sequence of blocks is consecutive.
-			if (i != filter.Header.Height)
+			if (expectedHeight != filter.Header.Height)
 			{
-				throw new UnreachableException($"Expected block with height {i}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
+				throw new UnreachableException($"Expected block with height {expectedHeight}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
 			}
 
 			Cache[filter.Header.Height] = filter;
-			i++;
+			expectedHeight++;
 		}
 
 		result = filtersBatch[0];
