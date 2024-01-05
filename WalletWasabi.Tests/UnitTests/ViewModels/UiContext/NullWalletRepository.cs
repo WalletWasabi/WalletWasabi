@@ -15,7 +15,7 @@ public class NullWalletRepository : IWalletRepository
 		Wallets = Array.Empty<IWalletModel>().AsObservableChangeSet(x => x.Id).AsObservableCache();
 	}
 
-	public IObservableCache<IWalletModel, int> Wallets { get; }
+	public IObservableCache<IWalletModel, Guid> Wallets { get; }
 
 	public string? DefaultWalletName => null;
 

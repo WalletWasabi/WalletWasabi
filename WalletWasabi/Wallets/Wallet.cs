@@ -28,8 +28,7 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
-	private static int WalletCount;
-	
+
 	public Wallet(
 		string dataDir,
 		Network network,
@@ -63,7 +62,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
-		Id = Interlocked.Increment(ref WalletCount);
+		Id = Guid.NewGuid();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -72,7 +71,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<WalletState>? StateChanged;
 
-	public int Id { get; }
+	public Guid Id { get; }
 
 	public string WalletName => KeyManager.WalletName;
 

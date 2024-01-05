@@ -26,7 +26,7 @@ internal class AddressTestingMocks
 		}
 
 		public IAddressesModel AddressesModel => new TestAddressesModel(_addresses);
-		public int Id { get; }
+		public Guid Id { get; }
 		public string Name { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		public bool IsHardwareWallet => false;

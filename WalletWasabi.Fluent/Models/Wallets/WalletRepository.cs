@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletRepository : ReactiveObject
 {
 	private readonly IAmountProvider _amountProvider;
-	private readonly Dictionary<int, WalletModel> _walletDictionary = new();
+	private readonly Dictionary<Guid, WalletModel> _walletDictionary = new();
 	private readonly CompositeDisposable _disposable = new();
 
 	public WalletRepository(IAmountProvider amountProvider)
@@ -46,7 +46,7 @@ public partial class WalletRepository : ReactiveObject
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservableCache<IWalletModel, int> Wallets { get; }
+	public IObservableCache<IWalletModel, Guid> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
@@ -180,7 +180,7 @@ public partial class WalletRepository : ReactiveObject
 		return new WalletSettingsModel(keyManager, true, true);
 	}
 
-	private IWalletModel GetById(int id)
+	private IWalletModel GetById(Guid id)
 	{
 		return
 			_walletDictionary.TryGetValue(id, out var wallet)

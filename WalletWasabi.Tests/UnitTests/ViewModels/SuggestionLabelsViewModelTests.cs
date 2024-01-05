@@ -168,7 +168,7 @@ public class SuggestionLabelsViewModelTests
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
-		public int Id => throw new NotSupportedException();
+		public Guid Id => throw new NotSupportedException();
 
 		public string Name
 		{
