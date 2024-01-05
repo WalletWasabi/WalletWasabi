@@ -1,6 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using static WalletWasabi.Blockchain.Keys.HdPubKeyCache;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Blockchain.Keys;
@@ -160,7 +162,7 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
-	
+
 	[JsonProperty(PropertyName = "UseTurboSync")]
 	public bool UseTurboSync { get; private set; } = true;
 
@@ -405,7 +407,7 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
+	public IImmutableList<ScriptBytesHdPubKeyPair> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{

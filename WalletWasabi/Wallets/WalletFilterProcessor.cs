@@ -228,7 +228,7 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		if (syncType == SyncType.Complete)
 		{
-			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes).ToList();
+			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytes).ToList();
 		}
 
 		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
@@ -236,8 +236,8 @@ public class WalletFilterProcessor : BackgroundService
 			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
 
 		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
-			.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
-			.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
+			.Where(x => stepPredicate(x.HdPubKey))
+			.Select(x => x.ScriptBytes);
 
 		return keysToTest.ToList();
 	}

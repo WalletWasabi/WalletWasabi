@@ -16,9 +16,9 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	private HdPubKeyGlobalView Snapshot =>
 		new(this.ToImmutableList());
 
-	public IEnumerable<SynchronizationInfos> GetSynchronizationInfos()
+	public IImmutableList<ScriptBytesHdPubKeyPair> GetSynchronizationInfos()
 	{
-		return ScriptBytesHdPubKeyPairByKeyPath.Select(x => new SynchronizationInfos(x.Key, x.Value));
+		return ScriptBytesHdPubKeyPairByKeyPath.Values.ToImmutableList();
 	}
 	
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
@@ -54,5 +54,4 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 		GetEnumerator();
 
 	public record ScriptBytesHdPubKeyPair(byte[] ScriptBytes, HdPubKey HdPubKey);
-	public record SynchronizationInfos(KeyPath KeyPath, ScriptBytesHdPubKeyPair ScriptBytesHdPubKeyPair);
 }
