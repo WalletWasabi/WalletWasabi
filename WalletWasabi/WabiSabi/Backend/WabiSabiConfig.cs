@@ -205,14 +205,6 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2trOutputs { get; set; } = true;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2pkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2pkhOutputs { get; set; } = false;
-
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2shOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2shOutputs { get; set; } = false;
-
 	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
 	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string AffiliationMessageSignerKey { get; set; } = Constants.FallbackAffiliationMessageSignerKey;
@@ -225,9 +217,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool DelayTransactionSigning { get; set; } = false;
 
-	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false);
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
 
-	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs, AllowP2pkhOutputs, AllowP2shOutputs);
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
@@ -253,7 +245,7 @@ public class WabiSabiConfig : ConfigBase
 			PenaltyFactorForDisruptingByDoubleSpending: (decimal) DoSPenaltyFactorForDisruptingByDoubleSpending,
 			MinTimeInPrison: DoSMinTimeInPrison);
 
-	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr, bool p2pkh, bool p2sh)
+	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
 	{
 		var scriptTypes = new List<ScriptType>();
 		if (p2wpkh)
@@ -263,14 +255,6 @@ public class WabiSabiConfig : ConfigBase
 		if (p2tr)
 		{
 			scriptTypes.Add(ScriptType.Taproot);
-		}
-		if (p2pkh)
-		{
-			scriptTypes.Add(ScriptType.P2PKH);
-		}
-		if (p2sh)
-		{
-			scriptTypes.Add(ScriptType.P2SH);
 		}
 
 		// When adding new script types, please see
