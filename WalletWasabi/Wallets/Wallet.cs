@@ -73,8 +73,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public Guid Id { get; }
 
-	public string WalletName => KeyManager.WalletName;
-
 	public WalletState State
 	{
 		get => _state;
@@ -94,6 +92,7 @@ public class Wallet : BackgroundService, IWallet
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public string WalletName => KeyManager.WalletName;
 
 	public CoinsRegistry Coins { get; }
 
@@ -353,7 +352,7 @@ public class Wallet : BackgroundService, IWallet
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
 
-		Logger.LogInfo($"Wallet {WalletName} is fully synchronized.");
+		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)

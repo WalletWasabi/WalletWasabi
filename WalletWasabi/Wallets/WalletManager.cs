@@ -173,9 +173,9 @@ public class WalletManager : IWalletProvider
 		{
 			try
 			{
-				Logger.LogInfo($"Starting wallet {wallet.WalletName}...");
+				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
-				Logger.LogInfo($"Wallet {wallet.WalletName} started.");
+				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
