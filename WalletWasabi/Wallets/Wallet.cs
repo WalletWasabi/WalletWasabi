@@ -471,19 +471,22 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
+		Height bestTurboSyncHeight = KeyManager.GetBestTurboSyncHeight();
 
-		// Make sure best height is at least height of segwit activation.
+		// Make sure heights are at least height of segwit activation.
 		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-		if (startingSegwitHeight > bestKeyManagerHeight)
+		if (startingSegwitHeight > KeyManager.GetBestHeight())
 		{
-			KeyManager.SetBestHeights(startingSegwitHeight, startingSegwitHeight);
-			bestKeyManagerHeight = startingSegwitHeight;
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+		if (startingSegwitHeight > bestTurboSyncHeight)
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
 		}
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 		}
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
