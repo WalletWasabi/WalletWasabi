@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -51,8 +52,10 @@ public class BlockFilterIterator
 		}
 
 		// Cache filters.
-		uint i = height;
-		foreach (FilterModel filter in filtersBatch)
+		uint i = height + 1;
+
+		// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
+		foreach (FilterModel filter in filtersBatch.Skip(1))
 		{
 			// Make sure that the sequence of blocks is consecutive.
 			if (i != filter.Header.Height)
@@ -60,13 +63,8 @@ public class BlockFilterIterator
 				throw new UnreachableException($"Expected block with height {i}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
 			}
 
-			// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
-			if (i++ == height)
-			{
-				continue;
-			}
-
 			Cache[filter.Header.Height] = filter;
+			i++;
 		}
 
 		result = filtersBatch[0];
