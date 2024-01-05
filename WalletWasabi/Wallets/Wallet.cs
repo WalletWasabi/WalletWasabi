@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -470,6 +472,14 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.GetKeys();
 
 		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
+
+		// Make sure best height is at least height of segwit activation.
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > bestKeyManagerHeight)
+		{
+			KeyManager.SetBestHeights(startingSegwitHeight, startingSegwitHeight);
+			bestKeyManagerHeight = startingSegwitHeight;
+		}
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
