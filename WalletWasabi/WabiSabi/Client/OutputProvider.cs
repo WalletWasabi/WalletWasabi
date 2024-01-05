@@ -3,8 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Client.Batching;
-
 namespace WalletWasabi.WabiSabi.Client;
 
 public class OutputProvider
@@ -25,7 +23,11 @@ public class OutputProvider
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)
 	{
-		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.CalculateMinReasonableOutputAmount(), roundParameters.AllowedOutputAmounts.Max, availableVsize, roundParameters.AllowedOutputTypes, Random);
+		// Get those script types allowed by the coordinator that can also be received by the Wallet
+		var allowedOutputTypesRecognizedByWasabi = roundParameters.AllowedOutputTypes
+			.Intersect(DestinationProvider.SupportedScriptTypes);
+
+		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.CalculateMinReasonableOutputAmount(), roundParameters.AllowedOutputAmounts.Max, availableVsize, allowedOutputTypesRecognizedByWasabi, Random);
 
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
 		return GetTxOuts(outputValues, DestinationProvider);

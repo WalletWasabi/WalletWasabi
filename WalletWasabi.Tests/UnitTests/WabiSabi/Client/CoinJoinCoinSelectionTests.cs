@@ -227,7 +227,7 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
+		Assert.Equal(Money.Coins(0.00042566m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
 

@@ -150,6 +150,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
 		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
 
+	public IEnumerable<ScriptType> SupportedScriptTypes { get; } = new[] { ScriptType.P2WPKH };
+
 	public IEnumerable<IDestination> GetNextInternalDestinations(int count) =>
 		Enumerable.Range(0, count).Select(_ => CreateNewAddress(true));
 

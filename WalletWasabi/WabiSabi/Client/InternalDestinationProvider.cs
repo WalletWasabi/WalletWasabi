@@ -33,4 +33,6 @@ public class InternalDestinationProvider : IDestinationProvider
 			: segwitKeys;
 		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
+
+	public IEnumerable<ScriptType> SupportedScriptTypes { get; } = new[] { ScriptType.P2WPKH, ScriptType.Taproot };
 }
