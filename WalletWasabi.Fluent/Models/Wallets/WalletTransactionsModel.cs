@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -96,6 +98,21 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model) => TryEstimateConfirmationTime(model.Id);
 
+	public TransactionInfo Create(string address, decimal amount, string label) =>
+		Create(address, amount, new LabelsArray(label));
+
+	public TransactionInfo Create(string address, decimal amount, LabelsArray labels)
+	{
+		var transactionInfo = new TransactionInfo(BitcoinAddress.Create(address, _wallet.Network), _walletModel.Settings.AnonScoreTarget)
+		{
+			Amount = new Money(amount, MoneyUnit.BTC),
+			Recipient = new LabelsArray("Buy Anything Agent"),
+			IsFixedAmount = true
+		};
+
+		return transactionInfo;
+	}
+
 	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
@@ -135,6 +152,35 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		var cancellingTransaction = _wallet.CancelTransaction(targetTransaction);
 
 		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
+	}
+
+	public async Task<BuildTransactionResult> BuildTransactionForSIBAsync(TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
+	{
+		return await Task.Run(() =>
+		{
+			if (transactionInfo.IsOptimized)
+			{
+				return _wallet.BuildChangelessTransaction(
+					transactionInfo.Destination,
+					transactionInfo.Recipient,
+					transactionInfo.FeeRate,
+					transactionInfo.ChangelessCoins,
+					tryToSign: tryToSign);
+			}
+
+			if (isPayJoin && transactionInfo.SubtractFee)
+			{
+				throw new InvalidOperationException("Not possible to subtract the fee.");
+			}
+
+			return _wallet.BuildTransactionForSIB(
+				transactionInfo.Destination,
+				transactionInfo.Amount,
+				transactionInfo.Recipient,
+				transactionInfo.SubtractFee,
+				isPayJoin ? transactionInfo.PayJoinClient : null,
+				tryToSign: tryToSign);
+		});
 	}
 
 	public Task SendAsync(SpeedupTransaction speedupTransaction) => SendAsync(speedupTransaction.BoostingTransaction);
