@@ -30,44 +30,46 @@ public class BlockFilterIterator
 	public async Task<FilterModel> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
 	{
 		// Each block filter is to needed just once, so we can remove the block right now and free the memory sooner.
-		if (!Cache.Remove(height, out FilterModel? result))
+		if (Cache.Remove(height, out FilterModel? result))
 		{
-			// We don't have the next filter to process, so fetch another batch of filters from the database.
-			Clear();
-
-			FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-
-			// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
-			if (filtersBatch.Length == 0)
-			{
-				throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
-			}
-			else if (filtersBatch[0].Header.Height != height)
-			{
-				throw new UnreachableException($"Block filter for height {height} was not found.");
-			}
-
-			// Cache filters.
-			uint i = height;
-			foreach (FilterModel filter in filtersBatch)
-			{
-				// Make sure that the sequence of blocks is consecutive.
-				if (i != filter.Header.Height)
-				{
-					throw new UnreachableException($"Expected block with height {i}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
-				}
-
-				// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
-				if (i++ == height)
-				{
-					continue;
-				}
-
-				Cache[filter.Header.Height] = filter;
-			}
-
-			result = filtersBatch[0];
+			return result;
 		}
+
+		// We don't have the next filter to process, so fetch another batch of filters from the database.
+		Clear();
+
+		FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+
+		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
+		if (filtersBatch.Length == 0)
+		{
+			throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
+		}
+		else if (filtersBatch[0].Header.Height != height)
+		{
+			throw new UnreachableException($"Block filter for height {height} was not found.");
+		}
+
+		// Cache filters.
+		uint i = height;
+		foreach (FilterModel filter in filtersBatch)
+		{
+			// Make sure that the sequence of blocks is consecutive.
+			if (i != filter.Header.Height)
+			{
+				throw new UnreachableException($"Expected block with height {i}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
+			}
+
+			// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
+			if (i++ == height)
+			{
+				continue;
+			}
+
+			Cache[filter.Header.Height] = filter;
+		}
+
+		result = filtersBatch[0];
 
 		return result;
 	}
