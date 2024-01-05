@@ -226,20 +226,19 @@ public class WalletFilterProcessor : BackgroundService
 	/// <returns>Keys to test against this filter.</returns>
 	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
 	{
-		if (syncType == SyncType.Complete)
+		IEnumerable<HdPubKeyCache.ScriptBytesHdPubKeyPair> keyPairs = KeyManager.UnsafeGetSynchronizationInfos();
+
+		// Handle Turbo and non-Turbo sync types.
+		if (syncType != SyncType.Complete)
 		{
-			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytes).ToList();
+			Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
+				? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
+				: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
+
+			keyPairs = keyPairs.Where(x => stepPredicate(x.HdPubKey));
 		}
 
-		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
-			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
-			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
-
-		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
-			.Where(x => stepPredicate(x.HdPubKey))
-			.Select(x => x.ScriptBytes);
-
-		return keysToTest.ToList();
+		return keyPairs.Select(x => x.ScriptBytes).ToList();
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
