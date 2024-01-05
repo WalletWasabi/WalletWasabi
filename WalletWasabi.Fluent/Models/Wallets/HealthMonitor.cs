@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.Extensions;
@@ -92,14 +93,9 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 				  .DisposeWith(Disposables);
 
 		// Bitcoin Core Status
-		var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
-		if (rpcMonitor is { }) // TODO: Is it possible?
+		if (UseBitcoinCore)
 		{
-			Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Select(x => x.EventArgs)
-					  .BindTo(this, x => x.BitcoinCoreStatus)
-					  .DisposeWith(Disposables);
+			Task.Run(WaitForRpcMonitorAsync);
 		}
 
 		// Is P2P Connected
@@ -179,5 +175,28 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		}
 
 		return HealthMonitorState.Loading;
+	}
+
+	/// <summary>
+	/// Loops until the RpcMonitor Service is online and then binds the BitcoinCoreStatus property
+	/// </summary>
+	private async Task WaitForRpcMonitorAsync()
+	{
+		while (true)
+		{
+			var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
+			if (rpcMonitor is { })
+			{
+				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
+						  .ObserveOn(RxApp.MainThreadScheduler)
+						  .Select(x => x.EventArgs)
+						  .BindTo(this, x => x.BitcoinCoreStatus)
+						  .DisposeWith(Disposables);
+
+				return;
+			}
+
+			await Task.Delay(TimeSpan.FromSeconds(1));
+		}
 	}
 }
