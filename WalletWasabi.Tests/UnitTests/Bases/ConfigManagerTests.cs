@@ -107,6 +107,7 @@ public class ConfigManagerTests
 			  "AllowP2trOutputs": true,
 			  "AllowP2pkhOutputs": false,
 			  "AllowP2shOutputs": false,
+			  "AllowP2wshOutputs": false,
 			  "AffiliationMessageSignerKey": "30770201010420686710a86f0cdf425e3bc9781f51e45b9440aec1215002402d5cdee713066623a00a06082a8648ce3d030107a14403420004f267804052bd863a1644233b8bfb5b8652ab99bcbfa0fb9c36113a571eb5c0cb7c733dbcf1777c2745c782f96e218bb71d67d15da1a77d37fa3cb96f423e53ba",
 			  "AffiliateServers": {},
 			  "DelayTransactionSigning": false
