@@ -402,16 +402,16 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	/// <summary>
-	/// This function can only be called for wallet synchronization.
-	/// It's unsafe because it doesn't assert that the GapLimit is respected.
+	/// <inheritdoc cref="HdPubKeyCache.TryGetSynchronizationSnapshot(long, out IImmutableList{ScriptBytesHdPubKeyPair}?)"/>
+	/// <remarks>
+	/// This function can only be called for wallet synchronization. It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
-	/// </summary>
-	public IImmutableList<ScriptBytesHdPubKeyPair> UnsafeGetSynchronizationInfos()
+	/// </remarks>
+	public bool TryGetUnsafeSynchronizationSnapshot(long snapshotId, [NotNullWhen(true)] out IImmutableList<ScriptBytesHdPubKeyPair>? pubKeys)
 	{
 		lock (CriticalStateLock)
 		{
-			return HdPubKeyCache.GetSynchronizationInfos();
+			return HdPubKeyCache.TryGetSynchronizationSnapshot(snapshotId, out pubKeys);
 		}
 	}
 

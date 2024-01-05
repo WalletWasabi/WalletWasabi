@@ -16,9 +16,22 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	private HdPubKeyGlobalView Snapshot =>
 		new(this.ToImmutableList());
 
-	public IImmutableList<ScriptBytesHdPubKeyPair> GetSynchronizationInfos()
+	/// <summary>
+	/// Gets scriptPubKeys snapshot unless the caller already has an up-to-date snapshot of the list.
+	/// </summary>
+	/// <param name="snapshotId">Number of elements in the snapshot the caller has.</param>
+	/// <param name="pubKeys">If new scriptPubKeys were added to the <see cref="HdPubKeyCache"/>, then this contains the new list of scriptPubKeys.</param>
+	/// <remarks>The method requires <see cref="HdPubKeyCache"/> to be an add-only cache.</remarks>
+	public bool TryGetSynchronizationSnapshot(long snapshotId, [NotNullWhen(true)] out IImmutableList<ScriptBytesHdPubKeyPair>? pubKeys)
 	{
-		return ScriptBytesHdPubKeyPairByKeyPath.Values.ToImmutableList();
+		if (snapshotId < HdPubKeys.Count)
+		{
+			pubKeys = ScriptBytesHdPubKeyPairByKeyPath.Values.ToImmutableList();
+			return true;
+		}
+
+		pubKeys = null;
+		return false;
 	}
 	
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>

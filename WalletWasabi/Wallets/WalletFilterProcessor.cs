@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,6 +64,7 @@ public class WalletFilterProcessor : BackgroundService
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
+	private IImmutableList<HdPubKeyCache.ScriptBytesHdPubKeyPair> LastPubKeyListSnapshot { get; set; } = ImmutableList<HdPubKeyCache.ScriptBytesHdPubKeyPair>.Empty;
 
 	public FilterModel? LastProcessedFilter
 	{
@@ -224,9 +226,14 @@ public class WalletFilterProcessor : BackgroundService
 	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
 	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
 	/// <returns>Keys to test against this filter.</returns>
-	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
 	{
-		IEnumerable<HdPubKeyCache.ScriptBytesHdPubKeyPair> keyPairs = KeyManager.UnsafeGetSynchronizationInfos();
+		if (KeyManager.TryGetUnsafeSynchronizationSnapshot(snapshotId: LastPubKeyListSnapshot.Count, out IImmutableList<HdPubKeyCache.ScriptBytesHdPubKeyPair>? pubKeys))
+		{
+			LastPubKeyListSnapshot = pubKeys;
+		}
+
+		IEnumerable<HdPubKeyCache.ScriptBytesHdPubKeyPair>? result = LastPubKeyListSnapshot;
 
 		// Handle Turbo and non-Turbo sync types.
 		if (syncType != SyncType.Complete)
@@ -235,10 +242,10 @@ public class WalletFilterProcessor : BackgroundService
 				? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
 				: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
 
-			keyPairs = keyPairs.Where(x => stepPredicate(x.HdPubKey));
+			result = result.Where(x => stepPredicate(x.HdPubKey));
 		}
 
-		return keyPairs.Select(x => x.ScriptBytes).ToList();
+		return result.Select(x => x.ScriptBytes);
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
@@ -247,7 +254,7 @@ public class WalletFilterProcessor : BackgroundService
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
 
 		var matchFound = false;
-		if (toTestKeys.Count > 0)
+		if (toTestKeys.Any())
 		{
 			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 
