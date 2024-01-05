@@ -91,7 +91,7 @@ public class WalletFilterProcessorTests
 				realWallet.WalletFilterProcessor.FilterIteratorsBySyncType[syncType].Cache[filter.Header.Height] = filter;
 			}
 		}
-		
+
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
 		List<Task> allTurboTasks = new();
