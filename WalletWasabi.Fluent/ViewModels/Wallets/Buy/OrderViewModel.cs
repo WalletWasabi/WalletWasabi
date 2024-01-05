@@ -12,6 +12,7 @@ using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Logging;
@@ -22,7 +23,7 @@ public partial class OrderViewModel : ViewModelBase
 {
 	private readonly ReadOnlyObservableCollection<MessageViewModel> _messages;
 	private readonly SourceList<MessageViewModel> _messagesList;
-
+	private readonly IWalletModel _wallet;
 	private readonly IOrderManager _orderManager;
 	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
@@ -36,7 +37,7 @@ public partial class OrderViewModel : ViewModelBase
 
 	private CancellationTokenSource _cts;
 
-	public OrderViewModel(UiContext uiContext, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
+	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
 	{
 		_orderManager = orderManager;
 		_cancellationToken = cancellationToken;
@@ -51,6 +52,7 @@ public partial class OrderViewModel : ViewModelBase
 			.Subscribe();
 
 		UiContext = uiContext;
+		_wallet = wallet;
 		Workflow = workflow;
 		OrderNumber = orderNumber;
 
@@ -222,7 +224,7 @@ public partial class OrderViewModel : ViewModelBase
 			message.Data switch
 			{
 				OfferCarrier => new OfferMessageViewModel(message),
-				Invoice => new PayNowAssistantMessageViewModel(Workflow, message),
+				Invoice => new PayNowAssistantMessageViewModel(UiContext, _wallet, Workflow, message),
 				AttachmentLinks => new UrlListMessageViewModel(message, "Download your files:"),
 				TrackingCodes => new UrlListMessageViewModel(message, "For shipping updates:"),
 				_ => new AssistantMessageViewModel(message)
