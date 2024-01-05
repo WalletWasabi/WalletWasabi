@@ -192,7 +192,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 						  .Select(x => x.EventArgs)
 						  .BindTo(this, x => x.BitcoinCoreStatus)
 						  .DisposeWith(Disposables);
-
+				BitcoinCoreStatus = rpcMonitor.RpcStatus;
 				return;
 			}
 
