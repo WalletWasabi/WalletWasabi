@@ -49,7 +49,7 @@ public class TransactionStore : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="SqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
 
-	private void Import(string oldPath, Network network, bool deleteAfterImport = false)
+	private void Import(string oldPath, Network network, bool deleteAfterImport = true)
 	{
 		if (File.Exists(oldPath))
 		{
