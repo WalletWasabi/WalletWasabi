@@ -1,5 +1,6 @@
 using Moq;
 using NBitcoin;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Wallets;
@@ -89,11 +90,103 @@ public class ParallelBlockDownloadServiceTests
 		mockBlockProvider.VerifyAll();
 	}
 
+	/// <summary>
+	/// Verifies that a block is attempted to be downloaded at most <see cref="ParallelBlockDownloadService.MaxFailedAttempts"/> times.
+	/// </summary>
 	[Fact]
-	public async Task RemoveBlocksAsync()
+	public async Task MaxBlockDownloadAttemptsAsync()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testCts = new(TimeSpan.FromSeconds(400));
 
-		// TODO.
+		uint256 blockHash1 = uint256.One;
+		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+
+		TaskCompletionSource block1LastFailedAttemptTcs = new();
+
+		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
+		IBlockProvider blockProvider = mockBlockProvider.Object;
+
+		int actualAttempts = 0;
+		bool testFailed = false;
+
+		using (ParallelBlockDownloadService service = new(blockProvider, maximumParallelTasks: 3))
+		{
+			// Handling of downloading of block1.
+			_ = mockBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
+				.ReturnsAsync((uint256 blockHash, CancellationToken cancellationToken) =>
+				{
+					actualAttempts++;
+
+					switch (actualAttempts)
+					{
+						case < ParallelBlockDownloadService.MaxFailedAttempts:
+							break;
+						case ParallelBlockDownloadService.MaxFailedAttempts:
+							block1LastFailedAttemptTcs.SetResult();
+							break;
+						case > ParallelBlockDownloadService.MaxFailedAttempts:
+							testFailed = true; // This should never happen.
+							break;
+					}
+
+					return null;
+				});
+
+			await service.StartAsync(testCts.Token);
+
+			service.Enqueue(blockHash1, blockHeight: 610_001);
+
+			// Wait for all failed attempts.
+			await block1LastFailedAttemptTcs.Task.WaitAsync(testCts.Token);
+
+			await service.StopAsync(testCts.Token);
+			await service.ExecuteTask!.WaitAsync(testCts.Token);
+
+			// Make sure that the block is really dropped.
+			Assert.Equal(0, service.BlocksToDownload.Count);
+		}
+
+		Assert.False(testFailed);
+
+		mockBlockProvider.VerifyAll();
+	}
+
+	[Fact]
+	public void RemoveBlocks()
+	{
+		uint256 blockHash1 = uint256.One;
+		uint256 blockHash2 = new(2);
+		uint256 blockHash3 = new(3);
+		uint256 blockHash4 = new(4);
+
+		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+		Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+
+		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
+		IBlockProvider blockProvider = mockBlockProvider.Object;
+
+		using ParallelBlockDownloadService service = new(blockProvider, maximumParallelTasks: 3);
+
+		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
+		service.Enqueue(blockHash1, blockHeight: 610_001);
+		service.Enqueue(blockHash2, blockHeight: 610_002);
+		service.Enqueue(blockHash3, blockHeight: 610_003);
+		service.Enqueue(blockHash4, blockHeight: 610_004);
+
+		// Remove blocks >= 610_003.
+		service.RemoveBlocks(maxBlockHeight: 610_003);
+
+		ParallelBlockDownloadService.Request[] actualRequests = service.BlocksToDownload.UnorderedItems
+			.Select(x => x.Element)
+			.OrderBy(x => x.BlockHeight)
+			.ToArray();
+
+		// Block 610_004 should be removed.
+		Assert.Equal(3, actualRequests.Length);
+		Assert.Equal(610_001u, actualRequests[0].BlockHeight);
+		Assert.Equal(610_002u, actualRequests[1].BlockHeight);
+		Assert.Equal(610_003u, actualRequests[2].BlockHeight);
 	}
 }

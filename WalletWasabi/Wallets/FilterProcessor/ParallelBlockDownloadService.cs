@@ -14,10 +14,10 @@ namespace WalletWasabi.Wallets.FilterProcessor;
 public class ParallelBlockDownloadService : BackgroundService
 {
 	/// <summary>Maximum number of parallel block-downloading tasks.</summary>
-	private const int MaxParallelTasks = 5;
+	public const int MaxParallelTasks = 5;
 
 	/// <summary>Maximum number of attempts to download a block. If it fails, we drop the block download request altogether.</summary>
-	private const int MaxFailedAttempts = 3;
+	public const int MaxFailedAttempts = 3;
 
 	public ParallelBlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
 	{
@@ -28,11 +28,14 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
 	private IBlockProvider BlockProvider { get; }
 	private int MaximumParallelTasks { get; }
-	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
+	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0, maxCount: 1);
 
 	/// <summary>Block hashes that are to be downloaded. Block height represents priority of the priority queue.</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private PriorityQueue<Request, uint> BlocksToDownload { get; } = new(Comparer<uint>.Default); // TODO: Turbo requests should have precedence over non-turbo.
+	/// <remarks>
+	/// Guarded by <see cref="Lock"/>.
+	/// <para>Internal for testing purposes.</para>
+	/// </remarks>
+	internal PriorityQueue<Request, uint> BlocksToDownload { get; } = new(Comparer<uint>.Default); // TODO: Turbo requests should have precedence over non-turbo.
 
 	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
 	private object Lock { get; } = new();
@@ -41,14 +44,17 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
 	public void Enqueue(uint256 blockHash, uint blockHeight)
+		=> Enqueue(blockHash, blockHeight, attempts: 0);
+
+	private void Enqueue(uint256 blockHash, uint blockHeight, int attempts)
 	{
 		lock (Lock)
 		{
 			int count = BlocksToDownload.Count;
 
-			BlocksToDownload.Enqueue(new Request(blockHash, Attempts: 1), blockHeight);
+			BlocksToDownload.Enqueue(new Request(blockHash, blockHeight, attempts), priority: blockHeight);
 
-			if (count == 0)
+			if (count == 0 && SynchronizationRequestsSemaphore.CurrentCount == 0)
 			{
 				SynchronizationRequestsSemaphore.Release();
 			}
@@ -156,14 +162,14 @@ public class ParallelBlockDownloadService : BackgroundService
 				// If the block was downloaded OK, we suppose that it's stored on disk and it can be fetched fast.
 				if (result.Block is null)
 				{
-					if (result.Attempts > MaxFailedAttempts)
+					if (result.Attempts >= MaxFailedAttempts)
 					{
 						Logger.LogInfo($"Attempt to download block {result.BlockHash} (height: {result.BlockHeight}) failed {MaxFailedAttempts} times. Dropping the request.");
 					}
 					else
 					{
 						// Re-enqueue as we failed to download the block.
-						Enqueue(result.BlockHash, result.BlockHeight);
+						Enqueue(result.BlockHash, result.BlockHeight, result.Attempts);
 					}
 				}
 			}
@@ -179,6 +185,6 @@ public class ParallelBlockDownloadService : BackgroundService
 		}
 	}
 
-	private record Request(uint256 BlockHash, int Attempts);
+	internal record Request(uint256 BlockHash, uint BlockHeight, int Attempts);
 	private record RequestResult(uint256 BlockHash, uint BlockHeight, int Attempts, Block? Block);
 }
