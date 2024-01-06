@@ -46,7 +46,8 @@ public class BlockFilterIterator
 		{
 			throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
 		}
-		else if (filtersBatch[0].Header.Height != height)
+
+		if (filtersBatch[0].Header.Height != height)
 		{
 			throw new UnreachableException($"Block filter for height {height} was not found.");
 		}
