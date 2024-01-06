@@ -91,7 +91,7 @@ public class RegisterInputFailureTests
 	}
 
 	[Fact]
-	public async Task InputRegistrationTimedoutAsync()
+	public async Task InputRegistrationTimedOutAsync()
 	{
 		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
