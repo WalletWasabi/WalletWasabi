@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -95,7 +96,19 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		// Bitcoin Core Status
 		if (UseBitcoinCore)
 		{
-			Task.Run(WaitForRpcMonitorAsync);
+			if (Services.HostedServices.GetOrDefault<RpcMonitor>() is { } rpcMonitor)
+			{
+				BintToRpcMonitor(rpcMonitor);
+			}
+			else
+			{
+				Observable.FromEventPattern<IHostedService>(Services.HostedServices, nameof(Services.HostedServices.ServiceRegistered))
+					.Select(x => x.EventArgs)
+					.OfType<RpcMonitor>()
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(BintToRpcMonitor)
+					.DisposeWith(Disposables);
+			}
 		}
 
 		// Is P2P Connected
@@ -177,26 +190,13 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		return HealthMonitorState.Loading;
 	}
 
-	/// <summary>
-	/// Loops until the RpcMonitor Service is online and then binds the BitcoinCoreStatus property
-	/// </summary>
-	private async Task WaitForRpcMonitorAsync()
+	private void BintToRpcMonitor(RpcMonitor rpcMonitor)
 	{
-		while (!Disposables.IsDisposed)
-		{
-			var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
-			if (rpcMonitor is { })
-			{
-				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-						  .ObserveOn(RxApp.MainThreadScheduler)
-						  .Select(x => x.EventArgs)
-						  .BindTo(this, x => x.BitcoinCoreStatus)
-						  .DisposeWith(Disposables);
-				BitcoinCoreStatus = rpcMonitor.RpcStatus;
-				return;
-			}
-
-			await Task.Delay(TimeSpan.FromSeconds(1));
-		}
+		Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(x => x.EventArgs)
+			.BindTo(this, x => x.BitcoinCoreStatus)
+			.DisposeWith(Disposables);
+		BitcoinCoreStatus = rpcMonitor.RpcStatus;
 	}
 }

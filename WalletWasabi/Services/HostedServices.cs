@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -15,6 +16,8 @@ public class HostedServices : IDisposable
 
 	private object ServicesLock { get; } = new();
 	private bool IsStartAllAsyncStarted { get; set; } = false;
+
+	public event EventHandler<IHostedService>? ServiceRegistered;
 
 	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService
 	{
@@ -41,6 +44,8 @@ public class HostedServices : IDisposable
 			}
 			Services.Add(new HostedService(service, friendlyName));
 		}
+
+		ServiceRegistered?.SafeInvoke(this, service);
 	}
 
 	public async Task StartAllAsync(CancellationToken token = default)
