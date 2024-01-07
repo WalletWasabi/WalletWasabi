@@ -190,7 +190,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		return HealthMonitorState.Loading;
 	}
 
-	private void BintToRpcMonitor(RpcMonitor rpcMonitor)
+	private void BindToRpcMonitor(RpcMonitor rpcMonitor)
 	{
 		Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
