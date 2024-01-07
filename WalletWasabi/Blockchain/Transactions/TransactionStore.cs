@@ -20,6 +20,8 @@ public class TransactionStore : IAsyncDisposable
 	{
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
+		var dbPath = Path.Combine(workFolderPath, "Transactions.sqlite");
+
 		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
 		{
 			DataSource = SqliteStorageHelper.InMemoryDatabase;
@@ -27,7 +29,7 @@ public class TransactionStore : IAsyncDisposable
 		else
 		{
 			IoHelpers.EnsureDirectoryExists(workFolderPath);
-			DataSource = Path.Combine(workFolderPath, "Transactions.sqlite");
+			DataSource = dbPath;
 		}
 
 		SqliteStorage = TransactionSqliteStorage.FromFile(dataSource: DataSource, network);
@@ -36,7 +38,7 @@ public class TransactionStore : IAsyncDisposable
 		{
 			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
 			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
-			Import(oldPath, network, deleteAfterImport: false);
+			Import(oldPath, dbPath, network, deleteAfterImport: true);
 		}
 	}
 
@@ -49,10 +51,16 @@ public class TransactionStore : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="SqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
 
-	private void Import(string oldPath, Network network, bool deleteAfterImport = false)
+	// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+	public bool NeedResync { get; private set; }
+
+	private void Import(string oldPath, string dbPath, Network network, bool deleteAfterImport = true)
 	{
 		if (File.Exists(oldPath))
 		{
+			// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+			NeedResync = File.Exists(dbPath);
+
 			SqliteStorage.Clear();
 
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
