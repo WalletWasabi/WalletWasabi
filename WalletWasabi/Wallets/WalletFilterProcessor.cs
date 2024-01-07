@@ -41,6 +41,9 @@ public class WalletFilterProcessor : BackgroundService
 			return 0;
 		});
 
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private FilterModel? _lastProcessedFilter;
+
 	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
 	{
 		KeyManager = keyManager;
@@ -52,7 +55,7 @@ public class WalletFilterProcessor : BackgroundService
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
 
-	/// <remarks>Guards <see cref="SynchronizationRequests"/>.</remarks>
+	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
@@ -60,7 +63,24 @@ public class WalletFilterProcessor : BackgroundService
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
 	private IBlockProvider BlockProvider { get; }
-	public FilterModel? LastProcessedFilter { get; private set; }
+
+	public FilterModel? LastProcessedFilter
+	{
+		get
+		{
+			lock (Lock)
+			{
+				return _lastProcessedFilter;
+			}
+		}
+		set
+		{
+			lock (Lock)
+			{
+				_lastProcessedFilter = value;
+			}
+		}
+	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
 	internal Dictionary<uint, FilterModel> FiltersCache { get; } = new();
@@ -113,9 +133,9 @@ public class WalletFilterProcessor : BackgroundService
 					bool reachedBlockChainTip;
 					using (await ReorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						var currentHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
+						Height lastHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
 
-						if (currentHeight == BitcoinStore.SmartHeaderChain.TipHeight)
+						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
 							request.Tcs.SetResult();
 							lock (Lock)
@@ -125,13 +145,13 @@ public class WalletFilterProcessor : BackgroundService
 							continue;
 						}
 
-						var heightToTest = (uint)currentHeight.Value + 1;
-						if (!FiltersCache.TryGetValue(heightToTest, out var filterToProcess))
+						uint currentHeight = (uint)lastHeight.Value + 1;
+						if (!FiltersCache.TryGetValue(currentHeight, out var filterToProcess))
 						{
 							// We don't have the next filter to process, so fetch another batch of filters from the database.
 							FiltersCache.Clear();
 
-							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(heightToTest), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(currentHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 							foreach (var filter in filtersBatch)
 							{
 								FiltersCache[filter.Header.Height] = filter;
@@ -142,18 +162,9 @@ public class WalletFilterProcessor : BackgroundService
 
 						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
 
-						reachedBlockChainTip = filterToProcess.Header.Height == BitcoinStore.SmartHeaderChain.TipHeight;
-						var saveNewHeightToFile = matchFound || reachedBlockChainTip;
-						if (request.SyncType == SyncType.Turbo)
-						{
-							// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight
-							KeyManager.SetBestTurboSyncHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
-						}
-						else
-						{
-							// All keys were tested at this height, update the Height.
-							KeyManager.SetBestHeight(new Height(filterToProcess.Header.Height), saveNewHeightToFile);
-						}
+						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
+						bool storeToDisk = matchFound || reachedBlockChainTip;
+						KeyManager.SetBestHeight(request.SyncType, new Height(currentHeight), storeToDisk);
 					}
 
 					if (reachedBlockChainTip)
