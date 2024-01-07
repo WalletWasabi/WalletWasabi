@@ -127,7 +127,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				currentConversations.Select((conversation, index) =>
 				{
 					var workflow = Workflow.Create(_wallet, conversation);
-					var order = new OrderViewModel(UiContext, workflow, this, index, _cts.Token);
+					var order = new OrderViewModel(UiContext, WalletVm.WalletModel, workflow, this, index, _cts.Token);
 					return order;
 				})
 				.ToArray();
@@ -160,7 +160,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		var workflow = Workflow.Create(_wallet, conversation);
 
-		var order = new OrderViewModel(UiContext, workflow, this, nextOrderNumber, _cts.Token);
+		var order = new OrderViewModel(UiContext, WalletVm.WalletModel, workflow, this, nextOrderNumber, _cts.Token);
 
 		_ordersCache.AddOrUpdate(order);
 
