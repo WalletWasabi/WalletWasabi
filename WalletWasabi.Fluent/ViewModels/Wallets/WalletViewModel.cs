@@ -106,10 +106,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CanBuy = walletModel.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
 
-		IsBuyInfoDisplayed = CanBuy.CombineLatest(this.WhenAnyValue(x => x.UiContext.ApplicationSettings.ShowBuyAnythingInfo), (canBuy, showBuy) => canBuy && showBuy);
-
-		DismissBuyInfoCommand = ReactiveCommand.Create(() => UiContext.ApplicationSettings.ShowBuyAnythingInfo = false);
-
 		HasUnreadConversations = BuyViewModel.Orders
 			.ToObservableChangeSet(x => x.OrderNumber)
 			.AutoRefresh(x => x.HasUnreadMessages)
@@ -124,8 +120,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	}
 
 	public ICommand BuyCommand { get; set; }
-
-	public IObservable<bool> IsBuyInfoDisplayed { get; }
 
 	private bool GetIsBuyButtonVisible(bool hasBalance)
 	{
@@ -240,9 +234,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	}
 
 	
-    public ICommand DismissBuyInfoCommand { get; }
-
-    public IObservable<bool> HasUnreadConversations { get; }
+	public IObservable<bool> HasUnreadConversations { get; }
 
     public void SelectTransaction(uint256 txid)
 	{

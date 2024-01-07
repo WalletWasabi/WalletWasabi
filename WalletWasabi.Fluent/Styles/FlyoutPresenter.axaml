@@ -3,7 +3,6 @@
 
   <Design.PreviewWith>
     <Border Padding="20">
-      <StackPanel Spacing="10">
         <FlyoutPresenter>
           <StackPanel>
             <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
@@ -12,16 +11,6 @@
             <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
           </StackPanel>
         </FlyoutPresenter>
-
-        <FlyoutPresenter Classes="Bubble">
-          <StackPanel>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-          </StackPanel>
-        </FlyoutPresenter>
-      </StackPanel>
-
     </Border>
   </Design.PreviewWith>
 
@@ -83,27 +72,6 @@
 
   <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
     <Setter Property="MaxHeight" Value="500" />
-  </Style>
-
-  <Style Selector="FlyoutPresenter.Bubble">
-    <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate>
-          <DockPanel>
-            <Panel DockPanel.Dock="Right">
-              <Polygon Points="0,0 12,10 0,20" Fill="{DynamicResource SystemAccentColor}" />
-              <Polygon Points="-1,1 10,10 -1,19" Fill="{DynamicResource ChatInputBackground}" />
-            </Panel>
-            <Border Background="{DynamicResource ChatInputBackground}" Padding="10" CornerRadius="10" MaxWidth="400"
-                    BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}" DockPanel.Dock="Left">
-              <ContentPresenter Content="{TemplateBinding Content}" />
-            </Border>
-          </DockPanel>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
   </Style>
 
 </Styles>
