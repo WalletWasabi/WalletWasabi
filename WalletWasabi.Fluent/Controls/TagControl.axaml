@@ -86,7 +86,7 @@
       </Setter>
     </Style>
 
-    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel">
+    <Style Selector="^/template/ Panel#PART_TagPanel">
       <Setter Property="Margin" Value="0,3,2,3" />
     </Style>
 
