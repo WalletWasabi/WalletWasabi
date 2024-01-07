@@ -3,14 +3,14 @@
 
   <Design.PreviewWith>
     <Border Padding="20">
-        <FlyoutPresenter>
-          <StackPanel>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-            <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
-          </StackPanel>
-        </FlyoutPresenter>
+      <FlyoutPresenter>
+        <StackPanel>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+        </StackPanel>
+      </FlyoutPresenter>
     </Border>
   </Design.PreviewWith>
 
@@ -73,5 +73,4 @@
   <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
     <Setter Property="MaxHeight" Value="500" />
   </Style>
-
 </Styles>
