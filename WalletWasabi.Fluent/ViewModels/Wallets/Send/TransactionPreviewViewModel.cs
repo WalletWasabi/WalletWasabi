@@ -486,8 +486,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 					{
-						_info.Coins = selectPocketsDialog.Result;
-						await BuildAndUpdateAsync();
+						var newCoins = selectPocketsDialog.Result.ToList();
+						var haveSameCoins = _info.Coins.ToList().OrderDescending().SequenceEqual(newCoins.OrderDescending());
+						if (!haveSameCoins)
+						{
+							_info.Coins = selectPocketsDialog.Result;
+							await BuildAndUpdateAsync();
+						}
 					}
 
 					break;
