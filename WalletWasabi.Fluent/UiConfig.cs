@@ -51,7 +51,6 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.CombineLatest(this.WhenAnyValue(config => config.ShowBuyAnythingInfo))
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -189,14 +188,6 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
-	}
-
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "ShowBuyAnythingInfo", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool ShowBuyAnythingInfo
-	{
-		get => _showBuyAnythingInfo;
-		internal set => RaiseAndSetIfChanged(ref _showBuyAnythingInfo, value);
 	}
 
 	[OnDeserialized]

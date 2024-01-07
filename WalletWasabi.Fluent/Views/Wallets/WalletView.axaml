@@ -8,7 +8,6 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
-             xmlns:f="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
@@ -43,20 +42,6 @@
                   <PathIcon Data="{StaticResource wallet_action_buy}" />
                   <TextBlock Text="Buy Anything" />
                 </StackPanel>
-                <FlyoutBase.AttachedFlyout>
-                  <Flyout ShowMode="Transient" Placement="Left" FlyoutPresenterClasses="Bubble">
-                    <StackPanel Spacing="6">
-                      <TextBlock FontWeight="SemiBold" TextAlignment="Left">Buy anything with bitcoin through your Wasabi wallet!</TextBlock>
-                      <TextBlock Opacity="0.6">Everything you need can be purchased directly with Bitcoin, no exchange required. Whether it's flights, electronics, cars, or other exotic items, your personal concierge will get you that, privately.</TextBlock>
-                    </StackPanel>
-                  </Flyout>
-                </FlyoutBase.AttachedFlyout>
-                <Interaction.Behaviors>
-                  <f:AttachedFlyoutBehaviorDisplayBehavior IsVisible="{Binding IsBuyInfoDisplayed^}" />
-                  <f:AttachedFlyoutDismissedTriggerBehavior>
-                    <InvokeCommandAction Command="{Binding DismissBuyInfoCommand}" />
-                  </f:AttachedFlyoutDismissedTriggerBehavior>
-                </Interaction.Behaviors>
               </Button>
               <Ellipse IsHitTestVisible="False" IsVisible="{Binding HasUnreadConversations^}" VerticalAlignment="Top" Margin="0 5 5 0" HorizontalAlignment="Right" Width="8" Height="8" Fill="{StaticResource UnreadBadgeColor}" />
             </Panel>

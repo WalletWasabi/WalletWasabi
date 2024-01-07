@@ -159,16 +159,6 @@ public partial class ApplicationSettings : ReactiveObject
 			.Subscribe();
 	}
 
-	public bool ShowBuyAnythingInfo
-	{
-		get => _uiConfig.ShowBuyAnythingInfo;
-		set
-		{
-			_uiConfig.ShowBuyAnythingInfo = value;
-			this.RaisePropertyChanged();
-		}
-	}
-
 	public bool IsOverridden => _config.IsOverridden;
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
