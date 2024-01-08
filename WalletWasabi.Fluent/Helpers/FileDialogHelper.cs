@@ -115,13 +115,13 @@ public static class FileDialogHelper
         return fileTypeFilters;
     }
 
-    public static async Task OpenFileAsync(Func<Stream, string, Uri, Task> callback, string[] filterExtTypes, string title, string? initialFileName = null, string? directory = null)
+    public static async Task<IStorageFile?> OpenFileAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
     {
 	    // TODO: initialFileName is not supported, remove the parameter
         var storageProvider = GetStorageProvider();
         if (storageProvider is null)
         {
-            return;
+            return null;
         }
 
         var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
@@ -134,25 +134,20 @@ public static class FileDialogHelper
             AllowMultiple = false
         });
 
-        var file = result.FirstOrDefault();
-        if (file is not null)
-        {
-            await using var stream = await file.OpenReadAsync();
-            await callback(stream, file.Name, file.Path);
-        }
+        return result.FirstOrDefault();
     }
 
-    public static async Task SaveFileAsync(Func<Stream, string, Uri, Task> callback, string[] filterExtTypes, string title, string? initialFileName = null, string? directory = null)
+    public static async Task<IStorageFile?> SaveFileAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
     {
         var storageProvider = GetStorageProvider();
         if (storageProvider is null)
         {
-            return;
+            return null;
         }
 
         var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
 
-        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        return await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title,
             FileTypeChoices = GetFilePickerFileTypes(filterExtTypes),
@@ -161,12 +156,6 @@ public static class FileDialogHelper
             SuggestedStartLocation = suggestedStartLocation,
             ShowOverwritePrompt = true
         });
-
-        if (file is not null)
-        {
-            await using var stream = await file.OpenWriteAsync();
-            await callback(stream, file.Name, file.Path);
-        }
     }
 
 	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
