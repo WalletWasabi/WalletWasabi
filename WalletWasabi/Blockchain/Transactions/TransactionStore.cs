@@ -62,8 +62,6 @@ public class TransactionStore : IAsyncDisposable
 			// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
 			NeedResync = File.Exists(dbPath);
 
-			SqliteStorage.Clear();
-
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
 			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
 
