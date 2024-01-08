@@ -23,6 +23,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
 		Transaction = transaction;
+		IsChild = transaction.IsChild;
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 
 		this.WhenAnyValue(x => x.IsFlashing)
