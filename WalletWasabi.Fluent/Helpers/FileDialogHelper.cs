@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-// TODO: See https://github.com/zkSNACKs/WalletWasabi/issues/12053.
-#pragma warning disable CS0618 // Type or member is obsolete
 public static class FileDialogHelper
 {
 	public static async Task<string?> ShowOpenFileDialogAsync(string title)
@@ -132,4 +130,3 @@ public static class FileDialogHelper
 		}
 	}
 }
-#pragma warning restore CS0618 // Type or member is obsolete
