@@ -13,39 +13,39 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class FileDialogHelper
 {
-	private static FilePickerFileType All { get; } = new("*")
+	private static FilePickerFileType All { get; } = new("All files")
     {
         Patterns = new[] { "*.*" },
         MimeTypes = new[] { "*/*" }
     };
 
-    private static FilePickerFileType Json { get; } = new("json")
+    private static FilePickerFileType Json { get; } = new("JSON files")
     {
         Patterns = new[] { "*.json" },
         AppleUniformTypeIdentifiers = new[] { "public.json" },
         MimeTypes = new[] { "application/json" }
     };
 
-    private static FilePickerFileType Text { get; } = new("txt")
+    private static FilePickerFileType Text { get; } = new("TXT files")
     {
         Patterns = new[] { "*.txt" },
         AppleUniformTypeIdentifiers = new[] { "public.text" },
         MimeTypes = new[] { "text/plain" }
     };
 
-    private static FilePickerFileType Psbt { get; } = new("psbt")
+    private static FilePickerFileType Psbt { get; } = new("PSBT files")
     {
 	    Patterns = new[] { "*.psbt" },
 	    MimeTypes = new[] { "*/*" }
     };
 
-    private static FilePickerFileType Txn { get; } = new("txn")
+    private static FilePickerFileType Txn { get; } = new("TXN files")
     {
 	    Patterns = new[] { "*.txn" },
 	    MimeTypes = new[] { "*/*" }
     };
 
-    private static FilePickerFileType Png { get; } = new("png")
+    private static FilePickerFileType Png { get; } = new("PNG files")
     {
 	    Patterns = new[] { "*.png" },
 	    AppleUniformTypeIdentifiers = new[] { "public.png" },
