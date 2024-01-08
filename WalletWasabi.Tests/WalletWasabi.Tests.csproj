@@ -1,19 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
-		<AnalysisLevel>latest</AnalysisLevel>
 		<IsPackable>false</IsPackable>
-		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;CA1031;CA1822</NoWarn>
 		<ApplicationIcon />
 		<OutputType>Library</OutputType>
 		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<Nullable>enable</Nullable>
-		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<!-- TODO: PathMap breaks Verifier.Verify -->
 		<!--<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>-->
 	</PropertyGroup>

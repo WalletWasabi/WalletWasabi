@@ -97,5 +97,5 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 
 	public ScriptType? ScriptType { get; protected set; }
 
-	public virtual bool HasChildren() => Children.Any();
+	public virtual bool HasChildren() => Children.Count != 0;
 }

@@ -136,6 +136,7 @@ public class TransactionTreeBuilder
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
+			FeeRate = transactionSummary.FeeRate(),
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 		};
 	}
@@ -211,9 +212,7 @@ public class TransactionTreeBuilder
 			? TransactionStatus.Confirmed
 			: TransactionStatus.Pending;
 
-		var confirmations = coinjoinGroup.Children.Select(x => x.Confirmations).Min();
-
-		coinjoinGroup.ConfirmedTooltip = TextHelpers.GetConfirmationText(confirmations);
+		coinjoinGroup.ConfirmedTooltip = coinjoinGroup.Children.MinBy(x => x.Confirmations)?.ConfirmedTooltip ?? "";
 		coinjoinGroup.Date = coinjoinGroup.Children.Select(tx => tx.Date).Max().ToLocalTime();
 
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);

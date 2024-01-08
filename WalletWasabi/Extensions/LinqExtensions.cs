@@ -166,11 +166,6 @@ public static class LinqExtensions
 			.ThenBy(x => x.BlockIndex)
 			.ThenBy(x => x.FirstSeen);
 
-	public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
-		=> me
-			.OrderByBlockchain()
-			.Select(x => x.ToLine());
-
 	/// <summary>
 	/// Chunks the source list to sub-lists by the specified chunk size.
 	/// Source: https://stackoverflow.com/a/24087164/2061103
@@ -221,6 +216,11 @@ public static class LinqExtensions
 				yield break;
 			}
 		}
+	}
+
+	public static IEnumerable<T> Singleton<T>(this T item)
+	{
+		yield return item;
 	}
 
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)

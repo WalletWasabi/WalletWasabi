@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -22,7 +24,6 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
@@ -372,6 +373,9 @@ public class Wallet : BackgroundService, IWallet
 
 				if (prevState >= WalletState.Initialized)
 				{
+					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
+					WalletFilterProcessor.Dispose();
+
 					UnregisterNewFiltersEvent();
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -469,11 +473,22 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
+		Height bestTurboSyncHeight = KeyManager.GetBestTurboSyncHeight();
+
+		// Make sure heights are at least height of segwit activation.
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > KeyManager.GetBestHeight())
+		{
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+		if (startingSegwitHeight > bestTurboSyncHeight)
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
+		}
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 		}
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
@@ -583,7 +598,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
 	{
-		if (!hdPubKeysWithLabels.Any())
+		if (hdPubKeysWithLabels.Count == 0)
 		{
 			return;
 		}

@@ -98,13 +98,13 @@ public class MultipartyTransactionStateTests
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
 
-			if (!histogram.ContainsKey(maxSuggested))
+			if (!histogram.TryGetValue(maxSuggested, out int value))
 			{
 				histogram.Add(maxSuggested, 1);
 			}
 			else
 			{
-				histogram[maxSuggested]++;
+				histogram[maxSuggested] = value + 1;
 			}
 		}
 

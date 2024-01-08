@@ -129,7 +129,7 @@ public class CoinJoinCoinSelector
 		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
 
 		// If the command is given to not stop when everything is coinjoined and the allowed private coins are empty, then we shortcircuit the selection.
-		if (!stopWhenAllMixed && !allowedNonPrivateCoins.Any())
+		if (!stopWhenAllMixed && allowedNonPrivateCoins.Count == 0)
 		{
 			var largestAllowedCoin = orderedAllowedCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
 			if (largestAllowedCoin is null)
@@ -189,7 +189,7 @@ public class CoinJoinCoinSelector
 			}
 		}
 
-		if (!groups.Any())
+		if (groups.Count == 0)
 		{
 			Logger.LogDebug($"Couldn't create any combinations, ending.");
 			return ImmutableList<TCoin>.Empty;

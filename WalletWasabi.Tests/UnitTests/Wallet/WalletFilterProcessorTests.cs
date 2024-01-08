@@ -84,7 +84,10 @@ public class WalletFilterProcessorTests
 		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(realWallet.WalletFilterProcessor);
 
 		// Mock the database
-		realWallet.WalletFilterProcessor.AddToCache(allFilters);
+		foreach (var filter in allFilters)
+		{
+			realWallet.WalletFilterProcessor.FiltersCache[filter.Header.Height] = filter;
+		}
 
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 

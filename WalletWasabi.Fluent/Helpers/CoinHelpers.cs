@@ -26,12 +26,6 @@ public static class CoinHelpers
 
 	public static int GetConfirmations(this SmartCoin coin) => coin.Transaction.GetConfirmations((int)Services.SmartHeaderChain.TipHeight);
 
-	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, Wallet wallet)
-	{
-		var anonScoreTarget = wallet.AnonScoreTarget;
-		return coin.GetPrivacyLevel(anonScoreTarget);
-	}
-
 	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, int privateThreshold)
 	{
 		if (coin.IsPrivate(privateThreshold))
