@@ -37,7 +37,7 @@ public class TransactionStore : IAsyncDisposable
 		if (migrateData)
 		{
 			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
-			Import(oldPath, dbPath, network, deleteAfterImport: true);
+			Import(oldPath, dbPath, network);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class TransactionStore : IAsyncDisposable
 	// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
 	public bool NeedResync { get; private set; }
 
-	private void Import(string oldPath, string dbPath, Network network, bool deleteAfterImport = true)
+	private void Import(string oldPath, string dbPath, Network network)
 	{
 		if (File.Exists(oldPath))
 		{
@@ -67,11 +67,8 @@ public class TransactionStore : IAsyncDisposable
 
 			SqliteStorage.BulkInsert(allTransactions);
 
-			if (deleteAfterImport)
-			{
-				Logger.LogInfo($"Removing old '{oldPath}' transaction storage.");
-				File.Delete(oldPath);
-			}
+			Logger.LogInfo($"Removing old '{oldPath}' transaction storage.");
+			File.Delete(oldPath);
 		}
 	}
 
