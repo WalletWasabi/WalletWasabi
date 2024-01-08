@@ -654,11 +654,11 @@ public class KeyManager
 		}
 	}
 
-	public Height GetBestTurboSyncHeight()
+	public Height GetBestHeight(SyncType syncType)
 	{
 		lock (CriticalStateLock)
 		{
-			return BlockchainState.TurboSyncHeight;
+			return syncType == SyncType.Turbo ? BlockchainState.TurboSyncHeight : BlockchainState.Height;
 		}
 	}
 

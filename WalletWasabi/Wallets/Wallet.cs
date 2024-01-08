@@ -473,7 +473,7 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		Height bestTurboSyncHeight = KeyManager.GetBestTurboSyncHeight();
+		Height bestTurboSyncHeight = KeyManager.GetBestHeight(SyncType.Turbo);
 
 		// Make sure heights are at least height of segwit activation.
 		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);

@@ -133,7 +133,7 @@ public class WalletFilterProcessor : BackgroundService
 					bool reachedBlockChainTip;
 					using (await ReorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						Height lastHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
+						Height lastHeight = KeyManager.GetBestHeight(SyncType.Turbo);
 
 						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
