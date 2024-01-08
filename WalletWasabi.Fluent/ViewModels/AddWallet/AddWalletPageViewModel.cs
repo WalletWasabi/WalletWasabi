@@ -60,13 +60,14 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	{
 		try
 		{
-			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
+			var file = await FileDialogHelper.OpenFileAsync("Import wallet file", new[] { "json" });
 
-			if (filePath is null)
+			if (file is null)
 			{
 				return;
 			}
 
+			var filePath = file.Path.AbsolutePath;
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
 			var options = new WalletCreationOptions.ImportWallet(walletName, filePath);
