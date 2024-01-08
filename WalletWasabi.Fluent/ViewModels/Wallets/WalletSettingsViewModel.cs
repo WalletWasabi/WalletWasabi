@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -19,11 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	Searchable = false)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
+	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private string _walletName;
 
 	private WalletSettingsViewModel(IWalletModel wallet)
 	{
-		Title = $"{wallet.Name} - Wallet Settings";
+		_wallet = wallet;
+		_walletName = wallet.Name;
 		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
 		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsWatchOnly = wallet.IsWatchOnlyWallet;
@@ -41,6 +43,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.Settings.PreferPsbtWorkflow = value;
 				wallet.Settings.Save();
 			});
+
+		this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
+		
+		RenameCommand = ReactiveCommand.Create(OnRenameWallet);
 	}
 
 	public bool IsHardwareWallet { get; }
@@ -48,4 +54,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	public ICommand RenameCommand { get; set; }
+
+	private void OnRenameWallet()
+	{
+		Navigate().To().WalletRename(_wallet);
+	}
 }
