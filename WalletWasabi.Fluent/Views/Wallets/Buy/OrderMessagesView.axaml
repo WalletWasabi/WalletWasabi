@@ -15,9 +15,9 @@
   <ScrollViewer x:Name="MessagesScrollViewer"
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
-    <SelectingItemsControl x:Name="MessagesItemsControl"
+    <ItemsControl x:Name="MessagesItemsControl"
                            ItemsSource="{Binding Messages}">
-      <SelectingItemsControl.Styles>
+      <ItemsControl.Styles>
         <Style Selector="ContentPresenter > c|PreviewMessageItem">
           <Setter Property="Margin" Value="5 5 5 0" />
         </Style>
@@ -29,9 +29,9 @@
         <Style Selector="TextBlock">
           <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-      </SelectingItemsControl.Styles>
+      </ItemsControl.Styles>
 
-      <SelectingItemsControl.DataTemplates>
+      <ItemsControl.DataTemplates>
 
         <!-- Pay chat bubble -->
         <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
@@ -141,11 +141,11 @@
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
-      </SelectingItemsControl.DataTemplates>
+      </ItemsControl.DataTemplates>
 
       <Interaction.Behaviors>
         <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
       </Interaction.Behaviors>
-    </SelectingItemsControl>
+    </ItemsControl>
   </ScrollViewer>
 </UserControl>
