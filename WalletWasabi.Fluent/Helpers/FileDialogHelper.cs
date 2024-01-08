@@ -274,4 +274,25 @@ public static class FileDialogHelper
 			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 		}
 	}
+
+	private static async Task<IStorageFolder?> GetSuggestedStartLocationAsync(string? directory, IStorageProvider storageProvider)
+	{
+		if (directory is not null)
+		{
+			return await storageProvider.TryGetFolderFromPathAsync(directory);
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			return await storageProvider.TryGetFolderFromPathAsync(Path.Combine("/media", Environment.UserName));
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			return await storageProvider.TryGetFolderFromPathAsync(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+		}
+
+		return null;
+
+	}
 }
