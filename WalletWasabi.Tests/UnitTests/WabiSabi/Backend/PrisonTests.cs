@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotConfirming = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotConfirming.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotConfirming.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotConfirm, disruptionNotConfirming.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotConfirming.Value);
 
@@ -43,7 +44,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotSignallingReadyToSign = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotSignallingReadyToSign.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotSignallingReadyToSign.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotSignalReadyToSign, disruptionNotSignallingReadyToSign.Method);
 		Assert.Equal(Money.Coins(1m), disruptionNotSignallingReadyToSign.Value);
 
@@ -52,7 +53,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var disruptionNotSigning = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, disruptionNotSigning.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(disruptionNotSigning.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DidNotSign, disruptionNotSigning.Method);
 		Assert.Equal(Money.Coins(2m), disruptionNotSigning.Value);
 
@@ -61,7 +62,7 @@ public class PrisonTests
 		offenderToSave = await reader.ReadAsync(ctsTimeout.Token);
 		var doubleSpending = Assert.IsType<RoundDisruption>(offenderToSave.Offense);
 		Assert.Equal(outpoint, offenderToSave.OutPoint);
-		Assert.Equal(roundId, doubleSpending.DisruptedRoundId);
+		Assert.Equal(roundId, Assert.Single(doubleSpending.DisruptedRoundIds));
 		Assert.Equal(RoundDisruptionMethod.DoubleSpent, doubleSpending.Method);
 		Assert.Equal(Money.Coins(3m), doubleSpending.Value);
 
@@ -168,6 +169,24 @@ public class PrisonTests
 		var failToSignBanningTime = prison.GetBanTimePeriod(ftcFailedToSign, cfg);
 		var inheritedBanningTime = prison.GetBanTimePeriod(ftcInheritFromFailedToSign, cfg);
 
-		Assert.Equal(failToSignBanningTime, inheritedBanningTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.StartTime, inheritedBanningTime.StartTime); // because fail to sign is punished harder
+		Assert.Equal(failToSignBanningTime.Duration * 0.5, inheritedBanningTime.Duration); // after spending the punishment is reduced by half
+
+		// After spending a couple of times the coin is no longer banned
+		var outpointsToBan = Enumerable.Range(0, 10).Select(_ => BitcoinFactory.CreateOutPoint()).ToArray();
+		prison.FailedToSign(outpointsToBan[0], Money.Coins(0.005m), roundId);
+		var banningTimeFrames = outpointsToBan.Zip(outpointsToBan[1..], (a, b) => new { Destroyed = a, Created = b })
+			.Select(x =>
+			{
+				prison.InheritPunishment(x.Created, new[] { x.Destroyed });
+				return prison.GetBanTimePeriod(x.Created, cfg);
+			}).ToArray();
+
+		// Every time it is banned, the duration is halfed
+		var banningTimeFramePairs = banningTimeFrames.Zip(banningTimeFrames[1..], (parent, child) => (Parent: parent, Child: child)).ToArray();
+		Assert.All(banningTimeFramePairs[..^1], x => Assert.Equal(x.Parent.Duration, x.Child.Duration * 2));
+
+		// Final time frame is always zero
+		Assert.Equal(TimeSpan.Zero, banningTimeFrames[^1].Duration);
 	}
 }

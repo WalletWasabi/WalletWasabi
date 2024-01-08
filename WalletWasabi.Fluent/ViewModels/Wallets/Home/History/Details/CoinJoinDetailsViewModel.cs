@@ -1,6 +1,5 @@
 using System.Reactive.Disposables;
 using NBitcoin;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -29,7 +28,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = _transaction.TransactionSummary.TryGetConfirmationTime(out var estimation) ? estimation : null;
+		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transaction);
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 
@@ -41,7 +40,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
+		_wallet.Transactions.Cache
+			                .Connect()
 							.Subscribe(_ => Update())
 							.DisposeWith(disposables);
 	}
@@ -51,7 +51,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
 			Date = transaction.DateString;
-			CoinJoinFeeAmount = UiContext.AmountProvider.Create(transaction.OutgoingAmount);
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(transaction.OutgoingAmount);
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;

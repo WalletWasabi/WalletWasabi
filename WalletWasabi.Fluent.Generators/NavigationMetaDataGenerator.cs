@@ -91,7 +91,7 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 		}
 
 		var implementedInterfacesString =
-			implementedInterfaces.Any()
+			implementedInterfaces.Count != 0
 			? ": " + string.Join(", ", implementedInterfaces)
 			: "";
 

@@ -145,7 +145,11 @@ public class LabelsPanel : Panel
 
 		size = size.WithWidth(result.Width);
 
-		return InfiniteWidthMeasure ? new Size(double.MaxValue, size.Height) : size;
+		// TODO:
+		// Currently we use quickfix to make work TreeDataGrid with ShowColumnHeaders=false
+		// The width=double.MaxValue was causing measure exception (measure with infinity)
+		// Quick fix for now is to limit InfiniteWidthMeasure to 10000 instead of double.MaxValue
+		return InfiniteWidthMeasure ? new Size(10000, size.Height) : size;
 	}
 
 	private CalculateResult CalculateWidth(

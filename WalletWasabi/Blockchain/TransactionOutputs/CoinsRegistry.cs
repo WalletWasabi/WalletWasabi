@@ -177,7 +177,7 @@ public class CoinsRegistry : ICoinsView
 
 			coins.RemoveWhere(x => coinsToRemove.Contains(x));
 
-			if (coins.Any())
+			if (coins.Count != 0)
 			{
 				continue;
 			}
@@ -227,8 +227,13 @@ public class CoinsRegistry : ICoinsView
 	{
 		lock (Lock)
 		{
-			foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
+			foreach (SmartCoin coin in Coins)
 			{
+				if (coin.Height != blockHeight)
+				{
+					continue;
+				}
+
 				var descendantCoins = DescendantOfNoLock(coin, includeSelf: true);
 				foreach (var toSwitch in descendantCoins)
 				{
@@ -375,11 +380,7 @@ public class CoinsRegistry : ICoinsView
 
 	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
 
-	public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
-
 	public ICoinsView Available() => AsCoinsView().Available();
-
-	public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
 
 	public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
@@ -423,15 +424,11 @@ public class CoinsRegistry : ICoinsView
 		return Generator(coin, addSelf: includeSelf).ToImmutableArray();
 	}
 
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
-
 	public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 	public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
 	public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
-
-	public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
 	public Money TotalAmount() => AsCoinsView().TotalAmount();
 

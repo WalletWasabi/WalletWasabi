@@ -375,6 +375,9 @@ public class Wallet : BackgroundService, IWallet
 
 				if (prevState >= WalletState.Initialized)
 				{
+					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
+					WalletFilterProcessor.Dispose();
+
 					UnregisterNewFiltersEvent();
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -586,7 +589,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)
 	{
-		if (!hdPubKeysWithLabels.Any())
+		if (hdPubKeysWithLabels.Count == 0)
 		{
 			return;
 		}

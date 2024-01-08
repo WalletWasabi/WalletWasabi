@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
@@ -12,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -81,17 +81,27 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return txn;
 	}
 
-	public TimeSpan? TryEstimateConfirmationTime(TransactionSummary transactionSummary)
+	public TimeSpan? TryEstimateConfirmationTime(uint256 id)
 	{
+		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		{
+			throw new InvalidOperationException($"Transaction not found! ID: {id}");
+		}
+
 		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, transactionSummary.Transaction, out var estimate)
-			? estimate
-			: null;
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
+				? estimate
+				: null;
 	}
+
+	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model) => TryEstimateConfirmationTime(model.Id);
 
 	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
 	{
-		var targetTransaction = transaction.TransactionSummary.Transaction;
+		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		{
+			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
+		}
 
 		// If the transaction has CPFPs, then we want to speed them up instead of us.
 		// Although this does happen inside the SpeedUpTransaction method, but we want to give the tx that was actually sped up to SpeedUpTransactionDialog.
@@ -117,7 +127,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public CancellingTransaction CreateCancellingTransaction(TransactionModel transaction)
 	{
-		var targetTransaction = transaction.TransactionSummary.Transaction;
+		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		{
+			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
+		}
+
 		var cancellingTransaction = _wallet.CancelTransaction(targetTransaction);
 
 		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
@@ -152,6 +166,53 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
 		return boostingTransactionFee - originalFee;
+	}
+
+	public IEnumerable<BitcoinAddress> GetDestinationAddresses(uint256 id)
+	{
+		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		{
+			throw new InvalidOperationException($"Transaction not found! ID: {id}");
+		}
+
+		List<IInput> inputs = smartTransaction.GetInputs().ToList();
+		List<Output> outputs = smartTransaction.GetOutputs(_wallet.Network).ToList();
+
+		return GetDestinationAddresses(inputs, outputs);
+	}
+
+	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
+	{
+		var myOwnInputs = inputs.OfType<KnownInput>().ToList();
+		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
+		var myOwnOutputs = outputs.OfType<OwnOutput>().ToList();
+		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
+
+		// All inputs and outputs are my own, transaction is a self-spend.
+		if (foreignInputs.Count == 0 && foreignOutputs.Count == 0)
+		{
+			// Classic self-spend to one or more external addresses.
+			if (myOwnOutputs.Any(x => !x.IsInternal))
+			{
+				// Destinations are the external addresses.
+				return myOwnOutputs.Where(x => !x.IsInternal).Select(x => x.DestinationAddress);
+			}
+
+			// Edge-case: self-spend to one or more internal addresses.
+			// We can't know the destinations, return all the outputs.
+			return myOwnOutputs.Select(x => x.DestinationAddress);
+		}
+
+		// All inputs are foreign but some outputs are my own, someone is sending coins to me.
+		if (myOwnInputs.Count == 0 && myOwnOutputs.Count != 0)
+		{
+			// All outputs that are my own are the destinations.
+			return myOwnOutputs.Select(x => x.DestinationAddress);
+		}
+
+		// I'm sending a transaction to someone else.
+		// All outputs that are not my own are the destinations.
+		return foreignOutputs.Select(x => x.DestinationAddress);
 	}
 
 	public void Dispose() => _disposable.Dispose();

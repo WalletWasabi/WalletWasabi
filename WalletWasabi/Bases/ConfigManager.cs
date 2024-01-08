@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Text;
 using WalletWasabi.Interfaces;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases;
@@ -10,6 +11,14 @@ namespace WalletWasabi.Bases;
 public class ConfigManager
 {
 	private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonSerializationOptions.Default.Settings);
+
+	public static string ToFile<T>(string filePath, T obj)
+	{
+		string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializationOptions.Default.Settings);
+		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+		return jsonString;
+	}
 
 	public static bool AreDeepEqual(object current, object other)
 	{
@@ -41,6 +50,41 @@ public class ConfigManager
 
 		return result is not null
 			? result
-			: throw new("Unexpected null value.");
+			: throw new JsonException("Unexpected null value.");
+	}
+
+	public static TResponse LoadFile<TResponse>(string filePath, bool createIfMissing = false)
+		where TResponse : IConfigNg, new()
+	{
+		TResponse result;
+
+		if (!createIfMissing)
+		{
+			return LoadFile<TResponse>(filePath);
+		}
+
+		if (!File.Exists(filePath))
+		{
+			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
+			result = new();
+			ToFile(filePath, result);
+		}
+		else
+		{
+			try
+			{
+				return LoadFile<TResponse>(filePath);
+			}
+			catch (Exception ex)
+			{
+				result = new();
+				ToFile(filePath, result);
+
+				Logger.LogInfo($"File has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
+				Logger.LogWarning(ex);
+			}
+		}
+
+		return result;
 	}
 }

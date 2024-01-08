@@ -13,16 +13,16 @@ public class Prison
 	public Prison(ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
-		Offenders = offenders.ToList();
+		OffendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
 	private ICoinJoinIdStore CoinJoinIdStore { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
-	private List<Offender> Offenders { get; }
+	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
 	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
 
-	/// <remarks>Lock object to guard <see cref="Offenders"/>.</remarks>
+	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>and <see cref="BanningTimeCache"/></remarks>
 	private object Lock { get; } = new();
 
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
@@ -40,6 +40,9 @@ public class Prison
 	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
 
+	public void DoubleSpent(OutPoint outPoint, Money value, IEnumerable<uint256> roundIds) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundIds, value, RoundDisruptionMethod.DoubleSpent)));
+
 	public void InheritPunishment(OutPoint outpoint, OutPoint[] ancestors) =>
 		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
 
@@ -51,27 +54,25 @@ public class Prison
 
 	public TimeFrame GetBanTimePeriod(OutPoint outpoint, DoSConfiguration configuration)
 	{
-		TimeFrame EffectiveMinTimeFrame(Offender offender, TimeSpan banningTime)
-		{
-			var effectiveBanningTime = banningTime < configuration.MinTimeInPrison
-				? TimeSpan.Zero
-				: banningTime;
-			return new TimeFrame(offender.StartedTime, effectiveBanningTime);
-		}
+		TimeFrame EffectiveMinTimeFrame(TimeFrame banningPeriod) =>
+			banningPeriod.Duration < configuration.MinTimeInPrison
+				? TimeFrame.Zero
+				: banningPeriod;
 
 		TimeSpan CalculatePunishment(Offender offender, RoundDisruption disruption)
 		{
 			var basePunishmentInHours = configuration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
-			List<RoundDisruption> offenderHistory;
+			IReadOnlyList<RoundDisruption> offenderHistory;
 			lock (Lock)
 			{
-				offenderHistory = Offenders
-					.Where(x => x.OutPoint == offender.OutPoint)
-					.Select(x => x.Offense)
-					.OfType<RoundDisruption>()
-					.ToList();
-
+				offenderHistory = OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders)
+					? offenders
+						.Where(x => x.OutPoint.N == offender.OutPoint.N)
+						.Select(x => x.Offense)
+						.OfType<RoundDisruption>()
+						.ToList()
+					: Array.Empty<RoundDisruption>();
 			}
 
 			var maxOffense = offenderHistory.Count == 0
@@ -96,10 +97,11 @@ public class Prison
 
 		TimeFrame CalculatePunishmentInheritance(OutPoint[] ancestors)
 		{
-			return ancestors
+			var banningTimeFrame = ancestors
 				.Select(a => (Ancestor: a, BanningTime: GetBanTimePeriod(a, configuration)))
 				.MaxBy(x => x.BanningTime.EndTime)
 				.BanningTime;
+			return new TimeFrame(banningTimeFrame.StartTime, banningTimeFrame.Duration / 2);
 		}
 
 		Offender? offender;
@@ -110,18 +112,20 @@ public class Prison
 				return cachedBanningTime;
 			}
 
-			offender = Offenders.LastOrDefault(x => x.OutPoint == outpoint);
+			offender = OffendersByTxId.TryGetValue(outpoint.Hash, out var offenders)
+				? offenders.LastOrDefault(x => x.OutPoint == outpoint)
+				: null;
 		}
 
-		var banningTime = offender switch
+		var banningTime = EffectiveMinTimeFrame(offender switch
 		{
 			null => TimeFrame.Zero,
-			{ Offense: FailedToVerify } => EffectiveMinTimeFrame(offender, configuration.MinTimeForFailedToVerify),
-			{ Offense: Cheating } => EffectiveMinTimeFrame(offender, configuration.MinTimeForCheating),
-			{ Offense: RoundDisruption offense } => EffectiveMinTimeFrame(offender, CalculatePunishment(offender, offense)),
+			{ Offense: FailedToVerify } => new TimeFrame(offender.StartedTime, configuration.MinTimeForFailedToVerify),
+			{ Offense: Cheating } => new TimeFrame(offender.StartedTime, configuration.MinTimeForCheating),
+			{ Offense: RoundDisruption offense } => new TimeFrame(offender.StartedTime, CalculatePunishment(offender, offense)),
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
-		};
+		});
 
 		lock (Lock)
 		{
@@ -134,7 +138,15 @@ public class Prison
 	{
 		lock (Lock)
 		{
-			Offenders.Add(offender);
+			if (OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders))
+			{
+				offenders.Add(offender);
+			}
+			else
+			{
+				OffendersByTxId.Add(offender.OutPoint.Hash, new List<Offender> { offender });
+			}
+
 			BanningTimeCache.Remove(offender.OutPoint);
 		}
 		if (!NotificationChannelWriter.TryWrite(offender))
