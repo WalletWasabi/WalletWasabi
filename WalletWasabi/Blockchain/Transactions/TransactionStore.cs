@@ -37,7 +37,6 @@ public class TransactionStore : IAsyncDisposable
 		if (migrateData)
 		{
 			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
-			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
 			Import(oldPath, dbPath, network, deleteAfterImport: true);
 		}
 	}
@@ -58,6 +57,8 @@ public class TransactionStore : IAsyncDisposable
 	{
 		if (File.Exists(oldPath))
 		{
+			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
+
 			// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
 			NeedResync = File.Exists(dbPath);
 
