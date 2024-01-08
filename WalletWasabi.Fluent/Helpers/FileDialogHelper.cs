@@ -45,7 +45,7 @@ public static class FileDialogHelper
 	    MimeTypes = new[] { "*/*" }
     };
 
-    public static FilePickerFileType Png { get; } = new("Png")
+    private static FilePickerFileType Png { get; } = new("Png")
     {
 	    Patterns = new[] { "*.png" },
 	    AppleUniformTypeIdentifiers = new[] { "public.png" },
