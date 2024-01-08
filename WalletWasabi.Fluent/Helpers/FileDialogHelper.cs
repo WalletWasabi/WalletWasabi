@@ -162,12 +162,6 @@ public static class FileDialogHelper
         }
     }
 
-	public static async Task<string?> ShowOpenFileDialogAsync(string title)
-	{
-		var ofd = CreateOpenFileDialog(title);
-		return await GetDialogResultAsync(ofd);
-	}
-
 	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
 	{
 		var ofd = CreateOpenFileDialog(title, directory);
