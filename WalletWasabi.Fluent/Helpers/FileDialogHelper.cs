@@ -13,20 +13,20 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class FileDialogHelper
 {
-	private static FilePickerFileType All { get; } = new("All")
+	private static FilePickerFileType All { get; } = new("*")
     {
         Patterns = new[] { "*.*" },
         MimeTypes = new[] { "*/*" }
     };
 
-    private static FilePickerFileType Json { get; } = new("Json")
+    private static FilePickerFileType Json { get; } = new("json")
     {
         Patterns = new[] { "*.json" },
         AppleUniformTypeIdentifiers = new[] { "public.json" },
         MimeTypes = new[] { "application/json" }
     };
 
-    private static FilePickerFileType Text { get; } = new("Text")
+    private static FilePickerFileType Text { get; } = new("txt")
     {
         Patterns = new[] { "*.txt" },
         AppleUniformTypeIdentifiers = new[] { "public.text" },
@@ -45,7 +45,7 @@ public static class FileDialogHelper
 	    MimeTypes = new[] { "*/*" }
     };
 
-    private static FilePickerFileType Png { get; } = new("Png")
+    private static FilePickerFileType Png { get; } = new("png")
     {
 	    Patterns = new[] { "*.png" },
 	    AppleUniformTypeIdentifiers = new[] { "public.png" },
@@ -71,25 +71,25 @@ public static class FileDialogHelper
         return null;
     }
 
-    private static List<FilePickerFileType> GetFilePickerFileTypes(List<string> fileTypes)
+    private static List<FilePickerFileType> GetFilePickerFileTypes(string[] filterExtTypes)
     {
         var fileTypeFilters = new List<FilePickerFileType>();
 
-        foreach (var fileType in fileTypes)
+        foreach (var fileType in filterExtTypes)
         {
             switch (fileType)
             {
-                case "All":
+                case "*":
                 {
                     fileTypeFilters.Add(All);
                     break;
                 }
-                case "Json":
+                case "json":
                 {
                     fileTypeFilters.Add(Json);
                     break;
                 }
-                case "Text":
+                case "txt":
                 {
                     fileTypeFilters.Add(Text);
                     break;
@@ -104,7 +104,7 @@ public static class FileDialogHelper
 	                fileTypeFilters.Add(Txn);
 	                break;
                 }
-                case "Png":
+                case "png":
                 {
 	                fileTypeFilters.Add(Png);
 	                break;
@@ -115,18 +115,22 @@ public static class FileDialogHelper
         return fileTypeFilters;
     }
 
-    public static async Task OpenFileAsync(Func<Stream, Task> callback, List<string> fileTypes, string title)
+    public static async Task OpenFileAsync(Func<Stream, string, Uri, Task> callback, string[] filterExtTypes, string title, string? initialFileName = null, string? directory = null)
     {
+	    // TODO: initialFileName is not supported, remove the parameter
         var storageProvider = GetStorageProvider();
         if (storageProvider is null)
         {
             return;
         }
 
+        var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
+
         var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title,
-            FileTypeFilter = GetFilePickerFileTypes(fileTypes),
+            SuggestedStartLocation = suggestedStartLocation,
+            FileTypeFilter = GetFilePickerFileTypes(filterExtTypes),
             AllowMultiple = false
         });
 
@@ -134,11 +138,11 @@ public static class FileDialogHelper
         if (file is not null)
         {
             await using var stream = await file.OpenReadAsync();
-            await callback(stream);
+            await callback(stream, file.Name, file.Path);
         }
     }
 
-    public static async Task SaveFileAsync(Func<Stream, Task> callback, List<string> fileTypes, string title, string fileName, string defaultExtension)
+    public static async Task SaveFileAsync(Func<Stream, string, Uri, Task> callback, string[] filterExtTypes, string title, string? initialFileName = null, string? directory = null)
     {
         var storageProvider = GetStorageProvider();
         if (storageProvider is null)
@@ -146,19 +150,22 @@ public static class FileDialogHelper
             return;
         }
 
+        var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
+
         var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title,
-            FileTypeChoices = GetFilePickerFileTypes(fileTypes),
-            SuggestedFileName = fileName,
-            DefaultExtension = defaultExtension,
+            FileTypeChoices = GetFilePickerFileTypes(filterExtTypes),
+            SuggestedFileName = initialFileName,
+            DefaultExtension = filterExtTypes.FirstOrDefault(),
+            SuggestedStartLocation = suggestedStartLocation,
             ShowOverwritePrompt = true
         });
 
         if (file is not null)
         {
             await using var stream = await file.OpenWriteAsync();
-            await callback(stream);
+            await callback(stream, file.Name, file.Path);
         }
     }
 
