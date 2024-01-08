@@ -403,13 +403,13 @@ public class WalletManager : IWalletProvider
 	{
 		if (Network == Network.RegTest)
 		{
-			// On this network, Height will be reset to 0 anyway.
+			// On this network, height resets to 0 anyway.
 			return;
 		}
 
-		// PR 12137 was created 2023-12-23T21:43:40Z.
-		// 822621 is the block just before https://mempool.space/block/00000000000000000001610628413ce8139e9fc042792c24d01d392afdd61ea4 on Main
-		// 2542919 on testnet https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799
+		// PR https://github.com/zkSNACKs/WalletWasabi/pull/12137 was created at 2023-12-23T21:43:40Z.
+		// * Mainnet block 822621 (https://mempool.space/block/00000000000000000001610628413ce8139e9fc042792c24d01d392afdd61ea4) was mined before the PR was created.
+		// * Testnet block 2542919 (https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799) was mined before the PR was created.
 		var heightPriorTo12137 = Network == Network.Main ? 822621 : 2542919;
 
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
@@ -418,6 +418,7 @@ public class WalletManager : IWalletProvider
 			{
 				km.SetBestHeight(heightPriorTo12137);
 			}
+
 			if (km.GetBestTurboSyncHeight() > heightPriorTo12137)
 			{
 				km.SetBestTurboSyncHeight(heightPriorTo12137);

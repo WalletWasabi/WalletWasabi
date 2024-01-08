@@ -16,28 +16,25 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionStore : IAsyncDisposable
 {
-	public TransactionStore(string workFolderPath, Network network, bool migrateData = true)
+	public TransactionStore(string workFolderPath, Network network)
 	{
-		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		DataSource = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
-		var dbPath = Path.Combine(workFolderPath, "Transactions.sqlite");
+		bool useInMemoryDatabase = DataSource == SqliteStorageHelper.InMemoryDatabase;
 
-		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
+		if (!useInMemoryDatabase)
 		{
-			DataSource = SqliteStorageHelper.InMemoryDatabase;
-		}
-		else
-		{
-			IoHelpers.EnsureDirectoryExists(workFolderPath);
-			DataSource = dbPath;
+			IoHelpers.EnsureDirectoryExists(DataSource);
+			DataSource = Path.Combine(DataSource, "Transactions.sqlite");
 		}
 
 		SqliteStorage = TransactionSqliteStorage.FromFile(dataSource: DataSource, network);
 
-		if (migrateData)
+		// Migrate data.
+		if (!useInMemoryDatabase)
 		{
-			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
-			Import(oldPath, dbPath, network);
+			string oldPath = Path.Combine(DataSource, "Transactions.dat");
+			Import(oldPath, DataSource, network);
 		}
 	}
 
