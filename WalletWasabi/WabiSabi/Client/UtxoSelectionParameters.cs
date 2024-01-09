@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public record UtxoSelectionParameters(
 	MoneyRange AllowedInputAmounts,
-	MoneyRange AllowedOutputAmounts,
+	Money MinAllowedOutputAmount,
 	CoordinationFeeRate CoordinationFeeRate,
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
@@ -22,10 +22,9 @@ public record UtxoSelectionParameters(
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 		var smallestReasonableEffectiveDenomination= roundParameters.CalculateMinReasonableOutputAmount() + roundParameters.MiningFeeRate.GetFee(maxVsizeInputOutputPairScriptType.EstimateOutputVsize());
 
-		var reasonableOutputAmountRange = roundParameters.AllowedOutputAmounts with { Min = smallestReasonableEffectiveDenomination };
 		return new(
 			roundParameters.AllowedInputAmounts,
-			reasonableOutputAmountRange,
+			smallestReasonableEffectiveDenomination,
 			roundParameters.CoordinationFeeRate,
 			roundParameters.MiningFeeRate,
 			roundParameters.AllowedInputTypes);
