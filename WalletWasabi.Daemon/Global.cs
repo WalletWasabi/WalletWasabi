@@ -198,6 +198,12 @@ public class Global
 				{
 					await bitcoinStoreInitTask.ConfigureAwait(false);
 
+					// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+					if (AllTransactionStore.MempoolStore.NeedResync || AllTransactionStore.ConfirmedStore.NeedResync)
+					{
+						WalletManager.ResyncToBefore12137();
+					}
+
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
