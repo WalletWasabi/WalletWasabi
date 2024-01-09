@@ -433,11 +433,6 @@ public class Wallet : BackgroundService, IWallet
 			NewFiltersProcessed?.Invoke(this, filterModels);
 			await Task.Delay(100).ConfigureAwait(false);
 
-			if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
-			{
-				return;
-			}
-
 			// Make sure fully synced and this filter is the latest filter.
 			if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModels.Last().Header.BlockHash)
 			{
