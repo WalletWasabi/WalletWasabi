@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models.UI;
 
-namespace WalletWasabi.Fluent.Models.UI;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullClipboard : IUiClipboard
 {
-	public Task<string?> GetTextAsync()
+	public Task<string> GetTextAsync()
 	{
-		return Task.FromResult<string?>("");
+		return Task.FromResult("");
 	}
 
 	public Task SetTextAsync(string? text)

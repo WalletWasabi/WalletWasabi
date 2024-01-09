@@ -97,7 +97,7 @@ public class QrCode : Control
 			}
 
 			using var rtb = new RenderTargetBitmap(pixSize);
-			using (var rtbCtx = rtb.CreateDrawingContext(null))
+			using (var rtbCtx = rtb.CreateDrawingContext())
 			{
 				DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
 			}
@@ -128,7 +128,7 @@ public class QrCode : Control
 	private (int indexW, int indexH) GetMatrixIndexSize(bool[,] source) =>
 		(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 
-	private void DrawQrCodeImage(IDrawingContextImpl ctx, bool[,] source, Size size)
+	private void DrawQrCodeImage(DrawingContext ctx, bool[,] source, Size size)
 	{
 		var qrCodeSize = GetQrCodeSize(source, size);
 		var (indexW, indexH) = GetMatrixIndexSize(source);
@@ -159,14 +159,9 @@ public class QrCode : Control
 			return;
 		}
 
-		DrawQrCodeImage(context.PlatformImpl, source, Bounds.Size);
+		DrawQrCodeImage(context, source, Bounds.Size);
 	}
 
-	// TODO: Fix remark.
-	/// <remarks>
-	/// The returned size can differ from the size that is set on the control, which can cause unexpected layout issue.
-	/// Choose a size on the control which can be divided by minDimension without a remainder.
-	/// </remarks>
 	private (Size coercedSize, double gridCellFactor) GetQrCodeSize(bool[,] source, Size size)
 	{
 		var (indexW, indexH) = GetMatrixIndexSize(source);

@@ -1,32 +1,32 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
+using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.Services;
 
 public class ConfigWatcher : PeriodicRunner
 {
-	public ConfigWatcher(TimeSpan period, IConfig config, Action executeWhenChanged) : base(period)
+	public ConfigWatcher(TimeSpan period, WabiSabiConfig config, Action executeWhenChanged) : base(period)
 	{
-		Config = Guard.NotNull(nameof(config), config);
-		ExecuteWhenChanged = Guard.NotNull(nameof(executeWhenChanged), executeWhenChanged);
+		Config = config;
+		ExecuteWhenChanged = executeWhenChanged;
 		config.AssertFilePathSet();
 	}
 
-	public IConfig Config { get; }
-	public Action ExecuteWhenChanged { get; }
+	private WabiSabiConfig Config { get; }
+	private Action ExecuteWhenChanged { get; }
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		if (Config.CheckFileChange())
+		if (ConfigManager.CheckFileChange(Config.FilePath, Config))
 		{
 			cancel.ThrowIfCancellationRequested();
 			Config.LoadFile(createIfMissing: true);
 
 			ExecuteWhenChanged();
 		}
+
 		return Task.CompletedTask;
 	}
 }

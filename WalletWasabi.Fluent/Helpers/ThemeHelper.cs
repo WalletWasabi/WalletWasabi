@@ -1,6 +1,5 @@
-using System.Linq;
 using Avalonia;
-using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -16,23 +15,10 @@ public static class ThemeHelper
 
 	public static void ApplyTheme(Theme theme)
 	{
-		if (Application.Current is { })
+		if (Application.Current is { } current)
 		{
-			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x)
-				.FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
-
-			if (currentTheme is { })
-			{
-				var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
-
-				var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
-				{
-					Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/Base{theme}.axaml")
-				};
-
-				CurrentTheme = theme;
-				Application.Current.Styles[themeIndex] = newTheme;
-			}
+			CurrentTheme = theme;
+			current.RequestedThemeVariant = theme == Theme.Light ? ThemeVariant.Light : ThemeVariant.Dark;
 		}
 	}
 }

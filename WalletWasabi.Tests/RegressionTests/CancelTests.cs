@@ -147,8 +147,6 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.OuterWalletOutputs);
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
-			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
@@ -209,8 +207,6 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Empty(cancellingTx.OuterWalletOutputs);
 
 			Assert.True(txToCancel.Fee < cancellingTx.Fee);
-			Assert.NotEqual(0, txToCancel.FeePercentOfSent);
-			Assert.Equal(0, cancellingTx.FeePercentOfSent);
 
 			Assert.Equal(txToCancel.SpentCoins, cancellingTx.SpentCoins);
 
@@ -243,7 +239,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			#region CantCancel
 
-			// Can't cancel cancelled transacion.
+			// Can't cancel cancelled transaction.
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(cancellingTx.Transaction));
 
 			// Can't cancel cancellation transaction.

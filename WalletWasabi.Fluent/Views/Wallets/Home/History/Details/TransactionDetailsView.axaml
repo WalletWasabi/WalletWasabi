@@ -27,9 +27,9 @@
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="{Binding AmountText}"
-                     CopyableContent="{Binding Amount}">
+                     CopyableContent="{Binding Amount.Btc}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          <c:AmountControl Amount="{Binding Amount}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -38,8 +38,8 @@
       <!-- Destination Address -->
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
-        <ItemsRepeater Items="{Binding DestinationAddresses}">
-          <ItemsRepeater.ItemTemplate>
+        <ItemsControl ItemsSource="{Binding DestinationAddresses}">
+          <ItemsControl.ItemTemplate>
             <DataTemplate>
               <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
                 <c:PrivacyContentControl>
@@ -47,8 +47,8 @@
                 </c:PrivacyContentControl>
               </c:PreviewItem>
             </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </c:PreviewItem>
 
       <Separator IsVisible="{Binding !!DestinationAddresses.Count}" />
@@ -57,13 +57,25 @@
       <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee"
-                     CopyableContent="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Fee, Converter={x:Static conv:MoneyConverters.ToFeeWithUnit}}" Classes="monoSpaced" />
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
       <Separator IsVisible="{Binding IsFeeVisible}" />
+
+      <!-- Fee Rate-->
+      <c:PreviewItem IsVisible="{Binding !!FeeRate}"
+                     Icon="{StaticResource paper_cash_regular}"
+                     Label="Fee Rate"
+                     CopyableContent="{Binding FeeRate.SatoshiPerByte}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:F1} sat/vByte'}" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding !!FeeRate}" />
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
@@ -126,7 +138,7 @@
                      Label="Labels"
                      CopyableContent="{Binding Labels}">
         <c:PrivacyContentControl VerticalContentAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
     </StackPanel>

@@ -1,36 +1,13 @@
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 {
-	private CoinJoinHistoryItemViewModel(
-		int orderIndex,
-		TransactionSummary transactionSummary,
-		WalletViewModel walletVm,
-		Money balance,
-		bool isSingleCoinJoinTransaction)
-		: base(orderIndex, transactionSummary)
+	private CoinJoinHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
-		Date = transactionSummary.DateTime.ToLocalTime();
-		Balance = balance;
-		IsCoinJoin = true;
-		CoinJoinTransaction = transactionSummary;
-		IsChild = !isSingleCoinJoinTransaction;
-
-		SetAmount(transactionSummary.Amount, transactionSummary.Fee);
-
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			UiContext.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
-
-		DateString = Date.ToLocalTime().ToUserFacingString();
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().CoinJoinDetails(wallet, transaction));
 	}
-
-	public TransactionSummary CoinJoinTransaction { get; private set; }
 }

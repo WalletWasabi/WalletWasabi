@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinDetailsViewModel"
              x:CompileBindings="True"
@@ -51,9 +52,22 @@
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
-                     CopyableContent="{Binding CoinJoinFeeRawString}">
-        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
+                     CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <c:AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </c:PreviewItem>
+
+      <!-- Confirmation Time -->
+      <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
+                     Icon="{StaticResource timer_regular}"
+                     Label="Expected confirmation time"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
+
     </StackPanel>
   </c:ContentArea>
 </UserControl>

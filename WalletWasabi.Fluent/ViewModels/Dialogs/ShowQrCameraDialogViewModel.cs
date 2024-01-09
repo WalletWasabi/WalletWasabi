@@ -11,7 +11,7 @@ using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Camera")]
+[NavigationMetaData(Title = "Camera", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
 	private readonly Network _network;
@@ -61,14 +61,11 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 						QrImage = result.bitmap;
 					}
 				},
-				onError: error =>
-				{
-					Dispatcher.UIThread.Post(async () =>
+				onError: error => Dispatcher.UIThread.Post(async () =>
 					{
 						Close();
 						await ShowErrorAsync(Title, error.Message, "Something went wrong", NavigationTarget.CompactDialogScreen);
-					});
-				})
+					}))
 			.DisposeWith(disposables);
 	}
 }

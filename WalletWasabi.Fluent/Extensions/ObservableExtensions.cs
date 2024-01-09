@@ -1,8 +1,11 @@
+using DynamicData;
 using ReactiveUI;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -18,6 +21,8 @@ public static class ObservableExtensions
 		source
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat();
+
+	public static IObservable<Unit> Do(this IObservable<Unit> source, Action onNext) => source.Do(_ => onNext());
 
 	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
 
@@ -99,5 +104,16 @@ public static class ObservableExtensions
 			property9,
 			property10,
 			(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
+	}
+
+	public static IObservable<(T1, T2, T3)> Flatten<T1, T2, T3>(this IObservable<((T1, T2), T3)> source) =>
+		source.Select(t => (t.Item1.Item1, t.Item1.Item2, t.Item2));
+
+	public static IObservableCache<TObject, TKey> Fetch<TObject, TKey>(this IObservable<Unit> signal, Func<IEnumerable<TObject>> source, Func<TObject, TKey> keySelector)
+		where TKey : notnull where TObject : notnull
+	{
+		return signal.Select(_ => source())
+					 .EditDiff(keySelector)
+					 .AsObservableCache();
 	}
 }

@@ -4,11 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="send:TransactionSummaryViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
+  <UserControl.Resources>
+    <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
+                                     NegativeBrush="{StaticResource PositiveBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}">
+    </converters:DiffToBrushConverter>
+    <converters:DiffToBrushConverter x:Key="NeutralDiffConverter"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
+                                     NegativeBrush="{StaticResource UncertainBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}">
+    </converters:DiffToBrushConverter>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="c|PreviewItem.Dimmed">
+      <Setter Property="Opacity" Value="0.2" />
+    </Style>
+  </UserControl.Styles>
+
   <StackPanel Spacing="15">
 
     <!-- Amount -->
@@ -28,27 +48,40 @@
       </Button>
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount" HorizontalContentAlignment="Stretch"
-                     CopyableContent="{Binding Amount}">
-        <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
+                     CopyableContent="{Binding Amount.Btc}">
+        <StackPanel Orientation="Horizontal">
+          <c:AmountControl Amount="{Binding Amount}" />
+          <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource NeutralDiffConverter}}" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+        </StackPanel>
+
+        <Classes.Dimmed>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsPreview" />
+            <Binding Path="!!AmountDiff" Converter="{x:Static BoolConverters.Not}" />
+          </MultiBinding>
+        </Classes.Dimmed>
       </c:PreviewItem>
     </DockPanel>
     <Separator />
 
-    <!-- Recipient -->
-    <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="Recipient"
-                   CopyableContent="{Binding Recipient}">
-      <c:LabelsItemsPresenter Items="{Binding Recipient}"
-                              HorizontalAlignment="Left"
-                              VerticalAlignment="Center" />
+    <!-- Address -->
+    <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                   x:Name="PreviewItem"
+                   Label="Address"
+                   CopyableContent="{Binding AddressText}"
+                   Classes.Dimmed="{Binding IsPreview}">
+      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
     <Separator />
 
-    <!-- Address -->
-    <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   Label="Address"
-                   CopyableContent="{Binding AddressText}">
-      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+    <!-- Recipient -->
+    <c:PreviewItem Icon="{StaticResource person_regular}"
+                   Classes.Dimmed="{Binding IsPreview}"
+                   Label="Recipient"
+                   CopyableContent="{Binding Recipient}">
+      <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center" />
     </c:PreviewItem>
     <Separator />
 
@@ -69,13 +102,24 @@
         <c:PreviewItem Icon="{StaticResource timer_regular}"
                        Label="Expected confirmation time"
                        IsVisible="{Binding !IsCustomFeeUsed}"
+                       Classes.Dimmed="{Binding IsPreview}"
                        ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                        Label="Fee"
-                       CopyableContent="{Binding Fee}">
-          <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
+                       CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+          <StackPanel Orientation="Horizontal">
+            <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
+            <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+          </StackPanel>
+
+          <Classes.Dimmed>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsPreview" />
+              <Binding Path="!!FeeDiff" Converter="{x:Static BoolConverters.Not}" />
+            </MultiBinding>
+          </Classes.Dimmed>
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>

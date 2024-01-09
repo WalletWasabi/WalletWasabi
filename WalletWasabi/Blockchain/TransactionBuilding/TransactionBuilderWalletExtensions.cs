@@ -1,14 +1,9 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -32,32 +27,35 @@ public static class TransactionBuilderWalletExtensions
 		bool allowDoubleSpend = false,
 		bool tryToSign = true)
 	{
-		var builder = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend);
-		return builder.BuildTransaction(
+		FeeRate? feeRate;
+
+		if (feeStrategy.TryGetTarget(out int? target))
+		{
+			feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value)
+				?? throw new InvalidOperationException("Cannot get fee estimations.");
+		}
+		else if (!feeStrategy.TryGetFeeRate(out feeRate))
+		{
+			throw new NotSupportedException(feeStrategy.Type.ToString());
+		}
+
+		TransactionParameters parameters = new(
 			payments,
-			feeRateFetcher: () =>
-			{
-				if (feeStrategy.Type == FeeStrategyType.Target)
-				{
-					return wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
-				}
-				else if (feeStrategy.Type == FeeStrategyType.Rate)
-				{
-					return feeStrategy.Rate;
-				}
-				else
-				{
-					throw new NotSupportedException(feeStrategy.Type.ToString());
-				}
-			},
-			allowedInputs,
+			FeeRate: feeRate,
+			AllowUnconfirmed: allowUnconfirmed,
+			AllowDoubleSpend: allowDoubleSpend,
+			AllowedInputs: allowedInputs,
+			TryToSign: tryToSign);
+
+		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
+		return factory.BuildTransaction(
+			parameters,
 			lockTimeSelector: () =>
 			{
 				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient,
-			tryToSign: tryToSign);
+			payjoinClient);
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(

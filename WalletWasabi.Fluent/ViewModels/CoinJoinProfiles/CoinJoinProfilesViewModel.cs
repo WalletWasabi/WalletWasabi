@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -12,9 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "Coinjoin Strategy", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
+	private readonly IWalletSettingsModel _walletSettings;
+	private readonly WalletCreationOptions? _options;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	private CoinJoinProfilesViewModel(IWalletSettingsModel walletSettings)
+	private CoinJoinProfilesViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions? options = null)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(walletSettings));
 		EnableBack = true;
@@ -24,6 +27,8 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
 		_selectedProfile = walletSettings.IsNewWallet ? Profiles[1] : IdentifySelectedProfile(walletSettings);
+		_walletSettings = walletSettings;
+		_options = options;
 	}
 
 	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
@@ -56,12 +61,31 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var result = await Navigate().To().ManualCoinJoinProfileDialog(current).GetResultAsync();
 
-		if (result is { } && result.Profile != current)
+		if (_options is null)
 		{
-			SelectedProfile = null;
-			SelectedManualProfile = result.Profile;
+			var result = await Navigate().To().ManualCoinJoinProfileDialog(current).GetResultAsync();
+
+			if (result is { } && result.Profile != current)
+			{
+				SelectedProfile = null;
+				SelectedManualProfile = result.Profile;
+			}
+		}
+		else
+		{
+			var result = await Navigate().To().NewWalletAdvancedOptionsDialog(current, _walletSettings.AutoCoinjoin).GetResultAsync();
+
+			if (result is { })
+			{
+				if (result.CoinjoinProfileResult.Profile != current)
+				{
+					SelectedProfile = null;
+					SelectedManualProfile = result.CoinjoinProfileResult.Profile;
+				}
+
+				_walletSettings.AutoCoinjoin = result.IsAutoCoinjoinEnabled;
+			}
 		}
 	}
 
@@ -71,13 +95,14 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		var isNewWallet = walletSettings.IsNewWallet;
 
 		walletSettings.RedCoinIsolation = selected.RedCoinIsolation;
+		walletSettings.CoinjoinSkipFactors = selected.SkipFactors;
 		walletSettings.AnonScoreTarget = selected.AnonScoreTarget;
 		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(walletSettings);
+			Navigate().To().AddedWalletPage(walletSettings, _options);
 		}
 		else
 		{

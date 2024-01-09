@@ -52,7 +52,7 @@ public class OffchainController : ControllerBase
 	{
 		var cacheKey = nameof(GetExchangeRatesCollectionAsync);
 
-		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
+		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate>? exchangeRates))
 		{
 			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
 
@@ -64,6 +64,7 @@ public class OffchainController : ControllerBase
 				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 			}
 		}
-		return exchangeRates;
+
+		return exchangeRates!;
 	}
 }

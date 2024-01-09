@@ -57,6 +57,12 @@ public class NavigationState : ReactiveObject, INavigate
 
 	public IObservable<bool> IsDialogOpen { get; }
 
+	public bool IsAnyPageBusy =>
+		HomeScreen.CurrentPage is { IsBusy: true } ||
+		DialogScreen.CurrentPage is { IsBusy: true } ||
+		FullScreen.CurrentPage is { IsBusy: true } ||
+		CompactDialogScreen.CurrentPage is { IsBusy: true };
+
 	public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 	{
 		return currentTarget switch

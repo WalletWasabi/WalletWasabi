@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <!-- Action style -->
+  <Style Selector="c|TileButton.action">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+
+  <!-- Double line Text -->
+  <Style Selector="c|TileButton.doubleline /template/ TextBlock#PART_Text">
+    <Setter Property="MinHeight" Value="34" />
+  </Style>
+
+  <!-- Bottom Text -->
+  <Style Selector="c|TileButton.bottomtext /template/ TextBlock#PART_Text">
+    <Setter Property="DockPanel.Dock" Value="Bottom" />
+    <Setter Property="Margin" Value="10 15 10 10" />
+  </Style>
+
+  <Style Selector="c|TileButton.bottomtext /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Margin" Value="0 15 0 0" />
+  </Style>
+
+</Styles>

@@ -6,12 +6,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public class PrivacyBarItemViewModel : ViewModelBase
 {
-	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin)
-	{
-		PrivacyLevel = coin.GetPrivacyLevel(parent.Wallet.AnonScoreTarget);
-		Amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-	}
-
 	public PrivacyBarItemViewModel(PrivacyLevel privacyLevel, decimal amount)
 	{
 		PrivacyLevel = privacyLevel;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +5,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
@@ -39,8 +37,8 @@ public class Address : ReactiveObject, IAddress
 
 	public void Hide()
 	{
-		// Code commented out due to https://github.com/zkSNACKs/WalletWasabi/issues/10177
-		// KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
+		KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
+		KeyManager.ToFile();
 		this.RaisePropertyChanged(nameof(IsUsed));
 	}
 

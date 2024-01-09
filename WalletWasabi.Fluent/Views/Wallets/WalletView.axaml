@@ -20,7 +20,7 @@
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
-          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
             <Button Classes="function"
                     Command="{Binding BroadcastPsbtCommand}">
               <Button.IsVisible>
@@ -60,6 +60,11 @@
                   <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
                     <MenuItem.Icon>
                       <PathIcon Data="{StaticResource settings_wallet_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="Wallet Coins" Command="{Binding WalletCoinsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource wallet_coins}" />
                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Wallet Stats" Command="{Binding WalletStatsCommand}">

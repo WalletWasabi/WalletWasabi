@@ -6,6 +6,7 @@ using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
@@ -13,7 +14,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public PocketCoinControlItemViewModel(Pocket pocket)
+	public PocketCoinControlItemViewModel(IWalletModel wallet, Pocket pocket)
 	{
 		var pocketCoins = pocket.Coins.ToList();
 
@@ -26,14 +27,19 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = GetAnonScore(pocketCoins);
 		Labels = pocket.Labels;
-		Children = pocketCoins.OrderByDescending(x => x.AnonymitySet).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
+		Children =
+			pocketCoins.Select(wallet.Coins.GetCoinModel)
+					   .OrderByDescending(x => x.AnonScore)
+					   .Select(coin => new CoinCoinControlItemViewModel("", coin))
+					   .ToList();
+
 		CanBeSelected = true;
 		ScriptType = null;
 
 		Children
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.Select(c => Children.Where(x => x.SmartCoin.HdPubKey == c.Sender.SmartCoin.HdPubKey && x.IsSelected != c.Sender.IsSelected))
+			.Select(c => Children.Where(x => x.Coin.IsSameAddress(c.Sender.Coin) && x.IsSelected != c.Sender.IsSelected))
 			.Do(coins =>
 			{
 				// Select/deselect all the coins on the same address.

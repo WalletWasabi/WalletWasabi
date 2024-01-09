@@ -12,7 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Info", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
 	private readonly IWalletInfoModel _model;

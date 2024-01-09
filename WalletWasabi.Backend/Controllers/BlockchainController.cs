@@ -58,7 +58,6 @@ public class BlockchainController : ControllerBase
 	[HttpGet("all-fees")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
 	{
 		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
@@ -185,7 +184,7 @@ public class BlockchainController : ControllerBase
 				}
 			}
 
-			if (missingTxs.Any())
+			if (missingTxs.Count != 0)
 			{
 				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
 				{
@@ -398,17 +397,6 @@ public class BlockchainController : ControllerBase
 		else
 		{
 			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of coinjoin.
-		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
-		if (validInterval < TimeSpan.FromHours(1))
-		{
-			validInterval = TimeSpan.FromHours(1);
-		}
-		if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
-		{
-			status.CoinJoinCreationActive = true;
 		}
 
 		// Updating the status of WabiSabi coinjoin.

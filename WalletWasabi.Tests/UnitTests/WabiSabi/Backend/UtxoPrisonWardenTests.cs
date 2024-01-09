@@ -1,4 +1,3 @@
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -11,7 +10,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
-
 
 public class UtxoPrisonWardenTests
 {
@@ -49,10 +47,11 @@ public class UtxoPrisonWardenTests
 		var i4 = BitcoinFactory.CreateOutPoint();
 		var i5 = BitcoinFactory.CreateOutPoint();
 		w.Prison.FailedVerification(i1, uint256.One);
-		w.Prison.FailedToConfirm(i2, Money.Coins(0.1m), uint256.One);
+		w.Prison.FailedToConfirm(i2, Money.Coins(0.01m), uint256.One);
 		w.Prison.FailedToSign(i3, Money.Coins(0.1m), uint256.One);
 		w.Prison.DoubleSpent(i4, Money.Coins(0.1m), uint256.One);
 		w.Prison.CheatingDetected(i5, uint256.One);
+
 		// Wait until serializes.
 		await w.StopAsync(CancellationToken.None);
 
@@ -63,13 +62,13 @@ public class UtxoPrisonWardenTests
 		using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coinjoinIdStoreMock.Object, coordinatorParameters2.RuntimeCoordinatorConfig);
 		await w2.StartAsync(CancellationToken.None);
 
-		Assert.True(w2.Prison.IsBanned(i1, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i2, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i3, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i4, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i5, DateTimeOffset.UtcNow));
+		var dosConfig = coordinatorParameters2.RuntimeCoordinatorConfig.GetDoSConfiguration();
+		Assert.True(w2.Prison.IsBanned(i1, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i2, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i3, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i4, dosConfig, DateTimeOffset.UtcNow));
+		Assert.True(w2.Prison.IsBanned(i5, dosConfig, DateTimeOffset.UtcNow));
 
 		await w2.StopAsync(CancellationToken.None);
 	}
 }
-

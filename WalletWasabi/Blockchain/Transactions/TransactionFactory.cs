@@ -19,47 +19,29 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionFactory
 {
-	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false, bool allowDoubleSpend = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "")
 	{
 		Network = network;
 		KeyManager = keyManager;
 		Coins = coins;
 		TransactionStore = transactionStore;
 		Password = password;
-		AllowUnconfirmed = allowUnconfirmed;
-		AllowDoubleSpend = allowDoubleSpend;
 	}
 
 	public Network Network { get; }
 	public KeyManager KeyManager { get; }
 	public ICoinsView Coins { get; }
-	public string Password { get; }
-	public bool AllowUnconfirmed { get; }
-	public bool AllowDoubleSpend { get; }
+	private string Password { get; }
 	private ITransactionStore TransactionStore { get; }
 
-	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
 	public BuildTransactionResult BuildTransaction(
-		PaymentIntent payments,
-		FeeRate feeRate,
-		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
-		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
-
-	/// <exception cref="ArgumentException"/>
-	/// <exception cref="ArgumentNullException"/>
-	/// <exception cref="ArgumentOutOfRangeException"/>
-	public BuildTransactionResult BuildTransaction(
-		PaymentIntent payments,
-		Func<FeeRate> feeRateFetcher,
-		IEnumerable<OutPoint>? allowedInputs = null,
+		TransactionParameters parameters,
 		Func<LockTime>? lockTimeSelector = null,
-		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true)
+		IPayjoinClient? payjoinClient = null)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
 
+		var payments = parameters.PaymentIntent;
 		long totalAmount = payments.TotalAmount.Satoshi;
 		if (totalAmount is < 0 or > Constants.MaximumNumberOfSatoshis)
 		{
@@ -68,10 +50,10 @@ public class TransactionFactory
 
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
-		if (AllowDoubleSpend && allowedInputs is not null)
+		if (parameters.AllowDoubleSpend && parameters.AllowedInputs is not null)
 		{
 			var doubleSpends = new List<SmartCoin>();
-			foreach (var input in allowedInputs)
+			foreach (var input in parameters.AllowedInputs)
 			{
 				if (((CoinsRegistry)Coins).AsAllCoinsView().TryGetByOutPoint(input, out var coin)
 					&& coin.SpenderTransaction is not null
@@ -83,18 +65,18 @@ public class TransactionFactory
 			availableCoinsView = new CoinsView(availableCoinsView.ToList().Concat(doubleSpends));
 		}
 
-		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
+		List<SmartCoin> allowedSmartCoinInputs = parameters.AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
-		if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
+		if (parameters.AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
-			if (!allowedInputs.Any())
+			if (!parameters.AllowedInputs.Any())
 			{
-				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+				throw new ArgumentException($"{nameof(parameters.AllowedInputs)} is not null, but empty.");
 			}
 
 			allowedSmartCoinInputs = allowedSmartCoinInputs
-				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
+				.Where(x => parameters.AllowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
 
 			// Add those that have the same script, because common ownership is already exposed.
@@ -104,7 +86,7 @@ public class TransactionFactory
 				var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
 				foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 				{
-					if (!(AllowUnconfirmed || coin.Confirmed))
+					if (!(parameters.AllowUnconfirmed || coin.Confirmed))
 					{
 						continue;
 					}
@@ -135,9 +117,9 @@ public class TransactionFactory
 
 		HdPubKey? changeHdPubKey;
 
-		if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
+		if (payments.TryGetCustomRequest(out DestinationRequest? customChange))
 		{
-			var changeScript = custChange.Destination.ScriptPubKey;
+			var changeScript = customChange.Destination.ScriptPubKey;
 			KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
 			changeHdPubKey = hdPubKey;
 
@@ -164,7 +146,7 @@ public class TransactionFactory
 
 		builder.OptInRBF = true;
 
-		builder.SendEstimatedFees(feeRateFetcher());
+		builder.SendEstimatedFees(parameters.FeeRate);
 
 		var psbt = builder.BuildPSBT(false);
 
@@ -200,12 +182,25 @@ public class TransactionFactory
 		{
 			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 		}
+
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+		decimal feeDecimal = fee.ToDecimal(MoneyUnit.BTC);
 
-		// Cannot divide by zero, so use the closest number we have to zero.
-		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
-
+		decimal feePercentage;
+		if (payments.ChangeStrategy == ChangeStrategy.AllRemainingCustom)
+		{
+			// In this scenario since the amount changes as the fee changes, we need to compare against the total sum / 2,
+			// as with this, we will make sure the fee cannot be higher than the amount.
+			decimal inputSumDecimal = spentCoins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
+			feePercentage = 100 * (feeDecimal / (inputSumDecimal / 2));
+		}
+		else
+		{
+			// In this scenario the amount is fixed, so we can compare against it.
+			// Cannot divide by zero, so use the closest number we have to zero.
+			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
+			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
+		}
 		if (feePercentage > 100)
 		{
 			throw new TransactionFeeOverpaymentException(feePercentage);
@@ -218,7 +213,7 @@ public class TransactionFactory
 		psbt.AddPrevTxs(TransactionStore);
 
 		Transaction tx;
-		if (KeyManager.IsWatchOnly || !tryToSign)
+		if (KeyManager.IsWatchOnly || !parameters.TryToSign)
 		{
 			tx = psbt.GetGlobalTransaction();
 		}
@@ -265,12 +260,12 @@ public class TransactionFactory
 			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
-				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinlabel.
+				label = LabelsArray.Merge(label, smartCoin.HdPubKey.Labels); // foundKey's label is already added to the coinLabel.
 				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
-		// New labels will be added to the HdPubKey only when tx will be succesfully broadcasted.
+		// New labels will be added to the HdPubKey only when tx will be successfully broadcasted.
 		Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels = new();
 
 		foreach (var coin in smartTransaction.WalletOutputs)
@@ -278,8 +273,8 @@ public class TransactionFactory
 			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
 			// If change then we concatenate all the labels.
-			// The foundkeylabel has already been added previously, so no need to concatenate.
-			if (foundPaymentRequest is null) // Then it's autochange.
+			// The foundKeyLabel has already been added previously, so no need to concatenate.
+			if (foundPaymentRequest is null) // Then it's auto-change.
 			{
 				hdPubKeysWithNewLabels.Add(coin.HdPubKey, label);
 			}

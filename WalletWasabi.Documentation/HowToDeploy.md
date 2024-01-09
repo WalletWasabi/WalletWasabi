@@ -14,16 +14,8 @@
 
 # How to deploy
 
-1. Create a tag that identifies the commit to be deployed. The naming format is `version-codename-iteration`, where `version` is the official version number (for example, v2.0.3.1), `codename` an identifier of what is being deployed (for example, `wgpt`, `wabisabi`, `affsvr` or any other), and `iteration` a sequence number to identify a sequence of deployments (first iteration doesn't need to have this number). For example:
-   - `v2.0.3-wabisabi` is the tag that was used to deploy the backend with the external WabiSabi library.
-   - `v2.0.2.1-as` is the tag that was used to deploy the backend containing the **a**filiation **s**erver integration.
-   - `v2.0.2.1-as-1` is the tag that was used to deploy the affiliation server integration again.
-   - `v2.0.2.1-as-2` is the tag that was used to deploy the affiliation server integration once more.
-   - `v2.0.3wgpt` (now it should be named as `v2.0.3-wgpt`) is the tag that was used to deploy the version containing the gpt-compatible version.
-
-   Note: As you can see, the deployer can choose the `codename` freely.
-
-2. Deploy using the `deploy.sh` script.
+1. run `./build-wasabi <REVISION>`
+2. run `./deploy-wasabi`
 
 # Templates for communication
 
@@ -35,3 +27,25 @@ Hello there, we are deploying this commit to the `TestNet` server.
 - PRs with affiliate label: https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+is%3Aclosed+label%3Aaffiliate
 
 Please ack and test.
+
+-------
+
+## Scripts details
+
+### build-wasabi script
+
+This script builds wasabi backend and it is defined as follow:
+
+```bash
+$ echo "#!/usr/bin/env bash" > build-wasabi
+$ echo "nix build -o wasabi-backend github:zksnacks/walletwasabi/\$1" >> build-wasabi
+```
+
+### deploy-wasabi script
+
+This script deploys the already built wasabi backend and it is defined as follow:
+
+```bash
+$ echo "#!/usr/bin/env bash" > deploy-wasabi
+$ echo "./wasabi-backend/deploy" >> deploy-wasabi
+```

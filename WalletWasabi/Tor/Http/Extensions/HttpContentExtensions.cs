@@ -1,17 +1,12 @@
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tor.Http.Extensions;
 
 public static class HttpContentExtensions
 {
-	private static JsonSerializerSettings Settings = new()
-	{
-		Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
-	};
+	private static readonly JsonSerializerSettings Settings = new();
 
 	/// <exception cref="JsonException">If JSON deserialization fails for any reason.</exception>
 	/// <exception cref="InvalidOperationException">If the JSON string is <c>"null"</c> (valid value but forbiden in this implementation).</exception>

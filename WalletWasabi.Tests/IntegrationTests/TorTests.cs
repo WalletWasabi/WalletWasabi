@@ -49,12 +49,12 @@ public class TorTests : IAsyncLifetime
 		{
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
-			var relativetUri = "/whatisit/what%20is%20my%20future";
+			var relativeUri = "/whatisit/what%20is%20my%20future";
 
 			List<Task<HttpResponseMessage>> tasks = new();
 			for (var i = 0; i < times; i++)
 			{
-				var task = client.SendAsync(HttpMethod.Get, relativetUri);
+				var task = client.SendAsync(HttpMethod.Get, relativeUri);
 				if (alterRequests)
 				{
 					TorHttpClient ipClient = MakeTorHttpClient(new Uri("https://api.ipify.org/"));

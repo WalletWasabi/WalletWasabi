@@ -19,7 +19,7 @@
     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Top">
       <Label Content="_Transaction fee rate:" Target="CustomFee" />
       <c:CurrencyEntryBox Text="{Binding CustomFee}" CurrencyCode="sat/vByte"
-                          Width="220" MaxDecimals="3" Classes="standalone"
+                          Width="220" MaxDecimals="2" Classes="standalone"
                           Watermark="1 sat/vByte" x:Name="CustomFee">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />

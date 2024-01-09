@@ -80,7 +80,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
-			Navigate().To().AddedWalletPage(walletSettings);
+			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
 		catch (Exception ex)
 		{

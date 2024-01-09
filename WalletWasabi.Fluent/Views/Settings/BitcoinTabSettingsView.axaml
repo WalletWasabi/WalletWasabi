@@ -14,7 +14,7 @@
     <StackPanel Spacing="10">
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
-                Items="{Binding Networks}"
+                ItemsSource="{Binding Networks}"
                 SelectedItem="{Binding Settings.Network}" />
     </StackPanel>
 
@@ -23,20 +23,20 @@
       <ToggleSwitch IsChecked="{Binding Settings.StartLocalBitcoinCoreOnStartup}" />
     </DockPanel>
 
-    <StackPanel Spacing="10" IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
-      <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
-    </StackPanel>
-
-    <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="Local Bitcoin Core/Knots version" />
-      <Label Content="{Binding BitcoinCoreVersion}" />
-    </DockPanel>
-
     <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
       <TextBlock Text="Stop Bitcoin Knots on shutdown" />
       <ToggleSwitch IsChecked="{Binding Settings.StopLocalBitcoinCoreOnShutdown}" />
     </DockPanel>
+
+    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+      <TextBlock VerticalAlignment="Center" Text="Local Bitcoin Core/Knots version" />
+      <Label Content="{Binding BitcoinCoreVersion}" />
+    </DockPanel>
+
+    <StackPanel Spacing="10" IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
+      <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
+    </StackPanel>
 
     <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">

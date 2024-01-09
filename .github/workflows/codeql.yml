@@ -30,7 +30,7 @@ jobs:
     - name: 'Install dotnet'
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '8.0.x'
 
     - name: 'Restore packages'
       run: dotnet restore

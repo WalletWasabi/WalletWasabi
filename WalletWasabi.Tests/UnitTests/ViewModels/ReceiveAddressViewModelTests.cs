@@ -1,14 +1,12 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using Moq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
@@ -46,7 +44,7 @@ public class ReceiveAddressViewModelTests
 	public void WhenAddressBecomesUsedNavigationGoesBack()
 	{
 		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		var uiContext = Mocks.ContextWith(ns);
+		var uiContext = MockUtils.ContextWith(ns);
 		var address = new TestAddress("SomeAddress");
 		var wallet = WalletWithAddresses(address);
 		var vm = new ReceiveAddressViewModel(uiContext, wallet, address, true);
@@ -57,49 +55,33 @@ public class ReceiveAddressViewModelTests
 		Mock.Get(ns).Verify(x => x.Back(), Times.Once);
 	}
 
-	private static IWalletModel WalletWithAddresses(TestAddress address)
+	private static IWalletModel WalletWithAddresses(IAddress address)
 	{
-		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
-	}
-
-	private static ISourceCache<IAddress, string> AddressList(params IAddress[] addresses)
-	{
-		var cache = new SourceCache<IAddress, string>(s => s.Text);
-		cache.PopulateFrom(addresses.ToObservable());
-		return cache;
+		return new AddressTestingMocks.TestWallet(new[] { address }.AsObservableChangeSet(x => x.Text).AsObservableCache() );
 	}
 
 	private class TestWallet : IWalletModel
 	{
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IAddressesModel AddressesModel => throw new NotSupportedException();
 		public string Name => throw new NotSupportedException();
-
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-
-		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
-
-		public IWalletBalancesModel Balances => throw new NotSupportedException();
-
-		public bool IsLoggedIn => throw new NotSupportedException();
-
 		public IObservable<WalletState> State => throw new NotSupportedException();
-
 		bool IWalletModel.IsHardwareWallet => false;
-
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
+		public IWalletAuthModel Auth => throw new NotSupportedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
+		public IWalletSettingsModel Settings => throw new NotSupportedException();
+		public IObservable<bool> HasBalance => throw new NotSupportedException();
+		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
+		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
+		public IObservable<Amount> Balances => throw new NotSupportedException();
+		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
+		public Network Network => throw new NotSupportedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
-		public WalletType WalletType => throw new NotSupportedException();
-
-		public IWalletAuthModel Auth => throw new NotImplementedException();
-
-		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
-
-		public IWalletSettingsModel Settings => throw new NotImplementedException();
-
-		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotImplementedException();
-
-		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
-
-		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
+		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
@@ -111,27 +93,12 @@ public class ReceiveAddressViewModelTests
 			throw new NotSupportedException();
 		}
 
-		public bool IsHardwareWallet()
-		{
-			return false;
-		}
-
-		public Task<WalletLoginResult> TryLoginAsync(string password)
-		{
-			throw new NotSupportedException();
-		}
-
-		public void Login()
-		{
-			throw new NotSupportedException();
-		}
-
-		public void Logout()
-		{
-			throw new NotSupportedException();
-		}
-
 		public IWalletInfoModel GetWalletInfo()
+		{
+			throw new NotSupportedException();
+		}
+
+		public IWalletStatsModel GetWalletStats()
 		{
 			throw new NotImplementedException();
 		}

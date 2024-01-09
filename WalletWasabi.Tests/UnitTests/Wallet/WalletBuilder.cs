@@ -5,7 +5,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Threading;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
@@ -29,14 +28,14 @@ public class WalletBuilder : IAsyncDisposable
 	{
 		DataDir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
 
-		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, new SmartHeaderChain());
-
+		SmartHeaderChain smartHeaderChain = new();
+		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(DataDir, "transactionStore"), node.Network);
 
 		Filters = node.BuildFilters();
 
 		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
-		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), blockRepositoryMock);
+		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 	}
@@ -72,25 +71,4 @@ public class WalletBuilder : IAsyncDisposable
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
 	}
-}
-
-public class MockBlockRepository : IRepository<uint256, Block>
-{
-	public Dictionary<uint256, Block> Blocks { get; }
-
-	public MockBlockRepository(Dictionary<uint256, Block> blocks)
-	{
-		Blocks = blocks;
-	}
-	public Task<Block?> TryGetAsync(uint256 id, CancellationToken cancel) =>
-		Task.FromResult(Blocks.GetValueOrDefault(id));
-
-	public Task SaveAsync(Block element, CancellationToken cancel) =>
-		Task.CompletedTask;
-
-	public Task RemoveAsync(uint256 id, CancellationToken cancel) =>
-		Task.CompletedTask;
-
-	public Task<int> CountAsync(CancellationToken cancel) =>
-		Task.FromResult(Blocks.Count);
 }

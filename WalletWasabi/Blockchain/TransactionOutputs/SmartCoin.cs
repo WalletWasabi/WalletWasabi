@@ -4,9 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Models;
 using WalletWasabi.Extensions;
-using System.Linq;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -137,17 +136,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
-
-	public bool IsImmature(int bestHeight)
-	{
-		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
-	}
-
 	public bool RefreshAndGetIsBanned()
 	{
 		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
@@ -170,8 +158,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// </summary>
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
-	public bool IsReplaceable() => Transaction.IsRBF;
-
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
 	#region EqualityAndComparison
@@ -192,11 +178,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			return false;
 		}
-		else
-		{
-			var hashEquals = x.GetHashCode() == y.GetHashCode();
-			return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
-		}
+
+		// Indices are fast to compare, so compare them first.
+		return (y.Index == x.Index) && (x.GetHashCode() == y.GetHashCode()) && (y.TransactionId == x.TransactionId);
 	}
 
 	public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);
