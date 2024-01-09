@@ -439,12 +439,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			var task = BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
-
-			if (task is { })
-			{
-				await task.ConfigureAwait(false);
-			}
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
