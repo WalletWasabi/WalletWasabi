@@ -397,6 +397,14 @@ public class Global
 
 			try
 			{
+				if (HostedServices is { } backgroundServices)
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+					backgroundServices.Dispose();
+					Logger.LogInfo("Stopped background services.");
+				}
+
 				try
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
@@ -437,14 +445,6 @@ public class Global
 				{
 					legalChecker.Dispose();
 					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
-				}
-
-				if (HostedServices is { } backgroundServices)
-				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					backgroundServices.Dispose();
-					Logger.LogInfo("Stopped background services.");
 				}
 
 				RoundStateUpdaterCircuit.Dispose();
