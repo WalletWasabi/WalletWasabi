@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using DynamicData;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -27,7 +27,7 @@ public class SuggestionLabelsViewModelTests
 				("Label 4", 5),
 				("Label 5", 4)
 			});
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, maxSuggestions);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, maxSuggestions);
 
 		Assert.Equal(expectedSuggestionsCount, sut.TopSuggestions.Count);
 	}
@@ -45,7 +45,7 @@ public class SuggestionLabelsViewModelTests
 				("Label 5", 5),
 			});
 
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 3);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 3);
 
 		sut.Labels.Add("Label 3");
 
@@ -55,7 +55,7 @@ public class SuggestionLabelsViewModelTests
 	[Fact]
 	public void NoLabelsShouldHaveNoSuggestions()
 	{
-		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
 		Assert.Empty(sut.Suggestions);
 	}
@@ -63,7 +63,7 @@ public class SuggestionLabelsViewModelTests
 	[Fact]
 	public void NoLabelsShouldHaveNoTopSuggestions()
 	{
-		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
 
 		Assert.Empty(sut.Suggestions);
 	}
@@ -78,7 +78,7 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 100);
 
 		Assert.Equal(new[] { "Label 2", "Label 3", "Label 1" }, sut.Suggestions);
 	}
@@ -93,7 +93,7 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 100);
 
 		sut.Labels.Add("Label 3");
 
@@ -110,7 +110,7 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 100);
 
 		sut.Labels.Add("Label 3");
 		sut.Labels.Add("Label 1");
@@ -129,7 +129,7 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 1);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 1);
 
 		sut.Labels.Add("Label 1");
 		sut.Labels.Add("Label 2");
@@ -151,7 +151,7 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 3),
 		};
 		var wallet = new TestWallet(labels);
-		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(MockUtils.ContextStub(), wallet, Intent.Send, 100);
 
 		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
 	}
