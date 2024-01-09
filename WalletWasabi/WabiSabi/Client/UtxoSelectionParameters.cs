@@ -17,32 +17,18 @@ public record UtxoSelectionParameters(
 {
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, WasabiRandom? random = null)
 	{
-		random ??= SecureRandom.Instance;
-		return new(
-			roundParameters.AllowedInputAmounts,
-			ReasonableOutputAmountRange(roundParameters, random),
-			roundParameters.CoordinationFeeRate,
-			roundParameters.MiningFeeRate,
-			roundParameters.AllowedInputTypes);
-	}
-
-	private static MoneyRange ReasonableOutputAmountRange(RoundParameters roundParameters, WasabiRandom random)
-	{
 		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
-		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
-				roundParameters.CalculateMinReasonableOutputAmount(),
-				roundParameters.AllowedOutputAmounts.Max,
-				roundParameters.MiningFeeRate,
-				[maxVsizeInputOutputPairScriptType],
-				random)
-			.Min(x => x.EffectiveCost);
-		var smallestReasonableEffectiveDenomination =
-			smallestEffectiveDenom
-		    ?? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.");
+		var smallestReasonableEffectiveDenomination= roundParameters.CalculateMinReasonableOutputAmount() + roundParameters.MiningFeeRate.GetFee(maxVsizeInputOutputPairScriptType.EstimateOutputVsize());
 
-		return roundParameters.AllowedOutputAmounts with { Min = smallestReasonableEffectiveDenomination };
+		var reasonableOutputAmountRange = roundParameters.AllowedOutputAmounts with { Min = smallestReasonableEffectiveDenomination };
+		return new(
+			roundParameters.AllowedInputAmounts,
+			reasonableOutputAmountRange,
+			roundParameters.CoordinationFeeRate,
+			roundParameters.MiningFeeRate,
+			roundParameters.AllowedInputTypes);
 	}
 }
 
