@@ -70,7 +70,11 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>Run migration if SQLite file does not exist.</summary>
 	private bool RunMigration { get; }
 
-	public SmartHeaderChain SmartHeaderChain { get; }
+	private SmartHeaderChain SmartHeaderChain { get; }
+
+	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
+	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
+	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
@@ -83,21 +87,32 @@ public class IndexStore : IAsyncDisposable
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		try
 		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			// Migration code.
-			if (RunMigration)
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				MigrateToSqliteNoLock(cancellationToken);
+				cancellationToken.ThrowIfCancellationRequested();
+
+				// Migration code.
+				if (RunMigration)
+				{
+					MigrateToSqliteNoLock(cancellationToken);
+				}
+
+				// If the automatic migration to SQLite is stopped, we would not delete the old index data.
+				// So check it every time.
+				RemoveOldIndexFilesIfExist();
+
+				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+
+				// Initialization succeeded.
+				InitializedTcs.SetResult(true);
 			}
-
-			// If the automatic migration to SQLite is stopped, we would not delete the old index data.
-			// So check it every time.
-			RemoveOldIndexFilesIfExist();
-
-			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception)
+		{
+			InitializedTcs.SetResult(false);
+			throw;
 		}
 	}
 
@@ -251,7 +266,7 @@ public class IndexStore : IAsyncDisposable
 	{
 		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			await using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
+			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
 			int processed = 0;
 

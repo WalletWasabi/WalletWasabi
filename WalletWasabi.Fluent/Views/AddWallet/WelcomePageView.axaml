@@ -62,7 +62,6 @@
         <Ellipse />
         <Ellipse />
       </ListBox>
-
       <!-- Pages -->
       <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"

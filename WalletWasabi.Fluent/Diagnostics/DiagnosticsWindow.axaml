@@ -11,7 +11,7 @@
     <!-- Blue - :disabled :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=True]:disabled"
            x:Key="DisabledDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
@@ -27,7 +27,7 @@
     <!-- Red - :pointerover -->
     <Style Selector=":is(Control)[IsVisible=True]:pointerover"
            x:Key="PointerOverDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Panel Width="{Binding $parent[Control].Bounds.Width}"
                  Height="{Binding $parent[Control].Bounds.Height}">
@@ -56,7 +56,7 @@
     <!-- Orange - :focus-within :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=True]:focus-within"
            x:Key="FocusWithinDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
@@ -72,7 +72,7 @@
     <!-- Cyan - :focus :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=True]:focus"
            x:Key="FocusDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
@@ -88,7 +88,7 @@
     <!-- Pink - :focus-visible :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=True]:focus-visible"
            x:Key="FocusVisibleDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
@@ -104,7 +104,7 @@
     <!-- Yellow - IsVisible=false :not(:pointerover) -->
     <Style Selector=":is(Control)[IsVisible=False]"
            x:Key="IsVisibleFalseDiagnosticStyle">
-      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+      <Setter Property="(AdornerLayer.Adorner)">
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"

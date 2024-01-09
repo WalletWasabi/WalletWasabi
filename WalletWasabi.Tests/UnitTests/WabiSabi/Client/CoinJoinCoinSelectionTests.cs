@@ -29,6 +29,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -65,6 +66,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -90,6 +92,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -111,6 +114,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -142,6 +146,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -165,6 +170,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -196,6 +202,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -227,6 +234,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -253,6 +261,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -278,6 +287,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -304,6 +314,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -329,6 +340,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
+			true,
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 

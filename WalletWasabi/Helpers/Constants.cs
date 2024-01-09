@@ -12,6 +12,9 @@ public static class Constants
 	public const string TestnetBackendUri = "https://api.wasabiwallet.co/";
 	public const string BackendMajorVersion = "4";
 
+	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
+	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";
+
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
 	/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.
@@ -76,12 +79,15 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 4, 0);
+	public static readonly Version ClientVersion = new(2, 0, 5, 0);
 
 	public static readonly Version HwiVersion = new("2.3.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);
+
+	public static readonly FeeRate MinRelayFeeRate = new(1m);
+	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };
@@ -100,19 +106,24 @@ public static class Constants
 		MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 	};
 
-	public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
-	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC");
-	public static readonly PubKey WasabiPubKey = new("02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608");
-
 	public static readonly string[] UserAgents = new[]
 	{
+		"/Satoshi:26.0.0/",
+		"/Satoshi:25.1.0/",
+		"/Satoshi:25.0.0/",
+		"/Satoshi:24.2.0/",
+		"/Satoshi:24.1.0/",
 		"/Satoshi:24.0.1/",
+		"/Satoshi:24.0.0/",
+		"/Satoshi:23.2.0/",
 		"/Satoshi:23.1.0/",
 		"/Satoshi:23.0.0/",
 		"/Satoshi:22.1.0/",
 		"/Satoshi:22.0.0/",
+		"/Satoshi:0.21.2/",
 		"/Satoshi:0.21.1/",
 		"/Satoshi:0.21.0/",
+		"/Satoshi:0.20.2/",
 		"/Satoshi:0.20.1/",
 		"/Satoshi:0.20.0/",
 		"/Satoshi:0.19.1/",
@@ -120,6 +131,7 @@ public static class Constants
 		"/Satoshi:0.19.0/",
 		"/Satoshi:0.18.1/",
 		"/Satoshi:0.18.0/",
+		"/Satoshi:0.17.2/",
 		"/Satoshi:0.17.1/",
 		"/Satoshi:0.17.0.1/",
 		"/Satoshi:0.17.0/",

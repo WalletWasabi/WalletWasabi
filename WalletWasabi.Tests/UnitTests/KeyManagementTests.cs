@@ -197,6 +197,20 @@ public class KeyManagementTests
 	}
 
 	[Fact]
+	public void CanGenerateRealKeys()
+	{
+		string password = "password";
+		var network = Network.Main;
+		var manager = KeyManager.CreateNew(out _, password, network);
+
+		var labels = new LabelsArray("who-knows");
+		var segwitKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.Segwit);
+		var taprootKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+		Assert.Equal("84'/0'/0'/0/0", segwitKey.FullKeyPath.ToString());
+		Assert.Equal("86'/0'/0'/0/0", taprootKey.FullKeyPath.ToString());
+	}
+
+	[Fact]
 	public void AlternatesScriptTypeForChange()
 	{
 		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);

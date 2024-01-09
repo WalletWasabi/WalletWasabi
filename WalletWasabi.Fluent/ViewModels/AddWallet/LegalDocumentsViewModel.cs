@@ -1,6 +1,5 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -43,8 +42,7 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 			try
 			{
 				IsBusy = true;
-				using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
-				var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync(timeout.Token);
+				var document = await UiContext.LegalDocumentsProvider.WaitAndGetLatestDocumentAsync();
 				Content = document.Content;
 			}
 			catch (Exception ex)

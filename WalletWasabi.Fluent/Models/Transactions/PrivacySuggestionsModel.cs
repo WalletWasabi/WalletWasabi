@@ -44,9 +44,9 @@ public class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task<PrivacySuggestionsResult> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, CancellationToken cancellationToken)
+	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var result = new PrivacySuggestionsResult();
+		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
 
@@ -62,46 +62,63 @@ public class PrivacySuggestionsModel
 
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			try
+			result.Add(VerifyLabels(info, transactionResult));
+			result.Add(VerifyPrivacyLevel(info, transactionResult));
+			result.Add(VerifyConsolidation(transactionResult));
+			result.Add(VerifyUnconfirmedInputs(transactionResult));
+			result.Add(VerifyCoinjoiningInputs(transactionResult));
+			foreach (var item in result)
 			{
-				result
-					.Combine(VerifyLabels(info, transactionResult))
-					.Combine(VerifyPrivacyLevel(info, transactionResult))
-					.Combine(VerifyConsolidation(transactionResult))
-					.Combine(VerifyUnconfirmedInputs(transactionResult))
-					.Combine(VerifyCoinjoiningInputs(transactionResult))
-					.Combine(VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource));
+				yield return item;
 			}
-			catch (OperationCanceledException)
+			await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource).ConfigureAwait(false))
 			{
-				Logger.LogTrace("Operation was cancelled.");
+				yield return item;
 			}
-			finally
+			lock (_lock)
 			{
-				lock (_lock)
-				{
-					_singleRunCancellationTokenSource = null;
-				}
+				_singleRunCancellationTokenSource = null;
 			}
 		}
-
-		return result;
 	}
 
 	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
 	{
-		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(info.Recipient);
-		var labelsArray = new LabelsArray(labels);
+		var warning = GetLabelWarning(transactionResult, info.Recipient);
 
-		if (labelsArray.Any())
+		if (warning is not null)
 		{
-			yield return new InterlinksLabelsWarning(labelsArray);
+			yield return warning;
 
 			if (info.IsOtherPocketSelectionPossible)
 			{
 				yield return new LabelManagementSuggestion();
 			}
 		}
+	}
+
+	private PrivacyItem? GetLabelWarning(BuildTransactionResult transactionResult, LabelsArray recipient)
+	{
+		var pockets = _wallet.GetPockets();
+		var spentCoins = transactionResult.SpentCoins;
+		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
+		var usedPockets = pockets.Where(x => x.Coins.Any(coin => nonPrivateSpentCoins.Contains(coin))).ToList();
+
+		if (usedPockets.Count > 1)
+		{
+			var pocketLabels = usedPockets.SelectMany(x => x.Labels).Distinct().ToArray();
+			return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
+		}
+
+		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
+		var labelsArray = new LabelsArray(labels);
+
+		if (labelsArray.Any())
+		{
+			return new TransactionKnownAsYoursByWarning(labelsArray);
+		}
+
+		return null;
 	}
 
 	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
@@ -273,6 +290,17 @@ public class PrivacySuggestionsModel
 				return result;
 			}
 
+			// If both is Less/More, only return the one with smaller difference.
+			if (changeAvoidanceSuggestions.FirstOrDefault(x => x.IsLess == suggestion.IsLess && x.IsMore == suggestion.IsMore) is { } existingSuggestion)
+			{
+				if (Math.Abs(suggestion.Difference) < Math.Abs(existingSuggestion.Difference))
+				{
+					result.Remove(existingSuggestion);
+					result.Add(suggestion);
+				}
+				return result;
+			}
+
 			result.Add(suggestion);
 		}
 
@@ -315,7 +343,7 @@ public class PrivacySuggestionsModel
 			if (transaction is not null)
 			{
 				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
+				yield return new ChangeAvoidanceSuggestion(transaction, differenceFiat, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
 			}
 		}
 	}

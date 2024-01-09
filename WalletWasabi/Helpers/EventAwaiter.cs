@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Helpers;
 
@@ -17,8 +16,8 @@ public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 	protected Task<TEventArgs> Task { get; }
 
 	public new async Task<TEventArgs> WaitAsync(TimeSpan timeout)
-		=> await Task.WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
+		=> await Task.WaitAsync(timeout).ConfigureAwait(false);
 
-	public new async Task<TEventArgs> WaitAsync(CancellationToken token)
-		=> await Task.WithAwaitCancellationAsync(token).ConfigureAwait(false);
+	public async Task<TEventArgs> WaitAsync(CancellationToken token)
+		=> await Task.WaitAsync(token).ConfigureAwait(false);
 }

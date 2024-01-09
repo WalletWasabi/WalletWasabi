@@ -1,21 +1,21 @@
 using DynamicData;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.Models.UI;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullWalletRepository : IWalletRepository
 {
 	public NullWalletRepository()
 	{
-		Wallets = Array.Empty<IWalletModel>()
-			.AsObservableChangeSet(x => x.Name);
+		Wallets = Array.Empty<IWalletModel>().AsObservableChangeSet(x => x.Name).AsObservableCache();
 	}
 
-	public IObservable<IChangeSet<IWalletModel, string>> Wallets { get; }
+	public IObservableCache<IWalletModel, string> Wallets { get; }
 
 	public string? DefaultWalletName => null;
 
@@ -23,7 +23,7 @@ public class NullWalletRepository : IWalletRepository
 
 	public IWalletModel GetExistingWallet(HwiEnumerateEntry device)
 	{
-		throw new NotImplementedException();
+		throw new NotSupportedException();
 	}
 
 	public string GetNextWalletName()

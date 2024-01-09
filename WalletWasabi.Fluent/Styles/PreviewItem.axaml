@@ -1,0 +1,8 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+</Styles>

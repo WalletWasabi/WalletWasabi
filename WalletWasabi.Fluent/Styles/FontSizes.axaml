@@ -15,49 +15,49 @@
   </Styles.Resources>
 
   <Style Selector=":is(Control).h1">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH1}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH1}" />
   </Style>
   <Style Selector=":is(Control).h2">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH2}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH2}" />
   </Style>
   <Style Selector=":is(Control).h3">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH3}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH3}" />
   </Style>
   <Style Selector=":is(Control).h4">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH4}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH4}" />
   </Style>
   <Style Selector=":is(Control).h5">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH5}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH5}" />
   </Style>
   <Style Selector=":is(Control).h6">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH6}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH6}" />
   </Style>
   <Style Selector=":is(Control).h7">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH7}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH7}" />
   </Style>
   <Style Selector=":is(Control).h8">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH8}" />
   </Style>
   <Style Selector=":is(Control).h9">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH9}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH9}" />
   </Style>
   <Style Selector=":is(Control).h10">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH10}" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH10}" />
   </Style>
 
   <Style Selector=":is(Control).bold">
-    <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
+    <Setter Property="(TextElement.FontWeight)" Value="Bold" />
   </Style>
   <Style Selector=":is(Control).italic">
-    <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
+    <Setter Property="(TextElement.FontStyle)" Value="Italic" />
   </Style>
   <Style Selector=":is(Control).light">
-    <Setter Property="(TextBlock.FontWeight)" Value="Light" />
+    <Setter Property="(TextElement.FontWeight)" Value="Light" />
   </Style>
   <Style Selector=":is(Control).semibold">
-    <Setter Property="(TextBlock.FontWeight)" Value="SemiBold" />
+    <Setter Property="(TextElement.FontWeight)" Value="SemiBold" />
   </Style>
   <Style Selector=":is(Control).ultrabold">
-    <Setter Property="(TextBlock.FontWeight)" Value="UltraBold" />
+    <Setter Property="(TextElement.FontWeight)" Value="UltraBold" />
   </Style>
 </Styles>

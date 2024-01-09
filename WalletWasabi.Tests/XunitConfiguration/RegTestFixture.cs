@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.BitcoinCore;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
@@ -49,11 +48,6 @@ public class RegTestFixture : IDisposable
 		var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 		config.SetFilePath(configFilePath);
 		config.ToFile();
-
-		var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-		var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
-		roundConfig.SetFilePath(roundConfigFilePath);
-		roundConfig.ToFile();
 
 		var conf = new ConfigurationBuilder()
 			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetBackendDir) })
@@ -105,39 +99,6 @@ public class RegTestFixture : IDisposable
 
 	/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
 	public ClearnetHttpClient BackendHttpClient { get; }
-
-	public static CoordinatorRoundConfig CreateRoundConfig(
-		Money denomination,
-		int confirmationTarget,
-		double confirmationTargetReductionRate,
-		decimal coordinatorFeePercent,
-		int anonymitySet,
-		long inputRegistrationTimeout,
-		long connectionConfirmationTimeout,
-		long outputRegistrationTimeout,
-		long signingTimeout,
-		int dosSeverity,
-		long dosDurationHours,
-		bool dosNoteBeforeBan,
-		int maximumMixingLevelCount)
-	{
-		return new CoordinatorRoundConfig
-		{
-			Denomination = denomination,
-			ConfirmationTarget = confirmationTarget,
-			ConfirmationTargetReductionRate = confirmationTargetReductionRate,
-			CoordinatorFeePercent = coordinatorFeePercent,
-			AnonymitySet = anonymitySet,
-			InputRegistrationTimeout = inputRegistrationTimeout,
-			ConnectionConfirmationTimeout = connectionConfirmationTimeout,
-			SigningTimeout = signingTimeout,
-			OutputRegistrationTimeout = outputRegistrationTimeout,
-			DosSeverity = dosSeverity,
-			DosDurationHours = dosDurationHours,
-			DosNoteBeforeBan = dosNoteBeforeBan,
-			MaximumMixingLevelCount = maximumMixingLevelCount,
-		};
-	}
 
 	protected virtual void Dispose(bool disposing)
 	{

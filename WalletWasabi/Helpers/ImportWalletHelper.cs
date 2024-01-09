@@ -91,6 +91,8 @@ public static class ImportWalletHelper
 			? NBitcoinHelpers.BetterParseExtPubKey(taprootXpubString)
 			: null;
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
+		var km = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
+		km.PreferPsbtWorkflow = true;
+		return km;
 	}
 }

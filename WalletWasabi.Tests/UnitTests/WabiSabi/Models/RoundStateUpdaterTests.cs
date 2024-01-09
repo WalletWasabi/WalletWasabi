@@ -33,7 +33,7 @@ public class RoundStateUpdaterTests
 		var mockHttpClient = CreateMockHttpClient(
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.InputRegistration }),
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }),
-			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } ),
+			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration }),
 			RoundStateResponseBuilder(roundState2 with { Phase = Phase.OutputRegistration }),
 			RoundStateResponseBuilder());
 		var apiClient = new WabiSabiHttpApiClient(mockHttpClient);
@@ -213,10 +213,11 @@ public class RoundStateUpdaterTests
 			await roundStatusUpdater.StopAsync(CancellationToken.None);
 		}
 	}
-	static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
-		() => Ok (new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
 
-	static HttpResponseMessage Ok<T>(T obj)
+	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
+		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
+
+	private static HttpResponseMessage Ok<T>(T obj)
 	{
 		HttpResponseMessage response = new(HttpStatusCode.OK);
 		response.Content = new StringContent(JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings));

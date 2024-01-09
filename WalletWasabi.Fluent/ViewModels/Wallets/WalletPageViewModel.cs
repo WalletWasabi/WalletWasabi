@@ -58,7 +58,8 @@ public partial class WalletPageViewModel : ViewModelBase
 	}
 
 	public IWalletModel WalletModel { get; }
-	public Wallet Wallet { get; set; }
+
+	public Wallet Wallet { get; }
 
 	public string Title => WalletModel.Name;
 
@@ -75,7 +76,15 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWallet()
 	{
-		WalletViewModel = WalletViewModel.Create(UiContext, this);
+		WalletViewModel =
+			WalletModel.IsHardwareWallet
+			? new HardwareWalletViewModel(UiContext, WalletModel, Wallet)
+			: new WalletViewModel(UiContext, WalletModel, Wallet);
+
+		// Pass IsSelected down to WalletViewModel.IsSelected
+		this.WhenAnyValue(x => x.IsSelected)
+			.BindTo(WalletViewModel, x => x.IsSelected);
+
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
 	}

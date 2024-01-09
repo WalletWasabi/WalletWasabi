@@ -1,18 +1,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public enum RoundDisruptionMethod
 {
 	DidNotConfirm,
+	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent
 }
 
 public abstract record Offense();
-public record RoundDisruption(uint256 DisruptedRoundId, Money Value, RoundDisruptionMethod Method) : Offense;
+
+public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Value, RoundDisruptionMethod Method) : Offense
+{
+	public	RoundDisruption(uint256 disruptedRoundId, Money value, RoundDisruptionMethod method)
+		: this(disruptedRoundId.Singleton(), value, method) {}
+}
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
 public record Inherited(OutPoint[] Ancestors) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
@@ -31,14 +38,19 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 				case RoundDisruption rd:
 					yield return nameof(RoundDisruption);
 					yield return rd.Value.Satoshi.ToString();
-					yield return rd.DisruptedRoundId.ToString();
+					yield return rd.DisruptedRoundIds.First().ToString();
 					yield return rd.Method switch
 					{
 						RoundDisruptionMethod.DidNotConfirm => "didn't confirm",
+						RoundDisruptionMethod.DidNotSignalReadyToSign => "didn't signal ready to sign",
 						RoundDisruptionMethod.DidNotSign => "didn't sign",
 						RoundDisruptionMethod.DoubleSpent => "double spent",
 						_ => throw new NotImplementedException("Unknown round disruption method.")
 					};
+					foreach (var disruptedRoundId in rd.DisruptedRoundIds.Skip(1))
+					{
+						yield return disruptedRoundId.ToString();
+					}
 					break;
 				case FailedToVerify fv:
 					yield return nameof(FailedToVerify);
@@ -74,12 +86,13 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 		{
 			nameof(RoundDisruption) =>
 				new RoundDisruption(
-					uint256.Parse(parts[4]),
+					parts.Skip(6).Select(x => uint256.Parse(x)).Prepend(uint256.Parse(parts[4])),
 					Money.Satoshis(long.Parse(parts[3])),
 
 					parts[5] switch
 					{
 						"didn't confirm" => RoundDisruptionMethod.DidNotConfirm,
+						"didn't signal ready to sign" => RoundDisruptionMethod.DidNotSignalReadyToSign,
 						"didn't sign" => RoundDisruptionMethod.DidNotSign,
 						"double spent" => RoundDisruptionMethod.DoubleSpent,
 						_ => throw new NotImplementedException("Unknown round disruption method.")

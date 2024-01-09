@@ -13,12 +13,6 @@
   <controls:ContentArea Title="{Binding Title}"
                         NextContent="Verify" EnableNext="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">
-      <PathIcon Name="IconCheckmark"
-                Margin="15 0 0 0"
-                Classes="checkMark"
-                VerticalAlignment="Center"
-                DockPanel.Dock="Right"
-                Opacity="{Binding IsMnemonicsValid}" />
       <controls:TagsBox DockPanel.Dock="Left"
                         ItemCountLimit="24"
                         SuggestionsAreCaseSensitive="False"

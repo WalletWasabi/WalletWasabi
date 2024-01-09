@@ -4,15 +4,18 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public class WalletCoinjoinModel : IWalletCoinjoinModel
+[AutoInterface]
+public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private CoinJoinManager _coinJoinManager;
+	[AutoNotify] private bool _isCoinjoining;
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
@@ -40,13 +43,35 @@ public class WalletCoinjoinModel : IWalletCoinjoinModel
 					}
 				})
 				.Subscribe();
+
+		var coinjoinStarted =
+			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
+						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
+						 .Select(_ => true);
+
+		var coinjoinStopped =
+			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
+				.Select(_ => false);
+
+		var coinjoinCompleted =
+			StatusUpdated.OfType<CompletedEventArgs>()
+				.Select(_ => false);
+
+		IsRunning =
+			coinjoinStarted.Merge(coinjoinStopped)
+				.Merge(coinjoinCompleted)
+						   .ObserveOn(RxApp.MainThreadScheduler);
+
+		IsRunning.BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
 
+	public IObservable<bool> IsRunning { get; }
+
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await _coinJoinManager.StartAsync(_wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.StartAsync(_wallet, _wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()

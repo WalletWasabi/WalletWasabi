@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -39,12 +38,12 @@
     <DataTemplate x:Key="Title">
       <StackPanel IsHitTestVisible="False" x:Name="Title"
                   VerticalAlignment="Center"
-                  TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
+                  TextElement.FontFamily="{StaticResource WasabiLogoTextFont}"
                   Classes="h7"
-                  TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
-        <TextBlock Text="WASABI" Foreground="{StaticResource LogoFixedForegroundColor}" />
-        <TextBlock Text="." Foreground="{StaticResource LogoFixedAccentColor}" />
-        <TextBlock Text="WALLET" Foreground="{StaticResource LogoFixedForegroundColor}" />
+                  TextElement.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
+        <TextBlock Text="WASABI" Foreground="{DynamicResource LogoFixedForegroundColor}" />
+        <TextBlock Text="." Foreground="{DynamicResource LogoFixedAccentColor}" />
+        <TextBlock Text="WALLET" Foreground="{DynamicResource LogoFixedForegroundColor}" />
       </StackPanel>
     </DataTemplate>
 
@@ -130,5 +129,5 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, Osx={StaticResource MacOSLayout}}" />
+  <ContentControl ContentTemplate="{OnPlatform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, macOS={StaticResource MacOSLayout}}" />
 </UserControl>

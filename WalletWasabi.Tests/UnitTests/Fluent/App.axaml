@@ -1,0 +1,13 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="WalletWasabi.Tests.UnitTests.Fluent.App">
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBoxAutoCompleteBox.axaml" />
+  </Application.Styles>
+</Application>

@@ -47,7 +47,7 @@
     <FlyoutBase.AttachedFlyout>
       <Flyout Placement="TopEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
 
-        <StackPanel TextBlock.FontSize="14"
+        <StackPanel TextElement.FontSize="14"
                     MaxWidth="160"
                     ClipToBounds="False"
                     Spacing="16">
@@ -64,7 +64,7 @@
 
           <!-- Warning message TODO: use InfoMessage control-->
           <DockPanel
-            IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}">
+            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.ConnectionIssueDetected}}">
             <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
@@ -78,32 +78,32 @@
           <!-- Status -->
           <StackPanel Spacing="16">
 
-            <c:StatusItem Title="Tor" StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
+            <c:StatusItem Title="Tor" StatusText="{Binding HealthMonitor.TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
               <c:StatusItem.Icon>
                 <Panel>
-                  <PathIcon Data="{StaticResource tor_icon}" IsVisible="{Binding !TorIssues.Count, FallbackValue=True}" />
-                  <st:TorIssues IsVisible="{Binding TorIssues.Count, FallbackValue=False}" />
+                  <PathIcon Data="{StaticResource tor_icon}" IsVisible="{Binding !HealthMonitor.TorIssues.Count, FallbackValue=True}" />
+                  <st:TorIssues IsVisible="{Binding HealthMonitor.TorIssues.Count, FallbackValue=False}" />
                 </Panel>
               </c:StatusItem.Icon>
             </c:StatusItem>
 
             <c:StatusItem Title="Backend"
-                          StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}">
+                          StatusText="{Binding HealthMonitor.BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}">
               <c:StatusItem.Icon>
                 <PathIcon Data="{StaticResource connector_regular}">
                 </PathIcon>
               </c:StatusItem.Icon>
             </c:StatusItem>
             <c:StatusItem
-              Title="Peers" StatusText="{Binding Peers, Mode=OneWay, StringFormat={}{0} connected}">
+              Title="Peers" StatusText="{Binding HealthMonitor.Peers, Mode=OneWay, StringFormat={}{0} connected}">
               <c:StatusItem.Icon>
                 <PathIcon Data="{StaticResource entities_regular}" />
               </c:StatusItem.Icon>
             </c:StatusItem>
             <c:StatusItem
               Title="{Binding BitcoinCoreName}"
-              StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
-              IsVisible="{Binding UseBitcoinCore}">
+              StatusText="{Binding HealthMonitor.BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+              IsVisible="{Binding HealthMonitor.UseBitcoinCore}">
               <c:StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
               </c:StatusItem.Icon>
@@ -113,9 +113,12 @@
           <!-- Update -->
           <StackPanel Spacing="10">
             <StackPanel.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                <Binding Path="UpdateAvailable" />
-                <Binding Path="CriticalUpdateAvailable" />
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="HealthMonitor.CheckForUpdates" />
+                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                  <Binding Path="HealthMonitor.UpdateAvailable" />
+                  <Binding Path="HealthMonitor.CriticalUpdateAvailable" />
+                </MultiBinding>
               </MultiBinding>
             </StackPanel.IsVisible>
 
@@ -127,13 +130,13 @@
                 <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
               </c:StatusItem.Icon>
             </c:StatusItem>
-            <Button IsVisible="{Binding IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding UpdateCommand}">
+            <Button IsVisible="{Binding HealthMonitor.IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
                 <AccessText Text="Close and Update" />
               </StackPanel>
             </Button>
-            <Button IsVisible="{Binding !IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding ManualUpdateCommand}">
+            <Button IsVisible="{Binding !HealthMonitor.IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding ManualUpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
                 <AccessText Text="Update" />
@@ -153,31 +156,31 @@
 
     <!--Update available-->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.UpdateAvailable}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.UpdateAvailable}}"
       Data="{StaticResource arrow_clockwise_with_elipse}"
       Foreground="Goldenrod" />
 
     <!--Critical update available-->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.CriticalUpdateAvailable}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.CriticalUpdateAvailable}}"
       Data="{StaticResource critical_update}"
       Foreground="{DynamicResource SystemErrorTextColor}" />
 
     <!-- Ready -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Ready}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Ready}}"
       Data="{StaticResource checkmark_circle_filled}" />
 
     <!-- Connection issue -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.ConnectionIssueDetected}}"
       Data="{StaticResource warning_filled}"
       Foreground="Gold"
       VerticalAlignment="Center" HorizontalAlignment="Right" />
 
     <!-- Loading -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Loading}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Loading}}"
       Data="{StaticResource arrow_sync_regular}"
       Classes.rotate="{Binding $self.IsVisible}" />
   </Panel>

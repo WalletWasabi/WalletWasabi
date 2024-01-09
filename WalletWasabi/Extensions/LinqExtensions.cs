@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
@@ -123,7 +122,7 @@ public static class LinqExtensions
 			}
 		}
 	}
-	
+
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength,
@@ -165,12 +164,7 @@ public static class LinqExtensions
 		=> me
 			.OrderBy(x => x.Height)
 			.ThenBy(x => x.BlockIndex)
-			.ThenBy(x => x.DateTime);
-
-	public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
-		=> me
-			.OrderByBlockchain()
-			.Select(x => x.ToLine());
+			.ThenBy(x => x.FirstSeen);
 
 	/// <summary>
 	/// Chunks the source list to sub-lists by the specified chunk size.
@@ -222,6 +216,11 @@ public static class LinqExtensions
 				yield break;
 			}
 		}
+	}
+
+	public static IEnumerable<T> Singleton<T>(this T item)
+	{
+		yield return item;
 	}
 
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)

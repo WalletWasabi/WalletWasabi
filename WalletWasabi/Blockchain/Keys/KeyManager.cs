@@ -29,7 +29,7 @@ public class KeyManager
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
-	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
+	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
 	private static readonly JsonConverter[] JsonConverters =
 	{
@@ -38,7 +38,8 @@ public class KeyManager
 		new HDFingerprintJsonConverter(),
 		new ExtPubKeyJsonConverter(),
 		new KeyPathJsonConverter(),
-		new MoneyBtcJsonConverter()
+		new MoneyBtcJsonConverter(),
+		new CoinjoinSkipFactorsJsonConverter()
 	};
 
 	[JsonConstructor]
@@ -159,7 +160,7 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
-	
+
 	[JsonProperty(PropertyName = "UseTurboSync")]
 	public bool UseTurboSync { get; private set; } = true;
 
@@ -202,6 +203,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
+
+	[JsonProperty(PropertyName = "CoinjoinSkipFactors")]
+	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.SpeedMaximizing;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();
@@ -333,32 +337,59 @@ public class KeyManager
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(LabelsArray labels)
+	public HdPubKey GetNextReceiveKey(LabelsArray labels, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		if (labels.IsEmpty)
-		{
-			throw new InvalidOperationException("Label is required.");
-		}
-
 		lock (CriticalStateLock)
 		{
-			// Find the next clean external key with empty label.
-			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-			if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is not { } newKey)
+			var newKey = scriptPubKeyType switch
 			{
-				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
-				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
-				HdPubKeyCache.AddRangeKeys(newHdPubKeys);
+				ScriptPubKeyType.Segwit => GetNextReceiveSegwitKey(),
+				ScriptPubKeyType.TaprootBIP86 => GetNextReceiveTaprootKey(),
+				_ => throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.")
+			};
 
-				newKey = newHdPubKeys.First();
-			}
 			newKey.SetLabel(labels);
-
 			SkipSynchronization = false;
 
 			ToFile();
 			return newKey;
 		}
+	}
+
+	private HdPubKey GetNextReceiveSegwitKey()
+	{
+		var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(SegwitExternalKeyGenerator);
+		SegwitExternalKeyGenerator = newHdPubKeyGenerator;
+		HdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
+		return newKey;
+	}
+
+	private HdPubKey GetNextReceiveTaprootKey()
+	{
+		if (TaprootExternalKeyGenerator is not { } nonNullTaprootExternalKeyGenerator)
+		{
+			throw new NotSupportedException("Taproot is not supported in this wallet.");
+		}
+		var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(nonNullTaprootExternalKeyGenerator);
+		TaprootExternalKeyGenerator = newHdPubKeyGenerator;
+		HdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
+		return newKey;
+	}
+
+	private (HdPubKey, HdPubKey[], HdPubKeyGenerator) GetNextReceiveKey(HdPubKeyGenerator hdPubKeyGenerator)
+	{
+		// Find the next clean external key with empty label.
+		var externalView = HdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+		if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is { } cachedKey)
+		{
+			return (cachedKey, Array.Empty<HdPubKey>(), hdPubKeyGenerator);
+		}
+
+		var newHdPubKeyGenerator = hdPubKeyGenerator with { MinGapLimit = hdPubKeyGenerator.MinGapLimit + 1 };
+		var newHdPubKeys = newHdPubKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToArray();
+
+		var newKey = newHdPubKeys.First();
+		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
 	public HdPubKey GetNextChangeKey() =>
@@ -634,6 +665,20 @@ public class KeyManager
 	public Network GetNetwork()
 	{
 		return BlockchainState.Network;
+	}
+
+	public void SetBestHeight(SyncType syncType, Height height, bool toFile = true)
+	{
+		if (syncType == SyncType.Turbo)
+		{
+			// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight.
+			SetBestTurboSyncHeight(height, toFile);
+		}
+		else
+		{
+			// All keys were tested at this height, update the Height.
+			SetBestHeight(height, toFile);
+		}
 	}
 
 	public void SetBestHeight(Height height, bool toFile = true)

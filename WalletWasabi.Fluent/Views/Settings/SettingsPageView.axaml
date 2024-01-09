@@ -31,7 +31,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
-      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+      <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
                      Margin="0,16,0,0"
                      HorizontalAlignment="Center"
                      Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
@@ -41,23 +41,30 @@
           <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}" />
         </StackPanel>
       </c:InfoMessage>
+      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+                     Margin="0,16,0,0"
+                     HorizontalAlignment="Center"
+                     IsVisible="{Binding IsReadOnly}"
+                     DockPanel.Dock="Bottom">
+        <TextBlock Text="Modifying settings is not possible, as certain parameters have been overridden during startup." />
+      </c:InfoMessage>
 
       <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
         <TabItem Header="General">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" />
+            <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 
         <TabItem Header="Bitcoin">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" />
+            <v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 
         <TabItem Header="Advanced">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" />
+            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 

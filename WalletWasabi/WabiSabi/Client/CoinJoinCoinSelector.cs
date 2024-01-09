@@ -48,7 +48,7 @@ public class CoinJoinCoinSelector
 			wallet.RedCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
+	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, bool stopWhenAllMixed, UtxoSelectionParameters parameters, Money liquidityClue)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
 		liquidityClue = liquidityClue > Money.Zero
@@ -64,7 +64,7 @@ public class CoinJoinCoinSelector
 		// Sanity check.
 		if (!filteredCoins.Any())
 		{
-			Logger.LogInfo("No suitable coins for this round.");
+			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -80,9 +80,9 @@ public class CoinJoinCoinSelector
 			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
-		if (semiPrivateCoins.Length + redCoins.Length == 0)
+		if (stopWhenAllMixed && semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-			Logger.LogInfo("No suitable coins for this round.");
+			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
 		}
 
@@ -128,6 +128,27 @@ public class CoinJoinCoinSelector
 		// Shuffle coins, while randomly biasing towards lower AS.
 		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
 
+		// If the command is given to not stop when everything is coinjoined and the allowed private coins are empty, then we shortcircuit the selection.
+		if (!stopWhenAllMixed && allowedNonPrivateCoins.Count == 0)
+		{
+			var largestAllowedCoin = orderedAllowedCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
+			if (largestAllowedCoin is null)
+			{
+				Logger.LogDebug($"Couldn't select any coins, ending.");
+				return ImmutableList<TCoin>.Empty;
+			}
+			else
+			{
+				// orderedAllowedCoins at this point is going to have inputCount - 1 coins, so add another coin to it.
+				var selectedPrivateCoins = orderedAllowedCoins
+					.Concat(smallerPrivateCoins.Concat(largerPrivateCoins).Except(orderedAllowedCoins).Take(1))
+					.Take(inputCount) // This is just sanity check, it should never have an effect, unless someone touches computations above.
+					.ToList();
+				selectedPrivateCoins.Shuffle(Rnd);
+				return selectedPrivateCoins.ToImmutableList();
+			}
+		}
+
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins
 			.OrderByDescending(x => x.Amount)
@@ -168,7 +189,7 @@ public class CoinJoinCoinSelector
 			}
 		}
 
-		if (!groups.Any())
+		if (groups.Count == 0)
 		{
 			Logger.LogDebug($"Couldn't create any combinations, ending.");
 			return ImmutableList<TCoin>.Empty;

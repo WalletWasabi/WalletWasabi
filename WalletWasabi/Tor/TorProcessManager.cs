@@ -96,7 +96,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
 	public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
 	{
-		return _tcs.Task.WithAwaitCancellationAsync(cancellationToken);
+		return _tcs.Task.WaitAsync(cancellationToken);
 	}
 
 	/// <summary>Keeps starting Tor OS process.</summary>
@@ -272,7 +272,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	internal virtual Process[] GetTorProcesses()
 	{
-		return Process.GetProcessesByName(TorSettings.GetTorBinaryFileName());
+		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
