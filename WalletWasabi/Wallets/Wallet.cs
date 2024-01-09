@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -105,7 +107,7 @@ public class Wallet : BackgroundService, IWallet
 	public HybridFeeProvider FeeProvider { get; }
 
 	public WalletFilterProcessor WalletFilterProcessor { get; }
-	public FilterModel? LastProcessedFilter => WalletFilterProcessor?.LastProcessedFilter;
+	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 	public IBlockProvider BlockProvider { get; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -120,7 +122,7 @@ public class Wallet : BackgroundService, IWallet
 	public PaymentBatch BatchedPayments { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-	public bool ConsolidationMode { get; set; } = false;
+	public bool ConsolidationMode { get; set; }
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
@@ -165,9 +167,9 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Get all wallet transactions along with corresponding amounts ordered by blockchain.
 	/// </summary>
-	/// <param name="sortForUI"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
+	/// <param name="sortForUi"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
-	public List<TransactionSummary> BuildHistorySummary(bool sortForUI = false)
+	public List<TransactionSummary> BuildHistorySummary(bool sortForUi = false)
 	{
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
@@ -197,7 +199,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 
-		return sortForUI
+		return sortForUi
 			? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
 			: mapByTxid.Values.OrderByBlockchain().ToList();
 	}
@@ -435,23 +437,13 @@ public class Wallet : BackgroundService, IWallet
 			NewFiltersProcessed?.Invoke(this, filterModels);
 			await Task.Delay(100).ConfigureAwait(false);
 
-			if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
-			{
-				return;
-			}
-
 			// Make sure fully synced and this filter is the latest filter.
 			if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModels.Last().Header.BlockHash)
 			{
 				return;
 			}
 
-			var task = BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
-
-			if (task is { })
-			{
-				await task.ConfigureAwait(false);
-			}
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -475,11 +467,22 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		Height bestKeyManagerHeight = KeyManager.GetBestTurboSyncHeight();
+		Height bestTurboSyncHeight = KeyManager.GetBestTurboSyncHeight();
+
+		// Make sure heights are at least height of segwit activation.
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > KeyManager.GetBestHeight())
+		{
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+		if (startingSegwitHeight > bestTurboSyncHeight)
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
+		}
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 		}
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
@@ -525,15 +528,15 @@ public class Wallet : BackgroundService, IWallet
 				var txsToProcess = new List<SmartTransaction>();
 				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 				{
-					uint256 hash = tx.GetHash();
-					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
+					uint256 txid = tx.GetHash();
+					if (mempoolHashes.Contains(txid.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {txid}.");
 					}
 					else
 					{
-						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
+						BitcoinStore.TransactionStore.MempoolStore.TryRemove(txid, out _);
 					}
 				}
 

@@ -149,7 +149,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	private IEnumerable<TransactionModel> BuildSummary()
 	{
-		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
+		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUi: true);
 		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
 		return transactionModels;
 	}
