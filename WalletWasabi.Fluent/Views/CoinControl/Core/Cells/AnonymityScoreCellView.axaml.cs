@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
+namespace WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
-public class AnonymityScoreHeaderView : UserControl
+public class AnonymityScoreCellView : UserControl
 {
-	public AnonymityScoreHeaderView()
+	public AnonymityScoreCellView()
 	{
 		InitializeComponent();
 	}

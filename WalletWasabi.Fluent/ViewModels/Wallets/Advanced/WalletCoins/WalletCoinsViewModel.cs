@@ -223,7 +223,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private static IColumn<WalletCoinViewModel> AnonymityScoreColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
-			new AnonymitySetHeaderView(),
+			null,
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
 			null,
 			options: new TemplateColumnOptions<WalletCoinViewModel>

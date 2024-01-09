@@ -14,36 +14,23 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
 
-  <controls:ContentArea
-    Title="{Binding Title}"
-    EnableBack="{Binding EnableBack}"
-    EnableNext="True"
-    NextContent="Continue"
-    EnableCancel="{Binding EnableCancel}"
-    IsBusy="{Binding IsBusy}"
-    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <controls:ContentArea Title="{Binding Title}"
+                        EnableBack="{Binding EnableBack}"
+                        EnableNext="True"
+                        NextContent="Continue"
+                        EnableCancel="{Binding EnableCancel}"
+                        IsBusy="{Binding IsBusy}"
+                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <controls:ContentArea.Styles>
 
-      <!-- <Style Selector="TreeDataGridRow ContentPresenter"> -->
-      <!--   <Setter Property="VerticalAlignment" Value="Center" /> -->
-      <!-- </Style> -->
-      <!-- -->
-      <!-- <Style Selector="TreeDataGridTemplateCell > ContentPresenter"> -->
-      <!--   <Setter Property="Margin" Value="5 0 10 0" /> -->
-      <!-- </Style> -->
-      <!-- -->
-      <!-- <Style Selector="TreeDataGridTextCell TextBlock"> -->
-      <!--   <Setter Property="TextAlignment" Value="Center" /> -->
-      <!-- </Style> -->
-
       <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="Margin" Value="10 0" />
+        <Setter Property="Opacity" Value="0.8" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Margin" Value="20 0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
       </Style>
 
       <Style Selector="TreeDataGridExpanderCell">
@@ -63,9 +50,9 @@
         <behaviors:SetLastChildBehavior />
       </Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
-          <treeDataGrid:PlainTextElementFactory />
-        </TreeDataGrid.ElementFactory>
-      </TreeDataGrid>
+        <treeDataGrid:PlainTextElementFactory />
+      </TreeDataGrid.ElementFactory>
+    </TreeDataGrid>
 
   </controls:ContentArea>
 </UserControl>

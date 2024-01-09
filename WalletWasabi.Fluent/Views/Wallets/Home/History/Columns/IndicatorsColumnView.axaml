@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
              x:DataType="viewmodel:HistoryItemViewModelBase">
-  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0 0 20 0">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="10" Margin="0 0 20 0">
 
     <!--First icon (Confirmation Status) -->
     <PathIcon Classes.Confirmed="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Confirmed}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"

@@ -23,8 +23,6 @@
     </StackPanel>
   </Design.PreviewWith>
 
-  <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
-
   <!-- TreeDataGridRow: Generic -->
 
   <ControlTheme x:Key="GenericTreeDataGridRow" TargetType="TreeDataGridRow">
@@ -235,7 +233,7 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Indent, Converter={StaticResource IndentConverter}}">
+        <Border Background="{TemplateBinding Background}">
           <DockPanel>
             <Border DockPanel.Dock="Left"
                     Margin="4 0"

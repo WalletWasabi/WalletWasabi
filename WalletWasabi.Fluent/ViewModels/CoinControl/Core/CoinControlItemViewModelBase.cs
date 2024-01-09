@@ -18,6 +18,7 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 	[AutoNotify] private bool _isParentPointerOver;
 	[AutoNotify] private bool _isControlSelected;
 	[AutoNotify] private bool _isControlPointerOver;
+	[AutoNotify] private bool _isExpanded;
 
 	protected CoinControlItemViewModelBase()
 	{
@@ -72,8 +73,6 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 	public LabelsArray Labels { get; protected set; } = LabelsArray.Empty;
 
 	public DateTimeOffset? BannedUntilUtc { get; protected set; }
-
-	public bool IsExpanded { get; set; }
 
 	public bool IsChild { get; set; }
 
