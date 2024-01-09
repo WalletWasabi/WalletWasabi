@@ -1,9 +1,12 @@
 using NBitcoin;
 using System.Collections.Immutable;
+using System.Linq;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Backend.Rounds;
+namespace WalletWasabi.WabiSabi.Client;
 
 public record UtxoSelectionParameters(
 	MoneyRange AllowedInputAmounts,
