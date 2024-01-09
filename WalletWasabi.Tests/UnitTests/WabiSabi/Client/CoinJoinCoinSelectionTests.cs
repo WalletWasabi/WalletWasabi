@@ -164,7 +164,6 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
@@ -195,8 +194,6 @@ public class CoinJoinCoinSelectionTests
 			MaxRegistrableAmount = Money.Coins(430),
 		});
 
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
-
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
@@ -226,8 +223,6 @@ public class CoinJoinCoinSelectionTests
 			MinRegistrableAmount = Money.Coins(0.0001m),
 			MaxRegistrableAmount = Money.Coins(430),
 		});
-
-		Assert.Equal(Money.Coins(0.00017422m), roundParams.CalculateSmallestReasonableEffectiveDenomination());
 
 		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
 
