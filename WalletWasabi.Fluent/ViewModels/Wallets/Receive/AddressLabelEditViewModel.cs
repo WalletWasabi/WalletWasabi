@@ -16,7 +16,7 @@ public partial class AddressLabelEditViewModel : DialogViewModelBase<LabelsArray
 	public AddressLabelEditViewModel(UiContext uiContext, IWalletModel wallet, IAddress address)
 	{
 		UiContext = uiContext;
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, address.Labels);
+		SuggestionLabels = new SuggestionLabelsViewModel(uiContext, wallet, Intent.Receive, 3, address.Labels);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

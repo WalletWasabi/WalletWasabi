@@ -6,6 +6,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -20,8 +21,9 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 	[AutoNotify] private bool _isCurrentTextValid;
 	[AutoNotify] private bool _forceAdd;
 
-	public SuggestionLabelsViewModel(IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
+	public SuggestionLabelsViewModel(UiContext uiContext, IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{
+		UiContext = uiContext;
 		_wallet = wallet;
 		_sourceLabels = new SourceList<SuggestionLabelViewModel>();
 		_topSuggestions = new ObservableCollectionExtended<string>();
@@ -29,8 +31,11 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		_labels = new ObservableCollectionExtended<string>(labels ?? new List<string>());
 		Intent = intent;
 
-		UpdateLabels();
-		CreateSuggestions(topSuggestionsCount);
+		if (!UiContext.ApplicationSettings.PrivacyMode)
+		{
+			UpdateLabels();
+			CreateSuggestions(topSuggestionsCount);
+		}
 	}
 
 	public ObservableCollection<string> TopSuggestions => _topSuggestions;
