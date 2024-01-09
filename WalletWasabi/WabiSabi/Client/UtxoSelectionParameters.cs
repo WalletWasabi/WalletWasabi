@@ -15,16 +15,11 @@ public record UtxoSelectionParameters(
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
-	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, WasabiRandom? random = null)
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters)
 	{
-		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
-		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
-		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
-		var smallestReasonableEffectiveDenomination= roundParameters.CalculateMinReasonableOutputAmount() + roundParameters.MiningFeeRate.GetFee(maxVsizeInputOutputPairScriptType.EstimateOutputVsize());
-
 		return new(
 			roundParameters.AllowedInputAmounts,
-			smallestReasonableEffectiveDenomination,
+			roundParameters.CalculateMinReasonableOutputAmount(),
 			roundParameters.CoordinationFeeRate,
 			roundParameters.MiningFeeRate,
 			roundParameters.AllowedInputTypes);
@@ -38,7 +33,10 @@ public static class RoundParametersExtensions
 	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
 	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters)
 	{
-		var maxVsizeInputOutputPair = roundParameters.AllowedOutputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
+
+		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
+		var maxVsizeInputOutputPair = outputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 		var minEconomicalOutput = roundParameters.MiningFeeRate.GetFee(maxVsizeInputOutputPair);
 		return Math.Max(minEconomicalOutput, roundParameters.AllowedOutputAmounts.Min);
 	}

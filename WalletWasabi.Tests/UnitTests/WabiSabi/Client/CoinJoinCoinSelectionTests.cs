@@ -30,7 +30,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -67,7 +67,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -170,7 +170,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -200,7 +200,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -230,7 +230,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(roundParams, generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(roundParams),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.NotEmpty(coins);
@@ -257,7 +257,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Contains(smallerAnonCoin, coins);
@@ -283,7 +283,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Single(coins);
@@ -310,7 +310,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Equal(2, coins.Count);
@@ -336,7 +336,7 @@ public class CoinJoinCoinSelectionTests
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			true,
-			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters(), generator.Rnd),
+			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Equal(2, coins.Count);
