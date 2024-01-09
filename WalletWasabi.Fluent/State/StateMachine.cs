@@ -193,11 +193,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			return this;
 		}
 
-		public StateContext Custom(Func<StateContext, StateContext> custom)
-		{
-			return custom(this);
-		}
-
 		public StateContext OnTrigger(TTrigger trigger, Action action)
 		{
 			if (_triggerActions.TryGetValue(trigger, out var t))
