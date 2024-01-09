@@ -17,9 +17,24 @@ public record UtxoSelectionParameters(
 {
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters)
 	{
+		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
+
+		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
+		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
+		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+				roundParameters.CalculateMinReasonableOutputAmount(),
+				roundParameters.AllowedOutputAmounts.Max,
+				roundParameters.MiningFeeRate,
+				[maxVsizeInputOutputPairScriptType],
+				new InsecureRandom()) // Random generator is not used and then the algorithm is deterministic
+			.Min(x => x.EffectiveCost);
+		var smallestReasonableEffectiveDenomination =
+			smallestEffectiveDenom
+		    ?? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.");
+
 		return new(
 			roundParameters.AllowedInputAmounts,
-			roundParameters.CalculateMinReasonableOutputAmount(),
+			smallestReasonableEffectiveDenomination,
 			roundParameters.CoordinationFeeRate,
 			roundParameters.MiningFeeRate,
 			roundParameters.AllowedInputTypes);
