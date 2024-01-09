@@ -164,9 +164,9 @@ public class Wallet : BackgroundService, IWallet
 	/// <summary>
 	/// Get all wallet transactions along with corresponding amounts ordered by blockchain.
 	/// </summary>
-	/// <param name="sortForUI"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
+	/// <param name="sortForUi"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
-	public List<TransactionSummary> BuildHistorySummary(bool sortForUI = false)
+	public List<TransactionSummary> BuildHistorySummary(bool sortForUi = false)
 	{
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
@@ -196,7 +196,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 		}
 
-		return sortForUI
+		return sortForUi
 			? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
 			: mapByTxid.Values.OrderByBlockchain().ToList();
 	}
