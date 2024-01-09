@@ -119,7 +119,7 @@ public class Wallet : BackgroundService, IWallet
 	public PaymentBatch BatchedPayments { get; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
-	public bool ConsolidationMode { get; set; } = false;
+	public bool ConsolidationMode { get; set; }
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
