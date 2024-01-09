@@ -91,7 +91,7 @@ public class RegisterInputFailureTests
 	}
 
 	[Fact]
-	public async Task InputRegistrationTimedoutAsync()
+	public async Task InputRegistrationTimedOutAsync()
 	{
 		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
@@ -121,7 +121,7 @@ public class RegisterInputFailureTests
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
@@ -176,7 +176,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-		WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.AllowNotedInputRegistration = false;
+
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -224,7 +226,7 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		var mockRpc = new MockRpcClient();
-		mockRpc.OnGetTxOutAsync = (_,_,_) =>
+		mockRpc.OnGetTxOutAsync = (_, _, _) =>
 			new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 };
 
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round);
@@ -249,7 +251,7 @@ public class RegisterInputFailureTests
 		var callCounter = 1;
 		rpc.OnGetTxOutAsync = (_, _, _) =>
 		{
-			var ret = new NBitcoin.RPC.GetTxOutResponse {Confirmations = callCounter, IsCoinBase = true};
+			var ret = new NBitcoin.RPC.GetTxOutResponse { Confirmations = callCounter, IsCoinBase = true };
 			callCounter++;
 			return ret;
 		};

@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:WalletWasabi.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type controls:PrivacyBarSegment}" TargetType="controls:PrivacyBarSegment">
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Path Data="{TemplateBinding Data}"
+              Fill="{TemplateBinding Foreground}" />
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[PrivacyLevel=Invalid]">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+    </Style>
+
+    <Style Selector="^[PrivacyLevel=Private]">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+    </Style>
+
+    <Style Selector="^[PrivacyLevel=SemiPrivate]">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+    </Style>
+
+    <Style Selector="^[PrivacyLevel=NonPrivate]">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>

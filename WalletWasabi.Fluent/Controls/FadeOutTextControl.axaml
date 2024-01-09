@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+
+  <Design.PreviewWith>
+    <Panel Width="75" Background="DarkGray">
+      <c:FadeOutTextControl Text="This is Very Long Text" />
+    </Panel>
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type c:FadeOutTextControl}" TargetType="c:FadeOutTextControl">
+
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="10" />
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <TextBlock Name="PART_TrimmedTextBlock"
+                     Text="{TemplateBinding Text}"
+                     TextTrimming="CharacterEllipsis"
+                     TextAlignment="{TemplateBinding HorizontalAlignment}"
+                     FontSize="{TemplateBinding FontSize}"
+                     Opacity="0" />
+          <c:FadeOutTextBlock Name="PART_NoTrimTextBlock"
+                              TextAlignment="{TemplateBinding HorizontalAlignment}"
+                              FontSize="{TemplateBinding FontSize}"
+                              Text="{TemplateBinding Text}"
+                              TextTrimming="None" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+  </ControlTheme>
+
+</ResourceDictionary>
+

@@ -22,7 +22,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -133,7 +132,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 					// Make the coordinator believe that the transaction is being
 					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
+					// (the `SendRawTransactionAsync` was invoked) we stop waiting
 					// and finish the waiting tasks to finish the test successfully.
 					rpc.OnSendRawTransactionAsync = (tx) =>
 					{
@@ -179,7 +178,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -269,7 +268,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
 
 			// Run the coinjoin client task.
-			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 			if (coinjoinResult is SuccessfulCoinJoinResult)
 			{
 				throw new Exception("Coinjoin should have never finished successfully.");
@@ -318,7 +317,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Make the coordinator believe that the transaction is being
 				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// (the `SendRawTransactionAsync` was invoked) we stop waiting
 				// and finish the waiting tasks to finish the test successfully.
 				rpc.OnSendRawTransactionAsync = (tx) =>
 				{
@@ -360,7 +359,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token).ConfigureAwait(false), cts.Token);
+		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
@@ -416,14 +415,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 		try
 		{
-			var rpc = new TesteableRpcClient((RpcClientBase)node.RpcClient);
+			var rpc = new TestableRpcClient((RpcClientBase)node.RpcClient);
 
-			TaskCompletionSource<Transaction> coinJoinBoadcasted = new();
+			TaskCompletionSource<Transaction> coinJoinBroadcasted = new();
 			rpc.AfterSendRawTransaction = (tx) =>
 			{
 				if (tx.Inputs.Count > 1)
 				{
-					coinJoinBoadcasted.SetResult(tx);
+					coinJoinBroadcasted.SetResult(tx);
 				}
 			};
 
@@ -468,7 +467,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 			mockHttpClientFactory.OnNewHttpClientWithDefaultCircuit = () => httpClientWrapper;
 
-
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
@@ -493,7 +491,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			try
 			{
-				var coinjoinTransactionCompletionTask = coinJoinBoadcasted.Task.WaitAsync(cts.Token);
+				var coinjoinTransactionCompletionTask = coinJoinBroadcasted.Task.WaitAsync(cts.Token);
 				var participantsFinishedTask = Task.WhenAll(tasks);
 				var finishedTask = await Task.WhenAny(participantsFinishedTask, coinjoinTransactionCompletionTask);
 				if (finishedTask == coinjoinTransactionCompletionTask)
@@ -597,9 +595,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 	}
 
-	public class TesteableRpcClient : RpcClientBase
+	public class TestableRpcClient : RpcClientBase
 	{
-		public TesteableRpcClient(RpcClientBase rpc)
+		public TestableRpcClient(RpcClientBase rpc)
 			: base(rpc.Rpc)
 		{
 		}
@@ -613,26 +611,4 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return ret;
 		}
 	}
-}
-
-public class MockWasabiHttpClientFactory : IWasabiHttpClientFactory
-{
-	public Func<(PersonCircuit, IHttpClient)>? OnNewHttpClientWithPersonCircuit { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithCircuitPerRequest { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithDefaultCircuit { get; set; }
-
-	public (PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit() =>
-		OnNewHttpClientWithPersonCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithCircuitPerRequest() =>
-		OnNewHttpClientWithCircuitPerRequest?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithDefaultCircuit() =>
-		OnNewHttpClientWithDefaultCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithDefaultCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null) =>
-		throw new NotImplementedException();
 }

@@ -1,14 +1,16 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
-  <Styles.Resources>
-  </Styles.Resources>
-  <Style Selector="c|Dialog">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls"
+                    xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
+
+  <ControlTheme x:Key="{x:Type c:Dialog}" TargetType="c:Dialog">
+
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="(KeyboardNavigation.TabNavigation)" Value="Cycle" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -36,109 +38,92 @@
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
-  <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
-      </Transitions>
-    </Setter>
-    <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}" />
-    <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="Opacity" Value="0" />
-  </Style>
-  <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
-    <Setter Property="Margin" Value="20,30,20,20" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
-      </Transitions>
-    </Setter>
-    <Setter Property="Opacity" Value="0" />
-  </Style>
 
-  <Style Selector="c|Dialog /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="40" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}" />
-  </Style>
+    <Style Selector="^/template/ Panel#PART_Overlay">
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.25" EnableScale="False" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
+      <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="^/template/ Panel#PART_DialogHost">
+      <Setter Property="Margin" Value="20,30,20,20" />
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
+    </Style>
 
-  <Style Selector="c|Dialog:alert /template/ Border#PART_Border">
-    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
-    <Style.Animations>
-      <Animation Duration="0:0:0.6" PlaybackDirection="AlternateReverse" IterationCount="1">
-        <KeyFrame Cue="25%">
-          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
-        </KeyFrame>
-        <KeyFrame Cue="50%">
-          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertEndBoxShadow}"/>
-        </KeyFrame>
-        <KeyFrame Cue="75%">
-          <Setter Property="BoxShadow" Value="{DynamicResource DialogAlertStartBoxShadow}"/>
-        </KeyFrame>
-        <KeyFrame Cue="100%">
-          <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
-        </KeyFrame>
-      </Animation>
-    </Style.Animations>
-  </Style>
+    <Style Selector="^/template/ Border#PART_Border">
+      <Setter Property="Margin" Value="40" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}" />
+    </Style>
 
-  <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="MinWidth" Value="382" />
-    <Setter Property="MinHeight" Value="284" />
-    <Setter Property="Margin" Value="16 28 16 16" />
-  </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="MinWidth" Value="382" />
+      <Setter Property="MinHeight" Value="284" />
+      <Setter Property="Margin" Value="16 28 16 16" />
+    </Style>
 
-  <!-- Dialog Opened State -->
-  <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
-    <Setter Property="Opacity" Value="1" />
-    <Setter Property="IsHitTestVisible" Value="True" />
-  </Style>
-  <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
+    <!-- Dialog Opened State -->
+    <Style Selector="^:open /template/ Panel#PART_DialogHost">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="IsHitTestVisible" Value="True" />
+    </Style>
+    <Style Selector="^:open /template/ Panel#PART_Overlay">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
 
-  <!-- Dialog Unopened State -->
-  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="IsHitTestVisible" Value="False" />
-  </Style>
-  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
-    <Setter Property="Opacity" Value="0" />
-  </Style>
+    <!-- Dialog Unopened State -->
+    <Style Selector="^:not(:open) /template/ Panel#PART_DialogHost">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="^:not(:open) /template/ Panel#PART_Overlay">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
 
-  <!-- Dialog Increased width State -->
-  <Style Selector="c|Dialog[IncreasedWidthEnabled=True] /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="0 40" />
-  </Style>
+    <!-- Dialog Increased width State -->
+    <Style Selector="^[IncreasedWidthEnabled=True] /template/ Border#PART_Border">
+      <Setter Property="Margin" Value="0 40" />
+    </Style>
 
-  <!-- Dialog Increased height State -->
-  <Style Selector="c|Dialog[IncreasedHeightEnabled=True] /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="40 0" />
-  </Style>
+    <!-- Dialog Increased height State -->
+    <Style Selector="^[IncreasedHeightEnabled=True] /template/ Border#PART_Border">
+      <Setter Property="Margin" Value="40 0" />
+    </Style>
 
-  <!-- Dialog Increased size State -->
-  <Style Selector="c|Dialog[IncreasedSizeEnabled=True] /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="0 0" />
-  </Style>
+    <!-- Dialog Increased size State -->
+    <Style Selector="^[IncreasedSizeEnabled=True] /template/ Border#PART_Border">
+      <Setter Property="Margin" Value="0 0" />
+    </Style>
 
-  <!-- Dialog Fullscreen State -->
-  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="0 30 0 0" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="BoxShadow" Value="{StaticResource EmptyBoxShadow}" />
-  </Style>
-  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
-    <Setter Property="Margin" Value="0" />
-  </Style>
-  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_Overlay">
-    <Setter Property="Background" Value="{DynamicResource RegionColor}" />
-  </Style>
-  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Margin" Value="16 0 16 16" />
-  </Style>
-</Styles>
+    <!-- Dialog Fullscreen State -->
+    <Style Selector="^[FullScreenEnabled=True] /template/ Border#PART_Border">
+      <Setter Property="Margin" Value="0 30 0 0" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="BoxShadow" Value="{DynamicResource EmptyBoxShadow}" />
+    </Style>
+    <Style Selector="^[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="^[FullScreenEnabled=True] /template/ Panel#PART_Overlay">
+      <Setter Property="Background" Value="{DynamicResource RegionColor}" />
+    </Style>
+    <Style Selector="^[FullScreenEnabled=True] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Margin" Value="16 0 16 16" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -28,6 +28,8 @@ public enum CoinjoinError
 	CoinsRejected,
 	OnlyImmatureCoinsAvailable,
 	OnlyExcludedCoinsAvailable,
+	UneconomicalRound,
+	RandomlySkippedRound
 }
 
 public class StatusChangedEventArgs : EventArgs

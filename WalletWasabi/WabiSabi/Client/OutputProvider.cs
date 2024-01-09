@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -18,6 +19,7 @@ public class OutputProvider
 	private WasabiRandom Random { get; }
 
 	public virtual IEnumerable<TxOut> GetOutputs(
+		uint256 roundId,
 		RoundParameters roundParameters,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,

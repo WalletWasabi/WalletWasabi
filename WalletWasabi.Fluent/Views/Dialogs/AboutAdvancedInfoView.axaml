@@ -25,20 +25,26 @@
     <StackPanel HorizontalAlignment="Center" Spacing="20">
       <StackPanel>
         <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
-        <TextBox Classes="Content selectableTextBlock" Text="{Binding BackendCompatibleVersions}" />
+        <TextBox Classes="Content"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
+                 Text="{Binding BackendCompatibleVersions}" />
       </StackPanel>
       <StackPanel>
         <TextBlock Classes="Header" Text="Current Coordinator Version" />
-        <TextBox Classes="Content selectableTextBlock" Text="{Binding CurrentBackendMajorVersion}" />
+        <TextBox Classes="Content"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
+                 Text="{Binding CurrentBackendMajorVersion}" />
       </StackPanel>
       <StackPanel>
         <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Version" />
-        <TextBox Classes="Content selectableTextBlock"
+        <TextBox Classes="Content"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
                  Text="{Binding BitcoinCoreVersion}" />
       </StackPanel>
       <StackPanel>
         <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version" />
-        <TextBox Classes="Content selectableTextBlock"
+        <TextBox Classes="Content"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
                  Text="{Binding HwiVersion}" />
       </StackPanel>
     </StackPanel>

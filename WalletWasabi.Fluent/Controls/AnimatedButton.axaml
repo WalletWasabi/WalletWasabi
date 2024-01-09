@@ -1,61 +1,15 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:i="using:Avalonia.Xaml.Interactivity"
-        xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:i="using:Avalonia.Xaml.Interactivity"
+                    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+
   <Design.PreviewWith>
     <c:AnimatedButton />
   </Design.PreviewWith>
-  <Style Selector="Button > Panel > PathIcon">
-    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].InitialOpacity}" />
-  </Style>
-  <Style Selector="Button:pointerover > Panel > PathIcon">
-    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-  </Style>
-  <Style Selector="PathIcon.hidden">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector="PathIcon.hideAndShow">
-    <Style.Animations>
-      <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
-        <KeyFrame KeyTime="0:0:0.0">
-          <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:0.2">
-          <Setter Property="Opacity" Value="0.0" />
-          <Setter Property="IsVisible" Value="False" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:1.2">
-          <Setter Property="Opacity" Value="0.0" />
-          <Setter Property="IsVisible" Value="True" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:1.4">
-          <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-        </KeyFrame>
-      </Animation>
-    </Style.Animations>
-  </Style>
-  <Style Selector="PathIcon.showAndHide">
-    <Style.Animations>
-      <Animation Delay="0:0:0.2" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
-        <KeyFrame KeyTime="0:0:0.0">
-          <Setter Property="Opacity" Value="0.0" />
-          <Setter Property="IsVisible" Value="True" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:0.2">
-          <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:0.8">
-          <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-        </KeyFrame>
-        <KeyFrame KeyTime="0:0:1.0">
-          <Setter Property="Opacity" Value="0.0" />
-          <Setter Property="IsVisible" Value="False" />
-        </KeyFrame>
-      </Animation>
-    </Style.Animations>
-  </Style>
-  <Style Selector="c|AnimatedButton">
+
+  <ControlTheme x:Key="{x:Type c:AnimatedButton}" TargetType="c:AnimatedButton">
+
     <Setter Property="Template">
       <ControlTemplate>
         <Button Name="PART_Button"
@@ -80,5 +34,56 @@
         </Button>
       </ControlTemplate>
     </Setter>
-  </Style>
-</Styles>
+
+    <Style Selector="^/template/ Button > Panel > PathIcon">
+      <Setter Property="Opacity" Value="{Binding InitialOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+    </Style>
+    <Style Selector="^/template/ Button:pointerover > Panel > PathIcon">
+      <Setter Property="Opacity" Value="{Binding PointerOverOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+    </Style>
+    <Style Selector="^/template/ PathIcon.hidden">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^/template/ PathIcon.hideAndShow">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
+          <KeyFrame KeyTime="0:0:0.0">
+            <Setter Property="Opacity" Value="{Binding PointerOverOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:0.2">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="False" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:1.2">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:1.4">
+            <Setter Property="Opacity" Value="{Binding PointerOverOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="^/template/ PathIcon.showAndHide">
+      <Style.Animations>
+        <Animation Delay="0:0:0.2" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
+          <KeyFrame KeyTime="0:0:0.0">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:0.2">
+            <Setter Property="Opacity" Value="{Binding PointerOverOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:0.8">
+            <Setter Property="Opacity" Value="{Binding PointerOverOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:1.0">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="False" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

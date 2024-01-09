@@ -1,10 +1,7 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -19,7 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Receive", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class ReceiveViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -43,13 +41,12 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		HasUnusedAddresses =
-			_wallet
-				.UnusedAddresses()
-				.ToCollection()
-				.Select(x => x.Any())
-				.StartWith(false);
+		AddressesModel = wallet.AddressesModel;
+
+		HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
 	}
+
+	public IAddressesModel AddressesModel { get; }
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 

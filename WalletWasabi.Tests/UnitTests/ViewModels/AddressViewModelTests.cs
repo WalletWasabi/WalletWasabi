@@ -32,7 +32,7 @@ public class AddressViewModelTests
 		var testAddress = new TestAddress("ad");
 		var labels = new LabelsArray("Label 1", "Label 2");
 		testAddress.SetLabels(labels);
-		var sut = new AddressViewModel(Mocks.ContextStub(), _ => Task.CompletedTask, _ => { }, testAddress);
+		var sut = new AddressViewModel(MockUtils.ContextStub(), _ => Task.CompletedTask, _ => { }, testAddress);
 
 		Assert.Equal(testAddress.Text, sut.AddressText);
 		Assert.Equal(labels, sut.Labels);

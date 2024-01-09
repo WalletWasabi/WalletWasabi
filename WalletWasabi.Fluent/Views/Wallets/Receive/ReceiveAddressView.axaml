@@ -35,13 +35,13 @@
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
 
       <c:AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
-          <Panel Margin="0 0 -5 20">
+          <Panel Margin="5 0 -5 20">
             <Button Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
               <PathIcon Data="{StaticResource save_regular}" />

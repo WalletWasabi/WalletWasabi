@@ -1,19 +1,13 @@
-using NBitcoin;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class WalletBalanceTileViewModel : ActivatableViewModel
 {
-	public WalletBalanceTileViewModel(IWalletBalancesModel balances)
+	public WalletBalanceTileViewModel(IObservable<Amount> amounts)
 	{
-		BtcBalance = balances.Btc;
-		UsdBalance = balances.Usd;
-		HasBalance = balances.HasBalance;
+		Amounts = amounts;
 	}
 
-	public IObservable<bool> HasBalance { get; }
-
-	public IObservable<decimal> UsdBalance { get; }
-
-	public IObservable<Money> BtcBalance { get; }
+	public IObservable<Amount> Amounts { get; }
 }

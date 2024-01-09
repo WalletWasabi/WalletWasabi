@@ -1,5 +1,3 @@
-using DynamicData;
-using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -19,6 +17,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _isBusy;
 
 	[AutoNotify] private bool _noPrivacy;
+	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
 
@@ -34,6 +33,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
 		NoPrivacy = false;
+		BadPrivacy = false;
 		MaxPrivacy = false;
 		GoodPrivacy = false;
 		Warnings.Clear();
@@ -42,21 +42,25 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		var result = await _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken);
-
-		await foreach (var warning in result.GetAllWarningsAsync())
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
 		{
-			Warnings.Add(warning);
+			if (item is PrivacyWarning warning)
+			{
+				Warnings.Add(warning);
+			}
+			if (item is PrivacySuggestion suggestion)
+			{
+				Suggestions.Add(suggestion);
+			}
 		}
 
-		await foreach (var suggestion in result.GetAllSuggestionsAsync())
-		{
-			Suggestions.Add(suggestion);
-		}
-
-		if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		if (Warnings.Any(x => x.Severity == WarningSeverity.Critical))
 		{
 			NoPrivacy = true;
+		}
+		else if (Warnings.Any(x => x.Severity == WarningSeverity.Warning))
+		{
+			BadPrivacy = true;
 		}
 		else if (Warnings.Any(x => x.Severity == WarningSeverity.Info))
 		{

@@ -1,8 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Hwi.Models;
 
-namespace WalletWasabi.Fluent.Models.Wallets;
+namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullHardwareWalletInterface : IHardwareWalletInterface
 {

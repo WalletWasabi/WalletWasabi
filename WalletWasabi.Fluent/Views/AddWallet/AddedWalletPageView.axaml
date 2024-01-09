@@ -12,6 +12,7 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}"
                  NextContent="Done" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">

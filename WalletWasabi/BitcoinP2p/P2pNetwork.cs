@@ -110,7 +110,7 @@ public class P2pNetwork : BackgroundService
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
 	private string AddressManagerFilePath { get; }
-	private AddressManager? AddressManager { get; set; }
+	private AddressManager AddressManager { get; }
 
 	/// <inheritdoc />
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -156,11 +156,8 @@ public class P2pNetwork : BackgroundService
 	{
 		IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
 
-		if (AddressManager is { } addressManager)
-		{
-			addressManager.SavePeerFile(AddressManagerFilePath, Network);
-			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
-		}
+		AddressManager.SavePeerFile(AddressManagerFilePath, Network);
+		Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
 
 		cancellationToken.ThrowIfCancellationRequested();
 

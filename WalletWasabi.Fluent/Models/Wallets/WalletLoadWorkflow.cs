@@ -13,7 +13,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletLoadWorkflow : IWalletLoadWorkflow
+[AutoInterface]
+public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
@@ -45,7 +46,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
-	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+	private uint RemainingFiltersToDownload => (uint)Services.SmartHeaderChain.HashesLeft;
 
 	public void Start()
 	{
@@ -106,24 +107,27 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private async Task SetInitValuesAsync(bool isBackendAvailable)
 	{
-		while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+		if (isBackendAvailable)
 		{
-			await Task.Delay(500).ConfigureAwait(false);
+			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
+			await Services.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
 		}
 
-		_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+		// Wait until "client tip height" is initialized.
+		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
-		if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
-			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
-		{
-			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
-			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+		_filtersToDownloadCount = (uint)Services.SmartHeaderChain.HashesLeft;
 
-			_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-			_filterProcessCurrentTipHeight = tipHeight;
-		}
+		uint serverTipHeight = Services.SmartHeaderChain.ServerTipHeight;
+		uint clientTipHeight = Services.SmartHeaderChain.TipHeight;
+
+		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+
+		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+		_filterProcessCurrentTipHeight = tipHeight;
 	}
 
 	private uint GetCurrentProcessedCount()
@@ -147,7 +151,7 @@ public partial class WalletLoadWorkflow : IWalletLoadWorkflow
 
 	private void UpdateCurrentTipHeight()
 	{
-		var smartHeaderChainTipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
+		var smartHeaderChainTipHeight = Services.SmartHeaderChain.TipHeight;
 		if (_filtersToProcessCount == 0 || smartHeaderChainTipHeight == _filterProcessCurrentTipHeight)
 		{
 			return;

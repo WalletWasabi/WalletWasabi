@@ -56,7 +56,7 @@ public class RegisterInputToBlameRoundTests
 	[Fact]
 	public async Task InputWhitelistedButBannedAsync()
 	{
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();

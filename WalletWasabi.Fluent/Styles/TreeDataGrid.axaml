@@ -7,61 +7,6 @@
     <Setter Property="CanUserResizeColumns" Value="True" />
   </Style>
 
-  <Style Selector="TreeDataGridRow">
-    <Setter Property="Focusable" Value="False" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel LastChildFill="True">
-          <Border Name="PART_SelectionIndicator"
-                  BorderThickness="2 0 0 0"
-                  DockPanel.Dock="Left"
-                  VerticalAlignment="Stretch" />
-          <Panel>
-            <Rectangle Name="BackgroundRectangle" />
-            <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
-                                        ElementFactory="{TemplateBinding ElementFactory}"
-                                        Items="{TemplateBinding Columns}"
-                                        Rows="{TemplateBinding Rows}" />
-          </Panel>
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-  </Style>
-
-  <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource SystemControlTransparentBrush}" />
-  </Style>
-  <Style Selector="TreeDataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundColor}" />
-  </Style>
-  <Style Selector="TreeDataGridRow:selected /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundColor}" />
-    <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundOpacity}" />
-  </Style>
-  <!--<Style Selector="TreeDataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredUnfocusedBackgroundColor}" />
-    <Setter Property="Opacity" Value="{DynamicResource ListAccentMediumOpacity}" />
-  </Style>-->
-  <Style Selector="TreeDataGridRow:selected:focus /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundColor}" />
-    <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedBackgroundOpacity}" />
-  </Style>
-  <!--<Style Selector="TreeDataGridRow:selected:pointerover:focus /template/ Rectangle#BackgroundRectangle">
-    <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundColor}" />
-    <Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundOpacity}" />
-  </Style>-->
-
-  <Style Selector="TreeDataGridRow:selected /template/ Border#PART_SelectionIndicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
-  </Style>
-  <Style Selector="TreeDataGridRow /template/ Border#PART_SelectionIndicator">
-    <Setter Property="BorderBrush" Value="Transparent" />
-  </Style>
-
-  <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
-    <Setter Property="Background" Value="Transparent" />
-  </Style>
-
   <Style Selector=":is(TreeDataGridCell)">
     <Setter Property="Padding" Value="0" />
   </Style>

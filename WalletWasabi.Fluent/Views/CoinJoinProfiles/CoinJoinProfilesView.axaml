@@ -13,7 +13,14 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
+
+    <c:ContentArea.Styles>
+      <Style Selector=":is(Control)">
+        <Setter Property="ClipToBounds" Value="False" />
+      </Style>
+    </c:ContentArea.Styles>
+
     <DockPanel>
 
       <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee + the mining fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
@@ -25,15 +32,18 @@
               VerticalAlignment="Bottom"
               Content="Customize" />
 
-      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
-               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+      <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
+               VerticalAlignment="Center"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
         <ListBox.Styles>
           <Style Selector="ListBoxItem">
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="10 15" />
+            <Setter Property="Padding" Value="0" />
           </Style>
           <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
-          </Style>
+            </Style>
 
           <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
@@ -43,29 +53,23 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-            <Setter Property="Padding" Value="15,25,15,0" />
             <Setter Property="CornerRadius" Value="4" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="10 5 10 20" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="10 5 10 20" />
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
-
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
             <Setter Property="Opacity" Value="0" />
           </Style>
 
@@ -81,7 +85,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <c:SuggestionItem MaxHeight="280">
-              <prof:CoinJoinProfileControl />
+              <prof:CoinJoinProfileControl Margin="10 10 10 15" />
             </c:SuggestionItem>
           </DataTemplate>
         </ListBox.ItemTemplate>

@@ -153,7 +153,7 @@ public class AllFeeEstimateTests
 			{
 				MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 			});
-		mockRpc.OnEstimateSmartFeeAsync = (_,_) =>
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
 			throw new NoEstimationException(1);
 
 		await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.EstimateAllFeeAsync());
@@ -167,7 +167,7 @@ public class AllFeeEstimateTests
 		mockRpc.OnGetBlockchainInfoAsync = () =>
 			Task.FromException<BlockchainInfo>(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null));
 
-		mockRpc.OnEstimateSmartFeeAsync = (_,_) =>
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
 			Task.FromException<EstimateSmartFeeResponse>(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
 
 		mockRpc.OnGetMempoolInfoAsync = () =>
@@ -256,9 +256,9 @@ public class AllFeeEstimateTests
 		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
 			target switch
 			{
-				2 =>  Task.FromResult(FeeRateResponse(2, 3_500m)),
-				3 =>  Task.FromResult(FeeRateResponse(3, 500m)),
-				6 =>  Task.FromResult(FeeRateResponse(6, 10m)),
+				2 => Task.FromResult(FeeRateResponse(2, 3_500m)),
+				3 => Task.FromResult(FeeRateResponse(3, 500m)),
+				6 => Task.FromResult(FeeRateResponse(6, 10m)),
 				18 => Task.FromResult(FeeRateResponse(18, 5m)),
 				36 => Task.FromResult(FeeRateResponse(36, 5m)),
 				1008 => Task.FromResult(FeeRateResponse(1008, 1m)),
@@ -295,7 +295,7 @@ public class AllFeeEstimateTests
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 			var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
 			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-			mockRpc.OnEstimateSmartFeeAsync = (_,_) => Task.FromResult(FeeRateResponse(2, 120m));
+			mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 120m));
 			var feeRates = await mockRpc.EstimateAllFeeAsync();
 			var estimations = feeRates.Estimations;
 
@@ -312,7 +312,7 @@ public class AllFeeEstimateTests
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealMempoolInfo();
 		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-		mockRpc.OnEstimateSmartFeeAsync = (_,_) => Task.FromResult(FeeRateResponse(2, 0m));
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
 		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value);
@@ -329,7 +329,7 @@ public class AllFeeEstimateTests
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
 		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-		mockRpc.OnEstimateSmartFeeAsync = (_,_) => Task.FromResult(FeeRateResponse(2, 0m));
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
 		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value);

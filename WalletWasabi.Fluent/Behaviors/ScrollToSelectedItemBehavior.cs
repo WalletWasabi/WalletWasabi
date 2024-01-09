@@ -11,9 +11,9 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 {
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is { SelectionInteraction: { } selection, RowSelection: { } rowSelection })
+		if (AssociatedObject is { RowSelection: { } rowSelection })
 		{
-			Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
+			Observable.FromEventPattern(rowSelection, nameof(rowSelection.SelectionChanged))
 				.Select(x =>
 				{
 					var selectedIndex = rowSelection.SelectedIndex;

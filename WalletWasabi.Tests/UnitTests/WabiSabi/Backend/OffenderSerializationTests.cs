@@ -1,7 +1,5 @@
 using System.Linq;
 using NBitcoin;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using Xunit;
@@ -37,6 +35,11 @@ public class OffenderSerializationTests
 		var offender3str = offender3.ToStringLine();
 		Assert.Equal(offender3str, Offender.FromStringLine(offender3str).ToStringLine());
 
+		// Double spent multiple rounds
+		var offender3x = new Offender(outpoint, now, new RoundDisruption(new[] { roundId, uint256.One }, Money.Satoshis(12345678), RoundDisruptionMethod.DoubleSpent));
+		var offender3xstr = offender3x.ToStringLine();
+		Assert.Equal(offender3xstr, Offender.FromStringLine(offender3xstr).ToStringLine());
+
 		// Fail to verify
 		var offender4 = new Offender(outpoint, now, new FailedToVerify(roundId));
 		var offender4str = offender4.ToStringLine();
@@ -47,5 +50,10 @@ public class OffenderSerializationTests
 		var offender5 = new Offender(outpoint, now, new Inherited(ancestors));
 		var offender5str = offender5.ToStringLine();
 		Assert.Equal(offender5str, Offender.FromStringLine(offender5str).ToStringLine());
+
+		// Fail to signal ready to sign
+		var offender6 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSignalReadyToSign));
+		var offender6str = offender6.ToStringLine();
+		Assert.Equal(offender6str, Offender.FromStringLine(offender6str).ToStringLine());
 	}
 }

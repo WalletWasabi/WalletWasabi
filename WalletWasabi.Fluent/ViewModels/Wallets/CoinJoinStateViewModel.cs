@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -17,6 +16,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
+	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
+	private const string RandomlySkippedRoundMessage = "Awaiting cheaper coinjoins";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
@@ -90,9 +91,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		wallet.Balances.Btc
-					   .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
-					   .Subscribe();
+		wallet.Balances
+			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
+			  .Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -314,8 +315,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
 					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
+					CoinjoinError.UneconomicalRound => UneconomicalRoundMessage,
+					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					_ => GeneralErrorMessage
 				};
+
+				StopCountDown();
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

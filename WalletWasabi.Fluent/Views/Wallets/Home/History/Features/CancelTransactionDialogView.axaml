@@ -10,6 +10,25 @@
              x:DataType="features:CancelTransactionDialogViewModel"
              x:CompileBindings="True">
 
+  <UserControl.Styles>
+    <Style Selector="c|AmountControl" x:CompileBindings="False">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="c:AmountControl">
+          <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+            <TextBlock TextAlignment="Center"
+                       FontWeight="Bold"
+                       Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
+                       Classes="h5" VerticalAlignment="Bottom" />
+            <TextBlock
+              FontWeight="Bold"
+              Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
+              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
   <c:ContentArea Title="Cancel Transaction"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -23,14 +42,7 @@
       </Viewbox>
       <StackPanel Spacing="10" HorizontalAlignment="Center">
         <TextBlock Text="Cancelling this transaction will cost you" />
-        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-          <TextBlock TextAlignment="Center"
-                     Text="{Binding TotalFee, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
-                     Classes="h5" FontWeight="Bold" />
-          <TextBlock
-            Text="{Binding TotalFeeUsd, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈ 3.5 USD'}"
-            Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
-        </StackPanel>
+        <c:AmountControl Amount="{Binding Fee}" />
       </StackPanel>
     </DockPanel>
   </c:ContentArea>

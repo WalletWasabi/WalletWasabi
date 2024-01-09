@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ActionableItem : IActionableItem
 {
-	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null)
+	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null, IObservable<bool> isVisible = null)
 	{
 		Name = name;
 		Description = description;
@@ -28,4 +28,5 @@ public class ActionableItem : IActionableItem
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; set; }
+	public int Priority { get; set; }
 }

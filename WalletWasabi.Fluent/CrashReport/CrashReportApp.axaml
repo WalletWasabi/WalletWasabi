@@ -1,17 +1,24 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:WalletWasabi.Fluent"
-             x:Class="WalletWasabi.Fluent.CrashReport.CrashReportApp">
-
+             x:Class="WalletWasabi.Fluent.CrashReport.CrashReportApp"
+             RequestedThemeVariant="Dark">
   <Application.DataTemplates>
     <local:ViewLocator />
   </Application.DataTemplates>
-
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
   <Application.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.axaml" />
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
   </Application.Styles>
 </Application>

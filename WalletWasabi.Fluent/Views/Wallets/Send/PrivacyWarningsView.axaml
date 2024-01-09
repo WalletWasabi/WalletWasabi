@@ -35,8 +35,8 @@
 
       <Setter Property="BorderBrush" Value="#14FFFFFF" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
     </Style>
 
     <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
@@ -46,8 +46,8 @@
 
       <Setter Property="BorderBrush" Value="#2AFFFFFF" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
 
       <Setter Property="Opacity" Value="0" />
     </Style>
@@ -81,6 +81,10 @@
       <Setter Property="DockPanel.Dock" Value="Left" />
     </Style>
 
+    <Style Selector="Border.warning.critical PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+    </Style>
+
     <Style Selector="Border.warning.info PathIcon">
       <Setter Property="Data" Value="{StaticResource info_regular}" />
     </Style>
@@ -105,23 +109,35 @@
     </Style>
   </UserControl.Styles>
   <StackPanel>
-    <ItemsControl Items="{Binding Warnings}">
+    <ItemsControl ItemsSource="{Binding Warnings}">
       <ItemsControl.DataTemplates>
         <!-- Interlinks Labels Warning -->
         <DataTemplate DataType="{x:Type model:InterlinksLabelsWarning}">
-          <Border Classes="warning">
+          <Border Classes="warning critical">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter Items="{Binding Labels}" />
+              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Transaction Known as Yours By Warning -->
+        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursByWarning}">
+          <Border Classes="warning critical">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
+              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
 
         <!-- Non-private funds Warning -->
         <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
-          <Border Classes="warning">
+          <Border Classes="warning critical">
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction uses non-private coins."
@@ -189,7 +205,7 @@
     <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
                Margin="0 10 0 5"
                IsVisible="{Binding !!Suggestions.Count}" />
-    <ListBox Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+    <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
       <i:Interaction.Behaviors>
         <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
       </i:Interaction.Behaviors>

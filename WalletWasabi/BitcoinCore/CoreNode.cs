@@ -240,8 +240,6 @@ public class CoreNode
 			await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 		}
 
-		cancel.ThrowIfCancellationRequested();
-
 		// If it isn't already running, then we run it.
 		if (await coreNode.RpcClient.TestAsync(cancel).ConfigureAwait(false) is null)
 		{
@@ -254,12 +252,8 @@ public class CoreNode
 			Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 		}
 
-		cancel.ThrowIfCancellationRequested();
-
 		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-
-		cancel.ThrowIfCancellationRequested();
 
 		return coreNode;
 	}
@@ -278,6 +272,11 @@ public class CoreNode
 		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
+	/// <summary>
+	/// This method disposes resources but it does not necessarily mean that we need to stop bitcoind process
+	/// because it might not have been started by us.
+	/// <para>Use <see cref="TryStopAsync(bool)"/> to stop bitcoind process.</para>
+	/// </summary>
 	public async Task DisposeAsync()
 	{
 		if (P2pNode is { } p2pNode)

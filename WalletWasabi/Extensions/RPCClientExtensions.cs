@@ -70,7 +70,7 @@ public static class RPCClientExtensions
 		var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
 		var uptime = await rpc.UptimeAsync(cancel).ConfigureAwait(false);
 
-		var finalExtimations = uptime < TimeSpan.FromHours(2)
+		var finalEstimations = uptime < TimeSpan.FromHours(2)
 			? smartEstimations
 			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
@@ -78,7 +78,7 @@ public static class RPCClientExtensions
 
 		return new AllFeeEstimate(
 			EstimateMode,
-			finalExtimations,
+			finalEstimations,
 			rpcStatus.Synchronized);
 	}
 
@@ -102,8 +102,8 @@ public static class RPCClientExtensions
 				(a, b) =>
 				{
 					var maxLowerBound = Math.Max(a.Estimation.Value, b.Value);
-					var maxMinFeeRate = Math.Max((int) minSanityFeeRate.SatoshiPerByte, maxLowerBound);
-					var minMaxFeeRate = Math.Min((int) maxSanityFeeRate.SatoshiPerByte, maxMinFeeRate);
+					var maxMinFeeRate = Math.Max((int)minSanityFeeRate.SatoshiPerByte, maxLowerBound);
+					var minMaxFeeRate = Math.Min((int)maxSanityFeeRate.SatoshiPerByte, maxMinFeeRate);
 					return (
 						Target: a.Estimation.Key,
 						FeeRate: minMaxFeeRate);
@@ -159,8 +159,8 @@ public static class RPCClientExtensions
 		{
 			var (q, rest) = Math.DivRem(group.Sizes, BlockVirtualSize);
 			var gs = rest == 0
-				? Enumerable.Repeat(1 * Mb, (int) q)
-				: Enumerable.Repeat(1 * Mb, (int) q).Append((int) rest);
+				? Enumerable.Repeat(1 * Mb, (int)q)
+				: Enumerable.Repeat(1 * Mb, (int)q).Append((int)rest);
 			return gs.Select(i => (i, group.From, group.To));
 		}
 
