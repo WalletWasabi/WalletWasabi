@@ -14,6 +14,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
 
@@ -23,8 +24,6 @@ namespace WalletWasabi.Wallets;
 /// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
-	private const int MaxNumberFiltersInMemory = 1000;
-
 	public static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
 		(x, y) =>
 		{
@@ -51,6 +50,13 @@ public class WalletFilterProcessor : BackgroundService
 		BitcoinStore = bitcoinStore;
 		TransactionProcessor = transactionProcessor;
 		BlockProvider = blockProvider;
+
+		FilterIteratorsBySyncType = new()
+		{
+			{ SyncType.Turbo, new BlockFilterIterator(BitcoinStore.IndexStore) },
+			{ SyncType.NonTurbo, new BlockFilterIterator(BitcoinStore.IndexStore) },
+			{ SyncType.Complete, new BlockFilterIterator(BitcoinStore.IndexStore) },
+		};
 	}
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -85,7 +91,7 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
-	internal Dictionary<uint, FilterModel> FiltersCache { get; } = new();
+	internal Dictionary<SyncType, BlockFilterIterator> FilterIteratorsBySyncType { get; }
 
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private AsyncLock ReorgLock { get; } = new();
@@ -148,21 +154,9 @@ public class WalletFilterProcessor : BackgroundService
 						}
 
 						uint currentHeight = (uint)lastHeight.Value + 1;
-						if (!FiltersCache.TryGetValue(currentHeight, out var filterToProcess))
-						{
-							// We don't have the next filter to process, so fetch another batch of filters from the database.
-							FiltersCache.Clear();
 
-							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(currentHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-							foreach (var filter in filtersBatch)
-							{
-								FiltersCache[filter.Header.Height] = filter;
-							}
-
-							filterToProcess = filtersBatch.First();
-						}
-
-						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+						FilterModel filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
+						var matchFound = await ProcessFilterModelAsync(filter, request.SyncType, cancellationToken).ConfigureAwait(false);
 
 						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
 						bool storeToDisk = matchFound || reachedBlockChainTip;
@@ -192,9 +186,13 @@ public class WalletFilterProcessor : BackgroundService
 					throw;
 				}
 
+				// Clear all caches once not needed.
 				if (SynchronizationRequestsSemaphore.CurrentCount == 0)
 				{
-					FiltersCache.Clear();
+					foreach (SyncType syncType in Enum.GetValues<SyncType>())
+					{
+						FilterIteratorsBySyncType[syncType].Clear();
+					}
 				}
 			}
 		}
@@ -216,7 +214,6 @@ public class WalletFilterProcessor : BackgroundService
 					_ = request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
-			FiltersCache.Clear();
 		}
 	}
 
