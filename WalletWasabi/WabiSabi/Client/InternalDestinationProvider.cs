@@ -33,4 +33,9 @@ public class InternalDestinationProvider : IDestinationProvider
 			: segwitKeys;
 		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
+
+	public ScriptType[] SupportedScriptTypes =>
+		KeyManager.TaprootExtPubKey is not null
+			? [ScriptType.P2WPKH, ScriptType.Taproot]
+			: [ScriptType.P2WPKH];
 }

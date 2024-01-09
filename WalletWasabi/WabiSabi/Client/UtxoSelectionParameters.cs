@@ -15,14 +15,16 @@ public record UtxoSelectionParameters(
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
-	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters)
-	{
-		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
+	// for testing only
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters) =>
+		FromRoundParameters(roundParameters, [ScriptType.P2WPKH, ScriptType.Taproot]);
 
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
+	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
-				roundParameters.CalculateMinReasonableOutputAmount(),
+				roundParameters.CalculateMinReasonableOutputAmount(scriptTypesSupportedByWallet),
 				roundParameters.AllowedOutputAmounts.Max,
 				roundParameters.MiningFeeRate,
 				[maxVsizeInputOutputPairScriptType],
@@ -46,10 +48,8 @@ public static class RoundParametersExtensions
 	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
 	/// <returns>Min output amount that's economically reasonable to be registered with current network conditions.</returns>
 	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
-	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters)
+	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
 	{
-		var scriptTypesSupportedByWallet= new[] { ScriptType.P2WPKH, ScriptType.Taproot }; // I doubt this will change
-
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPair = outputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
 		var minEconomicalOutput = roundParameters.MiningFeeRate.GetFee(maxVsizeInputOutputPair);
