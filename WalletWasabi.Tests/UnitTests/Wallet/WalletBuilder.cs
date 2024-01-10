@@ -19,6 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tests.Helpers;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -60,8 +61,9 @@ public class WalletBuilder : IAsyncDisposable
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
+		BlockDownloadService blockDownloadService = new BlockDownloadService(blockProvider);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, synchronizer, DataDir, serviceConfiguration, feeProvider, blockProvider);
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, synchronizer, DataDir, serviceConfiguration, feeProvider, blockDownloadService);
 	}
 
 	public async ValueTask DisposeAsync()

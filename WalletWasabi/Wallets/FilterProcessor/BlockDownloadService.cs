@@ -9,24 +9,21 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Wallets.FilterProcessor;
 
 /// <summary>
-/// Service that opportunistically downloads blocks upfront and in parallel.
+/// Service that prioritizes blocks downloads.
 /// </summary>
-public class ParallelBlockDownloadService : BackgroundService
+public class BlockDownloadService : BackgroundService
 {
 	/// <summary>Maximum number of parallel block-downloading tasks.</summary>
-	public const int MaxParallelTasks = 5;
+	private const int MaxParallelTasks = 5;
 
-	/// <summary>Maximum number of attempts to download a block. If it fails, we drop the block download request altogether.</summary>
-	public const int MaxFailedAttempts = 3;
-
-	public ParallelBlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
+	public BlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
 	{
 		BlockProvider = blockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
 	}
 
 	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
-	private IBlockProvider BlockProvider { get; }
+	public IBlockProvider BlockProvider { get; }
 	private int MaximumParallelTasks { get; }
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0, maxCount: 1);
 
@@ -35,7 +32,7 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// Guarded by <see cref="Lock"/>.
 	/// <para>Internal for testing purposes.</para>
 	/// </remarks>
-	internal PriorityQueue<Request, uint> BlocksToDownload { get; } = new(Comparer<uint>.Default); // TODO: Turbo requests should have precedence over non-turbo.
+	internal PriorityQueue<Request, WalletFilterProcessor.Priority> BlocksToDownload { get; } = new(WalletFilterProcessor.Comparer);
 
 	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
 	private object Lock { get; } = new();
@@ -43,22 +40,25 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// <summary>
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
-	public void Enqueue(uint256 blockHash, uint blockHeight)
-		=> Enqueue(blockHash, blockHeight, attempts: 0);
+	public TaskCompletionSource Enqueue(uint256 blockHash, uint blockHeight, SyncType syncType) =>
+		Enqueue(blockHash, new WalletFilterProcessor.Priority(syncType, blockHeight));
 
-	private void Enqueue(uint256 blockHash, uint blockHeight, int attempts)
+	private TaskCompletionSource Enqueue(uint256 blockHash, WalletFilterProcessor.Priority priority, TaskCompletionSource? tcs = null)
 	{
+		tcs ??= new TaskCompletionSource();
+
 		lock (Lock)
 		{
 			int count = BlocksToDownload.Count;
-
-			BlocksToDownload.Enqueue(new Request(blockHash, blockHeight, attempts), priority: blockHeight);
+			BlocksToDownload.Enqueue(new Request(blockHash, priority.Height, tcs), priority);
 
 			if (count == 0 && SynchronizationRequestsSemaphore.CurrentCount == 0)
 			{
 				SynchronizationRequestsSemaphore.Release();
 			}
 		}
+
+		return tcs;
 	}
 
 	/// <summary>
@@ -70,7 +70,8 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// </remarks>
 	public void RemoveBlocks(uint maxBlockHeight)
 	{
-		PriorityQueue<Request, uint> tempQueue = new(Comparer<uint>.Default);
+		// TODO: Handle correctly TCS cancellation.
+		PriorityQueue<Request, WalletFilterProcessor.Priority> tempQueue = new(WalletFilterProcessor.Comparer);
 
 		lock (Lock)
 		{
@@ -78,14 +79,14 @@ public class ParallelBlockDownloadService : BackgroundService
 
 			for (int i = 0; i < count; i++)
 			{
-				if (!BlocksToDownload.TryDequeue(out Request? request, out uint height))
+				if (!BlocksToDownload.TryDequeue(out Request? request, out WalletFilterProcessor.Priority? priority))
 				{
 					throw new UnreachableException();
 				}
 
-				if (height <= maxBlockHeight)
+				if (priority.Height <= maxBlockHeight)
 				{
-					tempQueue.Enqueue(request, height);
+					tempQueue.Enqueue(request, priority);
 				}
 			}
 
@@ -124,7 +125,7 @@ public class ParallelBlockDownloadService : BackgroundService
 					for (int i = 0; i < toStart; i++)
 					{
 						// Dequeue does not provide priority value.
-						if (!BlocksToDownload.TryDequeue(out Request? request, out uint blockHeight))
+						if (!BlocksToDownload.TryDequeue(out Request? request, out WalletFilterProcessor.Priority? priority))
 						{
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
@@ -135,11 +136,12 @@ public class ParallelBlockDownloadService : BackgroundService
 								try
 								{
 									Block? block = await BlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
-									return new RequestResult(request.BlockHash, blockHeight, Attempts: request.Attempts + 1, block);
+
+									return new RequestResult(request.BlockHash, priority, block, request.Tcs);
 								}
 								catch (Exception ex)
 								{
-									Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {blockHeight})", ex);
+									Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {request.BlockHeight})", ex);
 									throw;
 								}
 							},
@@ -162,15 +164,12 @@ public class ParallelBlockDownloadService : BackgroundService
 				// If the block was downloaded OK, we suppose that it's stored on disk and it can be fetched fast.
 				if (result.Block is null)
 				{
-					if (result.Attempts >= MaxFailedAttempts)
-					{
-						Logger.LogInfo($"Attempt to download block {result.BlockHash} (height: {result.BlockHeight}) failed {MaxFailedAttempts} times. Dropping the request.");
-					}
-					else
-					{
-						// Re-enqueue as we failed to download the block.
-						Enqueue(result.BlockHash, result.BlockHeight, result.Attempts);
-					}
+					// Re-enqueue as we failed to download the block.
+					Enqueue(result.BlockHash, result.Priority, result.Tcs);
+				}
+				else
+				{
+					result.Tcs.SetResult();
 				}
 			}
 		}
@@ -185,6 +184,6 @@ public class ParallelBlockDownloadService : BackgroundService
 		}
 	}
 
-	internal record Request(uint256 BlockHash, uint BlockHeight, int Attempts);
-	private record RequestResult(uint256 BlockHash, uint BlockHeight, int Attempts, Block? Block);
+	internal record Request(uint256 BlockHash, uint BlockHeight, TaskCompletionSource Tcs);
+	private record RequestResult(uint256 BlockHash, WalletFilterProcessor.Priority Priority, Block? Block, TaskCompletionSource Tcs);
 }

@@ -37,18 +37,18 @@ public class WalletFilterProcessor : BackgroundService
 				return 1;
 			}
 
-			return 0;
+			return x.Height.CompareTo(y.Height);
 		});
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private FilterModel? _lastProcessedFilter;
 
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
+	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockDownloadService blockDownloadService)
 	{
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		TransactionProcessor = transactionProcessor;
-		BlockProvider = blockProvider;
+		BlockDownloadService = blockDownloadService;
 
 		FilterIteratorsBySyncType = new()
 		{
@@ -68,7 +68,7 @@ public class WalletFilterProcessor : BackgroundService
 	private KeyManager KeyManager { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
-	private IBlockProvider BlockProvider { get; }
+	private BlockDownloadService BlockDownloadService { get; }
 
 	public FilterModel? LastProcessedFilter
 	{
@@ -79,7 +79,7 @@ public class WalletFilterProcessor : BackgroundService
 				return _lastProcessedFilter;
 			}
 		}
-		set
+		private set
 		{
 			lock (Lock)
 			{
@@ -120,6 +120,8 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		try
 		{
+			PriorityQueue<Task<FilterPreProcessorResult>, Priority> preProcessTasks = new ();
+
 			while (true)
 			{
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -151,14 +153,35 @@ public class WalletFilterProcessor : BackgroundService
 							continue;
 						}
 
-						uint currentHeight = (uint)lastHeight.Value + 1;
+						uint toProcessHeight = (uint)lastHeight.Value + 1;
 
-						FilterModel filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
-						var matchFound = await ProcessFilterModelAsync(filter, request.SyncType, cancellationToken).ConfigureAwait(false);
+						// MaxNumberFiltersInMemory is also the maximum of pre-process slots because filters are in memory until the end of the task.
+						// This is not 100% true because the filter has to stay in memory until after ProcessFilterModelAsync finishes.
+						var availablePreProcessSlots = Math.Max(0, FilterIteratorsBySyncType[request.SyncType].MaxNumberFiltersInMemory - preProcessTasks.Count);
 
-						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
+						// We have to skip all the current tasks.
+						// TODO: Improve performances by keeping track of the count for each SyncType
+						var toPreProcessHeight = toProcessHeight + (uint)preProcessTasks.UnorderedItems.Count(x => x.Priority.SyncType == request.SyncType);
+						for (uint i = 0; i < availablePreProcessSlots; i++)
+						{
+							var filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(toPreProcessHeight, cancellationToken).ConfigureAwait(false);
+							preProcessTasks.Enqueue(PreProcessFilterModelAsync(filter, request.SyncType, cancellationToken), new Priority(request.SyncType, toPreProcessHeight));
+
+							toPreProcessHeight++;
+							if (toPreProcessHeight > BitcoinStore.SmartHeaderChain.TipHeight)
+							{
+								break;
+							}
+						}
+
+						// TODO: Reorgs??
+
+						var preProcessResult = await preProcessTasks.Dequeue().ConfigureAwait(false);
+						var matchFound = await ProcessFilterModelAsync(preProcessResult, request.SyncType, cancellationToken).ConfigureAwait(false);
+
+						reachedBlockChainTip = toProcessHeight == BitcoinStore.SmartHeaderChain.TipHeight;
 						bool storeToDisk = matchFound || reachedBlockChainTip;
-						KeyManager.SetBestHeight(request.SyncType, new Height(currentHeight), storeToDisk);
+						KeyManager.SetBestHeight(request.SyncType, new Height(toProcessHeight), storeToDisk);
 					}
 
 					if (reachedBlockChainTip)
@@ -239,29 +262,54 @@ public class WalletFilterProcessor : BackgroundService
 		return keysToTest.ToList();
 	}
 
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
+	private async Task<FilterPreProcessorResult> PreProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
+		var match = toTestKeys.Count != 0 && filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+		if (match)
+		{
+			await BlockDownloadService.Enqueue(filter.Header.BlockHash, filter.Header.Height, syncType).Task;
+
+			// The block is now available on the disk, it will be accessed by ProcessFilterModel to avoid caching.
+		}
+		return new FilterPreProcessorResult(filter, match);
+	}
+
+	private async Task<bool> ProcessFilterModelAsync(FilterPreProcessorResult preProcessorResult, SyncType syncType, CancellationToken cancel)
+	{
+		var filter = preProcessorResult.Filter;
+		var height = new Height(filter.Header.Height);
 
 		var matchFound = false;
-		if (toTestKeys.Count > 0)
+		if (preProcessorResult.Match)
 		{
-			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+			matchFound = true;
+		}
+		else
+		{
+			// Test against the keys that haven't been used for the preprocessing
+			// TODO: Don't retest against keys that were tested during preprocessing.
+			var toTestKeys = GetScriptPubKeysToTest(height, syncType);
 
-			if (matchFound)
+			if (toTestKeys.Count > 0)
 			{
-				Block currentBlock = await BlockProvider.GetBlockAsync(filter.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
-
-				var txsToProcess = new List<SmartTransaction>();
-				for (int i = 0; i < currentBlock.Transactions.Count; i++)
-				{
-					Transaction tx = currentBlock.Transactions[i];
-					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
-				}
-
-				TransactionProcessor.Process(txsToProcess);
+				matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 			}
+		}
+
+		if (matchFound)
+		{
+			Block currentBlock = await BlockDownloadService.BlockProvider.GetBlockAsync(filter.Header.BlockHash, cancel);
+
+			var txsToProcess = new List<SmartTransaction>();
+			for (int i = 0; i < currentBlock.Transactions.Count; i++)
+			{
+				Transaction tx = currentBlock.Transactions[i];
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+			}
+
+			TransactionProcessor.Process(txsToProcess);
 		}
 
 		LastProcessedFilter = filter;
@@ -279,8 +327,8 @@ public class WalletFilterProcessor : BackgroundService
 				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-
-				if (BlockProvider is SmartBlockProvider smartBlockProvider)
+				// TODO: Call correctly BlockDownloadService.Remove
+				if (BlockDownloadService.BlockProvider is SmartBlockProvider smartBlockProvider)
 				{
 					await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
 				}
@@ -311,5 +359,6 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
-	public record Priority(SyncType SyncType);
+	public record Priority(SyncType SyncType, uint Height = 0);
+	private record FilterPreProcessorResult(FilterModel Filter, bool Match);
 }

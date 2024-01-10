@@ -20,6 +20,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -127,7 +128,7 @@ public class P2pTests
 			dataDir,
 			new ServiceConfiguration(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 			feeProvider,
-			blockProvider);
+			new BlockDownloadService(blockProvider));
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
 
 		try
