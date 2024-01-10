@@ -484,15 +484,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					var selectPocketsDialog =
 						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
 
-					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result?.ToArray() is { } newCoins)
 					{
-						var newCoins = selectPocketsDialog.Result.ToList();
-						var haveSameCoins = _info.Coins.ToList().OrderDescending().SequenceEqual(newCoins.OrderDescending());
-						if (!haveSameCoins)
+						if (_info.Coins.ToHashSet().SetEquals(newCoins))
 						{
-							_info.Coins = selectPocketsDialog.Result;
-							await BuildAndUpdateAsync();
+							return;
 						}
+
+						_info.Coins = newCoins;
+						await BuildAndUpdateAsync();
 					}
 
 					break;
