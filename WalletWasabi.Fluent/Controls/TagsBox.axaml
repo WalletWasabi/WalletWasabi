@@ -3,7 +3,6 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
-
   <Design.PreviewWith>
     <Panel>
       <Border Margin="10">
@@ -52,13 +51,15 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Classes="activeHyperLink"
-                          Margin="0,0,6,0"
-                          Focusable="False"
-                          Content="{Binding}"
-                          Command="{Binding $parent[c:TagsBox].AddTag}"
-                          CommandParameter="{Binding }"
-                          x:CompileBindings="False" />
+                  <c:PrivacyContentControl>
+                    <Button Classes="activeHyperLink"
+                            Margin="0,0,6,0"
+                            Focusable="False"
+                            Content="{Binding}"
+                            Command="{Binding $parent[c:TagsBox].AddTag}"
+                            CommandParameter="{Binding }"
+                            x:CompileBindings="False" />
+                  </c:PrivacyContentControl>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
