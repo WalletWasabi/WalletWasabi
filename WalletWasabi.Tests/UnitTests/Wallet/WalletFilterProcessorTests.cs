@@ -84,9 +84,12 @@ public class WalletFilterProcessorTests
 		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(realWallet.WalletFilterProcessor);
 
 		// Mock the database
-		foreach (var filter in allFilters)
+		foreach (SyncType syncType in Enum.GetValues<SyncType>())
 		{
-			realWallet.WalletFilterProcessor.FiltersCache[filter.Header.Height] = filter;
+			foreach (var filter in allFilters)
+			{
+				realWallet.WalletFilterProcessor.FilterIteratorsBySyncType[syncType].Cache[filter.Header.Height] = filter;
+			}
 		}
 
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
