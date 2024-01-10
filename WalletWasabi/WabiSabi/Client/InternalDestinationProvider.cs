@@ -10,6 +10,9 @@ public class InternalDestinationProvider : IDestinationProvider
 	public InternalDestinationProvider(KeyManager keyManager)
 	{
 		KeyManager = keyManager;
+	    SupportedScriptTypes = KeyManager.TaprootExtPubKey is not null
+			? [ScriptType.P2WPKH, ScriptType.Taproot]
+			: [ScriptType.P2WPKH];
 	}
 
 	private KeyManager KeyManager { get; }
@@ -34,8 +37,5 @@ public class InternalDestinationProvider : IDestinationProvider
 		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
 
-	public ScriptType[] SupportedScriptTypes =>
-		KeyManager.TaprootExtPubKey is not null
-			? [ScriptType.P2WPKH, ScriptType.Taproot]
-			: [ScriptType.P2WPKH];
+	public IEnumerable<ScriptType> SupportedScriptTypes { get; }
 }

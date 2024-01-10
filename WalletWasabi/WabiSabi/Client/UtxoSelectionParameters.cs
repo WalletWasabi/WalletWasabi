@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,9 +17,6 @@ public record UtxoSelectionParameters(
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
 	// for testing only
-	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters) =>
-		FromRoundParameters(roundParameters, [ScriptType.P2WPKH, ScriptType.Taproot]);
-
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
@@ -48,7 +46,7 @@ public static class RoundParametersExtensions
 	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
 	/// <returns>Min output amount that's economically reasonable to be registered with current network conditions.</returns>
 	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
-	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
+	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters, IEnumerable<ScriptType> scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPair = outputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
