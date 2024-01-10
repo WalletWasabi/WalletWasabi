@@ -136,11 +136,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
-	public bool IsImmature(int bestHeight)
-	{
-		return Transaction.Transaction.IsCoinBase && Height >= bestHeight - 100;
-	}
-
 	public bool RefreshAndGetIsBanned()
 	{
 		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
@@ -162,8 +157,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
 	/// </summary>
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
-
-	public bool IsReplaceable() => Transaction.IsRBF;
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 

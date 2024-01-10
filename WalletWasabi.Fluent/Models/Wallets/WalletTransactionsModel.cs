@@ -159,7 +159,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	private IEnumerable<TransactionModel> BuildSummary()
 	{
-		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUI: true);
+		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUi: true);
 		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
 		return transactionModels;
 	}
@@ -199,7 +199,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
 
 		// All inputs and outputs are my own, transaction is a self-spend.
-		if (!foreignInputs.Any() && !foreignOutputs.Any())
+		if (foreignInputs.Count == 0 && foreignOutputs.Count == 0)
 		{
 			// Classic self-spend to one or more external addresses.
 			if (myOwnOutputs.Any(x => !x.IsInternal))
@@ -214,7 +214,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		}
 
 		// All inputs are foreign but some outputs are my own, someone is sending coins to me.
-		if (!myOwnInputs.Any() && myOwnOutputs.Any())
+		if (myOwnInputs.Count == 0 && myOwnOutputs.Count != 0)
 		{
 			// All outputs that are my own are the destinations.
 			return myOwnOutputs.Select(x => x.DestinationAddress);

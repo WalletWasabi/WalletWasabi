@@ -173,7 +173,7 @@ public partial class MainViewModel : ViewModelBase
 			.Connect()
 			.FilterOnObservable(x => x.Coinjoin.IsRunning)
 			.ToCollection()
-			.Select(x => x.Any())
+			.Select(x => x.Count != 0)
 			.BindTo(this, x => x.IsCoinJoinActive);
 
 		Notifications.StartListening();

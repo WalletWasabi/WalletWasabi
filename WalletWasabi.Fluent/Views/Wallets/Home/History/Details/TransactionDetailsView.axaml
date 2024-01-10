@@ -65,13 +65,13 @@
 
       <Separator IsVisible="{Binding IsFeeVisible}" />
 
-      <!-- Fee -->
+      <!-- Fee Rate-->
       <c:PreviewItem IsVisible="{Binding !!FeeRate}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee Rate"
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding FeeRate}" />
+          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:F1} sat/vByte'}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

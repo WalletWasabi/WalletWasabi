@@ -34,23 +34,6 @@ public class TransactionFactory
 	private string Password { get; }
 	private ITransactionStore TransactionStore { get; }
 
-	/// <exception cref="ArgumentException"/>
-	/// <exception cref="ArgumentNullException"/>
-	/// <exception cref="ArgumentOutOfRangeException"/>
-	public BuildTransactionResult BuildTransaction(
-		PaymentIntent payments,
-		FeeRate feeRate,
-		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null,
-		Func<LockTime>? lockTimeSelector = null,
-		bool allowUnconfirmed = true,
-		bool allowDoubleSpend = false,
-		bool tryToSign = true)
-	{
-		TransactionParameters parameters = new(payments, feeRate, allowUnconfirmed, allowDoubleSpend, allowedInputs, tryToSign);
-		return BuildTransaction(parameters, lockTimeSelector, payjoinClient);
-	}
-
 	public BuildTransactionResult BuildTransaction(
 		TransactionParameters parameters,
 		Func<LockTime>? lockTimeSelector = null,

@@ -7,18 +7,9 @@ namespace WalletWasabi.Fluent.State;
 /// </summary>
 public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
-	private StateContext _currentState;
 	private readonly Dictionary<TState, StateContext> _states;
+	private StateContext _currentState;
 	private OnTransitionedDelegate? _onTransitioned;
-
-	public delegate void OnTransitionedDelegate(TState from, TState to);
-
-	public TState State => _currentState.StateId;
-
-	public bool IsInState(TState state)
-	{
-		return IsAncestorOf(_currentState.StateId, state);
-	}
 
 	public StateMachine(TState initialState)
 	{
@@ -27,6 +18,15 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		RegisterStates();
 
 		_currentState = Configure(initialState);
+	}
+
+	public delegate void OnTransitionedDelegate(TState from, TState to);
+
+	public TState State => _currentState.StateId;
+
+	public bool IsInState(TState state)
+	{
+		return IsAncestorOf(_currentState.StateId, state);
 	}
 
 	private void RegisterStates()
@@ -46,9 +46,9 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private bool IsAncestorOf(TState state, TState parent)
 	{
-		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? value))
+		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? stateContext))
 		{
-			StateContext current = value;
+			StateContext current = stateContext;
 
 			while (true)
 			{
@@ -84,7 +84,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			var destination = _currentState.GetDestination(trigger);
 
-			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext? value) && value.Parent is { } parent && !IsInState(parent.StateId))
+			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext? stateContext) && stateContext.Parent is { } parent && !IsInState(parent.StateId))
 			{
 				Goto(parent.StateId);
 			}
@@ -115,7 +115,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private void Goto(TState state, bool exit = true, bool enter = true)
 	{
-		if (_states.ContainsKey(state))
+		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? stateContext))
 		{
 			if (exit && !IsAncestorOf(state, _currentState.StateId))
 			{
@@ -124,7 +124,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			var old = _currentState.StateId;
 
-			_currentState = _states[state];
+			_currentState = stateContext;
 
 			_onTransitioned?.Invoke(old, _currentState.StateId);
 
@@ -143,12 +143,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		private readonly List<Action> _exitActions;
 		private readonly Dictionary<TTrigger, List<Action>> _triggerActions;
 
-		public TState StateId { get; }
-
-		public StateContext? Parent { get; private set; }
-
-		internal TState? InitialTransitionTo { get; private set; }
-
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
 			_owner = owner;
@@ -159,6 +153,12 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_triggerActions = new();
 			_permittedTransitions = new();
 		}
+
+		public TState StateId { get; }
+
+		public StateContext? Parent { get; private set; }
+
+		internal TState? InitialTransitionTo { get; private set; }
 
 		public StateContext InitialTransition(TState? state)
 		{
@@ -191,11 +191,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_entryActions.Add(action);
 
 			return this;
-		}
-
-		public StateContext Custom(Func<StateContext, StateContext> custom)
-		{
-			return custom(this);
 		}
 
 		public StateContext OnTrigger(TTrigger trigger, Action action)

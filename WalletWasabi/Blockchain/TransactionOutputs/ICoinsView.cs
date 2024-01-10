@@ -1,27 +1,18 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using NBitcoin;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public interface ICoinsView : IEnumerable<SmartCoin>
 {
-	ICoinsView AtBlockHeight(Height height);
-
 	ICoinsView Available();
 
-	ICoinsView CoinJoinInProcess();
-
 	ICoinsView Confirmed();
-
-	ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 
 	ICoinsView CreatedBy(uint256 txid);
 
 	ICoinsView SpentBy(uint256 txid);
-
-	SmartCoin[] ToArray();
 
 	Money TotalAmount();
 

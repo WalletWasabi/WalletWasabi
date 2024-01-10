@@ -99,7 +99,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 		var uiContextReferencesInClass =
 			classDeclaration.GetUiContextReferences(context.SemanticModel);
 
-		if (uiContextReferencesInClass.Any() && !ctor.IsPrivate())
+		if (uiContextReferencesInClass.Count != 0 && !ctor.IsPrivate())
 		{
 			var location = ctor.GetLocation();
 			var diagnostic = Diagnostic.Create(Rule2, location);

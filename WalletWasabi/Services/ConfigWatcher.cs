@@ -14,8 +14,8 @@ public class ConfigWatcher : PeriodicRunner
 		config.AssertFilePathSet();
 	}
 
-	public WabiSabiConfig Config { get; }
-	public Action ExecuteWhenChanged { get; }
+	private WabiSabiConfig Config { get; }
+	private Action ExecuteWhenChanged { get; }
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{

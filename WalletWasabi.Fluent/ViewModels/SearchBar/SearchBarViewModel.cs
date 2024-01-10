@@ -30,7 +30,7 @@ public partial class SearchBarViewModel : ReactiveObject
 
 		itemsObservable
 			.ToCollection()
-			.Select(x => x.Any())
+			.Select(x => x.Count != 0)
 			.BindTo(this, x => x.HasResults);
 
 		ActivateFirstItemCommand = ReactiveCommand.Create(
