@@ -378,26 +378,6 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public async Task IncludePrivateFundsAsync()
-	{
-		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);
-
-		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
-
-		await selection.ResetAsync(pockets.ToArray());
-
-		Assert.True(selection.EnoughSelected);
-
-		var output = selection.GetUsedPockets();
-		Assert.Contains(pocket1, output);
-		Assert.Contains(pocket2, output);
-		Assert.DoesNotContain(pocket3, output);
-	}
-
-	[Fact]
 	public async Task IncludePrivateAndSemiPrivateFundsAsync()
 	{
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);

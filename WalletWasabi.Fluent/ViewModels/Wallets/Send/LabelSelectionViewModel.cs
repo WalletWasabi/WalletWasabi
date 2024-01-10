@@ -287,14 +287,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var usedPockets = GetUsedPockets();
 		var usedPocketsLabels = new LabelsArray(usedPockets.SelectMany(p => p.Labels));
 
-		if (usedPocketsLabels != _info.Recipient || !await IsPocketEnoughAsync(usedPockets))
+		if (!usedPocketsLabels.Equals(_info.Recipient, StringComparer.OrdinalIgnoreCase) || !await IsPocketEnoughAsync(usedPockets))
 		{
 			isPrivateNeeded = true;
-
-			if (!await IsPocketEnoughAsync(Pocket.Merge(usedPockets, _privatePocket)))
-			{
-				isSemiPrivateNeeded = true;
-			}
+			isSemiPrivateNeeded = !(((usedPockets.Length == 1 && usedPockets[0] == _privatePocket) || usedPockets.Length == 0) && await IsPocketEnoughAsync(_privatePocket));
 		}
 
 		return (isPrivateNeeded, isSemiPrivateNeeded);
