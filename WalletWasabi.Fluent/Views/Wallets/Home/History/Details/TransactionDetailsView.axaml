@@ -5,6 +5,7 @@
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:details1="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History.Details"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -36,16 +37,23 @@
       <Separator />
 
       <!-- Destination Address -->
-      <c:PreviewItem Icon="{StaticResource transceive_regular}"
+      <c:PreviewItem Icon="{StaticResource transceive_regular}" CopyableContent="{Binding SingleAddress}"
                      Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
         <ItemsControl ItemsSource="{Binding DestinationAddresses}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <c:PreviewItem CopyableContent="{Binding}" HorizontalAlignment="Stretch">
-                <c:PrivacyContentControl>
-                  <TextBlock Classes="monoSpaced" Text="{Binding}" />
-                </c:PrivacyContentControl>
-              </c:PreviewItem>
+              <Panel>
+                <c:PreviewItem x:Name="SingleItem" IsVisible="{Binding $parent[details1:TransactionDetailsView].((details:TransactionDetailsViewModel)DataContext).SingleAddress, Converter={x:Static ObjectConverters.IsNotNull}}" HorizontalAlignment="Stretch">
+                  <c:PrivacyContentControl>
+                    <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                  </c:PrivacyContentControl>
+                </c:PreviewItem>
+                <c:PreviewItem CopyableContent="{Binding}" IsVisible="{Binding !#SingleItem.IsVisible}" HorizontalAlignment="Stretch">
+                  <c:PrivacyContentControl>
+                    <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                  </c:PrivacyContentControl>
+                </c:PreviewItem>
+              </Panel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
