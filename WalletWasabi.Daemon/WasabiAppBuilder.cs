@@ -54,7 +54,7 @@ public class WasabiApplication
 			return ExitCode.Ok;
 		}
 
-		if (AppConfig.MustCheckSingleInstance && !AppConfig.Arguments.Contains("--disableSingleInstanceCheck"))
+		if (AppConfig.MustCheckSingleInstance)
 		{
 			var instanceResult = await SingleInstanceChecker.CheckSingleInstanceAsync();
 			if (instanceResult == WasabiInstanceStatus.AnotherInstanceIsRunning)
