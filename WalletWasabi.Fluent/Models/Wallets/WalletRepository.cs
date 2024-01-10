@@ -85,7 +85,7 @@ public partial class WalletRepository : ReactiveObject
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
-		return WalletHelpers.ValidateWalletName(walletName);
+		return Services.WalletManager.ValidateWalletName(walletName);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)

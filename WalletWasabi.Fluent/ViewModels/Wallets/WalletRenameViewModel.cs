@@ -38,7 +38,7 @@ public partial class WalletRenameViewModel : RoutableViewModel
 	{
 		try
 		{
-			wallet.Name = NewWalletName;
+			wallet.Rename(NewWalletName);
 			Navigate().Back();
 		}
 		catch

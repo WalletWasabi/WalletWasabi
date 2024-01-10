@@ -8,7 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -76,20 +75,7 @@ public partial class WalletModel : ReactiveObject
 
 	public Guid Id => Wallet.Id;
 
-	public string Name
-	{
-		get => Wallet.WalletName;
-		set
-		{
-			if (value == Wallet.WalletName)
-			{
-				return;
-			}
-
-			RenameWallet(value, Wallet.WalletName);
-			this.RaisePropertyChanged();
-		}
-	}
+	public string Name => Wallet.WalletName;
 
 	public Network Network => Wallet.Network;
 
@@ -143,39 +129,9 @@ public partial class WalletModel : ReactiveObject
 		return nextReceiveAddress;
 	}
 
-	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
-
-	private static void MoveFile(string sourceFileName, string destFileName)
+	public void Rename(string newWalletName)
 	{
-		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
-		File.Move(sourceFileName, destFileName);
-	}
-
-	private void RenameWallet(string walletWalletName, string previousName)
-	{
-		if (!IsValidWalletName(walletWalletName))
-		{
-			Logger.LogWarning($"Invalid name '{walletWalletName}' when attempting to rename '{previousName}'");
-			throw new InvalidOperationException($"Invalid name {walletWalletName}");
-		}
-
-		var walletDir = Services.WalletManager.WalletDirectories.WalletsDir;
-		MoveFile(WalletFile(walletDir, previousName), WalletFile(walletDir, walletWalletName));
-		try
-		{
-			var backupDir = Services.WalletManager.WalletDirectories.WalletsBackupDir;
-			MoveFile(WalletFile(backupDir, previousName), WalletFile(backupDir, walletWalletName));
-		}
-		catch (Exception e)
-		{
-			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
-		}
-
-		Wallet.KeyManager.SetFilePath(WalletFile(walletDir, walletWalletName));
-	}
-
-	private static bool IsValidWalletName(string value)
-	{
-		return !WalletHelpers.ValidateWalletName(value).HasValue;
+		Services.WalletManager.RenameWallet(Wallet, Wallet.WalletName);
+		this.RaisePropertyChanged(nameof(Name));
 	}
 }

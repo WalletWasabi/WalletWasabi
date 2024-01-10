@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -113,6 +114,71 @@ public class WalletManager : IWalletProvider
 			}
 		}
 	}
+
+	public void RenameWallet(Wallet wallet, string newWalletName)
+	{
+		if (newWalletName == wallet.WalletName)
+		{
+			return;
+		}
+
+		var previousName = wallet.WalletName;
+
+		if (ValidateWalletName(newWalletName).HasValue)
+		{
+			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{previousName}'");
+			throw new InvalidOperationException($"Invalid name {newWalletName}");
+		}
+
+		var walletDir = WalletDirectories.WalletsDir;
+		MoveFile(WalletFile(walletDir, previousName), WalletFile(walletDir, newWalletName));
+		try
+		{
+			var backupDir = WalletDirectories.WalletsBackupDir;
+			MoveFile(WalletFile(backupDir, previousName), WalletFile(backupDir, newWalletName));
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+		}
+
+		wallet.KeyManager.SetFilePath(WalletFile(walletDir, newWalletName));
+	}
+
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
+	{
+		string walletFilePath = Path.Combine(WalletDirectories.WalletsDir, $"{walletName}.json");
+
+		if (string.IsNullOrEmpty(walletName))
+		{
+			return (ErrorSeverity.Error, "The name cannot be empty");
+		}
+
+		if (walletName.IsTrimmable())
+		{
+			return (ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+		}
+
+		if (File.Exists(walletFilePath))
+		{
+			return (ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+		}
+
+		if (!WalletGenerator.ValidateWalletName(walletName))
+		{
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
+		}
+
+		return null;
+	}
+
+	private static void MoveFile(string sourceFileName, string destFileName)
+	{
+		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
+		File.Move(sourceFileName, destFileName);
+	}
+
+	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
 
 	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
 
