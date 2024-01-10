@@ -163,12 +163,13 @@ public class SmartCoinSelectorTests
 		{
 			var key = KeyManager.GenerateNewKey(new LabelsArray(targetCoin.Cluster), KeyState.Clean, false);
 
-			if (!generatedKeyGroup.ContainsKey(targetCoin.Cluster))
+			if (!generatedKeyGroup.TryGetValue(targetCoin.Cluster, out List<(HdPubKey key, decimal amount)>? value))
 			{
-				generatedKeyGroup.Add(targetCoin.Cluster, new());
+				value = new();
+				generatedKeyGroup.Add(targetCoin.Cluster, value);
 			}
 
-			generatedKeyGroup[targetCoin.Cluster].Add((key, targetCoin.amount));
+			value.Add((key, targetCoin.amount));
 		}
 
 		var coinPairClusters = generatedKeyGroup.GroupBy(x => x.Key)

@@ -41,7 +41,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
-		History = new HistoryViewModel(UiContext, this, WalletModel);
+		History = new HistoryViewModel(UiContext, WalletModel);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)

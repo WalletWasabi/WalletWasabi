@@ -5,6 +5,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Bases;
@@ -21,7 +22,7 @@ public class ConfigManagerTests
 	public async Task CheckFileChangeTestAsync()
 	{
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
-		string configPath = Path.Join(workDirectory, "testConfig.json");
+		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
 		// Create config and store it.
 		WabiSabiConfig config = new();
@@ -55,10 +56,9 @@ public class ConfigManagerTests
 
 			Assert.Equal(expectedFileContents, actualFileContents);
 		}
-	}
 
-	private static string GetVanillaConfigString(decimal coordinationFeeRate = 0.003m)
-		=> $$"""
+		static string GetVanillaConfigString(decimal coordinationFeeRate = 0.003m)
+				=> $$"""
 			{
 			  "ConfirmationTarget": 108,
 			  "DoSSeverity": "0.10",
@@ -110,6 +110,7 @@ public class ConfigManagerTests
 			  "DelayTransactionSigning": false
 			}
 			""".ReplaceLineEndings("\n");
+	}
 
 	private static string ReadAllTextAndNormalize(string configPath)
 		=> File.ReadAllText(configPath).ReplaceLineEndings("\n");

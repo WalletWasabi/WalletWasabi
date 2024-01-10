@@ -105,9 +105,8 @@ public class AnalyzedTransaction : SmartTransaction
 		// Analyze transactions in topological sorting
 		void AnalyzeRecursivelyHelper(SmartTransaction transaction)
 		{
-			if (!analyzedTransactions.Contains(transaction))
+			if (analyzedTransactions.Add(transaction))
 			{
-				analyzedTransactions.Add(transaction);
 				foreach (SmartCoin walletInput in transaction.WalletInputs)
 				{
 					AnalyzeRecursivelyHelper(walletInput.Transaction);

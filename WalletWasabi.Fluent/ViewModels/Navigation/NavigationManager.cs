@@ -32,17 +32,17 @@ public static class NavigationManager
 
 	public static async Task<RoutableViewModel?> MaterializeViewModelAsync(NavigationMetaData metaData)
 	{
-		if (NavigationEntries.ContainsKey(metaData))
+		if (NavigationEntries.TryGetValue(metaData, out InstanceGeneratorBase? generator))
 		{
-			if (NavigationEntries[metaData] is InstanceGenerator instanceGenerator)
+			if (generator is InstanceGenerator instanceGenerator)
 			{
 				return instanceGenerator.Generate;
 			}
-			else if (NavigationEntries[metaData] is SynchronousInstanceGenerator synchronousInstanceGenerator)
+			else if (generator is SynchronousInstanceGenerator synchronousInstanceGenerator)
 			{
 				return synchronousInstanceGenerator.Generate();
 			}
-			else if (NavigationEntries[metaData] is AsyncInstanceGenerator asyncInstanceGenerator)
+			else if (generator is AsyncInstanceGenerator asyncInstanceGenerator)
 			{
 				return await asyncInstanceGenerator.Generate();
 			}

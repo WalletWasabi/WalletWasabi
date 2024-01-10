@@ -130,7 +130,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				_info = previous.Item2;
 				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
-				CanUndo = _undoHistory.Any();
+				CanUndo = _undoHistory.Count != 0;
 			}
 		});
 

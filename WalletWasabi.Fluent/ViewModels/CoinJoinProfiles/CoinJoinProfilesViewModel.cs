@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "Coinjoin Strategy", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
+	private readonly IWalletSettingsModel _walletSettings;
 	private readonly WalletCreationOptions? _options;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
@@ -26,6 +27,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(OnManualSetupAsync);
 
 		_selectedProfile = walletSettings.IsNewWallet ? Profiles[1] : IdentifySelectedProfile(walletSettings);
+		_walletSettings = walletSettings;
 		_options = options;
 	}
 
@@ -59,12 +61,31 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var result = await Navigate().To().ManualCoinJoinProfileDialog(current).GetResultAsync();
 
-		if (result is { } && result.Profile != current)
+		if (_options is null)
 		{
-			SelectedProfile = null;
-			SelectedManualProfile = result.Profile;
+			var result = await Navigate().To().ManualCoinJoinProfileDialog(current).GetResultAsync();
+
+			if (result is { } && result.Profile != current)
+			{
+				SelectedProfile = null;
+				SelectedManualProfile = result.Profile;
+			}
+		}
+		else
+		{
+			var result = await Navigate().To().NewWalletAdvancedOptionsDialog(current, _walletSettings.AutoCoinjoin).GetResultAsync();
+
+			if (result is { })
+			{
+				if (result.CoinjoinProfileResult.Profile != current)
+				{
+					SelectedProfile = null;
+					SelectedManualProfile = result.CoinjoinProfileResult.Profile;
+				}
+
+				_walletSettings.AutoCoinjoin = result.IsAutoCoinjoinEnabled;
+			}
 		}
 	}
 
@@ -81,7 +102,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(walletSettings, _options);
+			Navigate().To().AddedWalletPage(walletSettings, _options!);
 		}
 		else
 		{

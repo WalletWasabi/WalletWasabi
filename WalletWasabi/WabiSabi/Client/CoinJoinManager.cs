@@ -305,7 +305,7 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
-		var immatureCoins = coinCandidates.Where(x => x.IsImmature(bestHeight)).ToArray();
+		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
 
@@ -554,7 +554,7 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		// If any coins were marked for banning, store them to file
-		if (finishedCoinJoin.BannedCoins.Any())
+		if (finishedCoinJoin.BannedCoins.Count != 0)
 		{
 			foreach (var info in finishedCoinJoin.BannedCoins)
 			{

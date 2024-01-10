@@ -14,11 +14,11 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	private readonly IWalletSettingsModel _walletSettings;
 	private IWalletModel? _wallet;
 
-	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions? options)
+	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions options)
 	{
 		_walletSettings = walletSettings;
 
-		WalletName = options!.WalletName;
+		WalletName = options.WalletName;
 		WalletType = walletSettings.WalletType;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);

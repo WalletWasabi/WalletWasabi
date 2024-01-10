@@ -18,12 +18,12 @@ internal class AddressTestingMocks
 	{
 		private readonly IObservableCache<IAddress, string> _addresses;
 
-		public event PropertyChangedEventHandler? PropertyChanged;
-
 		public TestWallet(IObservableCache<IAddress, string> addresses)
 		{
 			_addresses = addresses;
 		}
+
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel AddressesModel => new TestAddressesModel(_addresses);
 		public Guid Id { get; }
