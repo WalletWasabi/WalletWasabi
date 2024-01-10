@@ -27,7 +27,7 @@
         <c:InfoMessage>
           <DockPanel>
             <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
-            <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time. Your password is also required to restore your backup, do not forget it." />
+            <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
           </DockPanel>
         </c:InfoMessage>
         <c:InfoMessage>
