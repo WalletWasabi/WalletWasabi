@@ -45,13 +45,6 @@ public class BlockchainController : ControllerBase
 
 	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
 	public static object TransactionHexCacheLock { get; } = new();
-
-	public Dictionary<uint256, Money> TransactionFeeCache { get; } = new();
-	public object TransactionFeeCacheLock { get; } = new();
-
-	public Dictionary<uint256, Transaction> ParentTransactions { get; } = new();
-	public object ParentTransactionsLock { get; } = new();
-
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
@@ -428,50 +421,40 @@ public class BlockchainController : ControllerBase
 	[HttpGet("get-transaction-fee")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetTransactionFeeAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	public async Task<Money> GetTransactionFeeAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
 		uint256 txID = new(transactionId);
 
-		lock (TransactionFeeCacheLock)
-		{
-			if (TransactionFeeCache.TryGetValue(txID, out Money? value))
-			{
-				return Ok(value);
-			}
-		}
+		var cacheKey = $"{txID}";
+		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3) };
 
+		return await Cache.GetCachedResponseAsync(
+			cacheKey,
+			action: (string request, CancellationToken token) => GetTransactionFeeAsync(txID, token),
+			options: cacheOptions,
+			cancellationToken);
+	}
+
+	private async Task<Money> GetTransactionFeeAsync(uint256 txID, CancellationToken cancellationToken)
+	{
 		List<Coin> inputs = new();
+		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
 
 		var tx = await RpcClient.GetRawTransactionAsync(txID, true, cancellationToken);
 
-		lock (ParentTransactionsLock)
+		foreach (var input in tx.Inputs)
 		{
-			foreach (var input in tx.Inputs)
+			if (!parentTransactionsLocalCache.ContainsKey(input.PrevOut.Hash))
 			{
-				if (!ParentTransactions.ContainsKey(input.PrevOut.Hash))
-				{
-					var parentTx = RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken).WaitAndUnwrapException();
-					if (ParentTransactions.TryAdd(input.PrevOut.Hash, parentTx) && ParentTransactions.Count > 1000)
-					{
-						ParentTransactions.Remove(ParentTransactions.Keys.First());
-					}
-				}
-
-				TxOut txOut = ParentTransactions[input.PrevOut.Hash].Outputs[input.PrevOut.N];
-				inputs.Add(new Coin(input.PrevOut, txOut));
+				var parentTx = RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken).WaitAndUnwrapException();
+				parentTransactionsLocalCache.TryAdd(input.PrevOut.Hash, parentTx);
 			}
+			TxOut txOut = parentTransactionsLocalCache[input.PrevOut.Hash].Outputs[input.PrevOut.N];
+			inputs.Add(new Coin(input.PrevOut, txOut));
 		}
 
 		Money fee = tx.GetFee(inputs.ToArray());
 
-		lock (TransactionFeeCacheLock)
-		{
-			if (TransactionFeeCache.TryAdd(txID, fee) && TransactionFeeCache.Count > 1000)
-			{
-				TransactionFeeCache.Remove(TransactionFeeCache.Keys.First());
-			}
-		}
-
-		return Ok(fee);
+		return fee;
 	}
 }
