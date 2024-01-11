@@ -265,7 +265,7 @@ public class TransactionProcessorTests
 		// Transaction store assertions
 		Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 		Assert.Equal(tx0, mempool.First());
 		Assert.Equal(tx1, mempool.Last());
 	}
@@ -784,7 +784,7 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
@@ -826,7 +826,7 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 		Assert.Contains(tx0, mempool);
 		Assert.Contains(tx1, mempool);
 		Assert.Contains(tx2, mempool);
