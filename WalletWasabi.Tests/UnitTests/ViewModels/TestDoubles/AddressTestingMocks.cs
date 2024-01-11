@@ -49,6 +49,8 @@ internal class AddressTestingMocks
 			throw new NotSupportedException();
 		}
 
+		public void Rename(string newWalletName) => throw new NotSupportedException();
+
 		public IWalletStatsModel GetWalletStats() => throw new NotSupportedException();
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
