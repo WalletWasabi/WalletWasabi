@@ -22,7 +22,8 @@ namespace WalletWasabi.Wallets;
 
 public class TransactionFeeProvider : BackgroundService
 {
-	private readonly int _maximumDelayInSeconds = 120;
+	private const int MaximumDelayInSeconds = 120;
+	private const int MaximumRequestsInParallel = 3;
 
 	public TransactionFeeProvider(WasabiHttpClientFactory httpClientFactory)
 	{
@@ -32,7 +33,7 @@ public class TransactionFeeProvider : BackgroundService
 	public event EventHandler<EventArgs>? RequestedFeeArrived;
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
-	public ConcurrentQueue<uint256> Queue { get; } = new();
+	public Channel<uint256> TransactionIdChannel { get; } = Channel.CreateUnbounded<uint256>();
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: 3);
 
 	private IHttpClient HttpClient { get; }
@@ -90,7 +91,7 @@ public class TransactionFeeProvider : BackgroundService
 	{
 		if (!tx.Confirmed && tx.ForeignInputs.Count != 0)
 		{
-			Queue.Enqueue(tx.GetHash());
+			TransactionIdChannel.Writer.TryWrite(tx.GetHash());
 			Semaphore.Release(1);
 		}
 	}
@@ -101,19 +102,16 @@ public class TransactionFeeProvider : BackgroundService
 		{
 			await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
 
-			if (!Queue.TryDequeue(out var txidToFetch))
+			if (TransactionIdChannel.Reader.TryRead(out var txidToFetch) && txidToFetch is not null)
 			{
-				continue;
+				_ = ScheduledTask(txidToFetch);
 			}
-
-			// We are not observing the result, because it cannot throw and we are retrying within the function
-			_ = ScheduledTask(txidToFetch);
 		}
 
 		async Task ScheduledTask(uint256 txid)
 		{
 			var random = new Random();
-			var delayInSeconds = random.Next(_maximumDelayInSeconds);
+			var delayInSeconds = random.Next(MaximumDelayInSeconds);
 			var delay = TimeSpan.FromSeconds(delayInSeconds);
 
 			await Task.Delay(delay, cancel).ConfigureAwait(false);
