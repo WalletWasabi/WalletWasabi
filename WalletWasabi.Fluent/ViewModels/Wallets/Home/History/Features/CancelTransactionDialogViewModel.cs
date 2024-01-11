@@ -59,7 +59,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 				var (title, caption) = ("Success", "Your transaction has been successfully cancelled.");
 
 				// TODO: Remove this after SendSuccessViewModel is decoupled
-				var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).Wallet;
+				var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.Name == _wallet.Name).Wallet;
 
 				UiContext.Navigate().To().SendSuccess(cancellingTransaction.CancelTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}

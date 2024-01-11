@@ -75,7 +75,7 @@ public partial class WalletModel : ReactiveObject
 
 	public WalletId Id => Wallet.Id;
 
-	public string Name => Wallet.WalletName;
+	public string Name => Wallet.Name;
 
 	public Network Network => Wallet.Network;
 

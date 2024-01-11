@@ -194,7 +194,7 @@ public partial class WalletRepository : ReactiveObject
 		{
 			if (!object.ReferenceEquals(existing.Wallet, wallet))
 			{
-				throw new InvalidOperationException($"Different instance of: {wallet.WalletName}");
+				throw new InvalidOperationException($"Different instance of: {wallet.Name}");
 			}
 			return existing;
 		}

@@ -99,7 +99,7 @@ public class WalletManager : IWalletProvider
 				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
 				lock (Lock)
 				{
-					if (Wallets.Any(w => w.WalletName == walletName))
+					if (Wallets.Any(w => w.Name == walletName))
 					{
 						continue;
 					}
@@ -117,12 +117,12 @@ public class WalletManager : IWalletProvider
 
 	public void RenameWallet(Wallet wallet, string newWalletName)
 	{
-		if (newWalletName == wallet.WalletName)
+		if (newWalletName == wallet.Name)
 		{
 			return;
 		}
 
-		var previousName = wallet.WalletName;
+		var previousName = wallet.Name;
 
 		if (ValidateWalletName(newWalletName).HasValue)
 		{
@@ -239,9 +239,9 @@ public class WalletManager : IWalletProvider
 		{
 			try
 			{
-				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
+				Logger.LogInfo($"Starting wallet '{wallet.Name}'...");
 				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
-				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
+				Logger.LogInfo($"Wallet '{wallet.Name}' started.");
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
@@ -311,12 +311,12 @@ public class WalletManager : IWalletProvider
 		{
 			if (Wallets.Any(w => w.Id == wallet.Id))
 			{
-				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
+				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.Name}.");
 			}
 			Wallets.Add(wallet);
 		}
 
-		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
+		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.Name).walletFilePath))
 		{
 			wallet.KeyManager.ToFile();
 		}
@@ -383,7 +383,7 @@ public class WalletManager : IWalletProvider
 						keyManager.ToFile(backupWalletFilePath);
 						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
+						Logger.LogInfo($"'{wallet.Name}' wallet is stopped.");
 					}
 
 					wallet.Dispose();
