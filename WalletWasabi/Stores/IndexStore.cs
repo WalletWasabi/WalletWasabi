@@ -19,7 +19,7 @@ namespace WalletWasabi.Stores;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class IndexStore : IAsyncDisposable
+public class IndexStore : IIndexStore, IAsyncDisposable
 {
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
@@ -294,11 +294,11 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task<FilterModel[]> FetchBatchAsync(Height fromHeight, int batchSize, CancellationToken cancellationToken)
+	public async Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken)
 	{
 		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return IndexStorage.Fetch(fromHeight: fromHeight.Value, limit: batchSize).ToArray();
+			return IndexStorage.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
 		}
 	}
 
