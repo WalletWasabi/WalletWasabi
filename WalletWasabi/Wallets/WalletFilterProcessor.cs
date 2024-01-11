@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,7 +121,7 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		try
 		{
-			PriorityQueue<Task<FilterPreProcessorResult>, Priority> preProcessTasks = new ();
+			PriorityQueue<Task<FilterPreProcessorResult>, Priority> preProcessTasks = new (Comparer);
 
 			while (true)
 			{
@@ -164,14 +165,17 @@ public class WalletFilterProcessor : BackgroundService
 						var toPreProcessHeight = toProcessHeight + (uint)preProcessTasks.UnorderedItems.Count(x => x.Priority.SyncType == request.SyncType);
 						for (uint i = 0; i < availablePreProcessSlots; i++)
 						{
-							var filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(toPreProcessHeight, cancellationToken).ConfigureAwait(false);
-							preProcessTasks.Enqueue(PreProcessFilterModelAsync(filter, request.SyncType, cancellationToken), new Priority(request.SyncType, toPreProcessHeight));
-
-							toPreProcessHeight++;
 							if (toPreProcessHeight > BitcoinStore.SmartHeaderChain.TipHeight)
 							{
 								break;
 							}
+							Stopwatch sw = Stopwatch.StartNew();
+							var filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(toPreProcessHeight, cancellationToken).ConfigureAwait(false);
+							Logger.LogWarning($"{sw.Elapsed}");
+							preProcessTasks.Enqueue(Task.Run(() => PreProcessFilterModelAsync(filter, request.SyncType, cancellationToken), cancellationToken), new Priority(request.SyncType, toPreProcessHeight));
+							Logger.LogWarning($"{sw.Elapsed}");
+							Logger.LogError($"Task {toPreProcessHeight} initiated");
+							toPreProcessHeight++;
 						}
 
 						// TODO: Reorgs??
@@ -300,6 +304,7 @@ public class WalletFilterProcessor : BackgroundService
 
 		if (matchFound)
 		{
+			Logger.LogWarning($"{height}");
 			Block currentBlock = await BlockDownloadService.BlockProvider.GetBlockAsync(filter.Header.BlockHash, cancel);
 
 			var txsToProcess = new List<SmartTransaction>();

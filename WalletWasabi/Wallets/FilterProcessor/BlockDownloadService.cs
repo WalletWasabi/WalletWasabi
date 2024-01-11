@@ -20,6 +20,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		BlockProvider = blockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
+		Task.Run(() => StartAsync(CancellationToken.None));
 	}
 
 	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
@@ -135,6 +136,7 @@ public class BlockDownloadService : BackgroundService
 							{
 								try
 								{
+									Logger.LogInfo($"{request.BlockHeight}");
 									Block? block = await BlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 
 									return new RequestResult(request.BlockHash, priority, block, request.Tcs);
