@@ -71,10 +71,10 @@ public class BlockDownloadServiceTests
 				.ReturnsAsync(block4);
 
 			await service.StartAsync(testCts.Token);
-			service.Enqueue(blockHash1, blockHeight: 610_001);
-			service.Enqueue(blockHash2, blockHeight: 610_002);
-			service.Enqueue(blockHash3, blockHeight: 610_003);
-			service.Enqueue(blockHash4, blockHeight: 610_004);
+			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001));
+			service.Enqueue(blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002));
+			service.Enqueue(blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003));
+			service.Enqueue(blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004));
 
 			await block2FirstRequestTcs.Task.WaitAsync(testCts.Token);
 			block2DelayTcs.SetResult();
@@ -134,7 +134,7 @@ public class BlockDownloadServiceTests
 
 			await service.StartAsync(testCts.Token);
 
-			service.Enqueue(blockHash1, blockHeight: 610_001);
+			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001));
 
 			// Wait for all failed attempts.
 			await block1LastFailedAttemptTcs.Task.WaitAsync(testCts.Token);
@@ -170,23 +170,23 @@ public class BlockDownloadServiceTests
 		using BlockDownloadService service = new(blockProvider, maximumParallelTasks: 3);
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
-		service.Enqueue(blockHash1, blockHeight: 610_001);
-		service.Enqueue(blockHash2, blockHeight: 610_002);
-		service.Enqueue(blockHash3, blockHeight: 610_003);
-		service.Enqueue(blockHash4, blockHeight: 610_004);
+		service.Enqueue(blockHash1, new Priority(SyncType.Complete, 610_001));
+		service.Enqueue(blockHash2, new Priority(SyncType.Complete, 610_002));
+		service.Enqueue(blockHash3, new Priority(SyncType.Complete, 610_003));
+		service.Enqueue(blockHash4, new Priority(SyncType.Complete, 610_004));
 
 		// Remove blocks >= 610_003.
 		service.RemoveBlocks(maxBlockHeight: 610_003);
 
 		BlockDownloadService.Request[] actualRequests = service.BlocksToDownload.UnorderedItems
 			.Select(x => x.Element)
-			.OrderBy(x => x.BlockHeight)
+			.OrderBy(x => x.Priority.BlockHeight)
 			.ToArray();
 
 		// Block 610_004 should be removed.
 		Assert.Equal(3, actualRequests.Length);
-		Assert.Equal(610_001u, actualRequests[0].BlockHeight);
-		Assert.Equal(610_002u, actualRequests[1].BlockHeight);
-		Assert.Equal(610_003u, actualRequests[2].BlockHeight);
+		Assert.Equal(610_001u, actualRequests[0].Priority.BlockHeight);
+		Assert.Equal(610_002u, actualRequests[1].Priority.BlockHeight);
+		Assert.Equal(610_003u, actualRequests[2].Priority.BlockHeight);
 	}
 }
