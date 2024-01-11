@@ -33,7 +33,7 @@ public class TransactionFeeProvider : BackgroundService
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
-	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0);
+	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: 3);
 
 	private IHttpClient HttpClient { get; }
 
