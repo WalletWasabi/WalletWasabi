@@ -24,22 +24,19 @@ public class TorSettings
 
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? socksPort = null, int? controlPort = null, int? owningProcessId = null)
+	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int socksPort = DefaultSocksPort, int controlPort = DefaultControlPort, int? owningProcessId = null)
 	{
-		socksPort ??= DefaultSocksPort;
-		controlPort ??= DefaultControlPort;
-
 		TorBinaryFilePath = GetTorBinaryFilePath();
 		TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
-		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort.Value);
-		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort.Value);
+		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
+		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
 
-		bool defaultWasabiTorPorts = socksPort.Value == DefaultSocksPort && controlPort.Value == DefaultControlPort;
+		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
 		CookieAuthFilePath = defaultWasabiTorPorts
 			? Path.Combine(dataDir, $"control_auth_cookie")
-			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort.Value}_{controlPort.Value}");
+			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort}_{controlPort}");
 
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
