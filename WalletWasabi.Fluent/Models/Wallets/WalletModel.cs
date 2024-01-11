@@ -131,7 +131,7 @@ public partial class WalletModel : ReactiveObject
 
 	public void Rename(string newWalletName)
 	{
-		Services.WalletManager.RenameWallet(Wallet, Wallet.WalletName);
+		Services.WalletManager.RenameWallet(Wallet, newWalletName);
 		this.RaisePropertyChanged(nameof(Name));
 	}
 }
