@@ -22,7 +22,7 @@ namespace WalletWasabi.Wallets;
 
 public class TransactionFeeProvider : BackgroundService
 {
-	private readonly TimeSpan _maximumDelay = TimeSpan.FromMinutes(2);
+	private readonly int _maximumDelayInSeconds = 120;
 
 	public TransactionFeeProvider(WasabiHttpClientFactory httpClientFactory)
 	{
@@ -106,20 +106,18 @@ public class TransactionFeeProvider : BackgroundService
 				continue;
 			}
 
-			var endTime = DateTimeOffset.UtcNow + _maximumDelay;
-			var scheduledDate = endTime.GetScheduledDates(1).First();
-
 			// We are not observing the result, because it cannot throw and we are retrying within the function
-			_ = ScheduledTask(txidToFetch, scheduledDate);
+			_ = ScheduledTask(txidToFetch);
 		}
 
-		async Task ScheduledTask(uint256 txid, DateTimeOffset date)
+		async Task ScheduledTask(uint256 txid)
 		{
-			var delay = date - DateTimeOffset.UtcNow;
-			if (delay > TimeSpan.Zero)
-			{
-				await Task.Delay(delay, cancel).ConfigureAwait(false);
-			}
+			var random = new Random();
+			var delayInSeconds = random.Next(_maximumDelayInSeconds);
+			var delay = TimeSpan.FromSeconds(delayInSeconds);
+
+			await Task.Delay(delay, cancel).ConfigureAwait(false);
+
 			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
 		}
 	}
