@@ -115,9 +115,8 @@ public static class FileDialogHelper
 		return fileTypeFilters;
 	}
 
-	public static async Task<IStorageFile?> OpenFileAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
+	public static async Task<IStorageFile?> OpenFileAsync(string title, string[] filterExtTypes, string? directory = null)
 	{
-		// TODO: initialFileName is not supported, remove the parameter
 		var storageProvider = GetStorageProvider();
 		if (storageProvider is null)
 		{
