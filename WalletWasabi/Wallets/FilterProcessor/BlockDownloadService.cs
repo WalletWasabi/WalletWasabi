@@ -11,7 +11,7 @@ namespace WalletWasabi.Wallets.FilterProcessor;
 /// <summary>
 /// Service that opportunistically downloads blocks upfront and in parallel.
 /// </summary>
-public class ParallelBlockDownloadService : BackgroundService
+public class BlockDownloadService : BackgroundService
 {
 	/// <summary>Maximum number of parallel block-downloading tasks.</summary>
 	public const int MaxParallelTasks = 5;
@@ -19,7 +19,7 @@ public class ParallelBlockDownloadService : BackgroundService
 	/// <summary>Maximum number of attempts to download a block. If it fails, we drop the block download request altogether.</summary>
 	public const int MaxFailedAttempts = 3;
 
-	public ParallelBlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
+	public BlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
 	{
 		BlockProvider = blockProvider;
 		MaximumParallelTasks = maximumParallelTasks;

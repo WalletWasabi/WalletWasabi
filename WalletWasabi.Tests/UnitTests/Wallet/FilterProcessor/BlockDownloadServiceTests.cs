@@ -10,9 +10,9 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 
 /// <summary>
-/// Tests for <see cref="ParallelBlockDownloadService"/>.
+/// Tests for <see cref="BlockDownloadService"/>.
 /// </summary>
-public class ParallelBlockDownloadServiceTests
+public class BlockDownloadServiceTests
 {
 	/// <summary>
 	/// Verifies that blocks are being downloaded in parallel. Moreover, we attempt to download a block again if it fails to download.
@@ -39,7 +39,7 @@ public class ParallelBlockDownloadServiceTests
 		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider blockProvider = mockBlockProvider.Object;
 
-		using (ParallelBlockDownloadService service = new(blockProvider, maximumParallelTasks: 3))
+		using (BlockDownloadService service = new(blockProvider, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
 			_ = mockBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
@@ -91,7 +91,7 @@ public class ParallelBlockDownloadServiceTests
 	}
 
 	/// <summary>
-	/// Verifies that a block is attempted to be downloaded at most <see cref="ParallelBlockDownloadService.MaxFailedAttempts"/> times.
+	/// Verifies that a block is attempted to be downloaded at most <see cref="BlockDownloadService.MaxFailedAttempts"/> times.
 	/// </summary>
 	[Fact]
 	public async Task MaxBlockDownloadAttemptsAsync()
@@ -109,7 +109,7 @@ public class ParallelBlockDownloadServiceTests
 		int actualAttempts = 0;
 		bool testFailed = false;
 
-		using (ParallelBlockDownloadService service = new(blockProvider, maximumParallelTasks: 3))
+		using (BlockDownloadService service = new(blockProvider, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
 			_ = mockBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
@@ -119,12 +119,12 @@ public class ParallelBlockDownloadServiceTests
 
 					switch (actualAttempts)
 					{
-						case < ParallelBlockDownloadService.MaxFailedAttempts:
+						case < BlockDownloadService.MaxFailedAttempts:
 							break;
-						case ParallelBlockDownloadService.MaxFailedAttempts:
+						case BlockDownloadService.MaxFailedAttempts:
 							block1LastFailedAttemptTcs.SetResult();
 							break;
-						case > ParallelBlockDownloadService.MaxFailedAttempts:
+						case > BlockDownloadService.MaxFailedAttempts:
 							testFailed = true; // This should never happen.
 							break;
 					}
@@ -167,7 +167,7 @@ public class ParallelBlockDownloadServiceTests
 		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider blockProvider = mockBlockProvider.Object;
 
-		using ParallelBlockDownloadService service = new(blockProvider, maximumParallelTasks: 3);
+		using BlockDownloadService service = new(blockProvider, maximumParallelTasks: 3);
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
 		service.Enqueue(blockHash1, blockHeight: 610_001);
@@ -178,7 +178,7 @@ public class ParallelBlockDownloadServiceTests
 		// Remove blocks >= 610_003.
 		service.RemoveBlocks(maxBlockHeight: 610_003);
 
-		ParallelBlockDownloadService.Request[] actualRequests = service.BlocksToDownload.UnorderedItems
+		BlockDownloadService.Request[] actualRequests = service.BlocksToDownload.UnorderedItems
 			.Select(x => x.Element)
 			.OrderBy(x => x.BlockHeight)
 			.ToArray();
