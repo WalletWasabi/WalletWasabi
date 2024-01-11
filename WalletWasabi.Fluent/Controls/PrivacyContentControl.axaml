@@ -13,7 +13,7 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="controls:PrivacyContentControl">
         <Panel>
-          <ContentPresenter Name="PART_Content"
+          <ContentPresenter Name="PART_ContentPresenter"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"

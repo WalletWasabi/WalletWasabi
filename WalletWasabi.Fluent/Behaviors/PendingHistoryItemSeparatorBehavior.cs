@@ -6,23 +6,19 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<TreeDataGridRowsPresenter>
+using System.Reactive.Linq;
+
+public class PendingHistoryItemSeparatorBehavior : DisposingBehavior<TreeDataGridRowsPresenter>
 {
 	private const string ClassName = "separator";
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is { })
 		{
-			AssociatedObject.LayoutUpdated += AssociatedObjectOnLayoutUpdated;
-		}
-	}
-
-	protected override void OnDetachedFromVisualTree()
-	{
-		if (AssociatedObject is { })
-		{
-			AssociatedObject.LayoutUpdated -= AssociatedObjectOnLayoutUpdated;
+			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.LayoutUpdated))
+				.Subscribe(
+					x => AssociatedObjectOnLayoutUpdated(x.Sender, EventArgs.Empty)).DisposeWith(disposables);
 		}
 	}
 

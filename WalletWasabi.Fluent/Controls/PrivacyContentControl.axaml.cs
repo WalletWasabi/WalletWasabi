@@ -35,13 +35,13 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
+		/*var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
 			this.WhenAnyValue(x => x.IsPointerOver),
 			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
 			this.WhenAnyValue(x => x.ForceShow));
 
 		IsContentRevealed = displayContent
-			.ReplayLastActive();
+			.ReplayLastActive();*/
 	}
 
 	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
