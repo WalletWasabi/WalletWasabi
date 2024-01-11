@@ -11,6 +11,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
@@ -85,11 +86,11 @@ public class TransactionFeeProvider : BackgroundService
 		return FeeCache.TryGetValue(txid, out fee);
 	}
 
-	public void WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
+	public void BeginRequestTransactionFee(SmartTransaction tx)
 	{
-		if (!e.Transaction.Confirmed && e.Transaction.ForeignInputs.Any())
+		if (!tx.Confirmed && tx.ForeignInputs.Count != 0)
 		{
-			Queue.Enqueue(e.Transaction.GetHash());
+			Queue.Enqueue(tx.GetHash());
 			Semaphore.Release(1);
 		}
 	}
