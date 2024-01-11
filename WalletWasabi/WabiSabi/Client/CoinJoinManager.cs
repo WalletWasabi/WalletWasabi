@@ -40,7 +40,7 @@ public class CoinJoinManager : BackgroundService
 
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
-	public ImmutableDictionary<Guid, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<Guid, ImmutableList<SmartCoin>>.Empty;
+	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	public IWalletProvider WalletProvider { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
@@ -54,13 +54,13 @@ public class CoinJoinManager : BackgroundService
 	/// The other 2 is only needed not to loose the StopWhenAllMixed and OverridePlebStop configuration.
 	/// Right now, the Shutdown prevention and the Send workflow can block the CJs.
 	/// </summary>
-	private ConcurrentDictionary<Guid, UiBlockedStateHolder> WalletsBlockedByUi { get; } = new();
+	private ConcurrentDictionary<WalletId, UiBlockedStateHolder> WalletsBlockedByUi { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
 
-	private ImmutableDictionary<Guid, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<Guid, CoinJoinClientStateHolder>.Empty;
+	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<WalletId, CoinJoinClientStateHolder>.Empty;
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
@@ -83,7 +83,7 @@ public class CoinJoinManager : BackgroundService
 		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
-	public CoinJoinClientState GetCoinjoinClientState(Guid walletId)
+	public CoinJoinClientState GetCoinjoinClientState(WalletId walletId)
 	{
 		if (CoinJoinClientStates.TryGetValue(walletId, out var coinJoinClientStateHolder))
 		{
@@ -110,12 +110,12 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
 	{
-		var trackedWallets = new Dictionary<Guid, IWallet>();
+		var trackedWallets = new Dictionary<WalletId, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
-				: ImmutableDictionary<Guid, IWallet>.Empty;
+				: ImmutableDictionary<WalletId, IWallet>.Empty;
 
 			// Notifies when a wallet meets the criteria for participating in a coinjoin.
 			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
@@ -140,7 +140,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		// This is a shared resource and that's why it is concurrent. Alternatives are locking structures,
 		// using a single lock around its access or use a channel.
-		var trackedCoinJoins = new ConcurrentDictionary<Guid, CoinJoinTracker>();
+		var trackedCoinJoins = new ConcurrentDictionary<WalletId, CoinJoinTracker>();
 		var trackedAutoStarts = new ConcurrentDictionary<IWallet, TrackedAutoStart>();
 
 		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(trackedCoinJoins, trackedAutoStarts, stoppingToken), stoppingToken);
@@ -152,7 +152,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorCoinJoinTask), monitorCoinJoinTask).ConfigureAwait(false);
 	}
 
-	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<Guid, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
+	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoordinatorIdentifier, stoppingToken);
 
@@ -422,7 +422,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private async Task MonitorAndHandlingCoinJoinFinalizationAsync(ConcurrentDictionary<Guid, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
+	private async Task MonitorAndHandlingCoinJoinFinalizationAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
 		while (!stoppingToken.IsCancellationRequested)
 		{
@@ -444,9 +444,9 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private ImmutableDictionary<Guid, ImmutableList<SmartCoin>> GetCoinsInCriticalPhase(IEnumerable<IWallet> wallets, ConcurrentDictionary<Guid, CoinJoinTracker> trackedCoinJoins)
+	private ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> GetCoinsInCriticalPhase(IEnumerable<IWallet> wallets, ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins)
 	{
-		var coinsUsedInCoinjoins = ImmutableDictionary.CreateBuilder<Guid, ImmutableList<SmartCoin>>();
+		var coinsUsedInCoinjoins = ImmutableDictionary.CreateBuilder<WalletId, ImmutableList<SmartCoin>>();
 
 		foreach (var wallet in wallets)
 		{
@@ -463,9 +463,9 @@ public class CoinJoinManager : BackgroundService
 		return coinsUsedInCoinjoins.ToImmutable();
 	}
 
-	private static ImmutableDictionary<Guid, CoinJoinClientStateHolder> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<Guid, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
+	private static ImmutableDictionary<WalletId, CoinJoinClientStateHolder> GetCoinJoinClientStates(IEnumerable<IWallet> wallets, ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts)
 	{
-		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<Guid, CoinJoinClientStateHolder>();
+		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<WalletId, CoinJoinClientStateHolder>();
 		foreach (var wallet in wallets)
 		{
 			CoinJoinClientStateHolder state = new(CoinJoinClientState.Idle, StopWhenAllMixed: true, OverridePlebStop: false, OutputWallet: wallet);
@@ -489,7 +489,7 @@ public class CoinJoinManager : BackgroundService
 		return coinJoinClientStates.ToImmutable();
 	}
 
-	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<Guid, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
+	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
 		var batchedPayments = wallet.BatchedPayments;
@@ -672,7 +672,7 @@ public class CoinJoinManager : BackgroundService
 			this,
 			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
 
-	private async Task<ImmutableDictionary<Guid, IWallet>> GetMixableWalletsAsync() =>
+	private async Task<ImmutableDictionary<WalletId, IWallet>> GetMixableWalletsAsync() =>
 		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.Id, x => x);
@@ -697,7 +697,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	public void WalletEnteredSendWorkflow(Guid walletId)
+	public void WalletEnteredSendWorkflow(WalletId walletId)
 	{
 		if (CoinJoinClientStates.TryGetValue(walletId, out var stateHolder))
 		{

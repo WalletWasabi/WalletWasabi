@@ -26,7 +26,7 @@ internal class AddressTestingMocks
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel AddressesModel => new TestAddressesModel(_addresses);
-		public Guid Id { get; }
+		public WalletId Id { get; }
 		public string Name { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		public bool IsHardwareWallet => false;

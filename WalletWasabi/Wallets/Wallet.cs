@@ -64,7 +64,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
-		Id = Guid.NewGuid();
+		Id = new WalletId(Guid.NewGuid());
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -73,7 +73,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<WalletState>? StateChanged;
 
-	public Guid Id { get; }
+	public WalletId Id { get; }
 
 	public WalletState State
 	{

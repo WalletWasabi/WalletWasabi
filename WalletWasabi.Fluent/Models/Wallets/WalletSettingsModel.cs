@@ -71,7 +71,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	/// Saves to current configuration to file.
 	/// </summary>
 	/// <returns>The unique ID of the wallet.</returns>
-	public Guid Save()
+	public WalletId Save()
 	{
 		if (_isDirty)
 		{

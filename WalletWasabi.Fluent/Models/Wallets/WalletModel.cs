@@ -73,7 +73,7 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
-	public Guid Id => Wallet.Id;
+	public WalletId Id => Wallet.Id;
 
 	public string Name => Wallet.WalletName;
 
