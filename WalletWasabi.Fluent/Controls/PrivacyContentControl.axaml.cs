@@ -1,7 +1,5 @@
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -28,6 +26,8 @@ public class PrivacyContentControl : ContentControl
 	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MaxPrivacyChars), int.MaxValue);
 
+	private readonly UiConfig _uiConfig = Services.UiConfig;
+
 	public PrivacyContentControl()
 	{
 		if (Design.IsDesignMode)
@@ -35,16 +35,14 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		/*var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
-			this.WhenAnyValue(x => x.ForceShow));
-
-		IsContentRevealed = displayContent
-			.ReplayLastActive();*/
+		IsContentRevealed = PrivacyModeHelper.DelayedRevealAndHide(
+				this.WhenAnyValue(x => x.IsPointerOver),
+				this.WhenAnyValue(x => x._uiConfig.PrivacyMode),
+				this.WhenAnyValue(x => x.ForceShow))
+			.ReplayLastActive();
 	}
 
-	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
+	public IObservable<bool> IsContentRevealed { get; }
 
 	public ReplacementMode PrivacyReplacementMode
 	{
