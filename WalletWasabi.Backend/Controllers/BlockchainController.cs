@@ -423,19 +423,19 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	public async Task<Money> GetTransactionFeeAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
-		uint256 txID = new(transactionId);
+		uint256 txId = new(transactionId);
 
-		var cacheKey = $"{txID}";
+		var cacheKey = $"{nameof(GetTransactionFeeAsync)}_{txId}";
 		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3) };
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => GetTransactionFeeAsync(txID, token),
+			action: (string request, CancellationToken token) => GetTransactionFeeNoChacheAsync(txId, token),
 			options: cacheOptions,
 			cancellationToken);
 	}
 
-	private async Task<Money> GetTransactionFeeAsync(uint256 txID, CancellationToken cancellationToken)
+	private async Task<Money> GetTransactionFeeNoChacheAsync(uint256 txID, CancellationToken cancellationToken)
 	{
 		List<Coin> inputs = new();
 		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
