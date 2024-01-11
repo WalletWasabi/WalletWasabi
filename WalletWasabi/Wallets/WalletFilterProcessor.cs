@@ -23,23 +23,6 @@ namespace WalletWasabi.Wallets;
 /// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
-	public static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
-		(x, y) =>
-		{
-			// Turbo and Complete have higher priority over NonTurbo.
-			if (x.SyncType != SyncType.NonTurbo && y.SyncType == SyncType.NonTurbo)
-			{
-				return -1;
-			}
-
-			if (y.SyncType != SyncType.NonTurbo && x.SyncType == SyncType.NonTurbo)
-			{
-				return 1;
-			}
-
-			return 0;
-		});
-
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private FilterModel? _lastProcessedFilter;
 
@@ -59,7 +42,7 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
+	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Priority.Comparer);
 
 	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
@@ -311,5 +294,4 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
-	public record Priority(SyncType SyncType);
 }
