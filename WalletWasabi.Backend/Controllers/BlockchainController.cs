@@ -440,6 +440,7 @@ public class BlockchainController : ControllerBase
 		List<Coin> inputs = new();
 		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
 
+		// TODO: Use Transaction cache.
 		var tx = await RpcClient.GetRawTransactionAsync(txID, true, cancellationToken);
 
 		foreach (var input in tx.Inputs)
