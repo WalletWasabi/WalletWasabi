@@ -3,16 +3,12 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -34,8 +30,6 @@ public class TransactionFeeProvider : BackgroundService
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
 	public Channel<uint256> TransactionIdChannel { get; } = Channel.CreateUnbounded<uint256>();
-	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: 3);
-
 	private IHttpClient HttpClient { get; }
 
 	private async Task FetchTransactionFeeAsync(uint256 txid, CancellationToken cancellationToken)
@@ -92,20 +86,32 @@ public class TransactionFeeProvider : BackgroundService
 		if (!tx.Confirmed && tx.ForeignInputs.Count != 0)
 		{
 			TransactionIdChannel.Writer.TryWrite(tx.GetHash());
-			Semaphore.Release(1);
 		}
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
+		List<Task> activeTasks = new(capacity: MaximumRequestsInParallel);
 		while (!cancel.IsCancellationRequested)
 		{
-			await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
+			if (activeTasks.Count >= MaximumRequestsInParallel)
+			{
+				continue;
+			}
 
 			if (TransactionIdChannel.Reader.TryRead(out var txidToFetch) && txidToFetch is not null)
 			{
-				_ = ScheduledTask(txidToFetch);
+				var task = Task.Run(async () => await ScheduledTask(txidToFetch).ConfigureAwait(false), cancel);
+				activeTasks.Add(task);
 			}
+
+			if (activeTasks.Count == 0)
+			{
+				continue;
+			}
+
+			var completedTask = await Task.WhenAny(activeTasks).ConfigureAwait(false);
+			activeTasks.Remove(completedTask);
 		}
 
 		async Task ScheduledTask(uint256 txid)
@@ -118,11 +124,5 @@ public class TransactionFeeProvider : BackgroundService
 
 			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
 		}
-	}
-
-	public override void Dispose()
-	{
-		Semaphore.Dispose();
-		base.Dispose();
 	}
 }
