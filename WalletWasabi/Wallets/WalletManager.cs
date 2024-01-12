@@ -122,27 +122,28 @@ public class WalletManager : IWalletProvider
 			return;
 		}
 
-		var previousName = wallet.WalletName;
-
-		if (ValidateWalletName(newWalletName).HasValue)
+		if (ValidateWalletName(newWalletName) is { } error)
 		{
-			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{previousName}'");
-			throw new InvalidOperationException($"Invalid name {newWalletName}");
+			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{error.Message}'");
+			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
 		}
 
-		var walletDir = WalletDirectories.WalletsDir;
-		MoveFile(WalletFile(walletDir, previousName), WalletFile(walletDir, newWalletName));
+		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
+		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
+
+		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
+		File.Move(currentWalletFilePath, newWalletFilePath);
+
 		try
 		{
-			var backupDir = WalletDirectories.WalletsBackupDir;
-			MoveFile(WalletFile(backupDir, previousName), WalletFile(backupDir, newWalletName));
+			File.Move(currentWalletBackupFilePath, newWalletBackupFilePath);
 		}
 		catch (Exception e)
 		{
 			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
 		}
 
-		wallet.KeyManager.SetFilePath(WalletFile(walletDir, newWalletName));
+		wallet.KeyManager.SetFilePath(newWalletFilePath);
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
@@ -171,14 +172,6 @@ public class WalletManager : IWalletProvider
 
 		return null;
 	}
-
-	private static void MoveFile(string sourceFileName, string destFileName)
-	{
-		Logger.LogInfo($"Renaming file {sourceFileName} to {destFileName}");
-		File.Move(sourceFileName, destFileName);
-	}
-
-	private static string WalletFile(string walletDir, string walletWalletName) => Path.Combine(walletDir, walletWalletName + "." + WalletDirectories.WalletFileExtension);
 
 	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
 
