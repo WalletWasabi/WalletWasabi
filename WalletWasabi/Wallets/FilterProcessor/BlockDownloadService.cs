@@ -135,23 +135,7 @@ public class BlockDownloadService : BackgroundService
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
 
-						Task<RequestResult> newTask = Task.Run(
-							async () =>
-							{
-								try
-								{
-									Block? block = await BlockProvider.TryGetBlockAsync(queuedRequest.BlockHash, cancellationToken).ConfigureAwait(false);
-
-									return new RequestResult(queuedRequest, block);
-								}
-								catch (Exception ex)
-								{
-									Logger.LogError($"Exception thrown while getting block {queuedRequest.BlockHash} (height: {queuedRequest.Priority.BlockHeight})", ex);
-									throw;
-								}
-							},
-							cancellationToken);
-
+						Task<RequestResult> newTask = GetSingleBlockAsync(queuedRequest, cancellationToken);
 						activeTasks.Add(newTask);
 					}
 				}
@@ -214,9 +198,28 @@ public class BlockDownloadService : BackgroundService
 		}
 	}
 
+	private async Task<RequestResult> GetSingleBlockAsync(Request queuedRequest, CancellationToken cancellationToken)
+	{
+		try
+		{
+			Block? block = await BlockProvider.TryGetBlockAsync(queuedRequest.BlockHash, cancellationToken).ConfigureAwait(false);
+
+			return new RequestResult(queuedRequest, block);
+		}
+		catch (OperationCanceledException)
+		{
+			return new RequestResult(queuedRequest, Block: null, RequestCancelled: true);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"Exception thrown while getting block {queuedRequest.BlockHash} (height: {queuedRequest.Priority.BlockHeight})", ex);
+			return new RequestResult(queuedRequest, Block: null);
+		}
+	}
+
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
 	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, TaskCompletionSource<IResult> Tcs);
-	private record RequestResult(Request Request, Block? Block);
+	private record RequestResult(Request Request, Block? Block, bool RequestCancelled = false);
 
 	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
 	public interface IResult { }
