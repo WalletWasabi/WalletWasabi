@@ -25,7 +25,7 @@ public class SmartBlockProviderTests
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
 		// Dummy block repository that does not gets (or stores) anything from the file-storage.
-		MockBlockRepository mockBlockRepository = new(emptyDict);
+		MockFileSystemBlockRepository mockBlockRepository = new(emptyDict);
 
 		// Rpc block provider returns nothing. Simulate that it's not enabled.
 		var mockRpcBlockProvider = new TestBlockProvider(emptyDict);

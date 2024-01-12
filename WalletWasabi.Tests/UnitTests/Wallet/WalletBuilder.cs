@@ -34,7 +34,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		Filters = node.BuildFilters();
 
-		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
+		var blockRepositoryMock = new MockFileSystemBlockRepository(node.BlockChain);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);

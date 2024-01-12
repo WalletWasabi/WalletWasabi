@@ -14,7 +14,7 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// File-system block repository is a blocks repository that keeps the blocks in the file system.
 /// </summary>
-public class FileSystemBlockRepository : IRepository<uint256, Block>
+public class FileSystemBlockRepository : IFileSystemBlockRepository
 {
 	private const double MegaByte = 1024 * 1024;
 
