@@ -133,27 +133,6 @@ public static class LinqExtensions
 			.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
 	}
 
-	public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
-	{
-		int i = 0;
-		foreach (var item in items)
-		{
-			if (count == 1)
-			{
-				yield return new T[] { item };
-			}
-			else
-			{
-				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-				{
-					yield return new T[] { item }.Concat(result);
-				}
-			}
-
-			++i;
-		}
-	}
-
 	public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
 		=> me
 			.OrderBy(x => x.Height)
