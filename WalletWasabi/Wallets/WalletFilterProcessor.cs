@@ -221,22 +221,24 @@ public class WalletFilterProcessor : BackgroundService
 	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
 	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
 	/// <returns>Keys to test against this filter.</returns>
-	private List<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
 	{
-		if (syncType == SyncType.Complete)
+		bool ScriptAlreadySpent(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
+			spendingInfo.LatestSpendingHeight is { } spendingHeight && spendingHeight < filterHeight;
+
+		bool ScriptNotSpentAtTheMoment(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
+			!ScriptAlreadySpent(spendingInfo);
+
+		var scriptsSpendingInfo = KeyManager.UnsafeGetSynchronizationInfos();
+		var scriptPubKeyAccordingSyncType = syncType switch
 		{
-			return KeyManager.UnsafeGetSynchronizationInfos().Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes).ToList();
-		}
+			SyncType.Complete => scriptsSpendingInfo,
+			SyncType.Turbo => scriptsSpendingInfo.Where(ScriptNotSpentAtTheMoment),
+			SyncType.NonTurbo => scriptsSpendingInfo.Where(ScriptAlreadySpent),
+			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
+		};
 
-		Func<HdPubKey, bool> stepPredicate = syncType == SyncType.Turbo
-			? hdPubKey => hdPubKey.LatestSpendingHeight is null || (Height)hdPubKey.LatestSpendingHeight >= filterHeight
-			: hdPubKey => hdPubKey.LatestSpendingHeight is not null && (Height)hdPubKey.LatestSpendingHeight < filterHeight;
-
-		IEnumerable<byte[]> keysToTest = KeyManager.UnsafeGetSynchronizationInfos()
-			.Where(x => stepPredicate(x.ScriptBytesHdPubKeyPair.HdPubKey))
-			.Select(x => x.ScriptBytesHdPubKeyPair.ScriptBytes);
-
-		return keysToTest.ToList();
+		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
@@ -245,9 +247,10 @@ public class WalletFilterProcessor : BackgroundService
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
 
 		var matchFound = false;
-		if (toTestKeys.Count > 0)
+		if (toTestKeys.Any())
 		{
-			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+			var compressedScriptPubKeys = toTestKeys;
+			matchFound = filter.Filter.MatchAny(compressedScriptPubKeys, filter.FilterKey);
 
 			if (matchFound)
 			{
