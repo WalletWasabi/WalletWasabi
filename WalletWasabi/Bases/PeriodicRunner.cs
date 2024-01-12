@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Socks5.Exceptions;
 
 namespace WalletWasabi.Bases;
 
@@ -104,7 +105,14 @@ public abstract class PeriodicRunner : BackgroundService
 				var info = ExceptionTracker.Process(ex);
 				if (info.IsFirst)
 				{
-					Logger.LogError(info.Exception);
+					if (info.Exception.InnerException is TorException)
+					{
+						Logger.LogWarning(ex);
+					}
+					else
+					{
+						Logger.LogError(info.Exception);
+					}
 				}
 			}
 
