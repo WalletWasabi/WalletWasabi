@@ -1,7 +1,9 @@
 using System.ComponentModel;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -35,11 +37,18 @@ public class UpdateChecker : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var newUpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
-		if (newUpdateStatus != UpdateStatus)
+		try
 		{
-			UpdateStatus = newUpdateStatus;
-			UpdateStatusChanged?.Invoke(this, newUpdateStatus);
+			var newUpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			if (newUpdateStatus != UpdateStatus)
+			{
+				UpdateStatus = newUpdateStatus;
+				UpdateStatusChanged?.Invoke(this, newUpdateStatus);
+			}
+		}
+		catch (HttpRequestException e)
+		{
+			Logger.LogWarning(e);
 		}
 	}
 
