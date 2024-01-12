@@ -25,7 +25,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		// TODO: Finish partial refactor
 		// Wallet property must be removed
-		Wallet = Services.WalletManager.GetWallets(false).First(x => x.Name == walletModel.Name);
+		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
 
 		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)

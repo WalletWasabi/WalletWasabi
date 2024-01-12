@@ -130,7 +130,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 		var info = new JsonRpcResult
 		{
-			["walletName"] = activeWallet.Name,
+			["walletName"] = activeWallet.WalletName,
 			["walletFile"] = km.FilePath,
 			["state"] = activeWallet.State.ToString(),
 			["masterKeyFingerprint"] = km.MasterFingerprint?.ToString() ?? "",
@@ -463,7 +463,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 
-		if (outputWalletName is null || outputWalletName == activeWallet.Name)
+		if (outputWalletName is null || outputWalletName == activeWallet.WalletName)
 		{
 			throw new InvalidOperationException("Output wallet name is invalid.");
 		}
@@ -517,7 +517,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			.Cast<Wallet>()
 			.Select(x => new JsonRpcResult
 			{
-				["walletName"] = x.Name
+				["walletName"] = x.WalletName
 			})
 			.ToImmutableArray();
 	}
@@ -531,7 +531,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	private string GetCoinjoinStatus(Wallet wallet)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
-		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.Id);
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletId);
 		return walletCoinjoinClientState switch
 		{
 			CoinJoinClientState.Idle => "Idle",
@@ -577,7 +577,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
-			throw new Exception($"'{activeWallet.Name}' wallet requires the password to start coinjoining.");
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
 		}
 	}
 

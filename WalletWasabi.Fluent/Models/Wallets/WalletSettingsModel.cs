@@ -86,7 +86,7 @@ public partial class WalletSettingsModel : ReactiveObject
 			_isDirty = false;
 		}
 
-		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).Id;
+		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
 
 	private void SetValues()

@@ -64,7 +64,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
-		Id = new WalletId(Guid.NewGuid());
+		WalletId = new WalletId(Guid.NewGuid());
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -73,7 +73,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<WalletState>? StateChanged;
 
-	public WalletId Id { get; }
+	public WalletId WalletId { get; }
 
 	public WalletState State
 	{
@@ -94,7 +94,7 @@ public class Wallet : BackgroundService, IWallet
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	public string Name => KeyManager.WalletName;
+	public string WalletName => KeyManager.WalletName;
 
 	public CoinsRegistry Coins { get; }
 
@@ -354,7 +354,7 @@ public class Wallet : BackgroundService, IWallet
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
 
-		Logger.LogInfo($"Wallet '{Name}' is fully synchronized.");
+		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
@@ -532,7 +532,7 @@ public class Wallet : BackgroundService, IWallet
 					if (mempoolHashes.Contains(txid.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"'{Name}': Transaction was successfully tested against the backend's mempool hashes: {txid}.");
+						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {txid}.");
 					}
 					else
 					{

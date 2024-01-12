@@ -99,7 +99,7 @@ public class WalletManager : IWalletProvider
 				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
 				lock (Lock)
 				{
-					if (Wallets.Any(w => w.Name == walletName))
+					if (Wallets.Any(w => w.WalletName == walletName))
 					{
 						continue;
 					}
@@ -117,12 +117,12 @@ public class WalletManager : IWalletProvider
 
 	public void RenameWallet(Wallet wallet, string newWalletName)
 	{
-		if (newWalletName == wallet.Name)
+		if (newWalletName == wallet.WalletName)
 		{
 			return;
 		}
 
-		var previousName = wallet.Name;
+		var previousName = wallet.WalletName;
 
 		if (ValidateWalletName(newWalletName).HasValue)
 		{
@@ -239,9 +239,9 @@ public class WalletManager : IWalletProvider
 		{
 			try
 			{
-				Logger.LogInfo($"Starting wallet '{wallet.Name}'...");
+				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
-				Logger.LogInfo($"Wallet '{wallet.Name}' started.");
+				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
@@ -309,14 +309,14 @@ public class WalletManager : IWalletProvider
 	{
 		lock (Lock)
 		{
-			if (Wallets.Any(w => w.Id == wallet.Id))
+			if (Wallets.Any(w => w.WalletId == wallet.WalletId))
 			{
-				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.Name}.");
+				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}
 			Wallets.Add(wallet);
 		}
 
-		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.Name).walletFilePath))
+		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
 		{
 			wallet.KeyManager.ToFile();
 		}
@@ -383,7 +383,7 @@ public class WalletManager : IWalletProvider
 						keyManager.ToFile(backupWalletFilePath);
 						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"'{wallet.Name}' wallet is stopped.");
+						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
 
 					wallet.Dispose();

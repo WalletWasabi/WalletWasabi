@@ -35,7 +35,7 @@ public partial class WalletRepository : ReactiveObject
 					  .StartWith(Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.Id)
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
@@ -93,7 +93,7 @@ public partial class WalletRepository : ReactiveObject
 		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
-			return GetById(existingWallet.Id);
+			return GetById(existingWallet.WalletId);
 		}
 		return null;
 	}
@@ -190,11 +190,11 @@ public partial class WalletRepository : ReactiveObject
 
 	private WalletModel CreateWalletModel(Wallet wallet)
 	{
-		if (_walletDictionary.TryGetValue(wallet.Id, out var existing))
+		if (_walletDictionary.TryGetValue(wallet.WalletId, out var existing))
 		{
 			if (!object.ReferenceEquals(existing.Wallet, wallet))
 			{
-				throw new InvalidOperationException($"Different instance of: {wallet.Name}");
+				throw new InvalidOperationException($"Different instance of: {wallet.WalletName}");
 			}
 			return existing;
 		}
@@ -204,7 +204,7 @@ public partial class WalletRepository : ReactiveObject
 			? new HardwareWalletModel(wallet, _amountProvider)
 			: new WalletModel(wallet, _amountProvider);
 
-		_walletDictionary[wallet.Id] = result;
+		_walletDictionary[wallet.WalletId] = result;
 
 		return result;
 	}

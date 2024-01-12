@@ -118,7 +118,7 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					throw new InvalidOperationException($"Funding transaction to the wallet '{wallet.Name}' did not arrive.");
+					throw new InvalidOperationException($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
 				}
 			}
 
