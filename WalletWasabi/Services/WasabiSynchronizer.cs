@@ -223,7 +223,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							return;
 						}
 
-						Logger.LogWarning(ex);
+						Logger.LogError(ex);
 						try
 						{
 							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.

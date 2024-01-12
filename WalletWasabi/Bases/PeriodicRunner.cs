@@ -105,14 +105,7 @@ public abstract class PeriodicRunner : BackgroundService
 				var info = ExceptionTracker.Process(ex);
 				if (info.IsFirst)
 				{
-					if (info.Exception.InnerException is TorException)
-					{
-						Logger.LogWarning(ex);
-					}
-					else
-					{
-						Logger.LogError(info.Exception);
-					}
+					Logger.LogError(info.Exception);
 				}
 			}
 
