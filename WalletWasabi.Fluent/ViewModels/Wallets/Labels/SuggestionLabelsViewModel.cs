@@ -31,34 +31,10 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 		_labels = new ObservableCollectionExtended<string>(labels ?? new List<string>());
 		Intent = intent;
 
-		Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
-		
-		UpdateLabels();
-
-		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
-			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
-			.Select(_ => SuggestionLabelsFilter());
-		
-		_sourceLabels
-			.Connect()
-			.Filter(suggestionLabelsFilter)
-			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
-			.Top(topSuggestionsCount)
-			.Transform(x => x.Label)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(_topSuggestions)
-			.Subscribe();
-
 		if (!UiContext.ApplicationSettings.PrivacyMode)
 		{
-			_sourceLabels
-				.Connect()
-				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
-				.Transform(x => x.Label)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(_suggestions)
-				.Subscribe();
+			UpdateLabels();
+			CreateSuggestions(topSuggestionsCount);
 		}
 	}
 
@@ -79,5 +55,33 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 				.OrderByDescending(x => x.Score)
 				.DistinctBy(x => x.Label, StringComparer.OrdinalIgnoreCase)
 				.Select(x => new SuggestionLabelViewModel(x.Label, x.Score)));
+	}
+
+	private void CreateSuggestions(int topSuggestionsCount)
+	{
+		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
+			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
+			.Select(_ => SuggestionLabelsFilter());
+
+		_sourceLabels
+			.Connect()
+			.Filter(suggestionLabelsFilter)
+			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
+			.Top(topSuggestionsCount)
+			.Transform(x => x.Label)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(_topSuggestions)
+			.Subscribe();
+
+		_sourceLabels
+			.Connect()
+			.Filter(suggestionLabelsFilter)
+			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
+			.Transform(x => x.Label)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(_suggestions)
+			.Subscribe();
+
+		Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
 	}
 }

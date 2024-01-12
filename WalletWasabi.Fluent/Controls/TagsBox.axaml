@@ -3,6 +3,7 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
   <Design.PreviewWith>
     <Panel>
       <Border Margin="10">
