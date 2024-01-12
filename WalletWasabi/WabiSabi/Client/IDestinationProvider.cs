@@ -6,8 +6,9 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public interface IDestinationProvider
 {
-	IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot);
 	IEnumerable<ScriptType> SupportedScriptTypes { get; }
+
+	IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot);
 }
 
 public static class DestinationProviderExtensions
