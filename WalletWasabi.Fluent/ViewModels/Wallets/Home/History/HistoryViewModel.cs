@@ -23,6 +23,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private HierarchicalTreeDataGridSource<HistoryItemViewModelBase> _source;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
 	public HistoryViewModel(UiContext uiContext, IWalletModel wallet)
@@ -39,26 +42,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
-
-		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
-		{
-			Columns =
-			{
-				IndicatorsColumn(),
-				DateColumn(),
-				LabelsColumn(),
-				ReceivedColumn(),
-				SentColumn(),
-				BalanceColumn(),
-			}
-		};
-
-		Source.RowSelection!.SingleSelect = true;
 	}
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-
-	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
@@ -224,6 +210,21 @@ public partial class HistoryViewModel : ActivatableViewModel
 		_wallet.Transactions.IsEmpty
 			.BindTo(this, x => x.IsTransactionHistoryEmpty)
 			.DisposeWith(disposables);
+
+		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
+		{
+			Columns =
+			{
+				IndicatorsColumn(),
+				DateColumn(),
+				LabelsColumn(),
+				ReceivedColumn(),
+				SentColumn(),
+				BalanceColumn(),
+			}
+		}.DisposeWith(disposables);
+
+		Source.RowSelection!.SingleSelect = true;
 	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
