@@ -29,7 +29,8 @@ public class TransactionFeeProvider : BackgroundService
 	public event EventHandler<EventArgs>? RequestedFeeArrived;
 
 	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
-	public Channel<uint256> TransactionIdChannel { get; } = Channel.CreateUnbounded<uint256>();
+	public ConcurrentQueue<uint256> Queue { get; } = new();
+	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
 	private IHttpClient HttpClient { get; }
 
 	private async Task FetchTransactionFeeAsync(uint256 txid, CancellationToken cancellationToken)
@@ -85,33 +86,34 @@ public class TransactionFeeProvider : BackgroundService
 	{
 		if (!tx.Confirmed && tx.ForeignInputs.Count != 0)
 		{
-			TransactionIdChannel.Writer.TryWrite(tx.GetHash());
+			Queue.Enqueue(tx.GetHash());
+			Semaphore.Release(1);
 		}
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
-		List<Task> activeTasks = new(capacity: MaximumRequestsInParallel);
 		while (!cancel.IsCancellationRequested)
 		{
-			if (activeTasks.Count >= MaximumRequestsInParallel)
+			await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
+
+			if (!Queue.TryDequeue(out var txidToFetch))
 			{
-				break;
+				continue;
 			}
 
-			if (TransactionIdChannel.Reader.TryRead(out var txidToFetch) && txidToFetch is not null)
+			try
 			{
-				var task = Task.Run(async () => await ScheduledTask(txidToFetch).ConfigureAwait(false), cancel);
-				activeTasks.Add(task);
+				_ = ScheduledTask(txidToFetch);
 			}
-
-			if (activeTasks.Count == 0)
+			catch (OperationCanceledException)
 			{
-				break;
+				Logger.LogInfo("Request was cancelled by exiting the app.");
 			}
-
-			var completedTask = await Task.WhenAny(activeTasks).ConfigureAwait(false);
-			activeTasks.Remove(completedTask);
+			catch (Exception e)
+			{
+				Logger.LogWarning(e);
+			}
 		}
 
 		async Task ScheduledTask(uint256 txid)
@@ -124,5 +126,11 @@ public class TransactionFeeProvider : BackgroundService
 
 			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
 		}
+	}
+
+	public override void Dispose()
+	{
+		Semaphore.Dispose();
+		base.Dispose();
 	}
 }
