@@ -8,9 +8,3 @@ public interface IDestinationProvider
 {
 	IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot);
 }
-
-public static class DestinationProviderExtensions
-{
-	public static Script Peek(this IDestinationProvider me, bool preferTaproot) =>
-		me.GetNextDestinations(1, preferTaproot).First().ScriptPubKey;
-}
