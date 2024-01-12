@@ -2,7 +2,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -23,15 +22,14 @@ public partial class ReceiveViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	public ReceiveViewModel(UiContext uiContext, IWalletModel wallet)
+	private ReceiveViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
-		UiContext = uiContext;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(UiContext, wallet, Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels

@@ -2,10 +2,10 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -17,12 +17,11 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 {
 	private readonly IWalletModel _wallet;
 
-	public LabelEntryDialogViewModel(UiContext uiContext, IWalletModel wallet, LabelsArray labels)
+	public LabelEntryDialogViewModel(IWalletModel wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-		UiContext = uiContext;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(uiContext, wallet, Intent.Send, 3)
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Send, 3)
 		{
 			Labels = { labels.AsEnumerable() }
 		};
