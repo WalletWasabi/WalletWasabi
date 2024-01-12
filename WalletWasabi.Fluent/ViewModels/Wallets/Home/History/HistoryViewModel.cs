@@ -10,11 +10,11 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
+#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
