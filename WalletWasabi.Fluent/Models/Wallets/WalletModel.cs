@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Reactive;
+using System.IO;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
@@ -73,6 +73,8 @@ public partial class WalletModel : ReactiveObject
 
 	internal Wallet Wallet { get; }
 
+	public WalletId Id => Wallet.WalletId;
+
 	public string Name => Wallet.WalletName;
 
 	public Network Network => Wallet.Network;
@@ -99,6 +101,25 @@ public partial class WalletModel : ReactiveObject
 
 	public IAmountProvider AmountProvider { get; }
 
+	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
+
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
+	{
+		return Wallet.GetLabelsWithRanking(intent);
+	}
+
+	public IWalletStatsModel GetWalletStats()
+	{
+		return new WalletStatsModel(this, Wallet);
+	}
+
+	public IWalletInfoModel GetWalletInfo()
+	{
+		return new WalletInfoModel(Wallet);
+	}
+
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
@@ -108,22 +129,9 @@ public partial class WalletModel : ReactiveObject
 		return nextReceiveAddress;
 	}
 
-	public IWalletInfoModel GetWalletInfo()
+	public void Rename(string newWalletName)
 	{
-		return new WalletInfoModel(Wallet);
-	}
-
-	public IWalletStatsModel GetWalletStats()
-	{
-		return new WalletStatsModel(this, Wallet);
-	}
-
-	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
-
-	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
-
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
-	{
-		return Wallet.GetLabelsWithRanking(intent);
+		Services.WalletManager.RenameWallet(Wallet, newWalletName);
+		this.RaisePropertyChanged(nameof(Name));
 	}
 }
