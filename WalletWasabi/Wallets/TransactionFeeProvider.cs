@@ -96,7 +96,7 @@ public class TransactionFeeProvider : BackgroundService
 		{
 			if (activeTasks.Count >= MaximumRequestsInParallel)
 			{
-				continue;
+				break;
 			}
 
 			if (TransactionIdChannel.Reader.TryRead(out var txidToFetch) && txidToFetch is not null)
@@ -107,7 +107,7 @@ public class TransactionFeeProvider : BackgroundService
 
 			if (activeTasks.Count == 0)
 			{
-				continue;
+				break;
 			}
 
 			var completedTask = await Task.WhenAny(activeTasks).ConfigureAwait(false);
