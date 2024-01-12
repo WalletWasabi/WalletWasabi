@@ -16,7 +16,6 @@ public record UtxoSelectionParameters(
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
-	// for testing only
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
