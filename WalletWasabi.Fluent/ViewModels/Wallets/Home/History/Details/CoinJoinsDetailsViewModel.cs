@@ -63,7 +63,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			SingleTransaction = TransactionIds?.Count == 1 ? TransactionIds.First() : null;
-			TxCount = TransactionIds.Count;
+			TxCount = TransactionIds?.Count ?? 0;
 		}
 	}
 }
