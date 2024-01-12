@@ -23,25 +23,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private HierarchicalTreeDataGridSource<HistoryItemViewModelBase> _source;
+	private HierarchicalTreeDataGridSource<HistoryItemViewModelBase>? _source;	// This will get its value as soon as this VM is activated.
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	public HistoryViewModel(UiContext uiContext, IWalletModel wallet)
+	private HistoryViewModel(IWalletModel wallet)
 	{
-		UiContext = uiContext;
 		_wallet = wallet;
-
-		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
-		// Date				DateColumnView				Date / Time		Auto		150				-			true
-		// Labels			LabelsColumnView			Labels			*			75				-			true
-		// Received			ReceivedColumnView			Received (BTC)	Auto		145				210			true
-		// Sent				SentColumnView				Sent (BTC)		Auto		145				210			true
-		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
-
-		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 	}
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -192,7 +181,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 		}
 	}
-
+	
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
@@ -211,6 +200,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.BindTo(this, x => x.IsTransactionHistoryEmpty)
 			.DisposeWith(disposables);
 
+		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
+		// Date				DateColumnView				Date / Time		Auto		150				-			true
+		// Labels			LabelsColumnView			Labels			*			75				-			true
+		// Received			ReceivedColumnView			Received (BTC)	Auto		145				210			true
+		// Sent				SentColumnView				Sent (BTC)		Auto		145				210			true
+		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
+
+		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
 		{
 			Columns =
