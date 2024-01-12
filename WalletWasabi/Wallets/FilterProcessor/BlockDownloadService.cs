@@ -26,6 +26,19 @@ public class BlockDownloadService : BackgroundService
 		MaximumParallelTasks = maximumParallelTasks;
 	}
 
+	/// <summary>Source that provided a block or blocks.</summary>
+	public enum Source
+	{
+		FileSystemCache,
+		BlockProvider
+	}
+
+	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
+	public interface IResult { }
+
+	/// <summary>Denotes a failure of getting a block.</summary>
+	public interface IFailureResult : IResult { }
+
 	private IFileSystemBlockRepository FileSystemBlockRepository { get; }
 
 	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
@@ -240,22 +253,9 @@ public class BlockDownloadService : BackgroundService
 	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
-	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
-	public interface IResult { }
-
-	/// <summary>Denotes a failure of getting a block.</summary>
-	public interface IFailureResult : IResult { }
-
 	/// <summary>Block was downloaded successfully.</summary>
 	/// <param name="Source">Source from which we obtained the block.</param>
 	public record SuccessResult(Block Block, Source Source) : IResult;
-
-	/// <summary>Source that provided a block or blocks.</summary>
-	public enum Source
-	{
-		FileSystemCache,
-		BlockProvider
-	}
 
 	/// <summary>Block could not be get because a blockchain reorg occurred.</summary>
 	/// <remarks>

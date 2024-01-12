@@ -43,7 +43,7 @@ public class BlockDownloadServiceTests
 		_ = mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
-		Mock <IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
+		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider blockProvider = mockBlockProvider.Object;
 
 		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, blockProvider, maximumParallelTasks: 3))
@@ -120,7 +120,7 @@ public class BlockDownloadServiceTests
 		int actualAttempts = 0;
 		bool testFailed = false;
 
-		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object,blockProvider, maximumParallelTasks: 3))
+		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, blockProvider, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
 			_ = mockBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
