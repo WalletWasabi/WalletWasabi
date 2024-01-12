@@ -133,7 +133,13 @@ public static class TransactionHelpers
 	{
 		var psbtExtension = "psbt";
 		string initialFileName = transaction.Transaction.GetHash().ToString();
-		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new[] { psbtExtension }, initialFileName);
+		var file = await FileDialogHelper.SaveFileAsync("Export transaction", new[] { psbtExtension }, initialFileName);
+		if (file is null)
+		{
+			return false;
+		}
+
+		var filePath = file.Path.AbsolutePath;
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{
