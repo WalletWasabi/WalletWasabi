@@ -59,6 +59,7 @@ public static class TransactionFeeHelper
 		{
 			return true;
 		}
+
 		if (feeEstimates is not null)
 		{
 			if (!feeFetcher.TryGetFeeFromCache(tx.GetHash(), out Money? fee))

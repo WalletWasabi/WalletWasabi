@@ -57,8 +57,6 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		IsEmpty = Cache.Empty();
 	}
 
-	public event EventHandler<uint256>? ModelUpdated;
-
 	public IObservableCache<TransactionModel, uint256> Cache { get; set; }
 
 	public IObservable<bool> IsEmpty { get; }

@@ -15,7 +15,7 @@ public class TransactionSummary
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
-	public Money FetchedFee { get; set; } = Money.Zero;
+	public Money FetchedFee { get; set; }
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;
 	public Height Height => Transaction.Height;

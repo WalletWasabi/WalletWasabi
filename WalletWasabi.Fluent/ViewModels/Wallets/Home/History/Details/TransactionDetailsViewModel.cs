@@ -59,7 +59,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		Fee = UiContext.AmountProvider.Create(model.Fee);
 		FeeRate = model.FeeRate;
-		IsFeeVisible = Fee != null && Fee.HasBalance;
+		IsFeeVisible = Fee.HasBalance;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })
