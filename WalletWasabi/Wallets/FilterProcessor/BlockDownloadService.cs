@@ -19,14 +19,17 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>Maximum number of attempts to download a block. If it fails, we drop the block download request altogether.</summary>
 	public const int MaxFailedAttempts = 3;
 
-	public BlockDownloadService(IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
+	public BlockDownloadService(IFileSystemBlockRepository fileSystemBlockRepository, IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
 	{
+		FileSystemBlockRepository = fileSystemBlockRepository;
 		BlockProvider = blockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
 	}
 
+	private IFileSystemBlockRepository FileSystemBlockRepository { get; }
+
 	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
-	public IBlockProvider BlockProvider { get; }
+	private IBlockProvider BlockProvider { get; }
 	private int MaximumParallelTasks { get; }
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0, maxCount: 1);
 
@@ -106,7 +109,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		try
 		{
-			List<Task<RequestResult>> activeTasks = new(capacity: MaximumParallelTasks);
+			List<Task<RequestResponse>> activeTasks = new(capacity: MaximumParallelTasks);
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -135,7 +138,7 @@ public class BlockDownloadService : BackgroundService
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
 
-						Task<RequestResult> newTask = GetSingleBlockAsync(queuedRequest, cancellationToken);
+						Task<RequestResponse> newTask = GetSingleBlockAsync(queuedRequest, cancellationToken);
 						activeTasks.Add(newTask);
 					}
 				}
@@ -145,15 +148,15 @@ public class BlockDownloadService : BackgroundService
 					continue;
 				}
 
-				Task<RequestResult> task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
+				Task<RequestResponse> task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
 				activeTasks.Remove(task);
 
-				RequestResult result = await task.ConfigureAwait(false);
-				Request request = result.Request;
+				RequestResponse response = await task.ConfigureAwait(false);
+				Request request = response.Request;
 
-				if (result.Block is not null)
+				if (response.Result is SuccessResult)
 				{
-					_ = request.Tcs.TrySetResult(new SuccessResult(result.Block));
+					_ = request.Tcs.TrySetResult(response.Result);
 				}
 				else
 				{
@@ -162,7 +165,7 @@ public class BlockDownloadService : BackgroundService
 						Logger.LogInfo($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed {MaxFailedAttempts} times. Dropping the request.");
 
 						// The block might have been removed concurrently if a reorg occurred.
-						if (!request.Tcs.TrySetResult(new FailureResult(request.Attempts)))
+						if (!request.Tcs.TrySetResult(response.Result))
 						{
 							IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
 							Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
@@ -198,28 +201,44 @@ public class BlockDownloadService : BackgroundService
 		}
 	}
 
-	private async Task<RequestResult> GetSingleBlockAsync(Request queuedRequest, CancellationToken cancellationToken)
+	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
 		try
 		{
-			Block? block = await BlockProvider.TryGetBlockAsync(queuedRequest.BlockHash, cancellationToken).ConfigureAwait(false);
+			// Try get the block from the file-system storage.
+			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+			if (block is not null)
+			{
+				return new RequestResponse(request, new SuccessResult(block, Source.FileSystemCache));
+			}
 
-			return new RequestResult(queuedRequest, block);
+			// Try get the block from a block provider.
+			block = await BlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+
+			// Store the block to the file-system.
+			if (block is not null)
+			{
+				await FileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+			}
+
+			return block is not null
+				? new RequestResponse(request, new SuccessResult(block, Source.BlockProvider))
+				: new RequestResponse(request, new FailureResult(request.Attempts));
 		}
 		catch (OperationCanceledException)
 		{
-			return new RequestResult(queuedRequest, Block: null, RequestCancelled: true);
+			return new RequestResponse(request, CancelledResult.Instance);
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Exception thrown while getting block {queuedRequest.BlockHash} (height: {queuedRequest.Priority.BlockHeight})", ex);
-			return new RequestResult(queuedRequest, Block: null);
+			Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {request.Priority.BlockHeight})", ex);
+			return new RequestResponse(request, new FailureResult(request.Attempts));
 		}
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
 	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, TaskCompletionSource<IResult> Tcs);
-	private record RequestResult(Request Request, Block? Block, bool RequestCancelled = false);
+	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
 	public interface IResult { }
@@ -228,7 +247,15 @@ public class BlockDownloadService : BackgroundService
 	public interface IFailureResult : IResult { }
 
 	/// <summary>Block was downloaded successfully.</summary>
-	public record SuccessResult(Block Block) : IResult;
+	/// <param name="Source">Source from which we obtained the block.</param>
+	public record SuccessResult(Block Block, Source Source) : IResult;
+
+	/// <summary>Source that provided a block or blocks.</summary>
+	public enum Source
+	{
+		FileSystemCache,
+		BlockProvider
+	}
 
 	/// <summary>Block could not be get because a blockchain reorg occurred.</summary>
 	/// <remarks>
