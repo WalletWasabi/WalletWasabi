@@ -16,9 +16,6 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>Maximum number of parallel block-downloading tasks.</summary>
 	private const int MaxParallelTasks = 5;
 
-	/// <summary>Maximum number of attempts to download a block. If it fails, we drop the block download request altogether.</summary>
-	public const int MaxFailedAttempts = 3;
-
 	public BlockDownloadService(IFileSystemBlockRepository fileSystemBlockRepository, IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
 	{
 		FileSystemBlockRepository = fileSystemBlockRepository;
@@ -59,8 +56,8 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
-	public TaskCompletionSource<IResult> Enqueue(uint256 blockHash, Priority priority) =>
-		Enqueue(new Request(blockHash, priority, 1, new TaskCompletionSource<IResult>()));
+	public TaskCompletionSource<IResult> Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1) =>
+		Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
 
 	private TaskCompletionSource<IResult> Enqueue(Request request)
 	{
@@ -173,9 +170,9 @@ public class BlockDownloadService : BackgroundService
 				}
 				else
 				{
-					if (request.Attempts >= MaxFailedAttempts)
+					if (request.Attempts >= request.MaxAttempts)
 					{
-						Logger.LogInfo($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed {MaxFailedAttempts} times. Dropping the request.");
+						Logger.LogInfo($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed {request.MaxAttempts} times. Dropping the request.");
 
 						// The block might have been removed concurrently if a reorg occurred.
 						if (!request.Tcs.TrySetResult(response.Result))
@@ -250,7 +247,7 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, TaskCompletionSource<IResult> Tcs);
+	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>

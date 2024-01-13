@@ -14,6 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 /// </summary>
 public class BlockDownloadServiceTests
 {
+	private const uint MaxAttempts = 3;
+
 	/// <summary>
 	/// Verifies that blocks are being downloaded in parallel. Moreover, we attempt to download a block again if it fails to download.
 	/// </summary>
@@ -78,10 +80,10 @@ public class BlockDownloadServiceTests
 				.ReturnsAsync(block4);
 
 			await service.StartAsync(testCts.Token);
-			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001));
-			service.Enqueue(blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002));
-			service.Enqueue(blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003));
-			service.Enqueue(blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004));
+			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), MaxAttempts);
+			service.Enqueue(blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), MaxAttempts);
+			service.Enqueue(blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003), MaxAttempts);
+			service.Enqueue(blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004), MaxAttempts);
 
 			await block2FirstRequestTcs.Task.WaitAsync(testCts.Token);
 			block2DelayTcs.SetResult();
@@ -117,7 +119,7 @@ public class BlockDownloadServiceTests
 		Mock<IBlockProvider> mockBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider blockProvider = mockBlockProvider.Object;
 
-		int actualAttempts = 0;
+		uint actualAttempts = 0;
 		bool testFailed = false;
 
 		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, blockProvider, maximumParallelTasks: 3))
@@ -130,12 +132,12 @@ public class BlockDownloadServiceTests
 
 					switch (actualAttempts)
 					{
-						case < BlockDownloadService.MaxFailedAttempts:
+						case < MaxAttempts:
 							break;
-						case BlockDownloadService.MaxFailedAttempts:
+						case MaxAttempts:
 							block1LastFailedAttemptTcs.SetResult();
 							break;
-						case > BlockDownloadService.MaxFailedAttempts:
+						case > MaxAttempts:
 							testFailed = true; // This should never happen.
 							break;
 					}
@@ -145,7 +147,7 @@ public class BlockDownloadServiceTests
 
 			await service.StartAsync(testCts.Token);
 
-			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001));
+			service.Enqueue(blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), maxAttempts: MaxAttempts);
 
 			// Wait for all failed attempts.
 			await block1LastFailedAttemptTcs.Task.WaitAsync(testCts.Token);
