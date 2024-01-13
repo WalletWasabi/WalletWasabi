@@ -21,8 +21,8 @@ public interface IWallet
 	IKeyChain? KeyChain { get; }
 
 	IDestinationProvider DestinationProvider { get; }
-	OutputProvider OutputProvider => new OutputProvider(DestinationProvider);
-	PaymentBatch BatchedPayments => new PaymentBatch();
+	OutputProvider OutputProvider => new(DestinationProvider);
+	PaymentBatch BatchedPayments => new();
 
 	int AnonScoreTarget { get; }
 	bool ConsolidationMode { get; }

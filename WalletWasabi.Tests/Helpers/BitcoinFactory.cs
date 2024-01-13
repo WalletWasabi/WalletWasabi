@@ -204,7 +204,7 @@ public static class BitcoinFactory
 
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
 
-	public static MemoryCache CreateMemoryCache() => new MemoryCache(new MemoryCacheOptions
+	public static MemoryCache CreateMemoryCache() => new(new MemoryCacheOptions
 	{
 		SizeLimit = 1_000,
 		ExpirationScanFrequency = TimeSpan.FromSeconds(30)
