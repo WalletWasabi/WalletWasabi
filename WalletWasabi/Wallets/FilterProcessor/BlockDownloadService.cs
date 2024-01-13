@@ -56,8 +56,35 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
-	public TaskCompletionSource<IResult> Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1) =>
-		Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
+	public void Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1)
+		=> _ = Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
+
+	/// <returns>One of the following result objects:
+	/// <list type="bullet">
+	/// <item><see cref="SuccessResult"/></item>
+	/// <item><see cref="ReorgOccurredResult"/></item>
+	/// <item><see cref="CancelledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
+	/// <item><see cref="FailureResult"/></item>
+	/// </list>
+	/// </returns>
+	/// <remarks>The method does not throw exceptions.</remarks>
+	public async Task<IResult> TryGetBlockAsync(uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
+	{
+		Request request = new(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Enqueue(request);
+
+		try
+		{
+			await request.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			request.Tcs.TrySetResult(CancelledResult.Instance);
+		}
+
+		// Now the task is guaranteed to return a result.
+		return await request.Tcs.Task.ConfigureAwait(false);
+	}
 
 	private TaskCompletionSource<IResult> Enqueue(Request request)
 	{
