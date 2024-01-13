@@ -57,7 +57,7 @@ public class BlockDownloadService : BackgroundService
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
 	public void Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1)
-		=> _ = Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
+		=> Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
 
 	/// <returns>One of the following result objects:
 	/// <list type="bullet">
@@ -86,7 +86,7 @@ public class BlockDownloadService : BackgroundService
 		return await request.Tcs.Task.ConfigureAwait(false);
 	}
 
-	private TaskCompletionSource<IResult> Enqueue(Request request)
+	private void Enqueue(Request request)
 	{
 		lock (Lock)
 		{
@@ -98,8 +98,6 @@ public class BlockDownloadService : BackgroundService
 				SynchronizationRequestsSemaphore.Release();
 			}
 		}
-
-		return request.Tcs;
 	}
 
 	/// <summary>

@@ -282,6 +282,4 @@ public class BlockDownloadServiceTests
 		Assert.Equal(610_002u, actualRequests[1].Priority.BlockHeight);
 		Assert.Equal(610_003u, actualRequests[2].Priority.BlockHeight);
 	}
-
-	// TODO: Test for "block provider being cancelled when fetching a block".
 }
