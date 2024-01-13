@@ -56,15 +56,20 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
-	public void Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1)
-		=> Enqueue(new Request(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>()));
+	public TaskCompletionSource<IResult> Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1)
+	{
+		Request request = new(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Enqueue(request);
+
+		return request.Tcs;
+	}
 
 	/// <returns>One of the following result objects:
 	/// <list type="bullet">
-	/// <item><see cref="SuccessResult"/></item>
-	/// <item><see cref="ReorgOccurredResult"/></item>
+	/// <item><see cref="SuccessResult"/> when the block was downloaded successfully.</item>
+	/// <item><see cref="ReorgOccurredResult"/> when the block was not downloaded because a reorg occurred and as such block downloading does not make sense.</item>
 	/// <item><see cref="CancelledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
-	/// <item><see cref="FailureResult"/></item>
+	/// <item><see cref="FailureResult"/> when the block download failed for some reason.</item>
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
@@ -238,6 +243,8 @@ public class BlockDownloadService : BackgroundService
 
 	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
+		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}; attempt: {request.Attempts}).");
+
 		try
 		{
 			// Try get the block from the file-system storage.
