@@ -23,10 +23,10 @@ public class P2PBlockProvider : IBlockProvider
 	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
 	/// If a bitcoin node is available it fetches the blocks using the RPC interface.
 	/// </summary>
-	/// <param name="hash">The block's hash that identifies the requested block.</param>
+	/// <param name="blockHash">The block's hash that identifies the requested block.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>The requested bitcoin block.</returns>
-	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
+	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		while (true)
 		{
@@ -48,7 +48,7 @@ public class P2PBlockProvider : IBlockProvider
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 					{
 						using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-						block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
+						block = await node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 					}
 
 					// Validate block
