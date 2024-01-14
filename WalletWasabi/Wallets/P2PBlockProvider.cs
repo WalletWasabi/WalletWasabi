@@ -64,18 +64,18 @@ public class P2PBlockProvider : IBlockProvider
 
 					return block;
 				}
-				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
-				{
-					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
-
-					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
-					continue;
-				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug(ex);
-					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
-					continue;
+					if (ex is OperationCanceledException or TimeoutException)
+					{
+						await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
+						P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+					}
+					else
+					{
+						Logger.LogDebug(ex);
+						P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+					}
 				}
 			}
 			catch (Exception ex)
