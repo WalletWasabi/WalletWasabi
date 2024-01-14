@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -29,11 +28,8 @@ public class P2PBlockProvider : IBlockProvider
 	/// <returns>The requested bitcoin block.</returns>
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
-		Block? block;
-
 		while (true)
 		{
-			cancellationToken.ThrowIfCancellationRequested();
 			try
 			{
 				Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
@@ -47,6 +43,7 @@ public class P2PBlockProvider : IBlockProvider
 				// Download block from selected node.
 				try
 				{
+					Block? block;
 					var timeout = P2PNodesManager.GetCurrentTimeout();
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 					{
@@ -64,6 +61,8 @@ public class P2PBlockProvider : IBlockProvider
 					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
+
+					return block;
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
@@ -78,15 +77,11 @@ public class P2PBlockProvider : IBlockProvider
 					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
 					continue;
 				}
-
-				break; // If got this far, then we have the block and it's valid. Break.
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
 			}
 		}
-
-		return block;
 	}
 }
