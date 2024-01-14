@@ -20,29 +20,12 @@ public class P2PBlockProvider : IBlockProvider
 	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
-	/// Gets the given block by repeatedly trying to get it from a set of connected P2P nodes using the P2P Bitcoin protocol.
-	/// </summary>
-	/// <inheritdoc cref="TryGetBlockOnceAsync(uint256, CancellationToken)"/>
-	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
-	{
-		while (true)
-		{
-			Block? block = await TryGetBlockOnceAsync(blockHash, cancellationToken).ConfigureAwait(false);
-
-			if (block is not null)
-			{
-				return block;
-			}
-		}
-	}
-
-	/// <summary>
 	/// Gets the given block from a single P2P node using the P2P bitcoin protocol.
 	/// </summary>
 	/// <param name="blockHash">Block's hash to download.</param>
 	/// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
 	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
-	private async Task<Block?> TryGetBlockOnceAsync(uint256 blockHash, CancellationToken cancellationToken)
+	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		try
 		{
