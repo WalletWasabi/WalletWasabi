@@ -8,12 +8,12 @@ namespace WalletWasabi.Blockchain.Keys;
 
 public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 {
-	private Dictionary<Script, HdPubKey> _hdPubKeyIndexedByScriptPubKey = new(1_000);
+	private readonly Dictionary<Script, HdPubKey> _hdPubKeyIndexedByScriptPubKey = new(1_000);
 	private HdPubKeyInfo[] _hdPubKeyInfos = new HdPubKeyInfo[1_000];
 	private int _hdKeyCount = 0;
 
 	private ArraySegment<HdPubKeyInfo> Snapshot =>
-		new (_hdPubKeyInfos, 0, _hdKeyCount);
+		new(_hdPubKeyInfos, 0, _hdKeyCount);
 
 	public IEnumerable<HdPubKey> HdPubKeys =>
 		Snapshot.Select(x => x.HdPubKey);
