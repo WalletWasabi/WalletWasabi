@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
@@ -21,6 +22,7 @@ public class UpdateChecker : PeriodicRunner
 
 	public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
+	private LastExceptionTracker ExceptionTracker { get; } = new LastExceptionTracker();
 	private WasabiSynchronizer Synchronizer { get; }
 	private UpdateStatus UpdateStatus { get; set; }
 	public WasabiClient WasabiClient { get; }
@@ -45,10 +47,22 @@ public class UpdateChecker : PeriodicRunner
 				UpdateStatus = newUpdateStatus;
 				UpdateStatusChanged?.Invoke(this, newUpdateStatus);
 			}
+			ExceptionInfo? info = ExceptionTracker.LastException;
+			if (info is { })
+			{
+				Logger.LogInfo($"Exception stopped coming. It came for " +
+					$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+					$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+				ExceptionTracker.Reset();
+			}
 		}
 		catch (HttpRequestException e)
 		{
-			Logger.LogWarning(e);
+			var info = ExceptionTracker.Process(e);
+			if (info.IsFirst)
+			{
+				Logger.LogWarning(info.Exception);
+			}
 		}
 	}
 
