@@ -443,14 +443,15 @@ public class BlockchainController : ControllerBase
 		var tx = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
 
 		List<(int Size, Money Fee)> unconfirmedTxsChain = new();
-		List<Transaction> toFetchFee = new() { tx };
+		List<Transaction> toFetchFeeList = new() { tx };
 
-		while (toFetchFee.Count > 0)
+		while (toFetchFeeList.Count > 0)
 		{
 			List<Coin> inputs = new();
 			HashSet<Transaction> parentTxs = new();
 
-			foreach (var input in toFetchFee.First().Inputs)
+			var txToFetchFee = toFetchFeeList.First();
+			foreach (var input in txToFetchFee.Inputs)
 			{
 				if (!parentTransactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
 				{
@@ -464,10 +465,11 @@ public class BlockchainController : ControllerBase
 
 			unconfirmedTxsChain.Add((tx.GetVirtualSize(), tx.GetFee(inputs.ToArray())));
 
-			toFetchFee.RemoveAt(0);
+			// Remove the item (first in the list) we worked on.
+			toFetchFeeList.RemoveAt(0);
 
 			// Fee and size of all unconfirmed parents have to be known to get effective fee rate of the child.
-			toFetchFee.AddRange(
+			toFetchFeeList.AddRange(
 				parentTxs
 					.Where(x => Global.MempoolMirror.GetMempoolHashes().Contains(x.GetHash())));
 		}
