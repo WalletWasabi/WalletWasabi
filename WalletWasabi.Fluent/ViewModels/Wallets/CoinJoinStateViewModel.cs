@@ -17,7 +17,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
-	private const string RandomlySkippedRoundMessage = "Awaiting cheaper coinjoins";
+	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
