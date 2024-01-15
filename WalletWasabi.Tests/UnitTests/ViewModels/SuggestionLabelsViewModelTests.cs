@@ -168,7 +168,14 @@ public class SuggestionLabelsViewModelTests
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel AddressesModel => throw new NotSupportedException();
-		public string Name => throw new NotSupportedException();
+		public WalletId Id => throw new NotSupportedException();
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotSupportedException();
+		}
+
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
@@ -184,12 +191,14 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
-		public bool IsLoggedIn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
+
+		public void Rename(string newWalletName) => throw new NotSupportedException();
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{

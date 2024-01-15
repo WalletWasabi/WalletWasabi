@@ -102,7 +102,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To().AddedWalletPage(walletSettings, _options);
+			Navigate().To().AddedWalletPage(walletSettings, _options!);
 		}
 		else
 		{

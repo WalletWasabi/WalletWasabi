@@ -76,7 +76,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	{
 		return new ActionableItem(
 			item.Transaction.Id.ToString(),
-			@$"Found in ""{wallet.WalletName}""",
+			@$"Found in ""{wallet.WalletModel.Name}""",
 			() => NavigateTo(wallet, item),
 			"Transactions",
 			new List<string>())
