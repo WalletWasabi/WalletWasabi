@@ -63,17 +63,14 @@
       <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
 
       <!-- Transaction IDs -->
-      <c:PreviewItem Name="TransactionsSection"
-                     Icon="{StaticResource transaction_id}"
-                     CopyableContent="{Binding SingleTransaction}"
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction IDs">
         <ItemsControl ItemsSource="{Binding TransactionIds}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <c:PreviewItem CopyableContent="{Binding}"
-                             IsCopyButtonEnabled="{Binding #TransactionsSection.CopyableContent, Converter={x:Static ObjectConverters.IsNull}}">
+              <c:PreviewItem CopyableContent="{Binding }">
                 <c:PrivacyContentControl>
-                  <TextBlock Text="{Binding}" Classes="monoSpaced" />
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
                 </c:PrivacyContentControl>
               </c:PreviewItem>
             </DataTemplate>
