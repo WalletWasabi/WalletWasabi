@@ -10,6 +10,9 @@ public class InternalDestinationProvider : IDestinationProvider
 	public InternalDestinationProvider(KeyManager keyManager)
 	{
 		KeyManager = keyManager;
+	    SupportedScriptTypes = KeyManager.TaprootExtPubKey is not null
+			? [ScriptType.P2WPKH, ScriptType.Taproot]
+			: [ScriptType.P2WPKH];
 	}
 
 	private KeyManager KeyManager { get; }
@@ -33,4 +36,6 @@ public class InternalDestinationProvider : IDestinationProvider
 			: segwitKeys;
 		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
+
+	public IEnumerable<ScriptType> SupportedScriptTypes { get; }
 }
