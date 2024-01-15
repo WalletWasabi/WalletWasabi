@@ -46,7 +46,7 @@ public class TransactionFeeProvider : BackgroundService
 
 				var response = await HttpClient.SendAsync(
 					HttpMethod.Get,
-					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee?transactionId={txid}",
+					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee-rate?transactionId={txid}",
 					null,
 					linkedCts.Token).ConfigureAwait(false);
 
