@@ -22,7 +22,7 @@ public class UpdateChecker : PeriodicRunner
 
 	public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
-	private LastExceptionTracker ExceptionTracker { get; } = new LastExceptionTracker();
+	private LastExceptionTracker ExceptionTracker { get; } = new();
 	private WasabiSynchronizer Synchronizer { get; }
 	private UpdateStatus UpdateStatus { get; set; }
 	public WasabiClient WasabiClient { get; }
