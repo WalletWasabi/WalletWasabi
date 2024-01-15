@@ -145,6 +145,16 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 							DoNotGenSocksServFail();
+							ExceptionInfo? info = ExceptionTracker.LastException;
+
+							// Log previous exception if any.
+							if (info is { })
+							{
+								Logger.LogInfo($"Exception stopped coming. It came for " +
+									$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+									$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+								ExceptionTracker.Reset();
+							}
 						}
 						catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
 						{
@@ -225,7 +235,12 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							return;
 						}
 
-						Logger.LogError(ex);
+						var info = ExceptionTracker.Process(ex);
+						if (info.IsFirst)
+						{
+							Logger.LogWarning(info.Exception);
+						}
+
 						try
 						{
 							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
