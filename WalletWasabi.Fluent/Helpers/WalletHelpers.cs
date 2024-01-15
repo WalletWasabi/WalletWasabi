@@ -23,15 +23,17 @@ public static class WalletHelpers
 	/// <returns>Labels ordered by blockchain.</returns>
 	public static IEnumerable<LabelsArray> GetTransactionLabels() => Services.BitcoinStore.TransactionStore.GetLabels();
 
-	public static IEnumerable<LabelsArray> GetReceiveAddressLabels() =>
-		Services.WalletManager
-			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
-			.Select(x => x.KeyManager)
-			.SelectMany(x => x.GetReceiveLabels());
+	public static List<LabelsByWallet> GetLabelsByWallets()
+	{
+		var result = new List<LabelsByWallet>();
 
-	public static IEnumerable<LabelsArray> GetChangeAddressLabels() =>
-		Services.WalletManager
-			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
-			.Select(x => x.KeyManager)
-			.SelectMany(x => x.GetChangeLabels());
+		foreach (var wallet in Services.WalletManager.GetWallets(refreshWalletList: false))
+		{
+			result.Add(new LabelsByWallet(wallet.WalletId, wallet.KeyManager.GetChangeLabels(), wallet.KeyManager.GetReceiveLabels()));
+		}
+
+		return result;
+	}
+
+	public record LabelsByWallet(WalletId WalletId, IEnumerable<LabelsArray> ChangeLabels, IEnumerable<LabelsArray> ReceiveLabels);
 }
