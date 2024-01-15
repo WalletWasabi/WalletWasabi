@@ -6,16 +6,16 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionSummary
 {
-	public TransactionSummary(SmartTransaction tx, Money amount, Money fetchedFee)
+	public TransactionSummary(SmartTransaction tx, Money amount, FeeRate fetchedFeeRate)
 	{
 		Transaction = tx;
 		Amount = amount;
-		FetchedFee = fetchedFee;
+		FetchedFeeRate = fetchedFeeRate;
 	}
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
-	public Money FetchedFee { get; set; }
+	public FeeRate FetchedFeeRate { get; set; }
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;
 	public Height Height => Transaction.Height;
@@ -28,7 +28,7 @@ public class TransactionSummary
 
 	public Money? GetFee() => Transaction.GetFee();
 
-	public FeeRate? FeeRate() => Transaction.TryGetFeeRate(out var feeRate) ? feeRate : null;
+	public FeeRate FeeRate() => Transaction.TryGetFeeRate(out var feeRate) ? feeRate : FetchedFeeRate;
 
 	public uint256 GetHash() => Transaction.GetHash();
 

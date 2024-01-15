@@ -28,7 +28,7 @@ public class TransactionFeeProvider : BackgroundService
 
 	public event EventHandler<EventArgs>? RequestedFeeArrived;
 
-	public ConcurrentDictionary<uint256, Money> FeeCache { get; } = new();
+	public ConcurrentDictionary<uint256, FeeRate> FeeRateCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
 	private IHttpClient HttpClient { get; }
@@ -41,7 +41,7 @@ public class TransactionFeeProvider : BackgroundService
 		{
 			try
 			{
-				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
+				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
 				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
 				var response = await HttpClient.SendAsync(
@@ -55,11 +55,12 @@ public class TransactionFeeProvider : BackgroundService
 					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				Money fee = await response.Content.ReadAsJsonAsync<Money>().ConfigureAwait(false);
+				Money feePerK = await response.Content.ReadAsJsonAsync<Money>().ConfigureAwait(false);
+				FeeRate feeRate = new(feePerK);
 
-				if (!FeeCache.TryAdd(txid, fee))
+				if (!FeeRateCache.TryAdd(txid, feeRate))
 				{
-					throw new InvalidOperationException($"Failed to cache {txid} with fee: {fee}");
+					throw new InvalidOperationException($"Failed to cache {txid} with fee: {feeRate}");
 				}
 
 				RequestedFeeArrived?.Invoke(this, EventArgs.Empty);
@@ -77,9 +78,9 @@ public class TransactionFeeProvider : BackgroundService
 		}
 	}
 
-	public bool TryGetFeeFromCache(uint256 txid, [NotNullWhen(true)] out Money? fee)
+	public bool TryGetFeeRateFromCache(uint256 txid, [NotNullWhen(true)] out FeeRate? feeRate)
 	{
-		return FeeCache.TryGetValue(txid, out fee);
+		return FeeRateCache.TryGetValue(txid, out feeRate);
 	}
 
 	public void BeginRequestTransactionFee(SmartTransaction tx)

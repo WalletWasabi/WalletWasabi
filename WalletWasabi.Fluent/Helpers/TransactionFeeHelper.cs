@@ -62,16 +62,12 @@ public static class TransactionFeeHelper
 
 		if (feeEstimates is not null)
 		{
-			if (!feeFetcher.TryGetFeeFromCache(tx.GetHash(), out Money? fee))
+			if (!feeFetcher.TryGetFeeRateFromCache(tx.GetHash(), out FeeRate? feeRate))
 			{
 				return false;
 			}
 
-			int vSize = tx.Transaction.GetVirtualSize();
-			FeeRate feeRate = new(fee, vSize);
-
 			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
-
 			return true;
 		}
 
