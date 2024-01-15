@@ -29,11 +29,12 @@ public static class WalletHelpers
 
 		foreach (var wallet in Services.WalletManager.GetWallets(refreshWalletList: false))
 		{
-			result.Add(new LabelsByWallet(wallet.WalletId, wallet.KeyManager.GetChangeLabels(), wallet.KeyManager.GetReceiveLabels()));
+			var (changeLabels, receiveLabels) = wallet.KeyManager.GetLabels();
+			result.Add(new LabelsByWallet(wallet.WalletId, changeLabels, receiveLabels));
 		}
 
 		return result;
 	}
 
-	public record LabelsByWallet(WalletId WalletId, IEnumerable<LabelsArray> ChangeLabels, IEnumerable<LabelsArray> ReceiveLabels);
+	public record LabelsByWallet(WalletId WalletId, List<LabelsArray> ChangeLabels, List<LabelsArray> ReceiveLabels);
 }

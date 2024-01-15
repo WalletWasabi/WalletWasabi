@@ -13,10 +13,12 @@ public static class LabelHelpers
 
 		var labelsByWalletId = WalletHelpers.GetLabelsByWallets();
 
-		// Make recent and receive labels count more for the current wallet
+		// Make recent and receive labels count more for the current wallet.
 		var multiplier = 100;
-		foreach (var label in labelsByWalletId.First(x => x.WalletId == wallet.WalletId).ReceiveLabels.Reverse().SelectMany(x => x))
+		var currentWalletReceiveLabels = labelsByWalletId.First(x => x.WalletId == wallet.WalletId).ReceiveLabels;
+		for (var i = currentWalletReceiveLabels.Count - 1; i >= 0; i--) // Iterate in reverse order.
 		{
+			var label = currentWalletReceiveLabels[i];
 			var score = (intent == Intent.Receive ? 100 : 1) * multiplier;
 			if (!labelPool.TryAdd(label, score))
 			{
