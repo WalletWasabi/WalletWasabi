@@ -13,7 +13,7 @@ public static class QRCodeConstantVariable
 
 	/// <summary>
 	/// ISO/IEC 18004:2006(E) Page 45 Chapter Generating the error correction codewords
-	/// Primative Polynomial = Bin 100011101 = Dec 285
+	/// Primitive Polynomial = Bin 100011101 = Dec 285
 	/// </summary>
 	public const int QRCodePrimitive = 285;
 
