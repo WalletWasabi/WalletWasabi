@@ -9,6 +9,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -67,6 +68,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public SynchronizeResponse? LastResponse { get; private set; }
 	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
+	private LastExceptionTracker ExceptionTracker { get; } = new();
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
