@@ -1,12 +1,10 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
@@ -103,18 +101,7 @@ public class TransactionFeeProvider : BackgroundService
 				continue;
 			}
 
-			try
-			{
-				_ = ScheduledTask(txidToFetch);
-			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogInfo("Request was cancelled by exiting the app.");
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning(e);
-			}
+			_ = ScheduledTask(txidToFetch);
 		}
 
 		async Task ScheduledTask(uint256 txid)
@@ -123,9 +110,20 @@ public class TransactionFeeProvider : BackgroundService
 			var delayInSeconds = random.Next(MaximumDelayInSeconds);
 			var delay = TimeSpan.FromSeconds(delayInSeconds);
 
-			await Task.Delay(delay, cancel).ConfigureAwait(false);
+			try
+			{
+				await Task.Delay(delay, cancel).ConfigureAwait(false);
 
-			await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
+				await FetchTransactionFeeAsync(txid, cancel).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace("Request was cancelled by exiting the app.");
+			}
+			catch (Exception e)
+			{
+				Logger.LogWarning(e);
+			}
 		}
 	}
 
