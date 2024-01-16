@@ -44,9 +44,10 @@ public partial class OnDemandAddressesModel : ViewModelBase
 
 	private IEnumerable<IAddress> GetAddresses()
 	{
-		return _keyManager.GetKeys().Select(a => new Address(_keyManager, a))
-		.Where(address => !address.IsUsed);
+		return _keyManager.GetKeys()
+			.Select(key => new Address(_keyManager, key))
+			.Where(address => !address.IsUsed);
 	}
-	
+
 	public ReactiveCommand<Unit, IAddress> LoadCommand { get; }
 }
