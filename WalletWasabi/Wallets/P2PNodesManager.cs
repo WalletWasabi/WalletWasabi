@@ -23,7 +23,7 @@ public class P2PNodesManager
 	private bool IsTorEnabled { get; }
 	private int NodeTimeouts { get; set; }
 
-	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
+	public async Task<(Node?, uint)> GetNodeAsync(CancellationToken cancellationToken)
 	{
 		while (Nodes.ConnectedNodes.Count == 0)
 		{
@@ -31,7 +31,7 @@ public class P2PNodesManager
 		}
 
 		// Select a random node we are connected to.
-		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
+		return (Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance), (uint)Nodes.ConnectedNodes.Count);
 	}
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string logIfDisconnect, bool force = false)

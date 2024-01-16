@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets.BlockProvider;
 
 namespace WalletWasabi.Wallets;
 
 /// <summary>
 /// P2P block provider is a blocks provider getting the blocks from bitcoin nodes using the P2P bitcoin protocol.
 /// </summary>
-public class P2PBlockProvider : IBlockProvider
+public class P2PBlockProvider : IP2PBlockProvider
 {
 	public P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
 	{
@@ -27,9 +28,16 @@ public class P2PBlockProvider : IBlockProvider
 	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
 	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
+		BlockWithSourceData? blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		return blockWithSourceData?.Block;
+	}
+
+	/// <inheritdoc/>
+	public async Task<BlockWithSourceData?> TryGetBlockWithSourceDataAsync(uint256 blockHash, CancellationToken cancellationToken)
+	{
 		try
 		{
-			Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+			(Node? node, uint connectedNodes) = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
 
 			if (node is null || !node.IsConnected)
 			{
@@ -59,7 +67,7 @@ public class P2PBlockProvider : IBlockProvider
 
 				await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
-				return block;
+				return new BlockWithSourceData(block, new P2pSourceData(node, connectedNodes));
 			}
 			catch (Exception ex)
 			{

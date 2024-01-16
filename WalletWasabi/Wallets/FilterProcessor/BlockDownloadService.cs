@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets.BlockProvider;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
 
@@ -21,13 +22,6 @@ public class BlockDownloadService : BackgroundService
 		FileSystemBlockRepository = fileSystemBlockRepository;
 		BlockProvider = blockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
-	}
-
-	/// <summary>Source that provided a block or blocks.</summary>
-	public enum Source
-	{
-		FileSystemCache,
-		BlockProvider
 	}
 
 	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
@@ -251,7 +245,7 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(request, new SuccessResult(block, Source.FileSystemCache));
+				return new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.FileSystemCache)));
 			}
 
 			// Try get the block from a block provider.
@@ -264,7 +258,7 @@ public class BlockDownloadService : BackgroundService
 			}
 
 			return block is not null
-				? new RequestResponse(request, new SuccessResult(block, Source.BlockProvider))
+				? new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.P2P))) // TODO source data.
 				: new RequestResponse(request, new FailureResult(request.Attempts));
 		}
 		catch (OperationCanceledException)
@@ -283,8 +277,8 @@ public class BlockDownloadService : BackgroundService
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>
-	/// <param name="Source">Source from which we obtained the block.</param>
-	public record SuccessResult(Block Block, Source Source) : IResult;
+	/// <param name="SourceData">Source data for the bitcoin block.</param>
+	public record SuccessResult(Block Block, ISourceData SourceData) : IResult;
 
 	/// <summary>Block could not be get because a blockchain reorg occurred.</summary>
 	/// <remarks>
