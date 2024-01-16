@@ -110,7 +110,7 @@ public class P2pTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfig, httpClientFactory.TorEndpoint);
 
 		IBlockProvider blockProvider = new SmartBlockProvider(

@@ -235,7 +235,7 @@ public class WabiSabiConfig : ConfigBase
 	}
 
 	public DoSConfiguration GetDoSConfiguration() =>
-		new DoSConfiguration(
+		new(
 			SeverityInBitcoinsPerHour: DoSSeverity.ToDecimal(MoneyUnit.BTC),
 			MinTimeForFailedToVerify: DoSMinTimeForFailedToVerify,
 			MinTimeForCheating: DoSMinTimeForCheating,

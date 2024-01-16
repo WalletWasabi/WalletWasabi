@@ -396,7 +396,7 @@ public class StepOutputRegistrationTests
 	}
 
 	[Fact]
-	public async Task AliceIsNotReady()
+	public async Task AliceIsNotReadyAsync()
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;

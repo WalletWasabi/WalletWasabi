@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -115,6 +116,64 @@ public class WalletManager : IWalletProvider
 				Logger.LogWarning(ex);
 			}
 		}
+	}
+
+	public void RenameWallet(Wallet wallet, string newWalletName)
+	{
+		if (newWalletName == wallet.WalletName)
+		{
+			return;
+		}
+
+		if (ValidateWalletName(newWalletName) is { } error)
+		{
+			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{error.Message}'");
+			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
+		}
+
+		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
+		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
+
+		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
+		File.Move(currentWalletFilePath, newWalletFilePath);
+
+		try
+		{
+			File.Move(currentWalletBackupFilePath, newWalletBackupFilePath);
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+		}
+
+		wallet.KeyManager.SetFilePath(newWalletFilePath);
+	}
+
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
+	{
+		string walletFilePath = Path.Combine(WalletDirectories.WalletsDir, $"{walletName}.json");
+
+		if (string.IsNullOrEmpty(walletName))
+		{
+			return (ErrorSeverity.Error, "The name cannot be empty");
+		}
+
+		if (walletName.IsTrimmable())
+		{
+			return (ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+		}
+
+		if (File.Exists(walletFilePath))
+		{
+			return (ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+		}
+
+		if (!WalletGenerator.ValidateWalletName(walletName))
+		{
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
+		}
+
+		return null;
 	}
 
 	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
@@ -246,7 +305,7 @@ public class WalletManager : IWalletProvider
 	{
 		lock (Lock)
 		{
-			if (Wallets.Any(w => w.WalletName == wallet.WalletName))
+			if (Wallets.Any(w => w.WalletId == wallet.WalletId))
 			{
 				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}

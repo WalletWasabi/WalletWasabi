@@ -40,11 +40,14 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
+		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(model);
 	}
+
+	public BitcoinAddress? SingleAddress { get; set; }
 
 	public uint256 TransactionId { get; }
 

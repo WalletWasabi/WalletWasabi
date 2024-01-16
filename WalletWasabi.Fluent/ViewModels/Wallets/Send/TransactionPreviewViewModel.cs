@@ -470,7 +470,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList());
+		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}

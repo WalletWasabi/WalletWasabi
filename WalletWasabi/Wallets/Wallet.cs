@@ -66,6 +66,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
+		WalletId = new WalletId(Guid.NewGuid());
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -73,6 +74,8 @@ public class Wallet : BackgroundService, IWallet
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
+
+	public WalletId WalletId { get; }
 
 	public WalletState State
 	{
@@ -354,6 +357,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
+
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 

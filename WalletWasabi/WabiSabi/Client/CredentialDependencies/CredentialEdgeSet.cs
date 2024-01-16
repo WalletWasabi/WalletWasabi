@@ -204,7 +204,7 @@ public record CredentialEdgeSet
 			// types when defining a reissuance node for higher priority
 			// ones, the amount is not guaranteed to be zero, avoid adding
 			// such edges.
-			// Always satisfiy zero credential from new reissuance nodes
+			// Always satisfy zero credential from new reissuance nodes
 			// (it's guaranteed to be possible) to avoid crossing edges,
 			// even if there's no balance to discharge.
 			return AddZeroEdges(reissuance, node);

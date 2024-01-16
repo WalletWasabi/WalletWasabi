@@ -15,6 +15,11 @@
     <Setter Property="OffContent" Value="{x:Null}" />
   </Style>
 
+  <Style Selector="StackPanel.settingsLayout > DockPanel > Button">
+    <Setter Property="Margin" Value="0 0 -12 0" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+
   <Style Selector="StackPanel.settingsLayout > DockPanel > TextBlock">
     <Setter Property="Margin" Value="0 8 20 0" />
     <Setter Property="VerticalAlignment" Value="Top" />

@@ -5,6 +5,8 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
@@ -12,10 +14,10 @@ public class NullWalletRepository : IWalletRepository
 {
 	public NullWalletRepository()
 	{
-		Wallets = Array.Empty<IWalletModel>().AsObservableChangeSet(x => x.Name).AsObservableCache();
+		Wallets = Array.Empty<IWalletModel>().AsObservableChangeSet(x => x.Id).AsObservableCache();
 	}
 
-	public IObservableCache<IWalletModel, string> Wallets { get; }
+	public IObservableCache<IWalletModel, WalletId> Wallets { get; }
 
 	public string? DefaultWalletName => null;
 
