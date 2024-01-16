@@ -29,7 +29,7 @@
             </Border.Transitions>
           </Border>
           <Border Name="PART_MainContentBorder">
-            <ContentControl Name="PART_ContentPresenter"
+            <ContentPresenter Name="PART_ContentPresenter"
                             ClipToBounds="{TemplateBinding ClipToBounds}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"

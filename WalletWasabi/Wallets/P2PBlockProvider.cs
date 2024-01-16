@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -21,72 +20,66 @@ public class P2PBlockProvider : IBlockProvider
 	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
-	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
-	/// If a bitcoin node is available it fetches the blocks using the RPC interface.
+	/// Gets the given block from a single P2P node using the P2P bitcoin protocol.
 	/// </summary>
-	/// <param name="hash">The block's hash that identifies the requested block.</param>
-	/// <param name="cancellationToken">The cancellation token.</param>
-	/// <returns>The requested bitcoin block.</returns>
-	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
+	/// <param name="blockHash">Block's hash to download.</param>
+	/// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
+	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		Block? block;
-
-		while (true)
+		try
 		{
-			cancellationToken.ThrowIfCancellationRequested();
+			Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+
+			if (node is null || !node.IsConnected)
+			{
+				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+				return null;
+			}
+
+			// Download block from the selected node.
 			try
 			{
-				Node? node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
-
-				if (node is null || !node.IsConnected)
+				Block? block;
+				var timeout = P2PNodesManager.GetCurrentTimeout();
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 				{
-					await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-					continue;
+					using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+					block = await node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 				}
 
-				// Download block from selected node.
-				try
+				// Validate block
+				if (!block.Check())
 				{
-					var timeout = P2PNodesManager.GetCurrentTimeout();
-					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
-					{
-						using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-						block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
-					}
-
-					// Validate block
-					if (!block.Check())
-					{
-						P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
-						continue;
-					}
-
-					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-
-					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
-				}
-				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
-				{
-					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
-
-					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
-					continue;
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+					return null;
 				}
 
-				break; // If got this far, then we have the block and it's valid. Break.
+				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+
+				await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
+
+				return block;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug(ex);
+				if (ex is OperationCanceledException or TimeoutException)
+				{
+					await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+				}
+				else
+				{
+					Logger.LogDebug(ex);
+					P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+				}
 			}
 		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+		}
 
-		return block;
+		return null;
 	}
 }

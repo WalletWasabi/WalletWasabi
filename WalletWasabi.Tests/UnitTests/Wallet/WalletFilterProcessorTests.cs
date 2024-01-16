@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
@@ -33,11 +34,11 @@ public class WalletFilterProcessorTests
 			new(SyncType.Turbo, new TaskCompletionSource()),
 		};
 
-		PriorityQueue<WalletFilterProcessor.SyncRequest, WalletFilterProcessor.Priority> synchronizationRequests = new(WalletFilterProcessor.Comparer);
+		PriorityQueue<WalletFilterProcessor.SyncRequest, Priority> synchronizationRequests = new(Priority.Comparer);
 
 		foreach (var request in requests)
 		{
-			WalletFilterProcessor.Priority priority = new(request.SyncType);
+			Priority priority = new(request.SyncType);
 			synchronizationRequests.Enqueue(request, priority);
 		}
 

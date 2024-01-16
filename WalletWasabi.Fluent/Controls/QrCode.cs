@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
-using Avalonia.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -73,11 +72,18 @@ public class QrCode : Control
 			return;
 		}
 
-		var path = await FileDialogHelper.ShowSaveFileDialogAsync(
+		var file = await FileDialogHelper.SaveFileAsync(
 			"Save QR Code...",
 			new[] { "png" },
 			$"{address}.png",
 			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+		if (file is null)
+		{
+			return;
+		}
+
+		var path = file.Path.AbsolutePath;
+
 		if (!string.IsNullOrWhiteSpace(path))
 		{
 			var ext = Path.GetExtension(path);
