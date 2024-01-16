@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -32,6 +33,7 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+	private static MemoryCacheEntryOptions TransationCacheOptions { get; } = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
@@ -42,8 +44,6 @@ public class BlockchainController : ControllerBase
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 
-	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
-	public static object TransactionHexCacheLock { get; } = new();
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
@@ -142,10 +142,11 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
 	{
-		var maxTxToRequest = 10;
-		if (transactionIds.Count() > maxTxToRequest)
+		const int MaxTxToRequest = 10;
+		var requestCount = transactionIds.Count();
+		if (requestCount > MaxTxToRequest)
 		{
-			return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
+			return BadRequest($"Maximum {MaxTxToRequest} transactions can be requested.");
 		}
 
 		var parsedIds = new List<uint256>();
@@ -165,51 +166,57 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Invalid transaction Ids.");
 		}
 
-		try
+		if (requestCount == 1)
 		{
-			var hexes = new Dictionary<uint256, string>();
-			List<uint256> missingTxs = new();
-			lock (TransactionHexCacheLock)
-			{
-				foreach (var txid in parsedIds)
-				{
-					if (TransactionHexCache.TryGetValue(txid, out string? hex))
-					{
-						hexes.Add(txid, hex);
-					}
-					else
-					{
-						missingTxs.Add(txid);
-					}
-				}
-			}
-
-			if (missingTxs.Count != 0)
-			{
-				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
-				{
-					string hex = tx.ToHex();
-					hexes.Add(tx.GetHash(), hex);
-
-					lock (TransactionHexCacheLock)
-					{
-						if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
-						{
-							TransactionHexCache.Remove(TransactionHexCache.Keys.First());
-						}
-					}
-				}
-			}
-
-			// Order hexes according to the order of the query.
-			var orderedResult = parsedIds.Where(x => hexes.ContainsKey(x)).Select(x => hexes[x]);
-			return Ok(orderedResult);
+			var singleTx = parsedIds.Single();
+			var tx = await GetTransactionAsync(singleTx, cancellationToken);
+			return Ok(new[] { tx });
 		}
-		catch (Exception ex)
+
+		List<Task<Transaction>> taskList = [];
+
+		foreach (var txId in parsedIds)
 		{
-			Logger.LogDebug(ex);
-			return BadRequest(ex.Message);
+			var cacheKey = GetCacheKeyForTransation(txId);
+
+			Task<Transaction> task = Cache.GetCachedResponseAsync(
+				cacheKey,
+				action: async (string _, CancellationToken _) =>
+					await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken).ConfigureAwait(false),
+				options: TransationCacheOptions,
+				cancellationToken);
+
+			taskList.Add(task);
 		}
+
+		await Task.WhenAll(taskList).ConfigureAwait(false);
+
+		var resultTransactionsDictionary = taskList
+			.Select(async task => await task.ConfigureAwait(false))
+			.Select(t => t.Result)
+			.ToDictionary(t => t.GetHash(), t => t);
+
+		// Order hexes according to the order of the query.
+		var orderedResult = transactionIds.Select(t => resultTransactionsDictionary[uint256.Parse(t)]);
+
+		return Ok(orderedResult);
+	}
+
+	private static string GetCacheKeyForTransation(uint256 txId)
+	{
+		return $"{nameof(GetTransactionsAsync)} + {txId}";
+	}
+
+	private Task<Transaction> GetTransactionAsync(uint256 txId, CancellationToken token)
+	{
+		var cacheKey = GetCacheKeyForTransation(txId);
+
+		return Cache.GetCachedResponseAsync(
+			cacheKey,
+			action: async (string _, CancellationToken token) =>
+				await RpcClient.GetRawTransactionAsync(txId, true, token),
+			options: TransationCacheOptions,
+			token);
 	}
 
 	/// <summary>
