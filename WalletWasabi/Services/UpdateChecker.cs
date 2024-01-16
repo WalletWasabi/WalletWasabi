@@ -14,7 +14,7 @@ public class UpdateChecker : PeriodicRunner
 		Synchronizer = synchronizer;
 		UpdateStatus = new UpdateStatus(backendCompatible: true, clientUpToDate: true, new Version(), currentBackendMajorVersion: 0, new Version());
 		WasabiClient = Synchronizer.HttpClientFactory.SharedWasabiClient;
-		Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
+		Synchronizer.BackendStatusChanged += Synchronizer_BackendStatusChanged;
 	}
 
 	public event EventHandler<UpdateStatus>? UpdateStatusChanged;
@@ -23,10 +23,9 @@ public class UpdateChecker : PeriodicRunner
 	private UpdateStatus UpdateStatus { get; set; }
 	public WasabiClient WasabiClient { get; }
 
-	private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+	private void Synchronizer_BackendStatusChanged(object? sender, BackendStatus backendStatus)
 	{
-		if (e.PropertyName == nameof(WasabiSynchronizer.BackendStatus) &&
-			Synchronizer.BackendStatus == BackendStatus.Connected)
+		if (backendStatus == BackendStatus.Connected)
 		{
 			// Any time when the synchronizer detects the backend, we immediately check the versions. GUI relies on UpdateStatus changes.
 			TriggerRound();
@@ -45,7 +44,7 @@ public class UpdateChecker : PeriodicRunner
 
 	public override void Dispose()
 	{
-		Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+		Synchronizer.BackendStatusChanged -= Synchronizer_BackendStatusChanged;
 		base.Dispose();
 	}
 }

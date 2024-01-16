@@ -323,8 +323,10 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		}
 
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+		// Backend Status
+		Observable.FromEventPattern<decimal>(_wallet.Synchronizer, nameof(Services.Synchronizer.UsdExchangeRateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(ev => ev.EventArgs)
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
 

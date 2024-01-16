@@ -45,15 +45,16 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 
 		// Tor Status
-		Services.Synchronizer.WhenAnyValue(x => x.TorStatus)
+		Observable.FromEventPattern<TorStatus>(Services.Synchronizer, nameof(Services.Synchronizer.TorStatusChanged))
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(status => UseTor ? status : TorStatus.TurnedOff)
+							 .Select(ev => UseTor ? ev.EventArgs : TorStatus.TurnedOff)
 							 .BindTo(this, x => x.TorStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend Status
-		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+		Observable.FromEventPattern<BackendStatus>(Services.Synchronizer, nameof(Services.Synchronizer.BackendStatusChanged))
 							 .ObserveOn(RxApp.MainThreadScheduler)
+							 .Select(x => x.EventArgs)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
 
@@ -86,7 +87,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		// Peers
 		Observable.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
 				  .Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
-				  .Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).ToSignal())))
+				  .Merge(Observable.FromEventPattern<TorStatus>(Services.Synchronizer, nameof(Services.Synchronizer.TorStatusChanged)).ToSignal())))
 				  .ObserveOn(RxApp.MainThreadScheduler)
 				  .Select(_ => Services.Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 				  .BindTo(this, x => x.Peers)

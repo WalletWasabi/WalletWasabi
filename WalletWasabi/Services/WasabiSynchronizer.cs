@@ -19,7 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
 	private const long StateNotStarted = 0;
 
@@ -28,11 +28,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	private const long StateStopping = 2;
 
 	private const long StateStopped = 3;
-
 	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
-
 	private BackendStatus _backendStatus;
 
 	/// <summary>
@@ -61,6 +58,12 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
+	public event EventHandler<decimal>? UsdExchangeRateChanged;
+
+	public event EventHandler<TorStatus>? TorStatusChanged;
+
+	public event EventHandler<BackendStatus>? BackendStatusChanged;
+
 	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
@@ -72,13 +75,27 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public decimal UsdExchangeRate
 	{
 		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
+		private set
+		{
+			if (_usdExchangeRate != value)
+			{
+				_usdExchangeRate = value;
+				UsdExchangeRateChanged?.Invoke(this, value);
+			}
+		}
 	}
 
 	public TorStatus TorStatus
 	{
 		get => _torStatus;
-		private set => RaiseAndSetIfChanged(ref _torStatus, value);
+		private set
+		{
+			if (_torStatus != value)
+			{
+				_torStatus = value;
+				TorStatusChanged?.Invoke(this, value);
+			}
+		}
 	}
 
 	public BackendStatus BackendStatus
@@ -86,9 +103,11 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		get => _backendStatus;
 		private set
 		{
-			if (RaiseAndSetIfChanged(ref _backendStatus, value))
+			if (_backendStatus != value)
 			{
+				_backendStatus = value;
 				BackendStatusChangedAt = DateTimeOffset.UtcNow;
+				BackendStatusChanged?.Invoke(this, value);
 			}
 		}
 	}
