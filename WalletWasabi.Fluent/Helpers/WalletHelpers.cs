@@ -36,5 +36,5 @@ public static class WalletHelpers
 		return result;
 	}
 
-	public record LabelsByWallet(WalletId WalletId, List<LabelsArray> ChangeLabels, List<LabelsArray> ReceiveLabels);
+	public record LabelsByWallet(WalletId WalletId, List<string> ChangeLabels, List<string> ReceiveLabels);
 }

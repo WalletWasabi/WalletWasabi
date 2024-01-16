@@ -79,4 +79,24 @@ public static class EnumerableExtensions
 	}
 
 	public static bool IsEmpty<T>(this IEnumerable<T> source) => !source.Any();
+
+	public static (IEnumerable<T>, IEnumerable<T>) Partition<T>(this IEnumerable<T> me, Predicate<T> predicate)
+	{
+		var trueList = new List<T>();
+		var falseList = new List<T>();
+
+		foreach (var item in me)
+		{
+			if (predicate(item))
+			{
+				trueList.Add(item);
+			}
+			else
+			{
+				falseList.Add(item);
+			}
+		}
+
+		return (trueList, falseList);
+	}
 }
