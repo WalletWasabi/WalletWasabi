@@ -27,8 +27,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private Amount? _amount;
-	[AutoNotify] private Amount? _fee;
-	[AutoNotify] private bool _isFeeVisible;
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _feeRateVisible;
 
@@ -41,6 +39,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
 		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
+		Fee = wallet.AmountProvider.Create(model.Fee);
+		IsFeeVisible = model.Fee != null;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -53,15 +53,16 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
 
+	public Amount? Fee { get; }
+
+	public bool IsFeeVisible { get; }
+
 	private void UpdateValues(TransactionModel model)
 	{
 		DateString = model.DateString;
 		Labels = model.Labels;
 		BlockHeight = model.BlockHeight;
 		Confirmations = model.Confirmations;
-
-		Fee = UiContext.AmountProvider.Create(model.Fee);
-		IsFeeVisible = Fee.HasBalance;
 		FeeRate = model.FeeRate;
 		FeeRateVisible = FeeRate != FeeRate.Zero;
 
