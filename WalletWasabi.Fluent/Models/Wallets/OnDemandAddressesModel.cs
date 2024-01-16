@@ -20,7 +20,7 @@ public partial class OnDemandAddressesModel : ViewModelBase
 	public OnDemandAddressesModel(KeyManager keyManager)
 	{
 		_keyManager = keyManager;
-		LoadCommand = ReactiveCommand.CreateFromObservable(() => GetAddresses().ToObservable(NewThreadScheduler.Default).Take(15));
+		LoadCommand = ReactiveCommand.CreateFromObservable(() => GetAddresses().ToObservable(NewThreadScheduler.Default));
 
 		var source = new SourceList<IAddress>();
 
