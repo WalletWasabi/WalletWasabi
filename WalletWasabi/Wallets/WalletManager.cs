@@ -478,7 +478,7 @@ public class WalletManager : IWalletProvider
 				km.SetBestHeight(heightPriorTo12137);
 			}
 
-			if (km.GetBestTurboSyncHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
 			{
 				km.SetBestTurboSyncHeight(heightPriorTo12137);
 			}
