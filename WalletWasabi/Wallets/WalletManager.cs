@@ -100,6 +100,11 @@ public class WalletManager : IWalletProvider
 			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName));
 		}
 
+		if (!walletNamesToLoad.Any())
+		{
+			return;
+		}
+
 		List<Task<Wallet>> walletLoadTasks = [];
 
 		foreach (var walletName in walletNamesToLoad)
