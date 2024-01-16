@@ -45,8 +45,6 @@ public class BlockchainController : ControllerBase
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 
-	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
-	public static object TransactionHexCacheLock { get; } = new();
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
