@@ -1,8 +1,10 @@
 using NBitcoin;
 using Nito.AsyncEx;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -92,20 +94,31 @@ public class WalletManager : IWalletProvider
 
 	private void RefreshWalletList()
 	{
-		foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
+
+		IEnumerable<string> walletNamesToLoad = [];
+		lock (Lock)
 		{
+			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName));
+		}
+
+		List<Task<Wallet>> walletLoadTasks = [];
+
+		foreach (var walletName in walletNamesToLoad)
+		{
+			var loadTask = Task.Run(() => GetWalletByName(walletName));
+			walletLoadTasks.Add(loadTask);
+		}
+
+		while (walletLoadTasks.Count > 0)
+		{
+			var tasksArray = walletLoadTasks.ToArray();
+			var finishedTaskIndex = Task.WaitAny(tasksArray);
+			var finishedTask = tasksArray[finishedTaskIndex];
+			walletLoadTasks.Remove(finishedTask);
 			try
 			{
-				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-				lock (Lock)
-				{
-					if (Wallets.Any(w => w.WalletName == walletName))
-					{
-						continue;
-					}
-				}
-
-				Wallet wallet = GetWalletByName(walletName);
+				var wallet = finishedTask.Result;
 				AddWallet(wallet);
 			}
 			catch (Exception ex)
