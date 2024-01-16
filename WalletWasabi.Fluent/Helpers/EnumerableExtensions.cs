@@ -19,8 +19,12 @@ public static class EnumerableExtensions
 	/// <returns>A new IEnumerable if the Selected data at each sample point.</returns>
 	public static IEnumerable<(DateTimeOffset timestamp, TResult result)> SelectTimeSampleBackwards<TSource, TResult>(
 		this IEnumerable<TSource> sourceData,
-		Func<TSource, DateTimeOffset> timeSampler, Func<TSource, TResult> sampler,
-		TimeSpan interval, DateTimeOffset endTime, TResult defaultValue, DateTimeOffset? startFrom = default)
+		Func<TSource, DateTimeOffset> timeSampler,
+		Func<TSource, TResult> sampler,
+		TimeSpan interval,
+		DateTimeOffset endTime,
+		TResult defaultValue,
+		DateTimeOffset? startFrom = default)
 	{
 		var source = sourceData.ToArray();
 
