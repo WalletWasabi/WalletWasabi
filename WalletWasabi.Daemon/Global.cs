@@ -236,7 +236,7 @@ public class Global
 				}
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				Synchronizer.Start();
+				await Synchronizer.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo("Start synchronizing filters...");
 
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);

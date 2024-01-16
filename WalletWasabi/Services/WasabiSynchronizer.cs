@@ -22,7 +22,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
 	private const long StateNotStarted = 0;
 
@@ -43,7 +43,9 @@ public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider
 	/// </summary>
 	private long _running;
 
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory)
+	private bool _ignoreRequestInterval = false;
+
+	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(requestInterval)
 	{
 		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
@@ -116,161 +118,144 @@ public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider
 
 	#endregion EventsPropertiesMembers
 
-	#region Initializers
-
-	public void Start()
+	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		if (Interlocked.CompareExchange(ref _running, StateRunning, StateNotStarted) != StateNotStarted)
-		{
-			return;
-		}
-
-		Task.Run(async () =>
+		try
 		{
 			try
 			{
-				bool ignoreRequestInterval = false;
+				SynchronizeResponse response;
 
-				while (IsRunning)
+				ushort lastUsedApiVersion = WasabiClient.ApiVersion;
+				try
 				{
+					response = await WasabiClient
+						.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
+						.ConfigureAwait(false);
+
+					// NOT GenSocksServErr
+					BackendStatus = BackendStatus.Connected;
+					TorStatus = TorStatus.Running;
+					DoNotGenSocksServFail();
+				}
+				catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
+				{
+					TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
+					BackendStatus = BackendStatus.NotConnected;
+					HandleIfGenSocksServFail(innerEx);
+					throw;
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
+				{
+					TorStatus = TorStatus.Running;
+					BackendStatus = BackendStatus.NotConnected;
 					try
 					{
-						SynchronizeResponse response;
+						// Backend API version might be updated meanwhile. Trying to update the versions.
+						var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
 
-						ushort lastUsedApiVersion = WasabiClient.ApiVersion;
-						try
+						// If the backend is compatible and the Api version updated then we just used the wrong API.
+						if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 						{
-							response = await WasabiClient
-								.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
-								.ConfigureAwait(false);
-
-							// NOT GenSocksServErr
-							BackendStatus = BackendStatus.Connected;
-							TorStatus = TorStatus.Running;
-							DoNotGenSocksServFail();
-						}
-						catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
-						{
-							TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(innerEx);
-							throw;
-						}
-						catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
-						{
-							TorStatus = TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							try
-							{
-								// Backend API version might be updated meanwhile. Trying to update the versions.
-								var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
-
-								// If the backend is compatible and the Api version updated then we just used the wrong API.
-								if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-								{
-									// Next request will be fine, do not throw exception.
-									ignoreRequestInterval = true;
-									continue;
-								}
-								else
-								{
-									throw;
-								}
-							}
-							catch (Exception x)
-							{
-								HandleIfGenSocksServFail(x);
-								throw;
-							}
-						}
-						catch (Exception ex)
-						{
-							TorStatus = TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(ex);
-							throw;
-						}
-
-						// If it's not fully synced or reorg happened.
-						if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-						{
-							ignoreRequestInterval = true;
+							// Next request will be fine, do not throw exception.
+							_ignoreRequestInterval = true;
+							return;
 						}
 						else
 						{
-							ignoreRequestInterval = false;
-						}
-						ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-						if (exchangeRate is { Rate: > 0 })
-						{
-							UsdExchangeRate = exchangeRate.Rate;
-						}
-
-						await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
-
-						LastResponse = response;
-						ResponseArrived?.Invoke(this, response);
-						if (response.AllFeeEstimate is { } allFeeEstimate)
-						{
-							AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+							throw;
 						}
 					}
-					catch (OperationCanceledException)
+					catch (Exception x)
 					{
-						Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
-					}
-					catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
-					{
-						// When stopping, we do not want to wait.
-						if (!IsRunning)
-						{
-							Logger.LogTrace(ex);
-							return;
-						}
-
-						Logger.LogError(ex);
-						try
-						{
-							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
-						}
-						catch (TaskCanceledException ex2)
-						{
-							Logger.LogTrace(ex2);
-						}
-					}
-					catch (TimeoutException ex)
-					{
-						Logger.LogTrace(ex);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-					finally
-					{
-						if (IsRunning && !ignoreRequestInterval)
-						{
-							try
-							{
-								await Task.Delay(RequestInterval, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
-							}
-							catch (TaskCanceledException ex)
-							{
-								Logger.LogTrace(ex);
-							}
-						}
+						HandleIfGenSocksServFail(x);
+						throw;
 					}
 				}
+				catch (Exception ex)
+				{
+					TorStatus = TorStatus.Running;
+					BackendStatus = BackendStatus.NotConnected;
+					HandleIfGenSocksServFail(ex);
+					throw;
+				}
+
+				// If it's not fully synced or reorg happened.
+				if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+				{
+					_ignoreRequestInterval = true;
+				}
+				else
+				{
+					_ignoreRequestInterval = false;
+				}
+				ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
+				if (exchangeRate is { Rate: > 0 })
+				{
+					UsdExchangeRate = exchangeRate.Rate;
+				}
+
+				await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+
+				LastResponse = response;
+				ResponseArrived?.Invoke(this, response);
+				if (response.AllFeeEstimate is { } allFeeEstimate)
+				{
+					AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
+			}
+			catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
+			{
+				// When stopping, we do not want to wait.
+				if (!IsRunning)
+				{
+					Logger.LogTrace(ex);
+					return;
+				}
+
+				Logger.LogError(ex);
+				try
+				{
+					await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
+				}
+				catch (TaskCanceledException ex2)
+				{
+					Logger.LogTrace(ex2);
+				}
+			}
+			catch (TimeoutException ex)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 			finally
 			{
-				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				Logger.LogDebug("Synchronizer is fully stopped now.");
+				if (IsRunning && !_ignoreRequestInterval)
+				{
+					try
+					{
+						await Task.Delay(RequestInterval, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
+					}
+					catch (TaskCanceledException ex)
+					{
+						Logger.LogTrace(ex);
+					}
+				}
 			}
-		});
+		}
+		finally
+		{
+			Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
+			Logger.LogDebug("Synchronizer is fully stopped now.");
+		}
 	}
-
-	#endregion Initializers
 
 	#region Methods
 
