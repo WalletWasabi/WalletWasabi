@@ -2,41 +2,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableCancel="{Binding EnableCancel}"
+  <c:ContentArea EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
+                 ClipToBounds="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <TreeDataGrid Source="{Binding Source}"
-                  CanUserSortColumns="True">
-      <TreeDataGrid.Styles>
-        <Style Selector="TreeDataGridRow">
-          <Setter Property="Theme" Value="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
-        </Style>
-        <Style Selector="c|AnimatedButton.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right" />
-          <Setter Property="Margin" Value="5 0 0 0" />
-        </Style>
-        <Style Selector="c|AnimatedButton /template/ PathIcon">
-          <Setter Property="Height" Value="15" />
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-        </Style>
-        <Style Selector="Button.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right" />
-          <Setter Property="Margin" Value="5 0 0 0" />
-        </Style>
-        <Style Selector="PathIcon.addressActionIcon">
-          <Setter Property="Height" Value="15" />
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-        </Style>
-      </TreeDataGrid.Styles>
-    </TreeDataGrid>
+    <c:ContentArea.Title>
+      <DockPanel>
+        <TextBlock Text="{Binding Title}" />
+        <!--<StackPanel TextElement.FontSize="15" VerticalAlignment="Center" IsVisible="{Binding IsBusy}"  Orientation="Horizontal" Spacing="10">
+          <TextBlock Text="Fetching unused addresses, please wait..." VerticalAlignment="Center" />
+          <c:ProgressRing Height="32" Width="32" IsIndeterminate="True" />
+        </StackPanel>-->
+      </DockPanel>
+    </c:ContentArea.Title>
+    <Panel ClipToBounds="False">
+      <ProgressBar Margin="0 -1 0 0" IsVisible="{Binding IsBusy}" Height="3" IsIndeterminate="True" VerticalAlignment="Top" />
+      <TreeDataGrid Source="{Binding Source}"
+                    CanUserSortColumns="True">
+        <TreeDataGrid.Styles>
+          <Style Selector="TreeDataGridRow">
+            <Setter Property="Theme" Value="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
+          </Style>
+          <Style Selector="c|AnimatedButton.addressActionButton">
+            <Setter Property="DockPanel.Dock" Value="Right" />
+            <Setter Property="Margin" Value="5 0 0 0" />
+          </Style>
+          <Style Selector="c|AnimatedButton /template/ PathIcon">
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+          </Style>
+          <Style Selector="Button.addressActionButton">
+            <Setter Property="DockPanel.Dock" Value="Right" />
+            <Setter Property="Margin" Value="5 0 0 0" />
+          </Style>
+          <Style Selector="PathIcon.addressActionIcon">
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+          </Style>
+        </TreeDataGrid.Styles>
+      </TreeDataGrid>
+    </Panel>
   </c:ContentArea>
 </UserControl>

@@ -40,8 +40,5 @@ public partial class AddressesModel : IDisposable
 
 	public void Dispose() => _disposable.Dispose();
 
-	private IEnumerable<IAddress> GetAddresses() => _keyManager
-		.GetKeys()
-		.Reverse()
-		.Select(x => new Address(_keyManager, x));
+	private IEnumerable<IAddress> GetAddresses() => [];
 }

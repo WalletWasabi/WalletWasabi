@@ -40,6 +40,7 @@ public partial class WalletModel : ReactiveObject
 		Transactions = new WalletTransactionsModel(this, wallet);
 
 		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
+		OnDemandAddresses = new OnDemandAddressesModel(Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -68,6 +69,8 @@ public partial class WalletModel : ReactiveObject
 
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
+
+	public IOnDemandAddressesModel OnDemandAddresses { get; }
 
 	public IAddressesModel AddressesModel { get; }
 

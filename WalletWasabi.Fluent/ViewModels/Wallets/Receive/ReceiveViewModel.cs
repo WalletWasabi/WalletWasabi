@@ -43,7 +43,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		AddressesModel = wallet.AddressesModel;
 
-		HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
+		HasUnusedAddresses = Observable.Return(true);
 	}
 
 	public IAddressesModel AddressesModel { get; }
