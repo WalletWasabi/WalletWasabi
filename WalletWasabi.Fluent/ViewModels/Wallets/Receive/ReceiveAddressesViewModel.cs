@@ -36,8 +36,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			.Subscribe();
 
 		Source = ReceiveAddressesDataGridSource.Create(viewModels);
-		
-		LoadCommand.Execute().Subscribe();
 	}
 
 	public ReactiveCommand<Unit, IAddress> LoadCommand { get; }
