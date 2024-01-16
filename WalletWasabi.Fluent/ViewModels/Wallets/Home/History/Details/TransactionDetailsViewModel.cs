@@ -29,6 +29,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private Amount? _amount;
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private bool _isFeeVisible;
+	[AutoNotify] private FeeRate? _feeRate;
+	[AutoNotify] private bool _feeRateVisible;
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
@@ -44,8 +46,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(model);
 	}
 
-	public FeeRate? FeeRate { get; set; }
-
 	public uint256 TransactionId { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }
@@ -58,8 +58,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Confirmations = model.Confirmations;
 
 		Fee = UiContext.AmountProvider.Create(model.Fee);
-		FeeRate = model.FeeRate;
 		IsFeeVisible = Fee.HasBalance;
+		FeeRate = model.FeeRate;
+		FeeRateVisible = FeeRate != FeeRate.Zero;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })
