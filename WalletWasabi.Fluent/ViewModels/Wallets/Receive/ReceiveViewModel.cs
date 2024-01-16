@@ -41,12 +41,8 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		AddressesModel = wallet.AddressesModel;
-
 		HasUnusedAddresses = Observable.Return(true);
 	}
-
-	public IAddressesModel AddressesModel { get; }
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 

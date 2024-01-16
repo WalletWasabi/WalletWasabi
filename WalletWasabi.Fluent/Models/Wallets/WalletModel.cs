@@ -39,7 +39,6 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
 		OnDemandAddresses = new OnDemandAddressesModel(Wallet.KeyManager);
 
 		State =
@@ -71,8 +70,6 @@ public partial class WalletModel : ReactiveObject
 	}
 
 	public IOnDemandAddressesModel OnDemandAddresses { get; }
-
-	public IAddressesModel AddressesModel { get; }
 
 	internal Wallet Wallet { get; }
 
