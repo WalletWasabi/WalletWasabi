@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.BlockProvider;
 using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
 using static WalletWasabi.Wallets.FilterProcessor.BlockDownloadService;
@@ -73,7 +74,7 @@ public class BlockDownloadTests
 		}
 
 		P2PBlockProvider p2PBlockProvider = new(Network.Main, nodes, isTorEnabled: false);
-		using BlockDownloadService blockDownloadService = new(mockFileSystemBlockRepository.Object, p2PBlockProvider);
+		using BlockDownloadService blockDownloadService = new(mockFileSystemBlockRepository.Object, trustedFullNodeBlockProviders: [], p2PBlockProvider);
 
 		try
 		{
@@ -85,7 +86,7 @@ public class BlockDownloadTests
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
-				TaskCompletionSource<IResult> taskCompletionSource = blockDownloadService.Enqueue(blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3);
+				TaskCompletionSource<IResult> taskCompletionSource = blockDownloadService.Enqueue(Source.P2P, blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3);
 				tasks.Add(taskCompletionSource.Task);
 			}
 

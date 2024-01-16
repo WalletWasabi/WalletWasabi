@@ -17,10 +17,15 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>Maximum number of parallel block-downloading tasks.</summary>
 	private const int MaxParallelTasks = 5;
 
-	public BlockDownloadService(IFileSystemBlockRepository fileSystemBlockRepository, IBlockProvider blockProvider, int maximumParallelTasks = MaxParallelTasks)
+	public BlockDownloadService(
+		IFileSystemBlockRepository fileSystemBlockRepository,
+		IBlockProvider[] trustedFullNodeBlockProviders,
+		IP2PBlockProvider? p2pBlockProvider,
+		int maximumParallelTasks = MaxParallelTasks)
 	{
 		FileSystemBlockRepository = fileSystemBlockRepository;
-		BlockProvider = blockProvider;
+		TrustedFullNodeBlockProviders = trustedFullNodeBlockProviders;
+		P2PBlockProvider = p2pBlockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
 	}
 
@@ -31,9 +36,10 @@ public class BlockDownloadService : BackgroundService
 	public interface IFailureResult : IResult { }
 
 	private IFileSystemBlockRepository FileSystemBlockRepository { get; }
+	private IBlockProvider[] TrustedFullNodeBlockProviders { get; }
 
-	/// <remarks>Implementation must provide caching functionality - i.e. once a block is downloaded, it must be readily available next time it is requested.</remarks>
-	private IBlockProvider BlockProvider { get; }
+	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
+	private IP2PBlockProvider? P2PBlockProvider { get; }
 	private int MaximumParallelTasks { get; }
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0, maxCount: 1);
 
@@ -50,9 +56,9 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Add a block hash to the queue to be downloaded.
 	/// </summary>
-	public TaskCompletionSource<IResult> Enqueue(uint256 blockHash, Priority priority, uint maxAttempts = 1)
+	public TaskCompletionSource<IResult> Enqueue(Source source, uint256 blockHash, Priority priority, uint maxAttempts = 1)
 	{
-		Request request = new(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(source, blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
 		Enqueue(request);
 
 		return request.Tcs;
@@ -67,9 +73,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<IResult> TryGetBlockAsync(uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
+	public async Task<IResult> TryGetBlockAsync(Source source, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
 	{
-		Request request = new(blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(source, blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
 		Enqueue(request);
 
 		try
@@ -248,18 +254,69 @@ public class BlockDownloadService : BackgroundService
 				return new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.FileSystemCache)));
 			}
 
-			// Try get the block from a block provider.
-			block = await BlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+			SuccessResult? successResult = null;
+			ISourceData? failureSourceData = null;
+
+			if (request.Source.HasFlag(Source.TrustedFullNode))
+			{
+				EmptySourceData sourceData = new(Source.TrustedFullNode);
+
+				foreach (IBlockProvider blockProvider in TrustedFullNodeBlockProviders)
+				{
+					block = await blockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+
+					if (block is not null)
+					{
+						successResult = new(block, sourceData);
+						break;
+					}
+				}
+
+				if (successResult is null)
+				{
+					failureSourceData = sourceData;
+				}
+			}
+
+			if (request.Source.HasFlag(Source.P2P) && P2PBlockProvider is not null && successResult is null)
+			{
+				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+
+				if (response.Block is not null)
+				{
+					block = response.Block;
+					successResult = new(block, response.SourceData);
+				}
+				else
+				{
+					failureSourceData = response.SourceData;
+				}
+			}
 
 			// Store the block to the file-system.
 			if (block is not null)
 			{
-				await FileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+				try
+				{
+					await FileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Failed to cache block {request.BlockHash} (height: {request.Priority.BlockHeight})", ex);
+				}
 			}
 
-			return block is not null
-				? new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.P2P))) // TODO source data.
-				: new RequestResponse(request, new FailureResult(request.Attempts));
+			if (successResult is not null)
+			{
+				return new RequestResponse(request, successResult);
+			}
+
+			if (failureSourceData is not null)
+			{
+				return new RequestResponse(request, new FailureResult(request.Attempts, failureSourceData));
+			}
+
+			throw new UnreachableException();
 		}
 		catch (OperationCanceledException)
 		{
@@ -268,12 +325,12 @@ public class BlockDownloadService : BackgroundService
 		catch (Exception ex)
 		{
 			Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {request.Priority.BlockHeight})", ex);
-			return new RequestResponse(request, new FailureResult(request.Attempts));
+			throw new UnreachableException("Unexpected exception occurred", ex);
 		}
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
+	internal record Request(Source Source, uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>
@@ -289,7 +346,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
-	public record FailureResult(uint Attempts) : IFailureResult;
+	public record FailureResult(uint Attempts, ISourceData SourceData) : IFailureResult;
 
 	/// <summary>Block could not be get because the service is shutting down.</summary>
 	public record CancelledResult() : IFailureResult
