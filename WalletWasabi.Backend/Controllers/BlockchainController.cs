@@ -465,8 +465,8 @@ public class BlockchainController : ControllerBase
 
 			unconfirmedTxsChain.Add((tx.GetVirtualSize(), tx.GetFee(inputs.ToArray())));
 
-			// Remove the item (first in the list) we worked on.
-			toFetchFeeList.RemoveAt(0);
+			// Remove the item we worked on.
+			toFetchFeeList.Remove(txToFetchFee);
 
 			// Fee and size of all unconfirmed parents have to be known to get effective fee rate of the child.
 			toFetchFeeList.AddRange(
