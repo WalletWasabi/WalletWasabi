@@ -94,7 +94,7 @@ public class WalletManager : IWalletProvider
 	{
 		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
 
-		string[] walletNamesToLoad = [];
+		string[]? walletNamesToLoad = null;
 		lock (Lock)
 		{
 			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
