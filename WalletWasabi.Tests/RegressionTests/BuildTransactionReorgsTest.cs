@@ -102,7 +102,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(); // Start wasabi synchronizer service.
+			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Start wallet and filter processing service
@@ -275,7 +275,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		{
 			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(testDeadlineCts.Token);
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(testDeadlineCts.Token);
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();

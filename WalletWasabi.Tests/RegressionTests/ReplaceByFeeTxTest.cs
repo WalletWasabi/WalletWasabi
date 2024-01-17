@@ -90,7 +90,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(); // Start wasabi synchronizer service.
+			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
@@ -139,7 +139,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		finally
 		{
 			await wallet.StopAsync(CancellationToken.None);
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(CancellationToken.None);
 			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();

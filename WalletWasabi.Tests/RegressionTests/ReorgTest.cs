@@ -81,7 +81,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		try
 		{
-			synchronizer.Start();
+			await synchronizer.StartAsync(CancellationToken.None);
 
 			var reorgAwaiter = new EventsAwaiter<FilterModel>(
 				h => bitcoinStore.IndexStore.Reorged += h,
@@ -146,7 +146,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(CancellationToken.None);
 		}
 	}
 }

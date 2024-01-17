@@ -90,7 +90,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(); // Start wasabi synchronizer service.
+			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Start wallet and filter processing service.
@@ -302,7 +302,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 		{
 			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(CancellationToken.None);
 			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
