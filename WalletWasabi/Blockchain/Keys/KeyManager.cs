@@ -113,7 +113,7 @@ public class KeyManager
 	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
-		HdPubKeys.AddRange(HdPubKeyCache);
+		HdPubKeys.AddRange(HdPubKeyCache.HdPubKeys);
 		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
 	}
 
@@ -410,11 +410,8 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			AssertCleanKeysIndexed();
-			return wherePredicate switch
-			{
-				null => HdPubKeyCache.ToList(),
-				_ => HdPubKeyCache.Where(wherePredicate).ToList()
-			};
+			var predicate = wherePredicate ?? ( _ => true);
+			return HdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index);
 		}
 	}
 
