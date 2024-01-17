@@ -24,34 +24,19 @@ namespace WalletWasabi.Services;
 
 public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
-	private const long StateNotStarted = 0;
-
-	private const long StateRunning = 1;
-
-	private const long StateStopping = 2;
-
-	private const long StateStopped = 3;
-
 	private decimal _usdExchangeRate;
 
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
 
-	/// <summary>
-	/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
-	/// </summary>
-	private long _running;
-
 	private bool _ignoreRequestInterval = false;
 
 	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(requestInterval)
 	{
-		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
-		_running = StateNotStarted;
 		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
 		FilterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClientFactory = httpClientFactory;
@@ -102,12 +87,9 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
-	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
 	private SmartHeaderChain SmartHeaderChain { get; }
 	private FilterProcessor FilterProcessor { get; }
-
-	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
 	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
 	private CancellationTokenSource StopCts { get; } = new();
@@ -127,6 +109,11 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 			try
 			{
+				if (SmartHeaderChain.TipHash is null)
+				{
+					return;
+				}
+
 				response = await WasabiClient
 					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
 					.ConfigureAwait(false);
@@ -188,6 +175,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			{
 				_ignoreRequestInterval = false;
 			}
+
 			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
 			if (exchangeRate is { Rate: > 0 })
 			{
@@ -210,7 +198,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
 		{
 			// When stopping, we do not want to wait.
-			if (!IsRunning)
+			if (cancel.IsCancellationRequested)
 			{
 				Logger.LogTrace(ex);
 				return;
@@ -219,7 +207,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			Logger.LogError(ex);
 			try
 			{
-				await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
+				await Task.Delay(3000, cancel).ConfigureAwait(false); // Give other threads time to do stuff.
 			}
 			catch (TaskCanceledException ex2)
 			{
@@ -236,6 +224,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		}
 		finally
 		{
+			// If it's not fully synced, trigger.
 			if (_ignoreRequestInterval)
 			{
 				TriggerRound();

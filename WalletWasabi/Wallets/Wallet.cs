@@ -297,11 +297,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Starting;
 
-			if (!Synchronizer.IsRunning)
-			{
-				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-			}
-
 			using (BenchmarkLogger.Measure())
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
