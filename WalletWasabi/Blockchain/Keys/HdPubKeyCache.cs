@@ -14,11 +14,6 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 	public IEnumerable<HdPubKey> HdPubKeys =>
 		this.Select(x => x.HdPubKey);
 
-	public IEnumerable<SynchronizationInfos> GetSynchronizationInfos()
-	{
-		return this.Select(x => new SynchronizationInfos(x.HdPubKey.FullKeyPath, new ScriptBytesHdPubKeyPair(x.CompressedScriptPubKey, x.HdPubKey)));
-	}
-
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
 		HdPubKeyIndexedByScriptPubKey.TryGetValue(destination, out hdPubKey);
 
@@ -47,8 +42,4 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
-
-	public record ScriptBytesHdPubKeyPair(byte[] ScriptBytes, HdPubKey HdPubKey);
-	public record SynchronizationInfos(KeyPath KeyPath, ScriptBytesHdPubKeyPair ScriptBytesHdPubKeyPair);
-
 }
