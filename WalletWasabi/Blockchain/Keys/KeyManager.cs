@@ -450,13 +450,13 @@ public class KeyManager
 
 	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 	{
-		return GetSecretsAndPubKeyPairs(password, scripts).Select(x => x.secret);
+		return GetSecretsAndPubKeyPairs(password, scripts);
 	}
 
-	public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
+	public IEnumerable<ExtKey> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
+		var extKeysAndPubs = new List<ExtKey>();
 
 		lock (CriticalStateLock)
 		{
@@ -465,13 +465,7 @@ public class KeyManager
 				|| scripts.Contains(x.P2Taproot)))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add((ek, key));
-
-				if (ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != key.P2wpkhScript
-					&& ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) != key.P2Taproot)
-				{
-					throw new InvalidOperationException("Wtf");
-				}
+				extKeysAndPubs.Add(ek);
 			}
 		}
 		return extKeysAndPubs;
