@@ -48,7 +48,7 @@ public class TransactionProcessorTests
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 		// A payment to a key under our control but using P2PKH script (legacy)
-		var tx = CreateCreditingTransaction(keys.First().PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
+		var tx = CreateCreditingTransaction(keys.First().P2pkhScript, Money.Coins(1.0m));
 		var relevant = transactionProcessor.Process(tx);
 
 		Assert.False(relevant.IsNews);

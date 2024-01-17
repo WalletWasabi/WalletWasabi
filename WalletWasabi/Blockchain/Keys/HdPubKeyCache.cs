@@ -1,28 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
+public class HdPubKeyCache : IEnumerable<HdPubKey>
 {
-	private readonly Dictionary<Script, HdPubKey> _hdPubKeyIndexedByScriptPubKey = new(1_000);
-	private HdPubKeyInfo[] _hdPubKeyInfos = new HdPubKeyInfo[1_000];
-	private int _hdKeyCount = 0;
+	private Dictionary<Script, HdPubKey> HdPubKeysByScript { get; } = new();
+	private HashSet<HdPubKey> HdPubKeys { get; } = new();
+	private Dictionary<KeyPath, ScriptBytesHdPubKeyPair> ScriptBytesHdPubKeyPairByKeyPath { get; } = new();
 
-	private ArraySegment<HdPubKeyInfo> Snapshot =>
-		new(_hdPubKeyInfos, 0, _hdKeyCount);
+	private HdPubKeyGlobalView Snapshot =>
+		new(this.ToImmutableList());
 
-	public IEnumerable<HdPubKey> HdPubKeys =>
-		Snapshot.Select(x => x.HdPubKey);
-
+	public IEnumerable<SynchronizationInfos> GetSynchronizationInfos()
+	{
+		return ScriptBytesHdPubKeyPairByKeyPath.Select(x => new SynchronizationInfos(x.Key, x.Value));
+	}
+	
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
-		_hdPubKeyIndexedByScriptPubKey.TryGetValue(destination, out hdPubKey);
+		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
 
 	public HdPubKeyPathView GetView(KeyPath keyPath) =>
-		new(HdPubKeys.Where(x => x.FullKeyPath.Parent == keyPath));
+		Snapshot.GetChildKeyOf(keyPath);
 
 	public IEnumerable<HdPubKey> AddRangeKeys(IEnumerable<HdPubKey> keys)
 	{
@@ -36,22 +39,20 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 
 	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
 	{
-		if (_hdPubKeyInfos.Length == _hdKeyCount)
-		{
-			Array.Resize(ref _hdPubKeyInfos, 2 * _hdKeyCount);
-		}
-
-		var info = new HdPubKeyInfo(hdPubKey, scriptPubKeyType);
-		_hdPubKeyInfos[_hdKeyCount] = info;
-		_hdPubKeyIndexedByScriptPubKey[info.ScriptPubKey] = info.HdPubKey;
-		_hdKeyCount++;
+		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
+		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
+		ScriptBytesHdPubKeyPairByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, new ScriptBytesHdPubKeyPair(scriptPubKey.ToCompressedBytes(), hdPubKey));
+		HdPubKeys.Add(hdPubKey);
 	}
 
-	public IEnumerator<HdPubKeyInfo> GetEnumerator() =>
-		Snapshot
-			.OrderBy(x => x.HdPubKey.Index)
-			.GetEnumerator();
+	public IEnumerator<HdPubKey> GetEnumerator() =>
+		HdPubKeys
+		.OrderBy(x => x.Index)
+		.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
+
+	public record ScriptBytesHdPubKeyPair(byte[] ScriptBytes, HdPubKey HdPubKey);
+	public record SynchronizationInfos(KeyPath KeyPath, ScriptBytesHdPubKeyPair ScriptBytesHdPubKeyPair);
 }

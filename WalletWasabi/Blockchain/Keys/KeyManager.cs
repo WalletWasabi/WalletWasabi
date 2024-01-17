@@ -113,7 +113,7 @@ public class KeyManager
 	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
-		HdPubKeys.AddRange(HdPubKeyCache.HdPubKeys);
+		HdPubKeys.AddRange(HdPubKeyCache);
 		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
 	}
 
@@ -412,8 +412,8 @@ public class KeyManager
 			AssertCleanKeysIndexed();
 			return wherePredicate switch
 			{
-				null => HdPubKeyCache.Select(x => x.HdPubKey),
-				_ => HdPubKeyCache.Select(x => x.HdPubKey).Where(wherePredicate)
+				null => HdPubKeyCache.ToList(),
+				_ => HdPubKeyCache.Where(wherePredicate).ToList()
 			};
 		}
 	}
@@ -432,12 +432,11 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight);
-	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos()
+	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			return HdPubKeyCache.Select(x => new ScriptPubKeySpendingInfo(x.CompressedScriptPubKey, x.HdPubKey.LatestSpendingHeight));
+			return HdPubKeyCache.GetSynchronizationInfos();
 		}
 	}
 
@@ -451,22 +450,31 @@ public class KeyManager
 
 	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 	{
-		return GetSecretsAndPubKeyPairs(password, scripts);
+		return GetSecretsAndPubKeyPairs(password, scripts).Select(x => x.secret);
 	}
 
-	public IEnumerable<ExtKey> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
+	public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<ExtKey>();
+		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 		lock (CriticalStateLock)
 		{
 			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
+				|| scripts.Contains(x.P2shOverP2wpkhScript)
+				|| scripts.Contains(x.P2pkhScript)
+				|| scripts.Contains(x.P2pkScript)
 				|| scripts.Contains(x.P2Taproot)))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add(ek);
+				extKeysAndPubs.Add((ek, key));
+
+				if (ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != key.P2wpkhScript
+					&& ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) != key.P2Taproot)
+				{
+					throw new InvalidOperationException("Wtf");
+				}
 			}
 		}
 		return extKeysAndPubs;
