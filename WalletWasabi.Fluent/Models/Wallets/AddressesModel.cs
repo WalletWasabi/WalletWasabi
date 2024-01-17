@@ -1,44 +1,52 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class AddressesModel : IDisposable
+public partial class AddressesModel : ViewModelBase
 {
-	private readonly CompositeDisposable _disposable = new();
 	private readonly KeyManager _keyManager;
 
-	public AddressesModel(IObservable<Unit> addressesUpdated, KeyManager keyManager)
+	public AddressesModel(KeyManager keyManager)
 	{
 		_keyManager = keyManager;
+		LoadCommand = ReactiveCommand.CreateFromObservable(() => GetAddresses().ToObservable(NewThreadScheduler.Default));
 
-		Cache =
-			addressesUpdated.Fetch(GetAddresses, address => address.Text)
-								.DisposeWith(_disposable);
+		var source = new SourceList<IAddress>();
 
-		UnusedAddressesCache =
-			Cache.Connect()
-				 .AutoRefresh(x => x.IsUsed)
-				 .Filter(x => !x.IsUsed)
-				 .AsObservableCache()
-				 .DisposeWith(_disposable);
+		LoadCommand.IsExecuting
+			.Where(executing => executing)
+			.Do(_ => source.Clear())
+			.Subscribe();
 
-		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
+		LoadCommand
+			.Do(l => source.Add(l))
+			.Subscribe();
+
+		source
+			.Connect().Bind(out var items)
+			.Subscribe();
+
+		Unused = items;
 	}
 
-	public IObservableCache<IAddress, string> Cache { get; }
+	public ReadOnlyObservableCollection<IAddress> Unused { get; set; }
 
-	public IObservableCache<IAddress, string> UnusedAddressesCache { get; }
+	private IEnumerable<IAddress> GetAddresses()
+	{
+		return _keyManager.GetKeys()
+			.Select(key => new Address(_keyManager, key))
+			.Where(address => !address.IsUsed);
+	}
 
-	public IObservable<bool> HasUnusedAddresses { get; }
-
-	public void Dispose() => _disposable.Dispose();
-
-	private IEnumerable<IAddress> GetAddresses() => [];
+	public ReactiveCommand<Unit, IAddress> LoadCommand { get; }
 }

@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData.Aggregation;
@@ -43,10 +44,8 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		wallet.OnDemandAddresses.LoadCommand.Execute().Subscribe();
-
-		HasUnusedAddresses = wallet.OnDemandAddresses.Addresses.ToObservableChangeSet().Count().Select(i => i > 0).StartWith(false);
-		IsLoadingUnusedAddresses = HasUnusedAddresses.CombineLatest(wallet.OnDemandAddresses.LoadCommand.IsExecuting, (hasUnused, isLoading) => isLoading && !hasUnused);
+		HasUnusedAddresses = wallet.Addresses.Unused.ToObservableChangeSet().Count().Select(i => i > 0).StartWith(false);
+		IsLoadingUnusedAddresses = HasUnusedAddresses.CombineLatest(wallet.Addresses.LoadCommand.IsExecuting, (hasUnused, isLoading) => isLoading && !hasUnused);
 	}
 
 	public IObservable<bool> IsLoadingUnusedAddresses { get; }
@@ -56,6 +55,13 @@ public partial class ReceiveViewModel : RoutableViewModel
 	public ICommand ShowExistingAddressesCommand { get; }
 
 	public IObservable<bool> HasUnusedAddresses { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_wallet.Addresses.LoadCommand.Execute()
+			.Subscribe()
+			.DisposeWith(disposables);
+	}
 
 	private void OnNext()
 	{
