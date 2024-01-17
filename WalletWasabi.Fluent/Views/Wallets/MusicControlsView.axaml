@@ -5,11 +5,36 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <UserControl.Resources>
+    <converters:KeyToDictionaryItemConverter x:Key="MusicBoxMessageConverter">
+      <ResourceDictionary>
+        <StackPanel x:Key="{x:Static wallets:CoinJoinStateViewModel.PressPlayToStartMessage}">
+          <TextBlock Inlines="">
+            <Run>Press </Run>
+            <InlineUIContainer>
+              <PathIcon Data="{StaticResource play_regular}" />
+            </InlineUIContainer>
+            <Run> to start</Run>
+          </TextBlock>
+        </StackPanel>
+        <StackPanel x:Key="{x:Static wallets:CoinJoinStateViewModel.PlebStopMessageBelow}">
+          <TextBlock Inlines="">
+            <Run>Add more funds or press </Run>
+            <InlineUIContainer>
+              <PathIcon Data="{StaticResource play_regular}" />
+            </InlineUIContainer>
+            <Run> to bypass</Run>
+          </TextBlock>
+        </StackPanel>
+      </ResourceDictionary>
+    </converters:KeyToDictionaryItemConverter>
+  </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
   </i:Interaction.Behaviors>
@@ -74,7 +99,7 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding LeftText}" />
+              <ContentControl Content="{Binding LeftText, Converter={StaticResource MusicBoxMessageConverter}}" />
               <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
