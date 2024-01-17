@@ -41,12 +41,9 @@ public partial class AddressesModel : ViewModelBase
 
 	public ReadOnlyObservableCollection<IAddress> Unused { get; set; }
 
-	private IEnumerable<IAddress> GetAddresses()
-	{
-		return _keyManager.GetKeys()
-			.Select(key => new Address(_keyManager, key))
-			.Where(address => !address.IsUsed);
-	}
-
 	public ReactiveCommand<Unit, IAddress> LoadCommand { get; }
+
+	private IEnumerable<IAddress> GetAddresses() => _keyManager.GetKeys()
+		.Select(key => new Address(_keyManager, key))
+		.Where(address => !address.IsUsed);
 }
