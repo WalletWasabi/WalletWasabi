@@ -105,12 +105,12 @@ public class WalletManager : IWalletProvider
 			return;
 		}
 
-		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName))).ToList();
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName), CancelAllTasksToken)).ToList();
 
 		while (walletLoadTasks.Count > 0)
 		{
 			var tasksArray = walletLoadTasks.ToArray();
-			var finishedTaskIndex = Task.WaitAny(tasksArray);
+			var finishedTaskIndex = Task.WaitAny(tasksArray, CancelAllTasksToken);
 			var finishedTask = tasksArray[finishedTaskIndex];
 			walletLoadTasks.Remove(finishedTask);
 			try
