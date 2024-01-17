@@ -458,7 +458,8 @@ public class Global
 
 				if (Synchronizer is { } synchronizer)
 				{
-					await synchronizer.StopAsync().ConfigureAwait(false);
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+					await synchronizer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
