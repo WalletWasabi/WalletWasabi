@@ -44,13 +44,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedFeeArrived =
-			Observable.FromEventPattern<EventArgs?>(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
+		RequestedFeeRateArrived =
+			Observable.FromEventPattern<EventArgs>(wallet.TransactionFeeProvider, nameof(wallet.TransactionFeeProvider.RequestedFeeArrived)).ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache =
 			TransactionProcessed
-				.Merge(RequestedFeeArrived)
+				.Merge(RequestedFeeRateArrived)
 				.Fetch(BuildSummary, model => model.Id)
 				.DisposeWith(_disposable);
 
@@ -65,7 +65,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 
-	public IObservable<Unit> RequestedFeeArrived { get; }
+	public IObservable<Unit> RequestedFeeRateArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
