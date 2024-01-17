@@ -58,9 +58,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet.Addresses.LoadCommand.Execute()
-			.Subscribe()
-			.DisposeWith(disposables);
+		_wallet.Addresses.LoadCommand.Execute().Take(1).Subscribe();
 	}
 
 	private void OnNext()
