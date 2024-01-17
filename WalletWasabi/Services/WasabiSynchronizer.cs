@@ -91,9 +91,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	private SmartHeaderChain SmartHeaderChain { get; }
 	private FilterProcessor FilterProcessor { get; }
 
-	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
-	private CancellationTokenSource StopCts { get; } = new();
-
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
 	public bool InError => BackendStatus != BackendStatus.Connected;
@@ -115,7 +112,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				}
 
 				response = await WasabiClient
-					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
+					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
 				// NOT GenSocksServErr
@@ -137,14 +134,13 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				try
 				{
 					// Backend API version might be updated meanwhile. Trying to update the versions.
-					var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
+					var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 
 					// If the backend is compatible and the Api version updated then we just used the wrong API.
 					if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 					{
 						// Next request will be fine, do not throw exception.
 						_ignoreRequestInterval = true;
-						TriggerRound();
 						return;
 					}
 					else
