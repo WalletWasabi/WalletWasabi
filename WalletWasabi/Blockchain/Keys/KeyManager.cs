@@ -450,11 +450,6 @@ public class KeyManager
 
 	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 	{
-		return GetSecretsAndPubKeyPairs(password, scripts);
-	}
-
-	public IEnumerable<ExtKey> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
-	{
 		ExtKey extKey = GetMasterExtKey(password);
 		var extKeysAndPubs = new List<ExtKey>();
 
