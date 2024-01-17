@@ -646,14 +646,6 @@ public class KeyManager
 
 	#region BlockchainState
 
-	public Height GetBestHeight()
-	{
-		lock (CriticalStateLock)
-		{
-			return BlockchainState.Height;
-		}
-	}
-
 	public Height GetBestHeight(SyncType syncType)
 	{
 		lock (CriticalStateLock)

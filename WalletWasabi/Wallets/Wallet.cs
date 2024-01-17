@@ -471,7 +471,7 @@ public class Wallet : BackgroundService, IWallet
 
 		// Make sure heights are at least height of segwit activation.
 		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-		if (startingSegwitHeight > KeyManager.GetBestHeight())
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
 		{
 			KeyManager.SetBestHeight(startingSegwitHeight);
 		}

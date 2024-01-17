@@ -123,7 +123,7 @@ public partial class WalletLoadWorkflow
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
-		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
+		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight(SyncType.Complete).Value;
 		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
 		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
