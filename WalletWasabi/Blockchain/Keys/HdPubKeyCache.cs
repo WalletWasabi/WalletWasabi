@@ -25,7 +25,7 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
 
 	public HdPubKeyPathView GetView(KeyPath keyPath) =>
-		Snapshot.GetChildKeyOf(keyPath);
+		new(HdPubKeys.Where(x => x.FullKeyPath.Parent == keyPath));
 
 	public IEnumerable<HdPubKey> AddRangeKeys(IEnumerable<HdPubKey> keys)
 	{
