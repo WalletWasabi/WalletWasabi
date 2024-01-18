@@ -84,6 +84,9 @@ public static class EnumerableExtensions
 
 	public static bool IsEmpty<T>(this IEnumerable<T> source) => !source.Any();
 
+	/// <summary>
+	/// Splits the collection into two collections, containing the elements for which the given predicate returns True and False respectively. Element order is preserved in both of the created lists.
+	/// </summary>
 	public static (IEnumerable<T>, IEnumerable<T>) Partition<T>(this IEnumerable<T> me, Predicate<T> predicate)
 	{
 		var trueList = new List<T>();
