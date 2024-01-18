@@ -184,7 +184,7 @@ public class BlockchainController : ControllerBase
 				uint256 txId = parsedTxIds[i];
 				string cacheKey = GetCacheKeyForTransaction(txId);
 
-				if (!Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
+				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
 				{
 					txIdsRetrieve.Add(txId, tcs);
 				}

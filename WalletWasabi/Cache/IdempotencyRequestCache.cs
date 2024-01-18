@@ -30,6 +30,7 @@ public class IdempotencyRequestCache
 	/// <summary>
 	/// Tries to add the cache key to cache to avoid other callers to add such a key in parallel.
 	/// </summary>
+	/// <returns><c>true</c> if the key was added to the cache, <c>false</c> otherwise.</returns>
 	/// <remarks>Caller is responsible to ALWAYS set a result to <paramref name="responseTcs"/> even if an exception is thrown.</remarks>
 	public bool TryAddKey<TRequest, TResponse>(TRequest cacheKey, MemoryCacheEntryOptions options, out TaskCompletionSource<TResponse> responseTcs)
 		where TRequest : notnull
