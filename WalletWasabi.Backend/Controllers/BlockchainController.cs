@@ -172,12 +172,11 @@ public class BlockchainController : ControllerBase
 			return Ok(new[] { tx });
 		}
 
+		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
 		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
 
 		try
 		{
-			Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
-
 			// Get task completion sources for transactions. They are either new (no one else is getting that transaction right now) or existing
 			// and then some other caller needs the same transaction so we can use the existing task completion source.
 			for (int i = 0; i < requestCount; i++)
@@ -215,7 +214,7 @@ public class BlockchainController : ControllerBase
 		{
 			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
 			Exception ex = new InvalidOperationException("Failed to get the transaction.");
-			foreach (TaskCompletionSource<Transaction> tcs in txsCompletionSources)
+			foreach (TaskCompletionSource<Transaction> tcs in txIdsRetrieve.Values)
 			{
 				_ = tcs.TrySetException(ex);
 			}
