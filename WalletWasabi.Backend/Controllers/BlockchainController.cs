@@ -193,13 +193,8 @@ public class BlockchainController : ControllerBase
 			}
 
 			// Ask to get missing transactions over RPC.
-			Task<Dictionary<uint256, Transaction>> rpcBatchTask = Task.Run(async () =>
-			{
-				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
-				return txs.ToDictionary(x => x.GetHash(), x => x);
-			});
-
-			Dictionary<uint256, Transaction> rpcBatch = await rpcBatchTask.ConfigureAwait(false);
+			IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+			Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
 
 			foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
 			{
