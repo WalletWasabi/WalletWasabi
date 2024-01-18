@@ -199,7 +199,7 @@ public class BlockchainController : ControllerBase
 
 			foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
 			{
-				txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+				_ = txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
 			}
 
 			Transaction[] result = new Transaction[requestCount];
@@ -208,8 +208,7 @@ public class BlockchainController : ControllerBase
 			for (int i = 0; i < requestCount; i++)
 			{
 				uint256 txId = parsedTxIds[i];
-				Task<Transaction> task = txsCompletionSources[i].Task;
-				result[i] = await task.ConfigureAwait(false);
+				result[i] = await txsCompletionSources[i].Task.ConfigureAwait(false);
 			}
 		}
 		finally
