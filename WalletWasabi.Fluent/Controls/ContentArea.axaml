@@ -90,7 +90,7 @@
                   <Setter Property="ClipToBounds" Value="{Binding $parent[ScrollViewer].ClipToBounds}" />
                 </Style>
               </ScrollViewer.Styles>
-              <ContentControl Name="PART_ContentPresenter"
+              <ContentPresenter Name="PART_ContentPresenter"
                               ClipToBounds="{TemplateBinding ClipToBounds}"
                               BorderBrush="{TemplateBinding BorderBrush}"
                               BorderThickness="{TemplateBinding BorderThickness}"

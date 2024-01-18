@@ -342,6 +342,9 @@ public static class NBitcoinExtensions
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			ScriptType.P2PKH => Constants.P2pkhInputVirtualSize,
+			ScriptType.P2SH => Constants.P2shInputVirtualSize,
+			ScriptType.P2WSH => Constants.P2wshInputVirtualSize,
 			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 
@@ -350,6 +353,9 @@ public static class NBitcoinExtensions
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhOutputVirtualSize,
 			ScriptType.Taproot => Constants.P2trOutputVirtualSize,
+			ScriptType.P2PKH => Constants.P2pkhOutputVirtualSize,
+			ScriptType.P2SH => Constants.P2shOutputVirtualSize,
+			ScriptType.P2WSH => Constants.P2wshOutputVirtualSize,
 			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 

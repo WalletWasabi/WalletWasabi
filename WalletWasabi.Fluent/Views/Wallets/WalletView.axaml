@@ -85,7 +85,7 @@
           </StackPanel>
 
           <!-- Title -->
-          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontWeight="Bold" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
+          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontWeight="Bold" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
         </DockPanel>
     </c:ContentArea.Title>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">

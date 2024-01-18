@@ -47,7 +47,13 @@ public class Global
 		DataDir = dataDir;
 		ConfigFilePath = configFilePath;
 		Config = config;
-		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = new TorSettings(
+			DataDir,
+			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			Config.TerminateTorOnExit,
+			socksPort: config.TorSocksPort,
+			controlPort: config.TorControlPort,
+			owningProcessId: Environment.ProcessId);
 
 		HostedServices = new HostedServices();
 
@@ -194,6 +200,12 @@ public class Global
 				try
 				{
 					await bitcoinStoreInitTask.ConfigureAwait(false);
+
+					// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+					if (AllTransactionStore.MempoolStore.NeedResync || AllTransactionStore.ConfirmedStore.NeedResync)
+					{
+						WalletManager.ResyncToBefore12137();
+					}
 
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();

@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
 
@@ -22,25 +23,6 @@ namespace WalletWasabi.Wallets;
 /// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
-	private const int MaxNumberFiltersInMemory = 1000;
-
-	public static readonly Comparer<Priority> Comparer = Comparer<Priority>.Create(
-		(x, y) =>
-		{
-			// Turbo and Complete have higher priority over NonTurbo.
-			if (x.SyncType != SyncType.NonTurbo && y.SyncType == SyncType.NonTurbo)
-			{
-				return -1;
-			}
-
-			if (y.SyncType != SyncType.NonTurbo && x.SyncType == SyncType.NonTurbo)
-			{
-				return 1;
-			}
-
-			return 0;
-		});
-
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private FilterModel? _lastProcessedFilter;
 
@@ -50,10 +32,17 @@ public class WalletFilterProcessor : BackgroundService
 		BitcoinStore = bitcoinStore;
 		TransactionProcessor = transactionProcessor;
 		BlockProvider = blockProvider;
+
+		FilterIteratorsBySyncType = new()
+		{
+			{ SyncType.Turbo, new BlockFilterIterator(BitcoinStore.IndexStore) },
+			{ SyncType.NonTurbo, new BlockFilterIterator(BitcoinStore.IndexStore) },
+			{ SyncType.Complete, new BlockFilterIterator(BitcoinStore.IndexStore) },
+		};
 	}
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Comparer);
+	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Priority.Comparer);
 
 	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
@@ -83,7 +72,7 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
-	internal Dictionary<uint, FilterModel> FiltersCache { get; } = new();
+	internal Dictionary<SyncType, BlockFilterIterator> FilterIteratorsBySyncType { get; }
 
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private AsyncLock ReorgLock { get; } = new();
@@ -133,7 +122,7 @@ public class WalletFilterProcessor : BackgroundService
 					bool reachedBlockChainTip;
 					using (await ReorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						Height lastHeight = (request.SyncType == SyncType.Turbo ? KeyManager.GetBestTurboSyncHeight() : KeyManager.GetBestHeight());
+						Height lastHeight = KeyManager.GetBestHeight(request.SyncType);
 
 						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
@@ -146,21 +135,9 @@ public class WalletFilterProcessor : BackgroundService
 						}
 
 						uint currentHeight = (uint)lastHeight.Value + 1;
-						if (!FiltersCache.TryGetValue(currentHeight, out var filterToProcess))
-						{
-							// We don't have the next filter to process, so fetch another batch of filters from the database.
-							FiltersCache.Clear();
 
-							var filtersBatch = await BitcoinStore.IndexStore.FetchBatchAsync(new Height(currentHeight), MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-							foreach (var filter in filtersBatch)
-							{
-								FiltersCache[filter.Header.Height] = filter;
-							}
-
-							filterToProcess = filtersBatch.First();
-						}
-
-						var matchFound = await ProcessFilterModelAsync(filterToProcess, request.SyncType, cancellationToken).ConfigureAwait(false);
+						FilterModel filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
+						var matchFound = await ProcessFilterModelAsync(filter, request.SyncType, cancellationToken).ConfigureAwait(false);
 
 						reachedBlockChainTip = currentHeight == BitcoinStore.SmartHeaderChain.TipHeight;
 						bool storeToDisk = matchFound || reachedBlockChainTip;
@@ -190,9 +167,13 @@ public class WalletFilterProcessor : BackgroundService
 					throw;
 				}
 
+				// Clear all caches once not needed.
 				if (SynchronizationRequestsSemaphore.CurrentCount == 0)
 				{
-					FiltersCache.Clear();
+					foreach (SyncType syncType in Enum.GetValues<SyncType>())
+					{
+						FilterIteratorsBySyncType[syncType].Clear();
+					}
 				}
 			}
 		}
@@ -214,7 +195,6 @@ public class WalletFilterProcessor : BackgroundService
 					_ = request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
-			FiltersCache.Clear();
 		}
 	}
 
@@ -314,5 +294,4 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
-	public record Priority(SyncType SyncType);
 }

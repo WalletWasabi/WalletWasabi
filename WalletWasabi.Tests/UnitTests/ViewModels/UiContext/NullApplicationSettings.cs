@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using WalletWasabi.Daemon;
@@ -8,32 +9,32 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
 public class NullApplicationSettings : IApplicationSettings
 {
-	public bool IsOverridden => throw new NotImplementedException();
-	public IObservable<bool> IsRestartNeeded => throw new NotImplementedException();
-	public bool EnableGpu { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public Network Network { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool StartLocalBitcoinCoreOnStartup { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public string LocalBitcoinCoreDataDir { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool StopLocalBitcoinCoreOnShutdown { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public string BitcoinP2PEndPoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public string DustThreshold { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool DarkModeEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool AutoCopy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool AutoPaste { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool CustomChangeAddress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public FeeDisplayUnit SelectedFeeDisplayUnit { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool RunOnSystemStartup { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool HideOnClose { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool UseTor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool TerminateTorOnExit { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool DownloadNewVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool PrivacyMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool Oobe { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public WindowState WindowState { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-	public bool DoUpdateOnClose { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public bool IsOverridden { get; } = false;
+	public IObservable<bool> IsRestartNeeded { get; } = Observable.Return(false);
+	public bool EnableGpu { get; set; }
+	public Network Network { get; set; } = Network.RegTest;
+	public bool StartLocalBitcoinCoreOnStartup { get; set; }
+	public string LocalBitcoinCoreDataDir { get; set; } = "";
+	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
+	public string BitcoinP2PEndPoint { get; set; } = "";
+	public string DustThreshold { get; set; } = "";
+	public bool DarkModeEnabled { get; set; }
+	public bool AutoCopy { get; set; }
+	public bool AutoPaste { get; set; }
+	public bool CustomChangeAddress { get; set; }
+	public FeeDisplayUnit SelectedFeeDisplayUnit { get; set; }
+	public bool RunOnSystemStartup { get; set; }
+	public bool HideOnClose { get; set; }
+	public bool UseTor { get; set; }
+	public bool TerminateTorOnExit { get; set; }
+	public bool DownloadNewVersion { get; set; }
+	public bool PrivacyMode { get; set; }
+	public bool Oobe { get; set; }
+	public WindowState WindowState { get; set; }
+	public bool DoUpdateOnClose { get; set; }
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		throw new NotImplementedException();
+		return false;
 	}
 }
