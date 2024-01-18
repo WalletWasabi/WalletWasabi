@@ -165,13 +165,6 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Invalid transaction Ids.");
 		}
 
-		if (requestCount == 1)
-		{
-			var singleTx = parsedTxIds.Single();
-			var tx = await GetTransactionAsync(singleTx, cancellationToken);
-			return Ok(new[] { tx });
-		}
-
 		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
 		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
 
@@ -182,7 +175,7 @@ public class BlockchainController : ControllerBase
 			for (int i = 0; i < requestCount; i++)
 			{
 				uint256 txId = parsedTxIds[i];
-				string cacheKey = GetCacheKeyForTransaction(txId);
+				string cacheKey = $"{nameof(BlockchainController)}#{txId}";
 
 				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
 				{
@@ -227,23 +220,6 @@ public class BlockchainController : ControllerBase
 		}
 
 		return Ok(txsCompletionSources);
-	}
-
-	private static string GetCacheKeyForTransaction(uint256 txId)
-	{
-		return $"{nameof(BlockchainController)}#{txId}";
-	}
-
-	private Task<Transaction> GetTransactionAsync(uint256 txId, CancellationToken token)
-	{
-		var cacheKey = GetCacheKeyForTransaction(txId);
-
-		return Cache.GetCachedResponseAsync(
-			cacheKey,
-			action: async (string _, CancellationToken token) =>
-				await RpcClient.GetRawTransactionAsync(txId, true, token),
-			options: TransactionCacheOptions,
-			token);
 	}
 
 	/// <summary>
