@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Cache;
 
@@ -27,6 +26,18 @@ public class IdempotencyRequestCache
 
 	/// <remarks>Guarded by <see cref="ResponseCacheLock"/>.</remarks>
 	private IMemoryCache ResponseCache { get; }
+
+	/// <summary>
+	/// Try to get the value associated with the given key.
+	/// </summary>
+	public bool TryGetValue<TRequest, TResponse>(TRequest cacheKey, out TResponse? value)
+		where TRequest : notnull
+	{
+		lock (ResponseCacheLock)
+		{
+			return ResponseCache.TryGetValue(cacheKey, out value);
+		}
+	}
 
 	/// <typeparam name="TRequest">
 	/// <see langword="record"/>s are preferred as <see cref="object.GetHashCode"/>
