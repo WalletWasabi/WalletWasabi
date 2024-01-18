@@ -124,9 +124,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		kmToFile?.ToFile();
 	}
 
-
 	public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => (BitcoinWitPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-
 
 	public bool ContainsScript(Script scriptPubKey)
 	{

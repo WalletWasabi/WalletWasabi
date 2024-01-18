@@ -18,6 +18,21 @@ public class HdPubKeyCacheEnumerator : IEnumerator<HdPubKeyInfo>
 		_current = default;
 	}
 
+	public HdPubKeyInfo Current => _current;
+
+	object? IEnumerator.Current
+	{
+		get
+		{
+			if (_currentIndex == 0 || _currentIndex == _count)
+			{
+				throw new InvalidOperationException(
+					"This should never happen. You have to call MoveNext before getting Current.");
+			}
+			return Current;
+		}
+	}
+
 	public bool MoveNext()
 	{
 		if (_currentIndex >= _count)
@@ -36,21 +51,6 @@ public class HdPubKeyCacheEnumerator : IEnumerator<HdPubKeyInfo>
 	{
 		_currentIndex = 0;
 		_current = default;
-	}
-
-	public HdPubKeyInfo Current => _current;
-
-	object? IEnumerator.Current
-	{
-		get
-		{
-			if (_currentIndex == 0 || _currentIndex == _count)
-			{
-				throw new InvalidOperationException(
-					"This should never happen. You have to call MoveNext before getting Current.");
-			}
-			return Current;
-		}
 	}
 
 	public void Dispose()
