@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reactive;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,13 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase
 {
-	private readonly IAddressesModel _addresses;
 	[AutoNotify] private string _addressText;
 	[AutoNotify] private LabelsArray _labels;
 
-	public AddressViewModel(UiContext context, IAddressesModel addresses, AddressFunc onEdit, AddressAction onShow, IAddress address)
+	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
-		_addresses = addresses;
 		UiContext = context;
 		Address = address;
 		_addressText = address.Text;

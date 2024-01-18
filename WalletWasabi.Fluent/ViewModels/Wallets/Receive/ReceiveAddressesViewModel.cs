@@ -44,7 +44,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(UiContext, _wallet.Addresses, OnEditAddressAsync, OnShowAddressAsync, address);
+		return new AddressViewModel(UiContext, OnEditAddressAsync, OnShowAddressAsync, address);
 	}
 
 	private void OnShowAddressAsync(IAddress a)
