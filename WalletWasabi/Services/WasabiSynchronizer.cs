@@ -32,7 +32,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	private bool _ignoreRequestInterval = false;
 
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(requestInterval)
+	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
 		MaxFiltersToSync = maxFiltersToSync;
 
