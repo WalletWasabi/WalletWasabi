@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
@@ -22,6 +23,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using Transaction = NBitcoin.Transaction;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -141,8 +143,12 @@ public class BlockchainController : ControllerBase
 	[HttpGet("transaction-hexes")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
+	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken abortToken)
 	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, abortToken);
+		var cancellationToken = linkedCts.Token;
+
 		const int MaxTxToRequest = 10;
 		var requestCount = transactionIds.Count();
 		if (requestCount > MaxTxToRequest)
@@ -167,6 +173,7 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Invalid transaction Ids.");
 		}
 
+		// Fastest to use single tx rpc request and return.
 		if (requestCount == 1)
 		{
 			var singleTx = parsedIds.Single();
@@ -177,27 +184,34 @@ public class BlockchainController : ControllerBase
 		List<Task<Transaction>> taskList = [];
 		ConcurrentDictionary<uint256, TaskCompletionSource<Transaction>> txRequest = [];
 
+		// Count tasks those are finished or at the point of waiting for the tx.
 		using SemaphoreSlim semaphoreSlim = new(0);
 
 		foreach (var txId in parsedIds)
 		{
 			var cacheKey = GetCacheKeyForTransation(txId);
 
+			// Start tasks in parallel to get all the transactions.
 			Task<Transaction> task = Task.Run(async () =>
 			{
 				var tx = await Cache.GetCachedResponseAsync(
 					cacheKey,
 					action: async (string request, CancellationToken token) =>
 					{
+						// The tx is missing we will need to rpc it.
 						TaskCompletionSource<Transaction> waitForTx = new();
+
+						// Collect all the missing txs.
 						txRequest.TryAdd(txId, waitForTx);
 
+						//Indicate that we are waiting from this point.
 						semaphoreSlim.Release();
 						return await waitForTx.Task.ConfigureAwait(false);
 					},
 					options: TransationCacheOptions,
 					cancellationToken).ConfigureAwait(false);
 
+				// The tx was in the cache. Indicate that we are finished and return tx.
 				semaphoreSlim.Release();
 				return tx;
 			}, cancellationToken);
@@ -207,25 +221,47 @@ public class BlockchainController : ControllerBase
 
 		while (true)
 		{
+			// Wait for a signal and check if all the tasks are either in waiting or success.
 			await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 			if (semaphoreSlim.CurrentCount >= parsedIds.Count)
 			{
 				// All cache requests are returned or waiting.
 				break;
 			}
+
+			// Throw if timeout, avoid infinite loop.
+			cancellationToken.ThrowIfCancellationRequested();
 		}
 
-		var missingTxs = txRequest.Select(tx => tx.Key);
-
-		var transactions = await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken).ConfigureAwait(false);
-
-		foreach (var tx in transactions)
+		// Because we waited all the semaphores we are sure txRequests are gathered all the reqired tx ids.
+		if (!txRequest.IsEmpty)
 		{
-			txRequest[tx.GetHash()].TrySetResult(tx);
+			var missingTxs = txRequest.Select(tx => tx.Key);
+
+			// Get all the missing transactions at once.
+			try
+			{
+				var transactions = await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken).ConfigureAwait(false);
+
+				foreach (var tx in transactions)
+				{
+					// Set all the tasks completed
+					txRequest[tx.GetHash()].TrySetResult(tx);
+				}
+			}
+			catch (Exception ex)
+			{
+				foreach (var task in txRequest.Values)
+				{
+					task.TrySetException(ex);
+				}
+			}
 		}
 
+		// Wait all the GetCachedResponseAsync tasks to finish.
 		await Task.WhenAll(taskList).ConfigureAwait(false);
 
+		// Make sure all the tasks are awaited and create a dictionary to help ordering.
 		var resultTransactionsDictionary = taskList
 			.Select(async task => await task.ConfigureAwait(false))
 			.Select(t => t.Result)
