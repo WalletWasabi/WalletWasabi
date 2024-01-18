@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
@@ -132,7 +133,7 @@ public class App : Application
 
 	private static IAmountProvider CreateAmountProvider()
 	{
-		return new AmountProvider(Services.Synchronizer);
+		return new AmountProvider(Services.HostedServices.Get<WasabiSynchronizer>());
 	}
 
 	private UiContext CreateUiContext()
