@@ -61,20 +61,6 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 	private IAddress Model { get; }
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		_wallet.AddressesModel.Cache
-			.Connect()
-			.AutoRefresh(x => x.IsUsed)
-			.Watch(Model.Text)
-			.Where(change => change.Current.IsUsed)
-			.Do(_ => Navigate().Back())
-			.Subscribe()
-			.DisposeWith(disposables);
-
-		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
 	private async Task ShowOnHwWalletAsync()
 	{
 		try

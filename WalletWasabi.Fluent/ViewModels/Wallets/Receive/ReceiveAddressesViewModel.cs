@@ -2,9 +2,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DynamicData;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -26,15 +24,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet
-			.AddressesModel.UnusedAddressesCache
-			.Connect()
-			.Transform(CreateAddressViewModel)
-			.Bind(out var addresses)
-			.Subscribe()
-			.DisposeWith(disposables);
-
-		var source = ReceiveAddressesDataGridSource.Create(addresses);
+		var source = ReceiveAddressesDataGridSource.Create(_wallet.Addresses.Unused.Select(CreateAddressViewModel));
 
 		Source = source;
 		Source.RowSelection!.SingleSelect = true;
@@ -45,7 +35,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(UiContext, OnEditAddressAsync, address1 => OnShowAddressAsync(address1), address);
+		return new AddressViewModel(UiContext, OnEditAddressAsync, OnShowAddressAsync, address);
 	}
 
 	private void OnShowAddressAsync(IAddress a)

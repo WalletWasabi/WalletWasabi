@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -41,9 +42,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		AddressesModel = wallet.AddressesModel;
-
-		HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
+		AddressesModel = wallet.Addresses;
 	}
 
 	public IAddressesModel AddressesModel { get; }
@@ -52,7 +51,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
-	public IObservable<bool> HasUnusedAddresses { get; }
+	public bool HasUnusedAddresses => _wallet.Addresses.Unused.Any();
 
 	private void OnNext()
 	{

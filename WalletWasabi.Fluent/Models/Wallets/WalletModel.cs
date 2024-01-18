@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -39,7 +38,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
+		Addresses = new AddressesModel(Wallet.KeyManager);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -69,7 +68,7 @@ public partial class WalletModel : ReactiveObject
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
 
-	public IAddressesModel AddressesModel { get; }
+	public IAddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }
 
