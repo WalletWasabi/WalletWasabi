@@ -57,7 +57,7 @@ public class WalletBuilder : IAsyncDisposable
 		keyManager.GetKeys(_ => true); // Make sure keys are asserted.
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
+		using WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
 
