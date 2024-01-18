@@ -469,17 +469,6 @@ public class Wallet : BackgroundService, IWallet
 
 		Height bestTurboSyncHeight = KeyManager.GetBestHeight(SyncType.Turbo);
 
-		// Make sure heights are at least height of segwit activation.
-		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
-		{
-			KeyManager.SetBestHeight(startingSegwitHeight);
-		}
-		if (startingSegwitHeight > bestTurboSyncHeight)
-		{
-			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
-		}
-
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
