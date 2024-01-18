@@ -199,26 +199,12 @@ public class BlockchainController : ControllerBase
 				return txs.ToDictionary(x => x.GetHash(), x => x);
 			});
 
-			// Cache should be aware that we are retrieving each and every txid right now.
-			foreach (uint256 txId in txIdsRetrieve.Keys)
-			{
-				uint256 txIdCopy = new(txId); // To capture correct variable in the lambda below.
-
-				_ = await Cache.GetCachedResponseAsync(
-					request: GetCacheKeyForTransaction(txId),
-					action: async (string request, CancellationToken token) =>
-					{
-						Dictionary<uint256, Transaction> dictionary = await rpcBatchTask.ConfigureAwait(false);
-						Transaction result = dictionary[txIdCopy];
-						_ = txIdsRetrieve[txIdCopy].TrySetResult(result);
-
-						return result;
-					},
-					options: TransactionCacheOptions,
-					cancellationToken).ConfigureAwait(false);
-			}
-
 			Dictionary<uint256, Transaction> rpcBatch = await rpcBatchTask.ConfigureAwait(false);
+
+			foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
+			{
+				txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+			}
 
 			Transaction[] result = new Transaction[requestCount];
 
