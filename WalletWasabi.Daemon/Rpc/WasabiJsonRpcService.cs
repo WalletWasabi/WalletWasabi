@@ -16,6 +16,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
@@ -190,7 +191,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
-		var sync = Global.Synchronizer;
+		var sync = Global.HostedServices.Get<WasabiSynchronizer>();
 		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new JsonRpcResult
@@ -501,7 +502,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
-		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		if (Global.HostedServices.Get<WasabiSynchronizer>().LastAllFeeEstimate is { } nonNullFeeRates)
 		{
 			return nonNullFeeRates.Estimations;
 		}
