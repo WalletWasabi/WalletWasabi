@@ -28,14 +28,24 @@ public class IdempotencyRequestCache
 	private IMemoryCache ResponseCache { get; }
 
 	/// <summary>
-	/// Try to get the value associated with the given key.
+	/// Tries to add the cache key to cache to avoid other callers to add such a key in parallel.
 	/// </summary>
-	public bool TryGetValue<TRequest, TResponse>(TRequest cacheKey, out TResponse? value)
+	/// <remarks>Caller is responsible to ALWAYS set a result to <paramref name="responseTcs"/> even if an exception is thrown.</remarks>
+	public bool TryAddKey<TRequest, TResponse>(TRequest cacheKey, MemoryCacheEntryOptions options, out TaskCompletionSource<TResponse> responseTcs)
 		where TRequest : notnull
 	{
 		lock (ResponseCacheLock)
 		{
-			return ResponseCache.TryGetValue(cacheKey, out value);
+			if (!ResponseCache.TryGetValue(cacheKey, out TaskCompletionSource<TResponse>? tcs))
+			{
+				responseTcs = new();
+				ResponseCache.Set(cacheKey, responseTcs, options);
+
+				return true;
+			}
+
+			responseTcs = tcs!;
+			return false;
 		}
 	}
 
@@ -58,18 +68,7 @@ public class IdempotencyRequestCache
 	public async Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, MemoryCacheEntryOptions options, CancellationToken cancellationToken)
 		where TRequest : notnull
 	{
-		bool callAction = false;
-		TaskCompletionSource<TResponse>? responseTcs;
-
-		lock (ResponseCacheLock)
-		{
-			if (!ResponseCache.TryGetValue(request, out responseTcs))
-			{
-				callAction = true;
-				responseTcs = new();
-				ResponseCache.Set(request, responseTcs, options);
-			}
-		}
+		bool callAction = TryAddKey(request, options, out TaskCompletionSource<TResponse>? responseTcs);
 
 		if (callAction)
 		{

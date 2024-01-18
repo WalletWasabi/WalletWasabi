@@ -172,61 +172,74 @@ public class BlockchainController : ControllerBase
 			return Ok(new[] { tx });
 		}
 
-		HashSet<uint256> txIdsRetrieve = [];
-		Task<Transaction>?[] tasks = new Task<Transaction>?[requestCount];
+		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
+		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
 
-		// Fill transactions we already have in cache. Array can look like [null, tx1, null, tx2, etc.].
-		for (int i = 0; i < requestCount; i++)
+		try
 		{
-			uint256 txId = parsedTxIds[i];
-			string cacheKey = GetCacheKeyForTransaction(txId);
-
-			if (Cache.TryGetValue(cacheKey, out TaskCompletionSource<Transaction>? tcs))
+			// Fill transactions we already have in cache. Array can look like [null, tx1, null, tx2, etc.].
+			for (int i = 0; i < requestCount; i++)
 			{
-				tasks[i] = tcs!.Task;
-			}
-			else
-			{
-				txIdsRetrieve.Add(txId);
-			}
-		}
+				uint256 txId = parsedTxIds[i];
+				string cacheKey = GetCacheKeyForTransaction(txId);
 
-		// Ask to get missing transactions over RPC.
-		Task<Dictionary<uint256, Transaction>> rpcBatchTask = Task.Run(async () =>
-		{
-			IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve, cancellationToken).ConfigureAwait(false);
-			return txs.ToDictionary(x => x.GetHash(), x => x);
-		});
-
-		// Cache should be aware that we are retrieving each and every txid right now.
-		foreach (uint256 txId in txIdsRetrieve) 
-		{
-			uint256 txIdCopy = new(txId); // To capture correct variable in the lambda below.
-
-			_ = await Cache.GetCachedResponseAsync(
-				request: GetCacheKeyForTransaction(txId),
-				action: async (string request, CancellationToken token) =>
+				if (!Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
 				{
-					Dictionary<uint256, Transaction> dictionary = await rpcBatchTask.ConfigureAwait(false);
-					return dictionary[txIdCopy];
-				},
-				options: TransactionCacheOptions,
-				cancellationToken).ConfigureAwait(false);
+					txIdsRetrieve.Add(txId, tcs);
+				}
+
+				txsCompletionSources[i] = tcs;
+			}
+
+			// Ask to get missing transactions over RPC.
+			Task<Dictionary<uint256, Transaction>> rpcBatchTask = Task.Run(async () =>
+			{
+				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+				return txs.ToDictionary(x => x.GetHash(), x => x);
+			});
+
+			// Cache should be aware that we are retrieving each and every txid right now.
+			foreach (uint256 txId in txIdsRetrieve.Keys)
+			{
+				uint256 txIdCopy = new(txId); // To capture correct variable in the lambda below.
+
+				_ = await Cache.GetCachedResponseAsync(
+					request: GetCacheKeyForTransaction(txId),
+					action: async (string request, CancellationToken token) =>
+					{
+						Dictionary<uint256, Transaction> dictionary = await rpcBatchTask.ConfigureAwait(false);
+						Transaction result = dictionary[txIdCopy];
+						_ = txIdsRetrieve[txIdCopy].TrySetResult(result);
+
+						return result;
+					},
+					options: TransactionCacheOptions,
+					cancellationToken).ConfigureAwait(false);
+			}
+
+			Dictionary<uint256, Transaction> rpcBatch = await rpcBatchTask.ConfigureAwait(false);
+
+			Transaction[] result = new Transaction[requestCount];
+
+			// Add missing transactions to the result array.
+			for (int i = 0; i < requestCount; i++)
+			{
+				uint256 txId = parsedTxIds[i];
+				Task<Transaction> task = txsCompletionSources[i].Task;
+				result[i] = await task.ConfigureAwait(false);
+			}
 		}
-
-		Dictionary<uint256, Transaction> rpcBatch = await rpcBatchTask.ConfigureAwait(false);
-
-		Transaction[] result = new Transaction[requestCount];
-
-		// Add missing transactions to the result array.
-		for (int i = 0; i < requestCount; i++)
+		finally
 		{
-			uint256 txId = parsedTxIds[i];
-			Task<Transaction> task = tasks[i] ?? Task.FromResult(rpcBatch[txId]);
-			result[i] = await task.ConfigureAwait(false);
+			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
+			Exception ex = new InvalidOperationException("Failed to get the transaction.");
+			foreach (TaskCompletionSource<Transaction> tcs in txsCompletionSources)
+			{
+				_ = tcs.TrySetException(ex);
+			}
 		}
 
-		return Ok(tasks);
+		return Ok(txsCompletionSources);
 	}
 
 	private static string GetCacheKeyForTransaction(uint256 txId)
