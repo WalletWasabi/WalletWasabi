@@ -1,8 +1,8 @@
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -43,6 +43,24 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		{
 			CopyAddressCommand.Execute(null);
 		}
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		_wallet.Addresses.Unused
+			.ToObservableChangeSet()
+			.OnItemRemoved(
+				address =>
+				{
+					if (address == Model)
+					{
+						Navigate().Back();
+					}
+				})
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	public bool IsAutoCopyEnabled { get; }
