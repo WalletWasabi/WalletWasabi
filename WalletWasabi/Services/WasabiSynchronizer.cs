@@ -30,8 +30,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	private BackendStatus _backendStatus;
 
-	private bool _ignoreRequestInterval = false;
-
 	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
 		MaxFiltersToSync = maxFiltersToSync;
@@ -140,7 +138,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 					if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 					{
 						// Next request will be fine, do not throw exception.
-						_ignoreRequestInterval = true;
+						TriggerRound();
 						return;
 					}
 					else
@@ -165,11 +163,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			// If it's not fully synced or reorg happened.
 			if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
-				_ignoreRequestInterval = true;
-			}
-			else
-			{
-				_ignoreRequestInterval = false;
+				TriggerRound();
 			}
 
 			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
@@ -217,14 +211,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-		}
-		finally
-		{
-			// If it's not fully synced, trigger.
-			if (_ignoreRequestInterval)
-			{
-				TriggerRound();
-			}
 		}
 	}
 
