@@ -177,7 +177,8 @@ public class BlockchainController : ControllerBase
 
 		try
 		{
-			// Fill transactions we already have in cache. Array can look like [null, tx1, null, tx2, etc.].
+			// Get task completion sources for transactions. They are either new (no one else is getting that transaction right now) or existing
+			// and then some other caller needs the same transaction so we can use the existing task completion source.
 			for (int i = 0; i < requestCount; i++)
 			{
 				uint256 txId = parsedTxIds[i];
