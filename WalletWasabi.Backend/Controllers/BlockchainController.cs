@@ -192,13 +192,16 @@ public class BlockchainController : ControllerBase
 				txsCompletionSources[i] = tcs;
 			}
 
-			// Ask to get missing transactions over RPC.
-			IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
-			Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
-
-			foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
+			if (txIdsRetrieve.Count > 0)
 			{
-				_ = txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+				// Ask to get missing transactions over RPC.
+				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+				Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
+
+				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
+				{
+					_ = txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+				}
 			}
 
 			Transaction[] result = new Transaction[requestCount];
@@ -212,11 +215,14 @@ public class BlockchainController : ControllerBase
 		}
 		finally
 		{
-			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
-			Exception ex = new InvalidOperationException("Failed to get the transaction.");
-			foreach (TaskCompletionSource<Transaction> tcs in txIdsRetrieve.Values)
+			if (txIdsRetrieve.Count > 0)
 			{
-				_ = tcs.TrySetException(ex);
+				// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
+				Exception ex = new InvalidOperationException("Failed to get the transaction.");
+				foreach (TaskCompletionSource<Transaction> tcs in txIdsRetrieve.Values)
+				{
+					_ = tcs.TrySetException(ex);
+				}
 			}
 		}
 
