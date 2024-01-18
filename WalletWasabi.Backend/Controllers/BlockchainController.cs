@@ -239,7 +239,7 @@ public class BlockchainController : ControllerBase
 
 	private static string GetCacheKeyForTransation(uint256 txId)
 	{
-		return $"{nameof(GetTransactionsAsync)} + {txId}";
+		return $"{nameof(GetTransactionAsync)} + {txId}";
 	}
 
 	private Task<Transaction> GetTransactionAsync(uint256 txId, CancellationToken token)
