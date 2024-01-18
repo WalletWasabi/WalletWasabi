@@ -45,6 +45,22 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		}
 	}
 
+	public bool IsAutoCopyEnabled { get; }
+
+	public ICommand CopyAddressCommand { get; }
+
+	public ICommand ShowOnHwWalletCommand { get; }
+
+	public string Address { get; }
+
+	public LabelsArray Labels { get; }
+
+	public bool IsHardwareWallet { get; }
+
+	public IObservable<bool[,]> QrCode { get; }
+
+	private IAddress Model { get; }
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_wallet.Addresses.Unused
@@ -62,22 +78,6 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
-
-	public bool IsAutoCopyEnabled { get; }
-
-	public ICommand CopyAddressCommand { get; }
-
-	public ICommand ShowOnHwWalletCommand { get; }
-
-	public string Address { get; }
-
-	public LabelsArray Labels { get; }
-
-	public bool IsHardwareWallet { get; }
-
-	public IObservable<bool[,]> QrCode { get; }
-
-	private IAddress Model { get; }
 
 	private async Task ShowOnHwWalletAsync()
 	{
