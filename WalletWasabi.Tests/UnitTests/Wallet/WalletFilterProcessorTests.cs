@@ -147,8 +147,8 @@ public class WalletFilterProcessorTests
 		await whenAllNonTurbo;
 
 		// Blockchain Tip should be reach for both SyncTypes.
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight().Value);
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestTurboSyncHeight().Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight(SyncType.Complete).Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight(SyncType.Turbo).Value);
 	}
 
 	// This emulates the NewFiltersProcessed event with SyncType separation to keep the track of the order.
