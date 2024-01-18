@@ -195,6 +195,7 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
+			FeeRate = transactionSummary.FeeRate(),
 
 			Type = GetItemType(transactionSummary),
 			Status =
