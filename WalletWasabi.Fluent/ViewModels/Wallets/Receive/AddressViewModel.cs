@@ -53,7 +53,6 @@ public partial class AddressViewModel : ViewModelBase
 		}
 
 		Address.Hide();
-		//_addresses.Hide(this);
 
 		var isAddressCopied = await UiContext.Clipboard.GetTextAsync() == Address.Text;
 

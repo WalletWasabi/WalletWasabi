@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
@@ -11,9 +10,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletModel : INotifyPropertyChanged
-{
-}
+public partial interface IWalletModel : INotifyPropertyChanged;
 
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
@@ -117,11 +114,6 @@ public partial class WalletModel : ReactiveObject
 	public IWalletInfoModel GetWalletInfo()
 	{
 		return new WalletInfoModel(Wallet);
-	}
-
-	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
-	{
-		return Addresses.GetNextReceiveAddress(destinationLabels);
 	}
 
 	public void Rename(string newWalletName)

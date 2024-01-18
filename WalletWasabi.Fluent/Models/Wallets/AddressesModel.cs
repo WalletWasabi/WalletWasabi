@@ -41,7 +41,7 @@ public partial class AddressesModel
 		Unused = unusedAddresses;
 	}
 
-	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
+	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
 		var nextReceiveAddress = new Address(this, _wallet.KeyManager, pubKey);
