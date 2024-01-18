@@ -23,8 +23,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
-	[AutoNotify] private TimeSpan? _confirmationTime;
-	[AutoNotify] private bool _isConfirmationTimeVisible;
 
 	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
@@ -58,8 +56,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;
-			ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transaction.Id);
-			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		}
 	}
 }

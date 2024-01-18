@@ -173,9 +173,7 @@ public class TransactionTreeBuilder
 			DateString = date.ToUserFacingString(),
 			OrderIndex = index,
 			Type = TransactionType.CoinjoinGroup,
-			Status = status,
-			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate()
+			Status = status
 		};
 	}
 
@@ -197,8 +195,6 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
-			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate(),
 
 			Type = GetItemType(transactionSummary),
 			Status =
