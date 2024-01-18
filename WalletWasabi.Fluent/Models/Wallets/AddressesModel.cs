@@ -59,5 +59,5 @@ public partial class AddressesModel
 		_source.Remove(address.HdPubKey);
 	}
 
-	private void RemoveUsed() => _source.RemoveMany(_source.Items.Where(key => key.IsInternal));
+	private void RemoveUsed() => _source.RemoveMany(_source.Items.Where(key => key.KeyState != KeyState.Clean));
 }
