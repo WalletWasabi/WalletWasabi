@@ -500,7 +500,7 @@ public class WalletManager : IWalletProvider
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-			if (startingSegwitHeight > km.GetBestHeight(SyncType.NonTurbo))
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
 			{
 				km.SetBestHeight(startingSegwitHeight);
 			}
