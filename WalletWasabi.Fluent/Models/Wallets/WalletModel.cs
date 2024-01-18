@@ -38,7 +38,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		Addresses = new AddressesModel(Wallet.KeyManager);
+		Addresses = new AddressesModel(Wallet);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -121,11 +121,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
-		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
-		var nextReceiveAddress = new Address(Wallet.KeyManager, pubKey);
-		_newAddressGenerated.OnNext(nextReceiveAddress);
-
-		return nextReceiveAddress;
+		return Addresses.GetNextReceiveAddress(destinationLabels);
 	}
 
 	public void Rename(string newWalletName)
