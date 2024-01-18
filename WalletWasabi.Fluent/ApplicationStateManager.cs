@@ -148,7 +148,6 @@ public class ApplicationStateManager : IMainWindowService
 				}
 				break;
 		}
-
 	}
 
 	private void CreateAndShowMainWindow()
