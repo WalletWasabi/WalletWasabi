@@ -53,17 +53,10 @@ public class BlockDownloadService : BackgroundService
 	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
 	private object Lock { get; } = new();
 
+
 	/// <summary>
-	/// Add a block hash to the queue to be downloaded.
+	/// Attempts to get given block from the given source. It can take a long time to get the result because priority of block download is taken into account.
 	/// </summary>
-	public TaskCompletionSource<IResult> Enqueue(Source source, uint256 blockHash, Priority priority, uint maxAttempts = 1)
-	{
-		Request request = new(source, blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
-		Enqueue(request);
-
-		return request.Tcs;
-	}
-
 	/// <returns>One of the following result objects:
 	/// <list type="bullet">
 	/// <item><see cref="SuccessResult"/> when the block was downloaded successfully.</item>
@@ -75,7 +68,7 @@ public class BlockDownloadService : BackgroundService
 	/// <remarks>The method does not throw exceptions.</remarks>
 	public async Task<IResult> TryGetBlockAsync(Source source, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
 	{
-		Request request = new(source, blockHash, priority, 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(source, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
 		Enqueue(request);
 
 		try

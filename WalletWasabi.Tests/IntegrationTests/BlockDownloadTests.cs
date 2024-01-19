@@ -86,8 +86,8 @@ public class BlockDownloadTests
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
-				TaskCompletionSource<IResult> taskCompletionSource = blockDownloadService.Enqueue(Source.P2P, blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3);
-				tasks.Add(taskCompletionSource.Task);
+				Task<IResult> taskCompletionSource = blockDownloadService.TryGetBlockAsync(Source.P2P, blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3, testCts.Token);
+				tasks.Add(taskCompletionSource);
 			}
 
 			await Task.WhenAll(tasks);
