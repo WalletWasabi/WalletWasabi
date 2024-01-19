@@ -77,11 +77,11 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		var node = RegTestFixture.BackendRegTestNode;
 
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try
 		{
-			synchronizer.Start();
+			await synchronizer.StartAsync(CancellationToken.None);
 
 			var reorgAwaiter = new EventsAwaiter<FilterModel>(
 				h => bitcoinStore.IndexStore.Reorged += h,
@@ -146,7 +146,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(CancellationToken.None);
 		}
 	}
 }

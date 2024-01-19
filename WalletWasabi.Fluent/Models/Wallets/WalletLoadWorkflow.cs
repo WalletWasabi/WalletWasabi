@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -53,7 +54,7 @@ public partial class WalletLoadWorkflow
 		_stopwatch = Stopwatch.StartNew();
 		_disposables.Add(Disposable.Create(_stopwatch.Stop));
 
-		Observable.FromAsync(() => Services.Synchronizer.InitialRequestTcs.Task)
+		Observable.FromAsync(() => Services.HostedServices.Get<WasabiSynchronizer>().InitialRequestTcs.Task)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(LoadWalletAsync)
 			.DisposeWith(_disposables);
