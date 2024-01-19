@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.Protocol;
 
 namespace WalletWasabi.Wallets.BlockProvider;
 
@@ -9,6 +10,16 @@ namespace WalletWasabi.Wallets.BlockProvider;
 /// </summary>
 public interface IP2PBlockProvider : IBlockProvider
 {
-	/// <remarks>The implementations are not supposed to throw exceptions except <see cref="OperationCanceledException"/>.</remarks>
+	/// <summary>
+	/// <see cref="Node"/> and timeout are picked automatically for you.
+	/// </summary>
+	/// <inheritdoc cref="TryGetBlockWithSourceDataAsync(uint256, Node, double, CancellationToken)"/>
 	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Attempts to download the given block from the node with specified timeout.
+	/// </summary>
+	/// <remarks>The implementations are not supposed to throw exceptions except <see cref="OperationCanceledException"/>.</remarks>
+	/// <exception cref="OperationCanceledException"/>
+	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, Node node, double timeout, CancellationToken cancellationToken);
 }

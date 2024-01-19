@@ -42,15 +42,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		Node? node;
-		uint connectedNodes;
 
 		try
 		{
-			(node, connectedNodes) = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+			node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
 
 			if (node is null || !node.IsConnected)
 			{
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
 			}
 		}
 		catch (OperationCanceledException)
@@ -58,11 +57,21 @@ public class P2PBlockProvider : IP2PBlockProvider
 			throw;
 		}
 
+		var timeout = P2PNodesManager.GetCurrentTimeout();
+
+		return await TryGetBlockWithSourceDataAsync(blockHash, node, timeout, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc/>
+	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, Node node, double timeout, CancellationToken cancellationToken)
+	{
+		uint connectedNodes = P2PNodesManager.ConnectedNodesCount;
+
 		// Download block from the selected node.
 		try
 		{
 			Block? block;
-			var timeout = P2PNodesManager.GetCurrentTimeout();
+			
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 			{
 				using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
