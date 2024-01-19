@@ -473,12 +473,12 @@ public class WalletManager : IWalletProvider
 
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
-			if (km.GetBestHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
 			{
 				km.SetBestHeight(heightPriorTo12137);
 			}
 
-			if (km.GetBestTurboSyncHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
 			{
 				km.SetBestTurboSyncHeight(heightPriorTo12137);
 			}

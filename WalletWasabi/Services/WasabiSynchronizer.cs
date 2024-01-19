@@ -1,6 +1,9 @@
 using NBitcoin.RPC;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -19,7 +22,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
 	private const long StateNotStarted = 0;
 
@@ -60,6 +63,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+
+	public event PropertyChangedEventHandler? PropertyChanged;
 
 	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
@@ -326,5 +331,17 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		StopCts.Dispose();
 
 		Logger.LogTrace("<");
+	}
+
+	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+		{
+			return false;
+		}
+
+		field = value;
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		return true;
 	}
 }

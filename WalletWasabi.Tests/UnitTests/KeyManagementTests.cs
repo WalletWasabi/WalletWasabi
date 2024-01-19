@@ -13,6 +13,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using Xunit;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -167,7 +168,7 @@ public class KeyManagementTests
 		manager.ToFile();
 
 		var sameManager = KeyManager.FromFile(filePath);
-		Assert.Equal(new Height(9_899), sameManager.GetBestHeight());
+		Assert.Equal(new Height(9_899), sameManager.GetBestHeight(SyncType.Complete));
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}

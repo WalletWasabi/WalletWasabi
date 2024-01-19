@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -46,7 +47,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
 		
-		RenameCommand = ReactiveCommand.Create(OnRenameWallet);
+		RenameCommand = ReactiveCommand.CreateFromTask(OnRenameWalletAsync);
 	}
 
 	public ICommand RenameCommand { get; set; }
@@ -57,8 +58,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 	
-	private void OnRenameWallet()
+	private async Task OnRenameWalletAsync()
 	{
-		Navigate().To().WalletRename(_wallet);
+		await Navigate().To().WalletRename(_wallet).GetResultAsync();
+		UiContext.WalletRepository.StoreLastSelectedWallet(_wallet);
 	}
 }
