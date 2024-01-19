@@ -51,6 +51,19 @@ public class HwiEnumerateEntry
 			_ => WalletType.Hardware
 		};
 
+	public bool IsOfflinePsbtCompatible()
+	{
+		return Model switch
+		{
+			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => true,
+			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => false,
+			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator => false,
+			HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => true,
+			HardwareWalletModels.Jade => false,
+			_ => false
+		};
+	}
+
 	public bool IsInitialized()
 	{
 		// Check for error message, too, not only code, because the currently released version doesn't have error code. This can be removed if HWI > 1.0.1 version is updated.
