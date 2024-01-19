@@ -51,8 +51,6 @@ public class HwiEnumerateEntry
 			_ => WalletType.Hardware
 		};
 
-
-
 	/// <summary>
 	/// Returns true if the device support offline PSBT signing.
 	/// </summary>
