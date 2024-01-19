@@ -15,10 +15,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
-	private readonly Lazy<Script> _p2pkScript;
-	private readonly Lazy<Script> _p2pkhScript;
 	private readonly Lazy<Script> _p2wpkhScript;
-	private readonly Lazy<Script> _p2shOverP2wpkhScript;
 	private readonly Lazy<Script> _p2Taproot;
 
 	private double _anonymitySet = DefaultHighAnonymitySet;
@@ -33,10 +30,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
-		_p2pkScript = new Lazy<Script>(() => PubKey.ScriptPubKey, isThreadSafe: true);
-		_p2pkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), isThreadSafe: true);
 		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
-		_p2shOverP2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH), isThreadSafe: true);
 		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
 		Index = (int)FullKeyPath.Indexes[4];
@@ -89,10 +83,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
 	public Height? LatestSpendingHeight { get; set; }
 
-	public Script P2pkScript => _p2pkScript.Value;
-	public Script P2pkhScript => _p2pkhScript.Value;
 	public Script P2wpkhScript => _p2wpkhScript.Value;
-	public Script P2shOverP2wpkhScript => _p2shOverP2wpkhScript.Value;
 	public Script P2Taproot => _p2Taproot.Value;
 
 	public int Index { get; }
@@ -133,20 +124,13 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		kmToFile?.ToFile();
 	}
 
-	public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
-
 	public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => (BitcoinWitPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-
-	public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => (BitcoinScriptAddress)PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network);
 
 	public bool ContainsScript(Script scriptPubKey)
 	{
 		var scripts = new[]
 		{
-			P2pkScript,
-			P2pkhScript,
 			P2wpkhScript,
-			P2shOverP2wpkhScript,
 			P2Taproot
 		};
 

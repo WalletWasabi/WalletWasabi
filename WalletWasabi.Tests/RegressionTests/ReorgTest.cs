@@ -68,8 +68,8 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		var tx2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 		key = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		var tx3 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
-		var tx4 = await rpc.SendToAddressAsync(key.GetP2pkhAddress(network), Money.Coins(0.1m));
-		var tx5 = await rpc.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), Money.Coins(0.1m));
+		var tx4 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network), Money.Coins(0.1m));
+		var tx5 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network), Money.Coins(0.1m));
 		var tx1 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m), replaceable: true);
 
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
