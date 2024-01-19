@@ -82,7 +82,7 @@ public class BlockDownloadTests
 
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
-			List<Task<IResult>> tasks = new();
+			List<Task<IResult>> tasks = [];
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
