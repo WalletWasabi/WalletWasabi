@@ -50,8 +50,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 
 			if (node is null || !node.IsConnected)
 			{
-				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-				return new P2pBlockResponse(Block: null, new P2pSourceData(Node: null, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, connectedNodes));
 			}
 		}
 		catch (OperationCanceledException)
@@ -75,14 +74,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 			{
 				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(node, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.InvalidBlockProvided, node, connectedNodes));
 			}
 
 			P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 			await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
-			return new P2pBlockResponse(block, new P2pSourceData(node, connectedNodes));
+			return new P2pBlockResponse(block, new P2pSourceData(P2pSourceDataCode.OK, node, connectedNodes));
 		}
 		catch (Exception ex)
 		{
@@ -90,14 +89,16 @@ public class P2PBlockProvider : IP2PBlockProvider
 			{
 				await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.Cancelled, node, connectedNodes));
 			}
 			else
 			{
 				Logger.LogDebug(ex);
 				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.Failure, node, connectedNodes));
 			}
 		}
-
-		return new P2pBlockResponse(Block: null, new P2pSourceData(node, connectedNodes));
 	}
 }
