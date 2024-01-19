@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia;
@@ -41,7 +40,6 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		if (text != _value)
 		{
 			_value = text;
-			_formattedText = null;
 		}
 
 		base.Realize(factory, selection, model, columnIndex, rowIndex);
@@ -110,7 +108,6 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		IsContentVisible = value;
 
-		_formattedText = null;
 		InvalidateMeasure();
 		InvalidateVisual();
 	}
