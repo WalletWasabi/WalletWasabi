@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -111,15 +112,10 @@ public class BlockDownloadService : BackgroundService
 
 		lock (Lock)
 		{
-			int count = BlocksToDownload.Count;
+			List<(Request Element, Priority Priority)> items = BlocksToDownload.UnorderedItems.ToList();
 
-			for (int i = 0; i < count; i++)
+			foreach ((Request request, Priority priority) in items)
 			{
-				if (!BlocksToDownload.TryDequeue(out Request? request, out Priority? priority))
-				{
-					throw new UnreachableException();
-				}
-
 				if (priority.BlockHeight <= maxBlockHeight)
 				{
 					tempQueue.Enqueue(request, priority);
@@ -131,6 +127,7 @@ public class BlockDownloadService : BackgroundService
 				}
 			}
 
+			BlocksToDownload.Clear();
 			BlocksToDownload.EnqueueRange(tempQueue.UnorderedItems);
 		}
 	}
@@ -166,7 +163,7 @@ public class BlockDownloadService : BackgroundService
 					for (int i = 0; i < toStart; i++)
 					{
 						// Dequeue does not provide priority value.
-						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out Priority? priority))
+						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out Priority? _))
 						{
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
