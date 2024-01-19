@@ -51,7 +51,12 @@ public class HwiEnumerateEntry
 			_ => WalletType.Hardware
 		};
 
-	public bool IsOfflinePsbtCompatible()
+
+
+	/// <summary>
+	/// Returns true if the device support offline PSBT signing.
+	/// </summary>
+	public bool IsOfflinePsbtWorkflowCompatible()
 	{
 		return Model switch
 		{
