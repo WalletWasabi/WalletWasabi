@@ -5,7 +5,6 @@ namespace WalletWasabi.Wallets.BlockProvider;
 /// <summary>
 /// Source that provided a bitcoin block to us.
 /// </summary>
-[Flags]
 public enum Source 
 {
 	/// <summary>Wasabi Wallet file-system cache.</summary>
@@ -17,9 +16,6 @@ public enum Source
 
 	/// <summary>P2P node that provided a block to us.</summary>
 	P2P = 2,
-
-	/// <summary>All available sources with trusted full nodes being asked first and only then fallback to P2P.</summary>
-	All = TrustedFullNode | P2P,
 }
 
 public interface ISourceData
