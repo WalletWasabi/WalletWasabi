@@ -10,6 +10,7 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 {
 	private Dictionary<Script, HdPubKey> HdPubKeyIndexedByScriptPubKey { get; } = new(1_000);
 	private List<HdPubKeyInfo> HdPubKeyInfos { get; } = new(1_000);
+	private List<HdPubKeyInfo>? HdPubKeyInfoSnapshot { get; set; }
 
 	public IEnumerable<HdPubKey> HdPubKeys =>
 		this.Select(x => x.HdPubKey);
@@ -37,8 +38,14 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 		HdPubKeyIndexedByScriptPubKey[info.ScriptPubKey] = info.HdPubKey;
 	}
 
-	public IEnumerator<HdPubKeyInfo> GetEnumerator() =>
-		new HdPubKeyCacheEnumerator(HdPubKeyInfos);
+	public IEnumerator<HdPubKeyInfo> GetEnumerator()
+	{
+		if (HdPubKeyInfoSnapshot is not { } snapshot || snapshot.Count != HdPubKeyInfos.Count)
+		{
+			HdPubKeyInfoSnapshot = HdPubKeyInfos.ToList();
+		}
+		return HdPubKeyInfoSnapshot.GetEnumerator();
+	}
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
