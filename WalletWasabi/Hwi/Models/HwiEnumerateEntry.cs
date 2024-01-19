@@ -60,10 +60,11 @@ public class HwiEnumerateEntry
 	{
 		return Model switch
 		{
-			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => true,
+			HardwareWalletModels.Coldcard => true,
 			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => false,
-			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator => false,
-			HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => true,
+			HardwareWalletModels.Trezor_1 => false,
+			HardwareWalletModels.Trezor_T => true,
+			HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T_Simulator or HardwareWalletModels.Coldcard_Simulator => false,
 			HardwareWalletModels.Jade => false,
 			_ => false
 		};
