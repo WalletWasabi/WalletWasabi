@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -81,6 +82,8 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 			PreviewItem = null;
 		}
 	}
+
+	protected override void OnDetachedFromVisualTree() => PreviewItem = null;
 
 	private void CancelClear()
 	{
