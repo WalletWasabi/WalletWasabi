@@ -54,7 +54,6 @@ public class BlockDownloadService : BackgroundService
 	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
 	private object Lock { get; } = new();
 
-
 	/// <summary>
 	/// Attempts to get given block from the given source. It can take a long time to get the result because priority of block download is taken into account.
 	/// </summary>
@@ -67,9 +66,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<IResult> TryGetBlockAsync(Source source, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
+	public async Task<IResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
 	{
-		Request request = new(source, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(sourceRequest, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
 		Enqueue(request);
 
 		try
@@ -247,7 +246,7 @@ public class BlockDownloadService : BackgroundService
 			SuccessResult? successResult = null;
 			ISourceData? failureSourceData = null;
 
-			if (request.Source.HasFlag(Source.TrustedFullNode))
+			if (request.SourceRequest is FullNodeSourceRequest)
 			{
 				EmptySourceData sourceData = new(Source.TrustedFullNode);
 
@@ -268,9 +267,9 @@ public class BlockDownloadService : BackgroundService
 				}
 			}
 
-			if (request.Source.HasFlag(Source.P2P) && P2PBlockProvider is not null && successResult is null)
+			if (request.SourceRequest is P2pSourceRequest p2pSourceRequest && P2PBlockProvider is not null && successResult is null)
 			{
-				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
 
 				if (response.Block is not null)
 				{
@@ -320,7 +319,7 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(Source Source, uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
+	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>

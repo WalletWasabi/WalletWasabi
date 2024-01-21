@@ -18,6 +18,25 @@ public enum Source
 	P2P = 2,
 }
 
+public enum P2pSourceDataCode
+{
+	/// <summary>Block was successfully downloaded.</summary>
+	OK,
+
+	/// <summary>Operation was cancelled.</summary>
+	Cancelled,
+
+	/// <summary>There is no connected P2P node to download the block from.</summary>
+	NoPeerAvailable,
+
+	/// <summary>P2P node returned a block to us but it is not valid.</summary>
+	InvalidBlockProvided,
+
+	/// <summary>Failed to get block.</summary>
+	/// <remarks>This covers for example networking errors.</remarks>
+	Failure,
+}
+
 public interface ISourceData
 {
 	Source Source { get; }
@@ -40,23 +59,4 @@ public record EmptySourceData(Source Source) : ISourceData;
 public record P2pSourceData(P2pSourceDataCode Code, Node? Node, uint ConnectedNodes) : ISourceData
 {
 	public Source Source => Source.P2P;
-}
-
-public enum P2pSourceDataCode
-{
-	/// <summary>Block was successfully downloaded.</summary>
-	OK,
-
-	/// <summary>Operation was cancelled.</summary>
-	Cancelled,
-
-	/// <summary>There is no connected P2P node to download the block from.</summary>
-	NoPeerAvailable,
-
-	/// <summary>P2P node returned a block to us but it is not valid.</summary>
-	InvalidBlockProvided,
-
-	/// <summary>Failed to get block.</summary>
-	/// <remarks>This covers for example networking errors.</remarks>
-	Failure,
 }

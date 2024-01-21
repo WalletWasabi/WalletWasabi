@@ -14,7 +14,7 @@ public interface IP2PBlockProvider : IBlockProvider
 	/// <see cref="Node"/> and timeout are picked automatically for you.
 	/// </summary>
 	/// <inheritdoc cref="TryGetBlockWithSourceDataAsync(uint256, Node, double, CancellationToken)"/>
-	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, CancellationToken cancellationToken);
+	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, P2pSourceRequest sourceRequest, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Attempts to download the given block from the node with specified timeout.

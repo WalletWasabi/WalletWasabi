@@ -85,10 +85,10 @@ public class BlockDownloadServiceTests
 			await service.StartAsync(testCts.Token);
 
 			Task<IResult>[] tasks = [
-				service.TryGetBlockAsync(Source.TrustedFullNode, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), MaxAttempts, testCts.Token),
-				service.TryGetBlockAsync(Source.TrustedFullNode, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), MaxAttempts, testCts.Token),
-				service.TryGetBlockAsync(Source.TrustedFullNode, blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003), MaxAttempts, testCts.Token),
-				service.TryGetBlockAsync(Source.TrustedFullNode, blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004), MaxAttempts, testCts.Token),
+				service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), MaxAttempts, testCts.Token),
+				service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), MaxAttempts, testCts.Token),
+				service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003), MaxAttempts, testCts.Token),
+				service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004), MaxAttempts, testCts.Token),
 			];
 
 			await block2FirstRequestTcs.Task.WaitAsync(testCts.Token);
@@ -157,19 +157,19 @@ public class BlockDownloadServiceTests
 
 			await service.StartAsync(testCts.Token);
 
-			IResult actualResult1 = await service.TryGetBlockAsync(Source.TrustedFullNode, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), MaxAttempts, testCts.Token);
+			IResult actualResult1 = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), MaxAttempts, testCts.Token);
 			SuccessResult actualSuccessResult1 = Assert.IsType<SuccessResult>(actualResult1);
 			Assert.Same(block1, actualSuccessResult1.Block);
 
-			IResult actualResult2 = await service.TryGetBlockAsync(Source.TrustedFullNode, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), MaxAttempts, testCts.Token);
+			IResult actualResult2 = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), MaxAttempts, testCts.Token);
 			SuccessResult actualSuccessResult2 = Assert.IsType<SuccessResult>(actualResult2);
 			Assert.Same(block2, actualSuccessResult2.Block);
 
-			IResult actualResult3 = await service.TryGetBlockAsync(Source.TrustedFullNode, blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003), MaxAttempts, testCts.Token);
+			IResult actualResult3 = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash3, new Priority(SyncType.Complete, BlockHeight: 610_003), MaxAttempts, testCts.Token);
 			SuccessResult actualSuccessResult3 = Assert.IsType<SuccessResult>(actualResult3);
 			Assert.Same(block3, actualSuccessResult3.Block);
 
-			IResult actualResult4 = await service.TryGetBlockAsync(Source.TrustedFullNode, blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004), MaxAttempts, testCts.Token);
+			IResult actualResult4 = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash4, new Priority(SyncType.Complete, BlockHeight: 610_004), MaxAttempts, testCts.Token);
 			SuccessResult actualSuccessResult4 = Assert.IsType<SuccessResult>(actualResult4);
 			Assert.Same(block4, actualSuccessResult4.Block);
 
@@ -228,7 +228,7 @@ public class BlockDownloadServiceTests
 
 			await service.StartAsync(testCts.Token);
 
-			Task<IResult> block1Task = service.TryGetBlockAsync(Source.TrustedFullNode, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), maxAttempts: MaxAttempts, testCts.Token);
+			Task<IResult> block1Task = service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), maxAttempts: MaxAttempts, testCts.Token);
 
 			// Wait for all failed attempts.
 			await block1LastFailedAttemptTcs.Task.WaitAsync(testCts.Token);
@@ -277,10 +277,10 @@ public class BlockDownloadServiceTests
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
 		Task<IResult>[] tasks = [
-			service.TryGetBlockAsync(Source.TrustedFullNode, blockHash1, new Priority(SyncType.Complete, 610_001), maxAttempts: 1, testCts.Token),
-			service.TryGetBlockAsync(Source.TrustedFullNode, blockHash2, new Priority(SyncType.Complete, 610_002), maxAttempts: 1, testCts.Token),
-			service.TryGetBlockAsync(Source.TrustedFullNode, blockHash3, new Priority(SyncType.Complete, 610_003), maxAttempts: 1, testCts.Token),
-			service.TryGetBlockAsync(Source.TrustedFullNode, blockHash4, new Priority(SyncType.Complete, 610_004), maxAttempts: 1, testCts.Token),
+			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, 610_001), maxAttempts: 1, testCts.Token),
+			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, 610_002), maxAttempts: 1, testCts.Token),
+			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash3, new Priority(SyncType.Complete, 610_003), maxAttempts: 1, testCts.Token),
+			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash4, new Priority(SyncType.Complete, 610_004), maxAttempts: 1, testCts.Token),
 		];
 
 		// Remove blocks >= 610_003.

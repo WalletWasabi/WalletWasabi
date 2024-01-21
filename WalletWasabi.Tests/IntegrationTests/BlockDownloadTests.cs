@@ -41,9 +41,6 @@ public class BlockDownloadTests
 	[Fact]
 	public async Task BlockDownloadingTestAsync()
 	{
-		Common.GetWorkDir();
-		Logger.SetMinimumLevel(LogLevel.Trace);
-
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(10));
 
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
@@ -86,7 +83,7 @@ public class BlockDownloadTests
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
-				Task<IResult> taskCompletionSource = blockDownloadService.TryGetBlockAsync(Source.P2P, blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3, testCts.Token);
+				Task<IResult> taskCompletionSource = blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, new Priority(SyncType.Complete, height), maxAttempts: 3, testCts.Token);
 				tasks.Add(taskCompletionSource);
 			}
 

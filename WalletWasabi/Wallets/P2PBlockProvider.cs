@@ -27,37 +27,39 @@ public class P2PBlockProvider : IP2PBlockProvider
 	private P2PNodesManager P2PNodesManager { get; }
 
 	/// <summary>
-	/// Gets the given block from a single P2P node using the P2P bitcoin protocol.
+	/// Gets the given block from a single, automatically selected, P2P node using the P2P bitcoin protocol.
 	/// </summary>
 	/// <param name="blockHash">Block's hash to download.</param>
 	/// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
 	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
 	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		P2pBlockResponse? blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		P2pBlockResponse? blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, P2pSourceRequest.Automatic, cancellationToken).ConfigureAwait(false);
 		return blockWithSourceData?.Block;
 	}
 
 	/// <inheritdoc/>
-	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, CancellationToken cancellationToken)
+	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, P2pSourceRequest sourceRequest, CancellationToken cancellationToken)
 	{
-		Node? node;
+		Node? node = sourceRequest.Node;
 
-		try
+		if (node is null)
 		{
-			node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
-
-			if (node is null || !node.IsConnected)
+			try
 			{
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
+				node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+
+				if (node is null || !node.IsConnected)
+				{
+					return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				throw;
 			}
 		}
-		catch (OperationCanceledException)
-		{
-			throw;
-		}
-
-		var timeout = P2PNodesManager.GetCurrentTimeout();
+		double timeout = sourceRequest.Timeout ?? P2PNodesManager.GetCurrentTimeout();
 
 		return await TryGetBlockWithSourceDataAsync(blockHash, node, timeout, cancellationToken).ConfigureAwait(false);
 	}
