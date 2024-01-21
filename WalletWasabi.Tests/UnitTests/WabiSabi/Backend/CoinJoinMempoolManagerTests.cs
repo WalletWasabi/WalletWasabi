@@ -42,7 +42,7 @@ public class CoinJoinMempoolManagerTests
 			Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
 			await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
-			while (!(await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				await Task.Delay(50);
 			}
@@ -60,7 +60,7 @@ public class CoinJoinMempoolManagerTests
 			Assert.Equal(coinjoinTx, coinJoinMempoolManager.CoinJoinIds.Single());
 
 			await rpc.GenerateAsync(1);
-			while ((await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length != 0)
 			{
 				await Task.Delay(50);
 			}

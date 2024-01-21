@@ -24,7 +24,7 @@ public static class EnumerableExtensions
 	{
 		var source = sourceData.ToArray();
 
-		if (!source.Any())
+		if (source.Length == 0)
 		{
 			yield break;
 		}

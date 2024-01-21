@@ -166,7 +166,7 @@ public static class TransactionModifierWalletExtensions
 
 		var foreignOutputs = transactionToSpeedUp.GetForeignOutputs(keyManager).OrderByDescending(x => x.TxOut.Value).ToArray();
 
-		if (foreignOutputs.Any())
+		if (foreignOutputs.Length != 0)
 		{
 			// If we have no own output, then we substract the fee from the largest foreign output.
 			var largestForeignOuput = foreignOutputs.First();
