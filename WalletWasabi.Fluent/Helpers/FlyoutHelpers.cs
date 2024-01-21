@@ -30,7 +30,7 @@ public static class FlyoutHelpers
 		{
 			condition = condition.CombineLatest(
 				window
-					.Select(window => window?.GetObservable(Window.IsActiveProperty) ?? Observable.Return(false))
+					.Select(window => window?.GetObservable(WindowBase.IsActiveProperty) ?? Observable.Return(false))
 					.Switch(),
 				static (condition, isActive) => condition && isActive);
 		}
