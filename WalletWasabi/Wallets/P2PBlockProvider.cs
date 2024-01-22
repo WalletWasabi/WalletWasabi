@@ -45,18 +45,11 @@ public class P2PBlockProvider : IP2PBlockProvider
 
 		if (node is null)
 		{
-			try
-			{
-				node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+			node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
 
-				if (node is null || !node.IsConnected)
-				{
-					return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
-				}
-			}
-			catch (OperationCanceledException)
+			if (node is null || !node.IsConnected)
 			{
-				throw;
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
 			}
 		}
 		double timeout = sourceRequest.Timeout ?? P2PNodesManager.GetCurrentTimeout();
