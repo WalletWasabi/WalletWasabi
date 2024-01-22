@@ -31,10 +31,10 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
-	public interface IResult { }
+	public interface IResult;
 
 	/// <summary>Denotes a failure of getting a block.</summary>
-	public interface IFailureResult : IResult { }
+	public interface IFailureResult : IResult;
 
 	private IFileSystemBlockRepository FileSystemBlockRepository { get; }
 	private IBlockProvider[] TrustedFullNodeBlockProviders { get; }
@@ -61,7 +61,7 @@ public class BlockDownloadService : BackgroundService
 	/// <list type="bullet">
 	/// <item><see cref="SuccessResult"/> when the block was downloaded successfully.</item>
 	/// <item><see cref="ReorgOccurredResult"/> when the block was not downloaded because a reorg occurred and as such block downloading does not make sense.</item>
-	/// <item><see cref="CancelledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
+	/// <item><see cref="CanceledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
 	/// <item><see cref="FailureResult"/> when the block download failed for some reason.</item>
 	/// </list>
 	/// </returns>
@@ -77,7 +77,7 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (OperationCanceledException)
 		{
-			request.Tcs.TrySetResult(CancelledResult.Instance);
+			request.Tcs.TrySetResult(CanceledResult.Instance);
 		}
 
 		// Now the task is guaranteed to return a result.
@@ -224,7 +224,7 @@ public class BlockDownloadService : BackgroundService
 			{
 				while (BlocksToDownload.TryDequeue(out Request? request, out _))
 				{
-					_ = request.Tcs.TrySetResult(CancelledResult.Instance);
+					_ = request.Tcs.TrySetResult(CanceledResult.Instance);
 				}
 			}
 		}
@@ -309,7 +309,7 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (OperationCanceledException)
 		{
-			return new RequestResponse(request, CancelledResult.Instance);
+			return new RequestResponse(request, CanceledResult.Instance);
 		}
 		catch (Exception ex)
 		{
@@ -338,8 +338,8 @@ public class BlockDownloadService : BackgroundService
 	public record FailureResult(uint Attempts, ISourceData SourceData) : IFailureResult;
 
 	/// <summary>Block could not be get because the service is shutting down.</summary>
-	public record CancelledResult() : IFailureResult
+	public record CanceledResult() : IFailureResult
 	{
-		public static readonly CancelledResult Instance = new();
+		public static readonly CanceledResult Instance = new();
 	}
 }
