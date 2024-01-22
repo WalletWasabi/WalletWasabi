@@ -119,6 +119,15 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				BackendStatus = BackendStatus.Connected;
 				TorStatus = TorStatus.Running;
 				DoNotGenSocksServFail();
+				ExceptionInfo? info = ExceptionTracker.LastException;
+				// Log previous exception if any.
+				if (info is { })
+				{
+					Logger.LogInfo($"Exception stopped coming. It came for " +
+						$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+						$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+					ExceptionTracker.Reset();
+				}
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
 			{
@@ -196,7 +205,12 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				return;
 			}
 
-			Logger.LogError(ex);
+			var info = ExceptionTracker.Process(ex);
+			if (info.IsFirst)
+			{
+				Logger.LogWarning(info.Exception);
+			}
+
 			try
 			{
 				await Task.Delay(3000, cancel).ConfigureAwait(false); // Give other threads time to do stuff.
@@ -205,6 +219,9 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			{
 				Logger.LogTrace(ex2);
 			}
+
+			// Trigger to ignore waiting and try synchronizing again.
+			TriggerRound();
 		}
 		catch (TimeoutException ex)
 		{
