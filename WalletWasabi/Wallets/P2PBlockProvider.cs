@@ -34,8 +34,8 @@ public class P2PBlockProvider : IP2PBlockProvider
 	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
 	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		P2pBlockResponse? blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, P2pSourceRequest.Automatic, cancellationToken).ConfigureAwait(false);
-		return blockWithSourceData?.Block;
+		P2pBlockResponse blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, P2pSourceRequest.Automatic, cancellationToken).ConfigureAwait(false);
+		return blockWithSourceData.Block;
 	}
 
 	/// <inheritdoc/>
