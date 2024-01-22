@@ -30,8 +30,12 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 
-	public override void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection,
-		ICell model, int columnIndex, int rowIndex)
+	public override void Realize(
+		TreeDataGridElementFactory factory,
+		ITreeDataGridSelectionInteraction? selection,
+		ICell model,
+		int columnIndex,
+		int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell)model;
 		var text = privacyTextCell.Value;
@@ -102,7 +106,8 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			_privacyFormattedText = CreateFormattedText(availableSize, _privacyText);
 		}
 
-		return new Size(Math.Max(_formattedText.Width, _privacyFormattedText.Width),
+		return new Size(
+			Math.Max(_formattedText.Width, _privacyFormattedText.Width),
 			Math.Max(_formattedText.Height, _privacyFormattedText.Height));
 	}
 
