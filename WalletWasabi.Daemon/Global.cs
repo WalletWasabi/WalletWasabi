@@ -232,10 +232,13 @@ public class Global
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
 
-				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+				bool useTestApi = Network != Network.Main;
+				var apiKey = useTestApi ? "SWSCU3LIYWVHVXRVYJJNDLJZBG" : "SWSCVTGZRHJOZWF0MTJFTK9ZSG";
+				var uri = useTestApi ? new Uri("https://shopinbit.com/store-api/") : new Uri("https://shopinbit.solution360.dev");
+				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
 
-				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
+				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
 				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
 				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
