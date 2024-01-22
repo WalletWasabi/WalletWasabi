@@ -39,8 +39,8 @@
 
       <Style Selector="TreeDataGridRow" x:DataType="core:CoinControlItemViewModelBase">
         <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridRow}" />
-        <Setter Property="IsPointerOver" Value="{Binding IsControlPointerOver, Mode=OneWayToSource}" />
-        <Setter Property="IsSelected" Value="{Binding IsControlSelected, Mode=OneWayToSource}" />
+        <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />
+        <Setter Property="IsSelected" Value="{Binding IsSelectedProxy, Mode=OneWayToSource}" />
       </Style>
 
     </controls:ContentArea.Styles>

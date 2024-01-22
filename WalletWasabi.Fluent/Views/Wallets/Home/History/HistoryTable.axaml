@@ -162,8 +162,8 @@
 
           <Style Selector="TreeDataGridRow" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
-            <Setter Property="IsPointerOver" Value="{Binding IsPointerOver, Mode=OneWayToSource}" />
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWayToSource}" />
+            <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />
+            <Setter Property="IsSelected" Value="{Binding IsSelectedProxy, Mode=OneWayToSource}" />
           </Style>
 
           <Style Selector="TreeDataGridRow.Transaction">

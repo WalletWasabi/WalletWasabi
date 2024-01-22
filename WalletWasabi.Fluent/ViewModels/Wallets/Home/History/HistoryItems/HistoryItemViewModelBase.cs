@@ -60,6 +60,22 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 		UiContext = uiContext;
 	}
 
+	/// <summary>
+	/// Proxy property to prevent stack overflow due to internal bug in Avalonia where the OneWayToSource Binding
+	/// is replaced by a TwoWay one.when
+	/// </summary>
+	public bool IsPointerOverProxy
+	{
+		get => IsPointerOver;
+		set => IsPointerOver = value;
+	}
+
+	public bool IsSelectedProxy
+	{
+		get => IsSelected;
+		set => IsSelected = value;
+	}
+
 	public TransactionModel Transaction { get; }
 
 	public ObservableCollection<HistoryItemViewModelBase> Children { get; } = new();

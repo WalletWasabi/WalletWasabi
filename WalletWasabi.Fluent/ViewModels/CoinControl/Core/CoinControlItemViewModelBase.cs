@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -17,6 +16,7 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 	[AutoNotify] private bool _isParentSelected;
 	[AutoNotify] private bool _isParentPointerOver;
 	[AutoNotify] private bool _isControlSelected;
+
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 
@@ -47,6 +47,23 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 			})
 			.Subscribe();
 	}
+
+	/// <summary>
+	/// Proxy property to prevent stack overflow due to internal bug in Avalonia where the OneWayToSource Binding
+	/// is replaced by a TwoWay one.when
+	/// </summary>
+	public bool IsPointerOverProxy
+	{
+		get => IsControlPointerOver;
+		set => IsControlPointerOver = value;
+	}
+
+	public bool IsSelectedProxy
+	{
+		get => IsControlSelected;
+		set => IsControlSelected = value;
+	}
+
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
 
