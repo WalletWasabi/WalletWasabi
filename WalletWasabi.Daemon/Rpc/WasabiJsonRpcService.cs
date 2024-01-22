@@ -227,19 +227,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(coins), coins);
 		password = Guard.Correct(password);
 
-		static bool InRange<T>(IComparable<T> val, T min, T max) =>
-			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
-		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
-
-		var feeStrategy = (feeRate, feeTarget) switch
-		{
-			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
-				FeeStrategy.CreateFromFeeRate(satsPerByte),
-			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
-				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
-			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
-		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
@@ -267,19 +256,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(coins), coins);
 		password = Guard.Correct(password);
 
-		static bool InRange<T>(IComparable<T> val, T min, T max) =>
-			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
-		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
-
-		var feeStrategy = (feeRate, feeTarget) switch
-		{
-			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
-				FeeStrategy.CreateFromFeeRate(satsPerByte),
-			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
-				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
-			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
-		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
@@ -648,5 +626,22 @@ public class WasabiJsonRpcService : IJsonRpcService
 			mnemonic = null;
 			return false;
 		}
+	}
+
+	private FeeStrategy GetFeeStrategy(int? feeTarget = null, decimal? feeRate = null)
+	{
+		static bool InRange<T>(IComparable<T> val, T min, T max) =>
+			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+
+		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+
+		return (feeRate, feeTarget) switch
+		{
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
+			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
+			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+		};
 	}
 }
