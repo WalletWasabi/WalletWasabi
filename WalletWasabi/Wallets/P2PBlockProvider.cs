@@ -83,7 +83,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 			// Validate block
 			if (!block.Check())
 			{
-				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 
 				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.InvalidBlockProvided, node, connectedNodes));
 			}
@@ -106,7 +106,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 			else
 			{
 				Logger.LogDebug(ex);
-				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
 
 				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.Failure, node, connectedNodes));
 			}

@@ -35,13 +35,18 @@ public class P2PNodesManager
 		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
 	}
 
-	public void DisconnectNodeIfEnoughPeers(Node node, string logIfDisconnect, bool force = false)
+	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (Nodes.ConnectedNodes.Count > 3 || force)
+		if (Nodes.ConnectedNodes.Count > 3)
 		{
-			Logger.LogInfo(logIfDisconnect);
-			node.DisconnectAsync(logIfDisconnect);
+			Logger.LogInfo(reason);
+			DisconnectNode(node, reason);
 		}
+	}
+
+	public void DisconnectNode(Node node, string reason)
+	{
+		node.DisconnectAsync(reason);
 	}
 
 	public double GetCurrentTimeout()
