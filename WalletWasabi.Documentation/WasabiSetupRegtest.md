@@ -9,11 +9,11 @@ You do not need to download the blockchain for this setup!
 
 Bitcoin Knots is working very similarly to Bitcoin Core. You can get a grasp with [this guide](https://bitcoin.org/en/developer-examples).
 
-WalletWasabi RegTest currently only works with Knots 21.2(LTS).
+Currently, the latest version(25.1) is not tested, so the preferred versions are [21.2](https://github.com/bitcoinknots/bitcoin/releases/tag/v21.2.knots20210629) and [23.0](https://github.com/bitcoinknots/bitcoin/releases/tag/v23.0.knots20220529).
 
 Todo:
 
-1. Install [Bitcoin Knots](https://bitcoinknots.org/files/21.x/21.2.knots20210629/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
+1. Install [Bitcoin Knots 21.2](https://bitcoinknots.org/files/21.x/21.2.knots20210629/) or [Bitcoin Knots 23.0](https://bitcoinknots.org/files/23.x/23.0.knots20220529/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
 2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
     ```
     Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
