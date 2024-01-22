@@ -25,12 +25,6 @@ public class App : Application
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
-	static App()
-	{
-		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
-		EnableFeatureHide = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-	}
-
 	public App()
 	{
 		Name = "Wasabi Wallet";
@@ -41,8 +35,6 @@ public class App : Application
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
-
-	public static bool EnableFeatureHide { get; private set; }
 
 	public override void Initialize()
 	{
@@ -93,7 +85,7 @@ public class App : Application
 		var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
 		if (trayIcon is not null)
 		{
-			if (this.TryFindResource(EnableFeatureHide ? "DefaultNativeMenu" : "MacOsNativeMenu", out var nativeMenu))
+			if (this.TryFindResource("DefaultNativeMenu", out var nativeMenu))
 			{
 				trayIcon.Menu = nativeMenu as NativeMenu;
 			}
