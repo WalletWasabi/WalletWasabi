@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
-#pragma warning disable CA2000
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
@@ -156,7 +155,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			return item.Transaction.Id == txid;
 		});
 
-		if (txnItem is { } && Source.RowSelection is { } selection)
+		if (txnItem is { } && Source?.RowSelection is { } selection)
 		{
 			// Clear the selection so re-selection will work.
 			Dispatcher.UIThread.Post(() => selection.Clear());
@@ -181,7 +180,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 		}
 	}
-	
+
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
