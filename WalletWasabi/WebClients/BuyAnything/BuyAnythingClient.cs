@@ -27,12 +27,23 @@ public class BuyAnythingClient
 	}
 
 	// Product Id mapping for Concierge services
-	private static readonly Dictionary<Product, string> ProductIds = new()
+	private static readonly Dictionary<Product, string> ProductIdsProduction = new()
 	{
 		[Product.ConciergeRequest] = "018c0cec5299719f9458dba04f88eb8c",
 		[Product.FastTravelBooking] = "018c0cef890970ea9b143994f9930331",
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
+
+	// Product Id mapping for Concierge services
+	private static readonly Dictionary<Product, string> ProductIdsTesting = new()
+	{
+		[Product.ConciergeRequest] = "018d313972cf7c45b5fe2af5bce6e55d",
+		[Product.FastTravelBooking] = "018d313a605e7beb9ea605542267d8f8",
+		[Product.TravelConcierge] = "018d313bc5c4744281ec5ed837cee1c5"
+	};
+
+	// Product Id mapping for Concierge services
+	private Dictionary<Product, string> ProductIds { get; }
 
 	// Concierge request status
 	public enum ConciergeRequestStatus
@@ -51,13 +62,14 @@ public class BuyAnythingClient
 
 	private static readonly string LastName = "Sabimoto";
 
-	public BuyAnythingClient(IShopWareApiClient apiClient)
+	public BuyAnythingClient(IShopWareApiClient apiClient, bool useTestApi = false)
 	{
 		ApiClient = apiClient;
+		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
 	}
 
 	private IShopWareApiClient ApiClient { get; }
-	private AsyncLock ContextTokenCacheLock { get; } = new ();
+	private AsyncLock ContextTokenCacheLock { get; } = new();
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
