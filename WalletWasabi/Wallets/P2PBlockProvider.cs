@@ -19,7 +19,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 	}
 
 	/// <remarks>For tests only.</remarks>
-	public P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
+	internal P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
 		: this(new P2PNodesManager(network, nodes, isTorEnabled))
 	{
 	}
