@@ -26,7 +26,7 @@ public class P2PNodesManager
 
 	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
 	{
-		while (Nodes.ConnectedNodes.Count == 0)
+		while (ConnectedNodesCount == 0)
 		{
 			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 		}
@@ -37,7 +37,7 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (Nodes.ConnectedNodes.Count > 3)
+		if (ConnectedNodesCount > 3)
 		{
 			Logger.LogInfo(reason);
 			DisconnectNode(node, reason);
@@ -52,7 +52,7 @@ public class P2PNodesManager
 	public double GetCurrentTimeout()
 	{
 		// More permissive timeout if few nodes are connected to avoid exhaustion.
-		return Nodes.ConnectedNodes.Count < 3
+		return ConnectedNodesCount < 3
 			? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 			: RuntimeParams.Instance.NetworkNodeTimeout;
 	}
