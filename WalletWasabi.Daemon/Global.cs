@@ -240,9 +240,9 @@ public class Global
 				}
 
 				bool useTestApi = Network != Network.Main;
-				var apiKey = useTestApi ? "SWSCU3LIYWVHVXRVYJJNDLJZBG" : "SWSCVTGZRHJOZWF0MTJFTK9ZSG";
-				var uri = useTestApi ? new Uri("https://shopinbit.com/store-api/") : new Uri("https://shopinbit.solution360.dev");
-				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
+				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev") : new Uri("https://shopinbit.com/store-api/");
+				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), apiKey);
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
 				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
