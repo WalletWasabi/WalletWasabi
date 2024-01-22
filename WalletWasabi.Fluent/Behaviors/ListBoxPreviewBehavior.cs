@@ -82,6 +82,8 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 		}
 	}
 
+	protected override void OnDetachedFromVisualTree() => PreviewItem = null;
+
 	private void CancelClear()
 	{
 		_clearItemCts.Cancel();
