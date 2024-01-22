@@ -73,7 +73,7 @@ public class MempoolMirrorTests
 
 			var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), new Money(0.0004m, MoneyUnit.BTC));
 
-			while (!(await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				await Task.Delay(50);
 			}
@@ -126,7 +126,7 @@ public class MempoolMirrorTests
 				await rpc.SendRawTransactionAsync(tx);
 			}
 
-			while (!(await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				await Task.Delay(50);
 			}
@@ -216,7 +216,7 @@ public class MempoolMirrorTests
 			Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
 			await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
-			while (!(await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				await Task.Delay(50);
 			}
@@ -227,7 +227,7 @@ public class MempoolMirrorTests
 			Assert.Single(localMempoolAfterSend);
 
 			await rpc.GenerateAsync(1);
-			while ((await rpc.GetRawMempoolAsync()).Any())
+			while ((await rpc.GetRawMempoolAsync()).Length != 0)
 			{
 				await Task.Delay(50);
 			}
