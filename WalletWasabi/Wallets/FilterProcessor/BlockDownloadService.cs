@@ -42,7 +42,9 @@ public class BlockDownloadService : BackgroundService
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
 	private IP2PBlockProvider? P2PBlockProvider { get; }
 	private int MaximumParallelTasks { get; }
-	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0, maxCount: 1);
+
+	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
+	private SemaphoreSlim RequestAvailableSemaphore { get; } = new(initialCount: 0, maxCount: 1);
 
 	/// <summary>Block hashes that are to be downloaded. Block height represents priority of the priority queue.</summary>
 	/// <remarks>
@@ -91,9 +93,9 @@ public class BlockDownloadService : BackgroundService
 			int count = BlocksToDownload.Count;
 			BlocksToDownload.Enqueue(request, request.Priority);
 
-			if (count == 0 && SynchronizationRequestsSemaphore.CurrentCount == 0)
+			if (count == 0 && RequestAvailableSemaphore.CurrentCount == 0)
 			{
-				SynchronizationRequestsSemaphore.Release();
+				RequestAvailableSemaphore.Release();
 			}
 		}
 	}
@@ -152,7 +154,7 @@ public class BlockDownloadService : BackgroundService
 
 				if (wait)
 				{
-					await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+					await RequestAvailableSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 				}
 
 				lock (Lock)
@@ -172,6 +174,7 @@ public class BlockDownloadService : BackgroundService
 					}
 				}
 
+				// It's still possible that there is no task because a reorg might have occurred.
 				if (activeTasks.Count == 0)
 				{
 					continue;
