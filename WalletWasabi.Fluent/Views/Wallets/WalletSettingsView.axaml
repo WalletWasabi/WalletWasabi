@@ -50,6 +50,11 @@
             <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
           </DockPanel>
         </c:InfoMessage>
+        <c:InfoMessage>
+          <DockPanel>
+            <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+          </DockPanel>
+        </c:InfoMessage>
       </StackPanel>
 
     </StackPanel>

@@ -62,7 +62,7 @@ public class CoinJoinCoinSelector
 			.ToArray();
 
 		// Sanity check.
-		if (!filteredCoins.Any())
+		if (filteredCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
@@ -391,7 +391,7 @@ public class CoinJoinCoinSelector
 		where TCoin : ISmartCoin
 	{
 		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
-		if (effectiveInputSum >= parameters.AllowedOutputAmounts.Min)
+		if (effectiveInputSum >= parameters.MinAllowedOutputAmount)
 		{
 			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
 			return groups.TryAdd(k, group);

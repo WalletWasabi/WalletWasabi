@@ -14,7 +14,7 @@ public static class EnumExtensions
 
 		var attributes = memberInfo.GetCustomAttributes(typeof(T), false);
 
-		return attributes.Any() ? (T)attributes[0] : null;
+		return attributes.Length != 0 ? (T)attributes[0] : null;
 	}
 
 	public static string FriendlyName(this Enum value)

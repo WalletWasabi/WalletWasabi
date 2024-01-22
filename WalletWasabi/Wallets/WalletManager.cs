@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -473,12 +475,12 @@ public class WalletManager : IWalletProvider
 
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
-			if (km.GetBestHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
 			{
 				km.SetBestHeight(heightPriorTo12137);
 			}
 
-			if (km.GetBestTurboSyncHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
 			{
 				km.SetBestTurboSyncHeight(heightPriorTo12137);
 			}
@@ -490,6 +492,23 @@ public class WalletManager : IWalletProvider
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.EnsureTurboSyncHeightConsistency();
+		}
+	}
+
+	public void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
+			{
+				km.SetBestHeight(startingSegwitHeight);
+			}
+
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Turbo))
+			{
+				km.SetBestTurboSyncHeight(startingSegwitHeight);
+			}
 		}
 	}
 

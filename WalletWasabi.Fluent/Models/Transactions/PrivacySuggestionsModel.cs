@@ -165,7 +165,7 @@ public class PrivacySuggestionsModel
 		var totalAmount = originalTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
-		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any() &&
+		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Length != 0 &&
 			TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
@@ -188,7 +188,7 @@ public class PrivacySuggestionsModel
 		}
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
-		if (foundNonPrivate && allSemiPrivateCoin.Any() &&
+		if (foundNonPrivate && allSemiPrivateCoin.Length != 0 &&
 			TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);

@@ -96,7 +96,15 @@ public class SmartBlockProvider : IBlockProvider
 
 		if (result is null && P2PProvider is not null)
 		{
-			result = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			while (true)
+			{
+				Block? block = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+
+				if (block is not null)
+				{
+					return block;
+				}
+			}
 		}
 
 		return result;
