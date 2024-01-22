@@ -73,7 +73,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 		try
 		{
 			Block? block;
-			
+
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 			{
 				using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
