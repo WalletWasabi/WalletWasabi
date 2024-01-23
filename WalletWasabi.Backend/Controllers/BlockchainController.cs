@@ -420,7 +420,7 @@ public class BlockchainController : ControllerBase
 	[HttpGet("get-unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<List<(uint256 txId, int Size, Money Fee)>> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	public async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
 		uint256 txId = new(transactionId);
 
@@ -434,14 +434,14 @@ public class BlockchainController : ControllerBase
 			cancellationToken);
 	}
 
-	private async Task<List<(uint256 txId, int Size, Money Fee)>> GetUnconfirmedTransactionChainNoChacheAsync(uint256 txId, CancellationToken cancellationToken)
+	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoChacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
 		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
 
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
 
-		List<(uint256 txId, int Size, Money Fee)> unconfirmedTxsChain = new();
+		List<UnconfirmedTransactionChainItem> unconfirmedTxsChain = new();
 		List<Transaction> toFetchFeeList = new() { requestedTransaction };
 
 		while (toFetchFeeList.Count > 0)
@@ -463,7 +463,7 @@ public class BlockchainController : ControllerBase
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
 
-			unconfirmedTxsChain.Add((currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
+			unconfirmedTxsChain.Add(new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
 
 			// Remove the item we worked on.
 			toFetchFeeList.Remove(currentTx);
