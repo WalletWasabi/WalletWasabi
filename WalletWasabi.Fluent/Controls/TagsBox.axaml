@@ -52,13 +52,14 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Classes="activeHyperLink"
-                          Margin="0,0,6,0"
-                          Focusable="False"
-                          Content="{Binding}"
-                          Command="{Binding $parent[c:TagsBox].AddTag}"
-                          CommandParameter="{Binding }"
-                          x:CompileBindings="False" />
+                  <c:PrivacyContentControl Margin="0,0,6,0">
+                    <Button Classes="activeHyperLink"
+                            Focusable="False"
+                            Content="{Binding}"
+                            Command="{Binding $parent[c:TagsBox].AddTag}"
+                            CommandParameter="{Binding }"
+                            x:CompileBindings="False" />
+                  </c:PrivacyContentControl>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

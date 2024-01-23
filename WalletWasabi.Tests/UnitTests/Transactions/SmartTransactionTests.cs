@@ -72,26 +72,6 @@ public class SmartTransactionTests
 		}
 	}
 
-	[Theory]
-	[MemberData(nameof(GetSmartTransactionCombinations))]
-	public void SmartTransactionLineSerialization(SmartTransaction stx, Network network)
-	{
-		var line = stx.ToLine();
-		var sameStx = SmartTransaction.FromLine(line, network);
-		Assert.Equal(stx, sameStx);
-		Assert.Equal(stx.BlockHash, sameStx.BlockHash);
-		Assert.Equal(stx.BlockIndex, sameStx.BlockIndex);
-		Assert.Equal(stx.Confirmed, sameStx.Confirmed);
-		Assert.Equal(stx.FirstSeen.UtcDateTime, sameStx.FirstSeen.UtcDateTime, TimeSpan.FromSeconds(1));
-		Assert.Equal(stx.Height, sameStx.Height);
-		Assert.Equal(stx.IsRBF, sameStx.IsRBF);
-		Assert.Equal(stx.IsReplacement, sameStx.IsReplacement);
-		Assert.Equal(stx.IsSpeedup, sameStx.IsSpeedup);
-		Assert.Equal(stx.IsCancellation, sameStx.IsCancellation);
-		Assert.Equal(stx.Labels, sameStx.Labels);
-		Assert.Equal(stx.Transaction.GetHash(), sameStx.Transaction.GetHash());
-	}
-
 	[Fact]
 	public void SmartTransactionLineDeserialization()
 	{

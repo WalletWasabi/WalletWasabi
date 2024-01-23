@@ -76,6 +76,6 @@ public abstract class SingleDisposable<T> : IDisposable
 	/// <summary>
 	/// Attempts to update the stored context. This method returns <c>false</c> if this instance has already been disposed (or is being disposed).
 	/// </summary>
-	/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultanously update the context.</param>
+	/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultaneously update the context.</param>
 	protected bool TryUpdateContext(Func<T, T> contextUpdater) => _context.TryUpdateContext(contextUpdater);
 }

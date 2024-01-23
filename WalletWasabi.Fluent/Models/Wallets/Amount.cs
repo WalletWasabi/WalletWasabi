@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class Amount
 {
-	public static readonly Amount Zero = new Amount();
+	public static readonly Amount Zero = new();
 
 	/// <summary>
 	/// Private constructor to initialize Zero value

@@ -48,7 +48,13 @@ public class Global
 		DataDir = dataDir;
 		ConfigFilePath = configFilePath;
 		Config = config;
-		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = new TorSettings(
+			DataDir,
+			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			Config.TerminateTorOnExit,
+			socksPort: config.TorSocksPort,
+			controlPort: config.TorControlPort,
+			owningProcessId: Environment.ProcessId);
 
 		HostedServices = new HostedServices();
 
@@ -104,11 +110,13 @@ public class Global
 
 		// Block providers.
 		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
+		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled);
+
 		var blockProvider = new SmartBlockProvider(
 			BitcoinStore.BlockRepository,
 			BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
 			SpecificNodeBlockProvider,
-			new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
+			new P2PBlockProvider(P2PNodesManager),
 			Cache);
 
 		BlockDownloadService = new BlockDownloadService(blockProvider);
@@ -147,6 +155,7 @@ public class Global
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
 	private BlockDownloadService BlockDownloadService { get; }
+	private P2PNodesManager P2PNodesManager { get; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }

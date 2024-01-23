@@ -531,7 +531,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	private string GetCoinjoinStatus(Wallet wallet)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
-		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletId);
 		return walletCoinjoinClientState switch
 		{
 			CoinJoinClientState.Idle => "Idle",

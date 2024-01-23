@@ -33,7 +33,7 @@ public class TransactionStore : IAsyncDisposable
 		// Migrate data.
 		if (!useInMemoryDatabase)
 		{
-			string oldPath = Path.Combine(DataSource, "Transactions.dat");
+			string oldPath = Path.Combine(Path.GetDirectoryName(DataSource)!, "Transactions.dat");
 			Import(oldPath, DataSource, network);
 		}
 	}
