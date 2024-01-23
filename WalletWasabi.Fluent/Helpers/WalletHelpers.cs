@@ -25,13 +25,13 @@ public static class WalletHelpers
 
 	public static IEnumerable<LabelsArray> GetReceiveAddressLabels() =>
 		Services.WalletManager
-			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
+			.GetWallets()
 			.Select(x => x.KeyManager)
 			.SelectMany(x => x.GetReceiveLabels());
 
 	public static IEnumerable<LabelsArray> GetChangeAddressLabels() =>
 		Services.WalletManager
-			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
+			.GetWallets()
 			.Select(x => x.KeyManager)
 			.SelectMany(x => x.GetChangeLabels());
 }

@@ -107,7 +107,7 @@ public class WalletManager : IWalletProvider
 			return;
 		}
 
-		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName), CancelAllTasksToken)).ToList();
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), CancelAllTasksToken)).ToList();
 
 		while (walletLoadTasks.Count > 0)
 		{
@@ -185,15 +185,10 @@ public class WalletManager : IWalletProvider
 		return null;
 	}
 
-	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets());
 
-	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
+	public IEnumerable<Wallet> GetWallets()
 	{
-		if (refreshWalletList)
-		{
-			RefreshWalletList();
-		}
-
 		lock (Lock)
 		{
 			return Wallets.ToList();
@@ -271,7 +266,7 @@ public class WalletManager : IWalletProvider
 		return wallet;
 	}
 
-	private Wallet GetWalletByName(string walletName)
+	private Wallet LoadWalletByNameFromDisk(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 		Wallet wallet;
@@ -483,7 +478,7 @@ public class WalletManager : IWalletProvider
 		// * Testnet block 2542919 (https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799) was mined before the PR was created.
 		var heightPriorTo12137 = Network == Network.Main ? 822621 : 2542919;
 
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
 			{
@@ -499,7 +494,7 @@ public class WalletManager : IWalletProvider
 
 	public void EnsureTurboSyncHeightConsistency()
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.EnsureTurboSyncHeightConsistency();
 		}
@@ -507,7 +502,7 @@ public class WalletManager : IWalletProvider
 
 	public void EnsureHeightsAreAtLeastSegWitActivation()
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
 			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
@@ -524,19 +519,14 @@ public class WalletManager : IWalletProvider
 
 	public void SetMaxBestHeight(uint bestHeight)
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.SetMaxBestHeight(new Height(bestHeight));
 		}
 	}
 
-	/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
-	public Wallet GetWalletByName(string walletName, bool refreshWalletList = true)
+	public Wallet GetWalletByName(string walletName)
 	{
-		if (refreshWalletList)
-		{
-			RefreshWalletList();
-		}
 		lock (Lock)
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
