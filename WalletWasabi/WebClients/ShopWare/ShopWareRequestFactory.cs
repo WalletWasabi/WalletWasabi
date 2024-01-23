@@ -4,10 +4,10 @@ namespace WalletWasabi.WebClients.ShopWare;
 
 public static class ShopWareRequestFactory
 {
-	public static PropertyBag CustomerRegistrationRequest(string firstName, string lastName, string email, string password, string countryId, string message) =>
+	public static PropertyBag CustomerRegistrationRequest(string salutationId, string firstName, string lastName, string email, string password, string countryId, string message) =>
 		new()
 		{
-			["salutationId"] = "018b6635785b70679f479eadf50330f3",
+			["salutationId"] = salutationId,
 			["firstName"] = firstName,
 			["lastName"] = lastName,
 			["email"] = email,
