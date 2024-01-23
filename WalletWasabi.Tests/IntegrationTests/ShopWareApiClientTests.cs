@@ -10,6 +10,8 @@ using Xunit;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
+using System.IO;
+using System.Text.Json;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -122,14 +124,14 @@ public class ShopWareApiClientTests
 
 		// If a country is added or removed, test will fail and we will be notified.
 		// We could go further and verify equality.
-		Assert.Equal(244, toSerialize.Count);
+		Assert.Equal(246, toSerialize.Count);
 
 		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("none", toSerialize.First(c => c.Name == "United States of America").Id, CancellationToken.None);
 		Assert.Equal(51, stateResponse.Elements.Count);
 
 		// Save the new file if it changed
 		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
-		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
+		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonSerializer.Serialize(toSerialize));
 	}
 
 	[Fact]
@@ -189,10 +191,10 @@ public class ShopWareApiClientTests
 			HttpClientFactory = new(torEndpoint, null);
 
 			IHttpClient httpClient = useTor
-				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.com/store-api"))
-				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
+				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.solution360.dev/store-api/"))
+				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.solution360.dev/store-api/"), Mode.DefaultCircuit);
 
-			ShopWareApiClient = new(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+			ShopWareApiClient = new(httpClient, "SWSCVTGZRHJOZWF0MTJFTK9ZSG");
 		}
 
 		private WasabiHttpClientFactory HttpClientFactory { get; }

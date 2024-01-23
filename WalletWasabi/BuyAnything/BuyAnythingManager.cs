@@ -51,14 +51,17 @@ public class BuyAnythingManager : PeriodicRunner
 
 		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 		string fileContent = File.ReadAllText(countriesFilePath);
-		Country[] countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
-
-		Countries = new List<Country>(countries);
+		Country[] countries = [];
+		if (!useTestApi)
+		{
+			countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+								  ?? throw new InvalidOperationException("Couldn't read the countries list.");
+		}
+		Countries = countries;
 	}
 
 	private BuyAnythingClient Client { get; }
-	public IReadOnlyList<Country> Countries { get; }
+	public IReadOnlyList<Country> Countries { get; private set; }
 	private ConversationTracking ConversationTracking { get; } = new();
 	private bool IsConversationsLoaded { get; set; }
 	private string FilePath { get; }
@@ -635,4 +638,12 @@ public class BuyAnythingManager : PeriodicRunner
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
+
+	public async Task EnsureCountriesAreLoadedAsync(CancellationToken cancel)
+	{
+		if (!Countries.Any())
+		{
+			Countries = await Client.GetCountriesAsync(cancel).ConfigureAwait(false);
+		}
+	}
 }
