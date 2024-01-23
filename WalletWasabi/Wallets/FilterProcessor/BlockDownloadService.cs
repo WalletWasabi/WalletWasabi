@@ -68,9 +68,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<IResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
+	public async Task<IResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		Request request = new(sourceRequest, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(sourceRequest, blockHash, priority, new TaskCompletionSource<IResult>());
 		Enqueue(request);
 
 		try
@@ -200,21 +200,13 @@ public class BlockDownloadService : BackgroundService
 				}
 				else
 				{
-					if (request.Attempts >= request.MaxAttempts)
-					{
-						Logger.LogInfo($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed {request.MaxAttempts} times. Dropping the request.");
+					Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
 
-						// The block might have been removed concurrently if a reorg occurred.
-						if (!request.Tcs.TrySetResult(response.Result))
-						{
-							IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
-							Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
-						}
-					}
-					else
+					// The block might have been removed concurrently if a reorg occurred.
+					if (!request.Tcs.TrySetResult(response.Result))
 					{
-						// Re-enqueue as we failed to download the block.
-						Enqueue(request with { Attempts = request.Attempts + 1 });
+						IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
+						Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
 					}
 				}
 			}
@@ -243,7 +235,7 @@ public class BlockDownloadService : BackgroundService
 
 	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
-		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}; attempt: {request.Attempts}).");
+		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
 
 		try
 		{
@@ -312,7 +304,7 @@ public class BlockDownloadService : BackgroundService
 
 			if (failureSourceData is not null)
 			{
-				return new RequestResponse(request, new FailureResult(request.Attempts, failureSourceData));
+				return new RequestResponse(request, new FailureResult(failureSourceData));
 			}
 
 			throw new UnreachableException();
@@ -329,7 +321,7 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
+	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>
@@ -345,7 +337,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
-	public record FailureResult(uint Attempts, ISourceData SourceData) : IFailureResult;
+	public record FailureResult(ISourceData SourceData) : IFailureResult;
 
 	/// <summary>Block could not be get because the service is shutting down.</summary>
 	public record CanceledResult() : IFailureResult
