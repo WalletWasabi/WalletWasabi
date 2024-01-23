@@ -107,9 +107,11 @@ public class BlockDownloadService : BackgroundService
 	/// The method is not efficient but it does not matter too much because the operation is not supposed to be called often.
 	/// The main use case is to deal with a blockchain reorg.
 	/// </remarks>
-	public void RemoveBlocks(uint maxBlockHeight)
+	public async Task RemoveBlocksAsync(uint maxBlockHeight)
 	{
 		PriorityQueue<Request, Priority> tempQueue = new(Priority.Comparer);
+
+		List<uint256> toRemoveFromCache = [];
 
 		lock (Lock)
 		{
@@ -125,11 +127,17 @@ public class BlockDownloadService : BackgroundService
 				{
 					// The block might have been downloaded by now so just try to set the result.
 					_ = request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
+					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
 
 			BlocksToDownload.Clear();
 			BlocksToDownload.EnqueueRange(tempQueue.UnorderedItems);
+		}
+
+		foreach (uint256 blockHash in toRemoveFromCache)
+		{
+			await FileSystemBlockRepository.RemoveAsync(blockHash, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 

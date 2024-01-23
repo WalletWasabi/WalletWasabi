@@ -267,6 +267,8 @@ public class BlockDownloadServiceTests
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
 		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
+		_ = mockFileSystemBlockRepository.Setup(c => c.RemoveAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+			.Returns(Task.CompletedTask);
 
 		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
@@ -284,7 +286,7 @@ public class BlockDownloadServiceTests
 		];
 
 		// Remove blocks >= 610_003.
-		service.RemoveBlocks(maxBlockHeight: 610_003);
+		await service.RemoveBlocksAsync(maxBlockHeight: 610_003);
 
 		Request[] actualRequests = service.BlocksToDownload.UnorderedItems
 			.Select(x => x.Element)
