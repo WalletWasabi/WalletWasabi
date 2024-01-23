@@ -55,10 +55,8 @@ public class BuyAnythingManager : PeriodicRunner
 		if (!useTestApi)
 		{
 			countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
-
-		Countries = new List<Country>(countries);
-	}
+								  ?? throw new InvalidOperationException("Couldn't read the countries list.");
+		}
 		Countries = countries;
 	}
 
@@ -640,4 +638,12 @@ public class BuyAnythingManager : PeriodicRunner
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
 			password: RandomString.AlphaNumeric(25));
+
+	public async Task EnsureCountriesAreLoadedAsync(CancellationToken cancel)
+	{
+		if (!Countries.Any())
+		{
+			Countries = await Client.GetCountriesAsync(cancel).ConfigureAwait(false);
+		}
+	}
 }
