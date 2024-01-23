@@ -277,8 +277,7 @@ public class BlockDownloadService : BackgroundService
 					failureSourceData = sourceData;
 				}
 			}
-
-			if (request.SourceRequest is P2pSourceRequest p2pSourceRequest && P2PBlockProvider is not null && successResult is null)
+			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest && P2PBlockProvider is not null)
 			{
 				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
 
