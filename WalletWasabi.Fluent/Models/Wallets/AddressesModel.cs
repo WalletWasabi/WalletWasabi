@@ -50,7 +50,7 @@ public partial class AddressesModel
 		return nextReceiveAddress;
 	}
 
-	public ReadOnlyObservableCollection<IAddress> Unused { get; set; }
+	public ReadOnlyObservableCollection<IAddress> Unused { get; }
 
 	public void Hide(Address address)
 	{
