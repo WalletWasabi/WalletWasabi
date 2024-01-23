@@ -69,17 +69,14 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		// 5. Create wallet service.
 		var workDir = Common.GetWorkDir();
 
-		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
-		var blockProvider = new SmartBlockProvider(
+		var blockDownloadService = new BlockDownloadService(
 			bitcoinStore.BlockRepository,
-			rpcBlockProvider: null,
-			specificNodeBlockProvider,
-			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
-			cache);
+			new IBlockProvider[] { specificNodeBlockProvider },
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, new BlockDownloadService(blockProvider));
+		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockDownloadService);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		Assert.Empty(wallet.Coins);

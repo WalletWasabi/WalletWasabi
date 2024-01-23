@@ -75,14 +75,12 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 		using MemoryCache cache = CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
-		var blockProvider = new SmartBlockProvider(
+		var blockDownloadService = new BlockDownloadService(
 			bitcoinStore.BlockRepository,
-			rpcBlockProvider: null,
-			specificNodeBlockProvider,
-			p2PBlockProvider: new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
-			cache);
+			new IBlockProvider[] { specificNodeBlockProvider },
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, new BlockDownloadService(blockProvider));
+		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockDownloadService);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();

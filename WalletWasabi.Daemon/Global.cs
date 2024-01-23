@@ -112,14 +112,14 @@ public class Global
 		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
 		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled);
 
-		var blockProvider = new SmartBlockProvider(
-			BitcoinStore.BlockRepository,
-			BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
-			SpecificNodeBlockProvider,
-			new P2PBlockProvider(P2PNodesManager),
-			Cache);
+		var trustedFullNodeBlockProviders = BitcoinCoreNode?.RpcClient is null
+			? new IBlockProvider[] { SpecificNodeBlockProvider }
+			: new IBlockProvider[] { new RpcBlockProvider(BitcoinCoreNode.RpcClient), SpecificNodeBlockProvider };
 
-		BlockDownloadService = new BlockDownloadService(blockProvider);
+		BlockDownloadService = new BlockDownloadService(
+			fileSystemBlockRepository: BitcoinStore.BlockRepository,
+			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
+			new P2PBlockProvider(P2PNodesManager));
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, Synchronizer, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, config.ServiceConfiguration);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);

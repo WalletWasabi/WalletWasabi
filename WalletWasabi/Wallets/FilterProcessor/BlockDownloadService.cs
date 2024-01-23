@@ -109,6 +109,7 @@ public class BlockDownloadService : BackgroundService
 	/// </remarks>
 	public void RemoveBlocks(uint maxBlockHeight)
 	{
+		// TODO: In this integration I removed SmartBlockProvider so I need this function to also remove from the file system.
 		PriorityQueue<Request, Priority> tempQueue = new(Priority.Comparer);
 
 		lock (Lock)

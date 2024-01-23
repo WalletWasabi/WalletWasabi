@@ -60,8 +60,10 @@ public class WalletBuilder : IAsyncDisposable
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
-		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
-		BlockDownloadService blockDownloadService = new BlockDownloadService(blockProvider);
+		BlockDownloadService blockDownloadService = new (
+			BitcoinStore.BlockRepository,
+			new IBlockProvider[] { },
+			null);
 
 		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, synchronizer, DataDir, serviceConfiguration, feeProvider, blockDownloadService);
 	}
