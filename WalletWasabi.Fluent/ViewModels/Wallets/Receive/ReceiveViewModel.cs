@@ -1,6 +1,7 @@
-using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData.Binding;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -51,7 +52,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
-	public bool HasUnusedAddresses => _wallet.Addresses.Unused.Any();
+	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Count().Select(i => i > 0);
 
 	private void OnNext()
 	{
