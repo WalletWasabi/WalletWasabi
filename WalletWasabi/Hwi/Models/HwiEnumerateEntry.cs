@@ -52,7 +52,7 @@ public class HwiEnumerateEntry
 		};
 
 	/// <summary>
-	/// Returns true if the device support offline PSBT signing.
+	/// Returns true if the device supports offline PSBT signing.
 	/// </summary>
 	public bool IsOfflinePsbtWorkflowCompatible()
 	{
