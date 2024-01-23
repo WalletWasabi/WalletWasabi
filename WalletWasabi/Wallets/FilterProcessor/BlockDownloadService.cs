@@ -11,7 +11,7 @@ using WalletWasabi.Wallets.BlockProvider;
 namespace WalletWasabi.Wallets.FilterProcessor;
 
 /// <summary>
-/// Service that downloads blocks downloads.
+/// Service that prioritizes and handles block downloads.
 /// </summary>
 public class BlockDownloadService : BackgroundService
 {
