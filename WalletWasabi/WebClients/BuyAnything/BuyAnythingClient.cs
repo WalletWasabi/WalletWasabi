@@ -42,8 +42,13 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018d313bc5c4744281ec5ed837cee1c5"
 	};
 
+	private static readonly string SalutationIdProduction = "018b6635785b70679f479eadf50330f3";
+	private static readonly string SalutationIdTesting = "018b6635785b70679f479eadf50330f3";
+
 	// Product Id mapping for Concierge services
 	private Dictionary<Product, string> ProductIds { get; }
+
+	private string SalutationId { get; }
 
 	// Concierge request status
 	public enum ConciergeRequestStatus
@@ -66,6 +71,7 @@ public class BuyAnythingClient
 	{
 		ApiClient = apiClient;
 		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
+		SalutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
 	}
 
 	private IShopWareApiClient ApiClient { get; }
@@ -80,7 +86,7 @@ public class BuyAnythingClient
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			FirstName, LastName, emailAddress, password, countryId, comment);
+			SalutationId, FirstName, LastName, emailAddress, password, countryId, comment);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
