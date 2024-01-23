@@ -437,11 +437,14 @@ public class BlockchainController : ControllerBase
 	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoChacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
 		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
+		List<UnconfirmedTransactionChainItem> unconfirmedTxsChain = new();
 
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
 
-		List<UnconfirmedTransactionChainItem> unconfirmedTxsChain = new();
+		unconfirmedTxsChain.AddRange(
+			await GetSpenderTransactionsAsync(requestedTransaction, cancellationToken).ConfigureAwait(false));
+
 		List<Transaction> toFetchFeeList = new() { requestedTransaction };
 
 		while (toFetchFeeList.Count > 0)
@@ -475,5 +478,47 @@ public class BlockchainController : ControllerBase
 		}
 
 		return unconfirmedTxsChain;
+	}
+
+	private async Task<List<UnconfirmedTransactionChainItem>> GetSpenderTransactionsAsync(Transaction originalTx, CancellationToken cancellationToken)
+	{
+		Dictionary<uint256, Transaction> transactionsLocalCache = new();
+		List<Transaction> childrenTxs = new();
+		List<UnconfirmedTransactionChainItem> unconfirmedChildrenTxsChain = new();
+
+		var spenderTransaction = Global.MempoolMirror.GetSpenderTransactions(originalTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index)));
+
+		childrenTxs.AddRange(spenderTransaction);
+
+		while (childrenTxs.Count > 0)
+		{
+			List<Coin> inputs = new();
+			HashSet<Transaction> parentTxs = new();
+
+			var currentTx = childrenTxs.First();
+			foreach (var input in currentTx.Inputs)
+			{
+				if (!transactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
+				{
+					parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
+					transactionsLocalCache.Add(input.PrevOut.Hash, parentTx);
+				}
+
+				parentTxs.Add(parentTx);
+				TxOut txOut = parentTx.Outputs[input.PrevOut.N];
+				inputs.Add(new Coin(input.PrevOut, txOut));
+			}
+
+			unconfirmedChildrenTxsChain.Add(new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
+
+			// Remove the item we worked on.
+			childrenTxs.Remove(currentTx);
+
+			// Fee and size of all unconfirmed children have to be known to get effective fee rate of the whole chain.
+			childrenTxs.AddRange(
+				Global.MempoolMirror.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index))));
+		}
+
+		return unconfirmedChildrenTxsChain;
 	}
 }
