@@ -43,12 +43,16 @@ public class BuyAnythingClient
 	};
 
 	private static readonly string SalutationIdProduction = "018b6635785b70679f479eadf50330f3";
-	private static readonly string SalutationIdTesting = "018b6635785b70679f479eadf50330f3";
+	private static readonly string SalutationIdTesting = "018d18f29d347170b6cfd6466cab3c71";
+
+	private static readonly string StorefrontUrlProduction = "https://wasabi.shopinbit.com";
+	private static readonly string StorefrontUrlTesting = "https://shopinbit.solution360.dev";
 
 	// Product Id mapping for Concierge services
 	private Dictionary<Product, string> ProductIds { get; }
 
 	private string SalutationId { get; }
+	private string StorefrontUrl { get; }
 
 	// Concierge request status
 	public enum ConciergeRequestStatus
@@ -72,6 +76,7 @@ public class BuyAnythingClient
 		ApiClient = apiClient;
 		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
 		SalutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
+		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
 	}
 
 	private IShopWareApiClient ApiClient { get; }
@@ -86,7 +91,7 @@ public class BuyAnythingClient
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			SalutationId, FirstName, LastName, emailAddress, password, countryId, comment);
+			SalutationId, FirstName, LastName, emailAddress, password, countryId, comment, StorefrontUrl);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
