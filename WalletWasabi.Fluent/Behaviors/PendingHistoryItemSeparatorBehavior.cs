@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
@@ -6,23 +7,17 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<TreeDataGridRowsPresenter>
+public class PendingHistoryItemSeparatorBehavior : DisposingBehavior<TreeDataGridRowsPresenter>
 {
 	private const string ClassName = "separator";
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is { })
 		{
-			AssociatedObject.LayoutUpdated += AssociatedObjectOnLayoutUpdated;
-		}
-	}
-
-	protected override void OnDetachedFromVisualTree()
-	{
-		if (AssociatedObject is { })
-		{
-			AssociatedObject.LayoutUpdated -= AssociatedObjectOnLayoutUpdated;
+			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.LayoutUpdated))
+				.Subscribe(x => AssociatedObjectOnLayoutUpdated(x.Sender, EventArgs.Empty))
+				.DisposeWith(disposables);
 		}
 	}
 
@@ -38,7 +33,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		{
 			if (child is { })
 			{
-				InvalidateSeparator((Control)child, presenter);
+				InvalidateSeparator((Control) child, presenter);
 			}
 		}
 	}
@@ -75,8 +70,8 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		static bool IsSeparator(TreeDataGridRowsPresenter presenter, int index)
 		{
 			return presenter.Items is { } items
-				   && items.Count > index + 1
-				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase vm && vm.Transaction.IsConfirmed;
+			       && items.Count > index + 1
+			       && presenter.Items[index + 1].Model is HistoryItemViewModelBase vm && vm.Transaction.IsConfirmed;
 		}
 	}
 }
