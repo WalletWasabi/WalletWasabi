@@ -109,7 +109,7 @@ public abstract class PeriodicRunner : BackgroundService
 					{
 						Logger.LogWarning(ex);
 					}
-					else if (info.IsFirst)
+					else
 					{
 						Logger.LogError(info.Exception);
 					}
