@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Data.Converters;
+using Avalonia.Media;
 using Avalonia.Metadata;
 using WalletWasabi.Fluent.Extensions;
 
@@ -55,9 +56,9 @@ public class ReplaceWordsByContentConverter : AvaloniaObject, IValueConverter
 		}
 
 		var dictItem = Dictionary[word];
-		if (dictItem is Control c)
+		if (dictItem is Geometry c)
 		{
-			return new InlineUIContainer(c);
+			return new InlineUIContainer(new PathIcon() { Data = c });
 		}
 
 		return new Run($"<Object of invalid type found in key {word} for FormatTextConverter");

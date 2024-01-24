@@ -13,13 +13,9 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
   <UserControl.Resources>
     <c:ReplaceWordsByContentConverter x:Key="ReplaceWordsByContentConverter">
-      <ResourceDictionary>
-        <StackPanel x:Key="Play">
-          <PathIcon Data="{StaticResource play_regular}" />
-        </StackPanel>
-        <StackPanel x:Key="Stop">
-          <PathIcon Data="{StaticResource stop_regular}" />
-        </StackPanel>
+      <ResourceDictionary x:CompileBindings="False">
+        <StaticResource x:Shared="False" x:Key="Play" ResourceKey="play_regular" />
+        <StaticResource x:Key="Stop" ResourceKey="stop_regular" />
       </ResourceDictionary>
     </c:ReplaceWordsByContentConverter>
   </UserControl.Resources>
