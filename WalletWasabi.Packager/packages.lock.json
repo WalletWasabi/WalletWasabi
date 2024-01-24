@@ -181,6 +181,7 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
+          "AsyncKeyedLock": "[6.3.4, )",
           "Microsoft.AspNetCore.WebUtilities": "[8.0.0, )",
           "Microsoft.Data.Sqlite": "[8.0.0, )",
           "Microsoft.Extensions.Caching.Abstractions": "[8.0.0, )",
@@ -191,6 +192,12 @@
           "System.IO.Pipelines": "[8.0.0, )",
           "WabiSabi": "[1.0.1.2, )"
         }
+      },
+      "AsyncKeyedLock": {
+        "type": "CentralTransitive",
+        "requested": "[6.3.4, )",
+        "resolved": "6.3.4",
+        "contentHash": "+0YPXvamnopzHSgBpv0vg+9/NJH+6jm1ZODuMMs7p43yH7hA/NxNi+/U7T7eazZqW+V+0ZsbreYruhu6i7N4PA=="
       },
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "CentralTransitive",

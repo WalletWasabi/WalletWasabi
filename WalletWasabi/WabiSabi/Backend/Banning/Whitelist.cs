@@ -1,5 +1,5 @@
+using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

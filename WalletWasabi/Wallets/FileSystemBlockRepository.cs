@@ -1,6 +1,6 @@
+using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

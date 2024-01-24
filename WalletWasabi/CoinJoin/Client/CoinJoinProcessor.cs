@@ -1,5 +1,5 @@
+using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
