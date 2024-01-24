@@ -436,14 +436,11 @@ public class BlockchainController : ControllerBase
 
 	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoChacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
-		Dictionary<uint256, Transaction> parentTransactionsLocalCache = new();
-		List<UnconfirmedTransactionChainItem> unconfirmedTxsChain = new();
+		Dictionary<uint256, Transaction> transactionsLocalCache = new();
+		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
 
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
-
-		unconfirmedTxsChain.AddRange(
-			await GetSpenderTransactionsAsync(requestedTransaction, cancellationToken).ConfigureAwait(false));
 
 		List<Transaction> toFetchFeeList = new() { requestedTransaction };
 
@@ -453,49 +450,6 @@ public class BlockchainController : ControllerBase
 			HashSet<Transaction> parentTxs = new();
 
 			var currentTx = toFetchFeeList.First();
-			foreach (var input in currentTx.Inputs)
-			{
-				if (!parentTransactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
-				{
-					parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
-					parentTransactionsLocalCache.Add(input.PrevOut.Hash, parentTx);
-				}
-
-				parentTxs.Add(parentTx);
-				TxOut txOut = parentTx.Outputs[input.PrevOut.N];
-				inputs.Add(new Coin(input.PrevOut, txOut));
-			}
-
-			unconfirmedTxsChain.Add(new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
-
-			// Remove the item we worked on.
-			toFetchFeeList.Remove(currentTx);
-
-			// Fee and size of all unconfirmed parents have to be known to get effective fee rate of the child.
-			toFetchFeeList.AddRange(
-				parentTxs
-					.Where(x => Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash())));
-		}
-
-		return unconfirmedTxsChain;
-	}
-
-	private async Task<List<UnconfirmedTransactionChainItem>> GetSpenderTransactionsAsync(Transaction originalTx, CancellationToken cancellationToken)
-	{
-		Dictionary<uint256, Transaction> transactionsLocalCache = new();
-		List<Transaction> childrenTxs = new();
-		List<UnconfirmedTransactionChainItem> unconfirmedChildrenTxsChain = new();
-
-		var spenderTransaction = Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(originalTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index)));
-
-		childrenTxs.AddRange(spenderTransaction);
-
-		while (childrenTxs.Count > 0)
-		{
-			List<Coin> inputs = new();
-			HashSet<Transaction> parentTxs = new();
-
-			var currentTx = childrenTxs.First();
 			foreach (var input in currentTx.Inputs)
 			{
 				if (!transactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
@@ -509,16 +463,32 @@ public class BlockchainController : ControllerBase
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
 
-			unconfirmedChildrenTxsChain.Add(new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
+			unconfirmedTxsChainById.Add(currentTx.GetHash(), new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
+
+			var childrenTxs = Global.HostedServices.Get<MempoolMirror>()
+				.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index)))
+				.ToHashSet();
+
+			// Add the children to the local transaction cache.
+			foreach (var childTx in childrenTxs)
+			{
+				if (!transactionsLocalCache.ContainsKey(childTx.GetHash()))
+				{
+					transactionsLocalCache.Add(childTx.GetHash(), childTx);
+				}
+			}
 
 			// Remove the item we worked on.
-			childrenTxs.Remove(currentTx);
+			toFetchFeeList.Remove(currentTx);
 
-			// Fee and size of all unconfirmed children have to be known to get effective fee rate of the whole chain.
-			childrenTxs.AddRange(
-				Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index))));
+			// Fee and size of all unconfirmed parents and children not already known are required effective fee rate of the current transaction.
+			toFetchFeeList.AddRange(
+				parentTxs
+					.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))
+					.Where(x => Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash()))
+					.Union(childrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))));
 		}
 
-		return unconfirmedChildrenTxsChain;
+		return unconfirmedTxsChainById.Values.ToList();
 	}
 }
