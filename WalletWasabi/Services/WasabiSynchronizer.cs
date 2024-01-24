@@ -183,7 +183,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		}
 		catch (HttpRequestException)
 		{
-			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of Tor connection error.
+			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
 			throw;
 		}
