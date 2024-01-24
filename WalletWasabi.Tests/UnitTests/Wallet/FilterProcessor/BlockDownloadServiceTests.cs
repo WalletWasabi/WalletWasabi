@@ -168,6 +168,7 @@ public class BlockDownloadServiceTests
 		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
+		// File-system cache is disabled for the purposes of this test.
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
 		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
@@ -219,6 +220,10 @@ public class BlockDownloadServiceTests
 			actualResult2 = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), testCts.Token);
 			SuccessResult actualSuccessResult2 = Assert.IsType<SuccessResult>(actualResult2);
 			Assert.Same(block2, actualSuccessResult2.Block);
+
+			// Getting a block over P2P fails because there is no P2P provider registered.
+			IResult actualResult5 = await service.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_005), testCts.Token);
+			NoSuchProviderResult actualSuccessResult5 = Assert.IsType<NoSuchProviderResult>(actualResult5);
 
 			await service.StopAsync(testCts.Token);
 			await service.ExecuteTask!.WaitAsync(testCts.Token);

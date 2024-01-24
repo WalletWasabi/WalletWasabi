@@ -243,7 +243,7 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.FileSystemCache)));
+				return new RequestResponse(request, new SuccessResult(block, EmptySourceData.FileSystemCache));
 			}
 
 			SuccessResult? successResult = null;
@@ -251,7 +251,10 @@ public class BlockDownloadService : BackgroundService
 
 			if (request.SourceRequest is FullNodeSourceRequest)
 			{
-				EmptySourceData sourceData = new(Source.TrustedFullNode);
+				if (TrustedFullNodeBlockProviders.Length == 0)
+				{
+					return new RequestResponse(request, NoSuchProviderResult.Instance);
+				}
 
 				foreach (IBlockProvider blockProvider in TrustedFullNodeBlockProviders)
 				{
@@ -259,18 +262,23 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = new(block, sourceData);
+						successResult = new(block, EmptySourceData.TrustedFullNode);
 						break;
 					}
 				}
 
 				if (successResult is null)
 				{
-					failureSourceData = sourceData;
+					failureSourceData = EmptySourceData.TrustedFullNode;
 				}
 			}
-			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest && P2PBlockProvider is not null)
+			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
 			{
+				if (P2PBlockProvider is null)
+				{
+					return new RequestResponse(request, NoSuchProviderResult.Instance);
+				}
+
 				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
 
 				if (response.Block is not null)
@@ -338,6 +346,13 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
 	public record FailureResult(ISourceData SourceData) : IFailureResult;
+
+	/// <summary>Block could not be get because specified block providing source was not registered.</summary>
+	/// <remarks>Re-trying won't help. If no trusted full node is set, then this won't change.</remarks>
+	public record NoSuchProviderResult() : IFailureResult
+	{
+		public static readonly NoSuchProviderResult Instance = new();
+	}
 
 	/// <summary>Block could not be get because the service is shutting down.</summary>
 	public record CanceledResult() : IFailureResult
