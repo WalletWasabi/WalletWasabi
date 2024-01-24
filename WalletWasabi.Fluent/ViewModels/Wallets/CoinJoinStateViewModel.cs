@@ -20,7 +20,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string RandomlySkippedRoundMessage = "Awaiting cheaper coinjoins";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
-	public const string PressPlayToStartMessage = "Press Play to start";
+	private const string PressPlayToStartMessage = "Press Play to start";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
 	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
@@ -29,7 +29,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingForBlameRoundMessage = "Awaiting the blame round";
 	private const string WaitingRoundMessage = "Awaiting a round";
 	private const string PlebStopMessage = "Coinjoin may be uneconomical";
-	public const string PlebStopMessageBelow = "Add more funds or press 'Play' to bypass";
+	private const string PlebStopMessageBelow = "Add more funds or press Play to bypass";
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
