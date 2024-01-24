@@ -463,14 +463,12 @@ public class BlockchainController : ControllerBase
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
 
-			unconfirmedTxsChainById.Add(currentTx.GetHash(), new(currentTx.GetHash(), currentTx.GetVirtualSize(), currentTx.GetFee(inputs.ToArray())));
-
-			var childrenTxs = Global.HostedServices.Get<MempoolMirror>()
+			var unconfirmedChildrenTxs = Global.HostedServices.Get<MempoolMirror>()
 				.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index)))
 				.ToHashSet();
 
 			// Add the children to the local transaction cache.
-			foreach (var childTx in childrenTxs)
+			foreach (var childTx in unconfirmedChildrenTxs)
 			{
 				if (!transactionsLocalCache.ContainsKey(childTx.GetHash()))
 				{
@@ -481,12 +479,22 @@ public class BlockchainController : ControllerBase
 			// Remove the item we worked on.
 			toFetchFeeList.Remove(currentTx);
 
+			var unconfirmedParents = parentTxs.Where(x =>
+				Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash()));
+
 			// Fee and size of all unconfirmed parents and children not already known are required effective fee rate of the current transaction.
 			toFetchFeeList.AddRange(
-				parentTxs
-					.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))
-					.Where(x => Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash()))
-					.Union(childrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))));
+				unconfirmedParents.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))
+					.Union(unconfirmedChildrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))));
+
+			unconfirmedTxsChainById.Add(
+				currentTx.GetHash(),
+				new UnconfirmedTransactionChainItem(
+					TxId: currentTx.GetHash(),
+					Size: currentTx.GetVirtualSize(),
+					Fee: currentTx.GetFee(inputs.ToArray()),
+					Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
+					Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet()));
 		}
 
 		return unconfirmedTxsChainById.Values.ToList();
