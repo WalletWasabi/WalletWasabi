@@ -9,6 +9,7 @@ using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
@@ -48,6 +49,12 @@ public class Config
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+			[ nameof(TorSocksPort)] = (
+				"Tor is started to listen with the specified SOCKS5 port",
+				GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs)),
+			[ nameof(TorControlPort)] = (
+				"Tor is started to listen with the specified control port",
+				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
 			[ nameof(TerminateTorOnExit)] = (
 				"Stop the Tor process when Wasabi is closed",
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
@@ -129,6 +136,8 @@ public class Config
 	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
 	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
 	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor));
+	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
+	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>(nameof(StartLocalBitcoinCoreOnStartup));
@@ -268,6 +277,21 @@ public class Config
 		return new BoolValue(value, value, ValueSource.Disk);
 	}
 
+	private IntValue GetLongValue(string key, int value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!int.TryParse(overrideValue, out int argsLongValue))
+			{
+				throw new ArgumentException("must be a number.", key);
+			}
+
+			return new IntValue(value, argsLongValue, valueSource.Value);
+		}
+
+		return new IntValue(value, value, ValueSource.Disk);
+	}
+
 	private static StringValue GetStringValue(string key, string value, string[] cliArgs)
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
@@ -384,6 +408,7 @@ public class Config
 	}
 
 	private record BoolValue(bool Value, bool EffectiveValue, ValueSource ValueSource) : ITypedValue<bool>;
+	private record IntValue(int Value, int EffectiveValue, ValueSource ValueSource) : ITypedValue<int>;
 	private record StringValue(string Value, string EffectiveValue, ValueSource ValueSource) : ITypedValue<string>;
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;

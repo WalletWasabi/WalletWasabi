@@ -12,7 +12,7 @@ public static class MoneyConverters
 		new FuncValueConverter<decimal, string>(n => n.ToUsdFormatted());
 
 	public static readonly IValueConverter ToUsdNumber =
-		new FuncValueConverter<decimal, string>(n => n.WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
+		new FuncValueConverter<Money, string?>(n => n?.ToDecimal(MoneyUnit.BTC).WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
 
 	public static readonly IValueConverter ToUsdApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());

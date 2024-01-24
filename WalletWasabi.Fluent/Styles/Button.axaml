@@ -1,5 +1,27 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
+
+    <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Padding" Value="9 7" />
+      <Style Selector="^:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      </Style>
+      <Style Selector="^:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      </Style>
+    </ControlTheme>
+  </Styles.Resources>
+
   <Design.PreviewWith>
     <Border Padding="20">
       <StackPanel Spacing="10">
@@ -8,14 +30,11 @@
         <Button Classes="function" Content="Function Button" />
         <Button Classes="invisible" Content="Invisible Button" />
         <Button Classes="plainHyperlink" Content="Quick" />
+        <Button Theme="{StaticResource AccentButton}" Content="Accent Button" />
+        <Button Theme="{StaticResource AccentButton}" IsEnabled="False" Content="Accent Button Disabled" />
       </StackPanel>
     </Border>
   </Design.PreviewWith>
-
-  <Styles.Resources>
-    <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
-    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
-  </Styles.Resources>
 
   <Style Selector="Button.action /template/ ContentPresenter">
     <Setter Property="Cursor" Value="Hand" />

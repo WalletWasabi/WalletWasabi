@@ -73,9 +73,8 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 			})
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.SelectedWalletModel)
-			.Select(model => Wallets.FirstOrDefault(w => w.WalletModel == model))
-			.BindTo(this, x => x.SelectedWallet);
+		this.WhenAnyValue(x => x.SelectedWallet!.WalletModel)
+			.BindTo(this, x => x.SelectedWalletModel);
 
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName) ?? Wallets.FirstOrDefault();
 	}

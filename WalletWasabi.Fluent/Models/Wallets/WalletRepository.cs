@@ -1,5 +1,4 @@
 using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletRepository : ReactiveObject
 {
 	private readonly IAmountProvider _amountProvider;
-	private readonly Dictionary<string, WalletModel> _walletDictionary = new();
+	private readonly Dictionary<WalletId, WalletModel> _walletDictionary = new();
 	private readonly CompositeDisposable _disposable = new();
 
 	public WalletRepository(IAmountProvider amountProvider)
@@ -36,7 +35,7 @@ public partial class WalletRepository : ReactiveObject
 					  .StartWith(Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletName)
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
@@ -47,7 +46,7 @@ public partial class WalletRepository : ReactiveObject
 		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
 	}
 
-	public IObservableCache<IWalletModel, string> Wallets { get; }
+	public IObservableCache<IWalletModel, WalletId> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
 	public bool HasWallet => Services.WalletManager.HasWallet();
@@ -78,15 +77,15 @@ public partial class WalletRepository : ReactiveObject
 
 	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
 	{
-		walletSettings.Save();
-		var result = GetByName(walletSettings.WalletName);
+		var id = walletSettings.Save();
+		var result = GetById(id);
 		result.Settings.IsCoinJoinPaused = walletSettings.IsCoinJoinPaused;
 		return result;
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
-		return WalletHelpers.ValidateWalletName(walletName);
+		return Services.WalletManager.ValidateWalletName(walletName);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
@@ -94,7 +93,7 @@ public partial class WalletRepository : ReactiveObject
 		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
-			return GetByName(existingWallet.WalletName);
+			return GetById(existingWallet.WalletId);
 		}
 		return null;
 	}
@@ -181,17 +180,17 @@ public partial class WalletRepository : ReactiveObject
 		return new WalletSettingsModel(keyManager, true, true);
 	}
 
-	private IWalletModel GetByName(string walletName)
+	private IWalletModel GetById(WalletId id)
 	{
 		return
-			_walletDictionary.TryGetValue(walletName, out var wallet)
+			_walletDictionary.TryGetValue(id, out var wallet)
 			? wallet
-			: throw new InvalidOperationException($"Wallet not found: {walletName}");
+			: throw new InvalidOperationException($"Wallet not found: {id}");
 	}
 
 	private WalletModel CreateWalletModel(Wallet wallet)
 	{
-		if (_walletDictionary.TryGetValue(wallet.WalletName, out var existing))
+		if (_walletDictionary.TryGetValue(wallet.WalletId, out var existing))
 		{
 			if (!object.ReferenceEquals(existing.Wallet, wallet))
 			{
@@ -205,7 +204,7 @@ public partial class WalletRepository : ReactiveObject
 			? new HardwareWalletModel(wallet, _amountProvider)
 			: new WalletModel(wallet, _amountProvider);
 
-		_walletDictionary[wallet.WalletName] = result;
+		_walletDictionary[wallet.WalletId] = result;
 
 		return result;
 	}

@@ -16,27 +16,25 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionStore : IAsyncDisposable
 {
-	public TransactionStore(string workFolderPath, Network network, bool migrateData = true)
+	public TransactionStore(string workFolderPath, Network network)
 	{
-		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		DataSource = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
-		if (workFolderPath == SqliteStorageHelper.InMemoryDatabase)
+		bool useInMemoryDatabase = DataSource == SqliteStorageHelper.InMemoryDatabase;
+
+		if (!useInMemoryDatabase)
 		{
-			DataSource = SqliteStorageHelper.InMemoryDatabase;
-		}
-		else
-		{
-			IoHelpers.EnsureDirectoryExists(workFolderPath);
-			DataSource = Path.Combine(workFolderPath, "Transactions.sqlite");
+			IoHelpers.EnsureDirectoryExists(DataSource);
+			DataSource = Path.Combine(DataSource, "Transactions.sqlite");
 		}
 
 		SqliteStorage = TransactionSqliteStorage.FromFile(dataSource: DataSource, network);
 
-		if (migrateData)
+		// Migrate data.
+		if (!useInMemoryDatabase)
 		{
-			string oldPath = Path.Combine(workFolderPath, "Transactions.dat");
-			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
-			Import(oldPath, network, deleteAfterImport: false);
+			string oldPath = Path.Combine(Path.GetDirectoryName(DataSource)!, "Transactions.dat");
+			Import(oldPath, DataSource, network);
 		}
 	}
 
@@ -49,22 +47,25 @@ public class TransactionStore : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="SqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
 
-	private void Import(string oldPath, Network network, bool deleteAfterImport = false)
+	// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+	public bool NeedResync { get; private set; }
+
+	private void Import(string oldPath, string dbPath, Network network)
 	{
 		if (File.Exists(oldPath))
 		{
-			SqliteStorage.Clear();
+			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
+
+			// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+			NeedResync = File.Exists(dbPath);
 
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
 			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
 
 			SqliteStorage.BulkInsert(allTransactions);
 
-			if (deleteAfterImport)
-			{
-				Logger.LogInfo($"Removing old '{oldPath}' transaction storage.");
-				File.Delete(oldPath);
-			}
+			Logger.LogInfo($"Removing old '{oldPath}' transaction storage.");
+			File.Delete(oldPath);
 		}
 	}
 

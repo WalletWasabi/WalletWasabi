@@ -117,7 +117,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// Returns all filters with height ≥ than the given one.
 	/// </summary>
 	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
-	public IEnumerable<FilterModel> Fetch(int fromHeight, int limit = -1)
+	public IEnumerable<FilterModel> Fetch(uint fromHeight, int limit = -1)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
 

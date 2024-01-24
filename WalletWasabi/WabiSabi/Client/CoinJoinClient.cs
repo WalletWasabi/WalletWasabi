@@ -158,7 +158,7 @@ public class CoinJoinClient
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, OutputProvider.DestinationProvider.SupportedScriptTypes.ToArray() );
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, stopWhenAllMixed, utxoSelectionParameters, liquidityClue);
 

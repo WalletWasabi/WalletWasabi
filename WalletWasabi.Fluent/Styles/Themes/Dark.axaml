@@ -236,5 +236,11 @@
   <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99ffffff" />
   <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
 
+  <!--COMMON FOR LIGHT AND DARK THEMES. -->
+  <!--TODO: MOVE TO COMMON FILE-->
+  <SolidColorBrush x:Key="SoftAccentBrush" Opacity="0.8" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="HardAccentBrush" Opacity="0.9" Color="{DynamicResource SystemAccentColor}" />
+  <system:Int32 x:Key="WalletNameMaxLength">50</system:Int32>
+
 </ResourceDictionary>
 

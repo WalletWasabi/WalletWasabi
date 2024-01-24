@@ -6,130 +6,174 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-// TODO: See https://github.com/zkSNACKs/WalletWasabi/issues/12053.
-#pragma warning disable CS0618 // Type or member is obsolete
 public static class FileDialogHelper
 {
-	public static async Task<string?> ShowOpenFileDialogAsync(string title)
+	private static FilePickerFileType All { get; } = new("All files")
 	{
-		var ofd = CreateOpenFileDialog(title);
-		return await GetDialogResultAsync(ofd);
-	}
+		Patterns = new[] { "*.*" },
+		MimeTypes = new[] { "*/*" }
+	};
 
-	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
+	private static FilePickerFileType Json { get; } = new("JSON files")
 	{
-		var ofd = CreateOpenFileDialog(title, directory);
-		ofd.InitialFileName = initialFileName;
-		ofd.Filters = GenerateFilters(filterExtTypes);
-		return await GetDialogResultAsync(ofd);
-	}
+		Patterns = new[] { "*.json" },
+		AppleUniformTypeIdentifiers = new[] { "public.json" },
+		MimeTypes = new[] { "application/json" }
+	};
 
-	public static async Task<string?> ShowSaveFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
+	private static FilePickerFileType Text { get; } = new("TXT files")
 	{
-		var sfd = CreateSaveFileDialog(title, filterExtTypes, directory);
-		sfd.InitialFileName = initialFileName;
-		sfd.Filters = GenerateFilters(filterExtTypes);
-		return await GetDialogResultAsync(sfd);
-	}
+		Patterns = new[] { "*.txt" },
+		AppleUniformTypeIdentifiers = new[] { "public.text" },
+		MimeTypes = new[] { "text/plain" }
+	};
 
-	private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes, string? directory = null)
+	private static FilePickerFileType Psbt { get; } = new("PSBT files")
 	{
-		var sfd = new SaveFileDialog
+		Patterns = new[] { "*.psbt" },
+		MimeTypes = new[] { "*/*" }
+	};
+
+	private static FilePickerFileType Txn { get; } = new("TXN files")
+	{
+		Patterns = new[] { "*.txn" },
+		MimeTypes = new[] { "*/*" }
+	};
+
+	private static FilePickerFileType Png { get; } = new("PNG files")
+	{
+		Patterns = new[] { "*.png" },
+		AppleUniformTypeIdentifiers = new[] { "public.png" },
+		MimeTypes = new[] { "image/png" }
+	};
+
+	private static IStorageProvider? GetStorageProvider()
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
 		{
-			DefaultExtension = filterExtTypes.FirstOrDefault(),
-			Title = title,
-			Directory = directory
-		};
-
-		return sfd;
-	}
-
-	private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
-	{
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
-			lifetime.MainWindow is { })
-		{
-			var selected = await ofd.ShowAsync(lifetime.MainWindow);
-
-			return selected?.FirstOrDefault();
+			return window.StorageProvider;
 		}
 
-		return null;
-	}
-
-	private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
-	{
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
-			lifetime.MainWindow is { })
+		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
 		{
-			return await sfd.ShowAsync(lifetime.MainWindow);
-		}
-
-		return null;
-	}
-
-	private static OpenFileDialog CreateOpenFileDialog(string title, string? directory = null)
-	{
-		var ofd = new OpenFileDialog
-		{
-			AllowMultiple = false,
-			Title = title,
-		};
-
-		if (directory is null)
-		{
-			SetDefaultDirectory(ofd);
-		}
-		else
-		{
-			ofd.Directory = directory;
-		}
-
-		return ofd;
-	}
-
-	private static List<FileDialogFilter> GenerateFilters(string[] filterExtTypes)
-	{
-		var filters = new List<FileDialogFilter>();
-
-		var generatedFilters =
-			filterExtTypes
-				.Where(x => x != "*")
-				.Select(ext =>
-					new FileDialogFilter
-					{
-						Name = $"{ext.ToUpper()} files",
-						Extensions = new List<string> { ext }
-					});
-
-		filters.AddRange(generatedFilters);
-
-		if (filterExtTypes.Contains("*"))
-		{
-			filters.Add(new FileDialogFilter()
+			var visualRoot = mainView.GetVisualRoot();
+			if (visualRoot is TopLevel topLevel)
 			{
-				Name = "All files",
-				Extensions = new List<string> { "*" }
-			});
+				return topLevel.StorageProvider;
+			}
 		}
 
-		return filters;
+		return null;
 	}
 
-	private static void SetDefaultDirectory(FileSystemDialog sfd)
+	private static List<FilePickerFileType> GetFilePickerFileTypes(string[] filterExtTypes)
 	{
+		var fileTypeFilters = new List<FilePickerFileType>();
+
+		foreach (var fileType in filterExtTypes)
+		{
+			switch (fileType)
+			{
+				case "*":
+					{
+						fileTypeFilters.Add(All);
+						break;
+					}
+				case "json":
+					{
+						fileTypeFilters.Add(Json);
+						break;
+					}
+				case "txt":
+					{
+						fileTypeFilters.Add(Text);
+						break;
+					}
+				case "psbt":
+					{
+						fileTypeFilters.Add(Psbt);
+						break;
+					}
+				case "txn":
+					{
+						fileTypeFilters.Add(Txn);
+						break;
+					}
+				case "png":
+					{
+						fileTypeFilters.Add(Png);
+						break;
+					}
+			}
+		}
+
+		return fileTypeFilters;
+	}
+
+	public static async Task<IStorageFile?> OpenFileAsync(string title, string[] filterExtTypes, string? directory = null)
+	{
+		var storageProvider = GetStorageProvider();
+		if (storageProvider is null)
+		{
+			return null;
+		}
+
+		var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
+
+		var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+		{
+			Title = title,
+			SuggestedStartLocation = suggestedStartLocation,
+			FileTypeFilter = GetFilePickerFileTypes(filterExtTypes),
+			AllowMultiple = false
+		});
+
+		return result.FirstOrDefault();
+	}
+
+	public static async Task<IStorageFile?> SaveFileAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
+	{
+		var storageProvider = GetStorageProvider();
+		if (storageProvider is null)
+		{
+			return null;
+		}
+
+		var suggestedStartLocation = await GetSuggestedStartLocationAsync(directory, storageProvider);
+
+		return await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+		{
+			Title = title,
+			FileTypeChoices = GetFilePickerFileTypes(filterExtTypes),
+			SuggestedFileName = initialFileName,
+			DefaultExtension = filterExtTypes.FirstOrDefault(),
+			SuggestedStartLocation = suggestedStartLocation,
+			ShowOverwritePrompt = true
+		});
+	}
+
+	private static async Task<IStorageFolder?> GetSuggestedStartLocationAsync(string? directory, IStorageProvider storageProvider)
+	{
+		if (directory is not null)
+		{
+			return await storageProvider.TryGetFolderFromPathAsync(directory);
+		}
+
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			sfd.Directory = Path.Combine("/media", Environment.UserName);
+			return await storageProvider.TryGetFolderFromPathAsync(Path.Combine("/media", Environment.UserName));
 		}
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			return await storageProvider.TryGetFolderFromPathAsync(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 		}
+
+		return null;
 	}
 }
-#pragma warning restore CS0618 // Type or member is obsolete

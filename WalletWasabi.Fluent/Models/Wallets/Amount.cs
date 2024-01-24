@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class Amount : ReactiveObject
 {
-	public static readonly Amount Zero = new Amount();
+	public static readonly Amount Zero = new();
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _btcValue;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _usdValue;
