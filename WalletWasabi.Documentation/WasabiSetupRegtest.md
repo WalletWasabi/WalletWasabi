@@ -20,7 +20,7 @@ Todo:
     ```        
     macOS: 
     ```
-    "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+    "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest -blockfilterindex -txindex -datadir=$HOME/Library/Application Support/Bitcoin"
     ```
     Linux: 
     ```
@@ -55,6 +55,7 @@ Todo:
     regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
     regtest.disablewallet = 0
     regtest.softwareexpiry = 0
+	regtest.listenonion = 0
     ```
 5. Save it.
 6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
