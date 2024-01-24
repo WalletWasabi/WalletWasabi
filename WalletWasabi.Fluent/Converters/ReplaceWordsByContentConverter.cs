@@ -7,11 +7,12 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Converters;
 
 /// <summary>
-/// Replaces words in a string by arbitrary content using the dictionary provided in <see cref="Dictionary"/> 
+/// Replaces words in a string by arbitrary content using the dictionary provided in <see cref="Dictionary"/>
 /// </summary>
 public class ReplaceWordsByContentConverter : AvaloniaObject, IValueConverter
 {
@@ -42,7 +43,7 @@ public class ReplaceWordsByContentConverter : AvaloniaObject, IValueConverter
 			.Select(InlineForWord)
 			.Delimit(new Run(" "))
 			.ToList();
-		
+
 		var inlineCollection = new InlineCollection();
 		inlineCollection.AddRange(inlines);
 		return new TextBlock { Inlines = inlineCollection };
@@ -61,7 +62,8 @@ public class ReplaceWordsByContentConverter : AvaloniaObject, IValueConverter
 			return new InlineUIContainer(new PathIcon() { Data = c });
 		}
 
-		return new Run($"<Object of invalid type found in key {word} for FormatTextConverter");
+		Logger.LogError($"Object of invalid type found for key {word} in {nameof(ReplaceWordsByContentConverter)}");
+		return new Run(word);
 	}
 
 	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
