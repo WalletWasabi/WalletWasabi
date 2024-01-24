@@ -40,7 +40,6 @@ public static class Constants
 	public const int P2shInputVirtualSize = 297; // we assume a 2-of-n multisig
 	public const int P2shOutputVirtualSize = 32;
 
-
 	/// <summary>
 	/// OBSOLATED, USE SPECIFIC TYPE
 	/// </summary>
