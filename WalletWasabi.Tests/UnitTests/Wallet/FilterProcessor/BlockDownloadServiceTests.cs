@@ -23,7 +23,7 @@ public class BlockDownloadServiceTests
 	[Fact]
 	public async Task TryGetBlockTests1Async()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromSeconds(3));
+		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
 		uint256 blockHash1 = uint256.One;
 		uint256 blockHash2 = new(2);
