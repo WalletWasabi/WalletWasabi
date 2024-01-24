@@ -70,9 +70,10 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			.OnItemRemoved(
 				address =>
 				{
-					if (address == Model)
+					if (Equals(address, Model))
 					{
-						Navigate().Back();
+						Navigate().Clear();
+						Navigate().To().Receive(_wallet);
 					}
 				})
 			.Subscribe()

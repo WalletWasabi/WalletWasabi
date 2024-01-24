@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -74,4 +73,13 @@ public class Address : ReactiveObject, IAddress
 			throw;
 		}
 	}
+
+	public override int GetHashCode() => Text.GetHashCode();
+
+	public override bool Equals(object? obj)
+	{
+		return obj is IAddress address && Equals(address);
+	}
+	
+	protected bool Equals(IAddress other) => Text.Equals(other.Text);
 }
