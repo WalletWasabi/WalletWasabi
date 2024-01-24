@@ -21,12 +21,12 @@ public partial class AddressesModel
 	{
 		_wallet = wallet;
 		_source = new SourceList<HdPubKey>();
-		_source.AddRange(_wallet.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 }));
+		_source.AddRange(GetUnusedKeys());
 
 		Observable.FromEventPattern<ProcessedResult>(
 				h => wallet.WalletRelevantTransactionProcessed += h,
 				h => wallet.WalletRelevantTransactionProcessed -= h)
-			.Do(_ => RemoveUsed())
+			.Do(_ => UpdateUnusedKeys())
 			.Subscribe();
 
 		_newAddressGenerated
@@ -40,6 +40,8 @@ public partial class AddressesModel
 
 		Unused = unusedAddresses;
 	}
+
+	private IEnumerable<HdPubKey> GetUnusedKeys() => _wallet.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 });
 
 	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
@@ -59,5 +61,9 @@ public partial class AddressesModel
 		_source.Remove(address.HdPubKey);
 	}
 
-	private void RemoveUsed() => _source.RemoveMany(_source.Items.Where(key => key.KeyState != KeyState.Clean));
+	private void UpdateUnusedKeys()
+	{
+		var hdPubKeys = GetUnusedKeys().ToList();
+		_source.EditDiff(hdPubKeys);
+	}
 }
