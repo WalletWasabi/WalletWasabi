@@ -259,14 +259,14 @@ public class PrivacySuggestionsModel
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
+		var coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId].Concat(_wallet.GetAllCoins().Where(c => !c.Confirmed)).ToHashSet();
 
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
-		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
+		// If the original transaction couldn't avoid the CJing or unconfirmed coins, BnB can use them too. Otherwise exclude them.
 		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : coinsToUse.Except(coinsToExclude).ToImmutableArray();
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
