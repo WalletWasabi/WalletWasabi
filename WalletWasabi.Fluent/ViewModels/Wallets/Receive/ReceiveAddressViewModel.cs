@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -65,6 +66,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
 		_wallet.Addresses.Unused
 			.ToObservableChangeSet()
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.OnItemRemoved(
 				address =>
 				{
