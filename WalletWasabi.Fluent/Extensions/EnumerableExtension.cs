@@ -10,7 +10,7 @@ public static class EnumerableExtensions
 			.Where(x => x is not null)
 			.Select(x => x!);
 
-	public static IEnumerable<T> Delimit<T> (this IEnumerable<T> source, T delimiter)
+	public static IEnumerable<T> Delimit<T>(this IEnumerable<T> source, T delimiter)
 	{
 		foreach (T item in source.Take(1))
 		{
