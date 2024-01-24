@@ -15,7 +15,6 @@
     <c:ReplaceWordsByContentConverter x:Key="ReplaceWordsByContentConverter">
       <ResourceDictionary x:CompileBindings="False">
         <StaticResource x:Key="Play" ResourceKey="play_regular" />
-        <StaticResource x:Key="Stop" ResourceKey="stop_regular" />
       </ResourceDictionary>
     </c:ReplaceWordsByContentConverter>
   </UserControl.Resources>
