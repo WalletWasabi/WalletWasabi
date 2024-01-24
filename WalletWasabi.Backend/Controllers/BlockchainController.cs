@@ -474,7 +474,7 @@ public class BlockchainController : ControllerBase
 			// Fee and size of all unconfirmed parents have to be known to get effective fee rate of the child.
 			toFetchFeeList.AddRange(
 				parentTxs
-					.Where(x => Global.MempoolMirror.GetMempoolHashes().Contains(x.GetHash())));
+					.Where(x => Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash())));
 		}
 
 		return unconfirmedTxsChain;
@@ -486,7 +486,7 @@ public class BlockchainController : ControllerBase
 		List<Transaction> childrenTxs = new();
 		List<UnconfirmedTransactionChainItem> unconfirmedChildrenTxsChain = new();
 
-		var spenderTransaction = Global.MempoolMirror.GetSpenderTransactions(originalTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index)));
+		var spenderTransaction = Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(originalTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index)));
 
 		childrenTxs.AddRange(spenderTransaction);
 
@@ -516,7 +516,7 @@ public class BlockchainController : ControllerBase
 
 			// Fee and size of all unconfirmed children have to be known to get effective fee rate of the whole chain.
 			childrenTxs.AddRange(
-				Global.MempoolMirror.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index))));
+				Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(originalTx, index))));
 		}
 
 		return unconfirmedChildrenTxsChain;
