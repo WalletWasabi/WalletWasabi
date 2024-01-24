@@ -78,7 +78,7 @@ public class Global : IDisposable
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	private Whitelist? WhiteList { get; set; }
-	public MempoolMirror MempoolMirror { get; }
+	private MempoolMirror MempoolMirror { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
 	public async Task InitializeAsync(CancellationToken cancel)
