@@ -1,99 +1,71 @@
-using Avalonia;
-using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
-using ReactiveUI;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
+using NBitcoin;
+using System.Reactive.Disposables;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.Models.Wallets;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public partial class PrivacyBarViewModel : ViewModelBase
+public partial class PrivacyBarViewModel : ActivatableViewModel
 {
-	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
-	private IObservable<Unit> _coinsUpdated;
+	[AutoNotify] private bool _hasProgress;
+	[AutoNotify] private decimal _totalAmount;
 
-	[AutoNotify] private double _width;
-
-	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyBarViewModel(IWalletModel wallet)
 	{
-		Wallet = walletViewModel.Wallet;
-
-		_itemsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(Items)
-			.DisposeMany()
-			.Subscribe();
-
-		_coinsUpdated =
-			balanceChanged.ToSignal()
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.Select(_ => walletViewModel.Wallet.GetPockets())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
+		Wallet = wallet;
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
-	public Wallet Wallet { get; }
+	public IWalletModel Wallet { get; }
 
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnActivated(CompositeDisposable disposables)
 	{
-		_itemsSourceList.Edit(list =>
-		{
-			list.Clear();
+		Items.Clear();
 
-			if (Width == 0d)
-			{
-				return;
-			}
+		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>();
 
-			var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-			var start = 0.0m;
+		itemsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.Bind(Items)
+			.Subscribe()
+			.DisposeWith(disposables);
 
-			var usableWidth = Width - (pockets.SelectMany(x => x.Coins).Count() * 2);
-
-			foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
-			{
-				var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
-
-				foreach (var coin in pocketCoins)
-				{
-					var margin = 2;
-					var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-					var width = Math.Abs((decimal)usableWidth * amount / total);
-
-					// Artificially enlarge UTXOs smaller than 2 px in order to make them visible.
-					if (width < 2)
-					{
-						width++;
-						margin--;
-					}
-
-					var item = new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
-
-					list.Add(item);
-
-					start += width + margin;
-				}
-			}
-		});
+		Wallet.Coins.List
+			.Connect(suppressEmptyChangeSets: false)
+			.ToCollection()
+			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
+			.DisposeWith(disposables);
 	}
 
-	public void Dispose()
+	private void Update(IExtendedList<PrivacyBarItemViewModel> list, IReadOnlyCollection<ICoinModel> coins)
 	{
-		_itemsSourceList.Dispose();
+		TotalAmount = coins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
+
+		list.Clear();
+
+		var coinCount = coins.Count;
+
+		if (coinCount == 0d)
+		{
+			return;
+		}
+
+		var segments =
+			coins
+				.GroupBy(x => x.PrivacyLevel)
+				.OrderBy(x => (int)x.Key)
+				.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+				.ToList();
+
+		HasProgress = segments.Any(x => x.PrivacyLevel != PrivacyLevel.NonPrivate);
+
+		list.AddRange(segments);
 	}
 }

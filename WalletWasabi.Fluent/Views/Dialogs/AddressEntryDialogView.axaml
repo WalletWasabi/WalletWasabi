@@ -42,7 +42,7 @@
              VerticalAlignment="Top">
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
-        <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
+        <behaviors:ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
       </i:Interaction.Behaviors>
       <TextBox.InnerRightContent>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">

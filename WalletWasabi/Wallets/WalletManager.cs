@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -24,17 +27,30 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
-	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
+	public WalletManager(
+		Network network,
+		string workDir,
+		WalletDirectories walletDirectories,
+		BitcoinStore bitcoinStore,
+		WasabiSynchronizer synchronizer,
+		HybridFeeProvider feeProvider,
+		IBlockProvider blockProvider,
+		ServiceConfiguration serviceConfiguration)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-			Directory.CreateDirectory(WorkDir);
-			WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		using IDisposable _ = BenchmarkLogger.Measure();
 
-			RefreshWalletList();
-		}
+		Network = network;
+		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		Directory.CreateDirectory(WorkDir);
+		WalletDirectories = walletDirectories;
+		BitcoinStore = bitcoinStore;
+		Synchronizer = synchronizer;
+		FeeProvider = feeProvider;
+		BlockProvider = blockProvider;
+		ServiceConfiguration = serviceConfiguration;
+		CancelAllTasksToken = CancelAllTasks.Token;
+
+		RefreshWalletList();
 	}
 
 	/// <summary>
@@ -52,7 +68,12 @@ public class WalletManager : IWalletProvider
 	/// </summary>
 	public event EventHandler<Wallet>? WalletAdded;
 
-	private CancellationTokenSource CancelAllInitialization { get; } = new();
+	/// <summary>Cancels initialization of wallets.</summary>
+	private CancellationTokenSource CancelAllTasks { get; } = new();
+
+	/// <summary>Token from <see cref="CancelAllTasks"/>.</summary>
+	/// <remarks>Accessing the token of <see cref="CancelAllTasks"/> can lead to <see cref="ObjectDisposedException"/>. So we copy the token and no exception can be thrown.</remarks>
+	private CancellationToken CancelAllTasksToken { get; }
 
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private HashSet<Wallet> Wallets { get; } = new();
@@ -60,38 +81,108 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; set; }
-	public WasabiSynchronizer? Synchronizer { get; private set; }
-	private ServiceConfiguration ServiceConfiguration { get; set; }
+	private BitcoinStore BitcoinStore { get; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; set; }
+	private HybridFeeProvider FeeProvider { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private IBlockProvider BlockProvider { get; set; }
-	public string WorkDir { get; }
+	private IBlockProvider BlockProvider { get; }
+	private string WorkDir { get; }
 
 	private void RefreshWalletList()
 	{
-		foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
+
+		string[]? walletNamesToLoad = null;
+		lock (Lock)
 		{
+			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
+		}
+
+		if (walletNamesToLoad.Length == 0)
+		{
+			return;
+		}
+
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName), CancelAllTasksToken)).ToList();
+
+		while (walletLoadTasks.Count > 0)
+		{
+			var tasksArray = walletLoadTasks.ToArray();
+			var finishedTaskIndex = Task.WaitAny(tasksArray, CancelAllTasksToken);
+			var finishedTask = tasksArray[finishedTaskIndex];
+			walletLoadTasks.Remove(finishedTask);
 			try
 			{
-				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-				lock (Lock)
-				{
-					if (Wallets.Any(w => w.WalletName == walletName))
-					{
-						continue;
-					}
-				}
-				AddWallet(walletName);
+				var wallet = finishedTask.Result;
+				AddWallet(wallet);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
 			}
 		}
+	}
+
+	public void RenameWallet(Wallet wallet, string newWalletName)
+	{
+		if (newWalletName == wallet.WalletName)
+		{
+			return;
+		}
+
+		if (ValidateWalletName(newWalletName) is { } error)
+		{
+			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{error.Message}'");
+			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
+		}
+
+		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
+		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
+
+		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
+		File.Move(currentWalletFilePath, newWalletFilePath);
+
+		try
+		{
+			File.Move(currentWalletBackupFilePath, newWalletBackupFilePath);
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+		}
+
+		wallet.KeyManager.SetFilePath(newWalletFilePath);
+	}
+
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
+	{
+		string walletFilePath = Path.Combine(WalletDirectories.WalletsDir, $"{walletName}.json");
+
+		if (string.IsNullOrEmpty(walletName))
+		{
+			return (ErrorSeverity.Error, "The name cannot be empty");
+		}
+
+		if (walletName.IsTrimmable())
+		{
+			return (ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+		}
+
+		if (File.Exists(walletFilePath))
+		{
+			return (ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+		}
+
+		if (!WalletGenerator.ValidateWalletName(walletName))
+		{
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
+		}
+
+		return null;
 	}
 
 	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
@@ -109,20 +200,16 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public bool HasWallet() => AnyWallet(_ => true);
-
-	public bool AnyWallet(Func<Wallet, bool> predicate)
+	public bool HasWallet()
 	{
 		lock (Lock)
 		{
-			return Wallets.Any(predicate);
+			return Wallets.Count > 0;
 		}
 	}
 
 	public async Task<Wallet> StartWalletAsync(Wallet wallet)
 	{
-		Guard.NotNull(nameof(wallet), wallet);
-
 		lock (Lock)
 		{
 			if (_disposedValue)
@@ -131,7 +218,7 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllInitialization.IsCancellationRequested)
+			if (CancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
@@ -145,24 +232,22 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.Initialize();
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
-				var cancel = CancelAllInitialization.Token;
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(cancel).ConfigureAwait(false);
+				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
-				cancel.ThrowIfCancellationRequested();
-
+				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
 			catch
@@ -181,18 +266,18 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = new(WorkDir, Network, keyManager);
+		Wallet wallet = CreateWalletInstance(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
 
-	private void AddWallet(string walletName)
+	private Wallet GetWalletByName(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 		Wallet wallet;
 		try
 		{
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
+			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -202,7 +287,7 @@ public class WalletManager : IWalletProvider
 			}
 
 			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet Filepath: {walletFullPath}\n" +
+				$"Wallet file path: {walletFullPath}\n" +
 				$"Trying to recover it from backup.\n" +
 				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");
@@ -219,17 +304,17 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
+			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
 		}
 
-		AddWallet(wallet);
+		return wallet;
 	}
 
 	private void AddWallet(Wallet wallet)
 	{
 		lock (Lock)
 		{
-			if (Wallets.Any(w => w.WalletName == wallet.WalletName))
+			if (Wallets.Any(w => w.WalletId == wallet.WalletId))
 			{
 				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}
@@ -246,6 +331,9 @@ public class WalletManager : IWalletProvider
 
 		WalletAdded?.Invoke(this, wallet);
 	}
+
+	private Wallet CreateWalletInstance(KeyManager keyManager)
+		=> new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
@@ -272,15 +360,7 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
-		try
-		{
-			CancelAllInitialization?.Cancel();
-			CancelAllInitialization?.Dispose();
-		}
-		catch (ObjectDisposedException)
-		{
-			Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-		}
+		CancelAllTasks.Cancel();
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
@@ -310,7 +390,8 @@ public class WalletManager : IWalletProvider
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
-					wallet?.Dispose();
+
+					wallet.Dispose();
 				}
 				catch (Exception ex)
 				{
@@ -318,6 +399,8 @@ public class WalletManager : IWalletProvider
 				}
 			}
 		}
+
+		CancelAllTasks.Dispose();
 	}
 
 	public void ProcessCoinJoin(SmartTransaction tx)
@@ -376,20 +459,67 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public void Initialize()
 	{
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		ServiceConfiguration = serviceConfiguration;
-		FeeProvider = feeProvider;
-		BlockProvider = blockProvider;
-
 		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
-			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+			wallet.Initialize();
 		}
 
 		IsInitialized = true;
+	}
+
+	// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
+	public void ResyncToBefore12137()
+	{
+		if (Network == Network.RegTest)
+		{
+			// On this network, height resets to 0 anyway.
+			return;
+		}
+
+		// PR https://github.com/zkSNACKs/WalletWasabi/pull/12137 was created at 2023-12-23T21:43:40Z.
+		// * Mainnet block 822621 (https://mempool.space/block/00000000000000000001610628413ce8139e9fc042792c24d01d392afdd61ea4) was mined before the PR was created.
+		// * Testnet block 2542919 (https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799) was mined before the PR was created.
+		var heightPriorTo12137 = Network == Network.Main ? 822621 : 2542919;
+
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
+			{
+				km.SetBestHeight(heightPriorTo12137);
+			}
+
+			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
+			{
+				km.SetBestTurboSyncHeight(heightPriorTo12137);
+			}
+		}
+	}
+
+	public void EnsureTurboSyncHeightConsistency()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			km.EnsureTurboSyncHeightConsistency();
+		}
+	}
+
+	public void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
+			{
+				km.SetBestHeight(startingSegwitHeight);
+			}
+
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Turbo))
+			{
+				km.SetBestTurboSyncHeight(startingSegwitHeight);
+			}
+		}
 	}
 
 	public void SetMaxBestHeight(uint bestHeight)

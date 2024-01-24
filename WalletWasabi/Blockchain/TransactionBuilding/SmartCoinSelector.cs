@@ -18,6 +18,7 @@ public class SmartCoinSelector : ICoinSelector
 
 	private List<SmartCoin> UnspentCoins { get; }
 	private int IterationCount { get; set; }
+	private Exception? LastTransactionSizeException { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
 	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
@@ -34,6 +35,11 @@ public class SmartCoinSelector : ICoinSelector
 
 		if (IterationCount > 500)
 		{
+			if (LastTransactionSizeException is not null)
+			{
+				throw LastTransactionSizeException;
+			}
+
 			throw new TimeoutException("Coin selection timed out.");
 		}
 
@@ -43,7 +49,7 @@ public class SmartCoinSelector : ICoinSelector
 			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
 			if (suggestedSum < targetMoney)
 			{
-				throw new TransactionSizeException(targetMoney, suggestedSum);
+				LastTransactionSizeException = new TransactionSizeException(targetMoney, suggestedSum);
 			}
 		}
 
@@ -66,7 +72,7 @@ public class SmartCoinSelector : ICoinSelector
 
 		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 		var sayajinCoinClusters = coinClusters
-			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
+			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count))))
 			.Select(group => (
 				Coins: group.Coins,
 				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
@@ -81,14 +87,14 @@ public class SmartCoinSelector : ICoinSelector
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
-			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
+			.ThenBy(group => group.Amount)           // Once we order them by cluster-privacy, we want to be as close to the target as we can.
 			.First()
 			.Coins;
 
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
-			.OrderBy(x => x.Coins.Sum(c => c.Amount))
+			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
@@ -96,12 +102,13 @@ public class SmartCoinSelector : ICoinSelector
 				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
 		// Flattens the groups of coins and filters out the ones that are too small.
-		// Finally it sorts the solutions by number or coins (those with less coins on the top).
+		// Finally it sorts the solutions by amount and coins (those with less coins on the top).
 		var candidates = coinsGroup
 			.Select(x => x.SelectMany(y => y.Coins))
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
-			.OrderBy(x => x.Coins.Count());
+			.OrderBy(x => x.Total)              // the closer we are to the target the better
+			.ThenBy(x => x.Coins.Count());      // prefer lesser coin selection on the same amount
 
 		IterationCount++;
 

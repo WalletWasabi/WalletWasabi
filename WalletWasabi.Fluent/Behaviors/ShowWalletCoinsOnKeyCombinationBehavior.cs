@@ -1,15 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using WalletWasabi.Fluent.ViewModels;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control>
+public class ShowWalletCoinsOnKeyCombinationBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	private bool _key1Active;
 	private bool _key2Active;
@@ -23,6 +22,9 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 
 	public static readonly StyledProperty<Key?> Key3Property =
 		AvaloniaProperty.Register<ShowWalletCoinsOnKeyCombinationBehavior, Key?>(nameof(Key3));
+
+	public static readonly StyledProperty<WalletViewModel?> WalletProperty =
+		AvaloniaProperty.Register<ShowWalletCoinsOnKeyCombinationBehavior, WalletViewModel?>(nameof(Wallet));
 
 	public Key? Key1
 	{
@@ -42,32 +44,36 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 		set => SetValue(Key3Property, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	public WalletViewModel? Wallet
 	{
-		if (AssociatedObject is null)
+		get => GetValue(WalletProperty);
+		set => SetValue(WalletProperty, value);
+	}
+
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	{
+		if (AssociatedObject?.GetVisualRoot() is not InputElement inputRoot)
 		{
 			return;
 		}
 
-		Observable
-			.FromEventPattern<KeyEventArgs>(AssociatedObject, nameof(AssociatedObject.KeyDown))
-			.Select(x => x.EventArgs)
-			.Subscribe(e =>
-			{
-				EvaluateKeyPress(e.Key, isPressed: true);
+		inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown).DisposeWith(disposable);
+		inputRoot.AddDisposableHandler(InputElement.KeyUpEvent, OnKeyUp).DisposeWith(disposable);
+	}
 
-				if (_key1Active && _key2Active && _key3Active && TryGetValidSelectedWallet(out var wallet))
-				{
-					wallet.WalletCoinsCommand.Execute(default);
-				}
-			})
-			.DisposeWith(disposables);
+	private void OnKeyUp(object? sender, KeyEventArgs e)
+	{
+		EvaluateKeyPress(e.Key, isPressed: false);
+	}
 
-		Observable
-			.FromEventPattern<KeyEventArgs>(AssociatedObject, nameof(AssociatedObject.KeyUp))
-			.Select(x => x.EventArgs)
-			.Subscribe(e => EvaluateKeyPress(e.Key, isPressed: false))
-			.DisposeWith(disposables);
+	private void OnKeyDown(object? sender, KeyEventArgs e)
+	{
+		EvaluateKeyPress(e.Key, isPressed: true);
+
+		if (_key1Active && _key2Active && _key3Active && Wallet is { IsActive: true })
+		{
+			Wallet.WalletCoinsCommand.Execute(default);
+		}
 	}
 
 	private void EvaluateKeyPress(Key key, bool isPressed)
@@ -86,18 +92,5 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 		{
 			_key3Active = isPressed;
 		}
-	}
-
-	private bool TryGetValidSelectedWallet([NotNullWhen(true)] out WalletViewModel? wallet)
-	{
-		wallet = null;
-
-		if (UiServices.WalletManager.SelectedWallet is WalletViewModel { IsLoggedIn: true, IsActive: true } walletViewModel &&
-			walletViewModel.WalletCoinsCommand.CanExecute(default))
-		{
-			wallet = walletViewModel;
-		}
-
-		return wallet is { };
 	}
 }

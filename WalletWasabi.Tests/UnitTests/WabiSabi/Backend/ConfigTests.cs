@@ -1,11 +1,14 @@
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
+using SQLitePCL;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -47,7 +50,7 @@ public class ConfigTests
 		// Change the file.
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		WabiSabiConfig configChanger = new(configPath);
-		configChanger.LoadOrCreateDefaultFile();
+		configChanger.LoadFile(createIfMissing: true);
 		var newTarget = 729u;
 		configChanger.ConfirmationTarget = newTarget;
 		Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
@@ -75,7 +78,7 @@ public class ConfigTests
 		// Remove a line.
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		var lines = File.ReadAllLines(configPath);
-		var incompleteLines = lines.Where(x => !x.Contains("ReleaseUtxoFromPrisonAfter", StringComparison.Ordinal)).ToArray();
+		var incompleteLines = lines.Where(x => !x.Contains("DoSMinTimeForFailedToVerify", StringComparison.Ordinal)).ToArray();
 		Assert.NotEqual(lines.Length, incompleteLines.Length);
 		File.WriteAllLines(configPath, incompleteLines);
 
@@ -83,21 +86,21 @@ public class ConfigTests
 		CoordinatorParameters coordinatorParameters2 = new(workDir);
 		using WabiSabiCoordinator coordinator2 = CreateWabiSabiCoordinator(coordinatorParameters2);
 		await coordinator2.StartAsync(CancellationToken.None);
-		var defaultValue = TimeSpanJsonConverter.Parse("0d 3h 0m 0s");
-		Assert.Equal(TimeSpan.FromHours(3), defaultValue);
-		Assert.Equal(defaultValue, coordinator2.Config.ReleaseUtxoFromPrisonAfter);
+		var defaultValue = TimeSpanJsonConverter.Parse("31d 0h 0m 0s");
+		Assert.Equal(TimeSpan.FromDays(31), defaultValue);
+		Assert.Equal(defaultValue, coordinator2.Config.DoSMinTimeForFailedToVerify);
 		await coordinator2.StopAsync(CancellationToken.None);
 
 		// Assert the new default value is serialized.
 		lines = File.ReadAllLines(configPath);
-		Assert.Contains(lines, x => x.Contains("\"ReleaseUtxoFromPrisonAfter\": \"0d 3h 0m 0s\"", StringComparison.Ordinal));
+		Assert.Contains(lines, x => x.Contains("\"DoSMinTimeForFailedToVerify\": \"31d 0h 0m 0s\"", StringComparison.Ordinal));
 	}
 
 	[Fact]
 	public void LoadConfigFile()
 	{
 		WabiSabiConfig configChanger = new("./conf.txt");
-		configChanger.LoadOrCreateDefaultFile();
+		configChanger.LoadFile(createIfMissing: true);
 		configChanger.LoadFile();
 	}
 
@@ -113,7 +116,7 @@ public class ConfigTests
 
 		var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 		WabiSabiConfig configChanger = new(configPath);
-		configChanger.LoadOrCreateDefaultFile();
+		configChanger.LoadFile(createIfMissing: true);
 		var newTarget = 729u;
 		configChanger.ConfirmationTarget = newTarget;
 		Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
@@ -135,15 +138,14 @@ public class ConfigTests
 
 	private static IRPCClient NewMockRpcClient()
 	{
-		var rpcMock = new Mock<IRPCClient>();
-		rpcMock.SetupGet(rpc => rpc.Network).Returns(Network.Main);
-		rpcMock.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
-		rpcMock.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo { MemPoolMinFee = 0.00001000 });
-		return rpcMock.Object;
+		var rpcMock = new MockRpcClient() { Network = Network.Main };
+		rpcMock.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromResult(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
+		rpcMock.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo { MemPoolMinFee = 0.00001000 });
+		return rpcMock;
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new MockHttpClientFactory());
 }

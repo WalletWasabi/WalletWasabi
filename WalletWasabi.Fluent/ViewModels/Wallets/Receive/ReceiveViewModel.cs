@@ -1,80 +1,70 @@
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
 	Title = "Receive",
-	Caption = "",
+	Caption = "Display wallet receive dialog",
 	IconName = "wallet_action_receive",
+	Order = 6,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Receive", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	Searchable = false,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class ReceiveViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
-	[AutoNotify] private bool _isExistingAddressesButtonVisible;
+	private readonly IWalletModel _wallet;
 
-	public ReceiveViewModel(Wallet wallet)
+	private ReceiveViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
-				.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default)
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+				.WhenAnyValue(x => x.Labels.Count).ToSignal()
+				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).ToSignal())
 				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+
+		AddressesModel = wallet.AddressesModel;
+
+		HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
 	}
+
+	public IAddressesModel AddressesModel { get; }
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
+	public IObservable<bool> HasUnusedAddresses { get; }
+
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels), out bool minGapLimitIncreased);
-
-		if (minGapLimitIncreased)
-		{
-			int minGapLimit = _wallet.KeyManager.MinGapLimit;
-			int prevMinGapLimit = minGapLimit - 1;
-			var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
-
-			// TODO: notification
-		}
-
+		SuggestionLabels.ForceAdd = true;
+		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
+		Navigate().To().ReceiveAddress(_wallet, address, Services.UiConfig.Autocopy);
 	}
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet));
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
-	{
-		base.OnNavigatedTo(isInHistory, disposable);
-
-		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+		UiContext.Navigate(NavigationTarget.DialogScreen).To().ReceiveAddresses(_wallet);
 	}
 }

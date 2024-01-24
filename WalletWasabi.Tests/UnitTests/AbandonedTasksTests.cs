@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Nito.AsyncEx;
 using Xunit;
 
@@ -41,8 +42,8 @@ public class AbandonedTasksTests
 		// One task should still be running.
 		Assert.False(waitAllTask.IsCompleted);
 
-		// Try to await but it should not finish before the cancellation so we will get OperationCanceledException.
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(TimeSpan.FromMilliseconds(50)));
+		// Try to await but it should not finish before the cancellation so we will get TimeoutException.
+		await Assert.ThrowsAsync<TimeoutException>(async () => await waitAllTask.WaitAsync(TimeSpan.FromMilliseconds(50)));
 
 		// Ok now cancel the last Task.
 		cts2.Cancel();

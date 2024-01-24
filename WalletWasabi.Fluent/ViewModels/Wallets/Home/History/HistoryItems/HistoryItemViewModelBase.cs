@@ -3,33 +3,23 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
 	[AutoNotify] private bool _isFlashing;
-	[AutoNotify] private int _orderIndex;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string _dateString = "";
-	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isExpanded;
-	[AutoNotify] private string _confirmedToolTip;
-	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
-	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
+	protected HistoryItemViewModelBase(TransactionModel transaction)
 	{
-		OrderIndex = orderIndex;
-		Id = transactionSummary.TransactionId;
-		_confirmedToolTip = "Confirmed";
+		Transaction = transaction;
 
-		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -40,19 +30,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			});
 	}
 
-	public uint256 Id { get; }
+	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)
+	{
+		UiContext = uiContext;
+	}
 
-	public SmartLabel Label { get; init; } = SmartLabel.Empty;
+	public TransactionModel Transaction { get; }
 
-	public bool IsCoinJoin { get; protected set; }
-
-	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
-
-	public Money? Balance { get; protected set; }
-
-	public Money? OutgoingAmount { get; protected set; }
-
-	public Money? IncomingAmount { get; protected set; }
+	public ObservableCollection<HistoryItemViewModelBase> Children { get; } = new();
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
@@ -60,80 +45,55 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
-	private async Task CopyToClipboardAsync(string text)
+	public ICommand? CancelTransactionCommand { get; protected set; }
+
+	public bool HasChildren() => Children.Count > 0;
+
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			await clipboard.SetTextAsync(text);
-		}
+		return Sort(selector, comparer, reverse: false);
 	}
 
-	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer = null)
 	{
-		throw new NotSupportedException();
+		return Sort(selector, comparer, reverse: true);
 	}
 
-	public virtual bool HasChildren() => false;
-
-	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	private static Comparison<HistoryItemViewModelBase?> Sort<T>(Func<HistoryItemViewModelBase, T> selector, IComparer<T>? comparer, bool reverse)
 	{
 		return (x, y) =>
 		{
+			var ordering = reverse ? -1 : 1;
+
 			if (x is null && y is null)
 			{
 				return 0;
 			}
-			else if (x is null)
-			{
-				return -1;
-			}
-			else if (y is null)
-			{
-				return 1;
-			}
-			else
-			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
-		};
-	}
 
-	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
-	{
-		return (x, y) =>
-		{
-			if (x is null && y is null)
+			if (x is null)
 			{
-				return 0;
+				return -ordering;
 			}
-			else if (x is null)
+
+			if (y is null)
 			{
-				return 1;
+				return ordering;
 			}
-			else if (y is null)
+
+			// Confirmation comparison must be the same for both sort directions..
+			var result = x.Transaction.IsConfirmed.CompareTo(y.Transaction.IsConfirmed);
+			if (result == 0)
 			{
-				return -1;
+				var xValue = selector(x);
+				var yValue = selector(y);
+
+				result =
+					comparer?.Compare(xValue, yValue) ??
+					Comparer<T>.Default.Compare(xValue, yValue);
+				result *= ordering;
 			}
-			else
-			{
-				if (!x.IsConfirmed && y.IsConfirmed)
-				{
-					return -1;
-				}
-				else if (x.IsConfirmed && !y.IsConfirmed)
-				{
-					return 1;
-				}
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
+
+			return result;
 		};
 	}
 }

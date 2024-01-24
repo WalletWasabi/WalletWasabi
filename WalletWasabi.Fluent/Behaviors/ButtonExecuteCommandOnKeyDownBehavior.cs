@@ -35,10 +35,11 @@ public class ButtonExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavio
 			return;
 		}
 
-		if (button.GetVisualRoot() is IInputElement inputRoot)
+		if (button.GetVisualRoot() is InputElement inputRoot)
 		{
-			inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown)
-					 .DisposeWith(disposable);
+			inputRoot
+				.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown)
+				.DisposeWith(disposable);
 		}
 	}
 

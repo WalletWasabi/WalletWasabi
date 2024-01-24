@@ -22,19 +22,21 @@ public class BitcoinStore
 		IndexStore indexStore,
 		AllTransactionStore transactionStore,
 		MempoolService mempoolService,
-		IRepository<uint256, Block> blockRepository)
+		SmartHeaderChain smartHeaderChain,
+		IFileSystemBlockRepository blockRepository)
 	{
 		IndexStore = indexStore;
 		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
+		SmartHeaderChain = smartHeaderChain;
 		BlockRepository = blockRepository;
 	}
 
 	public IndexStore IndexStore { get; }
 	public AllTransactionStore TransactionStore { get; }
-	public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
+	public SmartHeaderChain SmartHeaderChain { get; }
 	public MempoolService MempoolService { get; }
-	public IRepository<uint256, Block> BlockRepository { get; }
+	public IFileSystemBlockRepository BlockRepository { get; }
 
 	/// <summary>
 	/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
@@ -44,15 +46,14 @@ public class BitcoinStore
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			var initTasks = new[]
-			{
-					IndexStore.InitializeAsync(cancel),
-					TransactionStore.InitializeAsync(cancel: cancel)
-				};
+		using IDisposable _ = BenchmarkLogger.Measure();
 
-			await Task.WhenAll(initTasks).ConfigureAwait(false);
-		}
+		var initTasks = new[]
+		{
+			IndexStore.InitializeAsync(cancel),
+			TransactionStore.InitializeAsync(cancel)
+		};
+
+		await Task.WhenAll(initTasks).ConfigureAwait(false);
 	}
 }

@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Collections;
 using System.ComponentModel;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -21,6 +22,8 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterVali
 	protected IValidations Validations => _validations;
 
 	bool INotifyDataErrorInfo.HasErrors => Validations.Any;
+
+	protected UiContext UiContext { get; set; } = UiContext.Default;
 
 	protected void ClearValidations()
 	{

@@ -22,7 +22,7 @@ public static class NavigationManager
 
 	public static T? Get<T>() where T : ViewModelBase
 	{
-		if (TypeRegistry.ContainsKey(typeof(T)) && TypeRegistry[typeof(T)] is T vmb)
+		if (TypeRegistry.TryGetValue(typeof(T), out ViewModelBase? value) && value is T vmb)
 		{
 			return vmb;
 		}
@@ -30,19 +30,19 @@ public static class NavigationManager
 		return null;
 	}
 
-	public static async Task<RoutableViewModel?> MaterialiseViewModelAsync(NavigationMetaData metaData)
+	public static async Task<RoutableViewModel?> MaterializeViewModelAsync(NavigationMetaData metaData)
 	{
-		if (NavigationEntries.ContainsKey(metaData))
+		if (NavigationEntries.TryGetValue(metaData, out InstanceGeneratorBase? generator))
 		{
-			if (NavigationEntries[metaData] is InstanceGenerator instanceGenerator)
+			if (generator is InstanceGenerator instanceGenerator)
 			{
 				return instanceGenerator.Generate;
 			}
-			else if (NavigationEntries[metaData] is SynchronousInstanceGenerator synchronousInstanceGenerator)
+			else if (generator is SynchronousInstanceGenerator synchronousInstanceGenerator)
 			{
 				return synchronousInstanceGenerator.Generate();
 			}
-			else if (NavigationEntries[metaData] is AsyncInstanceGenerator asyncInstanceGenerator)
+			else if (generator is AsyncInstanceGenerator asyncInstanceGenerator)
 			{
 				return await asyncInstanceGenerator.Generate();
 			}

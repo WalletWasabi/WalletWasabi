@@ -1,8 +1,9 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -15,14 +16,21 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
-		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
-
 	public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
 
 	public static readonly StyledProperty<bool> ForceShowProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
+
+	public static readonly StyledProperty<bool> UseOpacityProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(UseOpacity), defaultValue: true);
+
+	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MaxPrivacyChars), int.MaxValue);
+
+	private readonly CompositeDisposable _disposables = new();
+
+	private readonly UiConfig _uiConfig = Services.UiConfig;
 
 	public PrivacyContentControl()
 	{
@@ -31,28 +39,17 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
-			this.WhenAnyValue(x => x.ForceShow));
+		var isContentRevealed = PrivacyModeHelper.DelayedRevealAndHide(
+				this.WhenAnyValue(x => x.IsPointerOver),
+				this.WhenAnyValue(x => x._uiConfig.PrivacyMode),
+				this.WhenAnyValue(x => x.ForceShow))
+			.Replay();
 
-		IsContentRevealed = displayContent
-			.ReplayLastActive();
-
-		PrivacyText = this.WhenAnyValue(x => x.NumberOfPrivacyChars)
-			.Select(n => TextHelpers.GetPrivacyMask((int) n))
-			.ReplayLastActive();
+		IsContentRevealed = isContentRevealed;
+		isContentRevealed.Connect().DisposeWith(_disposables);
 	}
 
-	private IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
-
-	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
-
-	public uint NumberOfPrivacyChars
-	{
-		get => GetValue(NumberOfPrivacyCharsProperty);
-		set => SetValue(NumberOfPrivacyCharsProperty, value);
-	}
+	public IObservable<bool> IsContentRevealed { get; }
 
 	public ReplacementMode PrivacyReplacementMode
 	{
@@ -65,4 +62,18 @@ public class PrivacyContentControl : ContentControl
 		get => GetValue(ForceShowProperty);
 		set => SetValue(ForceShowProperty, value);
 	}
+
+	public bool UseOpacity
+	{
+		get => GetValue(UseOpacityProperty);
+		set => SetValue(UseOpacityProperty, value);
+	}
+
+	public int MaxPrivacyChars
+	{
+		get => GetValue(MaxPrivacyCharsProperty);
+		set => SetValue(MaxPrivacyCharsProperty, value);
+	}
+
+	protected override void OnUnloaded(RoutedEventArgs e) => _disposables.Dispose();
 }

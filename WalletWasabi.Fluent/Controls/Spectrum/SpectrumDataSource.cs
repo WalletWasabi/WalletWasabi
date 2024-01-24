@@ -22,7 +22,7 @@ public abstract class SpectrumDataSource
 		NumAverages = numAverages;
 	}
 
-	public event EventHandler<bool>? GeneratingDataStateChanged;
+	public event EventHandler? GeneratingDataStateChanged;
 
 	public int NumAverages { get; }
 
@@ -31,6 +31,8 @@ public abstract class SpectrumDataSource
 	protected int NumBins => Bins.Length;
 
 	protected int MidPointBins => NumBins / 2;
+
+	public bool IsGenerating => _timer.IsEnabled;
 
 	private void TimerOnTick(object? sender, EventArgs e)
 	{
@@ -43,8 +45,15 @@ public abstract class SpectrumDataSource
 	{
 		for (int i = 0; i < NumBins; i++)
 		{
-			_averaged[i] -= _averaged[i] / NumAverages;
-			_averaged[i] += Bins[i] / NumAverages;
+			if (IsGenerating)
+			{
+				_averaged[i] -= _averaged[i] / NumAverages;
+				_averaged[i] += Bins[i] / NumAverages;
+			}
+			else
+			{
+				_averaged[i] -= 0.03f;
+			}
 
 			data[i] = Math.Max(data[i], _averaged[i]);
 		}
@@ -52,18 +61,19 @@ public abstract class SpectrumDataSource
 
 	public void Start()
 	{
+		_averaged = new float[_averaged.Length];
 		_timer.Start();
-		OnGeneratingDataStateChanged(isGenerating: true);
+		OnGeneratingDataStateChanged();
 	}
 
 	public void Stop()
 	{
 		_timer.Stop();
-		OnGeneratingDataStateChanged(isGenerating: false);
+		OnGeneratingDataStateChanged();
 	}
 
-	private void OnGeneratingDataStateChanged(bool isGenerating)
+	private void OnGeneratingDataStateChanged()
 	{
-		GeneratingDataStateChanged?.Invoke(this, isGenerating);
+		GeneratingDataStateChanged?.Invoke(this, EventArgs.Empty);
 	}
 }

@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class StartupHelper
 {
-	public static readonly string SilentArgument = "startsilent";
+	public const string SilentArgument = "startsilent";
 
 	public static async Task ModifyStartupSettingAsync(bool runOnSystemStartup)
 	{

@@ -51,13 +51,11 @@
                                   Grid.RowSpan="2"
                                   Grid.ColumnSpan="2"
                                   Background="{TemplateBinding Background}"
-                                  CanHorizontallyScroll="{TemplateBinding CanHorizontallyScroll}"
-                                  CanVerticallyScroll="{TemplateBinding CanVerticallyScroll}"
-                                  Content="{TemplateBinding Content}"
-                                  Extent="{TemplateBinding Extent, Mode=TwoWay}"
-                                  Margin="{TemplateBinding Padding}"
-                                  Offset="{TemplateBinding Offset, Mode=TwoWay}"
-                                  Viewport="{TemplateBinding Viewport, Mode=TwoWay}">
+                                  HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"
+                                  VerticalSnapPointsType="{TemplateBinding VerticalSnapPointsType}"
+                                  HorizontalSnapPointsAlignment="{TemplateBinding HorizontalSnapPointsAlignment}"
+                                  VerticalSnapPointsAlignment="{TemplateBinding VerticalSnapPointsAlignment}"
+                                  Padding="{TemplateBinding Padding}">
 
             <Classes.bottomCue>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -117,44 +115,28 @@
             </ScrollContentPresenter.Styles>
 
             <ScrollContentPresenter.GestureRecognizers>
-              <ScrollGestureRecognizer
-                CanHorizontallyScroll="{TemplateBinding CanHorizontallyScroll}"
-                CanVerticallyScroll="{TemplateBinding CanVerticallyScroll}" />
+              <ScrollGestureRecognizer CanHorizontallyScroll="{Binding CanHorizontallyScroll, ElementName=PART_ContentPresenter}"
+                                       CanVerticallyScroll="{Binding CanVerticallyScroll, ElementName=PART_ContentPresenter}"
+                                       IsScrollInertiaEnabled="{Binding IsScrollInertiaEnabled, RelativeSource={RelativeSource TemplatedParent}}" />
             </ScrollContentPresenter.GestureRecognizers>
           </ScrollContentPresenter>
 
           <ScrollBar Name="PART_HorizontalScrollBar"
-                     Classes="cued"
                      MaxHeight="10"
                      MinHeight="2"
-                     AllowAutoHide="{TemplateBinding AllowAutoHide}"
                      Orientation="Horizontal"
-                     LargeChange="{Binding LargeChange.Width, RelativeSource={RelativeSource TemplatedParent}}"
-                     SmallChange="{Binding SmallChange.Width, RelativeSource={RelativeSource TemplatedParent}}"
-                     Maximum="{TemplateBinding HorizontalScrollBarMaximum}"
-                     Value="{TemplateBinding HorizontalScrollBarValue, Mode=TwoWay}"
-                     ViewportSize="{TemplateBinding HorizontalScrollBarViewportSize}"
-                     Visibility="{TemplateBinding HorizontalScrollBarVisibility}"
-                     Grid.Row="1"
-                     Focusable="False" />
-
+                     Grid.Row="1" />
           <ScrollBar Name="PART_VerticalScrollBar"
-                     Classes="cued"
                      MaxWidth="10"
                      MinWidth="2"
-                     AllowAutoHide="{TemplateBinding AllowAutoHide}"
                      Orientation="Vertical"
-                     LargeChange="{Binding LargeChange.Height, RelativeSource={RelativeSource TemplatedParent}}"
-                     SmallChange="{Binding SmallChange.Height, RelativeSource={RelativeSource TemplatedParent}}"
-                     Maximum="{TemplateBinding VerticalScrollBarMaximum}"
-                     Value="{TemplateBinding VerticalScrollBarValue, Mode=TwoWay}"
-                     ViewportSize="{TemplateBinding VerticalScrollBarViewportSize}"
-                     Visibility="{TemplateBinding VerticalScrollBarVisibility}"
-                     Grid.Column="1"
-                     Focusable="False" />
+                     Grid.Column="1" />
 
-          <Panel x:Name="PART_ScrollBarsSeparator" Grid.Row="1" Grid.Column="1"
-                 Background="{DynamicResource ScrollViewerScrollBarsSeparatorBackground}" />
+          <Panel x:Name="PART_ScrollBarsSeparator"
+                 Grid.Row="1"
+                 Grid.Column="1"
+                 Background="{DynamicResource ScrollViewerScrollBarsSeparatorBackground}"
+                 Opacity="0" />
 
           <!-- Scroll cues (hints)  -->
           <!-- They are disabled for now. If we want to enable them, just remove the IsVisible="False" attribute below -->
@@ -201,7 +183,7 @@
   </Style>
 
   <Style Selector="Path.ScrollViewerCuePath">
-    <Setter Property="Fill" Value="{StaticResource AcrylicTrimForeground}" />
+    <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
     <Setter Property="Opacity" Value="0.9" />
   </Style>
 

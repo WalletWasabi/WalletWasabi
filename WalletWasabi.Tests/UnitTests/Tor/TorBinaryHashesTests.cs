@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tor;
 using Xunit;
 
@@ -13,16 +14,16 @@ public class TorBinaryHashesTests
 	[Fact]
 	public void VerifyTorBinaryChecksumHashes()
 	{
-		using CancellationTokenSource cts = new(5_000);
-
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "70bc89de20f5c0bba18bb2aa8b85d68f8f77da29b905f8813705a6dc43e4d6d5" },
-			{ OSPlatform.Linux, "08ecedec71911f87d94428b9ea8da88ca893d9f2cb4530cd25b5d12c259c76e7" },
-			{ OSPlatform.OSX, "b97b69ad0a38a53943f4ee2fc1c6ea2f7e1e87f14f13dc052611c7ca41e89a3f" },
+			{ OSPlatform.Windows, "855799b771d166ac09e95ce99e77a219c35f1db3ed66342a2f224735c01a54bf" },
+			{ OSPlatform.Linux, "79f1fe14e2c0d00cb604f21c0836ca58e5d5205d0a9a8acfb4a5df065492bf80" },
+			{ OSPlatform.OSX, "ba028d74610083102c1f9cb95e6e746e3c0d374d61e275d3049729260900cb8b" },
 		};
 
 		using SHA256 sha256 = SHA256.Create();
+
+		Dictionary<OSPlatform, string> actualHashes = new(capacity: expectedHashes.Count);
 
 		foreach ((OSPlatform platform, string expectedHash) in expectedHashes)
 		{
@@ -30,7 +31,9 @@ public class TorBinaryHashesTests
 			using FileStream fileStream = File.OpenRead(filePath);
 
 			string actualHash = ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant();
-			Assert.Equal(expectedHash, actualHash);
+			actualHashes.Add(platform, actualHash);
 		}
+
+		Assert.Equal(expectedHashes, actualHashes);
 	}
 }

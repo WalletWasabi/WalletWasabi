@@ -2,79 +2,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:locator="using:WalletWasabi.Fluent"
-             xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
-             x:DataType="wallets:WalletViewModel"
+             xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
+             mc:Ignorable="d" d:DesignWidth="800"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletTiles"
              x:CompileBindings="True"
-             ClipToBounds="False"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletTiles">
-  <ScrollViewer Name="ScrollViewer"
-                Classes.smallLayout="{Binding IsSmallLayout}"
-                Classes.normalLayout="{Binding IsNormalLayout}"
-                Classes.wideLayout="{Binding IsWideLayout}">
-    <ScrollViewer.Styles>
-      <Style Selector="ScrollViewer.smallLayout">
-        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
-        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-      </Style>
-      <Style Selector="ScrollViewer.normalLayout">
-        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
-        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-      </Style>
-      <Style Selector="ScrollViewer.wideLayout">
-        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
-        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-      </Style>
-    </ScrollViewer.Styles>
-    <i:Interaction.Behaviors>
-      <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page" />
-    </i:Interaction.Behaviors>
-    <ItemsControl Items="{Binding Tiles}"
-                  Classes.smallLayout="{Binding IsSmallLayout}"
-                  Classes.normalLayout="{Binding IsNormalLayout}"
-                  Classes.wideLayout="{Binding IsWideLayout}">
+             x:DataType="collections:IEnumerable">
+
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+    <ItemsControl ItemsSource="{Binding}">
       <ItemsControl.Styles>
-        <Style Selector="ItemsControl.smallLayout">
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="Margin" Value="0 0" />
-          <Setter Property="Padding" Value="0,0,0,10" />
-        </Style>
-        <Style Selector="ItemsControl.normalLayout">
-          <Setter Property="HorizontalAlignment" Value="Stretch" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="Margin" Value="0 0" />
-          <Setter Property="Padding" Value="0,0,0,10" />
-        </Style>
-        <Style Selector="ItemsControl.wideLayout">
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="VerticalAlignment" Value="Stretch" />
-          <Setter Property="Margin" Value="0 0" />
-          <Setter Property="Padding" Value="0,0,10,0" />
-        </Style>
-        <Style Selector="ItemsControl > ContentPresenter" x:CompileBindings="False" x:DataType="tiles:TileViewModel">
-          <Setter Property="Grid.Column" Value="{Binding Column}" />
-          <Setter Property="Grid.Row" Value="{Binding Row}" />
-          <Setter Property="Grid.ColumnSpan" Value="{Binding ColumnSpan}" />
-          <Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
-          <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+        <Style Selector="ItemsControl > ContentPresenter">
+          <Setter Property="Width" Value="310" />
+          <Setter Property="Height" Value="140" />
         </Style>
       </ItemsControl.Styles>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <c:BindableGrid ColumnDefinitionsSource="{Binding CurrentLayout.ColumnDefinitions}"
-                          RowDefinitionsSource="{Binding CurrentLayout.RowDefinitions}"
-                          ShowGridLines="False" />
+          <StackPanel Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
-        <locator:ViewLocator />
-      </ItemsControl.ItemTemplate>
     </ItemsControl>
   </ScrollViewer>
 </UserControl>

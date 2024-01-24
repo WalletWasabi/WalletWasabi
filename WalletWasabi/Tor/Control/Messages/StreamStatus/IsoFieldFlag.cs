@@ -15,6 +15,7 @@ public enum IsoFieldFlag
 
 	// Special values follow.
 	CLIENTADDR,
+
 	CLIENTPORT,
 	DESTADDR,
 	DESTPORT,

@@ -1,8 +1,8 @@
 using NBitcoin;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -47,7 +47,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		return base.Contains(id);
 	}
 
-	public static CoinJoinIdStore Create(string ww1CoinJoinsFilePath, string coinJoinIdStoreFilePath)
+	public static CoinJoinIdStore Create(string coinJoinIdStoreFilePath)
 	{
 		bool updateFile = false;
 		var coinjoins = Enumerable.Empty<string>();
@@ -58,28 +58,6 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		else
 		{
 			coinjoins = File.ReadAllLines(coinJoinIdStoreFilePath).Where(line => !string.IsNullOrEmpty(line));
-		}
-
-		// Try to import ww1 coinjoins.
-		if (File.Exists(ww1CoinJoinsFilePath))
-		{
-			try
-			{
-				var ww1Coinjoins = File.ReadAllLines(ww1CoinJoinsFilePath);
-
-				var missingWw1Coinjoins = ww1Coinjoins.Except(coinjoins).Where(line => !string.IsNullOrEmpty(line));
-
-				if (missingWw1Coinjoins.Any())
-				{
-					coinjoins = missingWw1Coinjoins.Concat(coinjoins);
-					updateFile = true;
-					Logger.LogWarning($"Imported {missingWw1Coinjoins.Count()} WW1 coinjoins.");
-				}
-			}
-			catch (Exception exc)
-			{
-				Logger.LogError("Failed to import WW1 coinjoins. Reason:", exc);
-			}
 		}
 
 		// Checking duplicates.

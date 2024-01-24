@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
@@ -224,5 +225,6 @@ public class WalletDirTests
 		Assert.Equal("Trezor T Simulator", HardwareWalletModels.Trezor_T_Simulator.FriendlyName());
 		Assert.Equal("BitBox", HardwareWalletModels.BitBox02_BTCOnly.FriendlyName());
 		Assert.Equal("BitBox", HardwareWalletModels.BitBox02_Multi.FriendlyName());
+		Assert.Equal("Jade", HardwareWalletModels.Jade.FriendlyName());
 	}
 }

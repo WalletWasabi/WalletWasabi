@@ -15,20 +15,17 @@ public class XmlIssueListParserTests
 	private static string StatusXmlSample => @"
 <rss version=""2.0"" xmlns:atom=""http://www.w3.org/2005/Atom"">
     <channel>
-      
+
       <title>Tor Project status</title>
       <link>https://status.torproject.org/</link>
       <description>Incident history</description>
       <generator>github.com/cstate</generator>
       <language>en</language>
-      
+
       <lastBuildDate>Thu, 09 Jun 2022 14:00:00 +0000</lastBuildDate>
-      
-      
-      
+
         <atom:link href=""https://status.torproject.org/index.xml"" rel=""self"" type=""application/rss+xml"" />
-      
-      
+
         <item>
           <title>Network DDoS</title>
           <link>https://status.torproject.org/issues/2022-06-09-network-ddos/</link>
@@ -41,7 +38,7 @@ non-onion services traffic. We are currently investigating potential
 mitigations.&lt;/p&gt;
 </description>
         </item>
-      
+
         <item>
           <title>[Resolved] routing issues at main provider</title>
           <link>https://status.torproject.org/issues/2022-01-25-routing-issues/</link>
@@ -54,7 +51,7 @@ to point at routing issues at Hetzner, but we have yet to get a solid
 diagnostic. We&amp;rsquo;re following that issue in &lt;a href=&#34;https://gitlab.torproject.org/tpo/tpa/team/-/issues/40601&#34;&gt;issue 40601&lt;/a&gt;.&lt;/p&gt;
 </description>
         </item>
-      
+
         <item>
           <title>[Resolved] Disruption of Metrics website and relay search</title>
           <link>https://status.torproject.org/issues/2021-06-05-metris-website/</link>
@@ -64,7 +61,7 @@ diagnostic. We&amp;rsquo;re following that issue in &lt;a href=&#34;https://gitl
           <description>&lt;p&gt;We&amp;rsquo;re currently facing stability issues with respect to our Metrics website and relay search. We are actively &lt;a href=&#34;https://gitlab.torproject.org/tpo/metrics/team/-/issues/15&#34;&gt;working on resolving those issues&lt;/a&gt;
 as soon as possible.&lt;/p&gt;
 </description>
-        </item>    
+        </item>
     </channel>
   </rss>
 ";

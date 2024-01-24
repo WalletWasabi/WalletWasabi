@@ -21,26 +21,16 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK">
     <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380">
-      <StackPanel>
-        <Label Content="Account Key _Derivation Path:" Target="TbKeyPath" />
-        <TextBox Name="TbKeyPath"
-                 Watermark="e.g., m/84'/0'/0'"
-                 Text="{Binding AccountKeyPath}"
-                 Width="350"
-                 Classes="hasCheckMark">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-        </TextBox>
-      </StackPanel>
-      <StackPanel>
-        <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
-        <TextBox Name="TbGapLimit" Watermark="e.g., 63"
-                 Text="{Binding MinGapLimit}"
-                 DockPanel.Dock="Top"
-                 Width="350"
-                 Classes="hasCheckMark" />
-      </StackPanel>
+      <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
+      <TextBox Name="TbGapLimit" Watermark="e.g., 63"
+               Text="{Binding MinGapLimit}"
+               DockPanel.Dock="Top"
+               Width="350"
+               Classes="hasCheckMark">
+        <i:Interaction.Behaviors>
+          <behaviors:FocusOnAttachedBehavior />
+        </i:Interaction.Behaviors>
+      </TextBox>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -1,143 +1,89 @@
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
-using Gma.QrCodeNet.Encoding;
-using NBitcoin;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Hwi;
-using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
-	private readonly HdPubKey _model;
+	private readonly IWalletModel _wallet;
 
-	public ReceiveAddressViewModel(Wallet wallet, HdPubKey model)
+	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
 		_wallet = wallet;
-		_model = model;
-		Address = _model.GetP2wpkhAddress(_wallet.Network).ToString();
-		Labels = _model.Label;
-		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
-		IsAutoCopyEnabled = Services.UiConfig.Autocopy;
-
-		GenerateQrCode();
+		UiContext = uiContext;
+		Model = model;
+		Address = model.Text;
+		Labels = model.Labels;
+		IsHardwareWallet = wallet.IsHardwareWallet;
+		IsAutoCopyEnabled = isAutoCopyEnabled;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			if (Application.Current is { Clipboard: { } clipboard })
-			{
-				await clipboard.SetTextAsync(Address);
-			}
-		});
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(Address));
 
-		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
-
-		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
-
-		SaveQrCodeCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(ex => Logger.LogError(ex));
+		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(ShowOnHwWalletAsync);
 
 		NextCommand = CancelCommand;
+
+		QrCode = UiContext.QrCodeGenerator.Generate(model.Text.ToUpperInvariant());
+
+		if (IsAutoCopyEnabled)
+		{
+			CopyAddressCommand.Execute(null);
+		}
 	}
 
-	public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
+	public bool IsAutoCopyEnabled { get; }
 
 	public ICommand CopyAddressCommand { get; }
-
-	public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
 
 	public ICommand ShowOnHwWalletCommand { get; }
 
 	public string Address { get; }
 
-	public SmartLabel Labels { get; }
-
-	public bool[,]? QrCode { get; set; }
+	public LabelsArray Labels { get; }
 
 	public bool IsHardwareWallet { get; }
 
-	public bool IsAutoCopyEnabled { get; }
+	public IObservable<bool[,]> QrCode { get; }
 
-	private async Task OnShowOnHwWalletAsync(HdPubKey model, Network network, HDFingerprint? masterFingerprint)
-	{
-		if (masterFingerprint is null)
-		{
-			return;
-		}
-
-		await Task.Run(async () =>
-		{
-			try
-			{
-				var client = new HwiClient(network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-
-				await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
-			}
-			catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
-			{
-				// This exception happens everytime on TestNet because of Wasabi Keypath handling.
-				// The user doesn't need to know about it.
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
-			}
-		});
-	}
-
-	private async Task OnSaveQrCodeAsync()
-	{
-		if (QrCodeCommand is { } cmd)
-		{
-			await cmd.Execute(Address);
-		}
-	}
+	private IAddress Model { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		Observable
-			.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
-			{
-				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
-				{
-					Navigate().Back();
-				}
-			})
+		_wallet.AddressesModel.Cache
+			.Connect()
+			.AutoRefresh(x => x.IsUsed)
+			.Watch(Model.Text)
+			.Where(change => change.Current.IsUsed)
+			.Do(_ => Navigate().Back())
+			.Subscribe()
 			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
-	private void GenerateQrCode()
+
+	private async Task ShowOnHwWalletAsync()
 	{
 		try
 		{
-			QrCode = new QrEncoder().Encode(Address.ToUpperInvariant()).Matrix.InternalArray;
+			await Model.ShowOnHwWalletAsync();
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError(ex);
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
 		}
 	}
 }

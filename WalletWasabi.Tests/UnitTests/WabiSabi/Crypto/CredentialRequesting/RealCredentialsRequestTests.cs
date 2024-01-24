@@ -1,9 +1,9 @@
 using NBitcoin.Secp256k1;
-using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Groups;
-using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
+using WabiSabi;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.ZeroKnowledge;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Crypto.CredentialRequesting;

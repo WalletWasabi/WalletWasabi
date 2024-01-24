@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -14,25 +15,27 @@ namespace WalletWasabi.Blockchain.Mempool;
 
 public class MempoolService
 {
-	public MempoolService()
-	{
-		ProcessedTransactionHashes = new HashSet<uint256>();
-		ProcessedLock = new object();
-		BroadcastStore = new List<TransactionBroadcastEntry>();
-		BroadcastStoreLock = new object();
-		_cleanupInProcess = 0;
-		TrustedNodeMode = false;
-	}
+	/// <summary>Denotes whether we are cleaning up the mempool at the moment or not.</summary>
+	private int _cleanupInProcess = 0;
+
+	private long _totalReceives = 0;
+	private long _duplicatedReceives = 0;
 
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
-	private HashSet<uint256> ProcessedTransactionHashes { get; }
-	private object ProcessedLock { get; }
+	/// <remarks>Guarded by <see cref="ProcessedLock"/>.</remarks>
+	private HashSet<uint256> ProcessedTransactionHashes { get; } = new();
 
-	// Transactions that we would reply to INV messages.
-	private List<TransactionBroadcastEntry> BroadcastStore { get; }
+	/// <summary>Guards <see cref="ProcessedTransactionHashes"/>.</summary>
+	private object ProcessedLock { get; } = new();
 
-	private object BroadcastStoreLock { get; }
+	/// <summary>Transactions that we would reply to INV messages.</summary>
+	/// <remarks>Guarded by <see cref="BroadcastStoreLock"/>.</remarks>
+	private List<TransactionBroadcastEntry> BroadcastStore { get; } = new();
+
+	/// <summary>Guards <see cref="BroadcastStore"/>.</summary>
+	private object BroadcastStoreLock { get; } = new();
+
 	public bool TrustedNodeMode { get; set; }
 
 	public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
@@ -61,23 +64,21 @@ public class MempoolService
 		}
 	}
 
-	public SmartLabel TryGetLabel(uint256 txid)
+	public LabelsArray TryGetLabel(uint256 txid)
 	{
-		var label = SmartLabel.Empty;
+		var label = LabelsArray.Empty;
 		if (TryGetFromBroadcastStore(txid, out var entry))
 		{
-			label = entry.Transaction.Label;
+			label = entry.Transaction.Labels;
 		}
 
 		return label;
 	}
 
-	private int _cleanupInProcess;
-
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
 	/// </summary>
-	public async Task<bool> TryPerformMempoolCleanupAsync(HttpClientFactory httpClientFactory)
+	public async Task<bool> TryPerformMempoolCleanupAsync(WasabiHttpClientFactory httpClientFactory)
 	{
 		// If already cleaning, then no need to run it that often.
 		if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -88,11 +89,13 @@ public class MempoolService
 		// This function is designed to prevent forever growing mempool.
 		try
 		{
-			// No need for locking when accessing Count.
-			if (ProcessedTransactionHashes.Count == 0)
+			lock (ProcessedLock)
 			{
-				// There's nothing to cleanup.
-				return true;
+				if (ProcessedTransactionHashes.Count == 0)
+				{
+					// There's nothing to cleanup.
+					return true;
+				}
 			}
 
 			Logger.LogInfo("Start cleaning out mempool...");
@@ -100,12 +103,14 @@ public class MempoolService
 				var compactness = 10;
 				var allMempoolHashes = await httpClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
+				int removedTxCount;
+
 				lock (ProcessedLock)
 				{
-					int removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
-
-					Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
+					removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
 				}
+
+				Logger.LogInfo($"{removedTxCount} transactions were removed from mempool.");
 			}
 
 			// Display warning if total receives would be reached by duplicated receives.
@@ -142,9 +147,6 @@ public class MempoolService
 		}
 	}
 
-	private long _totalReceives = 0;
-	private long _duplicatedReceives = 0;
-
 	public void Process(Transaction tx)
 	{
 		SmartTransaction? txAdded = null;
@@ -153,7 +155,7 @@ public class MempoolService
 		{
 			if (ProcessedTransactionHashes.Add(tx.GetHash()))
 			{
-				txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
+				txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(tx.GetHash()));
 			}
 			else
 			{
@@ -166,5 +168,22 @@ public class MempoolService
 		{
 			TransactionReceived?.Invoke(this, txAdded);
 		}
+	}
+
+	public bool TrySpend(SmartCoin coin, SmartTransaction tx)
+	{
+		var spent = false;
+		lock (BroadcastStoreLock)
+		{
+			foreach (var foundCoin in BroadcastStore
+				.SelectMany(x => x.Transaction.WalletInputs)
+				.Concat(BroadcastStore.SelectMany(x => x.Transaction.WalletOutputs))
+				.Where(x => x == coin))
+			{
+				foundCoin.SpenderTransaction = tx;
+				spent = true;
+			}
+		}
+		return spent;
 	}
 }

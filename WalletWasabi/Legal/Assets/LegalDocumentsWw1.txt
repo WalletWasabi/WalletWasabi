@@ -1,5 +1,5 @@
 
-Last Updated: 2020-04-05
+Last Updated: Jun 15, 2022
 
 =========================================
 SUMMARY
@@ -62,7 +62,7 @@ I. TERMS AND CONDITIONS
 ===================================
 
 2.1 DESCRIPTION OF SERVICES
-    This Software consists of the Client Application and the CoinJoin Coordinator (both as defined below) and functions as a free, open-source, non-custodial desktop Bitcoin wallet. The Software does not constitute an account where we or other third parties serve as financial intermediaries or custodians of Your bitcoins. The Software and our Services are therefore not a bank, a custodian, an exchange, a financial intermediary or a regulated financial institution and is exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
+    This Software consists of the Client Application and the CoinJoin Coordinator (both as defined below) and functions as a free, open-source, non-custodial desktop Bitcoin wallet. The Software does not constitute an account where we or other third parties serve as financial intermediaries or custodians of Your bitcoins. The Software and our Services are therefore not a bank, a custodian, an exchange, a financial intermediary or a regulated financial institution.
 
     The client application (“Client Application”) is software, with the sole purpose of allowing You access to the Bitcoin network and our Services (as defined below), without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
     The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs
@@ -104,6 +104,12 @@ I. TERMS AND CONDITIONS
 
     If You find any reason to violate the law during Your transaction (for example, in a transaction with a third party), please let us know at one of the contacts listed at the end of this document.
     The Service Provider shall assist the investigation in any case, if so instructed by an authorized body, a final court judgment or a final regulatory decision.
+
+    COIN FILTERING
+
+    zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services.
+    You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
+    Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
 
 4 INDEMNIFICATION
 =================
@@ -156,15 +162,15 @@ I. TERMS AND CONDITIONS
 
     You and the Service Provider further agree:
      - to attempt informal resolution prior to any demand for arbitration;
-     - that the seat or legal place of any arbitration will be Gibraltar;
-     - that arbitration will be conducted confidentially by a single arbitrator appointed by the Gibraltar Chamber of Commerce;
+     - that the seat or legal place of any arbitration will be Republic of Seychelles;
+     - that arbitration will be conducted confidentially by a single arbitrator appointed by law of Republic of Seychelles;
      - the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
-     - that the courts in Gibraltar will have exclusive jurisdiction over any appeals of an arbitration award.
+     - that the arbitration in Republic of Seychelles will have exclusive jurisdiction over any appeals of an arbitration award.
     Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
-    Whether the dispute is heard in arbitration or in court, You and the Service Provider will not commence against the other any class action, class arbitration or representative action or proceeding.
+    Whether the dispute is heard in arbitration, You and the Service Provider will not commence against the other any class action, class arbitration or representative action or proceeding.
 
 9.3 GOVERNING LAW AND JURISDICTION
-    These Terms and any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims) will be governed by and construed in accordance with the laws of Gibraltar, without giving effect to any conflict of laws principles that may provide for the application of the law of another jurisdiction. Subject to the “Arbitration” section above, the courts of Gibraltar shall have exclusive jurisdiction to settle any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims).
+    These Terms and any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims) will be governed by and construed in accordance with the laws of Republic of Seychelles, without giving effect to any conflict of laws principles that may provide for the application of the law of another jurisdiction. Subject to the “Arbitration” section above, the arbitration of Republic of Seychelles shall have exclusive jurisdiction to settle any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims).
 
 9.4 NO WAIVER
     Any failure or delay by us to exercise or enforce any right or remedy provided under these Terms or by law will not constitute a waiver of that or any other right or remedy, nor will it preclude any further exercise of that or any other right or remedy. No single or partial right exercise of any right or remedy shall preclude or restrict the further exercise of that or any other right or remedy.
@@ -205,7 +211,7 @@ All User Information is Confidential
 ====================================
 
     Because we cannot link Your wallet and Your personal information (such as Your name and IP address) provided under the Service, Your personal information is safe and cannot be accessed by our staff or third parties.
-    zkSNACKs will protect processed data in the customer Service process adequately against unauthorized access (of third parties) in accordance with the provisions of the legal framework of Gibraltar as well as the European Union. We will only process data which are essential to provide our Services. Data will not be used or stored by other means than set out in this document and are made accessible only to a restricted and necessary number of persons. We do not transfer any personal data to third parties.
+    zkSNACKs will protect processed data in the customer Service process adequately against unauthorized access (of third parties) in accordance with the provisions of the legal framework of Republic of Seychelles. We will only process data which are essential to provide our Services. Data will not be used or stored by other means than set out in this document and are made accessible only to a restricted and necessary number of persons. We do not transfer any personal data to third parties.
     All employees of zkSNACKs have been informed about applicable data protection provisions as well as data security measures and are bound to our privacy practices. All staff are bound by confidentiality agreements.
 
 Use of Cookies
@@ -235,7 +241,7 @@ Contact details regarding this declaration
 III. LEGAL STATEMENT OF WASABI WALLET
 =========================================
 
-    zkSNACKs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Gibraltarian and international legal standards, and strictly rejects all kinds of illegal activities.
+    zkSNACKs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Republic of Seychelles  and international legal standards, and strictly rejects all kinds of illegal activities.
 
 INFORMATION PROVIDED
 ====================
@@ -257,12 +263,9 @@ COMPLIANCE WITH TAX OBLIGATIONS
 COUNTRY OF RESIDENCE
 ====================
 
-    In case You are a Gibraltar resident and willing to use Wasabi Wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
+    In case You are a Gibraltar or Republic of Seychelles resident and willing to use Wasabi Wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
 
     zkSNACKs Ltd.
-    Address: 6 Bayside Road 6.20 World Trade Center, Gibraltar, GX11 1AA
-    Company number: 117429
-    REID number: GICO.117429-6
     www.zksnacks.com(*)
 
-(*) We recommend You to prefer Tor Browser over other browsers in order to protect Your privacy while visiting our websites.
+(*) We recommend you to prefer Tor Browser over other browsers in order to protect your privacy while visiting our websites.

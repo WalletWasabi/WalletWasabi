@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
@@ -19,7 +20,7 @@ public class WasabiController : ControllerBase
 	/// <response code="200">Returns the legal documents.</response>
 	[HttpGet("legaldocuments")]
 	[ProducesResponseType(typeof(byte[]), 200)]
-	public async Task<IActionResult> GetLegalDocumentsAsync(string? id)
+	public async Task<IActionResult> GetLegalDocumentsAsync(string? id, CancellationToken cancellationToken)
 	{
 		string filePath;
 
@@ -37,7 +38,7 @@ public class WasabiController : ControllerBase
 				return NotFound();
 		}
 
-		var content = await System.IO.File.ReadAllBytesAsync(filePath);
+		var content = await System.IO.File.ReadAllBytesAsync(filePath, cancellationToken);
 		return File(content, "text/plain");
 	}
 }

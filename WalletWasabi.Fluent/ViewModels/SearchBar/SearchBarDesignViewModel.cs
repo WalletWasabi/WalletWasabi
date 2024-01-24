@@ -28,7 +28,11 @@ public class SearchBarDesignViewModel : ReactiveObject
 			{
 				Icon = "settings_bitcoin_regular"
 			},
-			new ActionableItem("Test 3: Short again", "Description very very loooooooooooong and difficult to read", PreventExecution, "Settings")
+			new ActionableItem(
+				"Test 3: Short again",
+				"Description very very loooooooooooong and difficult to read",
+				PreventExecution,
+				"Settings")
 			{
 				Icon = "settings_bitcoin_regular"
 			},
@@ -36,7 +40,11 @@ public class SearchBarDesignViewModel : ReactiveObject
 			{
 				Icon = "settings_bitcoin_regular"
 			},
-			new ActionableItem("Test 4: Help topics", "Description very very loooooooooooong and difficult to read", PreventExecution, "Help")
+			new ActionableItem(
+				"Test 4: Help topics",
+				"Description very very loooooooooooong and difficult to read",
+				PreventExecution,
+				"Help")
 			{
 				Icon = "settings_bitcoin_regular"
 			},
@@ -49,14 +57,17 @@ public class SearchBarDesignViewModel : ReactiveObject
 		_items = actionable.ToList();
 	}
 
-	public ReadOnlyObservableCollection<SearchItemGroup> Groups => new(new ObservableCollection<SearchItemGroup>(_items
-		.GroupBy(r => r.Category)
-		.Select(grouping =>
-		{
-			var sourceCache = new SourceCache<ISearchItem, ComposedKey>(r => r.Key);
-			sourceCache.PopulateFrom(grouping.ToObservable());
-			return new SearchItemGroup(grouping.Key, sourceCache);
-		})));
+	public ReadOnlyObservableCollection<SearchItemGroup> Groups => new(
+		new ObservableCollection<SearchItemGroup>(
+			_items
+				.GroupBy(r => r.Category)
+				.Select(
+					grouping =>
+					{
+						var sourceCache = new SourceCache<ISearchItem, ComposedKey>(r => r.Key);
+						sourceCache.PopulateFrom(grouping.ToObservable());
+						return new SearchItemGroup(grouping.Key, sourceCache.Connect());
+					})));
 
 	public string SearchText => "";
 }

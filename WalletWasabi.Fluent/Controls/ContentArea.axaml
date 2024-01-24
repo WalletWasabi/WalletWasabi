@@ -1,8 +1,8 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
-        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-        xmlns:i="using:Avalonia.Xaml.Interactivity">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls"
+                    xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+                    xmlns:i="using:Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
       <c:ContentArea Width="500" Height="300"
@@ -16,9 +16,9 @@
       </c:ContentArea>
     </Panel>
   </Design.PreviewWith>
-  <Styles.Resources>
-  </Styles.Resources>
-  <Style Selector="c|ContentArea">
+
+  <ControlTheme x:Key="{x:Type c:ContentArea}" TargetType="c:ContentArea">
+
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="IsHitTestVisible" Value="{Binding IsActive}" />
@@ -71,6 +71,7 @@
                           IsVisible="{TemplateBinding EnableBack}">
                     <i:Interaction.Behaviors>
                       <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back" />
+                      <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
                     </i:Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                   </Button>
@@ -89,7 +90,7 @@
                   <Setter Property="ClipToBounds" Value="{Binding $parent[ScrollViewer].ClipToBounds}" />
                 </Style>
               </ScrollViewer.Styles>
-              <ContentControl Name="PART_ContentPresenter"
+              <ContentPresenter Name="PART_ContentPresenter"
                               ClipToBounds="{TemplateBinding ClipToBounds}"
                               BorderBrush="{TemplateBinding BorderBrush}"
                               BorderThickness="{TemplateBinding BorderThickness}"
@@ -103,38 +104,29 @@
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+  <Style Selector="^/template/ StackPanel#PART_Header">
     <Setter Property="Margin" Value="31 0 31 0" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
+  <Style Selector="^/template/ ScrollViewer#PART_ScrollViewer">
     <Setter Property="Margin" Value="31 11 31 21" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+  <Style Selector="^/template/ Panel#PART_ButtonArea">
     <Setter Property="Margin" Value="31,10" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
+  <Style Selector="^/template/ ContentPresenter#PART_TitlePresenter">
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />
   </Style>
 
-  <Style Selector="c|ContentArea :is(Control).title TextBlock, c|ContentArea :is(TextBlock).title">
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
-
-  <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-    <Setter Property="Opacity" Value="0.6" />
-  </Style>
-
-  <Style Selector="c|ContentArea /template/ c|ProgressRing#LoadingRing">
+  <Style Selector="^/template/ c|ProgressRing#LoadingRing">
     <Setter Property="Width" Value="100" />
     <Setter Property="Height" Value="100" />
   </Style>
-</Styles>
+
+  </ControlTheme>
+
+</ResourceDictionary>

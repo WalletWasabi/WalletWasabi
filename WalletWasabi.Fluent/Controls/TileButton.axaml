@@ -1,9 +1,17 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls">
 
-  <Style Selector="c|TileButton">
+  <ControlTheme x:Key="{x:Type c:TileButton}" TargetType="c:TileButton">
+
+    <Setter Property="Width" Value="150" />
+    <Setter Property="Height" Value="150" />
+    <Setter Property="ClipToBounds" Value="False" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
     <Setter Property="Cursor" Value="Hand" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <Border x:Name="PART_Border"
@@ -14,7 +22,8 @@
             <TextBlock x:Name="PART_Text"
                        Text="{TemplateBinding Text}"
                        Foreground="{TemplateBinding Foreground}" />
-            <Panel>
+            <Panel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
               <PathIcon x:Name="PART_Icon"
                         Data="{TemplateBinding Icon}"
                         Width="{TemplateBinding IconSize}"
@@ -29,82 +38,54 @@
         </Border>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="Margin" Value="0 0 0 15" />
-    <Setter Property="Foreground" Value="{StaticResource SystemAccentColor}" />
-  </Style>
+    <Style Selector="^/template/ PathIcon#PART_Icon">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 0 15" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
 
-  <Style Selector="c|TileButton /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="Margin" Value="0 0 0 15" />
-  </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 0 15" />
+    </Style>
 
-  <Style Selector="c|TileButton /template/ TextBlock#PART_Text">
-    <Setter Property="DockPanel.Dock" Value="Top" />
-    <Setter Property="Margin" Value="10 10 10 15" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="TextAlignment" Value="Center" />
-  </Style>
+    <Style Selector="^/template/ TextBlock#PART_Text">
+      <Setter Property="DockPanel.Dock" Value="Top" />
+      <Setter Property="Margin" Value="10 10 10 15" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
 
-  <Style Selector="c|TileButton /template/ Border#PART_Border">
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
-    <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
-  </Style>
+    <Style Selector="^/template/ Border#PART_Border">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
+    </Style>
 
-  <Style Selector="c|TileButton">
-    <Setter Property="Width" Value="150" />
-    <Setter Property="Height" Value="150" />
-    <Setter Property="ClipToBounds" Value="False" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
-  </Style>
+    <!-- Pointerover -->
+    <Style Selector="^:pointerover">
+      <!--<Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />-->
+      <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
+    </Style>
 
-  <!-- Pointerover -->
-  <Style Selector="c|TileButton:pointerover">
-    <!--<Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />-->
-    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
-    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
-  </Style>
+    <!-- Pressed -->
+    <Style Selector="^:pressed">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
+      <Setter Property="RenderTransform" Value="scale(0.98)" />
+    </Style>
 
-  <!-- Pressed -->
-  <Style Selector="c|TileButton:pressed">
-    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
-    <Setter Property="RenderTransform" Value="scale(0.98)" />
-  </Style>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
+    </Style>
 
-  <Style Selector="c|TileButton:pointerover /template/ Border#PART_Border">
-    <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
-  </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="BoxShadow" Value="0 0 0 #121212" />
+    </Style>
 
-  <Style Selector="c|TileButton:pressed /template/ Border#PART_Border">
-    <Setter Property="BoxShadow" Value="0 0 0 #121212" />
-  </Style>
+  </ControlTheme>
 
-  <!-- Action style -->
-  <Style Selector="c|TileButton.action">
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-  </Style>
-
-  <!-- Double line Text -->
-  <Style Selector="c|TileButton.doubleline /template/ TextBlock#PART_Text">
-    <Setter Property="MinHeight" Value="34" />
-  </Style>
-
-  <!-- Bottom Text -->
-  <Style Selector="c|TileButton.bottomtext /template/ TextBlock#PART_Text">
-    <Setter Property="DockPanel.Dock" Value="Bottom" />
-    <Setter Property="Margin" Value="10 15 10 10" />
-  </Style>
-
-  <Style Selector="c|TileButton.bottomtext /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Margin" Value="0 15 0 0" />
-  </Style>
-</Styles>
+</ResourceDictionary>

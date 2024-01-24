@@ -1,6 +1,5 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -9,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(
 	Title = "Legal Document",
-	Caption = "Displays terms and conditions",
+	Caption = "Display terms and conditions",
 	Order = 3,
 	Category = "General",
 	Keywords = new[] { "View", "Legal", "Document", "Terms", "Conditions", "Privacy", "Policy", "Statement" },
@@ -20,7 +19,7 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string? _content;
 
-	public LegalDocumentsViewModel()
+	private LegalDocumentsViewModel()
 	{
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
@@ -43,8 +42,7 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 			try
 			{
 				IsBusy = true;
-				using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
-				var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync(timeout.Token);
+				var document = await UiContext.LegalDocumentsProvider.WaitAndGetLatestDocumentAsync();
 				Content = document.Content;
 			}
 			catch (Exception ex)

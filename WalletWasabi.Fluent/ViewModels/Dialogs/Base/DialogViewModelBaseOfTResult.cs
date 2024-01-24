@@ -20,9 +20,9 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 		_currentTaskCompletionSource = new TaskCompletionSource<DialogResult<TResult>>();
 
 		_disposable = this.WhenAnyValue(x => x.IsDialogOpen)
-						  .Skip(1) // Skip the initial value change (which is false).
-						  .DistinctUntilChanged()
-						  .Subscribe(OnIsDialogOpenChanged);
+			.Skip(1) // Skip the initial value change (which is false).
+			.DistinctUntilChanged()
+			.Subscribe(OnIsDialogOpenChanged);
 
 		BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
 

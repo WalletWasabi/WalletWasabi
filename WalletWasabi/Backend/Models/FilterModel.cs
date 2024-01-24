@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.DataEncoders;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
@@ -8,22 +7,25 @@ namespace WalletWasabi.Backend.Models;
 
 public class FilterModel
 {
-	private Lazy<GolombRiceFilter> _filter;
+	private readonly Lazy<GolombRiceFilter> _filter;
 
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
-		_filter = new Lazy<GolombRiceFilter>(filter);
+		_filter = new(filter);
+		FilterData = filter.ToBytes();
 	}
 
-	public FilterModel(SmartHeader header, Lazy<GolombRiceFilter> filter)
+	private FilterModel(SmartHeader header, byte[] filterData)
 	{
 		Header = header;
-		_filter = filter;
+		FilterData = filterData;
+		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public SmartHeader Header { get; }
 
+	public byte[] FilterData { get; }
 	public GolombRiceFilter Filter => _filter.Value;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
@@ -31,25 +33,36 @@ public class FilterModel
 	// is constructed.This ensures the key is deterministic while still varying from block to block.
 	public byte[] FilterKey => Header.BlockHash.ToBytes()[..16];
 
+	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
+	{
+		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filterData);
+	}
+
 	public static FilterModel FromLine(string line)
 	{
 		try
 		{
-			string[] parts = line.Split(':');
+			// Splitting lines using Split(':') requires allocations. Working with .NET spans is faster.
+			ReadOnlySpan<char> span = line;
 
-			if (parts.Length < 5)
+			int m1 = line.IndexOf(':', 0);
+			int m2 = line.IndexOf(':', m1 + 1);
+			int m3 = line.IndexOf(':', m2 + 1);
+			int m4 = line.IndexOf(':', m3 + 1);
+
+			if (m1 == -1 || m2 == -1 || m3 == -1 || m4 == -1)
 			{
 				throw new ArgumentException(line, nameof(line));
 			}
 
-			uint blockHeight = uint.Parse(parts[0]);
-			uint256 blockHash = uint256.Parse(parts[1]);
-			byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
-			Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
-			uint256 prevBlockHash = uint256.Parse(parts[3]);
-			long blockTime = long.Parse(parts[4]);
+			uint blockHeight = uint.Parse(span[..m1]);
+			uint256 blockHash = new(Convert.FromHexString(span[(m1 + 1)..m2]), lendian: false);
+			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
 
-			return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+			uint256 prevBlockHash = new(Convert.FromHexString(span[(m3 + 1)..m4]), lendian: false);
+			long blockTime = long.Parse(span[(m4 + 1)..]);
+
+			return Create(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
 		}
 		catch (FormatException ex)
 		{

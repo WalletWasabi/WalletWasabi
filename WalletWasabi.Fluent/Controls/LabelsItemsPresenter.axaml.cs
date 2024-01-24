@@ -1,34 +1,27 @@
-using System.Collections.Generic;
-using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
-using Avalonia.Styling;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class LabelsItemsPresenter : ItemsPresenter, IStyleable
+public class LabelsItemsPresenter : ItemsControl
 {
-	Type IStyleable.StyleKey => typeof(LabelsItemsPresenter);
+	public static readonly StyledProperty<bool> InfiniteWidthMeasureProperty =
+		AvaloniaProperty.Register<LabelsItemsPresenter, bool>(nameof(InfiniteWidthMeasure));
 
-	protected override void PanelCreated(IPanel panel)
+	public static readonly StyledProperty<double> MaxLabelWidthProperty =
+		AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
+
+	public bool InfiniteWidthMeasure
 	{
-		base.PanelCreated(panel);
-
-		if (panel is LabelsPanel labelsPanel)
-		{
-			labelsPanel.WhenAnyValue(x => x.VisibleItemsCount)
-				.Subscribe(x =>
-				{
-					if (Items is IEnumerable<string> items)
-					{
-						labelsPanel.FilteredItems = items.Skip(x).ToList();
-					}
-					else
-					{
-						labelsPanel.FilteredItems = new List<string>();
-					}
-				});
-		}
+		get => GetValue(InfiniteWidthMeasureProperty);
+		set => SetValue(InfiniteWidthMeasureProperty, value);
 	}
+
+	public double MaxLabelWidth
+	{
+		get => GetValue(MaxLabelWidthProperty);
+		set => SetValue(MaxLabelWidthProperty, value);
+	}
+
+	protected override Type StyleKeyOverride => typeof(LabelsItemsPresenter);
 }

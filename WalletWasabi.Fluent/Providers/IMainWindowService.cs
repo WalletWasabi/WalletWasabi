@@ -6,5 +6,5 @@ public interface IMainWindowService
 
 	void Hide();
 
-	void Shutdown();
+	void Shutdown(bool restart);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -14,36 +15,39 @@ public class CoinJoinTracker : IDisposable
 	public CoinJoinTracker(
 		IWallet wallet,
 		CoinJoinClient coinJoinClient,
-		IEnumerable<SmartCoin> coinCandidates,
+		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
+		IWallet outputWallet,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
 		CoinJoinClient = coinJoinClient;
 		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 
-		CoinCandidates = coinCandidates;
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
+		OutputWallet = outputWallet;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, stopWhenAllMixed, CancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
 
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase => CoinJoinClient.CoinsInCriticalPhase;
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
 
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
-	public IEnumerable<SmartCoin> CoinCandidates { get; }
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
+	public IWallet OutputWallet { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
-	public bool IsStopped { get; private set; }
+	public bool IsStopped { get; set; }
+	public List<CoinBanned> BannedCoins { get; private set; } = new();
 
 	public void Stop()
 	{
@@ -65,8 +69,13 @@ public class CoinJoinTracker : IDisposable
 			case LeavingCriticalPhase:
 				InCriticalCoinJoinState = false;
 				break;
+
 			case RoundEnded roundEnded:
 				roundEnded.IsStopped = IsStopped;
+				break;
+
+			case CoinBanned coinBanned:
+				BannedCoins.Add(coinBanned);
 				break;
 		}
 

@@ -6,6 +6,8 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.AcceptanceTests;
@@ -173,8 +175,8 @@ public class HwiKatas
 		// ColdCard doesn't support it.
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive(1);
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -253,8 +255,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -336,8 +338,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -419,8 +421,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
@@ -448,6 +450,87 @@ public class HwiKatas
 		Assert.Equal(HwiErrorCode.UnknownError, ex.ErrorCode);
 
 		// USER: CONFIRM
+		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
+
+		Transaction signedTx = signedPsbt.GetOriginalTransaction();
+		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+
+		var checkResult = signedTx.Check();
+		Assert.Equal(TransactionCheckResult.Success, checkResult);
+	}
+
+	[Fact]
+	public async Task JadeKataAsync()
+	{
+		// --- USER INTERACTIONS ---
+		//
+		// Connect and initialize your Jade with the following seed phrase:
+		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// Run this test.
+		// displayaddress request by device_type: reject
+		// displayaddress request by device_type: approve
+		// displayaddress request by fingerprint: approve
+		// signtx request: reject
+		// signtx request: 2x approve
+		//
+		// --- USER INTERACTIONS ---
+
+		var network = Network.Main;
+		var client = new HwiClient(network);
+		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+		var enumerate = await client.EnumerateAsync(cts.Token);
+		HwiEnumerateEntry entry = Assert.Single(enumerate);
+		Assert.NotNull(entry.Path);
+		Assert.Equal(HardwareWalletModels.Jade, entry.Model);
+		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, entry.Path));
+		Assert.NotNull(entry.Fingerprint);
+		Assert.Null(entry.Code);
+		Assert.Null(entry.Error);
+		Assert.True(string.IsNullOrEmpty(entry.SerialNumber));
+		Assert.False(entry.NeedsPassphraseSent);
+		Assert.False(entry.NeedsPinSent);
+
+		string devicePath = entry.Path;
+		HardwareWalletModels deviceType = entry.Model;
+		HDFingerprint fingerprint = entry.Fingerprint!.Value;
+
+		await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+
+		await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+
+		await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+
+		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
+
+		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
+		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
+		Assert.NotNull(xpub1);
+		Assert.NotNull(xpub2);
+		Assert.NotEqual(xpub1, xpub2);
+
+		// USER SHOULD REFUSE ACTION
+		await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+
+		// USER: CONFIRM
+		BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
+		// USER: CONFIRM
+		BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(fingerprint, keyPath2, cts.Token);
+		Assert.NotNull(address1);
+		Assert.NotNull(address2);
+		Assert.NotEqual(address1, address2);
+		var expectedAddress1 = xpub1.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+		var expectedAddress2 = xpub2.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+		Assert.Equal(expectedAddress1, address1);
+		Assert.Equal(expectedAddress2, address2);
+
+		// USER: REFUSE
+		var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
+		Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
+
+		// USER: CONFIRM CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 		Transaction signedTx = signedPsbt.GetOriginalTransaction();

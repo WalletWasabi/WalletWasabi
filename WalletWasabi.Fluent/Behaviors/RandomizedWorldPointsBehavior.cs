@@ -15,7 +15,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 {
 	private static readonly Random RandomSource = new();
 	private CancellationTokenSource _cts = new();
-	private List<IControl> _targetControls = new();
+	private List<Control> _targetControls = new();
 
 	// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 	private static readonly List<Point> WorldLocations = new()
@@ -110,14 +110,14 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 			cancellationToken);
 	}
 
-	private async Task AnimateCityMarkerAsync(IControl target, Point point, CancellationToken cancellationToken)
+	private async Task AnimateCityMarkerAsync(Control target, Point point, CancellationToken cancellationToken)
 	{
 		if (cancellationToken.IsCancellationRequested)
 		{
 			return;
 		}
 
-		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Visual.OpacityProperty, 0, BindingPriority.StyleTrigger));
 
 		await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
@@ -125,12 +125,12 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 		{
 			target.SetValue(Canvas.LeftProperty, point.X, BindingPriority.StyleTrigger);
 			target.SetValue(Canvas.TopProperty, point.Y, BindingPriority.StyleTrigger);
-			target.SetValue(Control.OpacityProperty, 1, BindingPriority.StyleTrigger);
+			target.SetValue(Visual.OpacityProperty, 1, BindingPriority.StyleTrigger);
 		});
 
 		await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
-		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Visual.OpacityProperty, 0, BindingPriority.StyleTrigger));
 	}
 
 	protected override void OnDetaching()
@@ -161,7 +161,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 					return;
 				}
 
-				_targetControls = targets;
+				_targetControls = targets.Cast<Control>().ToList();
 				_cts?.Dispose();
 				_cts = new CancellationTokenSource();
 

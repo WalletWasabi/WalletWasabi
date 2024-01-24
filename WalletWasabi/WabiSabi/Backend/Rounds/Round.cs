@@ -1,10 +1,11 @@
 using NBitcoin;
 using System.Collections.Generic;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -24,7 +25,8 @@ public enum EndRoundState
 	NotAllAlicesSign,
 	AbortedNotEnoughAlicesSigned,
 	AbortedNotAllAlicesConfirmed,
-	AbortedLoadBalancing
+	AbortedLoadBalancing,
+	AbortedDoubleSpendingDetected = AbortedNotAllAlicesConfirmed
 }
 
 public class Round
@@ -69,6 +71,8 @@ public class Round
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
 
+	public bool FastSigningPhase { get; set; }
+
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
 
@@ -111,6 +115,7 @@ public class Round
 
 	public void EndRound(EndRoundState finalState)
 	{
+		PublishWitnessesIfPossible();
 		SetPhase(Phase.Ended);
 		EndRoundState = finalState;
 	}
@@ -162,4 +167,12 @@ public class Round
 				Parameters.CoordinationIdentifier,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
+
+	private void PublishWitnessesIfPossible()
+	{
+		if (CoinjoinState is SigningState signingState)
+		{
+			CoinjoinState = signingState.PublishWitnesses();
+		}
+	}
 }

@@ -1,8 +1,9 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls">
 
-  <Style Selector="c|HistoryPlaceholderPanel">
+  <ControlTheme x:Key="{x:Type c:HistoryPlaceholderPanel}" TargetType="c:HistoryPlaceholderPanel">
+
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -38,6 +39,7 @@
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

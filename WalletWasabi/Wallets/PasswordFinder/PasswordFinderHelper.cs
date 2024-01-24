@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security;
 using System.Threading;
 
 namespace WalletWasabi.Wallets.PasswordFinder;
@@ -22,7 +21,12 @@ public static class PasswordFinderHelper
 	public static bool TryFind(PasswordFinderOptions passwordFinderOptions, [NotNullWhen(true)] out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
 	{
 		foundPassword = null;
-		BitcoinEncryptedSecretNoEC encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
+		BitcoinEncryptedSecretNoEC? encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
+
+		if (encryptedSecret is null)
+		{
+			throw new InvalidOperationException("No secret in the watch-only mode.");
+		}
 
 		var charset = Charsets[passwordFinderOptions.Charset] + (passwordFinderOptions.UseNumbers ? "0123456789" : "") + (passwordFinderOptions.UseSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 

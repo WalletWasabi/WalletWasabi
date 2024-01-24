@@ -11,9 +11,9 @@ public class HostedServices : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	private List<HostedService> Services { get; } = new List<HostedService>();
+	private List<HostedService> Services { get; } = new();
 
-	private object ServicesLock { get; } = new object();
+	private object ServicesLock { get; } = new();
 	private bool IsStartAllAsyncStarted { get; set; } = false;
 
 	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService
@@ -73,12 +73,13 @@ public class HostedServices : IDisposable
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 
-		if (exceptions.Any())
+		if (exceptions.Count != 0)
 		{
 			throw new AggregateException(exceptions);
 		}
 	}
 
+	/// <remarks>This method does not throw exceptions.</remarks>
 	public async Task StopAllAsync(CancellationToken token = default)
 	{
 		var tasks = CloneServices().Select(x => x.Service.StopAsync(token).ContinueWith(y =>

@@ -32,11 +32,11 @@ public class WalletGenerator
 		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 		PasswordHelper.Guard(password);
 
-		var km = mnemonic is null 
+		var km = mnemonic is null
 			? KeyManager.CreateNew(out mnemonic, password, Network)
 			: KeyManager.CreateNew(mnemonic, password, Network);
 		km.AutoCoinJoin = true;
-		km.SetBestHeight(new Height(TipHeight));
+		km.SetBestHeights(height: new Height(TipHeight), turboSyncHeight: new Height(TipHeight));
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);
 	}

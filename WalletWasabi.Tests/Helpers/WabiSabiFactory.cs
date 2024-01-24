@@ -3,24 +3,30 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using SQLitePCL;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
+using WalletWasabi.Tests.UnitTests;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
@@ -34,20 +40,22 @@ public static class WabiSabiFactory
 	{
 		key ??= new();
 		amount ??= Money.Coins(1);
-		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
+		return new(
+			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes().Concat(BitConverter.GetBytes(amount)).ToArray()), 0),
+			new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
 	}
 
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		key = key ?? new();
-		var coin = WabiSabiFactory.CreateCoin(key, amount, scriptPubKeyType);
+		key ??= new();
+		var coin = CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
-		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
+		var ownershipProof = CreateOwnershipProof(key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
 	}
 
-	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
-		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, RoundId ?? uint256.One);
+	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? roundId = null)
+		=> new(CoordinatorIdentifier, roundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
@@ -71,7 +79,7 @@ public static class WabiSabiFactory
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters, new InsecureRandom());
+		new(parameters, InsecureRandom.Instance);
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
@@ -79,45 +87,47 @@ public static class WabiSabiFactory
 			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
 		});
 
-	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
+	public static MockRpcClient CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
 		using Key key = new();
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new GetTxOutResponse
-			{
-				IsCoinBase = false,
-				ScriptPubKeyType = "witness_v0_keyhash",
-				Confirmations = 120,
-				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
-			});
-		foreach (var coin in coins)
+		var mockRpc = new MockRpcClient();
+		mockRpc.OnGetTxOutAsync = (txId, n, _) =>
 		{
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new GetTxOutResponse
+			var maybeCoin = coins.FirstOrDefault(x => x.Outpoint.Hash == txId && x.Outpoint.N == n);
+			if (maybeCoin is { } coin)
+			{
+				return new GetTxOutResponse
 				{
 					IsCoinBase = false,
 					ScriptPubKeyType = "witness_v0_keyhash",
 					Confirmations = 120,
 					TxOut = coin.TxOut,
-				});
+				};
+			}
+			return new GetTxOutResponse
+			{
+				IsCoinBase = false,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				Confirmations = 120,
+				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
+			};
+		};
+		mockRpc.OnGetRawTransactionAsync = (_,_) =>
+			Task.FromResult(BitcoinFactory.CreateTransaction());
 
-			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(BitcoinFactory.CreateTransaction());
-		}
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new EstimateSmartFeeResponse
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromResult(new EstimateSmartFeeResponse
 			{
 				Blocks = 1000,
 				FeeRate = new FeeRate(10m)
 			});
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MinRelayTxFee = 1
 			});
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(600);
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(500));
 		return mockRpc;
 	}
 
@@ -142,13 +152,12 @@ public static class WabiSabiFactory
 		return CreateAlice(key, Money.Coins(1), round);
 	}
 
-	public static ArenaClient CreateArenaClient(Arena arena)
+	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
 	{
-		var roundState = RoundState.FromRound(arena.Rounds.First());
-		var random = new InsecureRandom();
+		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
 		return new ArenaClient(
-			roundState.CreateAmountCredentialClient(random),
-			roundState.CreateVsizeCredentialClient(random),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			CoordinatorIdentifier,
 			arena);
 	}
@@ -177,17 +186,16 @@ public static class WabiSabiFactory
 		IEnumerable<Credential> vsizeZeroCredentials
 	) CreateWabiSabiClientsAndIssuers(Round round)
 	{
-		var rnd = new InsecureRandom();
 		var amountIssuer = round.AmountCredentialIssuer;
 		var vsizeIssuer = round.VsizeCredentialIssuer;
 		var amountClient = new WabiSabiClient(
 			amountIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			rnd,
+			InsecureRandom.Instance,
 			amountIssuer.MaxAmount);
 
 		var vsizeClient = new WabiSabiClient(
 			vsizeIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			rnd,
+			InsecureRandom.Instance,
 			vsizeIssuer.MaxAmount);
 
 		var (amountZeroCredentials, vsizeZeroCredentials) = EnsureZeroCredentials(amountClient, vsizeClient, amountIssuer, vsizeIssuer);
@@ -278,11 +286,14 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
+		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount),
+			blameOf: round,
+			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
+			InsecureRandom.Instance);
 
-	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
-		var km = ServiceFactory.CreateKeyManager("");
+		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
 		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
@@ -298,7 +309,7 @@ public static class WabiSabiFactory
 		return CreateTestCoinJoinClient(
 			httpClientFactory,
 			new KeyChain(keyManager, new Kitchen("")),
-			new InternalDestinationProvider(keyManager),
+			new OutputProvider(new InternalDestinationProvider(keyManager)),
 			roundStateUpdater,
 			keyManager.RedCoinIsolation);
 	}
@@ -306,26 +317,27 @@ public static class WabiSabiFactory
 	public static CoinJoinClient CreateTestCoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
-		IDestinationProvider destinationProvider,
+		OutputProvider outputProvider,
 		RoundStateUpdater roundStateUpdater,
 		bool redCoinIsolation)
 	{
+		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
+		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
 		var mock = new Mock<CoinJoinClient>(
 			httpClientFactory,
 			keyChain,
-			destinationProvider,
+			outputProvider,
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
-			int.MaxValue,
-			true,
-			redCoinIsolation,
+			coinSelector,
+			new LiquidityClueProvider(),
 			TimeSpan.Zero,
 			TimeSpan.Zero,
 			null);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
-		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
-			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
+		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
+			.Returns((int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, startTime, endTime, TimeSpan.FromSeconds(1)));
 
 		mock.CallBase = true;
 
@@ -336,13 +348,13 @@ public static class WabiSabiFactory
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
 		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
-			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+			.Returns(CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 			});
 		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
-			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+			.Returns(CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
@@ -351,4 +363,47 @@ public static class WabiSabiFactory
 	}
 
 	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
+
+	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
+	{
+		var coinjoinIdStore = CreateCoinJoinIdStore();
+		var channel = Channel.CreateUnbounded<Offender>();
+		var prison = new Prison(
+			coinjoinIdStore,
+			Enumerable.Empty<Offender>(),
+			channel.Writer);
+		return (prison, channel.Reader);
+	}
+
+	public static Prison CreatePrison()
+	{
+		var (prison, _) = CreateObservablePrison();
+		return prison;
+	}
+
+	internal static WabiSabiConfig CreateWabiSabiConfig()
+	{
+		return new WabiSabiConfig
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice),
+
+			DoSSeverity = Money.Coins(1.0m),
+			DoSMinTimeForFailedToVerify = TimeSpan.FromDays(30),
+			DoSMinTimeForCheating = TimeSpan.FromDays(1),
+			DoSMinTimeInPrison = TimeSpan.FromHours(1),
+			DoSPenaltyFactorForDisruptingConfirmation = 1.0d,
+			DoSPenaltyFactorForDisruptingSignalReadyToSign = 1.5d,
+			DoSPenaltyFactorForDisruptingSigning = 1.5d,
+			DoSPenaltyFactorForDisruptingByDoubleSpending = 3.0d
+		};
+	}
+
+	internal static ICoinJoinIdStore CreateCoinJoinIdStore()
+	{
+		var coinjoinIdStore = new Mock<ICoinJoinIdStore>();
+		coinjoinIdStore.Setup(x => x.Contains(uint256.One)).Returns(true);
+		return coinjoinIdStore.Object;
+	}
 }

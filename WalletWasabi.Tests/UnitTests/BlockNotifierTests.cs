@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -26,8 +27,8 @@ public class BlockNotifierTests
 		await notifier.StartAsync(CancellationToken.None);
 
 		// No block notifications nor reorg notifications
-		await Assert.ThrowsAsync<OperationCanceledException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
-		await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
+		await Assert.ThrowsAsync<TimeoutException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
+		await Assert.ThrowsAsync<TimeoutException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 
 		Assert.Equal(Network.RegTest.GenesisHash, notifier.BestBlockHash);
 
@@ -53,8 +54,8 @@ public class BlockNotifierTests
 		await notifier.StartAsync(CancellationToken.None);
 
 		// No block notifications nor reorg notifications
-		await Assert.ThrowsAsync<OperationCanceledException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
-		await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
+		await Assert.ThrowsAsync<TimeoutException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
+		await Assert.ThrowsAsync<TimeoutException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 
 		Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
@@ -118,7 +119,7 @@ public class BlockNotifierTests
 		Assert.Equal(chain.Height, height);
 
 		// No reorg notifications
-		await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
+		await Assert.ThrowsAsync<TimeoutException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 		Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 		notifier.OnBlock -= OnBlockInv;

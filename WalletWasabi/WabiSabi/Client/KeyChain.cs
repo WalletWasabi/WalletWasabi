@@ -1,49 +1,75 @@
-using System.Collections.Generic;
 using NBitcoin;
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class KeyChain : BaseKeyChain
+public class KeyChain : IKeyChain
 {
-	public KeyChain(KeyManager keyManager, Kitchen kitchen) : base(kitchen)
+	public KeyChain(KeyManager keyManager, Kitchen kitchen)
 	{
 		if (keyManager.IsWatchOnly)
 		{
-			throw new ArgumentException("A watch-only keymanager cannot be used to initialize a keychain.");
+			throw new ArgumentException("A watch-only key manager cannot be used to initialize a key chain.");
 		}
+
 		KeyManager = keyManager;
+		Kitchen = kitchen;
 	}
 
 	private KeyManager KeyManager { get; }
+	private Kitchen Kitchen { get; }
 
-	protected override Key GetMasterKey()
+	private Key GetMasterKey()
 	{
 		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
 	}
 
-	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
 	{
 		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{
-			hdPubKey.SetKeyState(state);
+			KeyManager.SetKeyState(state, hdPubKey);
 		}
+
+		KeyManager.ToFile();
 	}
 
-	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
+	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
-		if (hdKey is null)
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), destination.ScriptPubKey).SingleOrDefault()
+			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
+		Key masterKey = GetMasterKey();
+		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), destination.ScriptPubKey);
+
+		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
+	}
+
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
+	{
+		transaction = transaction.Clone();
+
+		if (transaction.Inputs.Count == 0)
 		{
-			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
+			throw new ArgumentException("No inputs to sign.", nameof(transaction));
 		}
-		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
-		{
-			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-		}
-		var secret = hdKey.PrivateKey.GetBitcoinSecret(KeyManager.GetNetwork());
-		return secret;
+
+		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint)
+			?? throw new InvalidOperationException("Missing input.");
+		ExtKey hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).SingleOrDefault()
+			?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
+		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), coin.ScriptPubKey);
+
+		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
+		builder.AddKeys(secret);
+		builder.AddCoins(coin);
+		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
+		builder.SignTransactionInPlace(transaction);
+
+		return transaction;
 	}
 }

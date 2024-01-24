@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -14,6 +16,8 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 	{
 		_backStack = new Stack<T>();
 	}
+
+	protected IEnumerable<T> Stack => _backStack;
 
 	protected virtual void OnNavigated(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 	{
@@ -49,8 +53,6 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		UpdateCanNavigateBack();
 	}
-
-	protected IEnumerable<T> Stack => _backStack;
 
 	public virtual void Clear()
 	{
@@ -101,22 +103,22 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		NavigationOperation(oldPage, false, CurrentPage, CurrentPage is { });
 	}
 
-	public void BackTo(T viewmodel)
+	public void BackTo(T viewModel)
 	{
-		if (CurrentPage == viewmodel)
+		if (CurrentPage == viewModel)
 		{
 			return;
 		}
 
-		if (_backStack.Contains(viewmodel))
+		if (_backStack.Contains(viewModel))
 		{
 			var oldPage = CurrentPage;
 
-			while (_backStack.Pop() != viewmodel)
+			while (_backStack.Pop() != viewModel)
 			{
 			}
 
-			NavigationOperation(oldPage, false, viewmodel, true);
+			NavigationOperation(oldPage, false, viewModel, true);
 		}
 	}
 
@@ -130,7 +132,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		}
 	}
 
-	public void To(T viewmodel, NavigationMode mode = NavigationMode.Normal)
+	public void To(T viewModel, NavigationMode mode = NavigationMode.Normal)
 	{
 		var oldPage = CurrentPage;
 
@@ -158,7 +160,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 				break;
 		}
 
-		NavigationOperation(oldPage, oldInStack, viewmodel, newInStack);
+		NavigationOperation(oldPage, oldInStack, viewModel, newInStack);
 	}
 
 	public void Back()
@@ -177,8 +179,31 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		}
 	}
 
+	public FluentNavigate To()
+	{
+		return new FluentNavigate(UiContext);
+	}
+
 	private void UpdateCanNavigateBack()
 	{
 		CanNavigateBack = _backStack.Count > 0;
+	}
+
+	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		var dialogTask = dialog.GetDialogResultAsync();
+
+		var t = dialog as T;
+
+		if (CurrentPage != t)
+		{
+			To(t, navigationMode);
+		}
+
+		var result = await dialogTask;
+
+		Back();
+
+		return result;
 	}
 }

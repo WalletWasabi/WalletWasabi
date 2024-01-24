@@ -25,13 +25,18 @@ namespace WalletWasabi.Packager;
 public static class Program
 {
 	public const string PfxPath = "C:\\digicert.pfx";
+
+	public const string DaemonExecutableName = Constants.DaemonExecutableName;
 	public const string ExecutableName = Constants.ExecutableName;
+
+	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
+	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
 
 	/// <remarks>Only 64-bit platforms are supported for now.</remarks>
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"win7-x64",
+		"win-x64",
 		"linux-x64",
 		"osx-x64",
 		"osx-arm64"
@@ -60,6 +65,12 @@ public static class Program
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			MacSignTools.Sign(argsProcessor);
+			return;
+		}
+
+		if (argsProcessor.IsGeneratePrivateKey())
+		{
+			await WasabiSignerHelpers.GeneratePrivateAndPublicKeyToFileAsync(WasabiPrivateKeyFilePath, WasabiPublicKeyFilePath).ConfigureAwait(false);
 			return;
 		}
 
@@ -118,13 +129,21 @@ public static class Program
 
 				Console.WriteLine("Move created .msi");
 				var msiPath = Path.Combine(WixProjectDirectory, "bin", "Release", "Wasabi.msi");
+				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
+
+				if (File.Exists(newMsiPath))
+				{
+					Console.WriteLine("MSI file was already there, skipping code signing phase.");
+					continue;
+				}
+
 				if (!File.Exists(msiPath))
 				{
 					throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 				}
-				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
-				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath, overwrite: true);
+
+				File.Move(msiPath, newMsiPath);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
@@ -138,6 +157,12 @@ public static class Program
 			else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
 			{
 				string dmgFileName = target.Contains("arm") ? $"Wasabi-{VersionPrefix}.dmg" : $"Wasabi-{VersionPrefix}-arm64.dmg";
+				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
+				if (File.Exists(destinationFilePath))
+				{
+					continue;
+				}
+
 				string dmgFilePath = Path.Combine(Tools.GetSingleUsbDrive(), dmgFileName);
 
 				if (!File.Exists(dmgFilePath))
@@ -145,7 +170,6 @@ public static class Program
 					throw new Exception(".dmg does not exist.");
 				}
 
-				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
 				File.Move(dmgFilePath, destinationFilePath);
 			}
 		}
@@ -153,12 +177,33 @@ public static class Program
 		Console.WriteLine("Signing final files...");
 		var finalFiles = Directory.GetFiles(BinDistDirectory);
 
+		var sha256SumsFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS");
+
 		foreach (var finalFile in finalFiles)
 		{
 			StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
 
 			StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
+
+			ExecuteBashCommands(new[] { $"sha256sum {Path.GetFileName(finalFile)} >> SHA256SUMS" });
 		}
+
+		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
+
+		// We do not need this file anymore SHA256SUMS.ASC contains the hashes and the signature as well.
+		File.Delete(sha256SumsFilePath);
+
+		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync(WasabiPrivateKeyFilePath).ConfigureAwait(false);
+
+		// We will sign the whole file with the hashes and the pgp signature.
+		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
+		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);
+
+		// Verify back the signature file.
+		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath).ConfigureAwait(false);
+
+		// Verify back Wasabi installer's hashes
+		await WasabiSignerHelpers.VerifyInstallerFileHashesAsync(finalFiles, sha256sumAscFilePath).ConfigureAwait(false);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
@@ -183,7 +228,7 @@ public static class Program
 		if (Directory.Exists(desktopBinReleaseDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
-			Console.WriteLine($"#Deleted {desktopBinReleaseDirectory}");
+			Console.WriteLine($"# Deleted {desktopBinReleaseDirectory}");
 		}
 
 		if (Directory.Exists(libraryBinReleaseDirectory))
@@ -208,7 +253,7 @@ public static class Program
 			string currentBinDistDirectory = publishedFolder;
 
 			Console.WriteLine();
-			Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
+			Console.WriteLine($"# Packaging for platform '{target}' to folder:\t{currentBinDistDirectory}");
 
 			Console.WriteLine();
 			if (!Directory.Exists(currentBinDistDirectory))
@@ -275,27 +320,19 @@ public static class Program
 				}
 			}
 
-			// Rename the final exe.
-			string oldExecutablePath;
-			string newExecutablePath;
-			if (target.StartsWith("win"))
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop.exe");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
-			}
-			else // Linux & OSX
-			{
-				oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop");
-				newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
-
-				// Delete unused executables.
-				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
-			}
-
+			// Rename WalletWasabi.Fluent.Desktop(.exe) -> wassabee(.exe).
+			string executableExtension = target.StartsWith("win") ? ".exe" : "";
+			string oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent.Desktop{executableExtension}");
+			string newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}{executableExtension}");
 			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Rename WalletWasabi.Daemon(.exe) -> wassabeed(.exe).
+			oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.Daemon{executableExtension}");
+			newExecutablePath = Path.Combine(currentBinDistDirectory, $"{DaemonExecutableName}{executableExtension}");
+			File.Move(oldExecutablePath, newExecutablePath);
+
+			// Delete unused executables.
+			File.Delete(Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent{executableExtension}"));
 
 			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 			if (OnlyBinaries)
@@ -335,17 +372,17 @@ public static class Program
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"# Deleted {currentBinDistDirectory}");
 
+				string drive = Tools.GetSingleUsbDrive();
+				string targetFilePath = Path.Combine(drive, zipFileName);
+
 				try
 				{
-					var drive = Tools.GetSingleUsbDrive();
-					var targetFilePath = Path.Combine(drive, zipFileName);
-
-					Console.WriteLine($"# Trying to move unsigned zip file to removable ('{targetFilePath}').");
 					File.Move(zipFilePath, targetFilePath, overwrite: true);
+					Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"# There was an error during copying the file to removable: '{ex.Message}'");
+					Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
 				}
 			}
 			else if (target.StartsWith("linux"))
@@ -366,17 +403,20 @@ public static class Program
 
 				var newFolderName = $"Wasabi-{VersionPrefix}";
 				var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
+
+				Console.WriteLine($"# Move '{publishedFolder}' to '{newFolderPath}'.");
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
+				string chmodExecutablesArgs = $$"""-type f \( -name '{{ExecutableName}}' -o -name '{{DaemonExecutableName}}' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \) -exec chmod +x {} \;""";
 
-				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-				string arguments = Tools.CreateWslCommand(
-					BinDistDirectory,
+				string[] commands = new string[]
+				{
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
+				};
 
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				ExecuteBashCommands(commands);
 
 				Console.WriteLine("# Create Linux .deb");
 
@@ -408,9 +448,9 @@ public static class Program
 					var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
 					if (number.Length == 1 && int.TryParse(number.First(), out int size))
 					{
-						string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
-						Directory.CreateDirectory(destFolder);
-						file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
+						string destinationFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
+						Directory.CreateDirectory(destinationFolder);
+						file.CopyTo(Path.Combine(destinationFolder, $"{ExecutableName}.png"));
 					}
 				}
 
@@ -428,6 +468,7 @@ public static class Program
 					$"Architecture: amd64\n" +
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
+					$"Recommends: policykit-1\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 
@@ -448,22 +489,29 @@ public static class Program
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
+				const string Shebang = "#!/usr/bin/env sh\n";
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
-				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
+				var wasabiStarterScriptContent = Shebang +
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
+				var wasabiDaemonStarterScriptContent = Shebang +
+				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
+				File.WriteAllText(wasabiDaemonStarterScriptPath, wasabiDaemonStarterScriptContent, Encoding.ASCII);
 
-				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
+				string debDesktopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
-				arguments = Tools.CreateWslCommand(BinDistDirectory,
+				commands = new string[]
+				{
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)");
+					$"sudo chmod -R 0644 {debDesktopFileLinuxPath}",
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
 
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				ExecuteBashCommands(commands);
 
 				await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
@@ -519,6 +567,26 @@ public static class Program
 		return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
 	}
 
+	/// <summary>
+	/// Executes a set of commands in either WSL2 (on Windows) or Bash (on other platforms).
+	/// </summary>
+	/// <param name="commands">Commands to execute.</param>
+	private static void ExecuteBashCommands(string[] commands)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			// Use WSL on Windows.
+			string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
+			StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+		}
+		else
+		{
+			// Use Bash on other platforms.
+			string arguments = string.Join(" && ", commands);
+			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c \"{arguments}\"");
+		}
+	}
+
 	private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
 	{
 		var isWriteToStandardInput = !string.IsNullOrWhiteSpace(writeToStandardInput);
@@ -530,12 +598,8 @@ public static class Program
 			RedirectStandardInput = isWriteToStandardInput,
 			RedirectStandardOutput = redirectStandardOutput,
 			WorkingDirectory = workingDirectory
-		});
-
-		if (process is null)
-		{
-			throw new InvalidOperationException($"Process '{command}' is invalid.");
-		}
+		})
+		?? throw new InvalidOperationException($"Process '{command}' is invalid.");
 
 		if (isWriteToStandardInput)
 		{

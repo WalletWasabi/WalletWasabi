@@ -1,14 +1,15 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
-        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:WalletWasabi.Fluent.Controls"
+                    xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
-      <c:TagControl Content="Test" />
+      <c:TagControl Content="Label 1, Label 2, Label 3" />
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="c|TagControl">
+  <ControlTheme x:Key="{x:Type c:TagControl}" TargetType="c:TagControl">
+
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="Transparent" />
@@ -18,6 +19,7 @@
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="ClipToBounds" Value="False" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <Panel Name="PART_TagPanel" Margin="0,3,2,3">
@@ -54,46 +56,42 @@
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="c|TagControl /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="ContentTemplate">
-      <DataTemplate DataType="x:String">
-        <TextBlock Text="{Binding .}"
-                   MaxWidth="120"
-                   TextTrimming="CharacterEllipsis" />
-      </DataTemplate>
-    </Setter>
-  </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="ContentTemplate">
+        <DataTemplate DataType="x:String">
+          <TextBlock Text="{Binding .}"
+                     MaxWidth="{DynamicResource LabelMaxWidth}"
+                     TextTrimming="CharacterEllipsis" />
+        </DataTemplate>
+      </Setter>
+    </Style>
 
-  <Style Selector="c|TagControl Button#PART_DeleteButton">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="VerticalAlignment" Value="Top" />
-    <Setter Property="HorizontalAlignment" Value="Right" />
-    <Setter Property="Margin" Value="0,-5,-5,0" />
-    <Setter Property="Height" Value="15" />
-    <Setter Property="Width" Value="15" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate>
-          <Panel>
-            <Image Source="{StaticResource tagcontrol_dismiss}" />
-          </Panel>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
+    <Style Selector="^/template/ Button#PART_DeleteButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0,-5,-5,0" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Panel>
+              <Image Source="{StaticResource tagcontrol_dismiss}" />
+            </Panel>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-  <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="Focusable" Value="False" />
-    <Setter Property="RenderTransform" Value="scale(0.8,0.8)" />
-  </Style>
+    <Style Selector="^/template/ Panel#PART_TagPanel Button#PART_DeleteButton">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="RenderTransform" Value="scale(0.8,0.8)" />
+    </Style>
 
-  <Style
-    Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
-    <Setter Property="Opacity" Value="1" />
-    <Setter Property="RenderTransform" Value="scale(1,1)" />
-  </Style>
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

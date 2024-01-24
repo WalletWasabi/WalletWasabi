@@ -26,7 +26,7 @@ public class BenchmarkLogger : IDisposable
 
 	/// <summary>
 	/// Logs the time between the creation of the class and the disposing of the class.
-	/// Example usage: using(BenchmarkLogger.Measure()){}
+	/// Example usage: using (BenchmarkLogger.Measure()) { /* Your code here */ }
 	/// </summary>
 	/// <param name="operationName">Which operation to measure. Default is the caller function name.</param>
 	public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, [CallerMemberName] string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)

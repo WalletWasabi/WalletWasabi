@@ -28,8 +28,23 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public bool AnyRound => RoundStates.Any();
 
+	public bool SlowRequestsMode { get; set; } = true;
+
+	private DateTimeOffset LastSuccessfulRequestTime { get; set; }
+
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (SlowRequestsMode)
+		{
+			lock (AwaitersLock)
+			{
+				if (Awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
+				{
+					return;
+				}
+			}
+		}
+
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
@@ -44,11 +59,7 @@ public class RoundStateUpdater : PeriodicRunner
 		var updatedRoundStates = roundStates
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(
-			x => x.NewRoundState with
-			{
-				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
-			})
+			.Select(x => x.NewRoundState with { CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState) })
 			.ToList();
 
 		var newRoundStates = roundStates
@@ -67,9 +78,11 @@ public class RoundStateUpdater : PeriodicRunner
 				break;
 			}
 		}
+
+		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
-	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
+	private Task<RoundState> CreateRoundAwaiterAsync(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
 	{
 		RoundStateAwaiter? roundStateAwaiter = null;
 
@@ -90,21 +103,24 @@ public class RoundStateUpdater : PeriodicRunner
 		return roundStateAwaiter.Task;
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, null, predicate, cancellationToken);
+		return CreateRoundAwaiterAsync(null, null, predicate, cancellationToken);
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(roundId, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(roundId, phase, null, cancellationToken);
 	}
 
 	public Task<RoundState> CreateRoundAwaiter(Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(null, phase, null, cancellationToken);
 	}
 
+	/// <summary>
+	/// This might not contain up-to-date states. Make sure it is updated.
+	/// </summary>
 	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
 	{
 		return RoundStates.TryGetValue(roundId, out roundState);

@@ -19,8 +19,9 @@ public record SigningState : MultipartyTransactionState
 	}
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
+	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
+	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-	public bool IsFullySigned => Witnesses.Count == SortedInputs.Count;
 
 	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
@@ -39,7 +40,7 @@ public record SigningState : MultipartyTransactionState
 			.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
 			.ToList();
 
-	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
+	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index) || UnpublishedWitnesses.ContainsKey(index);
 
 	public bool IsInputSigned(OutPoint prevout) => IsInputSigned(GetInputIndex(prevout));
 
@@ -57,7 +58,7 @@ public record SigningState : MultipartyTransactionState
 		Coin registeredCoin = SortedInputs[index];
 
 		// 2. Check the witness is not too long.
-		if (ScriptSizeHelpers.VirtualSize(Constants.InputBaseSizeInBytes, witness.ToBytes().Length) > registeredCoin.ScriptPubKey.EstimateInputVsize())
+		if (VirtualSizeHelpers.VirtualSize(Constants.InputBaseSizeInBytes, witness.ToBytes().Length) > registeredCoin.ScriptPubKey.EstimateInputVsize())
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SignatureTooLong);
 		}
@@ -78,7 +79,15 @@ public record SigningState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature); // TODO keep script error
 		}
 
-		return this with { Witnesses = Witnesses.Add(index, witness) };
+		return this with { UnpublishedWitnesses = UnpublishedWitnesses.Add(index, witness) };
+	}
+	public SigningState PublishWitnesses()
+	{
+		return this with
+		{
+			Witnesses = Witnesses.AddRange(UnpublishedWitnesses),
+			UnpublishedWitnesses = ImmutableDictionary<int, WitScript>.Empty
+		};
 	}
 
 	public Transaction CreateUnsignedTransaction()
@@ -104,11 +113,22 @@ public record SigningState : MultipartyTransactionState
 	{
 		var tx = CreateUnsignedTransaction();
 
-		foreach (var (index, witness) in Witnesses)
+		foreach (var (index, witness) in Witnesses.Concat(UnpublishedWitnesses))
 		{
 			tx.Inputs[index].WitScript = witness;
 		}
 
 		return tx;
 	}
+
+	public TransactionWithPrecomputedData CreateUnsignedTransactionWithPrecomputedData()
+	{
+		var tx = CreateUnsignedTransaction();
+		var precomputeTransactionData = tx.PrecomputeTransactionData(Inputs.ToArray());
+		return new TransactionWithPrecomputedData(tx, precomputeTransactionData);
+	}
 }
+
+public record TransactionWithPrecomputedData(
+	Transaction Transaction,
+	PrecomputedTransactionData PrecomputedTransactionData);

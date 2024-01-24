@@ -3,6 +3,7 @@ using NBitcoin;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
 using Xunit;

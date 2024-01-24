@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
-using DynamicData.Aggregation;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -14,52 +15,46 @@ public partial class SearchBarViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
+	[AutoNotify] private bool _hasResults;
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
-		var filterPredicate = this
-			.WhenAnyValue(x => x.SearchText)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-			.DistinctUntilChanged()
-			.Select(SearchItemFilterFunc);
-
-		var filteredItems = itemsObservable
-			.RefCount()
-			.Filter(filterPredicate);
-
-		filteredItems
+		itemsObservable
 			.Group(s => s.Category)
-			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
+			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
+			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		HasResults = filteredItems
-			.Count()
-			.Select(i => i > 0)
-			.Replay(1)
-			.RefCount();
+		itemsObservable
+			.ToCollection()
+			.Select(x => x.Count != 0)
+			.BindTo(this, x => x.HasResults);
+
+		ActivateFirstItemCommand = ReactiveCommand.Create(
+			() =>
+			{
+				if (_groups is [{ Items: [IActionableItem item] }])
+				{
+					item.Activate();
+					ClearAndHideSearchList();
+				}
+			});
+
+		ResetCommand = ReactiveCommand.Create(ClearAndHideSearchList);
 	}
 
-	public IObservable<bool> HasResults { get; }
+	public ICommand ResetCommand { get; }
+
+	public ICommand ActivateFirstItemCommand { get; set; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 
-	private static Func<ISearchItem, bool> SearchItemFilterFunc(string? text)
+	private void ClearAndHideSearchList()
 	{
-		return searchItem =>
-		{
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				return searchItem.IsDefault;
-			}
-
-			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);
-			var containsCategory = searchItem.Category.Contains(text, StringComparison.InvariantCultureIgnoreCase);
-			var containsAnyTag =
-				searchItem.Keywords.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-			return containsName || containsCategory || containsAnyTag;
-		};
+		IsSearchListVisible = false;
+		SearchText = "";
 	}
 }

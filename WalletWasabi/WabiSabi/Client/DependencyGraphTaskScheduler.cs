@@ -4,9 +4,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -58,7 +58,8 @@ public class DependencyGraphTaskScheduler
 			// confirmation.
 			var task = smartRequestNode
 				.StartReissuanceAsync(bobClient, amountsToRequest, vsizesToRequest, linkedCts.Token)
-				.ContinueWith((t) =>
+				.ContinueWith(
+				(t) =>
 				{
 					if (t.IsFaulted && t.Exception is { } exception)
 					{
@@ -66,7 +67,8 @@ public class DependencyGraphTaskScheduler
 						ctsOnError.Cancel();
 						throw exception;
 					}
-				}, linkedCts.Token);
+				},
+				linkedCts.Token);
 
 			connectionConfirmationTasks.Add(task);
 		}
@@ -88,7 +90,6 @@ public class DependencyGraphTaskScheduler
 		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
 		// Build tasks and link them together.
-		List<SmartRequestNode> smartRequestNodes = new();
 		List<Task> allTasks = new()
 		{
 			// Temporary workaround because we don't yet have a mechanism to
@@ -121,15 +122,18 @@ public class DependencyGraphTaskScheduler
 
 			var task = smartRequestNode
 				.StartReissuanceAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
-				.ContinueWith((t) =>
-			{
-				if (t.IsFaulted && t.Exception is { } exception)
+				.ContinueWith(
+				(t) =>
 				{
-					// If one task is failing, cancel all the tasks and throw.
-					ctsOnError.Cancel();
-					throw exception;
-				}
-			}, linkedCts.Token);
+					if (t.IsFaulted && t.Exception is { } exception)
+					{
+						// If one task is failing, cancel all the tasks and throw.
+						ctsOnError.Cancel();
+						throw exception;
+					}
+				},
+				linkedCts.Token);
+
 			allTasks.Add(task);
 		}
 
@@ -163,7 +167,9 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates,
+		var tasks = txOuts.Zip(
+			nodes,
+			outputRegistrationScheduledDates,
 			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try
@@ -179,14 +185,13 @@ public class DependencyGraphTaskScheduler
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
 					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
-					
 				}
 				catch (Exception ex)
 				{
 					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
 				}
-			}
-		).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}

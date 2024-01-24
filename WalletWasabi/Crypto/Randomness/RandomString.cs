@@ -1,3 +1,4 @@
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Randomness;

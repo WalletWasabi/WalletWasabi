@@ -4,7 +4,7 @@ namespace WalletWasabi.Extensions;
 
 public static class EventHandlerExtensions
 {
-	public static void SafeInvoke<T>(this EventHandler<T>? handler, object sender, T args) where T : EventArgs
+	public static void SafeInvoke<T>(this EventHandler<T>? handler, object sender, T args) where T : class
 	{
 		try
 		{
@@ -12,7 +12,7 @@ public static class EventHandlerExtensions
 		}
 		catch (Exception e)
 		{
-			Logger.LogError(e);
+			Logger.LogWarning(e);
 		}
 	}
 }

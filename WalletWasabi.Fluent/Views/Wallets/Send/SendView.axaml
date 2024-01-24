@@ -6,10 +6,42 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+
+  <UserControl.DataTemplates>
+
+    <DataTemplate DataType="models:Suggestion">
+      <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
+        <DockPanel HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
+          <TextBlock Margin="4 0 0 0" Text="{Binding Text}" VerticalAlignment="Center" />
+        </DockPanel>
+      </Button>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <UserControl.Styles>
+
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+  </UserControl.Styles>
+
   <c:ContentArea
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -22,12 +54,10 @@
         <TextBlock Text="Send" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <!-- Balance -->
-          <c:PrivacyContentControl PrivacyReplacementMode="Text" DataContext="{Binding Balance}" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
-            <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
-              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: " />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}" />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}" />
-            </StackPanel>
+          <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
+            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+              <c:AmountControl Amount="{Binding Balance^}" />
+            </Button>
           </c:PrivacyContentControl>
         </StackPanel>
       </DockPanel>
@@ -67,8 +97,8 @@
                  AcceptsReturn="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
-            <behaviors:FocusNextWhenValid />
+            <behaviors:ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
+            <behaviors:FocusNextWhenValidBehavior />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
@@ -105,7 +135,26 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balance^.Btc}"
+                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  ValidatePasteBalance="True">
+            <c:DualCurrencyEntryBox.Resources>
+
+              <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
+                                           TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
+                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}">
+              </converters:BooleanConverter>
+            </c:DualCurrencyEntryBox.Resources>
+            <i:Interaction.Behaviors>
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+            </i:Interaction.Behaviors>
+          </c:DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
     </DockPanel>

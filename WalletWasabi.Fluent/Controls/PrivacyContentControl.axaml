@@ -1,59 +1,72 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:WalletWasabi.Fluent.Controls"
+                    xmlns:conv="using:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <controls:PrivacyContentControl />
   </Design.PreviewWith>
 
-  <Style Selector="controls|PrivacyContentControl">
+  <ControlTheme x:Key="{x:Type controls:PrivacyContentControl}" TargetType="controls:PrivacyContentControl">
+
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+
     <Setter Property="Template">
       <ControlTemplate TargetType="controls:PrivacyContentControl">
-        <Panel Background="Transparent">
-
-          <ContentPresenter Name="PART_Content"
-                            IsVisible="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+        <Panel>
+          <ContentPresenter Name="PART_ContentPresenter"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            Background="Transparent" />
 
-          <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+          <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                 HorizontalAlignment="Stretch"
+                 Background="Transparent">
             <Viewbox Name="PART_Icon">
-              <PathIcon Data="{StaticResource incognito_pathicon}" />
+              <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
-            <TextBlock Name="PART_PrivacyText" Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+            <controls:PrivacyTextPresenter Name="PART_PrivacyText"
+                                           MaxPrivacyChars="{TemplateBinding MaxPrivacyChars}"/>
           </Panel>
-
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="controls|PrivacyContentControl /template/ Viewbox#PART_Icon">
-    <Setter Property="Margin" Value="25" />
-    <Setter Property="Opacity" Value="0.15" />
-  </Style>
+    <Style Selector="^/template/ Viewbox#PART_Icon">
+      <Setter Property="Margin" Value="25" />
+      <Setter Property="Opacity" Value="0.15" />
+    </Style>
 
-  <Style Selector="controls|PrivacyContentControl.monoSpaced">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-  </Style>
+    <!-- Icon privacy mode -->
+    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
 
-  <!-- Icon privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ TextBlock#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
+    <!-- Text privacy mode -->
+    <Style Selector="^[PrivacyReplacementMode=Text] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
 
-  <!-- Text privacy mode --> 
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-</Styles>
+    <!-- UseOpacity = true -->
+    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
+      <Setter Property="IsEnabled" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="IsHitTestVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
+    </Style>
+
+    <!-- UseOpacity = false -->
+    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="IsVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>

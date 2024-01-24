@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -7,6 +8,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -17,7 +20,9 @@ public class Dialog : ContentControl
 {
 	private Panel? _dismissPanel;
 	private Panel? _overlayPanel;
-	private bool _canCancelOnPointerPressed;
+	private bool _canCancelOpenedOnPointerPressed;
+	private bool _canCancelActivatedOnPointerPressed;
+	private IDisposable? _updateActivatedDelayDisposable;
 
 	public static readonly StyledProperty<bool> IsDialogOpenProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -67,9 +72,14 @@ public class Dialog : ContentControl
 	public static readonly StyledProperty<bool> IncreasedSizeEnabledProperty =
 		AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedSizeEnabled));
 
+	public static readonly StyledProperty<bool> ShowAlertProperty =
+		AvaloniaProperty.Register<Dialog, bool>(nameof(ShowAlert));
+
+	private static readonly Stack<Dialog> AllOpenedDialogStack = new();
+
 	public Dialog()
 	{
-		this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+		this.GetObservable(IsDialogOpenProperty).SubscribeAsync(UpdateOpenedDelayAsync);
 
 		this.WhenAnyValue(x => x.Bounds)
 			.Subscribe(bounds =>
@@ -80,11 +90,11 @@ public class Dialog : ContentControl
 				var increasedHeightThreshold = IncreasedHeightThreshold;
 				var fullScreenHeightThreshold = FullScreenHeightThreshold;
 				var canIncreasedWidth = !double.IsNaN(increasedWidthThreshold)
-				                        && width < increasedWidthThreshold;
+										&& width < increasedWidthThreshold;
 				var canIncreasedHeight = !double.IsNaN(increasedHeightThreshold)
-				                         && height < increasedHeightThreshold;
+										 && height < increasedHeightThreshold;
 				var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
-				                        && height < fullScreenHeightThreshold;
+										&& height < fullScreenHeightThreshold;
 				IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
 				IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
 				IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;
@@ -188,40 +198,112 @@ public class Dialog : ContentControl
 		set => SetValue(IncreasedSizeEnabledProperty, value);
 	}
 
-	private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
-
-	private void UpdateDelay(bool isDialogOpen)
+	private bool ShowAlert
 	{
-		try
-		{
-			_canCancelOnPointerPressed = false;
-			CancelPointerPressedDelay?.Cancel();
+		get => GetValue(ShowAlertProperty);
+		set => SetValue(ShowAlertProperty, value);
+	}
 
-			if (isDialogOpen)
-			{
-				CancelPointerPressedDelay = new CancellationTokenSource();
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
 
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
-			}
-		}
-		catch (OperationCanceledException)
+		_updateActivatedDelayDisposable = ApplicationHelper.MainWindowActivated.SubscribeAsync(UpdateActivatedDelayAsync);
+	}
+
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnDetachedFromVisualTree(e);
+
+		_updateActivatedDelayDisposable?.Dispose();
+	}
+
+	private async Task UpdateOpenedDelayAsync(bool isDialogOpen)
+	{
+		_canCancelOpenedOnPointerPressed = false;
+
+		if (isDialogOpen)
 		{
-			// ignored
+			await Task.Delay(TimeSpan.FromSeconds(1));
+			_canCancelOpenedOnPointerPressed = true;
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	private async Task UpdateActivatedDelayAsync(bool isWindowActivated)
+	{
+		if (!isWindowActivated)
+		{
+			_canCancelActivatedOnPointerPressed = false;
+		}
+
+		if (isWindowActivated)
+		{
+			await Task.Delay(TimeSpan.FromSeconds(1));
+			_canCancelActivatedOnPointerPressed = true;
+		}
+	}
+
+	private void HandleDialogFocus(bool isOpen)
+	{
+		if (isOpen)
+		{
+			if (AllOpenedDialogStack.TryPeek(out var previous))
+			{
+				previous.IsEnabled = false;
+			}
+
+			AllOpenedDialogStack.Push(this);
+
+			Focus();
+		}
+		else
+		{
+			if (AllOpenedDialogStack.Count > 0)
+			{
+				AllOpenedDialogStack.Pop();
+			}
+
+			if (AllOpenedDialogStack.TryPeek(out var previous))
+			{
+				previous.IsEnabled = true;
+				previous.Focus();
+			}
+			else
+			{
+				if (this.GetVisualRoot() is TopLevel topLevel)
+				{
+					topLevel.Focus();
+				}
+			}
+		}
+	}
+
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+			var isOpen = change.GetNewValue<bool>();
+
+			PseudoClasses.Set(":open", isOpen);
+
+			HandleDialogFocus(isOpen);
+
+			if (!isOpen)
+			{
+				PseudoClasses.Set(":alert", false);
+			}
 		}
 
 		if (change.Property == IsBusyProperty)
 		{
-			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":busy", change.GetNewValue<bool>());
+		}
+
+		if (change.Property == ShowAlertProperty)
+		{
+			PseudoClasses.Set(":alert", change.GetNewValue<bool>());
 		}
 	}
 
@@ -242,11 +324,24 @@ public class Dialog : ContentControl
 	private void Close()
 	{
 		IsDialogOpen = false;
+		ShowAlert = false;
 	}
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
+		if (IsDialogOpen
+			&& IsActive
+			&& EnableCancelOnPressed
+			&& !IsBusy
+			&& _dismissPanel is { }
+			&& _overlayPanel is { }
+			&& _canCancelOpenedOnPointerPressed
+			&& _canCancelActivatedOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
 			var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;
@@ -261,6 +356,11 @@ public class Dialog : ContentControl
 
 	private void CancelKeyDown(object? sender, KeyEventArgs e)
 	{
+		if (IsDialogOpen && ShowAlert)
+		{
+			ShowAlert = false;
+		}
+
 		if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsActive)
 		{
 			e.Handled = true;

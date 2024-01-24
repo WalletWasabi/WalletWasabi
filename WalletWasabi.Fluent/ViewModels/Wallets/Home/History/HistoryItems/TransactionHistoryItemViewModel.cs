@@ -1,59 +1,51 @@
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
+public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public TransactionHistoryItemViewModel(
-		int orderIndex,
-		TransactionSummary transactionSummary,
-		WalletViewModel walletViewModel,
-		Money balance,
-		IObservable<Unit> updateTrigger)
-		: base(orderIndex, transactionSummary)
+	private IWalletModel _wallet;
+
+	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
-		Label = transactionSummary.Label;
-		IsConfirmed = transactionSummary.IsConfirmed();
-		Date = transactionSummary.DateTime.ToLocalTime();
-		Balance = balance;
+		_wallet = wallet;
 
-		var confirmations = transactionSummary.GetConfirmations();
-		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
+		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(transaction.CanSpeedUpTransaction));
+		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
+	}
 
-		var amount = transactionSummary.Amount;
-		if (amount < Money.Zero)
+	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction;
+
+	private void OnSpeedUpTransaction(TransactionModel transaction)
+	{
+		try
 		{
-			OutgoingAmount = amount * -1;
+			var speedupTransaction = _wallet.Transactions.CreateSpeedUpTransaction(transaction);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(_wallet, speedupTransaction);
 		}
-		else
+		catch (Exception ex)
 		{
-			IncomingAmount = amount;
+			Logger.LogError(ex);
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Speed Up failed", "Wasabi could not initiate the transaction speed up process.");
 		}
+	}
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
-
-		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
-			.Select(x => !x)
-			.ObserveOn(RxApp.MainThreadScheduler);
-
-		SpeedUpTransactionCommand = ReactiveCommand.Create(
-			() =>
-			{
-				// TODO: Show speed up transaction dialog.
-			},
-			speedUpTransactionCommandCanExecute);
-
-		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
+	private void OnCancelTransaction(TransactionModel transaction)
+	{
+		try
+		{
+			var cancellingTransaction = _wallet.Transactions.CreateCancellingTransaction(transaction);
+			UiContext.Navigate().To().CancelTransactionDialog(_wallet, cancellingTransaction);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			UiContext.Navigate().To().ShowErrorDialog(ex.ToUserFriendlyString(), "Cancel failed", "Wasabi could not initiate the cancelling process.");
+		}
 	}
 }

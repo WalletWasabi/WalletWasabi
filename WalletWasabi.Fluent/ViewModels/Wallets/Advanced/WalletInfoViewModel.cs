@@ -1,27 +1,35 @@
 using ReactiveUI;
-using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Userfacing;
-using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Info")]
+[NavigationMetaData(
+	Title = "Wallet Info",
+	Caption = "Display wallet info",
+	IconName = "nav_wallet_24_regular",
+	Order = 4,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Info", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
+	private readonly IWalletInfoModel _model;
+
 	[AutoNotify] private bool _showSensitiveData;
 	[AutoNotify] private string _showButtonText = "Show sensitive data";
 	[AutoNotify] private string _lockIconString = "eye_show_regular";
 
-	public WalletInfoViewModel(WalletViewModelBase walletViewModelBase)
+	private WalletInfoViewModel(IWalletModel wallet)
 	{
-		var wallet = walletViewModelBase.Wallet;
-		var network = wallet.Network;
-		IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
+		_model = wallet.GetWalletInfo();
+		IsHardwareWallet = wallet.IsHardwareWallet;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		EnableCancel = !wallet.KeyManager.IsWatchOnly;
+		EnableCancel = !wallet.IsWatchOnlyWallet;
 
 		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
@@ -31,43 +39,33 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			ShowButtonText = ShowSensitiveData ? "Hide sensitive data" : "Show sensitive data";
 			LockIconString = ShowSensitiveData ? "eye_hide_regular" : "eye_show_regular";
 		});
-
-		if (!wallet.KeyManager.IsWatchOnly)
-		{
-			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Kitchen.SaltSoup(), out _);
-
-			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
-			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.AccountKeyPath).GetWif(network).ToWif();
-			ExtendedMasterZprv = secret.ToZPrv(network);
-			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.AccountKeyPath).ToZPrv(network);
-
-			// TODO: Should work for every type of wallet, temporarily disabling it.
-			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
-		}
-
-		ExtendedAccountPublicKey = wallet.KeyManager.ExtPubKey.ToString(network);
-		ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
-		AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
-		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 	}
 
-	public string ExtendedAccountPublicKey { get; }
+	public string SegWitExtendedAccountPublicKey => _model.SegWitExtendedAccountPublicKey;
 
-	public string ExtendedAccountZpub { get; }
+	public string? TaprootExtendedAccountPublicKey => _model.TaprootExtendedAccountPublicKey;
 
-	public string AccountKeyPath { get; }
+	public string SegWitAccountKeyPath => _model.SegWitAccountKeyPath;
 
-	public string? MasterKeyFingerprint { get; }
+	public string TaprootAccountKeyPath => _model.TaprootAccountKeyPath;
 
-	public string? ExtendedMasterPrivateKey { get; }
+	public string? MasterKeyFingerprint => _model.MasterKeyFingerprint;
 
-	public string? ExtendedAccountPrivateKey { get; }
+	public string? ExtendedMasterPrivateKey => _model.ExtendedMasterPrivateKey;
 
-	public string? ExtendedMasterZprv { get; }
+	public string? ExtendedAccountPrivateKey => _model.ExtendedAccountPrivateKey;
 
-	public string? ExtendedAccountZprv { get; }
+	public string? ExtendedMasterZprv => _model.ExtendedMasterZprv;
 
-	public WpkhDescriptors? WpkhOutputDescriptors { get; }
+	public bool HasOutputDescriptors => _model.WpkhOutputDescriptors is not null;
+
+	public string? PublicExternalOutputDescriptor => _model.WpkhOutputDescriptors?.PublicExternal.ToString();
+
+	public string? PublicInternalOutputDescriptor => _model.WpkhOutputDescriptors?.PublicInternal.ToString();
+
+	public string? PrivateExternalOutputDescriptor => _model.WpkhOutputDescriptors?.PrivateExternal;
+
+	public string? PrivateInternalOutputDescriptor => _model.WpkhOutputDescriptors?.PrivateInternal;
 
 	public bool IsHardwareWallet { get; }
 }

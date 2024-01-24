@@ -4,56 +4,86 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="send:TransactionSummaryViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
+  <UserControl.Resources>
+    <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
+                                     NegativeBrush="{StaticResource PositiveBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}">
+    </converters:DiffToBrushConverter>
+    <converters:DiffToBrushConverter x:Key="NeutralDiffConverter"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
+                                     NegativeBrush="{StaticResource UncertainBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}">
+    </converters:DiffToBrushConverter>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="c|PreviewItem.Dimmed">
+      <Setter Property="Opacity" Value="0.2" />
+    </Style>
+  </UserControl.Styles>
+
   <StackPanel Spacing="15">
 
     <!-- Amount -->
-    <c:PreviewItem Icon="{StaticResource btc_logo}"
-                   Label="a total of">
-      <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
+    <DockPanel>
+      <Button Classes="activeHyperLink"
+              Command="{Binding Parent.ChangeCoinsCommand}"
+              Content="Review coins"
+              Margin="10 0"
+              VerticalAlignment="Center"
+              DockPanel.Dock="Right">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="Parent.IsCoinControlVisible" />
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
+      </Button>
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="Amount" HorizontalContentAlignment="Stretch"
+                     CopyableContent="{Binding Amount.Btc}">
+        <StackPanel Orientation="Horizontal">
+          <c:AmountControl Amount="{Binding Amount}" />
+          <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource NeutralDiffConverter}}" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+        </StackPanel>
+
+        <Classes.Dimmed>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsPreview" />
+            <Binding Path="!!AmountDiff" Converter="{x:Static BoolConverters.Not}" />
+          </MultiBinding>
+        </Classes.Dimmed>
+      </c:PreviewItem>
+    </DockPanel>
+    <Separator />
+
+    <!-- Address -->
+    <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                   x:Name="PreviewItem"
+                   Label="Address"
+                   CopyableContent="{Binding AddressText}"
+                   Classes.Dimmed="{Binding IsPreview}">
+      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </c:PreviewItem>
     <Separator />
 
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
-                   Label="will be sent to">
-      <c:LabelsItemsPresenter Items="{Binding Recipient}"
+                   Classes.Dimmed="{Binding IsPreview}"
+                   Label="Recipient"
+                   CopyableContent="{Binding Recipient}">
+      <c:LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
     </c:PreviewItem>
     <Separator />
-
-    <!-- Address -->
-    <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                   Label="to the Bitcoin address">
-      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
-    </c:PreviewItem>
-    <Separator />
-
-
-    <!-- Selected coin labels -->
-    <DockPanel IsVisible="{Binding TransactionHasPockets}">
-      <Button Classes="plain"
-              Command="{Binding Parent.ChangePocketCommand}"
-              ToolTip.Tip="Control your privacy"
-              DockPanel.Dock="Right"
-              Margin="10 0"
-              IsVisible="{Binding IsOtherPocketSelectionPossible}">
-        <Viewbox Height="20">
-          <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-        </Viewbox>
-      </Button>
-      <c:PreviewItem Icon="{StaticResource incognito_pathicon}"
-                     Label="other people or companies could know about this">
-        <c:LabelsItemsPresenter Items="{Binding Labels}"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center" />
-      </c:PreviewItem>
-    </DockPanel>
-    <Separator IsVisible="{Binding TransactionHasPockets}" />
 
     <!-- Fee and confirmation time -->
     <DockPanel>
@@ -61,16 +91,8 @@
               Command="{Binding Parent.AdjustFeeCommand}"
               ToolTip.Tip="Change transaction fee or confirmation time"
               DockPanel.Dock="Right"
-              Margin="10 0">
-        <Button.IsVisible>
-          <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <MultiBinding Converter="{x:Static BoolConverters.Or}">
-              <Binding Path="Parent.AdjustFeeAvailable" />
-              <Binding Path="IsCustomFeeUsed" />
-            </MultiBinding>
-            <Binding Path="!IsPreview" />
-          </MultiBinding>
-        </Button.IsVisible>
+              Margin="10 0"
+              IsVisible="{Binding !IsPreview}">
         <Viewbox Height="20">
           <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
         </Viewbox>
@@ -78,16 +100,28 @@
 
       <StackPanel Spacing="10">
         <c:PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="your transaction should be confirmed within"
-                       IsVisible="{Binding !IsCustomFeeUsed}">
-          <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                       Label="Expected confirmation time"
+                       IsVisible="{Binding !IsCustomFeeUsed}"
+                       Classes.Dimmed="{Binding IsPreview}"
+                       ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+          <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="there will be an additional transaction fee of">
-          <TextBlock Classes="monoSpaced" Text="{Binding FeeText, FallbackValue=_ BTC (≈_ USD)}" />
+                       Label="Fee"
+                       CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+          <StackPanel Orientation="Horizontal">
+            <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
+            <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
+          </StackPanel>
+
+          <Classes.Dimmed>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsPreview" />
+              <Binding Path="!!FeeDiff" Converter="{x:Static BoolConverters.Not}" />
+            </MultiBinding>
+          </Classes.Dimmed>
         </c:PreviewItem>
       </StackPanel>
     </DockPanel>
-
   </StackPanel>
 </UserControl>

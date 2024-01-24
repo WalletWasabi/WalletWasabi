@@ -4,7 +4,7 @@ This guide is for giving detailed instructions about how to debug Wasabi Wallet 
 We will focus on how to achieve this with `vscode` first because that is the cross-platform IDE used by some of the developer team members.
 
 ## Before Starting
-We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET 6.0 SDK](https://dotnet.microsoft.com/download), and knows how to clone the repository and build the Wasabi solution.
+We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET 8.0 SDK](https://dotnet.microsoft.com/download), and knows how to clone the repository and build the Wasabi solution.
 
 
 ## Install VS Code and C# extension
@@ -45,7 +45,7 @@ This file contains the list of projects that can be launched, how to do it, what
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-client",
-      "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
+      "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net8.0/WalletWasabi.Fluent.Desktop.dll",
       "args": [],
       "cwd": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
       "stopAtEntry": false,
@@ -92,7 +92,7 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
    "type": "coreclr",
    "request": "launch",
    "preLaunchTask": "build-backend",
-   "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net6.0/WalletWasabi.Backend.dll",
+   "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net8.0/WalletWasabi.Backend.dll",
    "args": [],
    "cwd": "${workspaceFolder}/WalletWasabi.Backend",
    "stopAtEntry": false,
@@ -158,7 +158,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-client",
-            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net8.0/WalletWasabi.Fluent.Desktop.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
             "stopAtEntry": false,
@@ -172,7 +172,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-backend",
-            "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net6.0/WalletWasabi.Backend.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net8.0/WalletWasabi.Backend.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WalletWasabi.Backend",
             "stopAtEntry": false,
@@ -200,11 +200,11 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             }
         },
         {
-            "name": "Wasabi Deamon .NET Core",
+            "name": "Wasabi Daemon .NET Core",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-client",
-            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net8.0/WalletWasabi.Fluent.Desktop.dll",
             "args": [
                 "mix", "--wallet:TestNet"
             ],
@@ -300,7 +300,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
 ## Debugging code with unit tests
 
 Because `dotnet test` will run the test code in a child process, it isn't possible to configure a "unit test debugging" configuration in `launch.json`.
-You can tweak debugging options for unit tests by addind the followin setting to your local `.vscode/settings.json` file (if it doesn't exists then create it):
+You can tweak debugging options for unit tests by addind the following setting to your local `.vscode/settings.json` file (if it doesn't exists then create it):
 
 ```json
    "csharp.unitTestDebuggingOptions": {

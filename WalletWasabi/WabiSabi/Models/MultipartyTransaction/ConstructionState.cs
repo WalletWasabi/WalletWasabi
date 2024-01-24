@@ -19,6 +19,11 @@ public record ConstructionState : MultipartyTransactionState
 	{
 		var prevout = coin.TxOut;
 
+		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+		}
+
 		if (!StandardScripts.IsStandardScriptPubKey(prevout.ScriptPubKey))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardInput);
@@ -55,11 +60,6 @@ public record ConstructionState : MultipartyTransactionState
 		if (Inputs.Any(x => x.Outpoint == coin.Outpoint))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
-		}
-
-		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 		}
 
 		return this with { Events = Events.Add(new InputAdded(coin, ownershipProof)) };
@@ -107,9 +107,21 @@ public record ConstructionState : MultipartyTransactionState
 
 		if (EffectiveFeeRate < Parameters.MiningFeeRate)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}.");
+			var state = new SigningState(Parameters, Events);
+			var tx = state.CreateUnsignedTransaction();
+			var txHex = tx.ToHex();
+
+			throw new WabiSabiProtocolException(
+				WabiSabiProtocolErrorCode.InsufficientFees,
+				$"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}. RawTx: {txHex}");
 		}
 
 		return new SigningState(Parameters, Events);
 	}
+
+	public ConstructionState AsPayingForSharedOverhead() =>
+		this with
+		{
+			UnpaidSharedOverhead = 0
+		};
 }

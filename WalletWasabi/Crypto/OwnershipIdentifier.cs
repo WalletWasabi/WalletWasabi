@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using System.Linq;
+
 namespace WalletWasabi.Crypto;
 
 public class OwnershipIdentifier : IBitcoinSerializable, IEquatable<OwnershipIdentifier>
@@ -32,7 +33,7 @@ public class OwnershipIdentifier : IBitcoinSerializable, IEquatable<OwnershipIde
 
 	public void ReadWrite(BitcoinStream bitcoinStream)
 	{
-		bitcoinStream.ReadWrite(ref _bytes);
+		bitcoinStream.ReadWrite(_bytes);
 	}
 
 	public override int GetHashCode()

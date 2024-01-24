@@ -1,253 +1,194 @@
-using ReactiveUI;
 using System.Collections.Generic;
-using System.Reactive;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : WalletViewModelBase
+public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
-	private readonly double _smallLayoutHeightBreakpoint;
-	private readonly double _wideLayoutWidthBreakpoint;
-	private readonly int _smallLayoutIndex;
-	private readonly int _normalLayoutIndex;
-	private readonly int _wideLayoutIndex;
-	[AutoNotify] private IList<TileViewModel> _tiles;
-	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
-	[AutoNotify] private int _layoutIndex;
-	[AutoNotify] private double _widthSource;
-	[AutoNotify] private double _heightSource;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
+	[AutoNotify] private bool _isPointerOver;
+	[AutoNotify] private bool _isSelected;
+
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	protected WalletViewModel(Wallet wallet) : base(wallet)
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
+
+	private string _title = "";
+
+	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
-		Disposables = Disposables is null
-			? new CompositeDisposable()
-			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+		UiContext = uiContext;
+		WalletModel = walletModel;
+		Wallet = wallet;
 
-		Settings = new WalletSettingsViewModel(this);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
+		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
+		History = new HistoryViewModel(UiContext, WalletModel);
 
-		var balanceChanged =
-			Observable.FromEventPattern(
-					Wallet.TransactionProcessor,
-					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-						.Select(_ => Unit.Default))
-				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
-				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
-					.Throttle(TimeSpan.FromSeconds(0.1)))
-				.ObserveOn(RxApp.MainThreadScheduler);
+		var searchItems = CreateSearchItems();
+		this.WhenAnyValue(x => x.IsSelected)
+			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(searchItems, shouldDisplay))
+			.Subscribe();
 
-		History = new HistoryViewModel(this, balanceChanged);
+		var sendSearchItem = CreateSendItem();
+		this.WhenAnyValue(x => x.IsSendButtonVisible, x => x.IsSelected, (x, y) => x && y)
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(sendSearchItem, shouldAdd))
+			.Subscribe();
 
-		balanceChanged
-			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
-			.DisposeWith(Disposables);
+		walletModel.HasBalance
+				   .Select(x => !x)
+				   .BindTo(this, x => x.IsWalletBalanceZero);
 
-		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
-		{
-			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch
-				{
-					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase => true,
-					CompletedEventArgs _ => false,
-					_ => null
-				};
-
-			Observable
-				.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.StatusChanged))
-				.Select(args => args.EventArgs)
-				.Where(e => e.Wallet == Wallet)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => IsCoinJoining = MaybeCoinjoining(e) ?? IsCoinJoining)
-				.DisposeWith(Disposables);
-		}
-
-		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-			.Subscribe(x => IsEmptyWallet = x);
-
-		_smallLayoutHeightBreakpoint = double.MaxValue;
-		_wideLayoutWidthBreakpoint = double.MaxValue;
-
-		_smallLayoutIndex = 0;
-		_normalLayoutIndex = 1;
-		_wideLayoutIndex = 2;
-
-		Layouts = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletLayout()
-			: TileHelper.GetNormalWalletLayout();
-
-		LayoutIndex = _normalLayoutIndex;
-
-		_tiles = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
-			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
-
-		this.WhenAnyValue(x => x.LayoutIndex)
-			.Subscribe(x =>
-			{
-				SetLayoutFlag(x);
-				NotifyLayoutChanged();
-				UpdateTiles();
-			});
-
-		this.WhenAnyValue(x => x.WidthSource)
-			.Subscribe(x => LayoutSelector(x, _heightSource));
-
-		this.WhenAnyValue(x => x.HeightSource)
-			.Subscribe(x => LayoutSelector(_widthSource, x));
+		walletModel.Coinjoin.IsRunning
+			       .BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
+			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate)
+			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-				.Select(
-					tuple =>
+				.Select(tuple =>
 				{
-					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate) = tuple;
-					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate;
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !WalletModel.IsWatchOnlyWallet;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
+		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(this));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+			if (await AuthorizeForPasswordAsync())
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
-				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
-
-				if (!dialogResult.Result)
-				{
-					return;
-				}
+				Navigate().To().WalletInfo(WalletModel);
 			}
-
-			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!WalletModel.IsWatchOnlyWallet));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
+
+		Tiles = GetTiles().ToList();
+
+		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
+			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
+			.Subscribe();
+
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
+	// TODO: Remove this
+	public Wallet Wallet { get; }
 
-	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
+	public IWalletModel WalletModel { get; }
+
+	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
+
+	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
+
+	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
-	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; }
+	public CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
 
-	public WalletSettingsViewModel Settings { get; }
-
-	public ICommand SendCommand { get; }
-
-	public ICommand? BroadcastPsbtCommand { get; set; }
-
-	public ICommand ReceiveCommand { get; }
-
-	public ICommand WalletInfoCommand { get; }
-
-	public ICommand WalletSettingsCommand { get; }
-
-	public ICommand WalletStatisticsCommand { get; }
-
-	public ICommand WalletCoinsCommand { get; }
-
-	public ICommand CoinJoinSettingsCommand { get; }
-
-	private CompositeDisposable Disposables { get; }
+	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
 
-	public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
-	private void LayoutSelector(double width, double height)
+	public ICommand SendCommand { get; private set; }
+
+	public ICommand? BroadcastPsbtCommand { get; set; }
+
+	public ICommand ReceiveCommand { get; private set; }
+
+	public ICommand WalletInfoCommand { get; private set; }
+
+	public ICommand WalletSettingsCommand { get; private set; }
+
+	public ICommand WalletStatsCommand { get; private set; }
+
+	public ICommand WalletCoinsCommand { get; private set; }
+
+	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	public override string Title
 	{
-		if (height < _smallLayoutHeightBreakpoint)
-		{
-			// Small Layout
-			LayoutIndex = _smallLayoutIndex;
-		}
-		else
-		{
-			if (width < _wideLayoutWidthBreakpoint)
-			{
-				// Normal Layout
-				LayoutIndex = _normalLayoutIndex;
-			}
-			else
-			{
-				// Wide Layout
-				LayoutIndex = _wideLayoutIndex;
-			}
-		}
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
-	private void NotifyLayoutChanged()
+	private ISearchItem[] CreateSearchItems()
 	{
-		this.RaisePropertyChanged(nameof(CurrentLayout));
-	}
-
-	private void UpdateTiles()
-	{
-		if (Tiles != null)
+		return new ISearchItem[]
 		{
-			foreach (var tile in Tiles)
-			{
-				tile.TilePresetIndex = LayoutIndex;
-			}
-		}
+			new ActionableItem("Receive", "Display wallet receive dialog", () => { ReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
+			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
+			new ActionableItem("Wallet Coins", "Display wallet coins", () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 5 },
+			new ActionableItem("Wallet Stats", "Display wallet stats", () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
+			new ActionableItem("Wallet Info", "Display wallet info", () => { WalletInfoCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
+		};
 	}
 
-	private void SetLayoutFlag(int layoutIndex)
+	private ISearchItem CreateSendItem()
 	{
-		IsSmallLayout = layoutIndex == _smallLayoutIndex;
-		IsNormalLayout = layoutIndex == _normalLayoutIndex;
-		IsWideLayout = layoutIndex == _wideLayoutIndex;
+		return new ActionableItem("Send", "Display wallet send dialog", () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
 		Navigate().To(this, NavigationMode.Clear);
 
+		SelectTransaction(txid);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		History.Activate(disposables);
+
+		foreach (var tile in Tiles)
+		{
+			tile.Activate(disposables);
+		}
+
+		WalletModel.State
+				   .BindTo(this, x => x.WalletState)
+				   .DisposeWith(disposables);
+	}
+
+	public void SelectTransaction(uint256 txid)
+	{
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
 			await Task.Delay(500);
@@ -255,24 +196,25 @@ public partial class WalletViewModel : WalletViewModelBase
 		});
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		yield return new WalletBalanceTileViewModel(WalletModel.Balances);
 
-		foreach (var tile in _tiles)
+		if (!IsWatchOnly)
 		{
-			tile.Activate(disposables);
+			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
 
-		History.Activate(disposables);
+		yield return new BtcPriceTileViewModel(UiContext.AmountProvider);
 	}
 
-	public static WalletViewModel Create(Wallet wallet)
+	private async Task<bool> AuthorizeForPasswordAsync()
 	{
-		return wallet.KeyManager.IsHardwareWallet
-			? new HardwareWalletViewModel(wallet)
-			: wallet.KeyManager.IsWatchOnly
-				? new WatchOnlyWalletViewModel(wallet)
-				: new WalletViewModel(wallet);
+		if (WalletModel.Auth.HasPassword)
+		{
+			return await Navigate().To().PasswordAuthDialog(WalletModel).GetResultAsync();
+		}
+
+		return true;
 	}
 }

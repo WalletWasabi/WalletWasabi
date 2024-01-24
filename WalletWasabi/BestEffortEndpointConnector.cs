@@ -19,12 +19,15 @@ public class BestEffortEndpointConnector : IEnpointConnector
 	{
 	}
 
-	private BestEffortEndpointConnector(EffortState state)
+	private BestEffortEndpointConnector(EffortState state, NetworkCredential? networkCredential = null)
 	{
 		State = state;
+		NetworkCredential = networkCredential ?? GenerateCredentials();
 	}
 
 	public EffortState State { get; private set; }
+
+	private NetworkCredential NetworkCredential { get; }
 
 	public void UpdateConnectedNodesCounter(int connectedNodes)
 	{
@@ -33,7 +36,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 	public IEnpointConnector Clone()
 	{
-		return new BestEffortEndpointConnector(State);
+		return new BestEffortEndpointConnector(State, NetworkCredential);
 	}
 
 	public virtual async Task ConnectSocket(Socket socket, EndPoint endpoint, NodeConnectionParameters nodeConnectionParameters, CancellationToken cancellationToken)
@@ -65,7 +68,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 		if (useSocks)
 		{
-			await SocksHelper.Handshake(socket, endpoint, GenerateCredentials(), cancellationToken).ConfigureAwait(false);
+			await SocksHelper.Handshake(socket, endpoint, NetworkCredential, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -82,7 +85,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 	// attempt using the original connector.
 	public class EffortState
 	{
-		private bool _allowAnyConnetionType;
+		private bool _allowAnyConnectionType;
 
 		public EffortState(long maxNonOnionConnectionCount)
 		{
@@ -95,15 +98,15 @@ public class BestEffortEndpointConnector : IEnpointConnector
 		{
 			get
 			{
-				var allowAnyConnetionType = ConnectedNodesCount <= MaxNonOnionConnectionCount;
+				var allowAnyConnectionType = ConnectedNodesCount <= MaxNonOnionConnectionCount;
 
-				if (_allowAnyConnetionType != allowAnyConnetionType)
+				if (_allowAnyConnectionType != allowAnyConnectionType)
 				{
-					_allowAnyConnetionType = allowAnyConnetionType;
+					_allowAnyConnectionType = allowAnyConnectionType;
 					Logger.LogDebug(ToString());
 				}
 
-				return !_allowAnyConnetionType;
+				return !_allowAnyConnectionType;
 			}
 		}
 
@@ -111,7 +114,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 
 		public override string ToString()
 		{
-			return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnetionType}.";
+			return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnectionType}.";
 		}
 	}
 }

@@ -1,11 +1,14 @@
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public const int MinAnonScore = 50;
-	public const int MaxAnonScore = 101;
+	// https://github.com/zkSNACKs/WalletWasabi/pull/10468#issuecomment-1506284198
+	public const int MinAnonScore = 27;
+
+	public const int MaxAnonScore = 76;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
 	{
@@ -23,6 +26,8 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;
+
+	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.PrivacyMaximizing;
 
 	public override int FeeRateMedianTimeFrameHours => 0;
 
@@ -43,6 +48,15 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget > MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
+		return profile.AnonScoreTarget < MaxAnonScore
+			&& profile.AnonScoreTarget >= MinAnonScore
+			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
+			&& profile.RedCoinIsolation == RedCoinIsolation
+			&& profile.SkipFactors == SkipFactors;
+	}
+
+	public override int GetHashCode()
+	{
+		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation, SkipFactors);
 	}
 }

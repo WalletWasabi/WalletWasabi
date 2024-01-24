@@ -1,28 +1,18 @@
-using Avalonia;
-using Avalonia.Media;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public class PrivacyBarItemViewModel : WalletCoinViewModel
+public class PrivacyBarItemViewModel : ViewModelBase
 {
-	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin, double start, double width) : base(coin)
+	public PrivacyBarItemViewModel(PrivacyLevel privacyLevel, decimal amount)
 	{
-		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-
-		Data = new RectangleGeometry
-		{
-			Rect = new Rect((double)start, 0, (double)width, 10)
-		};
+		PrivacyLevel = privacyLevel;
+		Amount = amount;
 	}
 
-	public RectangleGeometry Data { get; }
+	public decimal Amount { get; }
 
-	public bool IsPrivate { get; }
-	public bool IsSemiPrivate { get; }
-	public bool IsNonPrivate { get; }
+	public PrivacyLevel PrivacyLevel { get; }
 }

@@ -3,11 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <i:Interaction.Behaviors>
+    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector=":is(TextBlock)">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -32,7 +37,7 @@
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
           Classes.IsActive="{Binding IsMusicBoxVisible^}"
-          TextBlock.FontFamily="{StaticResource MonospacedFont}"
+          TextElement.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
@@ -50,20 +55,11 @@
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
               <TransitioningContentControl.PageTransition>
-                <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
+                <PageSlide Duration="0:0:0.125" Orientation="Vertical" SlideInEasing="0.4,0,0.6,1" SlideOutEasing="0.4,0,0.6,1" />
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
-                <DataTemplate DataType="wallets:MusicStatusMessageViewModel">
-                  <TextBlock Text="{Binding Message}">
-                    <TextBlock.OpacityMask>
-                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
-                        <LinearGradientBrush.GradientStops>
-                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
-                          <GradientStop Color="#FFFFFFFF" Offset="1" />
-                        </LinearGradientBrush.GradientStops>
-                      </LinearGradientBrush>
-                    </TextBlock.OpacityMask>
-                  </TextBlock>
+                <DataTemplate DataType="x:String">
+                  <TextBlock Text="{Binding .}" />
                 </DataTemplate>
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
@@ -78,8 +74,8 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding ElapsedTime}" />
-              <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
+              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
 

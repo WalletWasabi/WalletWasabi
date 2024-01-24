@@ -2,21 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-
-  <i:Interaction.Behaviors>
-    <behaviors:NavBarSelectedIndicatorParentBehavior />
-  </i:Interaction.Behaviors>
   <UserControl.Styles>
 
     <Style Selector="Separator">
@@ -26,35 +21,49 @@
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
     </Style>
 
-    <Style Selector="ListBox">
-      <Setter Property="Margin" Value="0" />
-      <Setter Property="Background" Value="Transparent" />
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+      <Setter Property="Width" Value="75" />
+      <Setter Property="Height" Value="58" />
+      <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel" x:DataType="vmw:WalletViewModelBase">
-      <Setter Property="Width" Value="52" />
-      <Setter Property="Height" Value="36" />
-      <Setter Property="Background" Value="Transparent" />
+    <Style Selector="c|NavBarItem StackPanel">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Spacing" Value="2" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel">
-      <Setter Property="Background" Value="Transparent" />
+    <Style Selector="c|NavBarItem StackPanel c|FadeOutTextControl">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > PathIcon">
+    <Style Selector="c|NavBarItem StackPanel PathIcon" x:CompileBindings="False">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
-      <Setter Property="Background" Value="Transparent" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets Ellipse">
+    <Style Selector="c|NavBarItem StackPanel LayoutTransformControl">
+      <Setter Property="LayoutTransform" Value="scaleY(1)" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Ellipse.loadingindicator">
       <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Width" Value="8" />
       <Setter Property="Height" Value="8" />
-      <Setter Property="Margin" Value="0,-5,-5,0" />
+      <Setter Property="Margin" Value="6" />
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="Opacity" Value="0" />
@@ -65,11 +74,11 @@
       </Setter>
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets Ellipse:not(.isLoading).isLoggedIn">
+    <Style Selector="Ellipse:not(.isLoading).isLoggedIn">
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets Ellipse.isLoading.isLoggedIn">
+    <Style Selector="Ellipse.isLoading.isLoggedIn">
       <Style.Animations>
         <Animation IterationCount="Infinite" Duration="0:0:1">
           <KeyFrame Cue="50%">
@@ -79,98 +88,110 @@
       </Style.Animations>
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets Ellipse.isLoggedIn.isCoinjoining">
+    <Style Selector="Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
-      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="ClipToBounds" Value="False"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
-      <Setter Property="LayoutTransform" Value="scaleY(1)" />
-      <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="-9, 0" />
-      <Setter Property="Transitions">
-        <Transitions>
-          <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
-          <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
-        </Transitions>
-      </Setter>
+    <!-- Selected State -->
+    <Style Selector="c|NavBarItem.selected /template/ Border#SelectionBackground">
+      <Setter Property="Opacity" Value="0.1" />
     </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center" />
-      <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
-    </Style>
-
-    <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
+    <Style Selector="c|NavBarItem.selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
-
-    <Style Selector="c|NavBarItem PathIcon" x:CompileBindings="False">
-      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    <Style Selector="c|NavBarItem.selected PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
-      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    <!-- Selected PointerOver State -->
+    <Style Selector="c|NavBarItem.selected:pointerover /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
+    </Style>
+
+    <!-- Selected Pressed State -->
+    <Style Selector="c|NavBarItem.selected:pressed /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
     </Style>
 
   </UserControl.Styles>
 
-  <DockPanel Margin="0 -5 0 5">
-    <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
-      <c:NavBarListBox Items="{Binding BottomItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="BottomListBox"
-                       Classes="vertical narrowItemPadding"
-                       VerticalAlignment="Stretch">
-        <c:NavBarListBox.ItemsPanel>
-          <ItemsPanelTemplate>
-            <ReversibleStackPanel ReverseOrder="True" />
-          </ItemsPanelTemplate>
-        </c:NavBarListBox.ItemsPanel>
-        <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities"
-                   Cursor="Hand">
-              <DockPanel>
-                <LayoutTransformControl DockPanel.Dock="Bottom">
-                  <c:FadeOutTextBlock Text="{Binding Title}" />
-                </LayoutTransformControl>
-                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
-              </DockPanel>
-            </Panel>
-          </DataTemplate>
-        </c:NavBarListBox.DataTemplates>
-      </c:NavBarListBox>
-    </DockPanel>
+  <DockPanel Margin="0 0 0 5">
+    <!-- Bottom items -->
+    <ItemsControl ItemsSource="{Binding BottomItems}"
+                  DockPanel.Dock="Bottom">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <ReversibleStackPanel ReverseOrder="True" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.DataTemplates>
+        <DataTemplate DataType="vm:NavBarItemViewModel">
+          <c:NavBarItem Command="{Binding OpenCommand}">
+            <StackPanel>
+              <PathIcon Classes="new size24" />
+              <LayoutTransformControl>
+                <c:FadeOutTextControl Text="{Binding Title}" />
+              </LayoutTransformControl>
+            </StackPanel>
+          </c:NavBarItem>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+
+    <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
+
     <!-- Wallet List -->
-    <DockPanel Background="Transparent">
-      <c:NavBarListBox Items="{Binding Wallets}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       ReSelectSelectedItem="False"
-                       Name="ItemsListBox"
-                       Classes="vertical draggable narrowItemPadding"
-                       VerticalAlignment="Stretch">
-        <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand" ClipToBounds="False">
-              <Ellipse Classes.isLoading="{Binding IsLoading}"
-                       Classes.isLoggedIn="{Binding IsLoggedIn}"
-                       Classes.isCoinjoining="{Binding IsCoinJoining}" />
-              <DockPanel>
-                <LayoutTransformControl DockPanel.Dock="Bottom">
-                  <c:FadeOutTextBlock Text="{Binding Title}" />
-                </LayoutTransformControl>
-                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
-              </DockPanel>
-            </Panel>
+    <DockPanel MaxWidth="75" LastChildFill="True">
+      <ListBox ItemsSource="{Binding Wallets}"
+               SelectedItem="{Binding SelectedWallet}"
+               Background="Transparent"
+               behaviors:SelectingItemsControlBehavior.EnableSelectionAnimation="True">
+        <Interaction.Behaviors>
+          <behaviors:ListBoxReselectingBehavior />
+        </Interaction.Behaviors>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.DataTemplates>
+          <DataTemplate DataType="vmw:WalletPageViewModel">
+            <c:NavBarItem Classes.selected="{Binding IsSelected}">
+              <ToolTip.Tip>
+                <StackPanel>
+                  <TextBlock Text="{Binding Title}" />
+                </StackPanel>
+              </ToolTip.Tip>
+              <Panel>
+                <Ellipse Classes="loadingindicator"
+                         Classes.isLoading="{Binding IsLoading}"
+                         Classes.isLoggedIn="{Binding IsLoggedIn}"
+                         Classes.isCoinjoining="{Binding WalletViewModel.IsCoinJoining}" />
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                  <PathIcon Classes="new size24 wallet"
+                            Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
+                  <LayoutTransformControl>
+                    <c:FadeOutTextControl Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
+                  </LayoutTransformControl>
+                </StackPanel>
+              </Panel>
+            </c:NavBarItem>
           </DataTemplate>
-        </c:NavBarListBox.DataTemplates>
-      </c:NavBarListBox>
+        </ListBox.DataTemplates>
+      </ListBox>
     </DockPanel>
   </DockPanel>
 </UserControl>

@@ -1,14 +1,16 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:model="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
+             xmlns:viewmodel="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="50"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
              x:CompileBindings="True"
-             x:DataType="historyItems:HistoryItemViewModelBase">
-  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+             x:DataType="viewmodel:HistoryItemViewModelBase">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="10 0">
 
     <Panel Background="Transparent">
       <Button Classes="plain" ToolTip.Tip="Show Details"
@@ -18,23 +20,31 @@
       </Button>
     </Panel>
 
-    <Panel>
-      <!-- Confirmed -->
-      <PathIcon IsVisible="{Binding IsConfirmed}"
-                Data="{StaticResource checkmark_filled}"
-                Height="11"
-                Opacity="0.6"
-                ToolTip.Tip="{Binding ConfirmedToolTip}" />
-      <!-- Pending -->
-      <PathIcon IsVisible="{Binding !IsConfirmed}"
-                Data="{StaticResource clock_regular}"
-                Height="14"
-                Opacity="0.6"
-                ToolTip.Tip="Pending" />
-    </Panel>
+    <!--First icon (Confirmation Status) -->
+    <PathIcon Classes.Confirmed="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Confirmed}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+              Classes.Pending="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Pending}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+              Classes.SpeedUp="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.SpeedUp}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+              ToolTip.Tip="{Binding Transaction.ConfirmedTooltip}"
+              Opacity="0.6">
+      <PathIcon.Styles>
+        <Style Selector="PathIcon.Confirmed">
+          <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
+          <Setter Property="Height" Value="11" />
+        </Style>
+        <Style Selector="PathIcon.Pending">
+          <Setter Property="Data" Value="{StaticResource clock_regular}" />
+          <Setter Property="Height" Value="14" />
+        </Style>
+        <Style Selector="PathIcon.SpeedUp">
+          <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+          <Setter Property="Height" Value="14" />
+        </Style>
+      </PathIcon.Styles>
+    </PathIcon>
 
-    <!-- Type -->
-    <c:PrivacyContentControl PrivacyReplacementMode="Icon">
+    <!-- Second icon (Transaction Type) -->
+    <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
+    <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="True">
       <c:PrivacyContentControl.Styles>
         <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
           <Setter Property="Opacity" Value="0.6" />
@@ -42,13 +52,53 @@
           <Setter Property="Margin" Value="0" />
         </Style>
       </c:PrivacyContentControl.Styles>
-      <Panel>
-        <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
-                  IsVisible="{Binding !IsCoinJoin}" />
-        <PathIcon ToolTip.Tip="Coinjoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
-                  IsVisible="{Binding IsCoinJoin}" />
+      <Panel Height="15">
+        <PathIcon Opacity="0.6"
+                  Classes.IncomingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.IncomingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.OutgoingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.OutgoingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.SelfTransfer="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.SelfTransferTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.Coinjoin="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Coinjoin}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.Cancellation="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Cancellation}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.CoinjoinGroup="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CoinjoinGroup}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.CPFP="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CPFP}, Converter={x:Static converters:EnumToBoolConverter.Instance}}">
+          <PathIcon.Styles>
+            <Style Selector="PathIcon.IncomingTransaction">
+              <Setter Property="Data" Value="{StaticResource incoming_arrow}" />
+              <Setter Property="Height" Value="13" />
+              <Setter Property="ToolTip.Tip" Value="Incoming" />
+            </Style>
+            <Style Selector="PathIcon.OutgoingTransaction">
+              <Setter Property="Data" Value="{StaticResource outgoing_arrow}" />
+              <Setter Property="Height" Value="13" />
+              <Setter Property="ToolTip.Tip" Value="Outgoing" />
+            </Style>
+            <Style Selector="PathIcon.SelfTransfer">
+              <Setter Property="Data" Value="{StaticResource normal_transaction}" />
+              <Setter Property="ToolTip.Tip" Value="Self Transfer" />
+            </Style>
+            <Style Selector="PathIcon.Coinjoin">
+              <Setter Property="Data" Value="{StaticResource shield_regular}" />
+              <Setter Property="Height" Value="15" />
+              <Setter Property="ToolTip.Tip" Value="Coinjoin" />
+            </Style>
+            <Style Selector="PathIcon.CoinjoinGroup">
+              <Setter Property="Data" Value="{StaticResource double_shield_regular}" />
+              <Setter Property="Height" Value="15" />
+              <Setter Property="ToolTip.Tip" Value="Coinjoins" />
+            </Style>
+            <Style Selector="PathIcon.Cancellation">
+              <Setter Property="Data" Value="{StaticResource cancel_regular}" />
+              <Setter Property="Height" Value="15" />
+              <Setter Property="ToolTip.Tip" Value="Cancellation" />
+            </Style>
+            <Style Selector="PathIcon.CPFP">
+              <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+              <Setter Property="Height" Value="14" />
+              <Setter Property="ToolTip.Tip" Value="Accelerator" />
+            </Style>
+          </PathIcon.Styles>
+        </PathIcon>
       </Panel>
     </c:PrivacyContentControl>
-
   </StackPanel>
 </UserControl>

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,19 +9,23 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NBitcoin;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.BitcoinCore.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -55,13 +60,17 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<Arena>();
 			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
-			services.AddScoped<Prison>();
+			services.AddScoped<Prison>(_ => WabiSabiFactory.CreatePrison());
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
+			services.AddHttpClient();
+			services.AddSingleton<AffiliationManager>();
+			services.AddSingleton<CoinJoinMempoolManager>();
+			services.AddSingleton(s => new MempoolMirror(TimeSpan.Zero, null!, null!));
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
@@ -76,15 +85,14 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	{
 		var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
-		var insecureRandom = new InsecureRandom();
 		var arenaClient = new ArenaClient(
-			round.CreateAmountCredentialClient(insecureRandom),
-			round.CreateVsizeCredentialClient(insecureRandom),
+			round.CreateAmountCredentialClient(InsecureRandom.Instance),
+			round.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new HttpClientWrapper(httpClient));
+		new(new ClearnetHttpClient(httpClient));
 }

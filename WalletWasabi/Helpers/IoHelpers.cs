@@ -1,10 +1,11 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace System.IO;
+namespace WalletWasabi.Helpers;
 
 public static class IoHelpers
 {
@@ -62,13 +63,15 @@ public static class IoHelpers
 	}
 
 	/// <summary>
-	/// It's like Directory.CreateDirectory, but does not fail when root is given.
+	/// Makes sure that directory <paramref name="dir"/> is created if it does not exist.
 	/// </summary>
+	/// <remarks>Method does not throw exceptions unless provided directory path is invalid.</remarks>
 	public static void EnsureDirectoryExists(string? dir)
 	{
-		if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
+		// If root is given, then do not worry.
+		if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
 		{
-			Directory.CreateDirectory(dir); // It does not fail if it exists.
+			_ = Directory.CreateDirectory(dir);
 		}
 	}
 
@@ -86,16 +89,21 @@ public static class IoHelpers
 	{
 		if (Directory.Exists(dirPath))
 		{
-			using var process = Process.Start(new ProcessStartInfo
+			// RuntimeInformation.OSDescription on WSL2 reports a string like:
+			// 'Linux 5.10.102.1-microsoft-standard-WSL2 #1 SMP Wed Mar 2 00:30:59 UTC 2022'
+			if (!RuntimeInformation.OSDescription.ToString(CultureInfo.InvariantCulture).Contains("WSL2"))
 			{
-				FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					? "explorer.exe"
-					: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-						? "open"
-						: "xdg-open"),
-				Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
-				CreateNoWindow = true
-			});
+				using var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+						? "explorer.exe"
+						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? "open"
+							: "xdg-open"),
+					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
+					CreateNoWindow = true
+				});
+			}
 		}
 	}
 

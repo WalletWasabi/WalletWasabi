@@ -1,7 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -84,7 +86,7 @@ public class MultipartyTransactionStateTests
 		Round roundLargest = new(parameters, SecureRandom.Instance);
 
 		// First Round is the largest.
-		Assert.Equal(Money.Coins(1343.75m), roundLargest.Parameters.MaxSuggestedAmount);
+		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), roundLargest.Parameters.MaxSuggestedAmount);
 
 		// Simulate 63 successful rounds.
 		Dictionary<Money, int> histogram = new();
@@ -96,18 +98,18 @@ public class MultipartyTransactionStateTests
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
 
-			if (!histogram.ContainsKey(maxSuggested))
+			if (!histogram.TryGetValue(maxSuggested, out int value))
 			{
 				histogram.Add(maxSuggested, 1);
 			}
 			else
 			{
-				histogram[maxSuggested]++;
+				histogram[maxSuggested] = value + 1;
 			}
 		}
 
 		// Check the distribution of MaxSuggestedAmounts.
-		Assert.Equal(1, histogram[Money.Coins(1343.75m)]);
+		Assert.Equal(1, histogram[Money.Coins(10_000)]);
 		Assert.Equal(2, histogram[Money.Coins(1000)]);
 		Assert.Equal(4, histogram[Money.Coins(100)]);
 		Assert.Equal(8, histogram[Money.Coins(10)]);
@@ -118,12 +120,12 @@ public class MultipartyTransactionStateTests
 		for (int i = 0; i < 2; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, false);
-			Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+			Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		}
 
 		// Finally one successful round.
 		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
-		Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 		Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);

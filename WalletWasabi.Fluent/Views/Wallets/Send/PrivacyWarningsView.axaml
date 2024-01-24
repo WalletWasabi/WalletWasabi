@@ -1,0 +1,301 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView"
+             x:DataType="send:PrivacySuggestionsFlyoutViewModel"
+             x:CompileBindings="True">
+  <UserControl.Styles>
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style
+      Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="MaxHeight" Value="150" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#14FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
+
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="c|SuggestionItem > DockPanel > PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Margin" Value="0 0 10 0" />
+      <Setter Property="DockPanel.Dock" Value="Left" />
+      <Setter Property="Height" Value="25" />
+      <Setter Property="Width" Value="25" />
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <Style Selector="Border.warning">
+      <Setter Property="Height" Value="38" />
+      <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
+      <Setter Property="Padding" Value="5" />
+      <Setter Property="Margin" Value="5 0 5 5" />
+    </Style>
+
+    <Style Selector="Border.warning PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Margin" Value="5 5 10 5" />
+      <Setter Property="Data" Value="{StaticResource warning_regular}" />
+      <Setter Property="DockPanel.Dock" Value="Left" />
+    </Style>
+
+    <Style Selector="Border.warning.critical PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+    </Style>
+
+    <Style Selector="Border.warning.info PathIcon">
+      <Setter Property="Data" Value="{StaticResource info_regular}" />
+    </Style>
+
+    <Style Selector="Border.warning TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="StackPanel.suggestion">
+      <Setter Property="Spacing" Value="2" />
+    </Style>
+    <Style Selector="TextBlock.title">
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH7}" />
+    </Style>
+    <Style Selector="StackPanel.description">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="5" />
+    </Style>
+    <Style Selector="StackPanel.description TextBlock">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH7}" />
+    </Style>
+  </UserControl.Styles>
+  <StackPanel>
+    <ItemsControl ItemsSource="{Binding Warnings}">
+      <ItemsControl.DataTemplates>
+        <!-- Interlinks Labels Warning -->
+        <DataTemplate DataType="{x:Type model:InterlinksLabelsWarning}">
+          <Border Classes="warning critical">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
+              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Transaction Known as Yours By Warning -->
+        <DataTemplate DataType="{x:Type model:TransactionKnownAsYoursByWarning}">
+          <Border Classes="warning critical">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
+                         ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
+              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Non-private funds Warning -->
+        <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
+          <Border Classes="warning critical">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses non-private coins."
+                         ToolTip.Tip="Some entities can deanonymize this transaction because it spends coins with no privacy. Coinjoin more to have enough private coins for this transaction." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Semi-private funds Warning -->
+        <DataTemplate DataType="{x:Type model:SemiPrivateFundsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses semi-private coins."
+                         ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have enough private coins for this transaction." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Creates change warning -->
+        <DataTemplate DataType="{x:Type model:CreatesChangeWarning}">
+          <Border Classes="warning info">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction creates change."
+                         ToolTip.Tip="Change can be used to link this transaction with the next transaction that will use it. Use the change avoidance suggestion to send a little more or less if this is OK for the receiver, or coinjoin the change later." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Consolidation warning -->
+        <DataTemplate DataType="{x:Type model:ConsolidationWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}"
+                         ToolTip.Tip="This might reduce the privacy of your transaction." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Unconfirmed funds warning -->
+        <DataTemplate DataType="{x:Type model:UnconfirmedFundsWarning}">
+          <Border Classes="warning info">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses unconfirmed coins."
+                         ToolTip.Tip="This may cause your transaction to be rejected, or delay its confirmation, or cost more than needed to get it confirmed within the desired time. Wait for a confirmation to only use confirmed coins." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Coinjoining funds warning -->
+        <DataTemplate DataType="{x:Type model:CoinjoiningFundsWarning}">
+          <Border Classes="warning info">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction uses coinjoining coins."
+                         ToolTip.Tip="This may cause your transaction to be replaced by the coinjoin. Consider waiting for the current coinjoin to be finished before sending this transaction." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+    <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
+               Margin="0 10 0 5"
+               IsVisible="{Binding !!Suggestions.Count}" />
+    <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+      <i:Interaction.Behaviors>
+        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
+      </i:Interaction.Behaviors>
+      <ListBox.DataTemplates>
+
+        <!-- Label Management Suggestion -->
+        <DataTemplate DataType="{x:Type model:LabelManagementSuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource entities_edit_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Label Management" Classes="title" />
+                <StackPanel Classes="description">
+                  <TextBlock Text="Choose labels to link with this transaction." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Full Privacy Suggestion-->
+        <DataTemplate DataType="{x:Type model:FullPrivacySuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource shield_tick_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Full Privacy" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to use only private coins." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Better Privacy Suggestion-->
+        <DataTemplate DataType="{x:Type model:BetterPrivacySuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <PathIcon Data="{StaticResource shield_regular}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Better Privacy" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to avoid non-private coins." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+
+        <!-- Change Avoidance Suggestion -->
+        <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
+          <c:SuggestionItem>
+            <DockPanel>
+              <DockPanel.Styles>
+                <Style Selector="PathIcon">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_equal}" />
+                </Style>
+                <Style Selector="PathIcon.more">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_more}" />
+                </Style>
+                <Style Selector="PathIcon.less">
+                  <Setter Property="Data" Value="{StaticResource change_avoidance_less}" />
+                </Style>
+              </DockPanel.Styles>
+              <PathIcon Classes.more="{Binding IsMore}"
+                        Classes.less="{Binding IsLess}" />
+              <StackPanel Classes="suggestion">
+                <TextBlock Text="Change Avoidance" Classes="title" />
+                <StackPanel Orientation="Horizontal" Classes="description">
+                  <TextBlock Text="Send" />
+                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="to remove change." />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
+
+    <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
+      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
+    </Viewbox>
+  </StackPanel>
+</UserControl>

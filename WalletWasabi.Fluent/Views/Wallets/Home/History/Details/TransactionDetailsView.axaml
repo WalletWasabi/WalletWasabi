@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:dt="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History.Details"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -11,27 +13,72 @@
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
+
     <StackPanel Spacing="15">
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date / Time"
-                     TextValue="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}">
-        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}" Classes="monoSpaced" />
+                     CopyableContent="{Binding DateString, Mode=OneWay}">
+        <TextBlock Text="{Binding DateString, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
 
       <Separator />
 
       <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Amount"
-                     TextValue="{Binding Amount}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="9">
-          <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+                     Label="{Binding AmountText}"
+                     CopyableContent="{Binding Amount.Btc}">
+        <c:PrivacyContentControl>
+          <c:AmountControl Amount="{Binding Amount}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
       <Separator />
+
+      <!-- Destination Address -->
+      <c:PreviewItem Name="DestinationSection" Icon="{StaticResource transceive_regular}" CopyableContent="{Binding SingleAddress}"
+                     Label="Destination addresses" IsVisible="{Binding !!DestinationAddresses.Count}">
+        <ItemsControl ItemsSource="{Binding DestinationAddresses}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem CopyableContent="{Binding}"
+                             IsCopyButtonEnabled="{Binding #DestinationSection.CopyableContent, Converter={x:Static ObjectConverters.IsNull}}"
+                             HorizontalAlignment="Stretch">
+                <c:PrivacyContentControl>
+                  <TextBlock Classes="monoSpaced" Text="{Binding}" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding !!DestinationAddresses.Count}" />
+
+      <!-- Fee -->
+      <c:PreviewItem IsVisible="{Binding IsFeeVisible}"
+                     Icon="{StaticResource paper_cash_regular}"
+                     Label="Fee"
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <c:PrivacyContentControl>
+          <c:AmountControl Classes="Fee" Amount="{Binding Fee}" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding IsFeeVisible}" />
+
+      <!-- Fee Rate-->
+      <c:PreviewItem IsVisible="{Binding !!FeeRate}"
+                     Icon="{StaticResource paper_cash_regular}"
+                     Label="Fee Rate"
+                     CopyableContent="{Binding FeeRate.SatoshiPerByte}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:F1} sat/vByte'}" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding !!FeeRate}" />
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
@@ -47,21 +94,33 @@
 
       <Separator />
 
+      <!-- Confirmation Time -->
+      <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
+                     Icon="{StaticResource timer_regular}"
+                     Label="Expected confirmation time"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
+
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID"
-                     TextValue="{Binding TransactionId}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                     CopyableContent="{Binding TransactionId}">
+        <c:PrivacyContentControl>
           <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-      <Separator />
+      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Block hash -->
       <c:PreviewItem Icon="{StaticResource block_id}"
                      Label="Block hash"
-                     TextValue="{Binding BlockHash}"
+                     CopyableContent="{Binding BlockHash}"
                      IsVisible="{Binding IsConfirmed}">
         <TextBlock Text="{Binding BlockHash}" />
       </c:PreviewItem>
@@ -70,18 +129,19 @@
       <!-- Block height -->
       <c:PreviewItem Icon="{StaticResource block_height}"
                      Label="Block height"
-                     TextValue="{Binding BlockHeight}"
+                     CopyableContent="{Binding BlockHeight}"
                      IsVisible="{Binding IsConfirmed}">
         <TextBlock Text="{Binding BlockHeight}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Labels -->
-      <c:PreviewItem Icon="{StaticResource entities_regular}"
+      <Separator IsVisible="{Binding IsLabelsVisible}" />
+      <c:PreviewItem IsVisible="{Binding IsLabelsVisible}"
+                     Icon="{StaticResource entities_regular}"
                      Label="Labels"
-                     TextValue="{Binding Labels}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="20">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+                     CopyableContent="{Binding Labels}">
+        <c:PrivacyContentControl VerticalContentAlignment="Center">
+          <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
     </StackPanel>

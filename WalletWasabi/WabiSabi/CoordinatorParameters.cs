@@ -1,4 +1,5 @@
 using System.IO;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.WabiSabi;
@@ -12,7 +13,7 @@ public class CoordinatorParameters
 
 		var runtimeConfigurationFilePath = Path.Combine(ApplicationDataDir, "WabiSabiConfig.json");
 		RuntimeCoordinatorConfig = new(runtimeConfigurationFilePath);
-		RuntimeCoordinatorConfig.LoadOrCreateDefaultFile();
+		RuntimeCoordinatorConfig.LoadFile(createIfMissing: true);
 	}
 
 	/// <summary>
@@ -57,11 +58,6 @@ public class CoordinatorParameters
 	/// Set how often changes in the configuration file should be monitored.
 	/// </summary>
 	public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(7);
-
-	/// <summary>
-	/// How often should UTXOs be serialized and released from prison.
-	/// </summary>
-	public TimeSpan UtxoWardenPeriod { get; init; } = TimeSpan.FromSeconds(7);
 
 	/// <summary>
 	/// How often should rounds be stepped.

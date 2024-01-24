@@ -1,7 +1,7 @@
 # Security Policy
 
-Feel free to report a vulnerability as a GitHub issue only if the vulnerability you found does not compromise users' privacy or security.  
-If it does, then pay great care to responsible disclosure. Send an email to adam.ficsor73@gmail.com, preferably using PGP encryption: 
+If a vulnerability does not compromise users' privacy or security, open a [regular GitHub issue](https://github.com/zkSNACKs/WalletWasabi/issues/new/choose).
+If it does, then pay great care to responsible disclosure. Either send an email to adam.ficsor73@gmail.com, preferably using PGP encryption; or report a [private vulnerability on GitHub](https://github.com/zkSNACKs/WalletWasabi/security/advisories/new).
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----

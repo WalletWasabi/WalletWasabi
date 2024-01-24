@@ -6,7 +6,8 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             mc:Ignorable="d"
+             d:DesignWidth="720" d:DesignHeight="480"
              x:CompileBindings="True"
              x:DataType="vm:TermsAndConditionsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
@@ -31,13 +32,7 @@
           </Button>
         </StackPanel>
       </CheckBox>
-      <Viewbox MaxHeight="300">
-        <Image>
-          <Image.Source>
-            <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}" />
-          </Image.Source>
-        </Image>
-      </Viewbox>
+      <Image Source="{DynamicResource legal_checked_graphic}" MaxHeight="300" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>

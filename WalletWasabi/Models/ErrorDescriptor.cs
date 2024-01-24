@@ -1,6 +1,6 @@
 namespace WalletWasabi.Models;
 
-public struct ErrorDescriptor : IEquatable<ErrorDescriptor>
+public readonly struct ErrorDescriptor : IEquatable<ErrorDescriptor>
 {
 	public ErrorDescriptor(ErrorSeverity severity, string message)
 	{

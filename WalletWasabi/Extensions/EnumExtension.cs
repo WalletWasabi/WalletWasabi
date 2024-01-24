@@ -9,14 +9,12 @@ public static class EnumExtensions
 	{
 		var stringValue = value.ToString();
 		var type = value.GetType();
-		var memberInfo =
-			type.GetMember(stringValue)
-				.FirstOrDefault()
-				?? throw new InvalidOperationException($"Enum of type '{typeof(T).FullName}' does not contain value '{stringValue}'");
+		var memberInfo = type.GetMember(stringValue).FirstOrDefault()
+			?? throw new InvalidOperationException($"Enum of type '{typeof(T).FullName}' does not contain value '{stringValue}'");
 
 		var attributes = memberInfo.GetCustomAttributes(typeof(T), false);
 
-		return attributes.Any() ? (T)attributes[0] : null;
+		return attributes.Length != 0 ? (T)attributes[0] : null;
 	}
 
 	public static string FriendlyName(this Enum value)

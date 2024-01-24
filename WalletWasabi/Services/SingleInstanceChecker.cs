@@ -6,14 +6,25 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
+
+public enum WasabiInstanceStatus
+{
+	Error,
+	AnotherInstanceIsRunning,
+	NoOtherInstanceIsRunning,
+}
 
 public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 {
 	private const string WasabiMagicString = "InBitcoinWeTrust";
 	public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(2);
+
+	/// <summary>Multiplier to be applied to all timeouts in this class.</summary>
+	private readonly int _timeoutMultiplier;
 
 	/// <summary>
 	/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
@@ -27,26 +38,44 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// <summary>
 	/// Use this constructor only for testing.
 	/// </summary>
-	public SingleInstanceChecker(int port)
+	/// <param name="timeoutMultiplier">Used for multiplying all specified timeouts. For CI testing purposes only.</param>
+	public SingleInstanceChecker(int port, int timeoutMultiplier = 1)
 	{
 		Port = port;
+		_timeoutMultiplier = timeoutMultiplier;
 	}
+
+	public event EventHandler? OtherInstanceStarted;
 
 	private int Port { get; }
 
 	private CancellationTokenSource DisposeCts { get; } = new();
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
 
-	public event EventHandler? OtherInstanceStarted;
+	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync()
+	{
+		// Start single instance checker that is active over the lifetime of the application.
+		try
+		{
+			var singleInstanceResult = await CanRunAsSingleInstanceAsync().ConfigureAwait(false);
+			return singleInstanceResult
+				? WasabiInstanceStatus.NoOtherInstanceIsRunning
+				: WasabiInstanceStatus.AnotherInstanceIsRunning;
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
+			return WasabiInstanceStatus.Error;
+		}
+	}
 
 	/// <summary>
-	/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
-	/// we try to signal the first instance before throwing the exception.
-	/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
+	/// This function verifies whether is the only instance running on this machine or not. In case of secondary start
+	/// we try to signal the first instance before returning false.
+	/// On macOS this function will never fail if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 	/// </summary>
-	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
-	/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
-	public async Task EnsureSingleOrThrowAsync()
+	/// <returns>true if this is the only instance running; otherwise false.</returns>
+	private async Task<bool> CanRunAsSingleInstanceAsync()
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
@@ -61,10 +90,10 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// Wait for the result of TcpListener.Start().
-			await TaskStartTcpListener.Task.WithAwaitCancellationAsync(DisposeCts.Token).ConfigureAwait(false);
+			await TaskStartTcpListener.Task.WaitAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// This is the first instance, nothing else to do.
-			return;
+			return true;
 		}
 		catch (SocketException ex) when (ex.ErrorCode is 10048 or 48 or 98)
 		{
@@ -73,37 +102,29 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			Logger.LogDebug("Another Wasabi instance is already running.");
 		}
 
-		try
+		// Signal to the other instance, that there was an attempt to start the software.
+		using TcpClient client = new()
 		{
-			// Signal to the other instance, that there was an attempt to start the software.
-			using TcpClient client = new()
-			{
-				NoDelay = true
-			};
+			NoDelay = true
+		};
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
-			using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(_timeoutMultiplier * 10));
+		using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
-			await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
+		await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-			await using NetworkStream networkStream = client.GetStream();
-			networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
-			await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+		await using NetworkStream networkStream = client.GetStream();
+		networkStream.WriteTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds * 2;
+		await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-			await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
-			await writer.FlushAsync().ConfigureAwait(false);
-			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
-			// I was able to signal to the other instance successfully so just continue.
-		}
-		catch (Exception ex)
-		{
-			// Do not log anything here as the first instance is writing the Log at this time.
-			throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled, reason: '{ex}'");
-		}
+		await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
+		await writer.FlushAsync().ConfigureAwait(false);
+		await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 
-		throw new OperationCanceledException($"Wasabi is already running, signaled the first instance.");
+		// I was able to signal to the other instance successfully so just continue.
+		return false;
 	}
 
 	private static int NetworkToPort(Network network) => network switch
@@ -116,12 +137,8 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var task = TaskStartTcpListener;
-		if (task is null)
-		{
-			throw new InvalidOperationException("This should never happen!");
-		}
-
+		var task = TaskStartTcpListener
+			?? throw new InvalidOperationException("This should never happen!");
 		TcpListener? listener = null;
 		try
 		{
@@ -138,7 +155,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
-				// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus canceling it.
+				// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
 				using var client = await listener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
 				client.ReceiveBufferSize = 1000;
 				try
@@ -147,14 +164,15 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 					await using NetworkStream networkStream = client.GetStream();
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-					networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
+					networkStream.ReadTimeout = _timeoutMultiplier * (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
+
 					// Make sure the client will be disconnected.
-					using CancellationTokenSource timeOutCts = new(ClientTimeOut);
+					using CancellationTokenSource timeOutCts = new(_timeoutMultiplier * ClientTimeOut);
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
 					// The read operation cancellation will happen on reader disposal.
-					string answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
+					string answer = await reader.ReadToEndAsync(cts.Token).ConfigureAwait(false);
 					if (answer == WasabiMagicString)
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");
@@ -195,7 +213,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		DisposeCts.Cancel();
 
 		// Stopping the execution task and wait until it finishes.
-		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(_timeoutMultiplier * 20));
 
 		// This is added because Dispose is called from the Main and Main cannot be an async function.
 		while (!ExecuteTask.IsCompleted)

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.BitcoinCore;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
@@ -50,17 +49,12 @@ public class RegTestFixture : IDisposable
 		config.SetFilePath(configFilePath);
 		config.ToFile();
 
-		var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-		var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
-		roundConfig.SetFilePath(roundConfigFilePath);
-		roundConfig.ToFile();
-
 		var conf = new ConfigurationBuilder()
-			.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
+			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetBackendDir) })
 			.Build();
 		BackendEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
 		BackendEndPointUri = new Uri(BackendEndPoint);
-		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{Constants.BackendMajorVersion}/");
+		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"api/v{Constants.BackendMajorVersion}/");
 
 		BackendHost = Host.CreateDefaultBuilder()
 				.ConfigureWebHostDefaults(webBuilder => webBuilder
@@ -96,8 +90,8 @@ public class RegTestFixture : IDisposable
 	/// <summary>URI in form: <c>http://localhost:RANDOM_PORT/api/vAPI_VERSION</c>.</summary>
 	public Uri BackendEndPointApiUri { get; }
 
-	public IHost BackendHost { get; internal set; }
-	public CoreNode BackendRegTestNode { get; internal set; }
+	public IHost BackendHost { get; }
+	public CoreNode BackendRegTestNode { get; }
 	public Global Global { get; }
 
 	/// <summary>Underlying HTTP client to be used by <see cref="ClearnetHttpClient"/>.</summary>
@@ -106,50 +100,15 @@ public class RegTestFixture : IDisposable
 	/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
 	public ClearnetHttpClient BackendHttpClient { get; }
 
-	public static CoordinatorRoundConfig CreateRoundConfig(
-		Money denomination,
-		int confirmationTarget,
-		double confirmationTargetReductionRate,
-		decimal coordinatorFeePercent,
-		int anonymitySet,
-		long inputRegistrationTimeout,
-		long connectionConfirmationTimeout,
-		long outputRegistrationTimeout,
-		long signingTimeout,
-		int dosSeverity,
-		long dosDurationHours,
-		bool dosNoteBeforeBan,
-		int maximumMixingLevelCount)
-	{
-		return new CoordinatorRoundConfig
-		{
-			Denomination = denomination,
-			ConfirmationTarget = confirmationTarget,
-			ConfirmationTargetReductionRate = confirmationTargetReductionRate,
-			CoordinatorFeePercent = coordinatorFeePercent,
-			AnonymitySet = anonymitySet,
-			InputRegistrationTimeout = inputRegistrationTimeout,
-			ConnectionConfirmationTimeout = connectionConfirmationTimeout,
-			SigningTimeout = signingTimeout,
-			OutputRegistrationTimeout = outputRegistrationTimeout,
-			DosSeverity = dosSeverity,
-			DosDurationHours = dosDurationHours,
-			DosNoteBeforeBan = dosNoteBeforeBan,
-			MaximumMixingLevelCount = maximumMixingLevelCount,
-		};
-	}
-
-	#region IDisposable Support
-
 	protected virtual void Dispose(bool disposing)
 	{
 		if (!_disposedValue)
 		{
 			if (disposing)
 			{
-				BackendHost?.StopAsync().GetAwaiter().GetResult();
-				BackendHost?.Dispose();
-				BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
+				BackendHost.StopAsync().GetAwaiter().GetResult();
+				BackendHost.Dispose();
+				BackendRegTestNode.TryStopAsync().GetAwaiter().GetResult();
 				HttpClient.Dispose();
 			}
 
@@ -163,6 +122,4 @@ public class RegTestFixture : IDisposable
 		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 		Dispose(true);
 	}
-
-	#endregion IDisposable Support
 }

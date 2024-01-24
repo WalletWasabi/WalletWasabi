@@ -1,6 +1,7 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace System.Reflection;
+namespace WalletWasabi.Extensions;
 
 public static class MethodInfoExtensions
 {

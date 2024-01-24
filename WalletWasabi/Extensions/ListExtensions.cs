@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using WalletWasabi.Helpers;
 
-namespace System.Collections.Generic;
+namespace WalletWasabi.Extensions;
 
 public static class ListExtensions
 {

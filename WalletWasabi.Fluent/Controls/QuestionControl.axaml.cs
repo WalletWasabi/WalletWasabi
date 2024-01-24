@@ -26,6 +26,12 @@ public class QuestionControl : ContentControl
 	public static readonly StyledProperty<object?> IconContentProperty =
 		AvaloniaProperty.Register<QuestionControl, object?>(nameof(IconContent));
 
+	public static readonly StyledProperty<string> YesContentProperty =
+		AvaloniaProperty.Register<QuestionControl, string>(nameof(YesContent));
+
+	public static readonly StyledProperty<string> NoContentProperty =
+		AvaloniaProperty.Register<QuestionControl, string>(nameof(NoContent));
+
 	public static readonly StyledProperty<HighlightedButton> HighlightButtonProperty =
 		AvaloniaProperty.Register<QuestionControl, HighlightedButton>(nameof(HighlightButton));
 
@@ -34,6 +40,13 @@ public class QuestionControl : ContentControl
 
 	public static readonly StyledProperty<bool> IsNoButtonProperty =
 		AvaloniaProperty.Register<QuestionControl, bool>(nameof(IsNoButton));
+
+	public QuestionControl()
+	{
+		UpdateHighlightedButton(HighlightButton);
+		YesContent = "Yes";
+		NoContent = "No";
+	}
 
 	public ICommand YesCommand
 	{
@@ -53,13 +66,13 @@ public class QuestionControl : ContentControl
 		set => SetValue(ImageIconProperty, value);
 	}
 
-	public bool IsYesButton
+	private bool IsYesButton
 	{
 		get => GetValue(IsYesButtonProperty);
 		set => SetValue(IsYesButtonProperty, value);
 	}
 
-	public bool IsNoButton
+	private bool IsNoButton
 	{
 		get => GetValue(IsNoButtonProperty);
 		set => SetValue(IsNoButtonProperty, value);
@@ -71,24 +84,31 @@ public class QuestionControl : ContentControl
 		set => SetValue(IconContentProperty, value);
 	}
 
+	public string YesContent
+	{
+		get => GetValue(YesContentProperty);
+		set => SetValue(YesContentProperty, value);
+	}
+
+	public string NoContent
+	{
+		get => GetValue(NoContentProperty);
+		set => SetValue(NoContentProperty, value);
+	}
+
 	public HighlightedButton HighlightButton
 	{
 		get => GetValue(HighlightButtonProperty);
 		set => SetValue(HighlightButtonProperty, value);
 	}
 
-	public QuestionControl()
-	{
-		UpdateHighlightedButton(HighlightButton);
-	}
-
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == HighlightButtonProperty)
 		{
-			UpdateHighlightedButton(change.NewValue.GetValueOrDefault<HighlightedButton>());
+			UpdateHighlightedButton(change.GetNewValue<HighlightedButton>());
 		}
 	}
 

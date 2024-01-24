@@ -10,21 +10,21 @@
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileControl">
   <DockPanel MaxWidth="180">
     <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top" />
-    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20" Height="90" />
-    <Viewbox HorizontalAlignment="Center" Margin="0 10 0 10" MaxHeight="70">
+    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" HorizontalAlignment="Center" DockPanel.Dock="Bottom" />
+    <Viewbox HorizontalAlignment="Center" Margin="10" MaxHeight="70">
       <ContentControl Content="{Binding .}">
         <ContentControl.DataTemplates>
           <DataTemplate DataType="vm:EconomicCoinJoinProfileViewModel">
-            <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{StaticResource SystemAccentColor}" />
+            <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{DynamicResource SystemAccentColor}" />
           </DataTemplate>
           <DataTemplate DataType="vm:SpeedyCoinJoinProfileViewModel">
-            <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{StaticResource SystemAccentColor}" />
+            <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{DynamicResource SystemAccentColor}" />
           </DataTemplate>
           <DataTemplate DataType="vm:PrivateCoinJoinProfileViewModel">
-            <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{StaticResource SystemAccentColor}" />
+            <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{DynamicResource SystemAccentColor}" />
           </DataTemplate>
           <DataTemplate DataType="vm:ManualCoinJoinProfileViewModel">
-            <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{StaticResource SystemAccentColor}" />
+            <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{DynamicResource SystemAccentColor}" />
           </DataTemplate>
         </ContentControl.DataTemplates>
       </ContentControl>

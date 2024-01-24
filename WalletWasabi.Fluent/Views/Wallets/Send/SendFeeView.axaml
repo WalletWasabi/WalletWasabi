@@ -144,7 +144,7 @@
     <DockPanel>
 
       <!-- Advanced -->
-      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+      <Button Classes="h8 plain activeHyperLink" Margin="0 15 0 0"
               Command="{Binding AdvancedOptionsCommand}"
               DockPanel.Dock="Bottom"
               HorizontalAlignment="Center"
@@ -166,69 +166,68 @@
                 TickFrequency="1"
                 Minimum="{Binding SliderMinimum}"
                 Maximum="{Binding SliderMaximum}"
-                Value="{Binding SliderValue}">
-          <Slider.Styles>
-            <Style Selector="Slider /template/ Thumb">
-              <Setter Property="ToolTip.Tip">
-                <Template>
-                  <ToolTip>
-                    <StackPanel Spacing="10" x:CompileBindings="False">
-                      <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
-                      <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}" />
-                    </StackPanel>
-                  </ToolTip>
-                </Template>
-              </Setter>
-              <Setter Property="ToolTip.Placement" Value="Bottom" />
-              <Setter Property="ToolTip.VerticalOffset" Value="10" />
-              <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
-            </Style>
-          </Slider.Styles>
+                Value="{Binding SliderValue}"
+                IsVisible="{Binding EnableCursor}">
           <i:Interaction.Behaviors>
             <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
             <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
           </i:Interaction.Behaviors>
         </Slider>
-        <c:LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
-                     XAxisLabels="{Binding ConfirmationTargetLabels}"
-                     XAxisValues="{Binding ConfirmationTargetValues}"
-                     XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
-                     YAxisLabels="{Binding SatoshiPerByteLabels}"
-                     YAxisValues="{Binding SatoshiPerByteValues}">
-          <c:LineChart.Styles>
-            <Style Selector="c|LineChart">
-              <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />
-              <Setter Property="Margin" Value="18,10,18,0" />
-              <Setter Property="MinHeight" Value="150" />
-              <Setter Property="YAxisLogarithmicScale" Value="False" />
-              <Setter Property="AreaMargin" Value="30,0,10,32" />
-              <Setter Property="AreaStrokeThickness" Value="2" />
-              <Setter Property="AreaStrokeLineCap" Value="Round" />
-              <Setter Property="AreaMinViableWidth" Value="40" />
-              <Setter Property="AreaMinViableHeight" Value="20" />
-              <Setter Property="Focusable" Value="True" />
-              <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)" />
-              <Setter Property="XAxisTitle" Value="Estimated Confirmation Time" />
-            </Style>
-            <Style Selector="c|LineChart.narrow">
-              <Setter Property="AreaMargin" Value="30,0,10,45" />
-              <Setter Property="MinHeight" Value="170" />
-              <Setter Property="XAxisLabelAngle" Value="45" />
-              <Setter Property="XAxisLabelOffset" Value="-18,54" />
-              <Setter Property="XAxisTitleOffset" Value="0,-40" />
-              <Setter Property="XAxisOffset" Value="180,10" />
-            </Style>
-          </c:LineChart.Styles>
-          <i:Interaction.Behaviors>
-            <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
+        <Panel>
 
-            <!-- Disabled it as we have enough space all the time. -->
-            <!-- I leave the code here for easy re enabling if needed. -->
-            <!-- <ir:AdaptiveBehavior> -->
-            <!--   <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" /> -->
-            <!-- </ir:AdaptiveBehavior> -->
-          </i:Interaction.Behaviors>
-        </c:LineChart>
+          <c:LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
+                       XAxisLabels="{Binding ConfirmationTargetLabels}"
+                       XAxisValues="{Binding ConfirmationTargetValues}"
+                       XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
+                       YAxisLabels="{Binding SatoshiPerByteLabels}"
+                       YAxisValues="{Binding SatoshiPerByteValues}"
+                       EnableCursor="{Binding EnableCursor}">
+            <c:LineChart.Styles>
+              <Style Selector="c|LineChart">
+                <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />
+                <Setter Property="Margin" Value="18,10,18,0" />
+                <Setter Property="MinHeight" Value="150" />
+                <Setter Property="YAxisLogarithmicScale" Value="False" />
+                <Setter Property="AreaMargin" Value="30,0,10,32" />
+                <Setter Property="AreaStrokeThickness" Value="2" />
+                <Setter Property="AreaStrokeLineCap" Value="Round" />
+                <Setter Property="AreaMinViableWidth" Value="40" />
+                <Setter Property="AreaMinViableHeight" Value="20" />
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)" />
+                <Setter Property="XAxisTitle" Value="Estimated Confirmation Time" />
+              </Style>
+              <Style Selector="c|LineChart.narrow">
+                <Setter Property="AreaMargin" Value="30,0,10,45" />
+                <Setter Property="MinHeight" Value="170" />
+                <Setter Property="XAxisLabelAngle" Value="45" />
+                <Setter Property="XAxisLabelOffset" Value="-18,54" />
+                <Setter Property="XAxisTitleOffset" Value="0,-40" />
+                <Setter Property="XAxisOffset" Value="180,10" />
+              </Style>
+            </c:LineChart.Styles>
+            <i:Interaction.Behaviors>
+              <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
+
+              <!-- Disabled it as we have enough space all the time. -->
+              <!-- I leave the code here for easy re enabling if needed. -->
+              <!-- <ir:AdaptiveBehavior> -->
+              <!--   <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" /> -->
+              <!-- </ir:AdaptiveBehavior> -->
+            </i:Interaction.Behaviors>
+          </c:LineChart>
+          <StackPanel Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,35,35">
+            <StackPanel.Styles>
+              <Style Selector="TextBlock">
+                <Setter Property="TextAlignment" Value="Right" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
+              </Style>
+            </StackPanel.Styles>
+            <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
+            <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: \{0\}'}" />
+          </StackPanel>
+        </Panel>
       </DockPanel>
     </DockPanel>
   </c:ContentArea>

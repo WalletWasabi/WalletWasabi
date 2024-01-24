@@ -42,7 +42,7 @@ public class MoreSelectionStrategy : SelectionStrategy
 		{
 			if (sum < BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 			{
-				BestSelection.Update(sum, totalCost, IncludedCoinsCount, selection[0..depth]);
+				BestSelection.Update(paymentAmount: sum, totalCost, IncludedCoinsCount, selection[0..depth]);
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't

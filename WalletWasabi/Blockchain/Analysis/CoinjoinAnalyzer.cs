@@ -9,9 +9,9 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class CoinjoinAnalyzer
 {
-	public static int MaxRecursionDepth = 3;
-	public static AggregationFunction Min = x => x.Any() ? x.Min(x => x.anonymity) : 0;
-	public static AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.anonymity, x => x.amount.Satoshi) : 0;
+	public static readonly int MaxRecursionDepth = 3;
+	public static readonly AggregationFunction Min = x => x.Any() ? x.Min(x => x.Anonymity) : 0;
+	public static readonly AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.Anonymity, x => x.Amount.Satoshi) : 0;
 
 	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
@@ -39,9 +39,9 @@ public class CoinjoinAnalyzer
 			}
 
 			// If we already analyzed the sanction for this output, then return the cached result.
-			if (CachedInputSanctions.ContainsKey(transactionOutput))
+			if (CachedInputSanctions.TryGetValue(transactionOutput, out double value))
 			{
-				return CachedInputSanctions[transactionOutput];
+				return value;
 			}
 
 			// Look at the transaction containing transactionOutput.
@@ -73,19 +73,19 @@ public class CoinjoinAnalyzer
 		IEnumerable<WalletVirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
 		IEnumerable<ForeignVirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
 
-		Money amount = walletVirtualOutputs.Where(o => o.Coins.Select(c => c.OutPoint).Contains(transactionOutput.OutPoint)).First().Amount;
-		bool IsRelevantVirtualOutput(ForeignVirtualOutput output) => relevantOutpoints is null || relevantOutpoints.Intersect(output.OutPoints).Any();
+		Money amount = walletVirtualOutputs.First(o => o.Coins.Select(c => c.Outpoint).Contains(transactionOutput.Outpoint)).Amount;
+		bool IsRelevantVirtualOutput(ForeignVirtualOutput output) => relevantOutpoints is null || relevantOutpoints.Overlaps(output.OutPoints);
 
 		// Count the outputs that have the same value as our transactionOutput.
-		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(o => o.Amount == amount).Count();
-		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(o => o.Amount == amount).Where(IsRelevantVirtualOutput).Count();
+		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Count(o => o.Amount == amount);
+		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Count(o => o.Amount == amount && IsRelevantVirtualOutput(o));
 
-		// The anonymity set should increase by the number of equal-valued foreign ouputs.
+		// The anonymity set should increase by the number of equal-valued foreign outputs.
 		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.
 		// The rationale behind this is that picking randomly an output would make our anonset:
 		// total/ours = 1 + foreign/ours, so the increase in anonymity is foreign/ours.
 		return (double)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 
-	public record AmountWithAnonymity(double anonymity, Money amount);
+	public record AmountWithAnonymity(double Anonymity, Money Amount);
 }

@@ -136,7 +136,7 @@ public class CoreConfig
 				}
 			}
 		}
-		return retLines
-			.Select(x => new CoreConfigLine(x));
+
+		return retLines.Select(x => new CoreConfigLine(x));
 	}
 }

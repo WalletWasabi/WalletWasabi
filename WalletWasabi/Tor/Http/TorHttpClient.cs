@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -12,17 +11,18 @@ namespace WalletWasabi.Tor.Http;
 public class TorHttpClient : IHttpClient
 {
 	/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-	public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit) :
-		this(() => baseUri, torHttpPool, mode)
+	public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit, int maximumRedirects = 0) :
+		this(() => baseUri, torHttpPool, mode, maximumRedirects: maximumRedirects)
 	{
 	}
 
 	/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-	public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit, ICircuit? circuit = null)
+	public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit, ICircuit? circuit = null, int maximumRedirects = 0)
 	{
 		BaseUriGetter = baseUriGetter;
 		TorHttpPool = torHttpPool;
 		Mode = mode;
+		MaximumRedirects = maximumRedirects;
 
 		if (mode == Mode.SingleCircuitPerLifetime && circuit is null)
 		{
@@ -42,6 +42,9 @@ public class TorHttpClient : IHttpClient
 
 	/// <summary>Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.</summary>
 	public Mode Mode { get; }
+
+	/// <summary><c>0</c> to disable redirecting altogether, otherwise a maximum allowed number of hops.</summary>
+	public int MaximumRedirects { get; }
 
 	/// <summary>Non-null for <see cref="Mode.DefaultCircuit"/> and <see cref="Mode.SingleCircuitPerLifetime"/>.</summary>
 	private ICircuit? PredefinedCircuit { get; }
@@ -75,15 +78,15 @@ public class TorHttpClient : IHttpClient
 	/// No exception is thrown when the status code of the <see cref="HttpResponseMessage">response</see>
 	/// is, for example, <see cref="HttpStatusCode.NotFound"/>.
 	/// </remarks>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		if (Mode is Mode.NewCircuitPerRequest)
 		{
-			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, cancellationToken).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, MaximumRedirects, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
-			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, cancellationToken).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, MaximumRedirects, cancellationToken).ConfigureAwait(false);
 		}
 	}
 

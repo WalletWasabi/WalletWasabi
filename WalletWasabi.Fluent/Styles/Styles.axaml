@@ -8,13 +8,19 @@
     <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts#Roboto Mono</FontFamily>
     <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
+    <x:Double x:Key="LabelMaxWidth">120</x:Double>
   </Styles.Resources>
-
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContextMenu.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/MenuFlyoutPresenter.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Checkmark.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ContentArea.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Dialog.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/FontSizes.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/IconButton.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/InfoMessage.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Label.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/NavBarItem.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PathIcon.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Separator.axaml" />
@@ -22,10 +28,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/NotificationCard.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/DualCurrencyEntryBox.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/HistoryPlaceholderPanel.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CurrencyEntryBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TreeDataGrid.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/RadioButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SettingsLayout.axaml" />
@@ -35,4 +38,8 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToggleSwitch.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollViewer.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CuedScrollViewer.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PrivacyContentControl.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TileButton.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PreviewItem.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TagsBox.axaml" />
 </Styles>

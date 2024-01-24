@@ -23,26 +23,32 @@ public class ConfigTranslatorTests
 		Assert.Null(translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("rpcuser=foo");
 		Assert.Equal("foo", translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("rpcuser=boo");
 		Assert.Equal("boo", translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("main.rpcuser=ooh");
 		Assert.Equal("ooh", translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("rpcuser=boo");
 		Assert.Equal("boo", translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("test.rpcuser=boo");
 		Assert.Equal("boo", translatorMain.TryGetRpcUser());
 		Assert.Equal("boo", translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
+
 		config.AddOrUpdate("regtest.rpcuser=boo");
 		Assert.Equal("boo", translatorMain.TryGetRpcUser());
 		Assert.Equal("boo", translatorTest.TryGetRpcUser());

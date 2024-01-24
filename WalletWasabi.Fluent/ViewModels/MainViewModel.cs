@@ -1,114 +1,111 @@
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Avalonia.Controls;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.AppServices.Tor;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
-using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-	private readonly SettingsPageViewModel _settingsPage;
-	private readonly PrivacyModeViewModel _privacyMode;
-	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private DialogScreenViewModel _dialogScreen;
-	[AutoNotify] private DialogScreenViewModel _fullScreen;
-	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
-	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
 
-	public MainViewModel()
+	public MainViewModel(UiContext uiContext)
 	{
-		ApplyUiConfigWindowSate();
+		UiContext = uiContext;
 
-		_dialogScreen = new DialogScreenViewModel();
-		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
-		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		ApplyUiConfigWindowState();
+
+		DialogScreen = new DialogScreenViewModel();
+		FullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
+		CompactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		NavBar = new NavBarViewModel(UiContext);
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
+		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen, NavBar));
 
-		UiServices.Initialize();
+		NavBar.Activate();
 
-		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
+		StatusIcon = new StatusIconViewModel(UiContext);
 
-		_addWalletPage = new AddWalletPageViewModel();
-		_settingsPage = new SettingsPageViewModel();
-		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(MainScreen);
+		SettingsPage = new SettingsPageViewModel(UiContext);
+		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
+		Notifications = new WalletNotificationsViewModel(UiContext, NavBar);
 
-		NavigationManager.RegisterType(_navBar);
-		RegisterViewModels();
+		NavigationManager.RegisterType(NavBar);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
+		this.RegisterAllViewModels(UiContext);
+
+		RxApp.MainThreadScheduler.Schedule(async () => await NavBar.InitialiseAsync());
 
 		this.WhenAnyValue(x => x.WindowState)
 			.Where(state => state != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
+			.Subscribe(state => UiContext.ApplicationSettings.WindowState = state);
 
-		IsMainContentEnabled = this.WhenAnyValue(
-				x => x.DialogScreen.IsDialogOpen,
-				x => x.FullScreen.IsDialogOpen,
-				x => x.CompactDialogScreen.IsDialogOpen,
-				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
-			.ObserveOn(RxApp.MainThreadScheduler);
-
-		this.WhenAnyValue(
-				x => x.DialogScreen.CurrentPage,
-				x => x.CompactDialogScreen.CurrentPage,
-				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage,
-				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
-			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(page => page.SetActive())
-			.Subscribe();
+		IsMainContentEnabled =
+			this.WhenAnyValue(
+					x => x.DialogScreen.IsDialogOpen,
+					x => x.FullScreen.IsDialogOpen,
+					x => x.CompactDialogScreen.IsDialogOpen,
+					(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
+				.ObserveOn(RxApp.MainThreadScheduler);
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
-			.WhereNotNull()
-			.OfType<WalletViewModel>();
+				.WhereNotNull()
+				.OfType<WalletViewModel>();
 
-		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
+		IsOobeBackgroundVisible = UiContext.ApplicationSettings.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+			if (!UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe)
 			{
 				IsOobeBackgroundVisible = true;
 
-				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+				await UiContext.Navigate().To().WelcomePage().GetResultAsync();
 
-				if (Services.WalletManager.HasWallet())
+				if (UiContext.WalletRepository.HasWallet)
 				{
-					Services.UiConfig.Oobe = false;
+					UiContext.ApplicationSettings.Oobe = false;
 					IsOobeBackgroundVisible = false;
 				}
 			}
 		});
 
-		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
-		SearchBar = new SearchBarViewModel(source.Changes);
+		SearchBar = CreateSearchBar();
 
-		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+		NetworkBadgeName =
+			UiContext.ApplicationSettings.Network == Network.Main
+			? ""
+			: UiContext.ApplicationSettings.Network.Name;
+
+		// TODO: the reason why this MainViewModel singleton is even needed thoughout the codebase is dubious.
+		// Also it causes tight coupling which damages testability.
+		// We should strive to remove it altogether.
+		if (Instance != null)
+		{
+			throw new InvalidOperationException($"MainViewModel instantiated more than once.");
+		}
+
+		Instance = this;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -121,13 +118,46 @@ public partial class MainViewModel : ViewModelBase
 
 	public SearchBarViewModel SearchBar { get; }
 
-	public static MainViewModel Instance { get; } = new();
+	public DialogScreenViewModel DialogScreen { get; }
+	public DialogScreenViewModel FullScreen { get; }
+	public DialogScreenViewModel CompactDialogScreen { get; }
+	public NavBarViewModel NavBar { get; }
+	public StatusIconViewModel StatusIcon { get; }
+	public SettingsPageViewModel SettingsPage { get; }
+	public PrivacyModeViewModel PrivacyMode { get; }
+	public WalletNotificationsViewModel Notifications { get; }
 
-	public bool IsBusy =>
-		MainScreen.CurrentPage is { IsBusy: true } ||
-		DialogScreen.CurrentPage is { IsBusy: true } ||
-		FullScreen.CurrentPage is { IsBusy: true } ||
-		CompactDialogScreen.CurrentPage is { IsBusy: true };
+	public static MainViewModel Instance { get; private set; }
+
+	public bool IsDialogOpen()
+	{
+		return DialogScreen.IsDialogOpen
+			   || FullScreen.IsDialogOpen
+			   || CompactDialogScreen.IsDialogOpen;
+	}
+
+	public void ShowDialogAlert()
+	{
+		if (CompactDialogScreen.IsDialogOpen)
+		{
+			CompactDialogScreen.ShowAlert = false;
+			CompactDialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (DialogScreen.IsDialogOpen)
+		{
+			DialogScreen.ShowAlert = false;
+			DialogScreen.ShowAlert = true;
+			return;
+		}
+
+		if (FullScreen.IsDialogOpen)
+		{
+			FullScreen.ShowAlert = false;
+			FullScreen.ShowAlert = true;
+		}
+	}
 
 	public void ClearStacks()
 	{
@@ -137,60 +167,51 @@ public partial class MainViewModel : ViewModelBase
 		CompactDialogScreen.Clear();
 	}
 
-	public void InvalidateIsCoinJoinActive()
-	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
-	}
-
 	public void Initialize()
 	{
-		StatusIcon.Initialize();
+		UiContext.WalletRepository.Wallets
+			.Connect()
+			.FilterOnObservable(x => x.Coinjoin.IsRunning)
+			.ToCollection()
+			.Select(x => x.Count != 0)
+			.BindTo(this, x => x.IsCoinJoinActive);
 
-		if (Services.Config.Network != Network.Main)
+		Notifications.StartListening();
+
+		if (UiContext.ApplicationSettings.Network != Network.Main)
 		{
-			Title += $" - {Services.Config.Network}";
+			Title += $" - {UiContext.ApplicationSettings.Network}";
 		}
 	}
 
-	private void RegisterViewModels()
+	public void ApplyUiConfigWindowState()
 	{
-		PrivacyModeViewModel.Register(_privacyMode);
-		AddWalletPageViewModel.Register(_addWalletPage);
-		SettingsPageViewModel.Register(_settingsPage);
-
-		GeneralSettingsTabViewModel.RegisterLazy(() =>
-		{
-			_settingsPage.SelectedTab = 0;
-			return _settingsPage;
-		});
-
-		BitcoinTabSettingsViewModel.RegisterLazy(() =>
-		{
-			_settingsPage.SelectedTab = 1;
-			return _settingsPage;
-		});
-
-		AdvancedSettingsTabViewModel.RegisterLazy(() =>
-		{
-			_settingsPage.SelectedTab = 2;
-			return _settingsPage;
-		});
-
-		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
-		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
-		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
-		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
-		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
-		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
-		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+		WindowState = UiContext.ApplicationSettings.WindowState;
 	}
 
-	public void ApplyUiConfigWindowSate()
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Same lifecycle as the application. Won't be disposed separately.")]
+	private SearchBarViewModel CreateSearchBar()
 	{
-		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
+		var querySubject = new Subject<string>();
+
+		var source = new CompositeSearchSource(
+			new ActionsSearchSource(UiContext, querySubject),
+			new SettingsSearchSource(UiContext, querySubject),
+			new TransactionsSearchSource(querySubject),
+			UiContext.EditableSearchSource);
+
+		var searchBar = new SearchBarViewModel(source.Changes);
+
+		var queries = searchBar
+			.WhenAnyValue(a => a.SearchText)
+			.WhereNotNull();
+
+		UiContext.EditableSearchSource.SetQueries(queries);
+
+		queries
+			.Subscribe(querySubject);
+
+		return searchBar;
 	}
 }

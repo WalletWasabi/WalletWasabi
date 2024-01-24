@@ -3,14 +3,16 @@ using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Backend.Controllers;
-using WalletWasabi.Backend.Controllers.WabiSabi;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Cache;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
@@ -20,16 +22,19 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.BitcoinCore.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class ArenaClientTests
 {
+	public MempoolMirror DummyMempoolMirror { get; } = new(TimeSpan.Zero, null!, null!);
+
 	[Fact]
 	public async Task FullP2wpkhCoinjoinTestAsync()
 	{
@@ -58,7 +63,9 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		var apiClient = new ArenaClient(null!, null!, config.CoordinatorIdentifier, wabiSabiApi);
 
@@ -79,10 +86,10 @@ public class ArenaClientTests
 		var keyChain = new KeyChain(km, new Kitchen(password));
 		var destinationProvider = new InternalDestinationProvider(km);
 
-		var coins = destinationProvider.GetNextDestinations(2)
-			.Select(dest => (
-				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), dest)),
-				OwnershipProof: keyChain.GetOwnershipProof(dest, WabiSabiFactory.CreateCommitmentData(round.Id))))
+		var coins = destinationProvider.GetNextDestinations(2, false)
+			.Select(destination => (
+				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), destination)),
+				OwnershipProof: keyChain.GetOwnershipProof(destination, WabiSabiFactory.CreateCommitmentData(round.Id))))
 			.ToArray();
 
 		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof, round: round);
@@ -93,12 +100,13 @@ public class ArenaClientTests
 
 		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 
-		var mockRpc = new Mock<IRPCClient>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
 		InsecureRandom rnd = InsecureRandom.Instance;
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
@@ -115,28 +123,31 @@ public class ArenaClientTests
 
 		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, coins[0].OwnershipProof, keyChain, finalizedEmptyState.CreateUnsignedTransaction(), CancellationToken.None));
+				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, finalizedEmptyState.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).Finalize();
 		round.CoinjoinState = oneInput;
 
 		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, coins[1].OwnershipProof, keyChain, oneInput.CreateUnsignedTransaction(), CancellationToken.None));
+				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, oneInput.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
 
-		var twoInputs = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).AddInput(alice2.Coin, alice2.OwnershipProof, commitmentData).Finalize();
+		var twoInputs = emptyState
+			.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData)
+			.AddInput(alice2.Coin, alice2.OwnershipProof, commitmentData)
+			.Finalize();
 		round.CoinjoinState = twoInputs;
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
-		var unsigned = round.Assert<SigningState>().CreateUnsignedTransaction();
+		var unsigned = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
-		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, coins[0].OwnershipProof, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, unsigned, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice1.Coin.Outpoint));
 		Assert.False(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
 
-		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, coins[1].OwnershipProof, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, unsigned, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.True(round.Assert<SigningState>().IsFullySigned);
@@ -148,29 +159,27 @@ public class ArenaClientTests
 		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config));
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();
-		var mockRpc = new Mock<IRPCClient>();
-		mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new GetTxOutResponse
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
+		mockRpc.OnGetTxOutAsync = (_, _, _) =>
+			new GetTxOutResponse
 			{
 				IsCoinBase = false,
 				Confirmations = 200,
 				TxOut = new TxOut(Money.Coins(1m), key.PubKey.GetAddress(scriptPubKeyType, Network.Main)),
-			});
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new EstimateSmartFeeResponse
+			};
+		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
+			Task.FromResult(new EstimateSmartFeeResponse
 			{
 				Blocks = 1000,
 				FeeRate = new FeeRate(10m)
 			});
-		mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new MemPoolInfo
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
 			{
 				MinRelayTxFee = 1
 			});
-		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-		mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(It.IsAny<uint256>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(BitcoinFactory.CreateTransaction());
+		mockRpc.OnGetRawTransactionAsync = (_, _) =>
+			Task.FromResult(BitcoinFactory.CreateTransaction());
 
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
@@ -179,13 +188,14 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
+		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
 
-		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
@@ -236,8 +246,8 @@ public class ArenaClientTests
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 		var bobArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 

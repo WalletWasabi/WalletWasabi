@@ -1,17 +1,28 @@
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfileViewModel(int anonScoreTarget, int feeRateMedianTimeFrameHours, bool redCoinIsolation)
+	public ManualCoinJoinProfileViewModel(
+		int anonScoreTarget,
+		int feeRateMedianTimeFrameHours,
+		bool redCoinIsolation,
+		CoinjoinSkipFactors skipFactors)
 	{
 		AnonScoreTarget = anonScoreTarget;
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
 		RedCoinIsolation = redCoinIsolation;
+		SkipFactors = skipFactors;
 	}
 
-	public ManualCoinJoinProfileViewModel(KeyManager keyManager) : this(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours, keyManager.RedCoinIsolation)
+	public ManualCoinJoinProfileViewModel(IWalletSettingsModel walletSettings)
+		: this(
+			  walletSettings.AnonScoreTarget,
+			  walletSettings.FeeRateMedianTimeFrameHours,
+			  walletSettings.RedCoinIsolation,
+			  walletSettings.CoinjoinSkipFactors)
 	{
 	}
 
@@ -23,4 +34,5 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours { get; }
 	public override bool RedCoinIsolation { get; }
+	public override CoinjoinSkipFactors SkipFactors { get; }
 }

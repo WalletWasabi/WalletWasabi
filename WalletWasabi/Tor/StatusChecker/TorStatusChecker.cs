@@ -24,6 +24,7 @@ public class TorStatusChecker : PeriodicRunner
 	}
 
 	public event EventHandler<Issue[]>? StatusEvent;
+
 	private IHttpClient HttpClient { get; }
 
 	/// <inheritdoc/>

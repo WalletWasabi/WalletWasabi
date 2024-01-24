@@ -1,100 +1,116 @@
 using NBitcoin;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
-public class CoinVerifierApiClient
+public class CoinVerifierApiClient : IAsyncDisposable
 {
-	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
+	/// <summary>Maximum number of actual HTTP requests that might be served concurrently by the CoinVerifier webserver.</summary>
+	public const int MaxParallelRequestCount = 30;
+
+	/// <summary>Maximum re-tries for a single API request.</summary>
+	private const int MaxRetries = 3;
+
+	public CoinVerifierApiClient(string apiToken, HttpClient httpClient)
 	{
-		ApiToken = token;
-		Network = network;
+		ApiToken = apiToken;
 		HttpClient = httpClient;
-	}
 
-	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
-	{
-	}
-
-	private string ApiToken { get; set; }
-	private Network Network { get; set; }
-
-	private HttpClient HttpClient { get; set; }
-
-	public virtual async Task<(ApiResponseItem ApiResponseItem, Script Script)> SendRequestAsync(Script script, CancellationToken cancellationToken)
-	{
 		if (HttpClient.BaseAddress is null)
 		{
 			throw new HttpRequestException($"{nameof(HttpClient.BaseAddress)} was null.");
 		}
+
 		if (HttpClient.BaseAddress.Scheme != "https")
 		{
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
+	}
 
-		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
+	/// <summary>Long timeout for a single API request. No retry after that. </summary>
+	public static TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
-		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
-		content.Headers.Authorization = new("Bearer", ApiToken);
+	private string ApiToken { get; }
 
-		var response = await HttpClient.SendAsync(content, linkedTokenSource.Token).ConfigureAwait(false);
+	private HttpClient HttpClient { get; }
 
-		if (response.StatusCode == HttpStatusCode.Forbidden)
+	private SemaphoreSlim ThrottlingSemaphore { get; } = new(initialCount: MaxParallelRequestCount);
+
+	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	{
+		var address = script.GetDestinationAddress(Network.Main); // API provider doesn't accept testnet/regtest addresses.
+
+		HttpResponseMessage? response = null;
+
+		for (int i = 0; i < MaxRetries; i++)
+		{
+			try
+			{
+				using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
+				content.Headers.Authorization = new("Bearer", ApiToken);
+
+				// Makes sure that there are no more than MaxParallelRequestCount requests in-flight at a time.
+				// Re-tries are not an exception to the max throttling limit.
+				await ThrottlingSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+				var before = DateTimeOffset.UtcNow;
+				try
+				{
+					using CancellationTokenSource apiTimeoutCts = new(ApiRequestTimeout);
+					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(apiTimeoutCts.Token, cancellationToken);
+					response = await HttpClient.SendAsync(content, linkedCts.Token).ConfigureAwait(false);
+				}
+				finally
+				{
+					ThrottlingSemaphore.Release();
+				}
+
+				var duration = DateTimeOffset.UtcNow - before;
+				RequestTimeStatista.Instance.Add("verifier-request", duration);
+
+				if (response.StatusCode == HttpStatusCode.OK)
+				{
+					// Successful request, break the iteration.
+					break;
+				}
+
+				throw new InvalidOperationException($"HTTP status code was {response.StatusCode}.");
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning($"API request timed out for script: {script}.");
+				throw;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning($"API request failed for script: {script}. Remaining tries: {i}. Exception: {ex}.");
+				await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
+			}
+		}
+
+		// Handle the HTTP response, if there is any.
+		if (response?.StatusCode == HttpStatusCode.Forbidden)
 		{
 			throw new UnauthorizedAccessException("User roles access forbidden.");
 		}
-		else if (response.StatusCode != HttpStatusCode.OK)
+		else if (response?.StatusCode != HttpStatusCode.OK)
 		{
-			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response.StatusCode}.");
+			throw new InvalidOperationException($"API request failed. {nameof(HttpStatusCode)} was {response?.StatusCode}.");
 		}
 
-		string responseString = await response.Content.ReadAsStringAsync(linkedTokenSource.Token).ConfigureAwait(false);
-
-		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
-			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return (deserializedRecord, script);
+		return await response.Content.ReadAsJsonAsync<ApiResponseItem>().ConfigureAwait(false);
 	}
 
-	public async IAsyncEnumerable<(ApiResponseItem ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scripts, [EnumeratorCancellation] CancellationToken cancellationToken)
+	/// <inheritdoc/>
+	public ValueTask DisposeAsync()
 	{
-		IEnumerable<IEnumerable<Script>> chunks = scripts.Chunk(100);
+		ThrottlingSemaphore.Dispose();
 
-		foreach (var chunk in chunks)
-		{
-			var tasks = chunk.Select(script => SendRequestAsync(script, cancellationToken)).ToList();
-
-			foreach (var task in tasks)
-			{
-				(ApiResponseItem ApiResponseItem, Script ScriptPubKey) response;
-				try
-				{
-					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
-
-					response = await completedTask.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException exc)
-				{
-					Logger.LogInfo("API response didn't arrive in time.", exc);
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					continue;
-				}
-
-				yield return response;
-			}
-		}
+		return ValueTask.CompletedTask;
 	}
 }

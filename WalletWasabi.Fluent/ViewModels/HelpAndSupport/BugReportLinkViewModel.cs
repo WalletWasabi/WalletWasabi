@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows.Input;
 using ReactiveUI;
 
@@ -6,16 +5,20 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "Report a Bug",
-	Caption = "Opens a website in the default browser",
+	Caption = "Open Wasabi's GitHub issues website",
 	Order = 1,
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"Support", "Website", "Bug", "Report"
+		"Support", "Website", "Bug", "Report"
 	},
 	IconName = "bug_regular")]
 public partial class BugReportLinkViewModel : TriggerCommandViewModel
 {
-	public override ICommand TargetCommand =>
-		ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.BugReportLink));
+	private BugReportLinkViewModel()
+	{
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.BugReportLink));
+	}
+
+	public override ICommand TargetCommand { get; }
 }

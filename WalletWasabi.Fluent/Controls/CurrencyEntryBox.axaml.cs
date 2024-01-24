@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,13 +9,17 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
+using static WalletWasabi.Userfacing.CurrencyInput;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class CurrencyEntryBox : TextBox
+public partial class CurrencyEntryBox : TextBox
 {
 	public static readonly StyledProperty<string> CurrencyCodeProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(CurrencyCode));
@@ -34,45 +39,20 @@ public class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<int> MaxDecimalsProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
 
-	private readonly CultureInfo _customCultureInfo;
-	private readonly char _decimalSeparator = '.';
-	private readonly char _groupSeparator = ' ';
-	private readonly Regex _regexBtcFormat;
-	private readonly Regex _regexDecimalCharsOnly;
-	private readonly Regex _regexConsecutiveSpaces;
-	private readonly Regex _regexGroupAndDecimal;
+	public static readonly StyledProperty<Money> BalanceBtcProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, Money>(nameof(BalanceBtc));
+
+	public static readonly StyledProperty<decimal> BalanceUsdProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(BalanceUsd));
+
+	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
+
+	private static readonly string[] InvalidCharacters = new string[1] { "\u007f" };
 
 	public CurrencyEntryBox()
 	{
-		_customCultureInfo = new CultureInfo("")
-		{
-			NumberFormat =
-			{
-				CurrencyGroupSeparator = _groupSeparator.ToString(),
-				NumberGroupSeparator = _groupSeparator.ToString(),
-				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-				NumberDecimalSeparator = _decimalSeparator.ToString()
-			}
-		};
-
-		Text = string.Empty;
-
-		_regexBtcFormat =
-			new Regex(
-				$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
-				RegexOptions.Compiled);
-
-		_regexDecimalCharsOnly =
-			new Regex(
-				$"^[0-9{_groupSeparator}{_decimalSeparator}]*$", RegexOptions.Compiled);
-
-		_regexConsecutiveSpaces =
-			new Regex(
-				$"{_groupSeparator}{{2,}}", RegexOptions.Compiled);
-
-		_regexGroupAndDecimal =
-			new Regex(
-				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
+		SetCurrentValue(TextProperty, string.Empty);
 
 		PseudoClasses.Set(":noexchangerate", true);
 		PseudoClasses.Set(":isrightside", false);
@@ -121,6 +101,24 @@ public class CurrencyEntryBox : TextBox
 		set => SetValue(MaxDecimalsProperty, value);
 	}
 
+	public Money BalanceBtc
+	{
+		get => GetValue(BalanceBtcProperty);
+		set => SetValue(BalanceBtcProperty, value);
+	}
+
+	public decimal BalanceUsd
+	{
+		get => GetValue(BalanceUsdProperty);
+		set => SetValue(BalanceUsdProperty, value);
+	}
+
+	public bool ValidatePasteBalance
+	{
+		get => GetValue(ValidatePasteBalanceProperty);
+		set => SetValue(ValidatePasteBalanceProperty, value);
+	}
+
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		if (ConversionRate == 0m)
@@ -135,14 +133,14 @@ public class CurrencyEntryBox : TextBox
 	{
 		base.OnGotFocus(e);
 
-		CaretIndex = Text?.Length ?? 0;
+		SetCurrentValue(CaretIndexProperty, Text?.Length ?? 0);
 
 		Dispatcher.UIThread.Post(SelectAll);
 	}
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		var input = e.Text ?? "";
+		var input = e.Text == null ? "" : e.Text.TotalTrim();
 
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -154,28 +152,29 @@ public class CurrencyEntryBox : TextBox
 
 		if (IsReplacingWithImplicitDecimal(input))
 		{
-			ReplaceCurrentTextWithLeadingZero(e);
-
-			base.OnTextInput(e);
+			var result = ReplaceCurrentTextWithLeadingZero(e);
+			base.OnTextInput(result);
 			return;
 		}
 
 		if (IsInsertingImplicitDecimal(input))
 		{
-			InsertLeadingZeroForDecimal(e);
-
-			base.OnTextInput(e);
+			var result = InsertLeadingZeroForDecimal(e);
+			base.OnTextInput(result);
 			return;
 		}
 
 		var preComposedText = PreComposeText(input);
 
-		decimal fiatValue = 0;
+		var isValid = ValidateEntryText(preComposedText);
 
-		e.Handled = !(ValidateEntryText(preComposedText) &&
-					  decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+		preComposedText = preComposedText.TotalTrim();
 
-		if (IsFiat & !e.Handled)
+		var parsed = decimal.TryParse(preComposedText, NumberStyles.Number, InvariantNumberFormat, out var fiatValue);
+
+		e.Handled = !(isValid && parsed);
+
+		if (IsFiat && !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
@@ -193,45 +192,57 @@ public class CurrencyEntryBox : TextBox
 		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
-	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
 	{
 		var finalText = "0" + e.Text;
-		Text = "";
-		e.Text = finalText;
-		CaretIndex = finalText.Length;
+		SetCurrentValue(TextProperty, "");
+		SetCurrentValue(CaretIndexProperty, finalText.Length);
 		ClearSelection();
+		return new TextInputEventArgs { Text = finalText };
 	}
 
-	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
 	{
 		var prependText = "0" + e.Text;
-		Text = Text.Insert(0, prependText);
-		e.Text = "";
-		CaretIndex += prependText.Length;
+		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
+		SetCurrentValue(CaretIndexProperty, CaretIndex + prependText.Length);
+		return new TextInputEventArgs { Text = "" };
 	}
+
+	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
+	private static partial Regex RegexBtcFormat();
+
+	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
+	private static partial Regex RegexDecimalCharsOnly();
+
+	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
+	private static partial Regex RegexConsecutiveSpaces();
+
+	[GeneratedRegex($"[{GroupSeparator}{DecimalSeparator}]+")]
+	private static partial Regex RegexGroupAndDecimal();
 
 	private bool ValidateEntryText(string preComposedText)
 	{
 		// Check if it has a decimal separator.
-		var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
-		var match = _regexBtcFormat.Match(preComposedText);
+		var trailingDecimal = preComposedText.Length > 0 && preComposedText.EndsWith(DecimalSeparator);
+		var match = RegexBtcFormat().Match(preComposedText);
 
 		// Ignore group chars on count of the whole part of the decimal.
 		var wholeStr = match.Groups["Whole"].ToString();
-		var whole = _regexGroupAndDecimal.Replace(wholeStr, "").Length;
+		var whole = RegexGroupAndDecimal().Replace(wholeStr, "").Length;
 
-		var fracStr = match.Groups["Frac"].ToString().Replace($"{_groupSeparator}", "");
-		var frac = _regexGroupAndDecimal.Replace(fracStr, "").Length;
+		var fracStr = match.Groups["Frac"].ToString().Replace(GroupSeparator, "");
+		var frac = RegexGroupAndDecimal().Replace(fracStr, "").Length;
 
 		// Check for consecutive spaces (2 or more) and leading spaces.
-		var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-												   _regexConsecutiveSpaces.IsMatch(preComposedText));
+		var rule1 = preComposedText.Length > 1 && (preComposedText.StartsWith(GroupSeparator) ||
+												   RegexConsecutiveSpaces().IsMatch(preComposedText));
 
 		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
-		var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
+		var rule2 = whole >= 8 && (preComposedText.EndsWith(GroupSeparator) || wholeStr.EndsWith(GroupSeparator));
 
 		// Check for non-numeric chars.
-		var rule3 = !_regexDecimalCharsOnly.IsMatch(preComposedText);
+		var rule3 = !RegexDecimalCharsOnly().IsMatch(preComposedText);
 		if (rule1 || rule2 || rule3)
 		{
 			return false;
@@ -244,10 +255,9 @@ public class CurrencyEntryBox : TextBox
 		}
 
 		// Passthrough the decimal place char or the group separator.
-		switch (preComposedText.Length)
+		if (preComposedText == DecimalSeparator && !trailingDecimal)
 		{
-			case 1 when preComposedText[0] == _decimalSeparator && !trailingDecimal:
-				return false;
+			return false;
 		}
 
 		if (IsFiat)
@@ -279,7 +289,7 @@ public class CurrencyEntryBox : TextBox
 
 	private void DoPasteCheck(KeyEventArgs e)
 	{
-		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
+		var keymap = Application.Current?.PlatformSettings?.HotkeyConfiguration;
 
 		bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
 
@@ -295,7 +305,7 @@ public class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
+		if (ApplicationHelper.Clipboard is { } clipboard)
 		{
 			var text = await clipboard.GetTextAsync();
 
@@ -306,14 +316,9 @@ public class CurrencyEntryBox : TextBox
 
 			text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
-			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
-			// Bitcoin has "21 000 000 . 0000 0000".
-			// Coincidentally the same character count as USD... weird.
-			// Plus adding 4 characters for the group separators.
-			if (text.Length > 17 + 4)
+			if (!TryParse(text, out text))
 			{
-				text = text[..(17 + 4)];
+				return;
 			}
 
 			if (ValidateEntryText(text))
@@ -323,8 +328,47 @@ public class CurrencyEntryBox : TextBox
 		}
 	}
 
+	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
+	{
+		var money = ValidatePasteBalance
+			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+			: ClipboardObserver.ParseToMoney(text);
+		if (money is not null)
+		{
+			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+			return true;
+		}
+
+		var usd = ValidatePasteBalance
+			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+			: ClipboardObserver.ParseToUsd(text);
+		if (usd is not null)
+		{
+			result = usd.Value.ToString("0.00");
+			return true;
+		}
+
+		result = null;
+		return false;
+	}
+
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
 	// be committed to the TextPresenter in this control.
+
+	private string? RemoveInvalidCharacters(string? text)
+	{
+		if (text is null)
+		{
+			return null;
+		}
+
+		for (var i = 0; i < InvalidCharacters.Length; i++)
+		{
+			text = text.Replace(InvalidCharacters[i], string.Empty);
+		}
+
+		return text;
+	}
 
 	// An event in Avalonia's TextBox with this function should be implemented there for brevity.
 	private string PreComposeText(string input)
@@ -353,21 +397,21 @@ public class CurrencyEntryBox : TextBox
 		return "";
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.GetNewValue<bool>());
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", change.GetNewValue<decimal>() == 0m);
 		}
 		else if (change.Property == IsFiatProperty)
 		{
-			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":isfiat", change.GetNewValue<bool>());
 		}
 	}
 }

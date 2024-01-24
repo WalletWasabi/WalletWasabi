@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="459"
+             x:DataType="vm:MainViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Shell.Shell">
+  <i:Interaction.Behaviors>
+    <behaviors:RegisterNotificationHostBehavior />
+  </i:Interaction.Behaviors>
+  <Panel>
+    <shell:Background />
+    <shell:MainScreen x:CompileBindings="False"
+                      IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}">
+      <!-- TODO: Enable it when introducing UI Refreshment -->
+      <!-- <shell:MainScreen.Transitions> -->
+      <!--   <Transitions> -->
+      <!--     <EffectTransition Property="Effect" -->
+      <!--                       Delay="0:0:0.25" -->
+      <!--                       Duration="0:0:0.25" -->
+      <!--                       Easing="{StaticResource FluentEasing}"/> -->
+      <!--   </Transitions> -->
+      <!-- </shell:MainScreen.Transitions> -->
+      <!-- <shell:MainScreen.Styles> -->
+      <!--   <Style Selector="shell|MainScreen[IsHitTestVisible=True]"> -->
+      <!--     <Setter Property="Effect"> -->
+      <!--       <BlurEffect Radius="0.0" /> -->
+      <!--     </Setter> -->
+      <!--   </Style> -->
+      <!--   <Style Selector="shell|MainScreen[IsHitTestVisible=False]"> -->
+      <!--     <Setter Property="Effect"> -->
+      <!--       <BlurEffect Radius="3.0" /> -->
+      <!--     </Setter> -->
+      <!--   </Style> -->
+      <!-- </shell:MainScreen.Styles> -->
+    </shell:MainScreen>
+    <shell:Dialogs />
+  </Panel>
+</UserControl>

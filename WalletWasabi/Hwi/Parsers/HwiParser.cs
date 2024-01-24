@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
@@ -140,10 +141,10 @@ public static class HwiParser
 
 	public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
 	{
-		var jarr = JArray.Parse(responseString);
+		var jArray = JArray.Parse(responseString);
 
 		var response = new List<HwiEnumerateEntry>();
-		foreach (JObject json in jarr)
+		foreach (JObject json in jArray)
 		{
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
@@ -310,13 +311,16 @@ public static class HwiParser
 		const string Prefix = "hwi";
 
 		// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-		var prefixToTrim = hwiResponse.StartsWith(WinPrefix)
-			? WinPrefix
-			: hwiResponse.StartsWith(Prefix)
-				? Prefix
-				: null;
-
-		if (prefixToTrim is null)
+		string prefixToTrim;
+		if (hwiResponse.StartsWith(WinPrefix))
+		{
+			prefixToTrim = WinPrefix;
+		}
+		else if (hwiResponse.StartsWith(Prefix))
+		{
+			prefixToTrim = Prefix;
+		}
+		else
 		{
 			throw new FormatException("HWI prefix is missing in the provided version response.");
 		}
@@ -343,25 +347,25 @@ public static class HwiParser
 			fullOptions.Insert(0, HwiOption.TestNet);
 		}
 
-		var optionsString = string.Join(" --", fullOptions.Select(x =>
-		{
-			string optionString = x.Type switch
+		var optionsString = string.Join(
+			" --",
+			fullOptions.Select(x =>
 			{
-				HwiOptions.DeviceType => "device-type",
-				HwiOptions.DevicePath => "device-path",
-				HwiOptions.TestNet => "chain test",
-				_ => x.Type.ToString().ToLowerInvariant(),
-			};
+				string optionString = x.Type switch
+				{
+					HwiOptions.DeviceType => "device-type",
+					HwiOptions.DevicePath => "device-path",
+					HwiOptions.TestNet => "chain test",
+					_ => x.Type.ToString().ToLowerInvariant(),
+				};
 
-			if (string.IsNullOrWhiteSpace(x.Arguments))
-			{
-				return optionString;
-			}
-			else
-			{
+				if (string.IsNullOrWhiteSpace(x.Arguments))
+				{
+					return optionString;
+				}
+
 				return $"{optionString} \"{x.Arguments}\"";
-			}
-		}));
+			}));
 
 		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 		var argumentBuilder = new StringBuilder(optionsString);

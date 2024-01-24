@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace WalletWasabi.Rpc;
 
 /// <summary>
-/// A rpc call is represented by sending a Request object to a Server. The Request object has the following members:
+/// A RPC call is represented by sending a Request object to a Server. The Request object has the following members:
 /// + jsonrpc - A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
 /// + method  - A String containing the name of the method to be invoked. Method names that begin with the word rpc
 ///             followed by a period character (U+002E or ASCII 46) are reserved for rpc-internal methods and extensions
@@ -76,23 +76,25 @@ public class JsonRpcRequest
 	public JToken Parameters { get; }
 
 	/// <summary>
-	/// Parses the json rpc request giving back the deserialized JsonRpcRequest instance.
+	/// Parses the JSON RPC request giving back the deserialized JsonRpcRequest instance.
 	/// Return true if the deserialization was successful, otherwise false.
 	/// </summary>
 	public static bool TryParse(string rawJson, [NotNullWhen(true)] out JsonRpcRequest[]? requests, out bool isBatch)
 	{
 		try
 		{
-			isBatch = rawJson.TrimStart().StartsWith("[");
+			isBatch = rawJson.TrimStart().StartsWith('[');
 			rawJson = isBatch ? rawJson : $"[{rawJson}]";
 			requests = JsonConvert.DeserializeObject<JsonRpcRequest[]>(rawJson);
-			return true;
+
+			return requests is not null;
 		}
 		catch (JsonException)
 		{
 			requests = null;
 			isBatch = false;
-			return false;
 		}
+
+		return false;
 	}
 }

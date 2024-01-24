@@ -1,4 +1,4 @@
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
@@ -11,6 +11,8 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 	public virtual int AnonScoreTarget { get; } = 5;
 
 	public virtual bool RedCoinIsolation { get; } = false;
+
+	public virtual CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.SpeedMaximizing;
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
 
@@ -43,11 +45,14 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget == AnonScoreTarget && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
+		return profile.AnonScoreTarget == AnonScoreTarget
+			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
+			&& profile.RedCoinIsolation == RedCoinIsolation
+			&& profile.SkipFactors == SkipFactors;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours);
+		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, SkipFactors);
 	}
 }

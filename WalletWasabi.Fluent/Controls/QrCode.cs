@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
-using Avalonia.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -48,19 +47,7 @@ public class QrCode : Control
 				}
 			});
 
-		_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(async address =>
-		{
-			await SaveQrCodeAsync(address);
-			return Unit.Default;
-		});
-
-		SaveCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(_ =>
-			{
-				// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.
-				// However we need to catch it here too but to avoid duplicate logging we don't do anything here.
-			});
+		_saveCommand = ReactiveCommand.CreateFromTask<string>(SaveQrCodeAsync);
 	}
 
 	private bool[,]? FinalMatrix { get; set; }
@@ -85,11 +72,18 @@ public class QrCode : Control
 			return;
 		}
 
-		var path = await FileDialogHelper.ShowSaveFileDialogAsync(
+		var file = await FileDialogHelper.SaveFileAsync(
 			"Save QR Code...",
 			new[] { "png" },
 			$"{address}.png",
 			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+		if (file is null)
+		{
+			return;
+		}
+
+		var path = file.Path.AbsolutePath;
+
 		if (!string.IsNullOrWhiteSpace(path))
 		{
 			var ext = Path.GetExtension(path);
@@ -109,7 +103,7 @@ public class QrCode : Control
 			}
 
 			using var rtb = new RenderTargetBitmap(pixSize);
-			using (var rtbCtx = rtb.CreateDrawingContext(null))
+			using (var rtbCtx = rtb.CreateDrawingContext())
 			{
 				DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
 			}
@@ -140,14 +134,13 @@ public class QrCode : Control
 	private (int indexW, int indexH) GetMatrixIndexSize(bool[,] source) =>
 		(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 
-	private void DrawQrCodeImage(IDrawingContextImpl ctx, bool[,] source, Size size)
+	private void DrawQrCodeImage(DrawingContext ctx, bool[,] source, Size size)
 	{
 		var qrCodeSize = GetQrCodeSize(source, size);
 		var (indexW, indexH) = GetMatrixIndexSize(source);
 		var gcf = qrCodeSize.gridCellFactor;
 
-		var canvasSize = new Rect(0, 0, gcf * indexW,
-			gcf * indexH);
+		var canvasSize = new Rect(0, 0, gcf * indexW, gcf * indexH);
 
 		ctx.DrawRectangle(Brushes.White, null, canvasSize);
 
@@ -172,7 +165,7 @@ public class QrCode : Control
 			return;
 		}
 
-		DrawQrCodeImage(context.PlatformImpl, source, Bounds.Size);
+		DrawQrCodeImage(context, source, Bounds.Size);
 	}
 
 	private (Size coercedSize, double gridCellFactor) GetQrCodeSize(bool[,] source, Size size)

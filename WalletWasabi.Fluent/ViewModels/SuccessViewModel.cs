@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 [NavigationMetaData(Title = "Success")]
 public partial class SuccessViewModel : RoutableViewModel
 {
-	public SuccessViewModel(string successText)
+	private SuccessViewModel(string successText)
 	{
 		SuccessText = successText;
 		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());

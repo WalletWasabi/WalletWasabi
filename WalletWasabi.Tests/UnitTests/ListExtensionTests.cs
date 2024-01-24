@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Extensions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;

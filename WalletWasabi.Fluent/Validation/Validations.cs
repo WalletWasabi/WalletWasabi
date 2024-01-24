@@ -27,9 +27,9 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 
 	public bool AnyWarnings => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Warning));
 
-	public bool AnyInfos => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Info));
+	public bool AnyInfoItems => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Info));
 
-	IEnumerable<string> IValidations.Infos => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Info).Select(error => error.Message));
+	IEnumerable<string> IValidations.InfoItems => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Info).Select(error => error.Message));
 
 	IEnumerable<string> IValidations.Warnings => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Warning).Select(error => error.Message));
 
@@ -87,9 +87,8 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 	{
 		if (!string.IsNullOrWhiteSpace(propertyName))
 		{
-			return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
-				? ErrorsByPropertyName[propertyName]
-				: ErrorDescriptors.Empty;
+			return ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? value) && value.Any()
+				? value : ErrorDescriptors.Empty;
 		}
 		else
 		{
@@ -113,17 +112,17 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 
 	private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
 	{
-		Func<ErrorSeverity, string> selector = x => x switch
+		static string Selector(ErrorSeverity x) => x switch
 		{
-			ErrorSeverity.Info => nameof(AnyInfos),
+			ErrorSeverity.Info => nameof(AnyInfoItems),
 			ErrorSeverity.Warning => nameof(AnyWarnings),
 			ErrorSeverity.Error => nameof(AnyErrors),
 			_ => throw new NotImplementedException(),
 		};
 
-		var propertiesToNotify = categoriesToNotify.Select(selector).ToList();
+		var propertiesToNotify = categoriesToNotify.Select(Selector).ToList();
 
-		if (propertiesToNotify.Any())
+		if (propertiesToNotify.Count != 0)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 			this.RaisePropertyChanged(nameof(Any));

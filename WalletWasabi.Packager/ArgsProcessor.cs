@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace WalletWasabi.Packager;
 
@@ -24,6 +24,8 @@ public class ArgsProcessor
 
 	public bool IsSign() => IsOneOf("sign");
 
+	public bool IsGeneratePrivateKey() => IsOneOf("generatekeys");
+
 	private bool IsOneOf(params string[] values)
 	{
 		foreach (var value in values)
@@ -47,7 +49,7 @@ public class ArgsProcessor
 
 		try
 		{
-			var appleidArg = Args.Where(a => a.Contains("appleid", StringComparison.InvariantCultureIgnoreCase)).First();
+			var appleidArg = Args.First(a => a.Contains("appleid", StringComparison.InvariantCultureIgnoreCase));
 			var parameters = appleidArg.Split("=")[1];
 			var idAndPassword = parameters.Split(":");
 			appleId = idAndPassword[0];

@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Xaml.Interactivity;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -37,8 +37,8 @@ public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 						var hasErrors = OwnerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
 						var text = OwnerTextBox.GetObservable(TextBox.TextProperty);
 
-						hasErrors.Select(_ => Unit.Default)
-							.Merge(text.Select(_ => Unit.Default))
+						hasErrors.ToSignal()
+							.Merge(text.ToSignal())
 							.Throttle(TimeSpan.FromMilliseconds(100))
 							.ObserveOn(RxApp.MainThreadScheduler)
 							.Subscribe(

@@ -1,27 +1,23 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<TreeDataGridRowsPresenter>
+public class PendingHistoryItemSeparatorBehavior : DisposingBehavior<TreeDataGridRowsPresenter>
 {
 	private const string ClassName = "separator";
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is { })
 		{
-			AssociatedObject.LayoutUpdated += AssociatedObjectOnLayoutUpdated;
-		}
-	}
-
-	protected override void OnDetachedFromVisualTree()
-	{
-		if (AssociatedObject is { })
-		{
-			AssociatedObject.LayoutUpdated -= AssociatedObjectOnLayoutUpdated;
+			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.LayoutUpdated))
+				.Subscribe(x => AssociatedObjectOnLayoutUpdated(x.Sender, EventArgs.Empty))
+				.DisposeWith(disposables);
 		}
 	}
 
@@ -32,23 +28,24 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		foreach (var child in ((IPanel)AssociatedObject).Children)
+		var children = AssociatedObject.GetVisualChildren();
+		foreach (var child in children)
 		{
 			if (child is { })
 			{
-				InvalidateSeparator(child, presenter);
+				InvalidateSeparator((Control) child, presenter);
 			}
 		}
 	}
 
-	private void InvalidateSeparator(IControl control, TreeDataGridRowsPresenter presenter)
+	private void InvalidateSeparator(Control control, TreeDataGridRowsPresenter presenter)
 	{
 		if (control.DataContext is not HistoryItemViewModelBase currentHistoryItem)
 		{
 			return;
 		}
 
-		if (currentHistoryItem.IsConfirmed)
+		if (currentHistoryItem.Transaction.IsConfirmed)
 		{
 			if (control.Classes.Contains(ClassName))
 			{
@@ -73,8 +70,8 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		static bool IsSeparator(TreeDataGridRowsPresenter presenter, int index)
 		{
 			return presenter.Items is { } items
-				   && items.Count > index + 1
-				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
+			       && items.Count > index + 1
+			       && presenter.Items[index + 1].Model is HistoryItemViewModelBase vm && vm.Transaction.IsConfirmed;
 		}
 	}
 }

@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers;
 
 public class RuntimeParams
 {
-	private static RuntimeParams InternalInstance = null;
+	private static RuntimeParams? InternalInstance = null;
 	private static string FileDir;
 
 	private RuntimeParams()
@@ -17,7 +17,7 @@ public class RuntimeParams
 	}
 
 	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
-	public int NetworkNodeTimeout { get; set; } = 64;
+	public int NetworkNodeTimeout { get; set; } = 16;
 
 	#region Business logic
 
@@ -39,7 +39,7 @@ public class RuntimeParams
 		}
 	}
 
-	private AsyncLock AsyncLock { get; } = new AsyncLock();
+	private AsyncLock AsyncLock { get; } = new();
 	private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 	public static void SetDataDir(string dataDir)
@@ -83,7 +83,7 @@ public class RuntimeParams
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 			InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
-							?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
+				?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
 			return;
 		}
 		catch (Exception ex)

@@ -2,7 +2,6 @@ using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -13,14 +12,20 @@ public static class ServiceFactory
 {
 	public static TransactionFactory CreateTransactionFactory(
 		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
-		bool allowUnconfirmed = true,
 		bool watchOnly = false)
 	{
-		var password = "foo";
-		var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
+		string password = "foo";
+		KeyManager keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
+		SmartCoin[] sCoins = CreateCoins(keyManager, coins);
+		var coinsView = new CoinsView(sCoins);
+		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
+	}
 
-		keyManager.AssertCleanKeysIndexed();
-
+	public static SmartCoin[] CreateCoins(
+		KeyManager keyManager,
+		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins)
+	{
 		var coinArray = coins.ToArray();
 
 		var generated = keyManager.GetKeys().Count();
@@ -39,29 +44,52 @@ public static class ServiceFactory
 			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
-		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
-		foreach (var coin in scoins)
+		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+		foreach (var coin in sCoins)
 		{
-			foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
+			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))
 			{
 				sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 			}
 		}
 
-		var uniqueCoins = scoins.Distinct().Count();
-		if (uniqueCoins != scoins.Length)
+		var uniqueCoins = sCoins.Distinct().Count();
+		if (uniqueCoins != sCoins.Length)
 		{
-			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{scoins.Length}, unique coins:{uniqueCoins}.");
+			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
-		var coinsView = new CoinsView(scoins);
-		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
-		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
+		return sCoins;
 	}
 
-	public static KeyManager CreateKeyManager(string password = "blahblahblah")
-		=> KeyManager.CreateNew(out var _, password, Network.Main);
+	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)
+	{
+		var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+		ExtKey extKey = mnemonic.DeriveExtKey(password);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+
+		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
+		BlockchainState blockchainState = new(Network.Main);
+		KeyPath segwitAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+
+		ExtPubKey? taprootExtPubKey = null;
+		if (isTaprootAllowed)
+		{
+			KeyPath taprootAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86);
+			taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+		}
+
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
+	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()
-		=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
+	{
+		Mnemonic mnemonic = new(Wordlist.English, WordCount.Twelve);
+		ExtKey extKey = mnemonic.DeriveExtKey();
+
+		return KeyManager.CreateNewWatchOnly(
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit)).Neuter(),
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86)).Neuter());
+	}
 }

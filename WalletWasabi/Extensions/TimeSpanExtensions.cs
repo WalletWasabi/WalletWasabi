@@ -2,13 +2,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Crypto.Randomness;
 
-namespace System;
+namespace WalletWasabi.Extensions;
 
 public static class TimeSpanExtensions
 {
-	public static ImmutableList<DateTimeOffset> SamplePoisson(this TimeSpan timeFrame, int numberOfEvents)
+	public static ImmutableList<DateTimeOffset> SamplePoisson(this TimeSpan timeFrame, int numberOfEvents, DateTimeOffset startTime)
 	{
-		var startTime = DateTimeOffset.UtcNow;
 		return timeFrame.SamplePoissonDelays(numberOfEvents).Select(delay => startTime + delay).ToImmutableList();
 	}
 

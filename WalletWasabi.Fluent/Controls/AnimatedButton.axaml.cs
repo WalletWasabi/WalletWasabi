@@ -28,9 +28,6 @@ public class AnimatedButton : TemplatedControl
 	public static readonly StyledProperty<bool> AnimateIconProperty =
 		AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
 
-	public static readonly StyledProperty<bool> ExecuteOnOpenProperty =
-		AvaloniaProperty.Register<AnimatedButton, bool>(nameof(ExecuteOnOpen));
-
 	static AnimatedButton()
 	{
 		AffectsRender<AnimatedButton>(InitialOpacityProperty);
@@ -76,23 +73,5 @@ public class AnimatedButton : TemplatedControl
 	{
 		get => GetValue(AnimateIconProperty);
 		set => SetValue(AnimateIconProperty, value);
-	}
-
-	public bool ExecuteOnOpen
-	{
-		get => GetValue(ExecuteOnOpenProperty);
-		set => SetValue(ExecuteOnOpenProperty, value);
-	}
-
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnAttachedToVisualTree(e);
-
-		AnimateIcon = ExecuteOnOpen;
-
-		if (ExecuteOnOpen)
-		{
-			Command.Execute(default);
-		}
 	}
 }

@@ -18,7 +18,9 @@ public class JsonRpcServiceMetadataProvider
 {
 	// Keeps the directory of procedures' metadata
 	private Dictionary<string, JsonRpcMethodMetadata> _proceduresDirectory =
-			new();
+		new();
+
+	private MethodInfo? _initializer = null;
 
 	public JsonRpcServiceMetadataProvider(Type serviceType)
 	{
@@ -37,16 +39,25 @@ public class JsonRpcServiceMetadataProvider
 		{
 			LoadServiceMetadata();
 		}
+
 		if (!_proceduresDirectory.TryGetValue(methodName, out metadata))
 		{
 			metadata = null;
 			return false;
 		}
+
 		return true;
+	}
+
+	public bool TryGetInitializer([NotNullWhen(true)] out MethodInfo? info)
+	{
+		info = _initializer;
+		return info is not null;
 	}
 
 	private void LoadServiceMetadata()
 	{
+		_initializer = GetInitializationMethod();
 		foreach (var info in EnumerateServiceInfo())
 		{
 			_proceduresDirectory.Add(info.Name, info);
@@ -68,10 +79,33 @@ public class JsonRpcServiceMetadataProvider
 					{
 						parameters.Add((p.Name, p.ParameterType, p.IsOptional, p.DefaultValue));
 					}
+
 					var jsonRpcMethodAttr = attribute;
-					yield return new JsonRpcMethodMetadata(jsonRpcMethodAttr.Name, methodInfo, parameters);
+					yield return new JsonRpcMethodMetadata(
+						jsonRpcMethodAttr.Name,
+						methodInfo,
+						jsonRpcMethodAttr.Initializable,
+						parameters);
 				}
 			}
 		}
+	}
+
+	internal MethodInfo? GetInitializationMethod()
+	{
+		var publicMethods = ServiceType.GetMethods();
+		foreach (var methodInfo in publicMethods)
+		{
+			var attrs = methodInfo.GetCustomAttributes();
+			foreach (Attribute attr in attrs)
+			{
+				if (attr is JsonRpcInitializationAttribute)
+				{
+					return methodInfo;
+				}
+			}
+		}
+
+		return null;
 	}
 }

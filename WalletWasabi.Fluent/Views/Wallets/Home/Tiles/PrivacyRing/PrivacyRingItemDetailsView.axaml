@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
+             xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingItemDetailsView"
+             x:CompileBindings="True"
+             x:DataType="ring:PrivacyRingItemViewModel">
+  <UserControl.Styles>
+    <Style Selector="StackPanel.privacyLevel">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="10" />
+    </Style>
+    <Style Selector="StackPanel.privacyLevel.small">
+      <Setter Property="Orientation" Value="Vertical" />
+      <Setter Property="Spacing" Value="5" />
+    </Style>
+  </UserControl.Styles>
+  <StackPanel VerticalAlignment="Center">
+    <Viewbox Height="27" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <TextBlock
+        VerticalAlignment="Center" HorizontalAlignment="Center"
+        TextAlignment="Center"
+        Text="{Binding AmountText}" Classes="h3" />
+    </Viewbox>
+
+    <StackPanel Spacing="8">
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="190" MaxWidthOperator="LessThanOrEqual" ClassName="small" TargetControl="{Binding #PrivacyLevel}" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
+
+      <StackPanel IsVisible="{Binding !IsNonPrivate}" MinHeight="42">
+        <Separator Margin="0 3 0 9" />
+        <StackPanel Opacity="0.8" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel" HorizontalAlignment="Center">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{DynamicResource ButtonForeground}">
+            <TextBlock
+              Text="{Binding PrivacyLevelText, Converter={x:Static conv:StringConverters.ToUpperCase}}" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+          <TextBlock Text="{Binding AnonScore, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding IsNonPrivate}" MinHeight="42">
+        <Separator IsVisible="{Binding !Labels.IsEmpty}" Margin="0 3 0 9" />
+        <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+      </StackPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

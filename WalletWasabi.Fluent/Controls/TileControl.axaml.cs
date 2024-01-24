@@ -1,99 +1,47 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
-using Avalonia.Controls.Primitives;
-using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public class TileControl : ContentControl
 {
-	private ContentPresenter? _contentPresenter;
+	public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<TileControl, string>(nameof(Title));
 
-	public static readonly StyledProperty<object?> LargeSizeContentProperty =
-		AvaloniaProperty.Register<TileControl, object?>(nameof(LargeSizeContent));
+	public static readonly StyledProperty<object> BottomContentProperty = AvaloniaProperty.Register<TileControl, object>(nameof(BottomContent));
 
-	public static readonly StyledProperty<object?> WideSizeContentProperty =
-		AvaloniaProperty.Register<TileControl, object?>(nameof(WideSizeContent));
+	public static readonly StyledProperty<bool> IsBottomContentVisibleProperty = AvaloniaProperty.Register<TileControl, bool>(nameof(IsBottomContentVisible), true);
 
-	public static readonly StyledProperty<TileSize> TileSizeProperty =
-		AvaloniaProperty.Register<TileControl, TileSize>(nameof(TileSize));
+	public static readonly StyledProperty<Thickness> SeparatorMarginProperty = AvaloniaProperty.Register<TileControl, Thickness>(nameof(SeparatorMargin));
 
-	public object? LargeSizeContent
+	public static readonly StyledProperty<double> BottomPartHeightProperty = AvaloniaProperty.Register<TileControl, double>(nameof(BottomPartHeight));
+
+	public string Title
 	{
-		get => GetValue(LargeSizeContentProperty);
-		set => SetValue(LargeSizeContentProperty, value);
+		get => GetValue(TitleProperty);
+		set => SetValue(TitleProperty, value);
 	}
 
-	public object? WideSizeContent
+	public object BottomContent
 	{
-		get => GetValue(WideSizeContentProperty);
-		set => SetValue(WideSizeContentProperty, value);
+		get => GetValue(BottomContentProperty);
+		set => SetValue(BottomContentProperty, value);
 	}
 
-	public TileSize TileSize
+	public bool IsBottomContentVisible
 	{
-		get => GetValue(TileSizeProperty);
-		set => SetValue(TileSizeProperty, value);
+		get => GetValue(IsBottomContentVisibleProperty);
+		set => SetValue(IsBottomContentVisibleProperty, value);
 	}
 
-	private void UpdateContent()
+	public Thickness SeparatorMargin
 	{
-		if (_contentPresenter is { })
-		{
-			_contentPresenter.Content = GetClosestSizedContent();
-		}
+		get => GetValue(SeparatorMarginProperty);
+		set => SetValue(SeparatorMarginProperty, value);
 	}
 
-	private object GetClosestSizedContent()
+	public double BottomPartHeight
 	{
-		int currentSize = (int)TileSize;
-
-		while (currentSize > 0)
-		{
-			var tileSize = (TileSize)currentSize;
-
-			switch (tileSize)
-			{
-				case TileSize.Wide:
-					if (WideSizeContent is { })
-					{
-						return WideSizeContent;
-					}
-
-					break;
-
-				case TileSize.Large:
-					if (LargeSizeContent is { })
-					{
-						return LargeSizeContent;
-					}
-
-					break;
-			}
-
-			currentSize--;
-		}
-
-		return Content;
-	}
-
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-	{
-		base.OnApplyTemplate(e);
-
-		_contentPresenter = e.NameScope.Find<ContentPresenter>("PART_ContentPresenter");
-
-		UpdateContent();
-	}
-
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
-	{
-		base.OnPropertyChanged(change);
-
-		if (change.Property == TileSizeProperty)
-		{
-			UpdateContent();
-		}
+		get => GetValue(BottomPartHeightProperty);
+		set => SetValue(BottomPartHeightProperty, value);
 	}
 }

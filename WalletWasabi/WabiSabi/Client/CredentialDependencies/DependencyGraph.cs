@@ -51,7 +51,7 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
 	{
 		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
 		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
@@ -62,7 +62,7 @@ public record DependencyGraph
 		}
 
 		var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
+		var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feeRate));
 
 		return ResolveCredentialDependencies(
 			Enumerable.Zip(effectiveValues.Select(a => a.Satoshi), inputSizes.Select(i => (vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<long>>(),
@@ -155,7 +155,7 @@ public record DependencyGraph
 	///
 	/// <para>Outgoing edges represent credential amounts to request and
 	/// present in a subsequent request, so for positive nodes if there is a
-	/// left over balance the outgoing dregree is limited to K-1, since an
+	/// left over balance the outgoing degree is limited to K-1, since an
 	/// extra credential for the remaining amount must also be
 	/// requested.</para>
 	///
@@ -173,7 +173,7 @@ public record DependencyGraph
 	/// values are sufficient to fill the reissuance node's in edge set and
 	/// requires only one edge to fully drain the (remaining) balance, so
 	/// there will be an extra zero valued credential (requested normally,
-	/// incl. range proof).</para>
+	/// including range proof).</para>
 	///
 	/// <para>New reissuance nodes fully absorb the value of the nodes they
 	/// substitute with no additional dependencies required, so each one
@@ -314,7 +314,7 @@ public record DependencyGraph
 		var g = this;
 
 		// Unconstrained nodes have a remaining out degree greater than 1,
-		// so they can produce arbitary value outputs (final edge must leave
+		// so they can produce arbitrary value outputs (final edge must leave
 		// balance = 0).
 		// The remaining outdegree > 1 condition is equivalent to == K for
 		// K=2, so that also implies the positive valued nodes haven't been
@@ -410,7 +410,7 @@ public record DependencyGraph
 		// dependencies between different requests, weight credentials
 		// should often be easily satisfiable with parallel edges to the
 		// amount credential edges.
-		if (CredentialType.IsDefined(credentialType + 1))
+		if (Enum.IsDefined(credentialType + 1))
 		{
 			// TODO Limit up to a certain height in the graph, no more than
 			// the initial value, this can sometimes create a deeper graph
@@ -439,7 +439,7 @@ public record DependencyGraph
 		// This can be done in 3 depth first passes, which all consume nodes
 		// whose remaining in degree is 0 and available zero degree is >0.
 		// - discharge only to AvailableZeroOutDegree >0 nodes (should be at most one such node per donor node)
-		// - discharge to direct descendents even if a net reduction in zero creds because of available zero out degree of 0
+		// - discharge to direct descendants even if a net reduction in zero creds because of available zero out degree of 0
 		// - discharge all remaining in degree >0 nodes by topological order
 
 		var edgeSet = EdgeSets[credentialType];

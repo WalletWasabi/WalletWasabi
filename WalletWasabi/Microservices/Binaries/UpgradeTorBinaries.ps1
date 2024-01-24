@@ -21,7 +21,8 @@ param(
   [Parameter(Mandatory=$false)][Switch]$skipDownloading,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingBrowserArchives,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingTorBinaries,
-  [Parameter(Mandatory=$false)][Switch]$skipReplacingTorBinaries)
+  [Parameter(Mandatory=$false)][Switch]$skipReplacingTorBinaries,
+  [Parameter(Mandatory=$false)][Switch]$skipReplacingGeoIpFiles)
 
 Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
@@ -44,9 +45,9 @@ if ($IsWindows) {
   $sevenZip = '7zz'
 }
 
-$windowsInstaller = "torbrowser-install-win64-${version}_en-US.exe"
-$macDmg = "TorBrowser-${version}-osx64_en-US.dmg"
-$linuxTarball = "tor-browser-linux64-${version}_en-US.tar"
+$windowsInstaller = "torbrowser-install-win64-${version}_ALL.exe"
+$macDmg = "TorBrowser-${version}-macos_ALL.dmg"
+$linuxTarball = "tor-browser-linux64-${version}_ALL.tar"
 $linuxCompressedTarball = "$linuxTarball.xz"
 
 $packages = @(
@@ -113,11 +114,11 @@ try {
 
     Write-Output "# Extract Tor binary for macOs."
     mkdir -p "Tor/osx64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
+    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for linux."
     mkdir -p "Tor/lin64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser_en-US/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
+    Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
   }
 
   if ($skipReplacingTorBinaries) {
@@ -128,6 +129,14 @@ try {
       Remove-Item -Recurse -Force "$PSScriptRoot/$platform/Tor/*" -Exclude "LICENSE" -ErrorAction SilentlyContinue
       Copy-item -Recurse -Force -Path "Tor/$platform/*" -Destination "$PSScriptRoot/$platform/Tor/"
     }
+  }
+
+  if ($skipReplacingGeoIpFiles) {
+    Write-Output "# Skip replacing geoip files."
+  } else {
+    $destination = Join-Path -Resolve "$PSScriptRoot" ".." ".." "Tor" "Geoip"
+    Write-Output "# Replace geoip files in folder '$destination'."
+    Copy-item -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Data/Tor/geoip*" -Destination "$destination/"
   }
 
   Write-Output "# Done."

@@ -31,8 +31,7 @@ public static class ImportWalletHelper
 			km.SetIcon(WalletType.Coldcard);
 		}
 
-		km.SetBestHeight(0);
-
+		km.SetBestHeights(height: 0, turboSyncHeight: 0);
 		return km;
 	}
 
@@ -52,8 +51,10 @@ public static class ImportWalletHelper
 
 	private static KeyManager GetKeyManagerByColdcardJson(WalletManager manager, JObject jsonWallet, string walletFullPath)
 	{
-		var xpubString = jsonWallet["ExtPubKey"]?.ToString()
+		var segwitXpubString = jsonWallet["ExtPubKey"]?.ToString()
 			?? throw new ArgumentNullException($"Can't get KeyManager, ExtPubKey was null.");
+
+		var taprootXpubString = jsonWallet["TaprootExtPubKey"]?.ToString();
 
 		var mfpString = jsonWallet["MasterFingerprint"]?.ToString()
 			?? throw new ArgumentNullException($"Can't get KeyManager, MasterFingerprint was null.");
@@ -85,8 +86,13 @@ public static class ImportWalletHelper
 			throw new InvalidOperationException(WalletExistsErrorMessage);
 		}
 
-		ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
+		ExtPubKey segwitExtPubKey = NBitcoinHelpers.BetterParseExtPubKey(segwitXpubString);
+		ExtPubKey? taprootExtPubKey = taprootXpubString is { }
+			? NBitcoinHelpers.BetterParseExtPubKey(taprootXpubString)
+			: null;
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, manager.Network, walletFullPath);
+		var km = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
+		km.PreferPsbtWorkflow = true;
+		return km;
 	}
 }

@@ -1,29 +1,36 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
+using Avalonia.Input;
 using Avalonia.Layout;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.Controls;
 
 /// <summary>
 /// Container for NavBarItems.
 /// </summary>
-[PseudoClasses(":horizontal", ":vertical", ":selectable")]
-public class NavBarItem : ListBoxItem
+[PseudoClasses(":horizontal", ":vertical", ":selected")]
+public class NavBarItem : ContentControl
 {
+	public static readonly StyledProperty<ICommand?> CommandProperty =
+		AvaloniaProperty.Register<NavBarItem, ICommand?>(nameof(Command));
+
 	public static readonly StyledProperty<IconElement> IconProperty =
 		AvaloniaProperty.Register<NavBarItem, IconElement>(nameof(Icon));
 
 	public static readonly StyledProperty<Orientation> IndicatorOrientationProperty =
 		AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Vertical);
 
-	public static readonly StyledProperty<bool> IsSelectableProperty =
-		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelectable));
-
 	public NavBarItem()
 	{
 		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
-		UpdateIsSelectablePseudoClasses(IsSelectable);
+	}
+
+	public ICommand? Command
+	{
+		get => GetValue(CommandProperty);
+		set => SetValue(CommandProperty, value);
 	}
 
 	/// <summary>
@@ -44,27 +51,23 @@ public class NavBarItem : ListBoxItem
 		set => SetValue(IndicatorOrientationProperty, value);
 	}
 
-	/// <summary>
-	/// Gets or sets flag indicating whether item supports selected state.
-	/// </summary>
-	public bool IsSelectable
-	{
-		get => GetValue(IsSelectableProperty);
-		set => SetValue(IsSelectableProperty, value);
-	}
-
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			UpdateIndicatorOrientationPseudoClasses(change.GetNewValue<Orientation>());
 		}
+	}
 
-		if (change.Property == IsSelectableProperty)
+	protected override void OnPointerPressed(PointerPressedEventArgs e)
+	{
+		base.OnPointerPressed(e);
+
+		if (Command != null && Command.CanExecute(default))
 		{
-			UpdateIsSelectablePseudoClasses(change.NewValue.GetValueOrDefault<bool>());
+			Command.Execute(default);
 		}
 	}
 
@@ -74,8 +77,8 @@ public class NavBarItem : ListBoxItem
 		PseudoClasses.Set(":vertical", orientation == Orientation.Vertical);
 	}
 
-	private void UpdateIsSelectablePseudoClasses(bool isSelectable)
+	private void UpdatePseudoClass(string pseudoClass, bool value)
 	{
-		PseudoClasses.Set(":selectable", isSelectable);
+		PseudoClasses.Set(pseudoClass, value);
 	}
 }

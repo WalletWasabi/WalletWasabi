@@ -4,12 +4,17 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.ZeroKnowledge;
+using WabiSabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class SmartRequestNode
 {
+	// Limit reissuance requests at the same time when coinjoining with multiple wallets to avoid overloading Tor.
+	private const int MaxParallelReissuanceRequests = 10;
+
+	private static readonly SemaphoreSlim SemaphoreSlim = new(MaxParallelReissuanceRequests);
+
 	public SmartRequestNode(
 		IEnumerable<Task<Credential>> inputAmountCredentialTasks,
 		IEnumerable<Task<Credential>> inputVsizeCredentialTasks,
@@ -35,12 +40,22 @@ public class SmartRequestNode
 		var amountsToRequest = AddExtraCredentialRequests(amounts, inputAmountCredentials.Sum(x => x.Value));
 		var vsizesToRequest = AddExtraCredentialRequests(vsizes, inputVsizeCredentials.Sum(x => x.Value));
 
-		(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
-			amountsToRequest,
-			vsizesToRequest,
-			inputAmountCredentials,
-			inputVsizeCredentials,
-			cancellationToken).ConfigureAwait(false);
+		(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials) result;
+
+		await SemaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			result = await bobClient.ReissueCredentialsAsync(
+				amountsToRequest,
+				vsizesToRequest,
+				inputAmountCredentials,
+				inputVsizeCredentials,
+				cancellationToken).ConfigureAwait(false);
+		}
+		finally
+		{
+			SemaphoreSlim.Release();
+		}
 
 		// TODO keep the credentials that were not needed by the graph
 		var (amountCredentials, _) = SeparateExtraCredentials(result.RealAmountCredentials, amounts);

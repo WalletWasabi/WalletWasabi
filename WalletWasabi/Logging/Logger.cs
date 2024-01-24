@@ -29,24 +29,28 @@ public static class Logger
 
 	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
 
-	private static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
+	private static HashSet<LogMode> Modes { get; } = new();
 
 	public static string FilePath { get; private set; } = "Log.txt";
 
-	public static string EntrySeparator { get; private set; } = Environment.NewLine;
+	public static string EntrySeparator { get; } = Environment.NewLine;
 
 	/// <summary>
 	/// Gets the GUID instance.
-	///
 	/// <para>You can use it to identify which software instance created a log entry. It gets created automatically, but you have to use it manually.</para>
 	/// </summary>
 	private static Guid InstanceGuid { get; } = Guid.NewGuid();
 
-	/// <summary>
-	/// Gets or sets the maximum log file size in KB.
-	/// </summary>
-	/// <remarks>Default value is approximately 10 MB. If set to <c>0</c>, then there is no maximum log file size.</remarks>
-	private static long MaximumLogFileSize { get; set; } = 10_000;
+	/// <summary>Gets or sets the maximum log file size in bytes.</summary>
+	/// <remarks>
+	/// Default value is approximately 10 MB. If set to <c>0</c>, then there is no maximum log file size.
+	/// <para>Guarded by <see cref="Lock"/>.</para>
+	/// </remarks>
+	private static long MaximumLogFileSizeBytes { get; set; } = 10_000_000;
+
+	/// <summary>Gets or sets current log file size in bytes.</summary>
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private static long LogFileSizeBytes { get; set; }
 
 	#endregion PropertiesAndMembers
 
@@ -68,14 +72,21 @@ public static class Logger
 		SetFilePath(filePath);
 
 #if RELEASE
-			SetMinimumLevel(logLevel ??= LogLevel.Info);
-			SetModes(LogMode.Console, LogMode.File);
+		SetMinimumLevel(logLevel ??= LogLevel.Info);
+		SetModes(LogMode.Console, LogMode.File);
 
 #else
 		SetMinimumLevel(logLevel ??= LogLevel.Debug);
 		SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
-		MaximumLogFileSize = MinimumLevel == LogLevel.Trace ? 0 : 10_000;
+
+		lock (Lock)
+		{
+			if (MinimumLevel == LogLevel.Trace)
+			{
+				MaximumLogFileSizeBytes = 0;
+			}
+		}
 	}
 
 	public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
@@ -98,14 +109,19 @@ public static class Logger
 		}
 	}
 
-	public static void SetFilePath(string filePath) => FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+	public static void SetFilePath(string filePath)
+	{
+		FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-	public static void SetEntrySeparator(string entrySeparator) => EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
-
-	/// <summary>
-	/// KB
-	/// </summary>
-	public static void SetMaximumLogFileSize(long sizeInKb) => MaximumLogFileSize = sizeInKb;
+		if (File.Exists(FilePath))
+		{
+			lock (Lock)
+			{
+				LogFileSizeBytes = new FileInfo(FilePath).Length;
+			}
+		}
+	}
 
 	#endregion Initializers
 
@@ -217,17 +233,15 @@ public static class Logger
 					return;
 				}
 
-				IoHelpers.EnsureContainingDirectoryExists(FilePath);
-
-				if (MaximumLogFileSize > 0)
+				if (MaximumLogFileSizeBytes > 0)
 				{
-					if (File.Exists(FilePath))
+					// Simplification here is that: 1 character ~ 1 byte.
+					LogFileSizeBytes += finalFileMessage.Length;
+
+					if (LogFileSizeBytes > MaximumLogFileSizeBytes)
 					{
-						var sizeInBytes = new FileInfo(FilePath).Length;
-						if (sizeInBytes > 1000 * MaximumLogFileSize)
-						{
-							File.Delete(FilePath);
-						}
+						LogFileSizeBytes = 0;
+						File.Delete(FilePath);
 					}
 				}
 

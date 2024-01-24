@@ -11,6 +11,12 @@ namespace WalletWasabi.Tor.Http;
 /// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
 public class ClearnetHttpClient : IHttpClient
 {
+	public ClearnetHttpClient(HttpClient httpClient)
+	{
+		BaseUriGetter = () => httpClient.BaseAddress ?? throw new NotSupportedException("No base address was set.");
+		HttpClient = httpClient;
+	}
+
 	public ClearnetHttpClient(HttpClient httpClient, Func<Uri>? baseUriGetter)
 	{
 		BaseUriGetter = baseUriGetter;
@@ -23,8 +29,8 @@ public class ClearnetHttpClient : IHttpClient
 	private HttpClient HttpClient { get; }
 
 	/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
-	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		return HttpClient.SendAsync(request, token);
+		return HttpClient.SendAsync(request, cancellationToken);
 	}
 }

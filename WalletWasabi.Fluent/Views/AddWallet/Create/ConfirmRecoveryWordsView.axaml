@@ -2,38 +2,97 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
-             xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
+                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue"
-                 EnableSkip="{Binding IsSkipEnable}">
-    <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="350">
-      <ItemsControl Items="{Binding ConfirmationWords}">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusFirstTextBoxInItemsControlBehavior />
-        </i:Interaction.Behaviors>
+                 EnableNext="True"
+                 NextContent="Continue"
+                 EnableSkip="{Binding IsSkipEnabled}"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <Grid x:Name="Layout">
+      <Grid.RowDefinitions>
+        <RowDefinition MinHeight="70" Height="*" />
+        <RowDefinition Height="16" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="20" />
+      </Grid.RowDefinitions>
+
+      <ItemsControl ItemsSource="{Binding AvailableWords}"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Margin="30 0"
+                    MaxWidth="475">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <DockPanel>
-              <Label Content="{Binding Index, StringFormat=Recovery word {0}, Mode=OneWay}" DockPanel.Dock="Top" />
-              <TextBox Watermark="Type in the word" Classes="hasCheckMarkBoolean" validation:CheckMarkStatus.IsEnabled="{Binding IsConfirmed}" Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
-                </i:Interaction.Behaviors>
-              </TextBox>
-            </DockPanel>
+          <DataTemplate x:DataType="create:RecoveryWordViewModel">
+            <ToggleButton IsChecked="{Binding IsSelected}" Margin="2 0">
+              <ToggleButton.IsEnabled>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="IsEnabled" />
+                  <Binding Path="IsConfirmed" Converter="{x:Static BoolConverters.Not}" />
+                </MultiBinding>
+              </ToggleButton.IsEnabled>
+              <ToggleButton.Styles>
+                <Style Selector="ToggleButton /template/ c|TagControl">
+                  <Setter Property="Cursor" Value="Hand" />
+                </Style>
+                <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
+                  <Setter Property="Opacity" Value="0.6" />
+                  <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+                  <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
+                </Style>
+              </ToggleButton.Styles>
+              <ToggleButton.Template>
+                <ControlTemplate>
+                  <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
+                </ControlTemplate>
+              </ToggleButton.Template>
+            </ToggleButton>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-    </ScrollViewer>
+
+      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ItemsControl ItemsSource="{Binding ConfirmationWords}">
+          <ItemsControl.Styles>
+            <Style Selector="TextBlock.error">
+              <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
+                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Grid ColumnDefinitions="*,1,*,1,*">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
+          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
+        </Grid>
+      </Panel>
+    </Grid>
   </c:ContentArea>
 </UserControl>

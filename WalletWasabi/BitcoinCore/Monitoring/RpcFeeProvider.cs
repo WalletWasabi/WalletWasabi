@@ -28,7 +28,7 @@ public class RpcFeeProvider : PeriodicRunner
 	{
 		try
 		{
-			var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cancel).ConfigureAwait(false);
+			var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(cancel).ConfigureAwait(false);
 
 			// If Core was running for a day already && it's synchronized, then we can be pretty sure that the estimate is accurate.
 			// It could also be accurate if Core was only shut down for a few minutes, but that's hard to figure out.
@@ -41,7 +41,7 @@ public class RpcFeeProvider : PeriodicRunner
 			}
 			InError = false;
 		}
-		catch (NoEstimationException ex)
+		catch (NoEstimationException)
 		{
 			Logging.Logger.LogInfo("Couldn't get fee estimation from the Bitcoin node, probably because it was not yet initialized.");
 			InError = true;

@@ -1,0 +1,13 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="controls|PrivacyContentControl.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+</Styles>

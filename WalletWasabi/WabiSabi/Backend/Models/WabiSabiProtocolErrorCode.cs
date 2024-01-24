@@ -43,13 +43,12 @@ public static class WabiSabiProtocolErrorCodeExtension
 {
 	public static bool IsEvidencingClearMisbehavior(this WabiSabiProtocolErrorCode errorCode) =>
 		errorCode
-			is WabiSabiProtocolErrorCode.InputSpent
-			or WabiSabiProtocolErrorCode.WrongOwnershipProof
-			or WabiSabiProtocolErrorCode.ScriptNotAllowed
+			is WabiSabiProtocolErrorCode.ScriptNotAllowed
 			or WabiSabiProtocolErrorCode.NonStandardInput
 			or WabiSabiProtocolErrorCode.NonStandardOutput
 			or WabiSabiProtocolErrorCode.DeltaNotZero
 			or WabiSabiProtocolErrorCode.WrongNumberOfCreds
 			or WabiSabiProtocolErrorCode.NonUniqueInputs
-			or WabiSabiProtocolErrorCode.CryptoException;
+			or WabiSabiProtocolErrorCode.CryptoException
+			or WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection;
 }

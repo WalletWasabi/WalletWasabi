@@ -49,7 +49,7 @@ public sealed class BoundActionField<T>
 	/// <summary>
 	/// Attempts to update the context of the bound action stored in the field. Returns <c>false</c> if the field is <c>null</c>.
 	/// </summary>
-	/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultanously update the context.</param>
+	/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultaneously update the context.</param>
 	public bool TryUpdateContext(Func<T, T> contextUpdater)
 	{
 		while (true)

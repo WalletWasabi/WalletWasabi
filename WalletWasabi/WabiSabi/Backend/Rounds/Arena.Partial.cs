@@ -1,20 +1,17 @@
+using System.Collections.Generic;
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.Affiliation;
+using WabiSabi.CredentialRequesting;
+using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using System;
-
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : IWabiSabiApiRequestHandler
@@ -27,18 +24,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		}
 		catch (Exception ex) when (IsUserCheating(ex))
 		{
-			Prison.Ban(request.Input, request.RoundId);
+			Logger.LogInfo($"{request.Input} is cheating: {ex.Message}");
+			Prison.CheatingDetected(request.Input, request.RoundId);
 			throw;
 		}
 	}
 
 	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+		var (coin, confirmations) = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId);
+
+			// Compute but don't commit updated coinjoin to round state, it will
+			// be re-calculated on input confirmation. This is computed in here
+			// for validation purposes.
+			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
+
+			CheckCoinIsNotBanned(coin.Outpoint, round);
 
 			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
@@ -58,31 +63,28 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			// Compute but don't commit updated coinjoin to round state, it will
-			// be re-calculated on input confirmation. This is computed in here
-			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
-
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
 			// not say anything about GUID version or randomness source,
 			// only that the probability of duplicates is very low).
 			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
-			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			var comingFromCoinJoin = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			bool oneHop = false;
 
-			if (!isPayingZeroCoordinationFee)
+			if (!comingFromCoinJoin)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
 				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
 
 				if (tx.Inputs.All(input => CoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
-					isPayingZeroCoordinationFee = true;
+					oneHop = true;
 				}
 			}
 
-			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
+			var isCoordinationFeeExempted = comingFromCoinJoin || oneHop;
+			var alice = new Alice(coin, request.OwnershipProof, round, id, isCoordinationFeeExempted);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
 			{
@@ -117,10 +119,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
+			int currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, confirmations, oneHop: oneHop, currentBlockHeight, cancellationToken);
+
 			return new(alice.Id,
 				commitAmountCredentialResponse,
 				commitVsizeCredentialResponse,
-				alice.IsPayingZeroCoordinationFee);
+				alice.IsCoordinationFeeExempted);
 		}
 	}
 
@@ -130,7 +136,13 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
+			if (alice.IsCoordinationFeeExempted && request.AffiliationId != AffiliationConstants.DefaultAffiliationId)
+			{
+				throw new AffiliationException(
+					"Input is exempted from paying coordination fee and can only use default affiliation id.");
+			}
 			alice.ReadyToSign = true;
+			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
 		}
 	}
 
@@ -140,7 +152,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
-			round.Alices.RemoveAll(x => x.Id == request.AliceId);
+			round.Alices.RemoveAll(x => x.Id == request.AliceId && x.ConfirmedConnection == false);
 		}
 	}
 
@@ -154,7 +166,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 			var alice = GetAlice(request.AliceId, round);
-			Prison.Ban(alice.Coin.Outpoint, round.Id);
+			Logger.LogInfo($"{alice.Coin.Outpoint} is cheating: {ex.Message}");
+			Prison.CheatingDetected(alice.Coin.Outpoint, request.RoundId);
 			throw;
 		}
 	}
@@ -174,7 +187,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (alice.ConfirmedConnection)
 			{
-				Prison.Ban(alice, round.Id);
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
@@ -208,33 +220,29 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			switch (round.Phase)
 			{
 				case Phase.InputRegistration:
-					{
-						var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
-						var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
-						alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
-						return new(
-							commitAmountZeroCredentialResponse,
-							commitVsizeZeroCredentialResponse);
-					}
+					var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
+					var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
+					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+					return new(
+						commitAmountZeroCredentialResponse,
+						commitVsizeZeroCredentialResponse);
 
 				case Phase.ConnectionConfirmation:
-					{
-						// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-						amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
-						vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
+					// If the phase was InputRegistration before then we did not pre-calculate real credentials.
+					amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+					vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 
-						ConnectionConfirmationResponse response = new(
-							await amountZeroCredentialTask.ConfigureAwait(false),
-							await vsizeZeroCredentialTask.ConfigureAwait(false),
-							await amountRealCredentialTask.ConfigureAwait(false),
-							await vsizeRealCredentialTask.ConfigureAwait(false));
+					ConnectionConfirmationResponse response = new(
+						await amountZeroCredentialTask.ConfigureAwait(false),
+						await vsizeZeroCredentialTask.ConfigureAwait(false),
+						await amountRealCredentialTask.ConfigureAwait(false),
+						await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
-						alice.ConfirmedConnection = true;
+					// Update the coinjoin state, adding the confirmed input.
+					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+					alice.ConfirmedConnection = true;
 
-						return response;
-					}
+					return response;
 
 				default:
 					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
@@ -257,15 +265,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (CoinJoinScriptStore?.Contains(request.Script) is true)
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in previous coinjoins.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
-			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			var outputScripts = Rounds
+				.Where(r => r.Id != round.Id && r.Phase != Phase.Ended)
+				.SelectMany(r => r.Bobs)
+				.Select(x => x.Script)
+				.ToHashSet();
+			if (outputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (output side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
+			}
+
+			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (input side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);
@@ -346,41 +365,23 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			await zeroVsizeTask.ConfigureAwait(false));
 	}
 
-	public async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task<(Coin coin, int Confirmations)> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate))
-		{
-			DateTimeOffset bannedUntil;
-			if (inmate.Punishment == Punishment.LongBanned)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
-
-			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
-		}
-
-		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
-		if (txOutResponse is null)
-		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
-		}
+		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
+
 		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 		}
 
-		return new Coin(input, txOutResponse.TxOut);
+		return (new Coin(input, txOutResponse.TxOut), txOutResponse.Confirmations);
 	}
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -395,8 +396,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return x;
 		}).ToArray();
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
+	}
 
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+	public uint256[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
+		Rounds
+		.Where(r => r.Phase != Phase.Ended)
+		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
+		.Select(x => x.RoundId)
+		.Distinct()
+		.ToArray();
+
+	private void CheckCoinIsNotBanned(OutPoint input, Round round)
+	{
+		var banningTime = Prison.GetBanTimePeriod(input, Config.GetDoSConfiguration());
+		if (banningTime.Includes(DateTimeOffset.UtcNow))
+		{
+			round.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}");
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));
+		}
 	}
 
 	private Round GetRound(uint256 roundId) =>

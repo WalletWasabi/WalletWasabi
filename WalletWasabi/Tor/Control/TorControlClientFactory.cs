@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -16,10 +17,8 @@ namespace WalletWasabi.Tor.Control;
 /// <summary>
 /// Class to authenticate to Tor Control.
 /// </summary>
-public class TorControlClientFactory
+public partial class TorControlClientFactory
 {
-	private static readonly Regex AuthChallengeRegex = new($"^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$", RegexOptions.Compiled);
-
 	/// <summary>Client HMAC-SHA256 key for AUTHCHALLENGE.</summary>
 	/// <remarks>Server's HMAC key is <c>Tor safe cookie authentication server-to-controller hash</c></remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 3.24. AUTHCHALLENGE</seealso>
@@ -27,7 +26,7 @@ public class TorControlClientFactory
 
 	public TorControlClientFactory(IRandom? random = null)
 	{
-		Random = random ?? new InsecureRandom();
+		Random = random ?? new UnsecureRandom();
 	}
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
@@ -97,7 +96,7 @@ public class TorControlClientFactory
 		}
 
 		string reply = authChallengeReply.ResponseLines[0];
-		Match match = AuthChallengeRegex.Match(reply);
+		Match match = AuthChallengeRegex().Match(reply);
 
 		if (!match.Success)
 		{
@@ -123,4 +122,7 @@ public class TorControlClientFactory
 
 		return controlClient;
 	}
+
+	[GeneratedRegex("^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$")]
+	private static partial Regex AuthChallengeRegex();
 }

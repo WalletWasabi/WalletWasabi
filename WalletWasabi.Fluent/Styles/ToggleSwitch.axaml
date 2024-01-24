@@ -3,4 +3,30 @@
   <Style Selector="ToggleSwitch">
     <Setter Property="Cursor" Value="Hand" />
   </Style>
+
+  <Style Selector="ToggleSwitch:disabled /template/ Border#OuterBorder">
+    <Setter Property="BorderBrush" Value="{DynamicResource ToggleSwitchFillOnDisabled}"/>
+    <Setter Property="Background" Value="{DynamicResource ToggleSwitchFillOnDisabled}"/>
+  </Style>
+
+  <Style Selector="ToggleSwitch:disabled /template/ Ellipse#SwitchKnobOff">
+    <Setter Property="Fill" Value="{DynamicResource ToggleSwitchKnobFillOnDisabled}"/>
+  </Style>
+
+  <Style Selector="ToggleSwitch:disabled /template/ Ellipse#SwitchKnobOn">
+    <Setter Property="Fill" Value="{DynamicResource ToggleSwitchKnobFillOffDisabled}"/>
+  </Style>
+
+  <Style Selector="ToggleSwitch:disabled /template/ Border#SwitchKnobBounds">
+    <Setter Property="Background" Value="{DynamicResource ToggleSwitchFillOffPressed}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource ToggleSwitchStrokeOnDisabled}"/>
+  </Style>
+
+  <!-- Fix for https://github.com/zkSNACKs/WalletWasabi/issues/9436 -->
+  <Style Selector="ToggleSwitch:not(:dragging) /template/ Grid#MovingKnobs">
+    <Setter Property="Transitions">
+      <Transitions>
+      </Transitions>
+    </Setter>
+  </Style>
 </Styles>

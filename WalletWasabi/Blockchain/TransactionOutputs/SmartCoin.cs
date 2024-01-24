@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
@@ -12,7 +13,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
 {
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
@@ -20,10 +21,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private DateTimeOffset? _bannedUntilUtc;
 	private bool _spentAccordingToBackend;
 
-	private ISecret? _secret;
-
 	private bool _confirmed;
 	private bool _isBanned;
+	private bool _isExcludedFromCoinJoin;
 
 	private Lazy<uint256> _transactionId;
 	private Lazy<OutPoint> _outPoint;
@@ -39,9 +39,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
 		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
-		_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
 
-		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;
@@ -55,12 +55,14 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public uint Index { get; }
 	public uint256 TransactionId => _transactionId.Value;
 
-	public OutPoint OutPoint => _outPoint.Value;
+	public OutPoint Outpoint => _outPoint.Value;
 	public TxOut TxOut => _txOut.Value;
 	public Coin Coin => _coin.Value;
 
 	public Script ScriptPubKey => TxOut.ScriptPubKey;
+	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
 	public Money Amount => TxOut.Value;
+	public double AnonymitySet => HdPubKey.AnonymitySet;
 
 	public Height Height
 	{
@@ -77,20 +79,8 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public SmartTransaction? SpenderTransaction
 	{
 		get => _spenderTransaction;
-		set
-		{
-			if (value?.TryAddWalletInput(this) is true)
-			{
-				RaiseAndSetIfChanged(ref _spenderTransaction, value);
-			}
-		}
+		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
-
-	public bool RegisterToHdPubKey()
-		=> HdPubKey.Coins.Add(this);
-
-	public bool UnregisterFromHdPubKey()
-		=> HdPubKey.Coins.Remove(this);
 
 	public bool CoinJoinInProgress
 	{
@@ -121,16 +111,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public HdPubKey HdPubKey { get; }
 
-	/// <summary>
-	/// It's a secret, so it's usually going to be null. Do not use it.
-	/// This will not get serialized, because that's a security risk.
-	/// </summary>
-	public ISecret? Secret
-	{
-		get => _secret;
-		set => RaiseAndSetIfChanged(ref _secret, value);
-	}
-
 	public bool Confirmed
 	{
 		get => _confirmed;
@@ -146,10 +126,15 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
-	public bool IsImmature(int bestHeight)
+	public bool IsExcludedFromCoinJoin
 	{
-		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
+		get => _isExcludedFromCoinJoin;
+		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
 	}
+
+	/// <returns>False if external, or the tx inputs are all external.</returns>
+	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
 
 	public bool RefreshAndGetIsBanned()
 	{
@@ -173,8 +158,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// </summary>
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
-	public bool IsReplaceable() => Transaction.IsRBF;
-
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
 	#region EqualityAndComparison
@@ -195,11 +178,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			return false;
 		}
-		else
-		{
-			var hashEquals = x.GetHashCode() == y.GetHashCode();
-			return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
-		}
+
+		// Indices are fast to compare, so compare them first.
+		return (y.Index == x.Index) && (x.GetHashCode() == y.GetHashCode()) && (y.TransactionId == x.TransactionId);
 	}
 
 	public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);

@@ -1,20 +1,28 @@
 using System.Globalization;
-using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
-using WalletWasabi.Fluent.Helpers;
+using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class DualCurrencyEntryBox : UserControl
+public class DualCurrencyEntryBox : TemplatedControl
 {
+	public static readonly StyledProperty<HorizontalAlignment> HorizontalContentAlignmentProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, HorizontalAlignment>(nameof(HorizontalContentAlignment));
+
+	public static readonly StyledProperty<VerticalAlignment> VerticalContentAlignmentProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, VerticalAlignment>(nameof(VerticalContentAlignment));
+
 	public static readonly DirectProperty<DualCurrencyEntryBox, decimal> AmountBtcProperty =
 		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal>(
 			nameof(AmountBtc),
@@ -23,14 +31,14 @@ public class DualCurrencyEntryBox : UserControl
 			enableDataValidation: true,
 			defaultBindingMode: BindingMode.TwoWay);
 
-	public static readonly StyledProperty<string> TextProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, string>(nameof(Text));
+	public static readonly StyledProperty<string?> TextProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, string?>(nameof(Text));
 
 	public static readonly StyledProperty<string> WatermarkProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, string>(nameof(Watermark));
 
-	public static readonly StyledProperty<string> ConversionTextProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, string>(nameof(ConversionText));
+	public static readonly StyledProperty<string?> ConversionTextProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, string?>(nameof(ConversionText));
 
 	public static readonly StyledProperty<decimal> ConversionRateProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(ConversionRate));
@@ -59,30 +67,29 @@ public class DualCurrencyEntryBox : UserControl
 	public static readonly StyledProperty<int> RightColumnProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, int>(nameof(RightColumn));
 
-	private readonly CultureInfo _customCultureInfo;
+	public static readonly StyledProperty<CurrencyEntryBox?> RightEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(RightEntryBox));
+
+	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
+
+	public static readonly StyledProperty<Money> BalanceBtcProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, Money>(nameof(BalanceBtc));
+
+	public static readonly StyledProperty<decimal> BalanceUsdProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(BalanceUsd));
+
+	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
+
 	private CompositeDisposable? _disposable;
-	private readonly char _decimalSeparator = '.';
-	private readonly char _groupSeparator = ' ';
 	private Button? _swapButton;
-	private CurrencyEntryBox? _leftEntryBox;
-	private CurrencyEntryBox? _rightEntryBox;
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
 	private bool _canUpdateFiat = true;
 
 	public DualCurrencyEntryBox()
 	{
-		_customCultureInfo = new CultureInfo("")
-		{
-			NumberFormat =
-			{
-				CurrencyGroupSeparator = _groupSeparator.ToString(),
-				NumberGroupSeparator = _groupSeparator.ToString(),
-				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-				NumberDecimalSeparator = _decimalSeparator.ToString()
-			}
-		};
-
 		this.GetObservable(TextProperty).Subscribe(InputText);
 		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
 		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
@@ -95,13 +102,25 @@ public class DualCurrencyEntryBox : UserControl
 		PseudoClasses.Set(":noexchangerate", true);
 	}
 
+	public HorizontalAlignment HorizontalContentAlignment
+	{
+		get { return GetValue(HorizontalContentAlignmentProperty); }
+		set { SetValue(HorizontalContentAlignmentProperty, value); }
+	}
+
+	public VerticalAlignment VerticalContentAlignment
+	{
+		get { return GetValue(VerticalContentAlignmentProperty); }
+		set { SetValue(VerticalContentAlignmentProperty, value); }
+	}
+
 	public decimal AmountBtc
 	{
 		get => _amountBtc;
 		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
 	}
 
-	public string Text
+	public string? Text
 	{
 		get => GetValue(TextProperty);
 		set => SetValue(TextProperty, value);
@@ -113,7 +132,7 @@ public class DualCurrencyEntryBox : UserControl
 		set => SetValue(WatermarkProperty, value);
 	}
 
-	public string ConversionText
+	public string? ConversionText
 	{
 		get => GetValue(ConversionTextProperty);
 		set => SetValue(ConversionTextProperty, value);
@@ -173,6 +192,36 @@ public class DualCurrencyEntryBox : UserControl
 		set => SetValue(RightColumnProperty, value);
 	}
 
+	public CurrencyEntryBox? RightEntryBox
+	{
+		get => GetValue(RightEntryBoxProperty);
+		set => SetValue(RightEntryBoxProperty, value);
+	}
+
+	public CurrencyEntryBox? LeftEntryBox
+	{
+		get => GetValue(LeftEntryBoxProperty);
+		set => SetValue(LeftEntryBoxProperty, value);
+	}
+
+	public Money BalanceBtc
+	{
+		get => GetValue(BalanceBtcProperty);
+		set => SetValue(BalanceBtcProperty, value);
+	}
+
+	public decimal BalanceUsd
+	{
+		get => GetValue(BalanceUsdProperty);
+		set => SetValue(BalanceUsdProperty, value);
+	}
+
+	public bool ValidatePasteBalance
+	{
+		get => GetValue(ValidatePasteBalanceProperty);
+		set => SetValue(ValidatePasteBalanceProperty, value);
+	}
+
 	protected override void OnLostFocus(RoutedEventArgs e)
 	{
 		base.OnLostFocus(e);
@@ -180,7 +229,7 @@ public class DualCurrencyEntryBox : UserControl
 		UpdateDisplay(true);
 	}
 
-	private void InputText(string text)
+	private void InputText(string? text)
 	{
 		if (!_canUpdateDisplay)
 		{
@@ -198,7 +247,7 @@ public class DualCurrencyEntryBox : UserControl
 		}
 	}
 
-	private void InputConversionText(string text)
+	private void InputConversionText(string? text)
 	{
 		if (!_canUpdateDisplay)
 		{
@@ -218,20 +267,17 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputBtcValue(decimal value)
 	{
-		AmountBtc = value;
+		SetCurrentValue(AmountBtcProperty, value);
 	}
 
 	private void InputBtcString(string value)
 	{
-		if (BitcoinInput.TryCorrectAmount(value, out var better))
+		if (CurrencyInput.TryCorrectBitcoinAmount(value, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
 		{
-			if (better != Constants.MaximumNumberOfBitcoins.ToString())
-			{
-				value = better;
-			}
+			value = better;
 		}
 
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 		{
 			InputBtcValue(decimalValue);
 		}
@@ -246,7 +292,7 @@ public class DualCurrencyEntryBox : UserControl
 			return;
 		}
 
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 		{
 			InputBtcValue(FiatToBitcoin(decimalValue));
 		}
@@ -261,7 +307,13 @@ public class DualCurrencyEntryBox : UserControl
 		if (updateTextField)
 		{
 			_canUpdateDisplay = false;
-			Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+
+			var oldText = LeftEntryBox?.Text;
+			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+			SetCurrentValue(TextProperty, text);
+
+			// TODO: Maintain CaretIndex properly.
+			SetCaretIndex(LeftEntryBox, text, oldText);
 
 			_canUpdateDisplay = true;
 		}
@@ -280,15 +332,31 @@ public class DualCurrencyEntryBox : UserControl
 
 		var conversion = BitcoinToFiat(AmountBtc);
 
-		IsConversionApproximate = AmountBtc > 0;
-		ConversionWatermark = FullFormatFiat(0, ConversionCurrencyCode, true);
+		SetCurrentValue(IsConversionApproximateProperty, AmountBtc > 0);
+		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
 		if (updateTextField)
 		{
-			ConversionText = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
+			var oldText = RightEntryBox?.Text;
+			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
+			SetCurrentValue(ConversionTextProperty, text);
+
+			// TODO: Maintain CaretIndex properly.
+			SetCaretIndex(RightEntryBox, text, oldText);
 		}
 
 		_canUpdateFiat = true;
+	}
+
+	private void SetCaretIndex(CurrencyEntryBox? entryBox, string newText, string? oldText)
+	{
+		if (entryBox is not null)
+		{
+			var oldTextLength = oldText?.Length ?? 0;
+			var newTextLength = newText.Length;
+			var newCaretIndex = entryBox.CaretIndex + (newTextLength - oldTextLength);
+			Dispatcher.UIThread.Post(() => entryBox?.SetCurrentValue(TextBox.CaretIndexProperty, newCaretIndex + 1));
+		}
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -325,8 +393,8 @@ public class DualCurrencyEntryBox : UserControl
 		_disposable = new CompositeDisposable();
 
 		_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
-		_leftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
-		_rightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
+		LeftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
+		RightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
 
 		if (_swapButton is { })
 		{
@@ -340,7 +408,7 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
 	{
-		IsConversionReversed = !IsConversionReversed;
+		SetCurrentValue(IsConversionReversedProperty, !IsConversionReversed);
 		FocusOnLeftEntryBox();
 	}
 
@@ -348,35 +416,35 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		var focusOn =
 			IsConversionReversed
-				? _rightEntryBox
-				: _leftEntryBox;
+				? RightEntryBox
+				: LeftEntryBox;
 
 		focusOn?.Focus();
 	}
 
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == AmountBtcProperty)
 		{
-			DataValidationErrors.SetError(this, value.Error);
+			DataValidationErrors.SetError(this, error);
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.GetNewValue<bool>());
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", change.GetNewValue<decimal>() == 0m);
 		}
 		else if (change.Property == IsConversionReversedProperty)
 		{
-			PseudoClasses.Set(":reversed", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":reversed", change.GetNewValue<bool>());
 			ReorganizeVisuals();
 			UpdateDisplay(false);
 		}
@@ -386,21 +454,21 @@ public class DualCurrencyEntryBox : UserControl
 	// setting Grid.Column via pseudoclass based style doesn't work, not even using AffectsMeasure()... Avalonia bug?
 	private void ReorganizeVisuals()
 	{
-		if (_leftEntryBox is { } && _rightEntryBox is { })
+		if (LeftEntryBox is { } && RightEntryBox is { })
 		{
-			var grid = _leftEntryBox.FindAncestorOfType<Grid>();
-			grid?.Children.Remove(_leftEntryBox);
-			grid?.Children.Remove(_rightEntryBox);
+			var grid = LeftEntryBox.FindAncestorOfType<Grid>();
+			grid?.Children.Remove(LeftEntryBox);
+			grid?.Children.Remove(RightEntryBox);
 
 			if (IsConversionReversed)
 			{
-				grid?.Children.Add(_rightEntryBox);
-				grid?.Children.Add(_leftEntryBox);
+				grid?.Children.Add(RightEntryBox);
+				grid?.Children.Add(LeftEntryBox);
 			}
 			else
 			{
-				grid?.Children.Add(_leftEntryBox);
-				grid?.Children.Add(_rightEntryBox);
+				grid?.Children.Add(LeftEntryBox);
+				grid?.Children.Add(RightEntryBox);
 			}
 		}
 	}

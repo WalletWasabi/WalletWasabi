@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;
@@ -37,7 +38,7 @@ public class BlockNotifier : PeriodicRunner
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
-	private object LastInvLock { get; } = new object();
+	private object LastInvLock { get; } = new();
 
 	private void P2pNode_BlockInv(object? sender, uint256 blockHash)
 	{
@@ -78,12 +79,12 @@ public class BlockNotifier : PeriodicRunner
 		var arrivedHeader = arrivedBlock.Header;
 		arrivedHeader.PrecomputeHash(false, true);
 
-		// If we haven't processed any block yet then we're processing the first seven to avoid accidental reogs.
+		// If we haven't processed any block yet then we're processing the first seven to avoid accidental reorgs.
 		// 7 blocks, because
 		//   - That was the largest recorded reorg so far.
 		//   - Reorg in this point of time would be very unlikely anyway.
 		//   - 100 blocks would be the sure, but that'd be a huge performance overkill.
-		if (!ProcessedBlocks.Any())
+		if (ProcessedBlocks.Count == 0)
 		{
 			var reorgProtection7Headers = new List<BlockHeader>()
 				{
@@ -125,6 +126,7 @@ public class BlockNotifier : PeriodicRunner
 
 		// Else let's sort out things.
 		var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
+
 		// Missed notifications on some previous blocks.
 		if (foundPrevBlock is { })
 		{

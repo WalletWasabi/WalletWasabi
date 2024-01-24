@@ -1,4 +1,5 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -6,8 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -16,11 +17,8 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 /// </summary>
 public class Whitelist
 {
-	internal Whitelist() : this(Enumerable.Empty<Innocent>(), string.Empty)
-	{
-	}
-
-	private Whitelist(IEnumerable<Innocent> innocents, string filePath)
+	// Constructor used for testing.
+	internal Whitelist(IEnumerable<Innocent> innocents, string filePath, WabiSabiConfig wabiSabiConfig)
 	{
 		Innocents = new ConcurrentDictionary<OutPoint, Innocent>(innocents.ToDictionary(k => k.Outpoint, v => v));
 		if (!string.IsNullOrEmpty(filePath))
@@ -28,20 +26,21 @@ public class Whitelist
 			IoHelpers.EnsureFileExists(filePath);
 		}
 		WhitelistFilePath = filePath;
+		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	public Guid ChangeId { get; private set; } = Guid.NewGuid();
+	internal Guid ChangeId { get; set; } = Guid.Empty;
+	private Guid LastSavedChangeId { get; set; } = Guid.Empty;
 	private ConcurrentDictionary<OutPoint, Innocent> Innocents { get; }
 
 	private string WhitelistFilePath { get; }
+	private WabiSabiConfig WabiSabiConfig { get; }
+	private AsyncLock FileLock { get; } = new();
 
 	public int CountInnocents()
 	{
 		return Innocents.Count;
 	}
-
-	public void Add(Alice alice)
-		=> Save(new Innocent(alice.Coin.Outpoint, DateTimeOffset.UtcNow));
 
 	public void Add(OutPoint outPoint)
 		=> Save(new Innocent(outPoint, DateTimeOffset.UtcNow));
@@ -65,9 +64,9 @@ public class Whitelist
 		return false;
 	}
 
-	public void RemoveAllExpired(TimeSpan releaseTime)
+	public void RemoveAllExpired()
 	{
-		var allInnocentsToRemove = GetInnocents().Where(innocent => innocent.TimeSpent > releaseTime);
+		var allInnocentsToRemove = Innocents.Values.Where(innocent => innocent.TimeSpent > WabiSabiConfig.ReleaseFromWhitelistAfter);
 		var removedCounter = allInnocentsToRemove.Select(innocent => TryRelease(innocent.Outpoint)).Count();
 		if (removedCounter > 0)
 		{
@@ -77,15 +76,22 @@ public class Whitelist
 
 	public bool TryGet(OutPoint utxo, [NotNullWhen(true)] out Innocent? innocent)
 	{
-		return Innocents.TryGetValue(utxo, out innocent);
+		if (!Innocents.TryGetValue(utxo, out innocent))
+		{
+			return false;
+		}
+
+		if (innocent.TimeSpent > WabiSabiConfig.ReleaseFromWhitelistAfter)
+		{
+			TryRelease(innocent.Outpoint);
+			Logger.LogInfo($"1 utxo was expired and removed from Whitelist.");
+			return false;
+		}
+
+		return true;
 	}
 
-	public IEnumerable<Innocent> GetInnocents()
-	{
-		return Innocents.Values;
-	}
-
-	public static async Task<Whitelist> CreateAndLoadFromFileAsync(string whitelistFilePath, CancellationToken cancel)
+	public static async Task<Whitelist> CreateAndLoadFromFileAsync(string whitelistFilePath, WabiSabiConfig wabiSabiConfig, CancellationToken cancel)
 	{
 		var innocents = new List<Innocent>();
 		try
@@ -114,7 +120,7 @@ public class Whitelist
 					await File.WriteAllLinesAsync(whitelistFilePath, innocents.Select(innocent => innocent.ToString()), CancellationToken.None).ConfigureAwait(false);
 				}
 			}
-			var whitelist = new Whitelist(innocents, whitelistFilePath);
+			var whitelist = new Whitelist(innocents, whitelistFilePath, wabiSabiConfig);
 
 			var numberOfInnocent = whitelist.CountInnocents();
 			Logger.LogInfo($"{numberOfInnocent} UTXOs are found in whitelist.");
@@ -124,16 +130,22 @@ public class Whitelist
 		catch (Exception exc)
 		{
 			Logger.LogError("Reading from Whitelist failed with error:", exc);
-			return new Whitelist(innocents, whitelistFilePath);
+			return new Whitelist(innocents, whitelistFilePath, wabiSabiConfig);
 		}
 	}
 
-	public void WriteToFile()
+	public async Task<bool> WriteToFileIfChangedAsync()
 	{
-		if (!string.IsNullOrEmpty(WhitelistFilePath))
+		if (ChangeId != LastSavedChangeId && !string.IsNullOrEmpty(WhitelistFilePath))
 		{
-			var toFile = GetInnocents().Select(innocent => innocent.ToString());
-			File.WriteAllLines(WhitelistFilePath, toFile);
+			LastSavedChangeId = ChangeId;
+			var toFile = Innocents.Values.Select(innocent => innocent.ToString());
+			using (await FileLock.LockAsync().ConfigureAwait(false))
+			{
+				await File.WriteAllLinesAsync(WhitelistFilePath, toFile).ConfigureAwait(false);
+				return true;
+			}
 		}
+		return false;
 	}
 }

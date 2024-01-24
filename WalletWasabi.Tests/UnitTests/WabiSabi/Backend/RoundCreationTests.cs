@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -26,13 +24,7 @@ public class RoundCreationTests
 	public async Task InitializesRoundAsync()
 	{
 		WabiSabiConfig cfg = new();
-		var mockRpc = new MockRpcClient();
-		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
-			await Task.FromResult(new EstimateSmartFeeResponse
-			{
-				Blocks = target,
-				FeeRate = new FeeRate(10m)
-			});
+		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
@@ -47,13 +39,7 @@ public class RoundCreationTests
 	public async Task CreatesRoundIfNoneInputRegistrationAsync()
 	{
 		WabiSabiConfig cfg = new();
-		var mockRpc = new MockRpcClient();
-		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
-			await Task.FromResult(new EstimateSmartFeeResponse
-			{
-				Blocks = target,
-				FeeRate = new FeeRate(10m)
-			});
+		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
@@ -72,13 +58,7 @@ public class RoundCreationTests
 	public async Task CreatesRoundIfInBlameInputRegistrationAsync()
 	{
 		WabiSabiConfig cfg = new();
-		var mockRpc = new MockRpcClient();
-		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
-			await Task.FromResult(new EstimateSmartFeeResponse
-			{
-				Blocks = target,
-				FeeRate = new FeeRate(10m)
-			});
+		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);

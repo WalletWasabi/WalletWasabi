@@ -33,6 +33,7 @@ public class CoinJsonConverter : JsonConverter<Coin>
 			Outpoint = outpoint;
 			TxOut = txOut;
 		}
+
 		public OutPoint Outpoint { get; }
 		public TxOut TxOut { get; }
 	}

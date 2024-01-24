@@ -68,7 +68,7 @@ public record StreamInfo
 
 	/// <summary>Field indicates the session group of the listener port that a client used to initiate this stream.</summary>
 	/// <remarks>
-	/// By default, the session group is different for each listener port, but this can be overridden for a listener 
+	/// By default, the session group is different for each listener port, but this can be overridden for a listener
 	/// via the <c>SessionGroup</c> option in <c>torrc</c>.
 	/// Streams with different session groups are isolated on separate circuits.
 	/// <para>Value can be any integer.</para>

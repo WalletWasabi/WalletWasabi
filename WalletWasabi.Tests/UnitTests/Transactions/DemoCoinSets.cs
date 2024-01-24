@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -2775,7 +2772,7 @@ internal class DemoCoinSets
 			}
 		}
 
-		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Label}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
+		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Labels}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
 		var result = string.Join($",\r\n", coinTexts);
 		return result;
 	}

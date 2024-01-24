@@ -5,11 +5,11 @@ namespace WalletWasabi.WebClients.Wasabi;
 
 public interface IWasabiHttpClientFactory
 {
-	PersonCircuit NewHttpClientWithPersonCircuit(out IHttpClient httpClient)
+	(PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit()
 	{
 		PersonCircuit personCircuit = new();
-		httpClient = NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit);
-		return personCircuit;
+		var httpClient = NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit);
+		return (personCircuit, httpClient);
 	}
 
 	IHttpClient NewHttpClientWithDefaultCircuit()
@@ -23,5 +23,5 @@ public interface IWasabiHttpClientFactory
 	}
 
 	/// <remarks>This is a low-level method. Unless necessary, use a preceding convenience method.</remarks>
-	IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null);
+	IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null, int maximumRedirects = 0);
 }

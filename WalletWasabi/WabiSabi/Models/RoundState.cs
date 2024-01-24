@@ -1,9 +1,10 @@
 using NBitcoin;
-using WalletWasabi.Crypto;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using CredentialIssuerParameters = WabiSabi.Crypto.CredentialIssuerParameters;
 
 namespace WalletWasabi.WabiSabi.Models;
 
@@ -18,6 +19,7 @@ public record RoundState(uint256 Id,
 	MultipartyTransactionState CoinjoinState)
 {
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
+	public bool IsBlame => BlameOf != uint256.Zero;
 
 	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(

@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Settings;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
@@ -34,24 +32,12 @@ public partial class Setting<TTarget, TProperty> : ReactiveObject
 
 		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
 
-		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
-
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
-			.Select(_ => Unit.Default)
+			.ToSignal()
 			.InvokeCommand(SetValueCommand);
-
-		this.WhenAnyValue(x => x.Value)
-			.Skip(1)
-			.Throttle(TimeSpan.FromMilliseconds(SettingsTabViewModelBase.ThrottleTime + 50))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Where(_ => SettingsTabViewModelBase.CheckIfRestartIsNeeded())
-			.Select(_ => Unit.Default)
-			.InvokeCommand(ShowNotificationCommand);
 	}
 
 	public ICommand SetValueCommand { get; }
-
-	public ICommand ShowNotificationCommand { get; }
 }

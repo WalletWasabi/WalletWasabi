@@ -9,8 +9,11 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.LabelsColumnView">
   <DockPanel LastChildFill="True" Margin="10 0 30 0">
-    <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
-                             VerticalAlignment="Center">
+    <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
+    <c:PrivacyContentControl PrivacyReplacementMode="Text"
+                             VerticalAlignment="Center"
+                             UseOpacity="True"
+                             MaxPrivacyChars="11">
       <DockPanel LastChildFill="False">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                     Margin="0 0 0 0" Spacing="5" Orientation="Horizontal"
@@ -20,7 +23,8 @@
             <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
           </Button>
         </StackPanel>
-        <c:LabelsItemsPresenter Items="{Binding Label}"
+        <c:LabelsItemsPresenter ItemsSource="{Binding Labels}"
+                                InfiniteWidthMeasure="True"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center" />
       </DockPanel>

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -86,11 +87,11 @@ public class TorTcpConnectionFactoryTests
 			stream.Flush();
 
 			Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
-			await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken).ConfigureAwait(false));
+			await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WaitAsync(timeoutToken).ConfigureAwait(false));
 		}
 		finally
 		{
-			listener?.Stop();
+			listener?.Dispose();
 		}
 	}
 
@@ -179,13 +180,9 @@ public class TorTcpConnectionFactoryTests
 			}
 
 			int plenByte = stream.ReadByte();
-			Assert.Equal(21, plenByte);
-
-			// Read "Passwd".
-			for (int j = 0; j < 21; j++)
-			{
-				_ = stream.ReadByte();
-			}
+			Assert.Equal(1, plenByte);
+			int passwordByte = stream.ReadByte();
+			Assert.Equal('0', passwordByte); // Isolation ID is equal to "0" (zero character string).
 
 			// Write response (UsernamePasswordResponse): version + method selected.
 			stream.WriteByte((byte)AuthVerField.Version1.Value);
@@ -223,11 +220,11 @@ public class TorTcpConnectionFactoryTests
 			stream.Flush();
 
 			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Expecting exception.");
-			await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+			await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WaitAsync(timeoutToken));
 		}
 		finally
 		{
-			listener?.Stop();
+			listener?.Dispose();
 		}
 	}
 }

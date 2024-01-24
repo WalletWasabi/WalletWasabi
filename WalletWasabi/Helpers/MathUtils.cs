@@ -27,4 +27,9 @@ public static class MathUtils
 
 		return ret;
 	}
+
+	public static int CountDecimalPlaces(this decimal n)
+	{
+		return BitConverter.GetBytes(decimal.GetBits(n)[3])[2];
+	}
 }

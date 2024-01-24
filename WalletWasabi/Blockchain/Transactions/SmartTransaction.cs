@@ -1,20 +1,20 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-[JsonObject(MemberSerialization.OptIn)]
+[DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
@@ -22,14 +22,23 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
-	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+	public SmartTransaction(
+		Transaction transaction,
+		Height height,
+		uint256? blockHash = null,
+		int blockIndex = 0,
+		LabelsArray? labels = null,
+		bool isReplacement = false,
+		bool isSpeedup = false,
+		bool isCancellation = false,
+		DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
 
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Label = label ?? SmartLabel.Empty;
+		Labels = labels ?? LabelsArray.Empty;
 
 		Height = height;
 		BlockHash = blockHash;
@@ -38,15 +47,18 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-
+		IsSpeedup = isSpeedup;
+		IsCancellation = isCancellation;
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
 		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
-		_isWasabi2Cj = new Lazy<bool>(() => Transaction.Outputs.Count >= 2 // Sanity check.
-					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
-					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), true); // Outputs are ordered descending.
+		_isWasabi2Cj = new Lazy<bool>(
+			() => Transaction.Outputs.Count >= 2 // Sanity check.
+			&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
+			isThreadSafe: true);
 	}
 
 	#endregion Constructors
@@ -87,7 +99,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignInputsCache is null)
 			{
-				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
 				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 			}
 			return ForeignInputsCache;
@@ -100,7 +112,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignOutputsCache is null)
 			{
-				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
 				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 			}
 			return ForeignOutputsCache;
@@ -113,8 +125,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
+					.GroupBy(i => i.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
@@ -126,8 +138,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
+					.GroupBy(o => o.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
@@ -146,63 +158,132 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	[JsonProperty]
-	[JsonConverter(typeof(TransactionJsonConverter))]
 	public Transaction Transaction { get; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(HeightJsonConverter))]
 	public Height Height { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(Uint256JsonConverter))]
 	public uint256? BlockHash { get; private set; }
 
-	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
-	public SmartLabel Label { get; set; }
+	public LabelsArray Labels { get; set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
-	[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
-	[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]
-	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "json backwards compatibility")]
-	private DateTimeOffset? FirstSeenCompatibility
-	{
-		set
-		{
-			// If it's null, let FirstSeen's default to be set.
-			// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
-			if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
-			{
-				FirstSeen = value.Value;
-			}
-		}
-	}
-
-	[JsonProperty]
 	public bool IsReplacement { get; private set; }
+
+	public bool IsSpeedup { get; private set; }
+
+	public bool IsCancellation { get; private set; }
+
+	public bool IsCPFP => ParentsThisTxPaysFor.Any();
+	public bool IsCPFPd => ChildrenPayForThisTx.Any();
+
+	/// <summary>
+	/// Children transactions those are paying for this transaction.
+	/// </summary>
+	public IEnumerable<SmartTransaction> ChildrenPayForThisTx => WalletOutputs
+		.Where(x => x.SpenderTransaction is { } spender && spender.IsCPFP && spender.Height == Height)
+		.Select(x => x.SpenderTransaction!);
+
+	/// <summary>
+	/// Parent transactions this transaction is paying for.
+	/// </summary>
+	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
+		IsSpeedup && !IsCancellation && ForeignInputs.Count == 0 && ForeignOutputs.Count == 0
+			? WalletInputs
+				.Select(x => x.Transaction)
+				.Where(x => x.Height == Height
+					|| (x.Height == Height.Mempool && Height == Height.Unknown)) // It's ok if we didn't yet get to the mempool to consider this CPFP.
+			: Enumerable.Empty<SmartTransaction>();
 
 	public bool Confirmed => Height.Type == HeightType.Chain;
 
 	public uint256 GetHash() => Transaction.GetHash();
-
-	public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 	/// <summary>
 	/// A transaction can signal that is replaceable by fee in two ways:
 	/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
 	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 	/// </summary>
-	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
+	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.Transaction.IsRBF));
+
+	public bool IsImmature(int bestHeight)
+	{
+		return Transaction.IsCoinBase && Height >= bestHeight - 100;
+	}
 
 	#endregion Members
+
+	public IEnumerable<SmartCoin> GetWalletInputs(KeyManager keyManager)
+	{
+		foreach (var coin in WalletInputs)
+		{
+			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
+			{
+				yield return coin;
+			}
+		}
+	}
+
+	public IEnumerable<SmartCoin> GetWalletOutputs(KeyManager keyManager)
+	{
+		foreach (var coin in WalletOutputs)
+		{
+			if (keyManager.TryGetKeyForScriptPubKey(coin.ScriptPubKey, out _))
+			{
+				yield return coin;
+			}
+		}
+	}
+
+	public IEnumerable<TxIn> GetForeignInputs(KeyManager keyManager)
+	{
+		var walletInputs = GetWalletInputs(keyManager).ToList();
+
+		foreach (var txIn in Transaction.Inputs)
+		{
+			if (walletInputs.All(x => x.TransactionId != txIn.PrevOut.Hash || x.Index != txIn.PrevOut.N))
+			{
+				yield return txIn;
+			}
+		}
+	}
+
+	public IEnumerable<IndexedTxOut> GetForeignOutputs(KeyManager keyManager)
+	{
+		var walletOutputs = GetWalletOutputs(keyManager).ToList();
+
+		for (uint i = 0; i < Transaction.Outputs.Count; i++)
+		{
+			var txOut = Transaction.Outputs[i];
+
+			if (walletOutputs.All(x => x.Index != i))
+			{
+				yield return new IndexedTxOut { N = i, TxOut = txOut, Transaction = Transaction };
+			}
+		}
+	}
+
+	public bool IsCpfpable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watch-only and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossibility] We can only speed up unconfirmed transactions.
+		&& GetWalletOutputs(keyManager).Any(x => !x.IsSpent()); // [Impossibility] If I have an unspent wallet output, then we can CPFP it.
+
+	public bool IsRbfable(KeyManager keyManager) =>
+		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watch-only and hardware wallets are problematic. It remains a ToDo for the future.
+		&& !Confirmed // [Impossibility] We can only speed up unconfirmed transactions.
+		&& IsRBF // [Impossibility] Otherwise it must signal RBF.
+		&& !GetForeignInputs(keyManager).Any() // [Impossibility] Must not have foreign inputs, otherwise we couldn't do RBF.
+		&& WalletOutputs.All(x => !x.IsSpent()); // [Dangerous] All the outputs we know of should not be spent, otherwise we shouldn't do RBF.
+
+	public bool IsSpeedupable(KeyManager keyManager) =>
+		IsCpfpable(keyManager) || IsRbfable(keyManager) || ChildrenPayForThisTx.Any(x => x.IsSpeedupable(keyManager)); // [Impossibility] We can only speed up if we can either CPFP or RBF or a child is speedupable.
+
+	public bool IsCancellable(KeyManager keyManager) =>
+		IsRbfable(keyManager) // [Impossibility] We can only cancel with RBF.
+		&& GetForeignOutputs(keyManager).Any() // [Nonsensical] Cancellation of a transaction in which only we have outputs in, is non-sensical.
+		&& !IsCancellation; // [Nonsensical] It is non-sensical to cancel a cancellation transaction.
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
@@ -261,7 +342,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 		}
 
-		// Set the height related properties, only if confirmed.
+		// Set the height related properties.
 		if (tx.Confirmed)
 		{
 			if (Height != tx.Height)
@@ -277,6 +358,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				updated = true;
 			}
 		}
+		else if (Height == Height.Unknown && tx.Height == Height.Mempool)
+		{
+			Height = tx.Height;
+			updated = true;
+		}
 
 		// Always the earlier seen is the firstSeen.
 		if (tx.FirstSeen < FirstSeen)
@@ -286,10 +372,40 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		// Merge labels.
-		if (Label != tx.Label)
+		if (Labels != tx.Labels)
 		{
-			Label = SmartLabel.Merge(Label, tx.Label);
+			Labels = LabelsArray.Merge(Labels, tx.Labels);
 			updated = true;
+		}
+
+		// If we have a flag set on the other, then we make sure it is set on this as well.
+		if (IsReplacement is false && tx.IsReplacement is true)
+		{
+			IsReplacement = true;
+			updated = true;
+		}
+		if (IsSpeedup is false && tx.IsSpeedup is true)
+		{
+			IsSpeedup = true;
+			updated = true;
+		}
+		if (IsCancellation is false && tx.IsCancellation is true)
+		{
+			IsCancellation = true;
+			updated = true;
+		}
+
+		// If we have witness on the other tx, then we should have it on this as well.
+		for (int i = 0; i < Transaction.Inputs.Count; i++)
+		{
+			var input = Transaction.Inputs[i];
+			var otherInput = tx.Transaction.Inputs[i];
+
+			if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+			{
+				input.WitScript = otherInput.WitScript;
+				updated = true;
+			}
 		}
 
 		return updated;
@@ -300,7 +416,17 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
+	public void SetSpeedup()
+	{
+		IsSpeedup = true;
+	}
+
+	public void SetCancellation()
+	{
+		IsCancellation = true;
+	}
+
+	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
@@ -331,26 +457,55 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsOwnCoinjoin()
-	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
+	   => WalletInputs.Count != 0 // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
-	#region LineSerialization
+	public bool IsSegwitWithoutWitness => !Transaction.HasWitness && Transaction.Inputs.Any(x => x.ScriptSig == Script.Empty);
 
-	public string ToLine()
+	/// <summary>
+	/// We know the fee when we have all the inputs.
+	/// </summary>
+	public bool TryGetFee([NotNullWhen(true)] out Money? fee)
 	{
-		// GetHash is also serialized, so file can be interpreted with our eyes better.
-
-		return string.Join(
-			':',
-			GetHash(),
-			Transaction.ToHex(),
-			Height,
-			BlockHash,
-			BlockIndex,
-			Label,
-			FirstSeen.ToUnixTimeSeconds(),
-			IsReplacement);
+		if (ForeignInputs.Count != 0)
+		{
+			fee = null;
+			return false;
+		}
+		else
+		{
+			fee = Transaction.GetFee(WalletInputs.Select(x => x.Coin).ToArray());
+			return true;
+		}
 	}
+
+	/// <summary>
+	/// We know the fee rate when we have all the inputs and the virtual size for the tx.
+	/// </summary>
+	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
+	{
+		if (ForeignInputs.Count != 0 || IsSegwitWithoutWitness)
+		{
+			feeRate = null;
+			return false;
+		}
+		else
+		{
+			feeRate = Transaction.GetFeeRate(WalletInputs.Select(x => x.Coin).ToArray());
+			return true;
+		}
+	}
+
+	public bool TryGetLargestCPFP(KeyManager keyManage, [NotNullWhen(true)] out SmartTransaction? largestCpfp)
+	{
+		largestCpfp = ChildrenPayForThisTx
+			.Where(x => x.IsSpeedupable(keyManage))
+			.MaxBy(x => x.Transaction.Outputs.Sum(o => o.Value));
+
+		return largestCpfp is not null;
+	}
+
+	#region LineSerialization
 
 	public static SmartTransaction FromLine(string line, Network expectedNetwork)
 	{
@@ -361,13 +516,24 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		try
 		{
-			// First is redundant txhash serialization.
+			// First is redundant txHash serialization.
 			var heightString = parts[2];
 			var blockHashString = parts[3];
 			var blockIndexString = parts[4];
 			var labelString = parts[5];
 			var firstSeenString = parts[6];
 			var isReplacementString = parts[7];
+
+			var isSpeedupString = "False";
+			var isCancellationString = "False";
+			if (parts.Length > 8)
+			{
+				isSpeedupString = parts[8];
+				if (parts.Length > 9)
+				{
+					isCancellationString = parts[9];
+				}
+			}
 
 			if (!Height.TryParse(heightString, out Height height))
 			{
@@ -381,7 +547,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				blockIndex = 0;
 			}
-			var label = new SmartLabel(labelString);
+			var label = new LabelsArray(labelString);
 			DateTimeOffset firstSeen = default;
 			if (long.TryParse(firstSeenString, out long unixSeconds))
 			{
@@ -391,8 +557,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			{
 				isReplacement = false;
 			}
+			if (!bool.TryParse(isSpeedupString, out bool isSpeedup))
+			{
+				isSpeedup = false;
+			}
+			if (!bool.TryParse(isCancellationString, out bool isCancellation))
+			{
+				isCancellation = false;
+			}
 
-			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, firstSeen);
+			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isSpeedup, isCancellation, firstSeen);
 		}
 		catch (Exception ex)
 		{

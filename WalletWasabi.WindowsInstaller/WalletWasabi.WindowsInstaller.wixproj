@@ -54,15 +54,16 @@
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 	      Other similar extension points exist, see Wix.targets. -->
   <Target Name="BeforeBuild">
-    <GetAssemblyIdentity AssemblyFiles="..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64\WalletWasabi.Fluent.Desktop.dll">
+    <GetAssemblyIdentity AssemblyFiles="..\WalletWasabi.Fluent.Desktop\bin\dist\win-x64\WalletWasabi.Fluent.Desktop.dll">
       <Output TaskParameter="Assemblies" ItemName="AssemblyVersion" />
     </GetAssemblyIdentity>
     <PropertyGroup>
-      <LinkerBaseInputPaths>..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64</LinkerBaseInputPaths>
-      <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64</DefineConstants>
+      <LinkerBaseInputPaths>..\WalletWasabi.Fluent.Desktop\bin\dist\win-x64</LinkerBaseInputPaths>
+      <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\WalletWasabi.Fluent.Desktop\bin\dist\win-x64</DefineConstants>
     </PropertyGroup>
     <!-- Harvest file components from publish folder. -->
-    <HeatDirectory OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
+    <!-- See https://github.com/wixtoolset/issues/issues/6636#issuecomment-984886136 for the reason why RunAsSeparateProcess="True" was added. -->
+    <HeatDirectory RunAsSeparateProcess="True" OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="..\WalletWasabi.Fluent.Desktop\bin\dist\win-x64" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
   </Target>
   <Target Name="AfterBuild">
   </Target>

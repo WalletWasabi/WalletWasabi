@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
@@ -34,9 +35,10 @@ public class OffchainController : ControllerBase
 	[HttpGet("exchange-rates")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(404)]
-	public async Task<IActionResult> GetExchangeRatesAsync()
+	[ResponseCache(Duration = 120)]
+	public async Task<IActionResult> GetExchangeRatesAsync(CancellationToken cancellationToken)
 	{
-		IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
+		IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync(cancellationToken);
 
 		if (!exchangeRates.Any())
 		{
@@ -46,13 +48,13 @@ public class OffchainController : ControllerBase
 		return Ok(exchangeRates);
 	}
 
-	internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()
+	internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync(CancellationToken cancellationToken)
 	{
 		var cacheKey = nameof(GetExchangeRatesCollectionAsync);
 
-		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
+		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate>? exchangeRates))
 		{
-			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
+			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
 
 			if (exchangeRates.Any())
 			{
@@ -62,6 +64,7 @@ public class OffchainController : ControllerBase
 				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 			}
 		}
-		return exchangeRates;
+
+		return exchangeRates!;
 	}
 }

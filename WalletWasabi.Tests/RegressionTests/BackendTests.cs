@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
@@ -22,8 +23,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
+/// <seealso cref="RegTestCollectionDefinition"/>
 [Collection("RegTest collection")]
-public class BackendTests
+public class BackendTests : IClassFixture<RegTestFixture>
 {
 	public BackendTests(RegTestFixture regTestFixture)
 	{
@@ -68,7 +70,8 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
 
 		var utxos = await rpc.ListUnspentAsync();
 		var utxo = utxos[0];
@@ -87,7 +90,7 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastInvalidTxAsync()
 	{
-		await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -105,12 +108,14 @@ public class BackendTests
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		using Backend.Global global = setup.Global;
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
+		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
 		try
 		{
 			indexBuilderService.Synchronize();
@@ -173,18 +178,38 @@ public class BackendTests
 	[Fact]
 	public async Task StatusRequestTestAsync()
 	{
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		using Backend.Global global = setup.Global;
+
 		var requestUri = "btc/Blockchain/status";
 
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		var segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
+		var taprootIndexBuilderService = global.TaprootIndexBuilderService;
+		if (segwitTaprootIndexBuilderService is null || taprootIndexBuilderService is null)
+		{
+			throw new InvalidOperationException("Index builders can't be null.");
+		}
 
-		var indexBuilderService = global.IndexBuilderService;
 		try
 		{
-			indexBuilderService.Synchronize();
+			segwitTaprootIndexBuilderService.Synchronize();
+			taprootIndexBuilderService.Synchronize();
+
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while (segwitTaprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			{
+				if (times > 500) // 30 sec
+				{
+					throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+				}
+				await Task.Delay(100);
+				times++;
+			}
+
+			while (taprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -203,8 +228,12 @@ public class BackendTests
 				Assert.True(resp.FilterCreationActive);
 
 				// Simulate an unintended stop
-				await indexBuilderService.StopAsync();
-				indexBuilderService = null;
+				await segwitTaprootIndexBuilderService.StopAsync();
+				segwitTaprootIndexBuilderService = null;
+
+				// Simulate an unintended stop
+				await taprootIndexBuilderService.StopAsync();
+				taprootIndexBuilderService = null;
 
 				await rpc.GenerateAsync(1);
 			}
@@ -219,11 +248,19 @@ public class BackendTests
 
 				await rpc.GenerateAsync(1);
 
-				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController))!;
+				var blockchainController = RegTestFixture.BackendHost.Services.GetRequiredService<BlockchainController>();
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
+				segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
+				taprootIndexBuilderService = global.TaprootIndexBuilderService;
+				if (segwitTaprootIndexBuilderService is null || taprootIndexBuilderService is null)
+				{
+					throw new InvalidOperationException("Index builders can't be null.");
+				}
+
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
-				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
+				segwitTaprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
+				taprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 			}
 
 			// Third request.
@@ -237,9 +274,13 @@ public class BackendTests
 		}
 		finally
 		{
-			if (indexBuilderService is { })
+			if (segwitTaprootIndexBuilderService is { })
 			{
-				await indexBuilderService.StopAsync();
+				await segwitTaprootIndexBuilderService.StopAsync();
+			}
+			if (taprootIndexBuilderService is { })
+			{
+				await taprootIndexBuilderService.StopAsync();
 			}
 		}
 	}
