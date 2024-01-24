@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using DynamicData;
 using NBitcoin;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ public class PrivacySuggestionsModel
 	private readonly object _lock = new();
 
 	/// <summary>Allow at most one suggestion generation run.</summary>
-	private readonly AsyncLock _asyncLock = new();
+	private readonly AsyncNonKeyedLocker _asyncLock = new();
 
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
@@ -60,7 +60,7 @@ public class PrivacySuggestionsModel
 			_linkedCancellationTokenSource = linkedCts;
 		}
 
-		using (await _asyncLock.LockAsync(CancellationToken.None))
+		using (await _asyncLock.LockAsync().ConfigureAwait(false))
 		{
 			result.Add(VerifyLabels(info, transactionResult));
 			result.Add(VerifyPrivacyLevel(info, transactionResult));

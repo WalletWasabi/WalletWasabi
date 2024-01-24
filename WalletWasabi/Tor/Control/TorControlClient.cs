@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -66,7 +66,7 @@ public class TorControlClient : IAsyncDisposable
 
 	/// <summary>Lock to when sending a request to Tor control and waiting for a reply.</summary>
 	/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
-	private AsyncLock MessageLock { get; } = new();
+	private AsyncNonKeyedLocker MessageLock { get; } = new();
 
 	/// <summary>Key represents an event name and value represents a subscription counter.</summary>
 	private SortedDictionary<string, int> SubscribedEvents { get; } = new();

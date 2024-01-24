@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using NBitcoin;
 using System.Linq;
 using System.Threading;
@@ -25,7 +25,7 @@ public class CoinJoinProcessor : IDisposable
 		WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 		Network = network;
 		RpcClient = rpc;
-		ProcessLock = new AsyncLock();
+		ProcessLock = new AsyncNonKeyedLocker();
 		Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 	}
 
@@ -33,13 +33,13 @@ public class CoinJoinProcessor : IDisposable
 	public WalletManager WalletManager { get; }
 	public Network Network { get; }
 	public IRPCClient? RpcClient { get; private set; }
-	private AsyncLock ProcessLock { get; }
+	private AsyncNonKeyedLocker ProcessLock { get; }
 
 	private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
 	{
 		try
 		{
-			using (await ProcessLock.LockAsync())
+			using (await ProcessLock.LockAsync().ConfigureAwait(false))
 			{
 				var unconfirmedCoinJoinHashes = response.UnconfirmedCoinJoins;
 				if (!unconfirmedCoinJoinHashes.Any())

@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +21,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 
 	private string DirectoryPath { get; }
 
-	private AsyncLock FileAsyncLock { get; } = new();
+	private AsyncNonKeyedLocker FileAsyncLock { get; } = new();
 
 	private object LogLinesLock { get; } = new();
 
@@ -127,7 +127,7 @@ public class CoinVerifierLogger : IAsyncDisposable
 		var firstDate = auditLines.Select(x => x.DateTimeOffset).First();
 		string filePath = Path.Combine(DirectoryPath, $"VerifierAudits.{firstDate:yyyy.MM}.txt");
 
-		using (await FileAsyncLock.LockAsync(CancellationToken.None))
+		using (await FileAsyncLock.LockAsync().ConfigureAwait(false))
 		{
 			await File.AppendAllLinesAsync(filePath, lines, CancellationToken.None).ConfigureAwait(false);
 		}

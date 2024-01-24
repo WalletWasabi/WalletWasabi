@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ public class Whitelist
 
 	private string WhitelistFilePath { get; }
 	private WabiSabiConfig WabiSabiConfig { get; }
-	private AsyncLock FileLock { get; } = new();
+	private AsyncNonKeyedLocker FileLock { get; } = new();
 
 	public int CountInnocents()
 	{

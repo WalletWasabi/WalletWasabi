@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 
 	public string BlocksFolderPath { get; }
 	private Network Network { get; }
-	private AsyncLock BlockFolderLock { get; } = new();
+	private AsyncNonKeyedLocker BlockFolderLock { get; } = new();
 
 	/// <summary>
 	/// Prunes <see cref="BlocksFolderPath"/> so that its size is at most <paramref name="maxFolderSizeMb"/> MB.

@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System;
@@ -129,7 +129,7 @@ public class Global
 	public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
-	private AsyncLock InitializationAsyncLock { get; } = new();
+	private AsyncNonKeyedLocker InitializationAsyncLock { get; } = new();
 
 	/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
 	private CancellationTokenSource StoppingCts { get; } = new();
@@ -179,7 +179,7 @@ public class Global
 		CancellationToken cancel = linkedCts.Token;
 
 		// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await InitializationAsyncLock.LockAsync(cancellationToken))
+		using (await InitializationAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			Logger.LogTrace("Initialization started.");
 
@@ -400,7 +400,7 @@ public class Global
 			return;
 		}
 
-		using (await InitializationAsyncLock.LockAsync())
+		using (await InitializationAsyncLock.LockAsync().ConfigureAwait(false))
 		{
 			Logger.LogWarning("Process is exiting.", nameof(Global));
 

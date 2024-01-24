@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using System.Collections.Generic;
 using NBitcoin;
 using System.Linq;

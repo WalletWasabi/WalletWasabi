@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
@@ -79,7 +79,7 @@ public class WalletManager : IWalletProvider
 	private HashSet<Wallet> Wallets { get; } = new();
 
 	private object Lock { get; } = new();
-	private AsyncLock StartStopWalletLock { get; } = new();
+	private AsyncNonKeyedLocker StartStopWalletLock { get; } = new();
 
 	private BitcoinStore BitcoinStore { get; }
 	private WasabiSynchronizer Synchronizer { get; }

@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using Newtonsoft.Json;
 using System.IO;
 using System.Text;
@@ -39,7 +39,7 @@ public class RuntimeParams
 		}
 	}
 
-	private AsyncLock AsyncLock { get; } = new();
+	private AsyncNonKeyedLocker AsyncLock { get; } = new();
 	private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 	public static void SetDataDir(string dataDir)
@@ -51,7 +51,7 @@ public class RuntimeParams
 	{
 		try
 		{
-			using (await AsyncLock.LockAsync())
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Directory.Exists(FileDir))
 				{

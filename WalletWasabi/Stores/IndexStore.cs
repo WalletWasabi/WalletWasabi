@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
@@ -81,7 +81,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	private BlockFilterSqliteStorage IndexStorage { get; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
-	private AsyncLock IndexLock { get; } = new();
+	private AsyncNonKeyedLocker IndexLock { get; } = new();
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{

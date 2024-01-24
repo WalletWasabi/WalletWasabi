@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ public class WalletFilterProcessor : BackgroundService
 	internal Dictionary<SyncType, BlockFilterIterator> FilterIteratorsBySyncType { get; }
 
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
-	private AsyncLock ReorgLock { get; } = new();
+	private AsyncNonKeyedLocker ReorgLock { get; } = new();
 
 	public async Task ProcessAsync(IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
 	{

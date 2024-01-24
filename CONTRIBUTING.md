@@ -65,8 +65,8 @@ If you are a new contributor **DO** keep refactoring pull requests short, uncomp
 
 ```cs
 // GOOD
-private AsyncLock AsyncLock { get; } = new();
-using (await AsyncLock.LockAsync())
+private AsyncNonKeyedLocker AsyncLock { get; } = new();
+using (await AsyncLock.LockAsync().ConfigureAwait(false))
 {
 	...
 }

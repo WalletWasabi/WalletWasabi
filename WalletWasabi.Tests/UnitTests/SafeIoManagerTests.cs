@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -130,7 +130,7 @@ public class SafeIoManagerTests
 	{
 		var file = Path.Combine(Common.GetWorkDir(), "file.dat");
 
-		AsyncLock asyncLock = new();
+		AsyncNonKeyedLocker asyncLock = new();
 		SafeIoManager ioman = new(file);
 		ioman.DeleteMe();
 		await ioman.WriteAllLinesAsync(Array.Empty<string>());
@@ -159,7 +159,7 @@ public class SafeIoManagerTests
 				list.Add(next);
 			}
 
-			using (await asyncLock.LockAsync())
+			using (await asyncLock.LockAsync().ConfigureAwait(false))
 			{
 				var lines = (await ioman.ReadAllLinesAsync()).ToList();
 				lines.Add(next);

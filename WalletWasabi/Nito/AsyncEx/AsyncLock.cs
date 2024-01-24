@@ -45,6 +45,7 @@ namespace Nito.AsyncEx;
 /// </example>
 [DebuggerDisplay("Id = {Id}, Taken = {_taken}")]
 [DebuggerTypeProxy(typeof(DebugView))]
+[Obsolete("Use AsyncKeyedLock.AsyncNonKeyedLocker instead", true)]
 public sealed class AsyncLock
 {
 	/// <summary>

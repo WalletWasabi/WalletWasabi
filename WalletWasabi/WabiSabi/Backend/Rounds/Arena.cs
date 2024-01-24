@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using System.Collections.Concurrent;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -70,7 +70,7 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
 	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
-	private AsyncLock AsyncLock { get; } = new();
+	private AsyncNonKeyedLocker AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }

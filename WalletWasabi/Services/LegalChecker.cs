@@ -1,4 +1,4 @@
-using AsyncLock = AsyncKeyedLock.AsyncNonKeyedLocker;
+using AsyncKeyedLock;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -28,7 +28,7 @@ public class LegalChecker : IDisposable
 	public event EventHandler<LegalDocuments>? ProvisionalChanged;
 
 	/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
-	private AsyncLock LegalDocumentLock { get; } = new();
+	private AsyncNonKeyedLocker LegalDocumentLock { get; } = new();
 
 	private UpdateChecker UpdateChecker { get; }
 	public string LegalFolder { get; }
