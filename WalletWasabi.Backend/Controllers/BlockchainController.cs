@@ -438,6 +438,7 @@ public class BlockchainController : ControllerBase
 	{
 		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
+		var mempool = Global.HostedServices.Get<MempoolMirror>();
 
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
@@ -463,7 +464,7 @@ public class BlockchainController : ControllerBase
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
 
-			var unconfirmedChildrenTxs = Global.HostedServices.Get<MempoolMirror>()
+			var unconfirmedChildrenTxs = mempool
 				.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index)))
 				.ToHashSet();
 
@@ -480,7 +481,7 @@ public class BlockchainController : ControllerBase
 			toFetchFeeList.Remove(currentTx);
 
 			var unconfirmedParents = parentTxs.Where(x =>
-				Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes().Contains(x.GetHash()));
+				mempool.GetMempoolHashes().Contains(x.GetHash()));
 
 			// Fee and size of all unconfirmed parents and children not already known are required effective fee rate of the current transaction.
 			toFetchFeeList.AddRange(
