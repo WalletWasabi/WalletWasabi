@@ -228,25 +228,43 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(coins), coins);
 		password = Guard.Correct(password);
 
-		static bool InRange<T>(IComparable<T> val, T min, T max) =>
-			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
-		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
-
-		var feeStrategy = (feeRate, feeTarget) switch
-		{
-			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
-				FeeStrategy.CreateFromFeeRate(satsPerByte),
-			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
-				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
-			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
-		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var result = ActiveWallet!.BuildTransaction(
+			password,
+			payment,
+			feeStrategy,
+			allowUnconfirmed: true,
+			allowedInputs: coins);
+		var smartTx = result.Transaction;
+
+		return smartTx.Transaction.ToHex();
+	}
+
+	/// <summary>
+	/// Unsafe, because no matter how big fee the user chooses, Wasabi will build the transaction.
+	/// Potentially, the user can burn his money using this method, so be careful!
+	/// </summary>
+	[JsonRpcMethod("buildunsafetransaction")]
+	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	{
+		Guard.NotNull(nameof(payments), payments);
+		Guard.NotNull(nameof(coins), coins);
+		password = Guard.Correct(password);
+
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
+
+		AssertWalletIsLoaded();
+		var payment = new PaymentIntent(
+			payments.Select(
+				p =>
+				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+		var result = ActiveWallet!.BuildTransactionWithoutOverpaymentProtection(
 			password,
 			payment,
 			feeStrategy,
@@ -609,5 +627,22 @@ public class WasabiJsonRpcService : IJsonRpcService
 			mnemonic = null;
 			return false;
 		}
+	}
+
+	private FeeStrategy GetFeeStrategy(int? feeTarget = null, decimal? feeRate = null)
+	{
+		static bool InRange<T>(IComparable<T> val, T min, T max) =>
+			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+
+		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+
+		return (feeRate, feeTarget) switch
+		{
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
+			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
+			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+		};
 	}
 }
