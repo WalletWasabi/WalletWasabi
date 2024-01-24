@@ -42,7 +42,12 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		await AutoLoginAsync(options);
 
+		IsBusy = false;
+
+		await Task.Delay(250);
+
 		Navigate().Clear();
+
 		UiContext.Navigate().To(_wallet);
 	}
 
