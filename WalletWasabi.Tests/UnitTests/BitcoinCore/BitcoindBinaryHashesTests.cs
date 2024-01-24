@@ -22,9 +22,9 @@ public class BitcoindBinaryHashesTests
 
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "82686bbedb4a09e0e680ca65af21a18705b90d2e42dcc9b7b248c5705f6a8fb4" },
-			{ OSPlatform.Linux, "1b9938fdad1bcf0c7fe7598cefcf03c8f5623104341c2a9023570899013da344" },
-			{ OSPlatform.OSX, "0ee016965a71a93a0f4fd494445f6228a37f6eecad1f2d45ab2c485d1734d9c4" },
+			{ OSPlatform.Windows, "e047c18731d08bbcbc41e971f2de394958858123e8b454dbc3967cc45fce8532" },
+			{ OSPlatform.Linux, "0beff6d2140f6e3163c0daf28d8a41e8c36ce39a2f467d80f0196beea0d0c230" },
+			{ OSPlatform.OSX, "b16a2f80955b3ce3a2b831e21d5f8cc3758aef5414109f84d31bd0f08ca33888" },
 		};
 
 		foreach (var item in expectedHashes)
