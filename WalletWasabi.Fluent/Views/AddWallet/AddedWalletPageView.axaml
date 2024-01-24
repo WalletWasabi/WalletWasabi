@@ -13,7 +13,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
-                 NextContent="Done" EnableNext="True"
+                 NextContent="Done" EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 40 0 0">
