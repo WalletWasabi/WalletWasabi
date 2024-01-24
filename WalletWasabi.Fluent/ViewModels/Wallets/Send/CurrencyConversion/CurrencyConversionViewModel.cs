@@ -49,7 +49,9 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromBtc(btcValue);
-			   usd.Value = Amount?.UsdValue;
+			   usd.Value = CurrencyValue.FromUsd(Amount);
+
+			   System.Diagnostics.Debug.Print($"Btc: {btcValue}. Usd: {usd.Value}");
 
 			   _isUpdating = false;
 		   })
@@ -63,7 +65,7 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromUsd(usdValue);
-			   btc.Value = Amount?.BtcValue;
+			   btc.Value = CurrencyValue.FromBtc(Amount);
 
 			   _isUpdating = false;
 		   })
@@ -76,8 +78,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			{
 				_isUpdating = true;
 
-				btc.Value = amnt?.BtcValue;
-				usd.Value = amnt?.UsdValue;
+				btc.Value = CurrencyValue.FromBtc(amnt);
+				usd.Value = CurrencyValue.FromUsd(amnt);
 
 				_isUpdating = false;
 			})

@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -49,5 +50,21 @@ public partial class AmountProvider : ReactiveObject
 
 		var btcAmount = usdAmount.Value / UsdExchangeRate;
 		return CreateFromBtc(btcAmount);
+	}
+
+	public Amount? CreateFromBtc(CurrencyValue value) => CreateFromValue(value, false);
+
+	public Amount? CreateFromUsd(CurrencyValue value) => CreateFromValue(value, true);
+
+	private Amount? CreateFromValue(CurrencyValue value, bool isUsd)
+	{
+		return (value, isUsd) switch
+		{
+			(CurrencyValue.Empty, _) => null,
+			(CurrencyValue.Invalid, _) => Amount.Invalid,
+			(CurrencyValue.Valid x, true) => CreateFromUsd(x.Value),
+			(CurrencyValue.Valid x, false) => CreateFromBtc(x.Value),
+			_ => throw new InvalidOperationException($"CurrencyValue not supported: {value}")
+		};
 	}
 }

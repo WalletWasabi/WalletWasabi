@@ -10,7 +10,9 @@ public partial class CurrencyViewModel : ViewModelBase
 {
 	[AutoNotify] private decimal _maxValue;
 	[AutoNotify] private decimal _minSuggestionValue;
-	[AutoNotify] private decimal? _value;
+	[AutoNotify] private CurrencyValue _value = CurrencyValue.EmptyValue;
+
+	private bool _isUpdating;
 
 	public CurrencyViewModel(IWalletModel wallet, CurrencyFormat format)
 	{
@@ -35,6 +37,26 @@ public partial class CurrencyViewModel : ViewModelBase
 		}
 
 		Format = format;
+
+		this.WhenAnyValue(x => x.Format.Value)
+			.Where(_ => !_isUpdating)
+			.Do(v =>
+			{
+				_isUpdating = true;
+				Value = Format.Value = v;
+				_isUpdating = false;
+			})
+			.Subscribe();
+
+		this.WhenAnyValue(x => x.Value)
+			.Where(_ => !_isUpdating)
+			.Do(x =>
+			{
+				_isUpdating = true;
+				Format.SetValue(x);
+				_isUpdating = false;
+			})
+			.Subscribe();
 	}
 
 	public CurrencyFormat Format { get; }

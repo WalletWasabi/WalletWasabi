@@ -48,26 +48,26 @@ public class CurrencyEntryBoxClipboardBehavior : Avalonia.Xaml.Interactions.Cust
 			.DistinctUntilChanged()
 			.Do(x =>
 			{
-				// Validate that value can be parsed with current CurrencyFormat
-				var result = box.CurrencyFormat.Parse(x ?? "");
-
-				if (result is not CurrencyFormatParseResult.Ok ok)
-				{
-					box.ClipboardSuggestion = null;
-					return;
-				}
-
-				var value = ok.Value;
-
-				var isValidValue = value >= MinValue && (box.MaxValue is null || box.MaxValue >= value);
-				if (isValidValue)
-				{
-					box.ClipboardSuggestion = box.CurrencyFormat.Format(value);
-				}
-				else
-				{
-					box.ClipboardSuggestion = null;
-				}
+				//				// Validate that value can be parsed with current CurrencyFormat
+				//				var result = box.CurrencyFormat.Parse(x ?? "");
+				//
+				//				if (result is not CurrencyFormatParseResult.Ok ok)
+				//				{
+				//					box.ClipboardSuggestion = null;
+				//					return;
+				//				}
+				//
+				//				var value = ok.Value;
+				//
+				//				var isValidValue = value >= MinValue && (box.MaxValue is null || box.MaxValue >= value);
+				//				if (isValidValue)
+				//				{
+				//					box.ClipboardSuggestion = box.CurrencyFormat.Format(value);
+				//				}
+				//				else
+				//				{
+				//					box.ClipboardSuggestion = null;
+				//				}
 			})
 			.Subscribe()
 			.DisposeWith(disposable);

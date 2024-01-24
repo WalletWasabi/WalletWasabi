@@ -1,4 +1,5 @@
-using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -7,25 +8,20 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using ReactiveUI;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Currency;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public partial class CurrencyEntryBox : TextBox
 {
-	private bool _isUpdating;
+	public static readonly StyledProperty<CurrencyValue> ValueProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyValue>(nameof(Value), defaultValue: CurrencyValue.EmptyValue, enableDataValidation: true);
 
 	public static readonly StyledProperty<CurrencyFormat> CurrencyFormatProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyFormat>(nameof(CurrencyFormat), defaultValue: CurrencyFormat.Btc);
-
-	public static readonly StyledProperty<decimal?> ValueProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
 
 	public static readonly StyledProperty<decimal?> MaxValueProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(MaxValue));
@@ -33,62 +29,93 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<string?> ClipboardSuggestionProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string?>(nameof(ClipboardSuggestion), defaultBindingMode: BindingMode.TwoWay);
 
-	private string _currentText;
+	private CompositeDisposable _disposables = new();
+	private bool _isUpdating;
+	private bool _isUpdatingSelection;
 
 	public CurrencyEntryBox()
 	{
-		Text = "";
+		SetCurrentValue(TextProperty, "");
 
-		// Set Value and Format Text after Text changes
-		// this fires when copying text from clipboard, hitting backspace or delete, etc
-		this.GetObservable(TextProperty)
-			.Where(_ => !_isUpdating)
-			.Do(x =>
+		AddHandler(KeyDownEvent, CustomOnKeyDown, RoutingStrategies.Tunnel);
+
+		this.GetObservable(CurrencyFormatProperty)
+			.Do(cf =>
 			{
-				_isUpdating = true;
+				_disposables.Dispose();
+				_disposables = new();
 
-				// Validate that value can be parsed with current CurrencyFormat
-				var result = CurrencyFormat.Parse(x ?? "");
-
-				decimal? value =
-					result switch
-					{
-						CurrencyFormatParseResult.Nan => null,
-						CurrencyFormatParseResult.OutOfRange => null,
-						CurrencyFormatParseResult.Ok ok => ok.Value
-					};
-
-				SetCurrentValue(ValueProperty, value);
-
-				if (result is CurrencyFormatParseResult.Ok)
+				if (CurrencyFormat is not { })
 				{
-					var formattedDifference = Format(x);
-					if (formattedDifference != 0 && CaretIndex < Text.Length)
-					{
-						Console.WriteLine($"Moving Caret Index: {CaretIndex} => {CaretIndex + formattedDifference}");
-						// and move caret index accordingly
-						Dispatcher.UIThread.InvokeAsync(() => SetCurrentValue(CaretIndexProperty, CaretIndex + formattedDifference));
-					}
+					return;
 				}
 
-				_currentText = Text;
+				CurrencyFormat.WhenAnyValue(x => x.InsertPosition)
+							  .BindTo(this, x => x.CaretIndex)
+							  .DisposeWith(_disposables);
 
-				_isUpdating = false;
+				CurrencyFormat.WhenAnyValue(x => x.Text)
+							  .BindTo(this, x => x.Text)
+							  .DisposeWith(_disposables);
+
+				CurrencyFormat.WhenAnyValue(x => x.Value)
+							  .Do(v => SetCurrentValue(ValueProperty, v))
+							  .Subscribe()
+							  .DisposeWith(_disposables);
+
+				CurrencyFormat.WhenAnyValue(x => x.SelectionStart, x => x.SelectionEnd)
+					.Where(_ => !_isUpdatingSelection)
+					.Do(t =>
+					{
+						var (start, end) = t;
+
+						if (start is null || end is null)
+						{
+							SelectionStart = CaretIndex;
+							SelectionEnd = CaretIndex;
+						}
+						else
+						{
+							SelectionStart = start.Value;
+							SelectionEnd = end.Value;
+						}
+					})
+					.Subscribe()
+					.DisposeWith(_disposables);
+
+				this.GetObservable(CaretIndexProperty)
+					.Do(x =>
+					{
+						CurrencyFormat?.SetInsertPosition(x);
+					})
+					.Subscribe()
+					.DisposeWith(_disposables);
+
+				this.GetObservable(SelectionStartProperty)
+					.CombineLatest(this.GetObservable(SelectionEndProperty))
+					.Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+					.Do(t =>
+					{
+						if (_isUpdating || t.First == t.Second || CurrencyFormat is null)
+						{
+							return;
+						}
+
+						_isUpdatingSelection = true;
+
+						CurrencyFormat.SetSelection(t.First, t.Second);
+
+						_isUpdatingSelection = false;
+					})
+					.Subscribe()
+					.DisposeWith(_disposables);
 			})
-			.Skip(1)
-			.Subscribe();
-
-		// Format Text after Value changes
-		// this fires when Value is set via Binding e.g: SendViewModel
-		this.GetObservable(ValueProperty)
-			.Where(_ => !_isUpdating)
-			.Do(_ => OnValueUpdated())
 			.Subscribe();
 
 		// Handle copying full text to the clipboard
 		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(CopyingToClipboard))
 			  .Select(x => x.EventArgs)
-			  .Where(_ => Value is { })
+			  .Where(_ => CurrencyFormat?.Value is { })
 			  .Where(_ => SelectedText == Text)
 			  .DoAsync(OnCopyingFullTextToClipboardAsync)
 			  .Subscribe();
@@ -111,16 +138,16 @@ public partial class CurrencyEntryBox : TextBox
 			.Subscribe();
 	}
 
+	public CurrencyValue Value
+	{
+		get => GetValue(ValueProperty);
+		set => SetValue(ValueProperty, value);
+	}
+
 	public CurrencyFormat CurrencyFormat
 	{
 		get => GetValue(CurrencyFormatProperty);
 		set => SetValue(CurrencyFormatProperty, value);
-	}
-
-	public decimal? Value
-	{
-		get => GetValue(ValueProperty);
-		set => SetValue(ValueProperty, value);
 	}
 
 	public decimal? MaxValue
@@ -143,195 +170,127 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	protected override void OnTextInput(TextInputEventArgs e)
+	private void CustomOnKeyDown(object? sender, KeyEventArgs e)
 	{
-		try
+		_isUpdating = true;
+
+		var enableSelection = e.KeyModifiers == KeyModifiers.Shift;
+
+		var isPaste =
+		  Application.Current?.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) ?? false;
+
+		if (isPaste)
 		{
-			_isUpdating = true;
-			var input = e.Text?.TotalTrim() ?? "";
-
-			// Reject invalid characters
-			if (!RegexValidCharacters().Match(input).Success)
-			{
-				return;
-			}
-
-			// Pre-compose Text (Add input to existing Text in the caret position)
-			var preComposedText = PreComposeText(input);
-
-			// Reject multiple Decimal Separators
-			if (input == CurrencyInput.DecimalSeparator && Text is { } && Text.Contains(CurrencyInput.DecimalSeparator))
-			{
-				// Unless replacing the whole text
-				if (input != preComposedText)
+			ModifiedPasteAsync();
+		}
+		else
+		{
+			var input =
+				e.Key switch
 				{
-					return;
-				}
-			}
+					Key.D0 or Key.NumPad0 => "0",
+					Key.D1 or Key.NumPad1 => "1",
+					Key.D2 or Key.NumPad2 => "2",
+					Key.D3 or Key.NumPad3 => "3",
+					Key.D4 or Key.NumPad4 => "4",
+					Key.D5 or Key.NumPad5 => "5",
+					Key.D6 or Key.NumPad6 => "6",
+					Key.D7 or Key.NumPad7 => "7",
+					Key.D8 or Key.NumPad8 => "8",
+					Key.D9 or Key.NumPad9 => "9",
+					_ => null
+				};
 
-			// Automatically add integral zero when typing only "."
-			if (preComposedText == CurrencyInput.DecimalSeparator)
+			if (input is { })
 			{
-				preComposedText = "0" + CurrencyInput.DecimalSeparator;
-				base.OnTextInput(new TextInputEventArgs { Text = preComposedText });
-				return;
+				CurrencyFormat.Insert(input);
 			}
-
-			// Validate that value can be parsed with current CurrencyFormat
-			var result = CurrencyFormat.Parse(preComposedText);
-
-			// reject input otherwise.
-			if (result is not CurrencyFormatParseResult.Ok ok)
+			else if (e.Key == Key.Back)
 			{
-				return;
+				CurrencyFormat.RemovePrevious();
 			}
-
-			// Accept input
-			base.OnTextInput(e);
-
-			decimal? value = ok.Value;
-
-			// Set Value for Binding
-			SetCurrentValue(ValueProperty, value);
-
-			if (result is not CurrencyFormatParseResult.Ok)
+			else if (e.Key == Key.Delete)
 			{
-				return;
+				CurrencyFormat.RemoveNext();
 			}
-
-			// Trim Trailing Zeros
-			var trimmedZeros = TrimTrailingZeros();
-			if (value > 0 && input == "0" && trimmedZeros > 0)
+			else if (e.Key == Key.Left)
 			{
-				// and move caret index accordingly
-				SetCurrentValue(CaretIndexProperty, CaretIndex - trimmedZeros);
+				CurrencyFormat.MoveBack(enableSelection);
 			}
-
-			// Format Text according to current CurrencyFormat
-			// Returns the number of separator characters added
-			var formattedDifference = Format();
-			if (formattedDifference > 0)
+			else if (e.Key == Key.Right)
 			{
-				// and move caret index accordingly
-				SetCurrentValue(CaretIndexProperty, CaretIndex + formattedDifference);
+				CurrencyFormat.MoveForward(enableSelection);
 			}
-
-			_currentText = preComposedText;
+			else if (e.Key == Key.Home)
+			{
+				CurrencyFormat.MoveToStart(enableSelection);
+			}
+			else if (e.Key == Key.End)
+			{
+				CurrencyFormat.MoveToEnd(enableSelection);
+			}
+			else if (e.Key is Key.OemPeriod or Key.OemComma or Key.Decimal)
+			{
+				CurrencyFormat.InsertDecimalSeparator();
+			}
 		}
-		finally
-		{
-			_isUpdating = false;
-		}
+
+		e.Handled = true;
+
+		_isUpdating = false;
 	}
 
-	[GeneratedRegex($"^[0-9{CurrencyInput.DecimalSeparator}]+$")]
-	private static partial Regex RegexValidCharacters();
-
-	/// <summary>
-	/// Combines newly entered text input and places it in the correct place, accounting for caret index and selected text.
-	/// </summary>
-	/// <param name="input">The newly entered text input, as received by the OnTextInput() method.</param>
-	/// <returns>A string that contains the final text including the newly entered input, replacing any existing selected text.</returns>
-	/// <remarks>An event in Avalonia's TextBox with this function should be implemented there for brevity.</remarks>
-	private string PreComposeText(string input)
+	public async void ModifiedPasteAsync()
 	{
-		var preComposedText = Text ?? "";
-		var caretIndex = CaretIndex;
-		var selectionStart = SelectionStart;
-		var selectionEnd = SelectionEnd;
-
-		if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
-											 input.Length + preComposedText.Length -
-											 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+		if (ApplicationHelper.Clipboard is not { } clipboard)
 		{
-			if (selectionStart != selectionEnd)
-			{
-				var start = Math.Min(selectionStart, selectionEnd);
-				var end = Math.Max(selectionStart, selectionEnd);
-				preComposedText = $"{preComposedText[..start]}{preComposedText[end..]}";
-				caretIndex = start;
-			}
-
-			return $"{preComposedText[..caretIndex]}{input}{preComposedText[caretIndex..]}";
+			return;
 		}
 
-		return "";
-	}
-
-	/// <summary>
-	/// Trims trailing zeros from Text.
-	/// </summary>
-	/// <returns>The number of zeros removed.</returns>
-	private int TrimTrailingZeros()
-	{
-		if (Text is null)
+		if (CurrencyFormat is not { })
 		{
-			return 0;
+			return;
 		}
 
-		// Trim starting zeros.
-		if (Text.StartsWith("0"))
+		var text = await clipboard.GetTextAsync();
+
+		if (string.IsNullOrEmpty(text))
 		{
-			string corrected;
-
-			// If zeroless starts with a dot, then leave a zero.
-			// Else trim all the zeros.
-			var zeroless = Text.TrimStart('0');
-			if (zeroless.Length == 0)
-			{
-				corrected = "0";
-			}
-			else if (zeroless.StartsWith('.'))
-			{
-				corrected = $"0{Text.TrimStart('0')}";
-			}
-			else
-			{
-				corrected = Text.TrimStart('0');
-			}
-
-			if (corrected != Text)
-			{
-				var trimmedLength = Text.Length - corrected.Length;
-				SetCurrentValue(TextProperty, corrected);
-
-				return trimmedLength;
-			}
+			return;
 		}
 
-		return 0;
-	}
+		text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-	/// <summary>
-	/// Formats Text according to CurrencyFormat
-	/// </summary>
-	/// <returns>The number of group separator characters added.</returns>
-	private int Format(string? oldValue = null)
-	{
-		if (Value is null || Text is null)
+		if (Regex.IsMatch(text, @"[^0-9,\.٫٬⎖·']"))
 		{
-			SetCurrentValue(TextProperty, "");
-			return 0;
+			return;
 		}
 
-		var currentText = oldValue ?? Text;
+		// TODO: it is very hard to cover all cases for different localizations, including group and decimal separators.
+		// We really need to leave that to the .NET runtime by removing invariant localization
+		// and letting it decide what value does the text on the clipboard really represent
 
-		var formatted = CurrencyFormat.Format(Value.Value);
+		// Correct amount
+		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
 
-		if (formatted != currentText)
+		// Make it digits and .,٫٬⎖·\ only.
+		text = digitsOnly.Replace(text, "");
+
+		// https://en.wikipedia.org/wiki/Decimal_separator
+		text = text.Replace(",", CurrencyFormat.DecimalSeparator);
+		text = text.Replace("٫", CurrencyFormat.DecimalSeparator);
+		text = text.Replace("٬", CurrencyFormat.DecimalSeparator);
+		text = text.Replace("⎖", CurrencyFormat.DecimalSeparator);
+		text = text.Replace("·", CurrencyFormat.DecimalSeparator);
+		text = text.Replace("'", CurrencyFormat.DecimalSeparator);
+
+		// Prevent inserting multiple '.'
+		if (Regex.Matches(text, @"\.").Count > 1)
 		{
-			var difference = formatted.CountOccurrencesOf(CurrencyInput.GroupSeparator) - currentText.CountOccurrencesOf(CurrencyInput.GroupSeparator);
-
-			// Edge case: hitting backspace in for example "45.1", leaving "45.", in this case we don't want to change the text to "45", because it worsens UX
-			if (!currentText.EndsWith(CurrencyInput.DecimalSeparator))
-			{
-				SetCurrentValue(TextProperty, formatted);
-			}
-
-			return difference;
+			return;
 		}
 
-		return 0;
+		CurrencyFormat.Insert(text);
 	}
 
 	/// <summary>
@@ -339,31 +298,13 @@ public partial class CurrencyEntryBox : TextBox
 	/// </summary>
 	private async Task OnCopyingFullTextToClipboardAsync(RoutedEventArgs e)
 	{
-		if (ApplicationHelper.Clipboard is not { } clipboard || Value is not { } value)
+		if (ApplicationHelper.Clipboard is not { } clipboard || CurrencyFormat?.Value is not { } value)
 		{
 			return;
 		}
 
-		await clipboard.SetTextAsync(value.ToString(CurrencyInput.InvariantNumberFormat));
+		await clipboard.SetTextAsync(Text);
 
 		e.Handled = true;
-	}
-
-	/// <summary>
-	/// Fired when the Value property is updated by means other than user input (e.g Databinding)
-	/// </summary>
-	private void OnValueUpdated()
-	{
-		if (Text is null)
-		{
-			return;
-		}
-
-		Format();
-		SetCurrentValue(CaretIndexProperty, Text.Length);
-		if (!string.IsNullOrWhiteSpace(SelectedText))
-		{
-			SelectAll();
-		}
 	}
 }

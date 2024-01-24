@@ -213,10 +213,14 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		if (Amount is null)
 		{
-			errors.Add(ErrorSeverity.Error, "Invalid Amount.");
 			return;
 		}
 
+		if (Amount == Amount.Invalid)
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid Amount.");
+			return;
+		}
 		if (Amount.BtcValue > Constants.MaximumNumberOfBitcoins)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
