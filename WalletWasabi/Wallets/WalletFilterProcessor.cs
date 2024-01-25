@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -280,13 +281,14 @@ public class WalletFilterProcessor : BackgroundService
 
 		if (matchFound)
 		{
+			Stopwatch sw = Stopwatch.StartNew();
 			var result = preProcessingTask is not null ?
 				await preProcessingTask.ConfigureAwait(false) :
 				await BlockDownloadService.TryGetBlockAsync(null,
 					filter.Header.BlockHash,
 					new Priority(syncType, filter.Header.Height),
 					uint.MaxValue, cancel).ConfigureAwait(false);
-
+			Logger.LogError($"{height}: Dl finished at {DateTime.UtcNow} - preprocessed: {preProcessingTask is not null} - waited {sw.ElapsedMilliseconds}ms synchronously");
 			if (result is not BlockDownloadService.SuccessResult success)
 			{
 				// TODO: ?????? Arguably we should cancel here if Cancelled, otherwise throw Unreachable

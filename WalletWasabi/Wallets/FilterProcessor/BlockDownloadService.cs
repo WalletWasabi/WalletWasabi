@@ -72,7 +72,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		Request request = new(sourceRequest, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
 		Enqueue(request);
-
+		Logger.LogWarning($"{priority.BlockHeight}: Dl requested at {DateTime.UtcNow}");
 		try
 		{
 			await request.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -236,6 +236,7 @@ public class BlockDownloadService : BackgroundService
 
 	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
+		Logger.LogInfo($"{request.Priority.BlockHeight}: Dl started at {DateTime.UtcNow}");
 		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}; attempt: {request.Attempts}).");
 
 		try
