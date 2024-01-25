@@ -3,8 +3,10 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
@@ -56,7 +58,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 				var response = await HttpClient.SendAsync(
 					HttpMethod.Get,
-					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-transaction-fee-rate?transactionId={txid}",
+					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-unconfirmed-transaction-chain?transactionId={txid}",
 					null,
 					linkedCts.Token).ConfigureAwait(false);
 
@@ -65,9 +67,9 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				var unconfirmedChain = await response.Content.ReadAsJsonAsync<List<UnconfirmedTransactionChainItem>>().ConfigureAwait(false);
+				var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
 
-				if (!UnconfirmedChainCache.TryAdd(txid, unconfirmedChain))
+				if (!UnconfirmedChainCache.TryAdd(txid, unconfirmedChain.ToList()))
 				{
 					throw new InvalidOperationException($"Failed to cache unconfirmed tx chain for {txid}");
 				}

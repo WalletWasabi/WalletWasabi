@@ -491,11 +491,11 @@ public class BlockchainController : ControllerBase
 			unconfirmedTxsChainById.Add(
 				currentTx.GetHash(),
 				new UnconfirmedTransactionChainItem(
-					TxId: currentTx.GetHash(),
+					TxId: currentTx.GetHash().ToString(),
 					Size: currentTx.GetVirtualSize(),
 					Fee: currentTx.GetFee(inputs.ToArray()),
-					Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
-					Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet()));
+					Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
+					Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet()));
 		}
 
 		return unconfirmedTxsChainById.Values.ToList();
