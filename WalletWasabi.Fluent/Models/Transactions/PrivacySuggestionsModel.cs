@@ -268,9 +268,11 @@ public class PrivacySuggestionsModel
 		var coinsInCoinJoin = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
-		// If the original transaction couldn't avoid unconfirmed coins, BnB can use them too. Otherwise exclude them.
-		var coinsUnconfirmed = _wallet.GetAllCoins().Where(c => !c.Confirmed);
-		coinsToUse = spentCoins.Any(coinsUnconfirmed.Contains) ? coinsToUse : coinsToUse.Except(coinsUnconfirmed).ToImmutableArray();
+		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
+		if (spentCoins.All(x => x.Confirmed))
+		{
+			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
+		}
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
 
