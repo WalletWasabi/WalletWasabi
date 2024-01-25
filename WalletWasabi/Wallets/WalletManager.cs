@@ -35,7 +35,8 @@ public class WalletManager : IWalletProvider
 		WasabiSynchronizer synchronizer,
 		HybridFeeProvider feeProvider,
 		IBlockProvider blockProvider,
-		ServiceConfiguration serviceConfiguration)
+		ServiceConfiguration serviceConfiguration,
+		UnconfirmedTransactionChainProvider unconfirmedTransactionChainProvider)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -48,6 +49,7 @@ public class WalletManager : IWalletProvider
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 		ServiceConfiguration = serviceConfiguration;
+		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
 		RefreshWalletList();
@@ -84,6 +86,7 @@ public class WalletManager : IWalletProvider
 	private BitcoinStore BitcoinStore { get; }
 	private WasabiSynchronizer Synchronizer { get; }
 	private ServiceConfiguration ServiceConfiguration { get; }
+	private UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
 	private bool IsInitialized { get; set; }
 
 	private HybridFeeProvider FeeProvider { get; }
@@ -340,6 +343,7 @@ public class WalletManager : IWalletProvider
 	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
 		WalletRelevantTransactionProcessed?.Invoke(sender, e);
+		UnconfirmedTransactionChainProvider.BeginRequestUnconfirmedChain(e.Transaction);
 	}
 
 	private void Wallet_StateChanged(object? sender, WalletState e)

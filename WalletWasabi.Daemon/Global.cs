@@ -118,7 +118,10 @@ public class Global
 			new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
 			Cache);
 
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, wasabiSynchronizer, HostedServices.Get<HybridFeeProvider>(), blockProvider, config.ServiceConfiguration);
+		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+
+		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<HybridFeeProvider>(), blockProvider, config.ServiceConfiguration, HostedServices.Get<UnconfirmedTransactionChainProvider>());
+
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
