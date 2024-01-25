@@ -299,7 +299,7 @@ public class CoinJoinManager : BackgroundService
 			.ToArray();
 
 		// If there is no available coin candidates, then don't mix.
-		if (!coinCandidates.Any())
+		if (coinCandidates.Length == 0)
 		{
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 		}
@@ -316,7 +316,7 @@ public class CoinJoinManager : BackgroundService
 			.Except(excludedCoins)
 			.ToArray();
 
-		if (!coinCandidates.Any())
+		if (coinCandidates.Length == 0)
 		{
 			var anyNonPrivateUnconfirmed = unconfirmedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
 			var anyNonPrivateImmature = immatureCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));

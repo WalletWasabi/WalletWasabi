@@ -248,7 +248,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		_updatingCurrentValue = true;
 
-		if (satoshiPerByteValues.Any())
+		if (satoshiPerByteValues.Length != 0)
 		{
 			var maxY = satoshiPerByteValues.Max();
 			var minY = satoshiPerByteValues.Min();

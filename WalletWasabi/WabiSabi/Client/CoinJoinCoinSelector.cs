@@ -62,7 +62,7 @@ public class CoinJoinCoinSelector
 			.ToArray();
 
 		// Sanity check.
-		if (!filteredCoins.Any())
+		if (filteredCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;

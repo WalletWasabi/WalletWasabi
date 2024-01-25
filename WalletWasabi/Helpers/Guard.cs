@@ -78,7 +78,7 @@ public static class Guard
 	{
 		NotNull(parameterName, value);
 
-		if (!value.Any())
+		if (value.Length == 0)
 		{
 			throw new ArgumentException("Parameter cannot be empty.", parameterName);
 		}

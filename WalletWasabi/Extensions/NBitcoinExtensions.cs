@@ -226,7 +226,7 @@ public static class NBitcoinExtensions
 		}
 
 		var nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
-		while (nodes.Any())
+		while (nodes.Length != 0)
 		{
 			foreach (var node in nodes)
 			{
