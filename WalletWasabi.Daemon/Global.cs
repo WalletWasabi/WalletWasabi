@@ -251,6 +251,8 @@ public class Global
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
+				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+
 				WalletManager.Initialize();
 			}
 			finally

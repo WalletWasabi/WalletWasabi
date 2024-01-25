@@ -141,7 +141,7 @@ public class WalletFilterProcessor : BackgroundService
 
 						// MaxNumberFiltersInMemory is also the maximum of pre-process slots because filters are in memory until the end of the task.
 						// This is not 100% true because the filter has to stay in memory until after ProcessFilterModelAsync finishes.
-						var availablePreProcessSlots = Math.Max(0, FilterIteratorsBySyncType[request.SyncType].MaxNumberFiltersInMemory - preProcessTasks.Count);
+						var availablePreProcessSlots = Math.Max(0, FilterIteratorsBySyncType[request.SyncType].MaxNumberFiltersInMemory - preProcessTasks[request.SyncType].Count);
 
 						// We have to skip all the current tasks.
 						var toPreProcessHeight = toProcessHeight + (uint)preProcessTasks[request.SyncType].Count;
