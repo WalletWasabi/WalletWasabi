@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
@@ -104,7 +105,14 @@ public abstract class PeriodicRunner : BackgroundService
 				var info = ExceptionTracker.Process(ex);
 				if (info.IsFirst)
 				{
-					Logger.LogError(info.Exception);
+					if (info.Exception is HttpRequestException)
+					{
+						Logger.LogWarning(ex);
+					}
+					else
+					{
+						Logger.LogError(info.Exception);
+					}
 				}
 			}
 
