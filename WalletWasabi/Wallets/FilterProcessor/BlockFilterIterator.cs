@@ -13,7 +13,7 @@ namespace WalletWasabi.Wallets.FilterProcessor;
 /// </summary>
 public class BlockFilterIterator
 {
-	public BlockFilterIterator(IIndexStore indexStore, int maxNumberFiltersInMemory = 2000)
+	public BlockFilterIterator(IIndexStore indexStore, int maxNumberFiltersInMemory = 20000)
 	{
 		IndexStore = indexStore;
 		MaxNumberFiltersInMemory = maxNumberFiltersInMemory;
