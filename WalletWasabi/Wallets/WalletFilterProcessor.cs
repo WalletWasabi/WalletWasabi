@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.BlockProvider;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
@@ -26,12 +27,12 @@ public class WalletFilterProcessor : BackgroundService
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private FilterModel? _lastProcessedFilter;
 
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider)
+	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockDownloadService blockDownloadService)
 	{
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		TransactionProcessor = transactionProcessor;
-		BlockProvider = blockProvider;
+		BlockDownloadService = blockDownloadService;
 
 		FilterIteratorsBySyncType = new()
 		{
@@ -51,7 +52,7 @@ public class WalletFilterProcessor : BackgroundService
 	private KeyManager KeyManager { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private TransactionProcessor TransactionProcessor { get; }
-	private IBlockProvider BlockProvider { get; }
+	private BlockDownloadService BlockDownloadService { get; }
 
 	public FilterModel? LastProcessedFilter
 	{
@@ -224,7 +225,7 @@ public class WalletFilterProcessor : BackgroundService
 		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
 	}
 
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancellationToken)
 	{
 		var height = new Height(filter.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
@@ -237,7 +238,8 @@ public class WalletFilterProcessor : BackgroundService
 
 			if (matchFound)
 			{
-				Block currentBlock = await BlockProvider.GetBlockAsync(filter.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
+				// Wait until not downloaded.
+				Block currentBlock = await KeepTryingToGetBlockAsync(filter.Header.BlockHash, new Priority(syncType, filter.Header.Height), cancellationToken).ConfigureAwait(false);
 
 				var txsToProcess = new List<SmartTransaction>();
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
@@ -254,6 +256,29 @@ public class WalletFilterProcessor : BackgroundService
 		return matchFound;
 	}
 
+	/// <summary>
+	/// Attempt to get the bitcoin block from a full node or use P2P as a fallback.
+	/// </summary>
+	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
+	{
+		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash, priority, cancellationToken).ConfigureAwait(false);
+
+		if (fullNodeResult is BlockDownloadService.SuccessResult successFullNodeResult)
+		{
+			return successFullNodeResult.Block;
+		}
+
+		while (true)
+		{
+			BlockDownloadService.IResult p2pNodeResult = await BlockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, priority, cancellationToken).ConfigureAwait(false);
+
+			if (p2pNodeResult is BlockDownloadService.SuccessResult successP2pResult)
+			{
+				return successP2pResult.Block;
+			}
+		}
+	}
+
 	private async void ReorgedAsync(object? sender, FilterModel invalidFilter)
 	{
 		try
@@ -266,10 +291,7 @@ public class WalletFilterProcessor : BackgroundService
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 
-				if (BlockProvider is SmartBlockProvider smartBlockProvider)
-				{
-					await smartBlockProvider.RemoveAsync(invalidBlockHash, CancellationToken.None).ConfigureAwait(false);
-				}
+				await BlockDownloadService.RemoveBlocksAsync(invalidFilter.Header.Height - 1).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex)

@@ -20,6 +20,7 @@ using WalletWasabi.Tests.Helpers;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -40,6 +41,7 @@ public class WalletBuilder : IAsyncDisposable
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
 		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
+		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
 	}
 
 	private IndexStore IndexStore { get; }
@@ -49,6 +51,7 @@ public class WalletBuilder : IAsyncDisposable
 	private WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiSynchronizer Synchronizer { get; }
 	public IEnumerable<FilterModel> Filters { get; }
+	public BlockDownloadService BlockDownloadService { get; }
 	public string DataDir { get; }
 
 	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet, int? minGapLimit = null)
@@ -62,17 +65,20 @@ public class WalletBuilder : IAsyncDisposable
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
 		HybridFeeProvider feeProvider = new(Synchronizer, null);
-		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, blockProvider);
+		await BlockDownloadService.StartAsync(CancellationToken.None).ConfigureAwait(false);
+
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, BlockDownloadService);
 	}
 
 	public async ValueTask DisposeAsync()
 	{
+		await BlockDownloadService.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await IndexStore.DisposeAsync().ConfigureAwait(false);
 		await Synchronizer.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();
+		BlockDownloadService.Dispose();
 	}
 }
