@@ -46,7 +46,7 @@ public class BuyAnythingClient
 	private static readonly string SalutationIdTesting = "018d18f29d347170b6cfd6466cab3c71";
 
 	private static readonly string StorefrontUrlProduction = "https://wasabi.shopinbit.com";
-	private static readonly string StorefrontUrlTesting = "https://shopinbit.solution360.dev";
+	private static readonly string StorefrontUrlTesting = "https://shopinbit.solution360.dev/wasabi";
 
 	// Product Id mapping for Concierge services
 	private Dictionary<Product, string> ProductIds { get; }
