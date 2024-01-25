@@ -17,8 +17,10 @@ namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 public class BlockDownloadServiceTests
 {
 	/// <summary>
-	/// Tests <see cref="BlockDownloadService.TryGetBlockAsync(Source, uint256, Priority, uint, CancellationToken)"/> method. Blocks should be downloaded in parallel.
-	/// Moreover, we attempt to download a block again if it fails to download.
+	/// Tests <see cref="BlockDownloadService.TryGetBlockAsync(Source, uint256, Priority, uint, CancellationToken)"/> method.
+	/// Blocks should be downloaded in parallel. Especially, if we get one block request and then immediately another one, BDS is supposed
+	/// to start both tasks and not wait for the first one to finish. Meaning, BDS is not supposed to work in batches until it hits its
+	/// level of parallelism (<see cref="BlockDownloadService.MaximumParallelTasks"/>).
 	/// </summary>
 	[Fact]
 	public async Task TryGetBlockTests1Async()
@@ -38,8 +40,8 @@ public class BlockDownloadServiceTests
 		TaskCompletionSource block1RequestedTcs = new();
 		TaskCompletionSource block1DelayTcs = new();
 
-		TaskCompletionSource block3RequestedTcs = new();
-		TaskCompletionSource block3DelayTcs = new();
+		TaskCompletionSource block2RequestedTcs = new();
+		TaskCompletionSource block2DelayTcs = new();
 		TaskCompletionSource block2DownloadedTcs = new();
 
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
@@ -67,20 +69,21 @@ public class BlockDownloadServiceTests
 				});
 
 			// Handling of downloading of block2.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block2);
-
-			// Handling of downloading of block3.
-			_ = mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
+			_ = mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
 				.Returns(async () =>
 				{
-					block3RequestedTcs.SetResult();
+					block2RequestedTcs.SetResult();
 
 					// Wait until signal is given that a download failure can be reported here.
-					await block3DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
+					await block2DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
 
 					return null;
 				})
+				.ReturnsAsync(block2)
+				.ReturnsAsync(block2);
+
+			// Handling of downloading of block3.
+			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block3);
 
 			// Handling of downloading of block4.
@@ -114,18 +117,18 @@ public class BlockDownloadServiceTests
 				Assert.Same(block1, successResult.Block);
 			}
 
-			// Block2 should be available even though block1 and block3 are waiting for data.
-			IResult resultBlock2 = await task2;
+			// Block3 should be available even though block1 and block3 are waiting for data.
+			IResult resultBlock3 = await task3;
 
-			// Verify that block3 waits for our signal, unblock it and verify result.
+			// Verify that block2 waits for our signal, unblock it and verify result.
 			{
-				Assert.False(task3.IsCompletedSuccessfully);
-				await block3RequestedTcs.Task.WaitAsync(testCts.Token);
-				block3DelayTcs.SetResult();
+				Assert.False(task2.IsCompletedSuccessfully);
+				await block2RequestedTcs.Task.WaitAsync(testCts.Token);
+				block2DelayTcs.SetResult();
 
-				IResult task3Result = await task3;
+				IResult task2Result = await task2;
 
-				FailureResult failureResult = Assert.IsType<FailureResult>(task3Result);
+				FailureResult failureResult = Assert.IsType<FailureResult>(task2Result);
 				Assert.IsType<EmptySourceData>(failureResult.SourceData);
 			}
 
@@ -133,7 +136,7 @@ public class BlockDownloadServiceTests
 			Task<IResult>[] tasks = [task1, task2, task3, task4];
 			Task.WaitAll(tasks);
 
-			// Second attempt to download block 2 should succeed.
+			// Second attempt to download block2 should succeed.
 			{
 				IResult task2Result = await service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_002), testCts.Token);
 				SuccessResult successResult = Assert.IsType<SuccessResult>(task2Result);

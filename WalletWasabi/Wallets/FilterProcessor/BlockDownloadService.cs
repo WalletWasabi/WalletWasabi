@@ -41,7 +41,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
 	private IP2PBlockProvider? P2PBlockProvider { get; }
-	private int MaximumParallelTasks { get; }
+	public int MaximumParallelTasks { get; }
 
 	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
 	private SemaphoreSlim RequestAvailableSemaphore { get; } = new(initialCount: 0, maxCount: 1);
@@ -148,7 +148,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		try
 		{
-			List<Task<RequestResponse>> activeTasks = new(capacity: MaximumParallelTasks);
+			List<Task> activeTasks = new(capacity: MaximumParallelTasks);
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -157,7 +157,7 @@ public class BlockDownloadService : BackgroundService
 				lock (Lock)
 				{
 					// Wait until at least one block-downloading request is here; otherwise, consume requests so that there is at most MAX parallel tasks.
-					wait = activeTasks.Count == 0 && BlocksToDownload.Count == 0;
+					wait = BlocksToDownload.Count == 0;
 				}
 
 				if (wait)
@@ -177,7 +177,7 @@ public class BlockDownloadService : BackgroundService
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
 
-						Task<RequestResponse> newTask = GetSingleBlockAsync(queuedRequest, cancellationToken);
+						Task newTask = HandleSingleBlockTaskAsync(queuedRequest, cancellationToken);
 						activeTasks.Add(newTask);
 					}
 				}
@@ -188,26 +188,10 @@ public class BlockDownloadService : BackgroundService
 					continue;
 				}
 
-				Task<RequestResponse> task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
-				activeTasks.Remove(task);
-
-				RequestResponse response = await task.ConfigureAwait(false);
-				Request request = response.Request;
-
-				if (response.Result is SuccessResult)
+				if (activeTasks.Count == MaximumParallelTasks)
 				{
-					_ = request.Tcs.TrySetResult(response.Result);
-				}
-				else
-				{
-					Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
-
-					// The block might have been removed concurrently if a reorg occurred.
-					if (!request.Tcs.TrySetResult(response.Result))
-					{
-						IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
-						Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
-					}
+					Task task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
+					activeTasks.Remove(task);
 				}
 			}
 		}
@@ -233,7 +217,31 @@ public class BlockDownloadService : BackgroundService
 		}
 	}
 
-	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
+	private async Task HandleSingleBlockTaskAsync(Request request, CancellationToken cancellationToken)
+	{
+		RequestResponse response = await DownloadSingleBlockAsync(request, cancellationToken).ConfigureAwait(false);
+
+		if (response.Result is SuccessResult)
+		{
+			_ = request.Tcs.TrySetResult(response.Result);
+		}
+		else
+		{
+			Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
+
+			// The block might have been removed concurrently if a reorg occurred.
+			if (!request.Tcs.TrySetResult(response.Result))
+			{
+				IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
+				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Downloads a single block from a block source, or gets the block from the file-system cache if available.
+	/// </summary>
+	private async Task<RequestResponse> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
 		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
 
