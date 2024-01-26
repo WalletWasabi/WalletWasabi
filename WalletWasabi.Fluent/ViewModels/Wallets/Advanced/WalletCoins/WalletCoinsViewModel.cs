@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -50,6 +51,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		CoinSelector.DisposeWith(disposables);
 
 		IsAnySelected = CoinSelector.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
+		CoinSelector.ExpandAllCommand.Execute().Subscribe().DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
