@@ -13,7 +13,7 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="controls:PrivacyContentControl">
         <Panel>
-          <ContentPresenter Name="PART_Content"
+          <ContentPresenter Name="PART_ContentPresenter"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -56,14 +56,14 @@
     </Style>
 
     <!-- UseOpacity = true -->
-    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_Content">
+    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
       <Setter Property="IsEnabled" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
       <Setter Property="IsHitTestVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
     </Style>
 
     <!-- UseOpacity = false -->
-    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_Content">
+    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="IsVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
     </Style>
 

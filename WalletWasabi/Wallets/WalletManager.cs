@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -93,20 +95,30 @@ public class WalletManager : IWalletProvider
 
 	private void RefreshWalletList()
 	{
-		foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
+
+		string[]? walletNamesToLoad = null;
+		lock (Lock)
 		{
+			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
+		}
+
+		if (walletNamesToLoad.Length == 0)
+		{
+			return;
+		}
+
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName), CancelAllTasksToken)).ToList();
+
+		while (walletLoadTasks.Count > 0)
+		{
+			var tasksArray = walletLoadTasks.ToArray();
+			var finishedTaskIndex = Task.WaitAny(tasksArray, CancelAllTasksToken);
+			var finishedTask = tasksArray[finishedTaskIndex];
+			walletLoadTasks.Remove(finishedTask);
 			try
 			{
-				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-				lock (Lock)
-				{
-					if (Wallets.Any(w => w.WalletName == walletName))
-					{
-						continue;
-					}
-				}
-
-				Wallet wallet = GetWalletByName(walletName);
+				var wallet = finishedTask.Result;
 				AddWallet(wallet);
 			}
 			catch (Exception ex)
@@ -491,6 +503,23 @@ public class WalletManager : IWalletProvider
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.EnsureTurboSyncHeightConsistency();
+		}
+	}
+
+	public void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		{
+			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
+			{
+				km.SetBestHeight(startingSegwitHeight);
+			}
+
+			if (startingSegwitHeight > km.GetBestHeight(SyncType.Turbo))
+			{
+				km.SetBestTurboSyncHeight(startingSegwitHeight);
+			}
 		}
 	}
 

@@ -135,7 +135,7 @@ public partial class Arena : PeriodicRunner
 			{
 				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 				{
-					if (offendingAlices.Any())
+					if (offendingAlices.Length != 0)
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
 					}

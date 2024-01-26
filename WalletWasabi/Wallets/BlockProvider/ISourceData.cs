@@ -45,7 +45,11 @@ public interface ISourceData
 /// <summary>
 /// Source data with no additional information.
 /// </summary>
-public record EmptySourceData(Source Source) : ISourceData;
+public record EmptySourceData(Source Source) : ISourceData
+{
+	public static EmptySourceData FileSystemCache = new(Source.FileSystemCache);
+	public static EmptySourceData TrustedFullNode = new(Source.TrustedFullNode);
+}
 
 /// <summary>
 /// Source data for a bitcoin block downloaded over P2P.

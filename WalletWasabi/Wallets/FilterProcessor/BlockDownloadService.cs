@@ -11,7 +11,7 @@ using WalletWasabi.Wallets.BlockProvider;
 namespace WalletWasabi.Wallets.FilterProcessor;
 
 /// <summary>
-/// Service that downloads blocks downloads.
+/// Service that prioritizes and handles block downloads.
 /// </summary>
 public class BlockDownloadService : BackgroundService
 {
@@ -41,7 +41,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
 	private IP2PBlockProvider? P2PBlockProvider { get; }
-	private int MaximumParallelTasks { get; }
+	public int MaximumParallelTasks { get; }
 
 	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
 	private SemaphoreSlim RequestAvailableSemaphore { get; } = new(initialCount: 0, maxCount: 1);
@@ -68,11 +68,11 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<IResult> TryGetBlockAsync(ISourceRequest? sourceRequest, uint256 blockHash, Priority priority, uint maxAttempts, CancellationToken cancellationToken)
+	public async Task<IResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		Request request = new(sourceRequest, blockHash, priority, Attempts: 1, maxAttempts, new TaskCompletionSource<IResult>());
+		Request request = new(sourceRequest, blockHash, priority, new TaskCompletionSource<IResult>());
 		Enqueue(request);
-		Logger.LogWarning($"{priority.BlockHeight}: Dl requested at {DateTime.UtcNow}");
+
 		try
 		{
 			await request.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -107,10 +107,11 @@ public class BlockDownloadService : BackgroundService
 	/// The method is not efficient but it does not matter too much because the operation is not supposed to be called often.
 	/// The main use case is to deal with a blockchain reorg.
 	/// </remarks>
-	public void RemoveBlocks(uint maxBlockHeight)
+	public async Task RemoveBlocksAsync(uint maxBlockHeight)
 	{
-		// TODO: In this integration I removed SmartBlockProvider so I need this function to also remove from the file system.
 		PriorityQueue<Request, Priority> tempQueue = new(Priority.Comparer);
+
+		List<uint256> toRemoveFromCache = [];
 
 		lock (Lock)
 		{
@@ -126,11 +127,17 @@ public class BlockDownloadService : BackgroundService
 				{
 					// The block might have been downloaded by now so just try to set the result.
 					_ = request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
+					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
 
 			BlocksToDownload.Clear();
 			BlocksToDownload.EnqueueRange(tempQueue.UnorderedItems);
+		}
+
+		foreach (uint256 blockHash in toRemoveFromCache)
+		{
+			await FileSystemBlockRepository.RemoveAsync(blockHash, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
@@ -141,7 +148,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		try
 		{
-			List<Task<RequestResponse>> activeTasks = new(capacity: MaximumParallelTasks);
+			List<Task> activeTasks = new(capacity: MaximumParallelTasks);
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -150,7 +157,7 @@ public class BlockDownloadService : BackgroundService
 				lock (Lock)
 				{
 					// Wait until at least one block-downloading request is here; otherwise, consume requests so that there is at most MAX parallel tasks.
-					wait = activeTasks.Count == 0 && BlocksToDownload.Count == 0;
+					wait = BlocksToDownload.Count == 0;
 				}
 
 				if (wait)
@@ -170,7 +177,7 @@ public class BlockDownloadService : BackgroundService
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
 
-						Task<RequestResponse> newTask = GetSingleBlockAsync(queuedRequest, cancellationToken);
+						Task newTask = HandleSingleBlockTaskAsync(queuedRequest, cancellationToken);
 						activeTasks.Add(newTask);
 					}
 				}
@@ -181,34 +188,10 @@ public class BlockDownloadService : BackgroundService
 					continue;
 				}
 
-				Task<RequestResponse> task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
-				activeTasks.Remove(task);
-
-				RequestResponse response = await task.ConfigureAwait(false);
-				Request request = response.Request;
-
-				if (response.Result is SuccessResult)
+				if (activeTasks.Count == MaximumParallelTasks)
 				{
-					_ = request.Tcs.TrySetResult(response.Result);
-				}
-				else
-				{
-					if (request.Attempts >= request.MaxAttempts)
-					{
-						Logger.LogInfo($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed {request.MaxAttempts} times. Dropping the request.");
-
-						// The block might have been removed concurrently if a reorg occurred.
-						if (!request.Tcs.TrySetResult(response.Result))
-						{
-							IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
-							Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
-						}
-					}
-					else
-					{
-						// Re-enqueue as we failed to download the block.
-						Enqueue(request with { Attempts = request.Attempts + 1 });
-					}
+					Task task = await Task.WhenAny(activeTasks).ConfigureAwait(false);
+					activeTasks.Remove(task);
 				}
 			}
 		}
@@ -234,10 +217,33 @@ public class BlockDownloadService : BackgroundService
 		}
 	}
 
-	private async Task<RequestResponse> GetSingleBlockAsync(Request request, CancellationToken cancellationToken)
+	private async Task HandleSingleBlockTaskAsync(Request request, CancellationToken cancellationToken)
 	{
-		Logger.LogInfo($"{request.Priority.BlockHeight}: Dl started at {DateTime.UtcNow}");
-		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}; attempt: {request.Attempts}).");
+		RequestResponse response = await DownloadSingleBlockAsync(request, cancellationToken).ConfigureAwait(false);
+
+		if (response.Result is SuccessResult)
+		{
+			_ = request.Tcs.TrySetResult(response.Result);
+		}
+		else
+		{
+			Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
+
+			// The block might have been removed concurrently if a reorg occurred.
+			if (!request.Tcs.TrySetResult(response.Result))
+			{
+				IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
+				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Downloads a single block from a block source, or gets the block from the file-system cache if available.
+	/// </summary>
+	private async Task<RequestResponse> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
+	{
+		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
 
 		try
 		{
@@ -245,15 +251,18 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(request, new SuccessResult(block, new EmptySourceData(Source.FileSystemCache)));
+				return new RequestResponse(request, new SuccessResult(block, EmptySourceData.FileSystemCache));
 			}
 
 			SuccessResult? successResult = null;
 			ISourceData? failureSourceData = null;
 
-			if (request.SourceRequest is FullNodeSourceRequest or null)
+			if (request.SourceRequest is FullNodeSourceRequest)
 			{
-				EmptySourceData sourceData = new(Source.TrustedFullNode);
+				if (TrustedFullNodeBlockProviders.Length == 0)
+				{
+					return new RequestResponse(request, NoSuchProviderResult.Instance);
+				}
 
 				foreach (IBlockProvider blockProvider in TrustedFullNodeBlockProviders)
 				{
@@ -261,20 +270,23 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = new(block, sourceData);
+						successResult = new(block, EmptySourceData.TrustedFullNode);
 						break;
 					}
 				}
 
 				if (successResult is null)
 				{
-					failureSourceData = sourceData;
+					failureSourceData = EmptySourceData.TrustedFullNode;
 				}
 			}
-
-			if ((request.SourceRequest is P2pSourceRequest or null) && P2PBlockProvider is not null && successResult is null)
+			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
 			{
-				var p2pSourceRequest =  request.SourceRequest is null ? P2pSourceRequest.Automatic : (P2pSourceRequest)request.SourceRequest;
+				if (P2PBlockProvider is null)
+				{
+					return new RequestResponse(request, NoSuchProviderResult.Instance);
+				}
+
 				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
 
 				if (response.Block is not null)
@@ -308,7 +320,7 @@ public class BlockDownloadService : BackgroundService
 
 			if (failureSourceData is not null)
 			{
-				return new RequestResponse(request, new FailureResult(request.Attempts, failureSourceData));
+				return new RequestResponse(request, new FailureResult(failureSourceData));
 			}
 
 			throw new UnreachableException();
@@ -325,7 +337,7 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(ISourceRequest? SourceRequest, uint256 BlockHash, Priority Priority, uint Attempts, uint MaxAttempts, TaskCompletionSource<IResult> Tcs);
+	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<IResult> Tcs);
 	private record RequestResponse(Request Request, IResult Result);
 
 	/// <summary>Block was downloaded successfully.</summary>
@@ -341,7 +353,14 @@ public class BlockDownloadService : BackgroundService
 
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
-	public record FailureResult(uint Attempts, ISourceData SourceData) : IFailureResult;
+	public record FailureResult(ISourceData SourceData) : IFailureResult;
+
+	/// <summary>Block could not be get because specified block providing source was not registered.</summary>
+	/// <remarks>Re-trying won't help. If no trusted full node is set, then this won't change.</remarks>
+	public record NoSuchProviderResult() : IFailureResult
+	{
+		public static readonly NoSuchProviderResult Instance = new();
+	}
 
 	/// <summary>Block could not be get because the service is shutting down.</summary>
 	public record CanceledResult() : IFailureResult

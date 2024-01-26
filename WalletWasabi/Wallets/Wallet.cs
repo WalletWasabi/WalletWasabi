@@ -298,11 +298,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Starting;
 
-			if (!Synchronizer.IsRunning)
-			{
-				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-			}
-
 			using (BenchmarkLogger.Measure())
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
@@ -469,17 +464,6 @@ public class Wallet : BackgroundService, IWallet
 		KeyManager.GetKeys();
 
 		Height bestTurboSyncHeight = KeyManager.GetBestHeight(SyncType.Turbo);
-
-		// Make sure heights are at least height of segwit activation.
-		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
-		{
-			KeyManager.SetBestHeight(startingSegwitHeight);
-		}
-		if (startingSegwitHeight > bestTurboSyncHeight)
-		{
-			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
-		}
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{

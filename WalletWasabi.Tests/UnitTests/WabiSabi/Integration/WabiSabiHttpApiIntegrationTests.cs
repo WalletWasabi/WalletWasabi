@@ -521,7 +521,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}
-					else if (!participantsFinishedSuccessully.Any() && !cts.IsCancellationRequested)
+					else if (participantsFinishedSuccessully.Length == 0 && !cts.IsCancellationRequested)
 					{
 						var exceptions = tasks
 							.Where(x => x.IsFaulted)
