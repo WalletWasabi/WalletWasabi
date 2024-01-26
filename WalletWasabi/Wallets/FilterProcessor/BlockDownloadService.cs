@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -92,6 +93,10 @@ public class BlockDownloadService : BackgroundService
 		{
 			int count = BlocksToDownload.Count;
 			BlocksToDownload.Enqueue(request, request.Priority);
+			if (request.SourceRequest is P2pSourceRequest)
+			{
+				Logger.LogWarning($"{request.Priority.BlockHeight}: Dl requested at {DateTime.UtcNow}");
+			}
 
 			if (count == 0 && RequestAvailableSemaphore.CurrentCount == 0)
 			{
@@ -111,7 +116,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		PriorityQueue<Request, Priority> tempQueue = new(Priority.Comparer);
 
-		List<uint256> toRemoveFromCache = [];
+		List<uint256> toRemoveFromCache = new();
 
 		lock (Lock)
 		{
@@ -244,7 +249,7 @@ public class BlockDownloadService : BackgroundService
 	private async Task<RequestResponse> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
 		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
-
+		var startedAt = DateTime.UtcNow;
 		try
 		{
 			// Try get the block from the file-system storage.
@@ -315,6 +320,8 @@ public class BlockDownloadService : BackgroundService
 
 			if (successResult is not null)
 			{
+
+				Logger.LogInfo($"{request.Priority.BlockHeight}: Dl finished at {DateTime.UtcNow} after {(DateTime.UtcNow - startedAt).Milliseconds} ms");
 				return new RequestResponse(request, successResult);
 			}
 

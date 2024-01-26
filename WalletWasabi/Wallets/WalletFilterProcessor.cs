@@ -14,6 +14,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.BlockProvider;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
@@ -188,7 +189,7 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					if (!request.Tcs.TrySetException(ex))
 					{
-						Logger.LogWarning($"Tried to set exception for {request.SyncType.FriendlyName()} but status was already {request.Tcs.Task.Status}.");
+						Logger.LogWarning($"Tried to set exception for {request.SyncType.ToString()} but status was already {request.Tcs.Task.Status}.");
 					}
 
 					throw;
@@ -251,13 +252,13 @@ public class WalletFilterProcessor : BackgroundService
 		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
 	}
 
-	private Task<BlockDownloadService.IResult>? PreProcessFilterModel(FilterModel filter, SyncType syncType, CancellationToken cancel)
+	private Task<Block>? PreProcessFilterModel(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
 		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
-		var match = toTestKeys.Count != 0 && filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+		var match = toTestKeys.Any() && filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 		return match ?
-			BlockDownloadService.TryGetBlockAsync(null, filter.Header.BlockHash, new Priority(syncType, filter.Header.Height), uint.MaxValue, cancel) :
+			KeepTryingToGetBlockAsync(filter.Header.BlockHash, new Priority(syncType, filter.Header.Height), cancel) :
 			null;
 	}
 
@@ -278,27 +279,19 @@ public class WalletFilterProcessor : BackgroundService
 			// Test against the keys that haven't been used for the preprocessing
 			// TODO: Don't retest against keys that were tested during preprocessing.
 			var toTestKeys = GetScriptPubKeysToTest(height, syncType);
-			matchFound = toTestKeys.Count != 0 && filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
+			matchFound = toTestKeys.Any() && filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 		}
 
 		if (matchFound)
 		{
 			Stopwatch sw = Stopwatch.StartNew();
-			var result = preProcessingTask is not null ?
+			Block block = preProcessingTask is not null ?
 				await preProcessingTask.ConfigureAwait(false) :
-				await BlockDownloadService.TryGetBlockAsync(null,
+				await KeepTryingToGetBlockAsync(
 					filter.Header.BlockHash,
 					new Priority(syncType, filter.Header.Height),
-					uint.MaxValue, cancel).ConfigureAwait(false);
+					cancel).ConfigureAwait(false);
 			Logger.LogError($"{height}: Dl finished at {DateTime.UtcNow} - preprocessed: {preProcessingTask is not null} - waited {sw.ElapsedMilliseconds}ms synchronously");
-			if (result is not BlockDownloadService.SuccessResult success)
-			{
-				// TODO: ?????? Arguably we should cancel here if Cancelled, otherwise throw Unreachable
-				// TODO: We also have to modify caller to take cancellation into account, not done. Anyway, we cannot continue here.
-				throw new Exception(); // temp to remove warning
-			}
-
-			Block block = success.Block;
 
 			var txsToProcess = new List<SmartTransaction>();
 			for (int i = 0; i < block.Transactions.Count; i++)
@@ -326,12 +319,35 @@ public class WalletFilterProcessor : BackgroundService
 				KeyManager.SetMaxBestHeight(newBestHeight);
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-				BlockDownloadService.RemoveBlocks((uint)newBestHeight.Value);
+				await BlockDownloadService.RemoveBlocksAsync((uint)newBestHeight.Value).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex)
 		{
 			Logger.LogWarning(ex);
+		}
+	}
+
+	/// <summary>
+	/// Attempt to get the bitcoin block from a full node or use P2P as a fallback.
+	/// </summary>
+	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
+	{
+		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash, priority, cancellationToken).ConfigureAwait(false);
+
+		if (fullNodeResult is BlockDownloadService.SuccessResult successFullNodeResult)
+		{
+			return successFullNodeResult.Block;
+		}
+
+		while (true)
+		{
+			BlockDownloadService.IResult p2pNodeResult = await BlockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, priority, cancellationToken).ConfigureAwait(false);
+
+			if (p2pNodeResult is BlockDownloadService.SuccessResult successP2pResult)
+			{
+				return successP2pResult.Block;
+			}
 		}
 	}
 
@@ -354,5 +370,5 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
-	private record FilterPreProcessing(FilterModel Filter, Task<BlockDownloadService.IResult>? Task);
+	private record FilterPreProcessing(FilterModel Filter, Task<Block>? Task);
 }
