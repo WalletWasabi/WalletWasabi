@@ -11,7 +11,7 @@ BCurrently, the latest version(25.1) is not tested, so the preferred version is 
 
 Todo:
 
-1. Install [Bitcoin Knots 23.0](https://bitcoinknots.org/files/23.x/23.0.knots20220529/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
+1. Install [Bitcoin Knots 23.0](https://bitcoinknots.org/files/23.x/23.0.knots20220529/) on your computer. Verify the PGP signatures. Check the security notice [here](https://bitcoinknots.org/).
 2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated. If you write "-datadir" parameter,make sure the directory exists
 
      Windows x64:
