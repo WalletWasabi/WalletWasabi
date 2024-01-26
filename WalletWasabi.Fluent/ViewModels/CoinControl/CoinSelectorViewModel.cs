@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -96,19 +97,30 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		wallet.Coins.Pockets
-					.Connect()
-					.ToCollection()
-					.SkipWhile(pockets => pockets.Count == 0)
-					.Do(
-						pockets =>
-						{
-							RefreshFromPockets(sourceItems, pockets);
-							UpdateSelection(coinItemsCollection, initialCoinSelection);
-							ExpandSelectedItems();
-						})
-					.Subscribe();
+			.Connect()
+			.ToCollection()
+			.SkipWhile(pockets => pockets.Count == 0)
+			.Do(
+				pockets =>
+				{
+					RefreshFromPockets(sourceItems, pockets);
+					UpdateSelection(coinItemsCollection, initialCoinSelection);
+					ExpandSelectedItems();
+				})
+			.Subscribe();
 		_wallet = wallet;
+
+		ExpandAllCommand = ReactiveCommand.Create(
+			() =>
+			{
+				foreach (var item in _itemsCollection)
+				{
+					item.IsExpanded = true;
+				}
+			});
 	}
+
+	public ReactiveCommand<Unit, Unit> ExpandAllCommand { get; set; }
 
 	public ReadOnlyObservableCollection<ICoinModel> Selection { get; }
 

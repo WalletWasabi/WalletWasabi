@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData.Aggregation;
@@ -40,6 +41,11 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
 		_coinSelector = new CoinSelectorViewModel(_wallet, new List<ICoinModel>());
 		IsAnySelected = CoinSelector.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		CoinSelector.ExpandAllCommand.Execute().Subscribe().DisposeWith(disposables);
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
