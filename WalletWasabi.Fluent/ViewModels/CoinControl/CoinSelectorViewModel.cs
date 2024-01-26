@@ -84,6 +84,14 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.BindTo(this, x => x.SelectedCoins)
 			.DisposeWith(_disposables);
 
+		coinItems.AutoRefresh(x => x.IsSelected)
+			.Filter(x => x.IsSelected == true)
+			.Transform(x => x.Coin)
+			.Bind(out var selection)
+			.Subscribe();
+
+		Selection = selection;
+
 		TreeDataGridSource = CoinSelectorDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
 
@@ -101,6 +109,8 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 					.Subscribe();
 		_wallet = wallet;
 	}
+
+	public ReadOnlyObservableCollection<ICoinModel> Selection { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
 
