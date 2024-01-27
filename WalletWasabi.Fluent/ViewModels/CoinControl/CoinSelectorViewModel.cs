@@ -79,13 +79,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		// Project selected coins to public property. Throttle for improved UI performance
-		selectedCoins
-			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
-			.BindTo(this, x => x.SelectedCoins)
-			.DisposeWith(_disposables);
-
-		coinItems.AutoRefresh(x => x.IsSelected)
+		coinItems.AutoRefresh(x => x.IsSelected, propertyChangeThrottle: TimeSpan.FromSeconds(0.1), scheduler: RxApp.MainThreadScheduler)
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
 			.Bind(out var selection)
@@ -125,12 +119,6 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 	public ReadOnlyObservableCollection<ICoinModel> Selection { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
-
-	public IReadOnlyCollection<ICoinModel> SelectedCoins
-	{
-		get => _selectedCoins;
-		set => this.RaiseAndSetIfChanged(ref _selectedCoins, value);
-	}
 
 	public void Dispose()
 	{
