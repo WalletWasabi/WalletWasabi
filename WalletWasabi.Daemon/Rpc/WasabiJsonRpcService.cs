@@ -596,7 +596,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
-			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the passphrase to start coinjoining.");
 		}
 	}
 

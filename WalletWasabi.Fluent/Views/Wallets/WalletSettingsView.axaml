@@ -25,7 +25,7 @@
             DockPanel.Dock="Right">
             <Button.Content>
               <DockPanel>
-                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}" />
                 <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
               </DockPanel>
             </Button.Content>
@@ -52,12 +52,10 @@
         </c:InfoMessage>
         <c:InfoMessage>
           <DockPanel>
-            <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+            <TextBlock Text="Your passphrase is also required to recover your wallet, do not forget it." />
           </DockPanel>
         </c:InfoMessage>
       </StackPanel>
-
     </StackPanel>
-
   </c:ContentArea>
 </UserControl>
