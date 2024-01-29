@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -21,6 +22,8 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 	public static readonly StyledProperty<TextBox?> TargetProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, TextBox?>(nameof(Target));
 
 	public static readonly StyledProperty<PlacementMode> PlacementModeProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, PlacementMode>(nameof(PlacementMode));
+
+	public static readonly StyledProperty<ICommand> ApplySuggestionCommandProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, ICommand>(nameof(ApplySuggestionCommand));
 
 	private readonly Flyout _flyout;
 
@@ -57,6 +60,12 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 	{
 		get => GetValue(TargetProperty);
 		set => SetValue(TargetProperty, value);
+	}
+
+	public ICommand ApplySuggestionCommand
+	{
+		get => GetValue(ApplySuggestionCommandProperty);
+		set => SetValue(ApplySuggestionCommandProperty, value);
 	}
 
 	public StringComparer EqualityComparer { get; set; } = StringComparer.InvariantCulture;
@@ -111,7 +120,11 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			content,
 			() =>
 			{
-				if (textBox != null)
+				if (textBox is { } && ApplySuggestionCommand is { })
+				{
+					ApplySuggestionCommand.Execute(content);
+				}
+				else if (textBox is { })
 				{
 					textBox.Text = content;
 					textBox.CaretIndex = content.Length;

@@ -132,7 +132,7 @@
                                     IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
                                     IsVisible="{Binding !IsFixedAmount}">
               <c:DualCurrencyEntryBox.Styles>
-                <Style Selector="c|CurrencyEntryBox" x:DataType="currencyConversion:CurrencyViewModel">
+                <!--<Style Selector="c|CurrencyEntryBox" x:DataType="currencyConversion:CurrencyInputViewModel">
                   <Setter Property="(Interaction.Behaviors)">
                     <BehaviorCollectionTemplate>
                       <BehaviorCollection>
@@ -141,20 +141,22 @@
                       </BehaviorCollection>
                     </BehaviorCollectionTemplate>
                   </Setter>
-                </Style>
+                </Style>-->
               </c:DualCurrencyEntryBox.Styles>
               <c:DualCurrencyEntryBox.LeftEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"
                                     CurrencyFormat="{Binding Format}"
-                                    Value="{Binding Value}"
-                                    MaxValue="{Binding MaxValue}"
+                                    ViewModel="{Binding}"
+                                    ClipboardSuggestion="{Binding Suggestion.Text}"
+                                    ApplySuggestionCommand="{Binding Suggestion.ApplyCommand}"
                                     HorizontalContentAlignment="Left" />
               </c:DualCurrencyEntryBox.LeftEntryBox>
               <c:DualCurrencyEntryBox.RightEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Right}"
                                     CurrencyFormat="{Binding Format}"
-                                    Value="{Binding Value}"
-                                    MaxValue="{Binding MaxValue}"
+                                    ViewModel="{Binding}"
+                                    ClipboardSuggestion="{Binding Suggestion.Text}"
+                                    ApplySuggestionCommand="{Binding Suggestion.ApplyCommand}"
                                     HorizontalContentAlignment="Right" />
               </c:DualCurrencyEntryBox.RightEntryBox>
             </c:DualCurrencyEntryBox>

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 using Avalonia;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -15,6 +16,20 @@ public partial class UiClipboard
 		}
 
 		return await Task.FromResult("");
+	}
+
+	public async Task<string?> TryGetTextAsync()
+	{
+		try
+		{
+			return await GetTextAsync();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+
+		return null;
 	}
 
 	public async Task SetTextAsync(string? text)

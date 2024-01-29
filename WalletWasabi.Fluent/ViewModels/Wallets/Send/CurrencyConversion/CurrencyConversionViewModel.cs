@@ -10,8 +10,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 {
 	private bool _isUpdating;
 	[AutoNotify] private Amount? _amount;
-	[AutoNotify] private CurrencyViewModel _left;
-	[AutoNotify] private CurrencyViewModel _right;
+	[AutoNotify] private CurrencyInputViewModel _left;
+	[AutoNotify] private CurrencyInputViewModel _right;
 	[AutoNotify] private bool _isConversionReversed;
 	[AutoNotify] private bool _isConversionAvailable;
 
@@ -21,8 +21,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 		Wallet = wallet;
 
 		// TODO: this could be used to show conversion to currencies other than USD
-		var btc = new CurrencyViewModel(wallet, CurrencyFormat.Btc);
-		var usd = new CurrencyViewModel(wallet, CurrencyFormat.Usd);
+		var btc = new CurrencyInputViewModel(uiContext, wallet, CurrencyFormat.Btc, true);
+		var usd = new CurrencyInputViewModel(uiContext, wallet, CurrencyFormat.Usd, true);
 
 		_left = btc;
 		_right = usd;
@@ -49,9 +49,7 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromBtc(btcValue);
-			   usd.Value = CurrencyValue.FromUsd(Amount);
-
-			   System.Diagnostics.Debug.Print($"Btc: {btcValue}. Usd: {usd.Value}");
+			   usd.SetValue(CurrencyValue.FromUsd(Amount));
 
 			   _isUpdating = false;
 		   })
@@ -65,7 +63,7 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			   _isUpdating = true;
 
 			   Amount = wallet.AmountProvider.CreateFromUsd(usdValue);
-			   btc.Value = CurrencyValue.FromBtc(Amount);
+			   btc.SetValue(CurrencyValue.FromBtc(Amount));
 
 			   _isUpdating = false;
 		   })
@@ -78,8 +76,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 			{
 				_isUpdating = true;
 
-				btc.Value = CurrencyValue.FromBtc(amnt);
-				usd.Value = CurrencyValue.FromUsd(amnt);
+				btc.SetValue(CurrencyValue.FromBtc(amnt));
+				usd.SetValue(CurrencyValue.FromUsd(amnt));
 
 				_isUpdating = false;
 			})

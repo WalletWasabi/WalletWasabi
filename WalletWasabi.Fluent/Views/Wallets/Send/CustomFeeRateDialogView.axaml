@@ -21,12 +21,12 @@
       <Label Content="_Transaction fee rate:" Target="CustomFee" />
 
       <Panel>
-        <c:CurrencyEntryBox Value="{Binding CustomFee}" CurrencyFormat="{x:Static currency:CurrencyFormat.SatsvByte}"
+        <!--<c:CurrencyEntryBox Value="{Binding CustomFee}" CurrencyFormat="{x:Static currency:CurrencyFormat.SatsvByte}"
                             Width="220" Watermark="1 sat/vByte" x:Name="CustomFee">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-        </c:CurrencyEntryBox>
+        </c:CurrencyEntryBox>-->
       </Panel>
     </StackPanel>
   </c:ContentArea>

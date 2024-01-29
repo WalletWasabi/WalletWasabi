@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -12,22 +12,27 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Currency;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public partial class CurrencyEntryBox : TextBox
 {
-	public static readonly StyledProperty<CurrencyValue> ValueProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyValue>(nameof(Value), defaultValue: CurrencyValue.EmptyValue, enableDataValidation: true);
+	public static readonly StyledProperty<CurrencyInputViewModel> ViewModelProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyInputViewModel>(nameof(ViewModel));
 
 	public static readonly StyledProperty<CurrencyFormat> CurrencyFormatProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyFormat>(nameof(CurrencyFormat), defaultValue: CurrencyFormat.Btc);
 
-	public static readonly StyledProperty<decimal?> MaxValueProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, decimal?>(nameof(MaxValue));
+	public static readonly StyledProperty<CurrencyValue> ValueProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyValue>(nameof(Value), enableDataValidation: true);
 
+	// TODO: these would be better as attached properties of the Behavior
 	public static readonly StyledProperty<string?> ClipboardSuggestionProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string?>(nameof(ClipboardSuggestion), defaultBindingMode: BindingMode.TwoWay);
+
+	public static readonly StyledProperty<ICommand> ApplySuggestionCommandProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, ICommand>(nameof(ApplySuggestionCommand));
 
 	private CompositeDisposable _disposables = new();
 	private bool _isUpdating;
@@ -39,54 +44,56 @@ public partial class CurrencyEntryBox : TextBox
 
 		AddHandler(KeyDownEvent, CustomOnKeyDown, RoutingStrategies.Tunnel);
 
-		this.GetObservable(CurrencyFormatProperty)
+		this.GetObservable(ViewModelProperty)
 			.Do(cf =>
 			{
 				_disposables.Dispose();
 				_disposables = new();
 
-				if (CurrencyFormat is not { })
+				if (ViewModel is not { })
 				{
 					return;
 				}
 
-				CurrencyFormat.WhenAnyValue(x => x.InsertPosition)
-							  .BindTo(this, x => x.CaretIndex)
-							  .DisposeWith(_disposables);
+				SetCurrentValue(CurrencyFormatProperty, ViewModel.CurrencyFormat);
 
-				CurrencyFormat.WhenAnyValue(x => x.Text)
-							  .BindTo(this, x => x.Text)
-							  .DisposeWith(_disposables);
+				ViewModel.WhenAnyValue(x => x.InsertPosition)
+						 .BindTo(this, x => x.CaretIndex)
+						 .DisposeWith(_disposables);
 
-				CurrencyFormat.WhenAnyValue(x => x.Value)
-							  .Do(v => SetCurrentValue(ValueProperty, v))
-							  .Subscribe()
-							  .DisposeWith(_disposables);
+				ViewModel.WhenAnyValue(x => x.Text)
+						 .BindTo(this, x => x.Text)
+						 .DisposeWith(_disposables);
 
-				CurrencyFormat.WhenAnyValue(x => x.SelectionStart, x => x.SelectionEnd)
-					.Where(_ => !_isUpdatingSelection)
-					.Do(t =>
-					{
-						var (start, end) = t;
+				ViewModel.WhenAnyValue(x => x.Value)
+						 .Do(v => SetCurrentValue(ValueProperty, v))
+						 .Subscribe()
+						 .DisposeWith(_disposables);
 
-						if (start is null || end is null)
-						{
-							SelectionStart = CaretIndex;
-							SelectionEnd = CaretIndex;
-						}
-						else
-						{
-							SelectionStart = start.Value;
-							SelectionEnd = end.Value;
-						}
-					})
-					.Subscribe()
-					.DisposeWith(_disposables);
+				ViewModel.WhenAnyValue(x => x.SelectionStart, x => x.SelectionEnd)
+						 .Where(_ => !_isUpdatingSelection)
+						 .Do(t =>
+						 {
+							 var (start, end) = t;
+
+							 if (start is null || end is null)
+							 {
+								 SelectionStart = CaretIndex;
+								 SelectionEnd = CaretIndex;
+							 }
+							 else
+							 {
+								 SelectionStart = start.Value;
+								 SelectionEnd = end.Value;
+							 }
+						 })
+						 .Subscribe()
+						 .DisposeWith(_disposables);
 
 				this.GetObservable(CaretIndexProperty)
 					.Do(x =>
 					{
-						CurrencyFormat?.SetInsertPosition(x);
+						ViewModel?.SetInsertPosition(x);
 					})
 					.Subscribe()
 					.DisposeWith(_disposables);
@@ -103,7 +110,7 @@ public partial class CurrencyEntryBox : TextBox
 
 						_isUpdatingSelection = true;
 
-						CurrencyFormat.SetSelection(t.First, t.Second);
+						ViewModel.SetSelection(t.First, t.Second);
 
 						_isUpdatingSelection = false;
 					})
@@ -114,20 +121,20 @@ public partial class CurrencyEntryBox : TextBox
 
 		// Handle copying full text to the clipboard
 		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(CopyingToClipboard))
-			  .Select(x => x.EventArgs)
-			  .Where(_ => CurrencyFormat?.Value is { })
-			  .Where(_ => SelectedText == Text)
-			  .DoAsync(OnCopyingFullTextToClipboardAsync)
-			  .Subscribe();
+			      .Select(x => x.EventArgs)
+			      .Where(_ => ViewModel?.Value is { })
+			      .Where(_ => SelectedText == Text)
+			      .DoAsync(OnCopyingFullTextToClipboardAsync)
+			      .Subscribe();
 
 		// Handle pasting full text from clipboard
 		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(PastingFromClipboard))
-			.Select(x => x.EventArgs)
-			.Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
-			.Throttle(TimeSpan.FromMilliseconds(50))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(_ => SelectAll())
-			.Subscribe();
+			     .Select(x => x.EventArgs)
+			     .Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
+			     .Throttle(TimeSpan.FromMilliseconds(50))
+			     .ObserveOn(RxApp.MainThreadScheduler)
+			     .Do(_ => SelectAll())
+			     .Subscribe();
 
 		// Set MaxLength according to CurrencyFormat
 		this.GetObservable(CurrencyFormatProperty)
@@ -136,6 +143,12 @@ public partial class CurrencyEntryBox : TextBox
 			.WhereNotNull()
 			.Do(maxLength => SetCurrentValue(MaxLengthProperty, maxLength))
 			.Subscribe();
+	}
+
+	public CurrencyInputViewModel ViewModel
+	{
+		get => GetValue(ViewModelProperty);
+		set => SetValue(ViewModelProperty, value);
 	}
 
 	public CurrencyValue Value
@@ -150,21 +163,21 @@ public partial class CurrencyEntryBox : TextBox
 		set => SetValue(CurrencyFormatProperty, value);
 	}
 
-	public decimal? MaxValue
-	{
-		get => GetValue(MaxValueProperty);
-		set => SetValue(MaxValueProperty, value);
-	}
-
 	public string? ClipboardSuggestion
 	{
 		get => GetValue(ClipboardSuggestionProperty);
 		set => SetValue(ClipboardSuggestionProperty, value);
 	}
 
+	public ICommand ApplySuggestionCommand
+	{
+		get => GetValue(ApplySuggestionCommandProperty);
+		set => SetValue(ApplySuggestionCommandProperty, value);
+	}
+
 	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
-		if (property == ValueProperty)
+		if (property == ViewModelProperty)
 		{
 			DataValidationErrors.SetError(this, error);
 		}
@@ -176,8 +189,7 @@ public partial class CurrencyEntryBox : TextBox
 
 		var enableSelection = e.KeyModifiers == KeyModifiers.Shift;
 
-		var isPaste =
-		  Application.Current?.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) ?? false;
+		var isPaste = Application.Current?.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) ?? false;
 
 		if (isPaste)
 		{
@@ -203,35 +215,35 @@ public partial class CurrencyEntryBox : TextBox
 
 			if (input is { })
 			{
-				CurrencyFormat.Insert(input);
+				ViewModel.Insert(input);
 			}
 			else if (e.Key == Key.Back)
 			{
-				CurrencyFormat.RemovePrevious();
+				ViewModel.RemovePrevious();
 			}
 			else if (e.Key == Key.Delete)
 			{
-				CurrencyFormat.RemoveNext();
+				ViewModel.RemoveNext();
 			}
 			else if (e.Key == Key.Left)
 			{
-				CurrencyFormat.MoveBack(enableSelection);
+				ViewModel.MoveBack(enableSelection);
 			}
 			else if (e.Key == Key.Right)
 			{
-				CurrencyFormat.MoveForward(enableSelection);
+				ViewModel.MoveForward(enableSelection);
 			}
 			else if (e.Key == Key.Home)
 			{
-				CurrencyFormat.MoveToStart(enableSelection);
+				ViewModel.MoveToStart(enableSelection);
 			}
 			else if (e.Key == Key.End)
 			{
-				CurrencyFormat.MoveToEnd(enableSelection);
+				ViewModel.MoveToEnd(enableSelection);
 			}
 			else if (e.Key is Key.OemPeriod or Key.OemComma or Key.Decimal)
 			{
-				CurrencyFormat.InsertDecimalSeparator();
+				ViewModel.InsertDecimalSeparator();
 			}
 		}
 
@@ -247,7 +259,7 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
-		if (CurrencyFormat is not { })
+		if (ViewModel is not { })
 		{
 			return;
 		}
@@ -259,38 +271,7 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
-		text = text.Replace("\r", "").Replace("\n", "").Trim();
-
-		if (Regex.IsMatch(text, @"[^0-9,\.٫٬⎖·']"))
-		{
-			return;
-		}
-
-		// TODO: it is very hard to cover all cases for different localizations, including group and decimal separators.
-		// We really need to leave that to the .NET runtime by removing invariant localization
-		// and letting it decide what value does the text on the clipboard really represent
-
-		// Correct amount
-		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
-
-		// Make it digits and .,٫٬⎖·\ only.
-		text = digitsOnly.Replace(text, "");
-
-		// https://en.wikipedia.org/wiki/Decimal_separator
-		text = text.Replace(",", CurrencyFormat.DecimalSeparator);
-		text = text.Replace("٫", CurrencyFormat.DecimalSeparator);
-		text = text.Replace("٬", CurrencyFormat.DecimalSeparator);
-		text = text.Replace("⎖", CurrencyFormat.DecimalSeparator);
-		text = text.Replace("·", CurrencyFormat.DecimalSeparator);
-		text = text.Replace("'", CurrencyFormat.DecimalSeparator);
-
-		// Prevent inserting multiple '.'
-		if (Regex.Matches(text, @"\.").Count > 1)
-		{
-			return;
-		}
-
-		CurrencyFormat.Insert(text);
+		ViewModel.InsertRaw(text);
 	}
 
 	/// <summary>
@@ -298,7 +279,7 @@ public partial class CurrencyEntryBox : TextBox
 	/// </summary>
 	private async Task OnCopyingFullTextToClipboardAsync(RoutedEventArgs e)
 	{
-		if (ApplicationHelper.Clipboard is not { } clipboard || CurrencyFormat?.Value is not { } value)
+		if (ApplicationHelper.Clipboard is not { } clipboard || ViewModel?.Value is not { } value)
 		{
 			return;
 		}
