@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -30,11 +28,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private CoinSelectorViewModel? _coinSelector;
+	[AutoNotify] private CoinSelectorViewModel _coinSelector;
 
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
-
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
 	private WalletCoinsViewModel(IWalletModel wallet)
 	{
@@ -42,16 +38,13 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
+		_coinSelector = new CoinSelectorViewModel(_wallet, new List<ICoinModel>());
+		IsAnySelected = CoinSelector.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		CoinSelector = new CoinSelectorViewModel(_wallet, new List<ICoinModel>());
-		CoinSelector.DisposeWith(disposables);
-
-		IsAnySelected = CoinSelector.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
-
-		base.OnNavigatedTo(isInHistory, disposables);
+		CoinSelector.Dispose();
 	}
 
 	private async Task OnSendCoinsAsync()
@@ -59,9 +52,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		// TODO: Leaky abstraction. SmartCoin shouldn't be exposed here.
 		// What we need is a TransactionInfo that can operate with ICoinModel instead.
 		var selectedSmartCoins =
-			Source.Items
-				.Where(x => x.IsSelected)
-				.Select(x => x.Model.GetSmartCoin())
+			CoinSelector.Selection
+				.Select(x => x.GetSmartCoin())
 				.ToImmutableArray();
 
 		var addressResult = await Navigate().To().AddressEntryDialog(_wallet.Network).GetResultAsync();

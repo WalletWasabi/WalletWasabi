@@ -20,7 +20,7 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  SkipContent="Send selected coins"
                  EnableSkip="{Binding IsAnySelected^}">
-    <TreeDataGrid Source="{Binding Source}"
+    <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}"
                   CanUserSortColumns="True">
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PrivacyElementFactory />
