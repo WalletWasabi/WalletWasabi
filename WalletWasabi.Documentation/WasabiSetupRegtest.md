@@ -7,7 +7,7 @@ You do not need to download the blockchain for this setup!
 
 ## Setup Bitcoin Knots with RegTest
 
-BCurrently, the latest version(25.1) is not tested, so the preferred version is [23.0](https://github.com/bitcoinknots/bitcoin/releases/tag/v23.0.knots20220529).
+Currently, the latest version(25.1) of Bitcoin Knots is not tested, so the preferred version is [23.0](https://github.com/bitcoinknots/bitcoin/releases/tag/v23.0.knots20220529).
 
 Todo:
 
