@@ -109,7 +109,16 @@ public partial class CurrencyFormat : ReactiveObject
 		}
 		if (DecimalSeparatorPosition is null)
 		{
-			Insert(".");
+			// Allow user to start input with "."
+			if (Text == "")
+			{
+				Insert("0.");
+			}
+			else
+			{
+				Insert(".");
+			}
+			
 			SetDecimalSeparatorPosition();
 		}
 	}
@@ -543,13 +552,29 @@ public partial class CurrencyFormat : ReactiveObject
 	public void SetValue(CurrencyValue value)
 	{
 		Value = value;
-		Text = value switch
+		if (value is CurrencyValue.Empty or CurrencyValue.Invalid)
 		{
-			CurrencyValue.Empty => "",
-			CurrencyValue.Invalid => "",
-			CurrencyValue.Valid x => x.Value.ToString(CurrencyInput.InvariantNumberFormat),
-			_ => ""
-		};
+			Text = "";
+		}
+		else if (value is CurrencyValue.Valid v)
+		{
+			var hasFractional = Math.Floor(v.Value) != v.Value;
+			var maxIntegral = MaxIntegralDigits ?? 10;
+			var maxFractional = MaxFractionalDigits ?? 2;
+
+			var format = new string('#', maxIntegral);
+			if (hasFractional)
+			{
+				format += DecimalSeparator;
+				format += new string('#', maxFractional);
+				var formatted = v.Value.ToString(format);
+				if (formatted.StartsWith(DecimalSeparator))
+				{
+					formatted = "0" + formatted;
+				}
+				Text = formatted;
+			}
+		}
 
 		SetDecimalSeparatorPosition();
 	}

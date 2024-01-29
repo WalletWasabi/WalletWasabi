@@ -103,7 +103,7 @@ public partial class SendViewModel : RoutableViewModel
 				.Select(tup =>
 				{
 					var (amount, to) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amount is { } a && a.Btc > Money.Zero;
+					var allFilled = !string.IsNullOrEmpty(to) && amount?.Btc is { } btc && btc > Money.Zero;
 					var hasError = Validations.Any;
 
 					return allFilled && !hasError;
@@ -119,7 +119,12 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
-				var amount = Amount.Btc;
+				var amount = Amount?.Btc;
+				if (amount is not { })
+				{
+					return;
+				}
+
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
 					Amount = amount,
