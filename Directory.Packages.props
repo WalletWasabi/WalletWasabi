@@ -52,5 +52,7 @@
     <PackageVersion Include="Moq" Version="[4.18.4]" />
     <PackageVersion Include="xunit" Version="2.5.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />
+    <!-- ChatGPT. -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.1.0" />
   </ItemGroup>
 </Project>
