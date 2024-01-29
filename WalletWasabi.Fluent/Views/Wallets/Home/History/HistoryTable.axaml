@@ -137,6 +137,9 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
           </Style>
+          <Style Selector="TreeDataGridRow.PositiveAmount treeDataGrid|TreeDataGridAmountPrivacyTextCell">
+            <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
+          </Style>
           <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="FontSize" Value="13" />
