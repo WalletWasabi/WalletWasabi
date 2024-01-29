@@ -63,7 +63,13 @@ public partial class AddressesModel
 
 	private void UpdateUnusedKeys()
 	{
-		var hdPubKeys = GetUnusedKeys().ToList();
-		_source.EditDiff(hdPubKeys);
+		var itemsToRemove = _source.Items
+			.Where(item => item.KeyState != KeyState.Clean)
+			.ToList();
+
+		foreach (var item in itemsToRemove)
+		{
+			_source.Remove(item);
+		}
 	}
 }
