@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
@@ -70,11 +71,23 @@ public static class ImportWalletHelper
 		}
 		else
 		{
-			Version coldCardVersion = new(coldCardVersionString);
+			// Regex for validating version format. It must be a number with up to 3 decimals. Like 2.1.0 or 2.1 or 2.
+			// But ColdCard Firmware could be 6.2.1X, what is a developer version, so we must allow X at the end.
+			string pattern = @"^\d+(\.\d+){0,3}$";
 
-			if (coldCardVersion == new Version("2.1.0")) // Should never happen though.
+			if (Regex.IsMatch(coldCardVersionString, pattern))
 			{
-				reverseByteOrder = true;
+				var coldCardVersion = new Version(coldCardVersionString);
+				if (coldCardVersion == new Version("2.1.0"))
+				{
+					reverseByteOrder = true;
+				}
+			}
+			else
+			{
+				// Handle the invalid format, e.g., by removing non-numeric characters
+				string validVersionString = Regex.Replace(coldCardVersionString, @"[^\d.]", "");
+				new Version(validVersionString);
 			}
 		}
 
