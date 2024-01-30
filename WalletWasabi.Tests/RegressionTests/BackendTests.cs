@@ -212,6 +212,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		await broadcaster.SendTransactionAsync(buildTransactionResult.Transaction);
 
+		await Task.Delay(1000);
+
 		var txId2 = buildTransactionResult.Transaction.GetHash();
 
 		using var response2 = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/unconfirmed-transaction-chain?transactionId={txId2}", cancellationToken: CancellationToken.None);
