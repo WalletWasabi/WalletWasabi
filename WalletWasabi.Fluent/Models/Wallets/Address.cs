@@ -11,16 +11,16 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class Address : ReactiveObject, IAddress
 {
-	private readonly AddressesModel _addresses;
-
-	public Address(AddressesModel addresses, KeyManager keyManager, HdPubKey hdPubKey)
+	private readonly Action<Address> _onHide;
+	
+	public Address(KeyManager keyManager, HdPubKey hdPubKey, Action<Address> onHide)
 	{
-		_addresses = addresses;
 		KeyManager = keyManager;
 		HdPubKey = hdPubKey;
 		Network = keyManager.GetNetwork();
 		HdFingerprint = KeyManager.MasterFingerprint;
 		BitcoinAddress = HdPubKey.GetAddress(Network);
+		_onHide = onHide;
 	}
 
 	public KeyManager KeyManager { get; }
@@ -35,7 +35,7 @@ public class Address : ReactiveObject, IAddress
 
 	public void Hide()
 	{
-		_addresses.Hide(this);
+		_onHide(this);
 	}
 
 	public void SetLabels(LabelsArray labels)

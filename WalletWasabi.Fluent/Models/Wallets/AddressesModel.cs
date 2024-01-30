@@ -34,7 +34,7 @@ public partial class AddressesModel
 			.Subscribe();
 
 		_source.Connect()
-			.Transform(key => (IAddress) new Address(this, _wallet.KeyManager, key))
+			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
 			.Bind(out var unusedAddresses)
 			.Subscribe();
 
@@ -46,7 +46,7 @@ public partial class AddressesModel
 	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels)
 	{
 		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
-		var nextReceiveAddress = new Address(this, _wallet.KeyManager, pubKey);
+		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, Hide);
 		_newAddressGenerated.OnNext(pubKey);
 
 		return nextReceiveAddress;
