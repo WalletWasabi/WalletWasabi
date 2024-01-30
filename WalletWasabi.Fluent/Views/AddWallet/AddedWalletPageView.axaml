@@ -4,25 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
   <c:ContentArea Title="{Binding Title}"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}"
-                 NextContent="Done" EnableNext="False"
+                 EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 40 0 0">
-        <TextBlock Text="Your wallet " />
-        <TextBlock Text="{Binding WalletName}" FontWeight="Bold" />
-        <TextBlock Text=" was added to Wasabi." />
-      </StackPanel>
-      <Viewbox MaxHeight="200">
-        <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
+      <Viewbox MaxHeight="150" Margin="40">
+        <Viewbox.Styles>
+          <Style Selector=":is(PathIcon).fadeIn">
+            <Style.Animations>
+              <Animation Duration="0:0:1">
+                <KeyFrame Cue="0%">
+                  <Setter Property="Opacity" Value="0.0" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                  <Setter Property="Opacity" Value="0.6" />
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+        </Viewbox.Styles>
+        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}" Classes="fadeIn" />
       </Viewbox>
     </DockPanel>
   </c:ContentArea>
