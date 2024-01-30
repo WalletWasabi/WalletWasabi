@@ -486,8 +486,13 @@ public class BlockchainController : ControllerBase
 			if (prevOutToFetchFromRPC.Count > 0)
 			{
 				var missingTxs = prevOutToFetchFromRPC.Count == 1 ?
-					new [] { await RpcClient.GetRawTransactionAsync(prevOutToFetchFromRPC.Single().Hash, true, cancellationToken) } :
-					await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken);
+					new [] { await RpcClient.GetRawTransactionAsync(prevOutToFetchFromRPC.Single().Hash, false, cancellationToken) } :
+					(await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken)).ToArray();
+
+				if (missingTxs.Length != prevOutToFetchFromRPC.Count)
+				{
+					throw new InvalidOperationException("Some parent transactions couldn't be fetched from RPC");
+				}
 
 				foreach (var tx in missingTxs)
 				{
