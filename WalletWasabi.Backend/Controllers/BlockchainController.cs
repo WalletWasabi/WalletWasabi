@@ -472,6 +472,9 @@ public class BlockchainController : ControllerBase
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
 
+			var unconfirmedParents = parentTxs.Where(x =>
+				mempoolHashes.Contains(x.GetHash()));
+
 			var unconfirmedChildrenTxs = mempool
 				.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index)))
 				.ToHashSet();
@@ -487,9 +490,6 @@ public class BlockchainController : ControllerBase
 
 			// Remove the item we worked on.
 			toFetchFeeList.Remove(currentTx);
-
-			var unconfirmedParents = parentTxs.Where(x =>
-				mempoolHashes.Contains(x.GetHash()));
 
 			// Fee and size of all unconfirmed parents and children not already known are required to calculate the effective fee rate of the current transaction.
 			toFetchFeeList.AddRange(
