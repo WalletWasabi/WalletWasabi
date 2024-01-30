@@ -9,8 +9,8 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views;
+namespace WalletWasabi.Fluent.Views.Wallets.Coins;
 public partial class CoinListView : UserControl
 {
 	public CoinListView()

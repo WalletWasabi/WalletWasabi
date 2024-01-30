@@ -5,15 +5,22 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinControl;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public static class CoinSelectorDataGridSource
+public static class CoinListDataGridSource
 {
 	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
 	{
+		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
+		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
+		// Amount			AmountColumnView		Amount		Auto		-				-			true
+		// Labels			LabelsColumnView		Labels		*			-				-			true
+		// Selection		SelectionColumnView		-			Auto		-				-			false
 		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
 		{
 			Columns =

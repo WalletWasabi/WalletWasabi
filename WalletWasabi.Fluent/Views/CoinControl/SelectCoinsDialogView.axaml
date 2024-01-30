@@ -5,11 +5,10 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
-             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
+             xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
-
   <controls:ContentArea Title="{Binding Title}"
                         EnableBack="{Binding EnableBack}"
                         EnableNext="True"
@@ -17,6 +16,6 @@
                         EnableCancel="{Binding EnableCancel}"
                         IsBusy="{Binding IsBusy}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <views:CoinListView DataContext="{Binding CoinSelector}" />
+    <coins:CoinListView DataContext="{Binding CoinSelector}" />
   </controls:ContentArea>
 </UserControl>

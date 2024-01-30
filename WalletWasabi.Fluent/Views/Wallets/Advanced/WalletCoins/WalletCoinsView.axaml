@@ -5,7 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
-             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
+             xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              x:DataType="walletcoins:WalletCoinsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.WalletCoinsView">
@@ -18,6 +18,6 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  SkipContent="Send selected coins"
                  EnableSkip="{Binding IsAnySelected^}">
-    <views:CoinListView DataContext="{Binding CoinSelector}" />
+    <coins:CoinListView DataContext="{Binding CoinSelector}" />
   </c:ContentArea>
 </UserControl>
