@@ -449,6 +449,8 @@ public class BlockchainController : ControllerBase
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
 
+		transactionsLocalCache.Add(txId, requestedTransaction);
+
 		List<Transaction> toFetchFeeList = new() { requestedTransaction };
 
 		while (toFetchFeeList.Count > 0)
