@@ -58,7 +58,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 				var response = await HttpClient.SendAsync(
 					HttpMethod.Get,
-					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/get-unconfirmed-transaction-chain?transactionId={txid}",
+					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/unconfirmed-transaction-chain?transactionId={txid}",
 					null,
 					linkedCts.Token).ConfigureAwait(false);
 
