@@ -417,7 +417,7 @@ public class BlockchainController : ControllerBase
 		return status;
 	}
 
-	[HttpGet("get-unconfirmed-transaction-chain")]
+	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
 	public async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
@@ -429,12 +429,12 @@ public class BlockchainController : ControllerBase
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoChacheAsync(txId, token),
+			action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 			options: cacheOptions,
 			cancellationToken);
 	}
 
-	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoChacheAsync(uint256 txId, CancellationToken cancellationToken)
+	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
 		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
@@ -483,7 +483,7 @@ public class BlockchainController : ControllerBase
 			var unconfirmedParents = parentTxs.Where(x =>
 				mempool.GetMempoolHashes().Contains(x.GetHash()));
 
-			// Fee and size of all unconfirmed parents and children not already known are required effective fee rate of the current transaction.
+			// Fee and size of all unconfirmed parents and children not already known are required to calculate the effective fee rate of the current transaction.
 			toFetchFeeList.AddRange(
 				unconfirmedParents.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))
 					.Union(unconfirmedChildrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))));
