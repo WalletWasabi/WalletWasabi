@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -458,16 +459,45 @@ public class BlockchainController : ControllerBase
 			List<Coin> inputs = new();
 			HashSet<Transaction> parentTxs = new();
 
+			// Collect which transactions needs to be fetched.
+			List<TxIn> inputsToFetch = new();
+
 			var currentTx = toFetchFeeList.First();
 			foreach (var input in currentTx.Inputs)
 			{
 				if (!transactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
 				{
-					parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
-					transactionsLocalCache.Add(input.PrevOut.Hash, parentTx);
+					inputsToFetch.Add(input);
+				}
+				else
+				{
+					parentTxs.Add(parentTx);
+				}
+			}
+
+			if (inputsToFetch.Count == 1)
+			{
+				var input = inputsToFetch.Single();
+				var missingTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
+				parentTxs.Add(missingTx);
+			}
+			else
+			{
+				var missingTxs = await RpcClient.GetRawTransactionsAsync(inputsToFetch.Select(x => x.PrevOut.Hash), cancellationToken);
+				foreach (var tx in missingTxs)
+				{
+					parentTxs.Add(tx);
+				}
+			}
+
+			foreach (var parentTx in parentTxs)
+			{
+				if (!transactionsLocalCache.ContainsKey(parentTx.GetHash()))
+				{
+					transactionsLocalCache.Add(parentTx.GetHash(), parentTx);
 				}
 
-				parentTxs.Add(parentTx);
+				var input = currentTx.Inputs.Where(input => input.PrevOut.Hash == parentTx.GetHash()).First();
 				TxOut txOut = parentTx.Outputs[input.PrevOut.N];
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
