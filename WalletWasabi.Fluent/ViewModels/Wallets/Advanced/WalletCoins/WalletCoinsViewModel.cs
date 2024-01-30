@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 	IconName = "nav_wallet_24_regular",
 	Order = 0,
 	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Coins", "UTXO" },
+	Keywords = ["Wallet", "Coins", "UTXO"],
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
