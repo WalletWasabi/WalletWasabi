@@ -105,6 +105,12 @@ public partial class CurrencyInputViewModel : ViewModelBase
 		}
 	}
 
+	public void InsertRawFullText(string? text)
+	{
+		Clear();
+		InsertRaw(text);
+	}
+
 	public void InsertRaw(string? text)
 	{
 		text ??= "";
@@ -397,6 +403,18 @@ public partial class CurrencyInputViewModel : ViewModelBase
 		this.RaisePropertyChanged(nameof(SelectionEnd));
 	}
 
+	public void Clear()
+	{
+		SelectAll();
+		RemoveSelection();
+	}
+
+	public void SelectAll()
+	{
+		ClearSelection();
+		SetSelection(0, Text.Length);
+	}
+
 	public void SetInsertPosition(int value)
 	{
 		InsertPosition = value;
@@ -443,6 +461,26 @@ public partial class CurrencyInputViewModel : ViewModelBase
 		}
 
 		SetDecimalSeparatorPosition();
+	}
+
+	public async void CopySelectionToClipboardAsync()
+	{
+		try
+		{
+			if (SelectionStart is not { } start || SelectionEnd is not { } end)
+			{
+				return;
+			}
+
+			var selectedText = Text.Substring(start, end);
+			selectedText = selectedText.Replace(GroupSeparator, "");
+
+			await UiContext.Clipboard.SetTextAsync(selectedText);
+		}
+		catch(Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	private void SetDecimalSeparatorPosition()

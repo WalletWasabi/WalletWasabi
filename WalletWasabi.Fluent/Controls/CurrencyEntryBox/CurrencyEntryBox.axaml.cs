@@ -7,12 +7,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -121,20 +123,20 @@ public partial class CurrencyEntryBox : TextBox
 
 		// Handle copying full text to the clipboard
 		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(CopyingToClipboard))
-			      .Select(x => x.EventArgs)
-			      .Where(_ => ViewModel?.Value is { })
-			      .Where(_ => SelectedText == Text)
-			      .DoAsync(OnCopyingFullTextToClipboardAsync)
-			      .Subscribe();
+				  .Select(x => x.EventArgs)
+				  .Where(_ => ViewModel?.Value is { })
+				  .Where(_ => SelectedText == Text)
+				  .DoAsync(OnCopyingFullTextToClipboardAsync)
+				  .Subscribe();
 
 		// Handle pasting full text from clipboard
 		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(PastingFromClipboard))
-			     .Select(x => x.EventArgs)
-			     .Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
-			     .Throttle(TimeSpan.FromMilliseconds(50))
-			     .ObserveOn(RxApp.MainThreadScheduler)
-			     .Do(_ => SelectAll())
-			     .Subscribe();
+				 .Select(x => x.EventArgs)
+				 .Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
+				 .Throttle(TimeSpan.FromMilliseconds(50))
+				 .ObserveOn(RxApp.MainThreadScheduler)
+				 .Do(_ => ViewModel?.SelectAll())
+				 .Subscribe();
 
 		// Set MaxLength according to CurrencyFormat
 		this.GetObservable(CurrencyFormatProperty)
@@ -185,15 +187,31 @@ public partial class CurrencyEntryBox : TextBox
 
 	private void CustomOnKeyDown(object? sender, KeyEventArgs e)
 	{
+		if (ViewModel is null)
+		{
+			return;
+		}
+
 		_isUpdating = true;
 
 		var enableSelection = e.KeyModifiers == KeyModifiers.Shift;
 
-		var isPaste = Application.Current?.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) ?? false;
-
-		if (isPaste)
+		if (e.IsMatch(x => x.Paste))
 		{
 			ModifiedPasteAsync();
+		}
+		else if (e.IsMatch(x => x.Copy))
+		{
+			ViewModel.CopySelectionToClipboardAsync();
+		}
+		else if (e.IsMatch(x => x.Cut))
+		{
+			ViewModel.CopySelectionToClipboardAsync();
+			ViewModel.RemoveSelection();
+		}
+		else if (e.IsMatch(x => x.SelectAll))
+		{
+			ViewModel.SelectAll();
 		}
 		else
 		{
@@ -254,24 +272,31 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (ApplicationHelper.Clipboard is not { } clipboard)
+		try
 		{
-			return;
-		}
+			if (ApplicationHelper.Clipboard is not { } clipboard)
+			{
+				return;
+			}
 
-		if (ViewModel is not { })
+			if (ViewModel is not { })
+			{
+				return;
+			}
+
+			var text = await clipboard.GetTextAsync();
+
+			if (string.IsNullOrEmpty(text))
+			{
+				return;
+			}
+
+			ViewModel.InsertRaw(text);
+		}
+		catch (Exception ex)
 		{
-			return;
+			Logger.LogError(ex);
 		}
-
-		var text = await clipboard.GetTextAsync();
-
-		if (string.IsNullOrEmpty(text))
-		{
-			return;
-		}
-
-		ViewModel.InsertRaw(text);
 	}
 
 	/// <summary>
@@ -279,12 +304,19 @@ public partial class CurrencyEntryBox : TextBox
 	/// </summary>
 	private async Task OnCopyingFullTextToClipboardAsync(RoutedEventArgs e)
 	{
-		if (ApplicationHelper.Clipboard is not { } clipboard || ViewModel?.Value is not { } value)
+		try
 		{
-			return;
-		}
+			if (ApplicationHelper.Clipboard is not { } clipboard || ViewModel?.Value is not { } value)
+			{
+				return;
+			}
 
-		await clipboard.SetTextAsync(Text);
+			await clipboard.SetTextAsync(Text);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 
 		e.Handled = true;
 	}

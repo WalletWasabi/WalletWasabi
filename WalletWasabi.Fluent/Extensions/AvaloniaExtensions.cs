@@ -1,6 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Extensions;
@@ -54,5 +59,18 @@ public static class AvaloniaExtensions
 			window.Topmost = !window.Topmost;
 			window.Topmost = !window.Topmost;
 		}
+	}
+
+	public static bool IsMatch(this KeyEventArgs e, Func<PlatformHotkeyConfiguration, List<KeyGesture>> selector)
+	{
+		var config = Application.Current?.PlatformSettings?.HotkeyConfiguration;
+		if (config is null)
+		{
+			return false;
+		}
+
+		var gestures = selector(config);
+
+		return gestures.Any(g => g.Matches(e));
 	}
 }

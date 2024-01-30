@@ -79,7 +79,7 @@ public partial class CurrencyInputClipboardListener: ViewModelBase
 			.Subscribe()
 			;//.DisposeWith(disposable);
 
-		ApplyCommand = ReactiveCommand.Create<string>(parent.InsertRaw);
+		ApplyCommand = ReactiveCommand.Create<string>(parent.InsertRawFullText);
 	}
 
 	public ICommand ApplyCommand { get; }
