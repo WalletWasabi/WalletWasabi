@@ -72,8 +72,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 				{
 					if (Equals(address, Model))
 					{
-						Navigate().Clear();
-						Navigate().To().Receive(_wallet);
+						Navigate().BackTo<ReceiveViewModel>();
 					}
 				})
 			.Subscribe()
