@@ -126,7 +126,7 @@ public class BlockDownloadService : BackgroundService
 				else
 				{
 					// The block might have been downloaded by now so just try to set the result.
-					_ = request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
+					request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
 					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
@@ -171,8 +171,7 @@ public class BlockDownloadService : BackgroundService
 
 					for (int i = 0; i < toStart; i++)
 					{
-						// Dequeue does not provide priority value.
-						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out Priority? _))
+						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out _))
 						{
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
@@ -201,6 +200,7 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (Exception ex)
 		{
+			// This shouldn't happen.
 			Logger.LogError(ex);
 			throw;
 		}
@@ -211,7 +211,7 @@ public class BlockDownloadService : BackgroundService
 			{
 				while (BlocksToDownload.TryDequeue(out Request? request, out _))
 				{
-					_ = request.Tcs.TrySetResult(CanceledResult.Instance);
+					request.Tcs.TrySetResult(CanceledResult.Instance);
 				}
 			}
 		}
@@ -223,7 +223,7 @@ public class BlockDownloadService : BackgroundService
 
 		if (response.Result is SuccessResult)
 		{
-			_ = request.Tcs.TrySetResult(response.Result);
+			request.Tcs.TrySetResult(response.Result);
 		}
 		else
 		{

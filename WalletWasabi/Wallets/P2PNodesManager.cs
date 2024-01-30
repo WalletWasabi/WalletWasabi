@@ -1,7 +1,7 @@
-using NBitcoin;
-using NBitcoin.Protocol;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Protocol;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
