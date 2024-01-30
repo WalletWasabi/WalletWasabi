@@ -186,7 +186,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 		Assert.NotNull(txId);
 
-		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/get-unconfirmed-transaction-chain?transactionId={txId}");
+		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/unconfirmed-transaction-chain?transactionId={txId}");
 
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -205,6 +205,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using Key randomKey = new();
 		var randomReceiveScript = randomKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
+		await Task.Delay(1000);
+
 		// Build a transaction on top of TX1.
 		var buildTransactionResult = wallet.BuildTransaction(password, new PaymentIntent(randomReceiveScript, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: true, allowedInputs: outpoints);
 
@@ -212,7 +214,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		var txId2 = buildTransactionResult.Transaction.GetHash();
 
-		using var response2 = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/get-unconfirmed-transaction-chain?transactionId={txId2}", cancellationToken: CancellationToken.None);
+		using var response2 = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/unconfirmed-transaction-chain?transactionId={txId2}", cancellationToken: CancellationToken.None);
 
 		Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
 

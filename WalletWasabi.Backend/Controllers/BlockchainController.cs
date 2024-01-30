@@ -417,7 +417,7 @@ public class BlockchainController : ControllerBase
 		return status;
 	}
 
-	[HttpGet("get-unconfirmed-transaction-chain")]
+	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
 	public async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
