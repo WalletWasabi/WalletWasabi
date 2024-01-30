@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SuccessView">
   <c:ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Done"
+                 EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">
       <TextBlock Text="{Binding SuccessText}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" />
