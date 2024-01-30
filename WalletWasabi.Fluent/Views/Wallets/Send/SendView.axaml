@@ -131,18 +131,6 @@
                                     IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
                                     IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
                                     IsVisible="{Binding !IsFixedAmount}">
-              <c:DualCurrencyEntryBox.Styles>
-                <!--<Style Selector="c|CurrencyEntryBox" x:DataType="currencyConversion:CurrencyInputViewModel">
-                  <Setter Property="(Interaction.Behaviors)">
-                    <BehaviorCollectionTemplate>
-                      <BehaviorCollection>
-                        <behaviors:TextBoxAutoSelectTextBehavior />
-                        <behaviors:CurrencyEntryBoxClipboardBehavior MinValue="{Binding MinSuggestionValue}" />
-                      </BehaviorCollection>
-                    </BehaviorCollectionTemplate>
-                  </Setter>
-                </Style>-->
-              </c:DualCurrencyEntryBox.Styles>
               <c:DualCurrencyEntryBox.LeftEntryBox>
                 <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"
                                     CurrencyFormat="{Binding Format}"

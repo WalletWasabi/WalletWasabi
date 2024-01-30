@@ -38,6 +38,9 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 
 				Left = reversed ? usd : btc;
 				Right = reversed ? btc : usd;
+
+				Left.SelectAll();
+				Right.ClearSelection();
 			})
 			.Subscribe();
 

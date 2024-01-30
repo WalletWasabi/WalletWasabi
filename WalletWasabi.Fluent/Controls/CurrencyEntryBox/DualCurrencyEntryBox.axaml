@@ -44,7 +44,8 @@
                   <ToggleButton x:Name="PART_SwapButton" Grid.Column="2"
                                 IsVisible="{TemplateBinding IsConversionAvailable}"
                                 IsChecked="{Binding IsConversionReversed, RelativeSource={RelativeSource TemplatedParent}}"
-                                Classes="plain" Margin="5">
+                                Classes="plain" Margin="5"
+                                ToolTip.Tip="Swap BTC and USD">
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
                   </ToggleButton>
 

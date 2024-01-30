@@ -463,7 +463,7 @@ public partial class CurrencyInputViewModel : ViewModelBase
 		SetDecimalSeparatorPosition();
 	}
 
-	public async void CopySelectionToClipboardAsync()
+	public async Task CopySelectionToClipboardAsync()
 	{
 		try
 		{
@@ -478,6 +478,32 @@ public partial class CurrencyInputViewModel : ViewModelBase
 			await UiContext.Clipboard.SetTextAsync(selectedText);
 		}
 		catch(Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+	}
+
+	public async Task CutSelectionToClipboardAsync()
+	{
+		try
+		{
+			await CopySelectionToClipboardAsync();
+			RemoveSelection();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+	}
+
+	public async Task PasteFromClipboardAsync()
+	{
+		try
+		{
+			var text = await UiContext.Clipboard.GetTextAsync();
+			InsertRaw(text);
+		}
+		catch (Exception ex)
 		{
 			Logger.LogError(ex);
 		}

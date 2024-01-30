@@ -120,24 +120,6 @@ public partial class CurrencyEntryBox : TextBox
 					.DisposeWith(_disposables);
 			})
 			.Subscribe();
-
-		// Handle copying full text to the clipboard
-		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(CopyingToClipboard))
-				  .Select(x => x.EventArgs)
-				  .Where(_ => ViewModel?.Value is { })
-				  .Where(_ => SelectedText == Text)
-				  .DoAsync(OnCopyingFullTextToClipboardAsync)
-				  .Subscribe();
-
-		// Handle pasting full text from clipboard
-		Observable.FromEventPattern<RoutedEventArgs>(this, nameof(PastingFromClipboard))
-				 .Select(x => x.EventArgs)
-				 .Where(_ => string.IsNullOrWhiteSpace(Text) || SelectedText == Text)
-				 .Throttle(TimeSpan.FromMilliseconds(50))
-				 .ObserveOn(RxApp.MainThreadScheduler)
-				 .Do(_ => ViewModel?.SelectAll())
-				 .Subscribe();
-
 		// Set MaxLength according to CurrencyFormat
 		this.GetObservable(CurrencyFormatProperty)
 			.WhereNotNull()
@@ -145,7 +127,15 @@ public partial class CurrencyEntryBox : TextBox
 			.WhereNotNull()
 			.Do(maxLength => SetCurrentValue(MaxLengthProperty, maxLength))
 			.Subscribe();
+
+		CustomCutCommand = ReactiveCommand.CreateFromTask(() => OnCutAsync());
+		CustomCopyCommand = ReactiveCommand.CreateFromTask(() => OnCopyAsync());
+		CustomPasteCommand = ReactiveCommand.CreateFromTask(() => OnPasteAsync());
 	}
+
+	public ICommand CustomCutCommand { get; }
+	public ICommand CustomCopyCommand { get; }
+	public ICommand CustomPasteCommand { get; }
 
 	public CurrencyInputViewModel ViewModel
 	{
@@ -179,7 +169,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
-		if (property == ViewModelProperty)
+		if (property == ValueProperty)
 		{
 			DataValidationErrors.SetError(this, error);
 		}
@@ -198,16 +188,15 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (e.IsMatch(x => x.Paste))
 		{
-			ModifiedPasteAsync();
+			_ = OnPasteAsync(e);
 		}
 		else if (e.IsMatch(x => x.Copy))
 		{
-			ViewModel.CopySelectionToClipboardAsync();
+			_ = OnCopyAsync(e);
 		}
 		else if (e.IsMatch(x => x.Cut))
 		{
-			ViewModel.CopySelectionToClipboardAsync();
-			ViewModel.RemoveSelection();
+			_ = OnCutAsync(e);
 		}
 		else if (e.IsMatch(x => x.SelectAll))
 		{
@@ -270,54 +259,43 @@ public partial class CurrencyEntryBox : TextBox
 		_isUpdating = false;
 	}
 
-	public async void ModifiedPasteAsync()
+	public async Task OnPasteAsync(RoutedEventArgs? e = null)
 	{
-		try
+		if (ViewModel is { })
 		{
-			if (ApplicationHelper.Clipboard is not { } clipboard)
-			{
-				return;
-			}
-
-			if (ViewModel is not { })
-			{
-				return;
-			}
-
-			var text = await clipboard.GetTextAsync();
-
-			if (string.IsNullOrEmpty(text))
-			{
-				return;
-			}
-
-			ViewModel.InsertRaw(text);
+			await ViewModel.PasteFromClipboardAsync();
 		}
-		catch (Exception ex)
+
+		if (e is { })
 		{
-			Logger.LogError(ex);
+			e.Handled = true;
 		}
 	}
 
-	/// <summary>
-	/// Specialized copy to clipboard that copies the Value, formatted according to localization rules
-	/// </summary>
-	private async Task OnCopyingFullTextToClipboardAsync(RoutedEventArgs e)
+
+	private async Task OnCopyAsync(RoutedEventArgs? e = null)
 	{
-		try
+		if (ViewModel is { })
 		{
-			if (ApplicationHelper.Clipboard is not { } clipboard || ViewModel?.Value is not { } value)
-			{
-				return;
-			}
-
-			await clipboard.SetTextAsync(Text);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
+			await ViewModel.CopySelectionToClipboardAsync();
 		}
 
-		e.Handled = true;
+		if (e is { })
+		{
+			e.Handled = true;
+		}
+	}
+
+	private async Task OnCutAsync(RoutedEventArgs? e = null)
+	{
+		if (ViewModel is { })
+		{
+			await ViewModel.CutSelectionToClipboardAsync();
+		}
+
+		if (e is { })
+		{
+			e.Handled = true;
+		}
 	}
 }

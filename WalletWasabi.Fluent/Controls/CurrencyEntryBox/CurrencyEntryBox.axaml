@@ -32,11 +32,11 @@
 
     <Setter Property="ContextMenu">
       <ContextMenu>
-        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
+        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].CustomCutCommand}" IsEnabled="{Binding $parent[TextBox].CanCut}"
                   InputGesture="{x:Static TextBox.CutGesture}" />
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].CustomCopyCommand}"
                   IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
+        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].CustomPasteCommand}"
                   IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
       </ContextMenu>
     </Setter>
