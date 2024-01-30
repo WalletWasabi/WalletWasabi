@@ -79,12 +79,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		// Project selected coins to public property. Throttle for improved UI performance
-		selectedCoins
-			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
-			.BindTo(this, x => x.SelectedCoins)
-			.DisposeWith(_disposables);
-
 		coinItems.AutoRefresh(x => x.IsSelected)
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
