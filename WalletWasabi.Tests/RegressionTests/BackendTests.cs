@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using NBitcoin.Protocol;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,12 +14,21 @@ using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
+using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -103,6 +114,122 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
 
 		Logger.TurnOn();
+	}
+
+	[Fact]
+	public async Task GetUnconfirmedTxChainAsync()
+	{
+		#region Initialize
+
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		IRPCClient rpc = setup.RpcClient;
+		Network network = setup.Network;
+		BitcoinStore bitcoinStore = setup.BitcoinStore;
+		using Backend.Global global = setup.Global;
+		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
+		string password = setup.Password;
+
+		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
+
+		// Create the services.
+		// 1. Create connection service.
+		using NodesGroup nodes = new(global.Config.Network, requirements: WalletWasabi.Helpers.Constants.NodeRequirements);
+		nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
+
+		// 2. Create mempool service.
+
+		Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
+		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+
+		// 3. Create wasabi synchronizer service.
+		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
+
+		// 4. Create key manager service.
+		var keyManager = KeyManager.CreateNew(out _, password, network);
+
+		// 5. Create wallet service.
+		var workDir = Helpers.Common.GetWorkDir();
+
+		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+
+		var blockProvider = new SmartBlockProvider(
+			bitcoinStore.BlockRepository,
+			rpcBlockProvider: null,
+			specificNodeBlockProvider,
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
+			cache);
+
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		walletManager.Initialize();
+
+		nodes.Connect(); // Start connection service.
+		node.VersionHandshake(); // Start mempool service.
+		await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
+		await feeProvider.StartAsync(CancellationToken.None);
+
+		using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
+
+		// Wait until the filter our previous transaction is present.
+		var blockCount = await rpc.GetBlockCountAsync();
+		await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+		TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
+		broadcaster.Initialize(nodes, rpc);
+
+		#endregion Initialize
+
+		// Generate transaction.
+		var key = keyManager.GetNextReceiveKey("foo label");
+		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+		Assert.NotNull(txId);
+
+		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/get-unconfirmed-transaction-chain?transactionId={txId}");
+
+		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+		var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
+
+		Assert.Equal(txId.ToString(), unconfirmedChain.First().TxId);
+		Assert.Empty(unconfirmedChain.First().Parents);
+		Assert.Empty(unconfirmedChain.First().Children);
+		Assert.Single(unconfirmedChain);
+
+		var tx1 = await rpc.GetRawTransactionAsync(txId).ConfigureAwait(false);
+
+		// Get the outpoints of TX1, so we can spend it.
+		var outpoints = tx1.Outputs.Select((txout, i) => new OutPoint(tx1, i));
+
+		using Key randomKey = new();
+		var randomReceiveScript = randomKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+
+		// Build a transaction on top of TX1.
+		var buildTransactionResult = wallet.BuildTransaction(password, new PaymentIntent(randomReceiveScript, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: true, allowedInputs: outpoints);
+
+		await broadcaster.SendTransactionAsync(buildTransactionResult.Transaction);
+
+		var txId2 = buildTransactionResult.Transaction.GetHash();
+
+		using var response2 = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/get-unconfirmed-transaction-chain?transactionId={txId2}", cancellationToken: CancellationToken.None);
+
+		Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+
+		unconfirmedChain = await response2.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
+
+		Assert.True(unconfirmedChain.Length == 2);
+		Assert.Contains(txId2.ToString(), unconfirmedChain.Select(x => x.TxId));
+		Assert.Contains(txId.ToString(), unconfirmedChain.Select(x => x.TxId));
+		Assert.Contains(txId.ToString(), unconfirmedChain.First().Parents);
+		Assert.Contains(txId2.ToString(), unconfirmedChain.First(tx => tx.TxId == txId.ToString()).Children);
+
+		bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
+		await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
+		await synchronizer.StopAsync(CancellationToken.None);
+		await feeProvider.StopAsync(CancellationToken.None);
+		nodes?.Dispose();
+		node?.Disconnect();
 	}
 
 	[Fact]
