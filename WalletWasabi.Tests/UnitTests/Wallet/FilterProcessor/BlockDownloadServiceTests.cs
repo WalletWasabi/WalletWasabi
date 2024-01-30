@@ -268,7 +268,7 @@ public class BlockDownloadServiceTests
 			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, 610_001), testCts.Token),
 			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash2, new Priority(SyncType.Complete, 610_002), testCts.Token),
 			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash3, new Priority(SyncType.Complete, 610_003), testCts.Token),
-			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash4, new Priority(SyncType.Complete, 610_004), testCts.Token),
+			service.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash4, new Priority(SyncType.Complete, 610_004), testCts.Token)
 		];
 
 		// Remove blocks >= 610_003.
