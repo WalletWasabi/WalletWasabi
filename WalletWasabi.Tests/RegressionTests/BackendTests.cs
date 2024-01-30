@@ -186,6 +186,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 		Assert.NotNull(txId);
 
+		await Task.Delay(1000);
+
 		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, $"btc/blockchain/unconfirmed-transaction-chain?transactionId={txId}");
 
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);

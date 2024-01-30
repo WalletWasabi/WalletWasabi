@@ -439,6 +439,12 @@ public class BlockchainController : ControllerBase
 		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
 		var mempool = Global.HostedServices.Get<MempoolMirror>();
+		var mempoolHashes = mempool.GetMempoolHashes();
+
+		if (!mempoolHashes.Contains(txId))
+		{
+			throw new InvalidOperationException("Requested transaction is not present in the mempool, probably confirmed.");
+		}
 
 		// TODO: Use Transaction cache.
 		var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, cancellationToken);
@@ -481,7 +487,7 @@ public class BlockchainController : ControllerBase
 			toFetchFeeList.Remove(currentTx);
 
 			var unconfirmedParents = parentTxs.Where(x =>
-				mempool.GetMempoolHashes().Contains(x.GetHash()));
+				mempoolHashes.Contains(x.GetHash()));
 
 			// Fee and size of all unconfirmed parents and children not already known are required to calculate the effective fee rate of the current transaction.
 			toFetchFeeList.AddRange(
