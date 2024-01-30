@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -23,9 +25,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	{
 		CoinList = new CoinListViewModel(wallet, selectedCoins);
 
-		var coinsChanged = CoinList.WhenAnyValue(x => x.SelectedCoins);
-
-		EnoughSelected = coinsChanged.Select(c => wallet.Coins.AreEnoughToCreateTransaction(transactionInfo, c));
+		EnoughSelected = CoinList.Selection.ToObservableChangeSet()
+			.ToCollection()
+			.Select(coinSelection => wallet.Coins.AreEnoughToCreateTransaction(transactionInfo, coinSelection));
+		
 		EnableBack = true;
 		NextCommand = ReactiveCommand.Create(OnNext, EnoughSelected);
 
@@ -45,6 +48,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private void OnNext()
 	{
-		Close(DialogResultKind.Normal, CoinList.SelectedCoins.GetSmartCoins().ToList());
+		Close(DialogResultKind.Normal, CoinList.Selection.GetSmartCoins().ToList());
 	}
 }

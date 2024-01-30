@@ -126,12 +126,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 	public HierarchicalTreeDataGridSource<CoinListItem> TreeDataGridSource { get; }
 
-	public IReadOnlyCollection<ICoinModel> SelectedCoins
-	{
-		get => _selectedCoins;
-		set => this.RaiseAndSetIfChanged(ref _selectedCoins, value);
-	}
-
 	public void Dispose()
 	{
 		_disposables.Dispose();
