@@ -1,12 +1,13 @@
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
+public class CoinViewModel : CoinListItem
 {
-	public CoinCoinControlItemViewModel(LabelsArray labels, ICoinModel coin)
+	public CoinViewModel(LabelsArray labels, ICoinModel coin)
 	{
 		Labels = labels;
 		Coin = coin;

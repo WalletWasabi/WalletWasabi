@@ -18,6 +18,6 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  SkipContent="Send selected coins"
                  EnableSkip="{Binding IsAnySelected^}">
-    <coins:CoinListView DataContext="{Binding CoinSelector}" />
+    <coins:CoinListView DataContext="{Binding CoinList}" />
   </c:ContentArea>
 </UserControl>

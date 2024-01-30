@@ -16,6 +16,6 @@
                         EnableCancel="{Binding EnableCancel}"
                         IsBusy="{Binding IsBusy}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <coins:CoinListView DataContext="{Binding CoinSelector}" />
+    <coins:CoinListView DataContext="{Binding CoinList}" />
   </controls:ContentArea>
 </UserControl>

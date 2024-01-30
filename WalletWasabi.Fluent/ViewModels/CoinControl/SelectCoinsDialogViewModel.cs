@@ -21,9 +21,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	public SelectCoinsDialogViewModel(IWalletModel wallet, IList<ICoinModel> selectedCoins, TransactionInfo transactionInfo)
 	{
-		CoinSelector = new CoinSelectorViewModel(wallet, selectedCoins);
+		CoinList = new CoinListViewModel(wallet, selectedCoins);
 
-		var coinsChanged = CoinSelector.WhenAnyValue(x => x.SelectedCoins);
+		var coinsChanged = CoinList.WhenAnyValue(x => x.SelectedCoins);
 
 		EnoughSelected = coinsChanged.Select(c => wallet.Coins.AreEnoughToCreateTransaction(transactionInfo, c));
 		EnableBack = true;
@@ -32,19 +32,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SetupCancel(false, true, false);
 	}
 
-	public CoinSelectorViewModel CoinSelector { get; }
+	public CoinListViewModel CoinList { get; }
 
 	public IObservable<bool> EnoughSelected { get; }
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		CoinSelector.Dispose();
+		CoinList.Dispose();
 
 		base.OnNavigatedFrom(isInHistory);
 	}
 
 	private void OnNext()
 	{
-		Close(DialogResultKind.Normal, CoinSelector.SelectedCoins.GetSmartCoins().ToList());
+		Close(DialogResultKind.Normal, CoinList.SelectedCoins.GetSmartCoins().ToList());
 	}
 }
