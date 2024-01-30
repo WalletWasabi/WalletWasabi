@@ -85,7 +85,7 @@ public static class ImportWalletHelper
 			}
 			else
 			{
-				// Handle the invalid format, e.g., by removing non-numeric characters
+				// Handle the invalid format, e.g., by removing non-numeric characters.
 				string validVersionString = Regex.Replace(coldCardVersionString, @"[^\d.]", "");
 				new Version(validVersionString);
 			}
