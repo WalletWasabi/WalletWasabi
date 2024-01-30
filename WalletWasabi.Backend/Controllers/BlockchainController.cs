@@ -491,10 +491,11 @@ public class BlockchainController : ControllerBase
 			// Remove the item we worked on.
 			toFetchFeeList.Remove(currentTx);
 
+			var unconfirmedParentsToFetch = unconfirmedParents.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()));
+			var unconfirmedChildrenToFetch = unconfirmedChildrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()));
+
 			// Fee and size of all unconfirmed parents and children not already known are required to calculate the effective fee rate of the current transaction.
-			toFetchFeeList.AddRange(
-				unconfirmedParents.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))
-					.Union(unconfirmedChildrenTxs.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()))));
+			toFetchFeeList.AddRange(unconfirmedParentsToFetch.Union(unconfirmedChildrenToFetch));
 
 			unconfirmedTxsChainById.Add(
 				currentTx.GetHash(),
