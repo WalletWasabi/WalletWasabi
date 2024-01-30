@@ -16,7 +16,7 @@
                  EnableBack="{Binding EnableBack}">
     <DockPanel>
       <Button DockPanel.Dock="Bottom" Focusable="False" Content="Addresses Awaiting Payment"
-              IsVisible="{Binding AddressesModel.HasUnusedAddresses^, FallbackValue=True}"
+              IsVisible="{Binding HasUnusedAddresses^, FallbackValue=False}"
               Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
               HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 0" />
       <StackPanel HorizontalAlignment="Stretch" Spacing="10">
