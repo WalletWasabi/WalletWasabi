@@ -485,9 +485,7 @@ public class BlockchainController : ControllerBase
 
 			if (prevOutToFetchFromRPC.Count > 0)
 			{
-				var missingTxs = prevOutToFetchFromRPC.Count == 1 ?
-					new[] { await RpcClient.GetRawTransactionAsync(prevOutToFetchFromRPC.Single().Hash, false, cancellationToken) } :
-					(await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken)).ToArray();
+				var missingTxs = (await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken)).ToArray();
 
 				if (missingTxs.Length != prevOutToFetchFromRPC.Count)
 				{
