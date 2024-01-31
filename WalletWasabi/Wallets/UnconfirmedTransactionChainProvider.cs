@@ -30,16 +30,6 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public event EventHandler<RequestedUnconfirmedChainEventArgs>? RequestedUnconfirmedChainArrived;
 
-	public class RequestedUnconfirmedChainEventArgs : EventArgs
-	{
-		public RequestedUnconfirmedChainEventArgs(uint256 txId)
-		{
-			TxId = txId;
-		}
-
-		public uint256 TxId { get; }
-	}
-
 	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
@@ -145,4 +135,14 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		Semaphore.Dispose();
 		base.Dispose();
 	}
+}
+
+public class RequestedUnconfirmedChainEventArgs : EventArgs
+{
+	public RequestedUnconfirmedChainEventArgs(uint256 txId)
+	{
+		TxId = txId;
+	}
+
+	public uint256 TxId { get; }
 }
