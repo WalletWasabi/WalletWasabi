@@ -458,6 +458,7 @@ public class BlockchainController : ControllerBase
 
 		while (toFetchFeeList.Count > 0 && iterateCounter < MaximumIteration)
 		{
+			iterateCounter++;
 			var currentTx = toFetchFeeList.First();
 
 			List<Coin> inputs = new();
@@ -536,8 +537,6 @@ public class BlockchainController : ControllerBase
 					Fee: currentTx.GetFee(inputs.ToArray()),
 					Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
 					Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet()));
-
-			iterateCounter++;
 		}
 
 		return unconfirmedTxsChainById.Values.ToList();
