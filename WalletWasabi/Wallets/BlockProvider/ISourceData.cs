@@ -5,7 +5,7 @@ namespace WalletWasabi.Wallets.BlockProvider;
 /// <summary>
 /// Source that provided a bitcoin block to us.
 /// </summary>
-public enum Source 
+public enum Source
 {
 	/// <summary>Wasabi Wallet file-system cache.</summary>
 	/// <remarks>The assumption is that the cache is tested always before real block sources.</remarks>
@@ -18,10 +18,10 @@ public enum Source
 	P2P = 2,
 }
 
-public enum P2pSourceDataCode
+public enum P2pSourceDataStatusCode
 {
 	/// <summary>Block was successfully downloaded.</summary>
-	OK,
+	Success,
 
 	/// <summary>Operation was cancelled.</summary>
 	Cancelled,
@@ -54,13 +54,13 @@ public record EmptySourceData(Source Source) : ISourceData
 /// <summary>
 /// Source data for a bitcoin block downloaded over P2P.
 /// </summary>
-/// <param name="Code">Description of the P2P operation result.</param>
+/// <param name="StatusCode">Description of the P2P operation result.</param>
 /// <param name="Node">Node from which we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
 /// <param name="ConnectedNodes">
 /// Number of connected peers at the moment when we downloaded the bitcoin block.
 /// The number of connected peers can change at any moment.
 /// </param>
-public record P2pSourceData(P2pSourceDataCode Code, Node? Node, uint ConnectedNodes) : ISourceData
+public record P2pSourceData(P2pSourceDataStatusCode StatusCode, Node? Node, uint ConnectedNodes) : ISourceData
 {
 	public Source Source => Source.P2P;
 }

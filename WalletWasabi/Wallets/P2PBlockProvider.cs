@@ -49,17 +49,12 @@ public class P2PBlockProvider : IP2PBlockProvider
 
 			if (node is null || !node.IsConnected)
 			{
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
 			}
 		}
-		double timeout = sourceRequest.Timeout ?? P2PNodesManager.GetCurrentTimeout();
 
-		return await TryGetBlockWithSourceDataAsync(blockHash, node, timeout, cancellationToken).ConfigureAwait(false);
-	}
+		double timeout = sourceRequest.Timeout ?? P2PNodesManager.GetCurrentTimeout();
 
-	/// <inheritdoc/>
-	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, Node node, double timeout, CancellationToken cancellationToken)
-	{
 		uint connectedNodes = P2PNodesManager.ConnectedNodesCount;
 
 		// Download block from the selected node.
@@ -78,14 +73,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 			{
 				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.InvalidBlockProvided, node, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.InvalidBlockProvided, node, connectedNodes));
 			}
 
 			P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 			await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
-			return new P2pBlockResponse(block, new P2pSourceData(P2pSourceDataCode.OK, node, connectedNodes));
+			return new P2pBlockResponse(block, new P2pSourceData(P2pSourceDataStatusCode.Success, node, connectedNodes));
 		}
 		catch (Exception ex)
 		{
@@ -94,14 +89,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 				await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.Cancelled, node, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Cancelled, node, connectedNodes));
 			}
 			else
 			{
 				Logger.LogDebug(ex);
 				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataCode.Failure, node, connectedNodes));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Failure, node, connectedNodes));
 			}
 		}
 	}

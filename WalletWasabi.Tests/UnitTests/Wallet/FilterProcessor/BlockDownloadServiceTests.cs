@@ -45,10 +45,10 @@ public class BlockDownloadServiceTests
 		TaskCompletionSource block2DownloadedTcs = new();
 
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
-		_ = mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
 		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
@@ -57,7 +57,7 @@ public class BlockDownloadServiceTests
 		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
 				.Returns(async () =>
 				{
 					block1RequestedTcs.SetResult();
@@ -69,7 +69,7 @@ public class BlockDownloadServiceTests
 				});
 
 			// Handling of downloading of block2.
-			_ = mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
 				.Returns(async () =>
 				{
 					block2RequestedTcs.SetResult();
@@ -83,11 +83,11 @@ public class BlockDownloadServiceTests
 				.ReturnsAsync(block2);
 
 			// Handling of downloading of block3.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block3);
 
 			// Handling of downloading of block4.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block4);
 
 			await service.StartAsync(testCts.Token);
@@ -173,10 +173,10 @@ public class BlockDownloadServiceTests
 
 		// File-system cache is disabled for the purposes of this test.
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
-		_ = mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
 		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
@@ -185,20 +185,20 @@ public class BlockDownloadServiceTests
 		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block1);
 
 			// Handling of downloading of block2.
-			_ = mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
 				.ReturnsAsync((Block?)null)
 				.ReturnsAsync(block2);
 
 			// Handling of downloading of block3.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block3);
 
 			// Handling of downloading of block4.
-			_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
+			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(block4);
 
 			await service.StartAsync(testCts.Token);
@@ -251,14 +251,14 @@ public class BlockDownloadServiceTests
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
 		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
-		_ = mockFileSystemBlockRepository.Setup(c => c.RemoveAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockFileSystemBlockRepository.Setup(c => c.RemoveAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
 		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
 		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
-		_ = mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
 		using BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
@@ -273,7 +273,7 @@ public class BlockDownloadServiceTests
 		// Remove blocks >= 610_003.
 		await service.RemoveBlocksAsync(maxBlockHeight: 610_003);
 
-		Request[] actualRequests = service.BlocksToDownload.UnorderedItems
+		Request[] actualRequests = service.BlocksToDownloadRequests.UnorderedItems
 			.Select(x => x.Element)
 			.OrderBy(x => x.Priority.BlockHeight)
 			.ToArray();

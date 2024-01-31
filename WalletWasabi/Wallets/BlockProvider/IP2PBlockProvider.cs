@@ -15,11 +15,4 @@ public interface IP2PBlockProvider : IBlockProvider
 	/// </summary>
 	/// <inheritdoc cref="TryGetBlockWithSourceDataAsync(uint256, Node, double, CancellationToken)"/>
 	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, P2pSourceRequest sourceRequest, CancellationToken cancellationToken);
-
-	/// <summary>
-	/// Attempts to download the given block from the node with specified timeout.
-	/// </summary>
-	/// <remarks>The implementations are not supposed to throw exceptions except <see cref="OperationCanceledException"/>.</remarks>
-	/// <exception cref="OperationCanceledException"/>
-	Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, Node node, double timeout, CancellationToken cancellationToken);
 }

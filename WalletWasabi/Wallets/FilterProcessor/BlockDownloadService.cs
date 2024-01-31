@@ -51,9 +51,9 @@ public class BlockDownloadService : BackgroundService
 	/// Guarded by <see cref="Lock"/>.
 	/// <para>Internal for testing purposes.</para>
 	/// </remarks>
-	internal PriorityQueue<Request, Priority> BlocksToDownload { get; } = new(Priority.Comparer);
+	internal PriorityQueue<Request, Priority> BlocksToDownloadRequests { get; } = new(Priority.Comparer);
 
-	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
+	/// <remarks>Guards <see cref="BlocksToDownloadRequests"/>.</remarks>
 	private object Lock { get; } = new();
 
 	/// <summary>
@@ -90,8 +90,8 @@ public class BlockDownloadService : BackgroundService
 	{
 		lock (Lock)
 		{
-			int count = BlocksToDownload.Count;
-			BlocksToDownload.Enqueue(request, request.Priority);
+			int count = BlocksToDownloadRequests.Count;
+			BlocksToDownloadRequests.Enqueue(request, request.Priority);
 
 			if (count == 0 && RequestAvailableSemaphore.CurrentCount == 0)
 			{
@@ -115,7 +115,7 @@ public class BlockDownloadService : BackgroundService
 
 		lock (Lock)
 		{
-			List<(Request Element, Priority Priority)> items = BlocksToDownload.UnorderedItems.ToList();
+			List<(Request Element, Priority Priority)> items = BlocksToDownloadRequests.UnorderedItems.ToList();
 
 			foreach ((Request request, Priority priority) in items)
 			{
@@ -131,8 +131,8 @@ public class BlockDownloadService : BackgroundService
 				}
 			}
 
-			BlocksToDownload.Clear();
-			BlocksToDownload.EnqueueRange(tempQueue.UnorderedItems);
+			BlocksToDownloadRequests.Clear();
+			BlocksToDownloadRequests.EnqueueRange(tempQueue.UnorderedItems);
 		}
 
 		foreach (uint256 blockHash in toRemoveFromCache)
@@ -157,7 +157,7 @@ public class BlockDownloadService : BackgroundService
 				lock (Lock)
 				{
 					// Wait until at least one block-downloading request is here; otherwise, consume requests so that there is at most MAX parallel tasks.
-					wait = BlocksToDownload.Count == 0;
+					wait = BlocksToDownloadRequests.Count == 0;
 				}
 
 				if (wait)
@@ -167,11 +167,11 @@ public class BlockDownloadService : BackgroundService
 
 				lock (Lock)
 				{
-					int toStart = Math.Min(BlocksToDownload.Count, MaximumParallelTasks - activeTasks.Count);
+					int toStart = Math.Min(BlocksToDownloadRequests.Count, MaximumParallelTasks - activeTasks.Count);
 
 					for (int i = 0; i < toStart; i++)
 					{
-						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out _))
+						if (!BlocksToDownloadRequests.TryDequeue(out Request? queuedRequest, out _))
 						{
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
@@ -209,7 +209,7 @@ public class BlockDownloadService : BackgroundService
 			// Mark everything as cancelled because the service is shutting down (either gracefully or forcibly).
 			lock (Lock)
 			{
-				while (BlocksToDownload.TryDequeue(out Request? request, out _))
+				while (BlocksToDownloadRequests.TryDequeue(out Request? request, out _))
 				{
 					request.Tcs.TrySetResult(CanceledResult.Instance);
 				}

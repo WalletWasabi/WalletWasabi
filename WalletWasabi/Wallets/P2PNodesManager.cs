@@ -35,9 +35,9 @@ public class P2PNodesManager
 		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
 	}
 
-	public void DisconnectNodeIfEnoughPeers(Node node, string reason, uint minPeers = 3)
+	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (Nodes.ConnectedNodes.Count > minPeers)
+		if (Nodes.ConnectedNodes.Count > 3)
 		{
 			DisconnectNode(node, reason);
 		}
