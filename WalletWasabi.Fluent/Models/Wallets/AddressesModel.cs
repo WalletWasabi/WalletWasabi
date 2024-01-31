@@ -1,47 +1,75 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using DynamicData;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class AddressesModel : IDisposable
+public partial class AddressesModel
 {
-	private readonly CompositeDisposable _disposable = new();
-	private readonly KeyManager _keyManager;
+	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
+	private readonly Wallet _wallet;
+	private readonly SourceList<HdPubKey> _source;
 
-	public AddressesModel(IObservable<Unit> addressesUpdated, KeyManager keyManager)
+	public AddressesModel(Wallet wallet)
 	{
-		_keyManager = keyManager;
+		_wallet = wallet;
+		_source = new SourceList<HdPubKey>();
+		_source.AddRange(GetUnusedKeys());
 
-		Cache =
-			addressesUpdated.Fetch(GetAddresses, address => address.Text)
-								.DisposeWith(_disposable);
+		Observable.FromEventPattern<ProcessedResult>(
+				h => wallet.WalletRelevantTransactionProcessed += h,
+				h => wallet.WalletRelevantTransactionProcessed -= h)
+			.Do(_ => UpdateUnusedKeys())
+			.Subscribe();
 
-		UnusedAddressesCache =
-			Cache.Connect()
-				 .AutoRefresh(x => x.IsUsed)
-				 .Filter(x => !x.IsUsed)
-				 .AsObservableCache()
-				 .DisposeWith(_disposable);
+		_newAddressGenerated
+			.Do(address => _source.Add(address))
+			.Subscribe();
 
-		HasUnusedAddresses = UnusedAddressesCache.NotEmpty();
+		_source.Connect()
+			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
+			.Bind(out var unusedAddresses)
+			.Subscribe();
+
+		Unused = unusedAddresses;
 	}
 
-	public IObservableCache<IAddress, string> Cache { get; }
+	private IEnumerable<HdPubKey> GetUnusedKeys() => _wallet.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 });
 
-	public IObservableCache<IAddress, string> UnusedAddressesCache { get; }
+	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels)
+	{
+		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
+		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, Hide);
+		_newAddressGenerated.OnNext(pubKey);
 
-	public IObservable<bool> HasUnusedAddresses { get; }
+		return nextReceiveAddress;
+	}
 
-	public void Dispose() => _disposable.Dispose();
+	public ReadOnlyObservableCollection<IAddress> Unused { get; }
 
-	private IEnumerable<IAddress> GetAddresses() => _keyManager
-		.GetKeys()
-		.Reverse()
-		.Select(x => new Address(_keyManager, x));
+	public void Hide(Address address)
+	{
+		_wallet.KeyManager.SetKeyState(KeyState.Locked, address.HdPubKey);
+		_wallet.KeyManager.ToFile();
+		_source.Remove(address.HdPubKey);
+	}
+
+	private void UpdateUnusedKeys()
+	{
+		var itemsToRemove = _source.Items
+			.Where(item => item.KeyState != KeyState.Clean)
+			.ToList();
+
+		foreach (var item in itemsToRemove)
+		{
+			_source.Remove(item);
+		}
+	}
 }
