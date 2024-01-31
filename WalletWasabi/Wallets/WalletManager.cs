@@ -50,7 +50,7 @@ public class WalletManager : IWalletProvider
 		ServiceConfiguration = serviceConfiguration;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
-		RefreshWalletList();
+		LoadWalletListFromFileSystem();
 	}
 
 	/// <summary>
@@ -92,7 +92,7 @@ public class WalletManager : IWalletProvider
 	private IBlockProvider BlockProvider { get; }
 	private string WorkDir { get; }
 
-	private void RefreshWalletList()
+	private void LoadWalletListFromFileSystem()
 	{
 		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
 
