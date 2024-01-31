@@ -135,14 +135,14 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		Semaphore.Dispose();
 		base.Dispose();
 	}
-}
 
-public class RequestedUnconfirmedChainEventArgs : EventArgs
-{
-	public RequestedUnconfirmedChainEventArgs(uint256 txId)
+	public class RequestedUnconfirmedChainEventArgs : EventArgs
 	{
-		TxId = txId;
-	}
+		public RequestedUnconfirmedChainEventArgs(uint256 txId)
+		{
+			TxId = txId;
+		}
 
-	public uint256 TxId { get; }
+		public uint256 TxId { get; }
+	}
 }
