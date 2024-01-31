@@ -25,7 +25,8 @@ public static class TransactionBuilderWalletExtensions
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
 		bool allowDoubleSpend = false,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		bool overrideFeeOverpaymentProtection = false)
 	{
 		FeeRate? feeRate;
 
@@ -45,7 +46,8 @@ public static class TransactionBuilderWalletExtensions
 			AllowUnconfirmed: allowUnconfirmed,
 			AllowDoubleSpend: allowDoubleSpend,
 			AllowedInputs: allowedInputs,
-			TryToSign: tryToSign);
+			TryToSign: tryToSign,
+			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 
 		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
 		return factory.BuildTransaction(
@@ -127,4 +129,25 @@ public static class TransactionBuilderWalletExtensions
 
 		return txRes;
 	}
+
+	public static BuildTransactionResult BuildTransactionWithoutOverpaymentProtection(
+		this Wallet wallet,
+		string password,
+		PaymentIntent payments,
+		FeeStrategy feeStrategy,
+		bool allowUnconfirmed = false,
+		IEnumerable<OutPoint>? allowedInputs = null,
+		IPayjoinClient? payjoinClient = null,
+		bool allowDoubleSpend = false)
+		=> BuildTransaction(
+			wallet,
+			password,
+			payments,
+			feeStrategy,
+			allowUnconfirmed,
+			allowedInputs,
+			payjoinClient,
+			allowDoubleSpend,
+			tryToSign: true,
+			overrideFeeOverpaymentProtection: true);
 }

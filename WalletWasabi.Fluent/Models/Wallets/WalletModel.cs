@@ -1,20 +1,16 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletModel : INotifyPropertyChanged
-{
-}
+public partial interface IWalletModel : INotifyPropertyChanged;
 
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
@@ -39,7 +35,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
+		Addresses = new AddressesModel(Wallet);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -69,7 +65,7 @@ public partial class WalletModel : ReactiveObject
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
 
-	public IAddressesModel AddressesModel { get; }
+	public IAddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }
 
@@ -118,15 +114,6 @@ public partial class WalletModel : ReactiveObject
 	public IWalletInfoModel GetWalletInfo()
 	{
 		return new WalletInfoModel(Wallet);
-	}
-
-	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
-	{
-		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
-		var nextReceiveAddress = new Address(Wallet.KeyManager, pubKey);
-		_newAddressGenerated.OnNext(nextReceiveAddress);
-
-		return nextReceiveAddress;
 	}
 
 	public void Rename(string newWalletName)
