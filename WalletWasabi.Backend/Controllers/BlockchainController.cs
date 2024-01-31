@@ -421,7 +421,7 @@ public class BlockchainController : ControllerBase
 	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	public async Task<IActionResult> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
 		uint256 txId = new(transactionId);
 
@@ -435,7 +435,7 @@ public class BlockchainController : ControllerBase
 			cancellationToken);
 	}
 
-	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
+	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
 		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
@@ -444,7 +444,7 @@ public class BlockchainController : ControllerBase
 
 		if (!mempoolHashes.Contains(txId))
 		{
-			throw new InvalidOperationException("Requested transaction is not present in the mempool, probably confirmed.");
+			return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 		}
 
 		// TODO: Use Transaction cache.
@@ -536,6 +536,6 @@ public class BlockchainController : ControllerBase
 					Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet()));
 		}
 
-		return unconfirmedTxsChainById.Values.ToList();
+		return Ok(unconfirmedTxsChainById.Values.ToList());
 	}
 }
