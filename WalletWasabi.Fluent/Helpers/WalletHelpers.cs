@@ -27,7 +27,7 @@ public static class WalletHelpers
 	{
 		var result = new List<LabelsByWallet>();
 
-		foreach (var wallet in Services.WalletManager.GetWallets(refreshWalletList: false))
+		foreach (var wallet in Services.WalletManager.GetWallets())
 		{
 			var (changeLabels, receiveLabels) = wallet.KeyManager.GetLabels();
 			result.Add(new LabelsByWallet(wallet.WalletId, changeLabels, receiveLabels));
