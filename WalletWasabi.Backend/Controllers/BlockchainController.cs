@@ -437,21 +437,22 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
-		using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-		var linkedCancellationToken = linkedCts.Token;
-
-		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
-		var mempool = Global.HostedServices.Get<MempoolMirror>();
-		var mempoolHashes = mempool.GetMempoolHashes();
 
 		try
 		{
+			var mempool = Global.HostedServices.Get<MempoolMirror>();
+			var mempoolHashes = mempool.GetMempoolHashes();
+
 			if (!mempoolHashes.Contains(txId))
 			{
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
+
+			Dictionary<uint256, Transaction> transactionsLocalCache = new();
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+			var linkedCancellationToken = linkedCts.Token;
 
 			// TODO: Use Transaction cache.
 			var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, linkedCancellationToken);
