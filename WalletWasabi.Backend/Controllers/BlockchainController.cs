@@ -437,6 +437,8 @@ public class BlockchainController : ControllerBase
 
 	private async Task<List<UnconfirmedTransactionChainItem>> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
+		const int MaximumIteration = 10;
+		int iterateCounter = 0;
 		Dictionary<uint256, Transaction> transactionsLocalCache = new();
 		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
 		var mempool = Global.HostedServices.Get<MempoolMirror>();
@@ -454,7 +456,7 @@ public class BlockchainController : ControllerBase
 
 		List<Transaction> toFetchFeeList = new() { requestedTransaction };
 
-		while (toFetchFeeList.Count > 0)
+		while (toFetchFeeList.Count > 0 && iterateCounter < MaximumIteration)
 		{
 			var currentTx = toFetchFeeList.First();
 
@@ -534,6 +536,8 @@ public class BlockchainController : ControllerBase
 					Fee: currentTx.GetFee(inputs.ToArray()),
 					Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
 					Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet()));
+
+			iterateCounter++;
 		}
 
 		return unconfirmedTxsChainById.Values.ToList();
