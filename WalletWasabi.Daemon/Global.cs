@@ -211,9 +211,6 @@ public class Global
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
-					// Make sure that the heights of all wallet are at least SegWit activation.
-					WalletManager.EnsureHeightsAreAtLeastSegWitActivation();
-
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
 					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
 				}

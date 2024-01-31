@@ -505,23 +505,6 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void EnsureHeightsAreAtLeastSegWitActivation()
-	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
-		{
-			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
-			{
-				km.SetBestHeight(startingSegwitHeight);
-			}
-
-			if (startingSegwitHeight > km.GetBestHeight(SyncType.Turbo))
-			{
-				km.SetBestTurboSyncHeight(startingSegwitHeight);
-			}
-		}
-	}
-
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
