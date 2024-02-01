@@ -7,14 +7,15 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDisposable
+public class PocketViewModel : CoinListItem, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public PocketCoinControlItemViewModel(IWalletModel wallet, Pocket pocket)
+	public PocketViewModel(IWalletModel wallet, Pocket pocket)
 	{
 		var pocketCoins = pocket.Coins.ToList();
 
@@ -30,7 +31,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Children =
 			pocketCoins.Select(wallet.Coins.GetCoinModel)
 					   .OrderByDescending(x => x.AnonScore)
-					   .Select(coin => new CoinCoinControlItemViewModel("", coin) { IsChild = true })
+					   .Select(coin => new CoinViewModel("", coin) { IsChild = true })
 					   .ToList();
 
 		CanBeSelected = true;

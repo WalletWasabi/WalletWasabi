@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="core:CoinControlItemViewModelBase"
+             x:DataType="core:CoinListItem"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.AnonymityScoreCellView">
 
