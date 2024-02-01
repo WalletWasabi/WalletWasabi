@@ -37,6 +37,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Trezor T with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// displayaddress request: confirm 1 time
 		// displayaddress request: confirm 1 time
@@ -141,6 +142,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Coldcard with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// signtx request: refuse
 		// signtx request: confirm
@@ -216,6 +218,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Nano S with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// displayaddress request(derivation path): approve
 		// displayaddress request: reject
@@ -299,6 +302,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Nano S+ with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// displayaddress request(derivation path): approve
 		// displayaddress request: reject
@@ -382,6 +386,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Nano X with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// displayaddress request(derivation path): approve
 		// displayaddress request: reject
@@ -466,6 +471,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your Jade with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// displayaddress request by device_type: reject
 		// displayaddress request by device_type: approve
@@ -548,6 +554,7 @@ public class HwiKatas
 		//
 		// Connect and initialize your BitBox02 with the following seed phrase:
 		// more maid moon upgrade layer alter marine screen benefit way cover alcohol
+		// NEVER STORE REAL MONEY ON THIS WALLET. IT IS NOT SAFE.
 		// Run this test.
 		// getxpub request by derive 0: approve
 		// getxpub request by derive 1: approve
