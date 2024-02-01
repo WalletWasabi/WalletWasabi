@@ -12,12 +12,6 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="{Binding SuccessText}"
-                 DockPanel.Dock="Bottom"
-                 TextAlignment="Center"
-                 TextWrapping="Wrap" />
-      <views:SuccessAnimationView />
-    </DockPanel>
+    <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
 </UserControl>

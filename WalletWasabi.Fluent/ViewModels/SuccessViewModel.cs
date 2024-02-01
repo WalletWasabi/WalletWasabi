@@ -8,15 +8,12 @@ namespace WalletWasabi.Fluent.ViewModels;
 [NavigationMetaData(Title = "Success")]
 public partial class SuccessViewModel : RoutableViewModel
 {
-	private SuccessViewModel(string successText)
+	private SuccessViewModel()
 	{
-		SuccessText = successText;
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
-
-	public string SuccessText { get; }
 
 	private async Task OnNextAsync()
 	{
