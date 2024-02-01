@@ -13,12 +13,6 @@
                  EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  MinWidth="500">
-    <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="{Binding Caption}"
-                 DockPanel.Dock="Bottom"
-                 TextAlignment="Center"
-                 TextWrapping="Wrap" />
-      <views:SuccessAnimationView />
-    </DockPanel>
+    <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
 </UserControl>

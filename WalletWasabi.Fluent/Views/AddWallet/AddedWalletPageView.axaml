@@ -12,16 +12,6 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel VerticalAlignment="Center">
-      <TextBlock DockPanel.Dock="Bottom"
-                 TextAlignment="Center"
-                 TextWrapping="Wrap">
-        <Run>Your wallet </Run>
-        <Run Text="{Binding WalletName}"
-             FontWeight="Bold"/>
-        <Run> was added to Wasabi.</Run>
-      </TextBlock>
-      <views:SuccessAnimationView />
-    </DockPanel>
+    <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
 </UserControl>
