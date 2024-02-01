@@ -176,11 +176,14 @@ It causes confusion and awkward catch clauses.
 - Bad: `_ = PrevOutsIndex.Remove(txInput.PrevOut);`
 - Bad: `_ = Directory.CreateDirectory(dir);`
 - Good: `_ = WaitAsync();` - disables warning message. Remark: you should always `await` or store the reference of the task.
+- Good: `_ = new HwiClient(network);`
 
 In general
 - If the return value is not used, write nothing.
-- In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used. 
-- If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment. 
+- In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used.
+- In case you want to create an object but do not need the reference, `_ =` should be used.
+- If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment.
+- In special cases `_ =` can be used but a reasonable elaboration is required by adding a comment above. 
 
 ---
 
