@@ -47,8 +47,8 @@ public interface ISourceData
 /// </summary>
 public record EmptySourceData(Source Source) : ISourceData
 {
-	public static EmptySourceData FileSystemCache = new(Source.FileSystemCache);
-	public static EmptySourceData TrustedFullNode = new(Source.TrustedFullNode);
+	public static EmptySourceData FileSystemCache = new (Source.FileSystemCache);
+	public static EmptySourceData TrustedFullNode = new (Source.TrustedFullNode);
 }
 
 /// <summary>

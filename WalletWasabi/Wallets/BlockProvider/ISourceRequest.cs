@@ -9,7 +9,7 @@ public interface ISourceRequest { }
 /// </summary>
 public record TrustedFullNodeSourceRequest() : ISourceRequest
 {
-	public static readonly TrustedFullNodeSourceRequest Instance = new();
+	public static readonly TrustedFullNodeSourceRequest Instance = new ();
 }
 
 /// <summary>
@@ -19,5 +19,5 @@ public record TrustedFullNodeSourceRequest() : ISourceRequest
 /// <param name="Timeout">Timeout to download the block from the P2P node, or <c>null</c> to automatically select a timeout.</param>
 public record P2pSourceRequest(Node? Node, uint? Timeout) : ISourceRequest
 {
-	public static readonly P2pSourceRequest Automatic = new(Node: null, Timeout: null);
+	public static readonly P2pSourceRequest Automatic = new (Node: null, Timeout: null);
 }

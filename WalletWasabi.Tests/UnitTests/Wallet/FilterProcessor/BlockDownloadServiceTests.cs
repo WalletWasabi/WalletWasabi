@@ -25,36 +25,36 @@ public class BlockDownloadServiceTests
 	[Fact]
 	public async Task TryGetBlockTests1Async()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testCts = new (TimeSpan.FromMinutes(1));
 
 		uint256 blockHash1 = uint256.One;
-		uint256 blockHash2 = new(2);
-		uint256 blockHash3 = new(3);
-		uint256 blockHash4 = new(4);
+		uint256 blockHash2 = new (2);
+		uint256 blockHash3 = new (3);
+		uint256 blockHash4 = new (4);
 
 		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
-		TaskCompletionSource block1RequestedTcs = new();
-		TaskCompletionSource block1DelayTcs = new();
+		TaskCompletionSource block1RequestedTcs = new ();
+		TaskCompletionSource block1DelayTcs = new ();
 
-		TaskCompletionSource block2RequestedTcs = new();
-		TaskCompletionSource block2DelayTcs = new();
-		TaskCompletionSource block2DownloadedTcs = new();
+		TaskCompletionSource block2RequestedTcs = new ();
+		TaskCompletionSource block2DelayTcs = new ();
+		TaskCompletionSource block2DownloadedTcs = new ();
 
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
+		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new (MockBehavior.Strict);
 		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
 		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
+		Mock<IBlockProvider> mockFullNodeBlockProvider = new (MockBehavior.Strict);
 		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
 
-		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		using (BlockDownloadService service = new (mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
 			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
@@ -159,12 +159,12 @@ public class BlockDownloadServiceTests
 	[Fact]
 	public async Task TryGetBlockTests2Async()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testCts = new (TimeSpan.FromMinutes(1));
 
 		uint256 blockHash1 = uint256.One;
-		uint256 blockHash2 = new(2);
-		uint256 blockHash3 = new(3);
-		uint256 blockHash4 = new(4);
+		uint256 blockHash2 = new (2);
+		uint256 blockHash3 = new (3);
+		uint256 blockHash4 = new (4);
 
 		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
@@ -172,17 +172,17 @@ public class BlockDownloadServiceTests
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
 		// File-system cache is disabled for the purposes of this test.
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
+		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new (MockBehavior.Strict);
 		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
 		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
+		Mock<IBlockProvider> mockFullNodeBlockProvider = new (MockBehavior.Strict);
 		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
 
-		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		using (BlockDownloadService service = new (mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
 		{
 			// Handling of downloading of block1.
 			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
@@ -238,30 +238,30 @@ public class BlockDownloadServiceTests
 	[Fact]
 	public async Task RemoveBlocksAsync()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testCts = new (TimeSpan.FromMinutes(1));
 
 		uint256 blockHash1 = uint256.One;
-		uint256 blockHash2 = new(2);
-		uint256 blockHash3 = new(3);
-		uint256 blockHash4 = new(4);
+		uint256 blockHash2 = new (2);
+		uint256 blockHash3 = new (3);
+		uint256 blockHash4 = new (4);
 
 		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
+		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new (MockBehavior.Strict);
 		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 		mockFileSystemBlockRepository.Setup(c => c.RemoveAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.Returns(Task.CompletedTask);
 
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
+		Mock<IBlockProvider> mockFullNodeBlockProvider = new (MockBehavior.Strict);
 		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
 		mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Block?)null);
 
-		using BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
+		using BlockDownloadService service = new (mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
 		Task<IResult>[] tasks = [
