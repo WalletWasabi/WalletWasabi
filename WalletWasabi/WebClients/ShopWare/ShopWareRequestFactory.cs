@@ -4,10 +4,10 @@ namespace WalletWasabi.WebClients.ShopWare;
 
 public static class ShopWareRequestFactory
 {
-	public static PropertyBag CustomerRegistrationRequest(string firstName, string lastName, string email, string password, string countryId, string message) =>
+	public static PropertyBag CustomerRegistrationRequest(string salutationId, string firstName, string lastName, string email, string password, string countryId, string message, string storefrontUrl) =>
 		new()
 		{
-			["salutationId"] = "018b6635785b70679f479eadf50330f3",
+			["salutationId"] = salutationId,
 			["firstName"] = firstName,
 			["lastName"] = lastName,
 			["email"] = email,
@@ -15,7 +15,7 @@ public static class ShopWareRequestFactory
 			["guest"] = false,
 			["affiliateCode"] = "WASABI",
 			["acceptedDataProtection"] = true,
-			["storefrontUrl"] = "https://wasabi.shopinbit.com",
+			["storefrontUrl"] = storefrontUrl,
 			["customFields"] = new PropertyBag { ["wallet_chat_store"] = $"{message}" },
 			["billingAddress"] = new PropertyBag
 			{

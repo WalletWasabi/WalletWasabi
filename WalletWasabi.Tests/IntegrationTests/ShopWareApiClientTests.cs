@@ -10,6 +10,9 @@ using Xunit;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
+using System.IO;
+using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -22,7 +25,7 @@ public class ShopWareApiClientTests
 		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
 
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			"Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "5d54dfdc2b384a8e9fff2bfd6e64c186", "comment");
+			"018b6635785b70679f479eadf50330f3", "Lucas", "Carvalho", $"{Guid.NewGuid()}@me.com", "Password", "5d54dfdc2b384a8e9fff2bfd6e64c186", "comment", "https://wasabi.shopinbit.com");
 
 		var customer = await shopWareApiClient.RegisterCustomerAsync("none", customerRegistrationRequest, CancellationToken.None);
 
@@ -122,14 +125,14 @@ public class ShopWareApiClientTests
 
 		// If a country is added or removed, test will fail and we will be notified.
 		// We could go further and verify equality.
-		Assert.Equal(244, toSerialize.Count);
+		Assert.Equal(246, toSerialize.Count);
 
 		var stateResponse = await shopWareApiClient.GetStatesByCountryIdAsync("none", toSerialize.First(c => c.Name == "United States of America").Id, CancellationToken.None);
 		Assert.Equal(51, stateResponse.Elements.Count);
 
 		// Save the new file if it changed
 		// var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(ShopWareApiClient), "ShopWareApiClient"));
-		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonConvert.SerializeObject(toSerialize));
+		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonSerializer.Serialize(toSerialize));
 	}
 
 	[Fact]
@@ -171,12 +174,14 @@ public class ShopWareApiClientTests
 		password = "Password";
 
 		PropertyBag crr = ShopWareRequestFactory.CustomerRegistrationRequest(
+			salutationId: "018b6635785b70679f479eadf50330f3",
 			firstName: "Random",
 			lastName: "Dude Jr.",
 			email: email,
 			password: password,
 			countryId: "5d54dfdc2b384a8e9fff2bfd6e64c186",
-			message: message);
+		message: message,
+			storefrontUrl: "https://wasabi.shopinbit.com");
 
 		return crr;
 	}
@@ -189,10 +194,10 @@ public class ShopWareApiClientTests
 			HttpClientFactory = new(torEndpoint, null);
 
 			IHttpClient httpClient = useTor
-				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.com/store-api"))
-				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.com/store-api/"), Mode.DefaultCircuit);
+				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.solution360.dev/store-api/"))
+				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.solution360.dev/store-api/"), Mode.DefaultCircuit);
 
-			ShopWareApiClient = new(httpClient, "SWSCU3LIYWVHVXRVYJJNDLJZBG");
+			ShopWareApiClient = new(httpClient, "SWSCVTGZRHJOZWF0MTJFTK9ZSG");
 		}
 
 		private WasabiHttpClientFactory HttpClientFactory { get; }
