@@ -51,21 +51,21 @@ public class SpecificNodeBlockProviderTests
 
 		// Mock connected node.
 		TaskCompletionSource nodeConnectedTcs = new();
-		_ = mockNode.Setup(c => c.WaitUntilDisconnectedAsync(It.IsAny<CancellationToken>()))
+		mockNode.Setup(c => c.WaitUntilDisconnectedAsync(It.IsAny<CancellationToken>()))
 			.Callback(() => nodeConnectedTcs.SetResult())
 			.CallBase();
 
-		_ = mockNode.Setup(c => c.ToString())
+		mockNode.Setup(c => c.ToString())
 			.CallBase();
 
-		_ = mockNode.SetupSequence(c => c.DownloadBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
+		mockNode.SetupSequence(c => c.DownloadBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(validBlock)
 			.Throws(new OperationCanceledException("Got disconnected"));
 
 		// Mock the provider.
 		Mock<SpecificNodeBlockProvider> mockProvider = new(MockBehavior.Strict, network, serviceConfiguration, /* torEndPoint */ null) { CallBase = true };
 
-		_ = mockProvider.Setup(c => c.ConnectAsync(It.IsAny<CancellationToken>()))
+		mockProvider.Setup(c => c.ConnectAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(mockNode.Object);
 
 		await using SpecificNodeBlockProvider provider = mockProvider.Object;

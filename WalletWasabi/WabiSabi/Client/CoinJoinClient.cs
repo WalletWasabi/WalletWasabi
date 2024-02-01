@@ -138,7 +138,7 @@ public class CoinJoinClient
 		do
 		{
 			// Sanity check if we would get coins at all otherwise this will throw.
-			var _ = await coinCandidatesFunc().ConfigureAwait(false);
+			await coinCandidatesFunc().ConfigureAwait(false);
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
@@ -158,7 +158,7 @@ public class CoinJoinClient
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, OutputProvider.DestinationProvider.SupportedScriptTypes.ToArray() );
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, OutputProvider.DestinationProvider.SupportedScriptTypes.ToArray());
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, stopWhenAllMixed, utxoSelectionParameters, liquidityClue);
 
@@ -316,7 +316,7 @@ public class CoinJoinClient
 			waitRoundEndedTaskCts.Cancel();
 			try
 			{
-				_ = await waitRoundEndedTask.ConfigureAwait(false);
+				await waitRoundEndedTask.ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{

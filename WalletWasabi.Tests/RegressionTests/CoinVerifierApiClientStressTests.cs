@@ -32,7 +32,7 @@ public class CoinVerifierApiClientStressTests
 
 		using MockHttpClient mockHttpClient = new();
 		mockHttpClient.BaseAddress = new Uri("https://verifier.local/");
-		_ = mockHttpClient.OnSendAsync = async req =>
+		mockHttpClient.OnSendAsync = async req =>
 		{
 			long count = Interlocked.Increment(ref concurrentlyRunningRequestsCount);
 

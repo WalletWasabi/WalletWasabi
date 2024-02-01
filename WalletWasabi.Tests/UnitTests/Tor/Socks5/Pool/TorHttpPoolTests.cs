@@ -38,9 +38,9 @@ public class TorHttpPoolTests
 		using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
 
 		TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
@@ -100,7 +100,7 @@ public class TorHttpPoolTests
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 
-		_ = mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>()))
+		mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() => throw new TorConnectionException("Could not connect to Tor SOCKSPort."))
 			.ReturnsAsync(() => throw new OperationCanceledException("Deadline reached."));
 
@@ -280,7 +280,6 @@ public class TorHttpPoolTests
 				Content-Length: 0
 				X-GitHub-Request-Id: AFCA:0EE6:208343C:21F2436:6395A726
 
-
 				""".ReplaceLineEndings("\r\n");
 
 			await serverWriter1.WriteAsync(serverResponse1.AsMemory(), timeoutCts.Token);
@@ -371,7 +370,7 @@ public class TorHttpPoolTests
 		using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
 
 		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, mockTcpConnectionFactory.Object) { CallBase = true };
 		mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
@@ -397,7 +396,7 @@ public class TorHttpPoolTests
 
 		// Alice circuit is already disposed and thus it cannot be used.
 		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
-		_ = Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
+		Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
 
 		mockTcpConnectionFactory.VerifyAll();
 	}
