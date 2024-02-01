@@ -503,6 +503,7 @@ public class BlockchainController : ControllerBase
 
 					foreach (var tx in missingTxs)
 					{
+						transactionsLocalCache.Add(tx.GetHash(), tx);
 						var prevOut = prevOutToFetchFromRPC.First(x => x.Hash == tx.GetHash());
 						AddParentTx(tx, prevOut);
 					}
