@@ -9,8 +9,7 @@
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableNext="False" NextContent="Done"
+  <c:ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
