@@ -17,7 +17,6 @@ public class TerminateService
 	private readonly Func<Task> _terminateApplicationAsync;
 	private readonly Action _terminateApplication;
 	private long _terminateStatus;
-	public static TerminateService? Instance { get; private set; }
 
 	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
 	{
@@ -27,6 +26,8 @@ public class TerminateService
 		CancellationToken = TerminationCts.Token;
 		Instance = this;
 	}
+
+	public static TerminateService? Instance { get; private set; }
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
