@@ -9,8 +9,7 @@
              x:DataType="viewModels:SuccessViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SuccessView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableNext="False" NextContent="Done"
+  <c:ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
