@@ -548,7 +548,7 @@ public class HwiKatas
 
 
 	[Fact]
-	public async Task BitBox02KataAsync()
+	public async Task BitBox02BtcOnlyKataAsync()
 	{
 		// --- USER INTERACTIONS ---
 		//
