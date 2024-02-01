@@ -162,7 +162,7 @@ public class JsonRpcRequestHandler<TService>
 				if (!procedureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
 					await ((Task)result).ConfigureAwait(false);
-					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
+					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id);
 				}
 				else
 				{
