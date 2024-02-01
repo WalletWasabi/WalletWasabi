@@ -22,6 +22,7 @@ This document lists all the officially supported software and devices by Wasabi 
 - Ledger Nano X
 - Trezor Model T
 - Blockstream Jade
+- BitBox02
 
 # Officially Supported Architectures
 
