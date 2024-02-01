@@ -17,13 +17,15 @@ public class TerminateService
 	private readonly Func<Task> _terminateApplicationAsync;
 	private readonly Action _terminateApplication;
 	private long _terminateStatus;
+	public static TerminateService? Instance { get; private set; }
 
 	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
 	{
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
-		CancellationToken = TerminationCts.Token; 
+		CancellationToken = TerminationCts.Token;
+		Instance = this;
 	}
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>

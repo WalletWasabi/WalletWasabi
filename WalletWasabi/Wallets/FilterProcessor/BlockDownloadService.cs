@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets.BlockProvider;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
@@ -41,6 +42,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
 	private IP2PBlockProvider? P2PBlockProvider { get; }
+
 	public int MaximumParallelTasks { get; }
 
 	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
@@ -202,6 +204,9 @@ public class BlockDownloadService : BackgroundService
 		{
 			// This shouldn't happen.
 			Logger.LogError(ex);
+
+			// Block processing must be done in order. Terminate the application to prevent invalid wallet state.
+			TerminateService.Instance?.SignalForceTerminate();
 			throw;
 		}
 		finally
