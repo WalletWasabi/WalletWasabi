@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AvaloniaVersion>11.1.999-cibuild0043857-beta</AvaloniaVersion>
+    <AvaloniaVersion>11.0.7</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
 	<!-- AspNetCore. -->
