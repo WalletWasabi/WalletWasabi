@@ -426,7 +426,7 @@ public class BlockchainController : ControllerBase
 		uint256 txId = new(transactionId);
 
 		var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3) };
+		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
