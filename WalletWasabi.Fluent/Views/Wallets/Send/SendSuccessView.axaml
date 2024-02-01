@@ -4,20 +4,21 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
              mc:Ignorable="d"
              x:DataType="vm:SendSuccessViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
   <c:ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Done"
+                 EnableNext="False" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  MinWidth="500">
     <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="{Binding Caption}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" />
-
-      <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}" />
-      </Viewbox>
+      <TextBlock Text="{Binding Caption}"
+                 DockPanel.Dock="Bottom"
+                 TextAlignment="Center"
+                 TextWrapping="Wrap" />
+      <views:SuccessAnimationView />
     </DockPanel>
   </c:ContentArea>
 </UserControl>

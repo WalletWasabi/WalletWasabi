@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.SuccessAnimationView">
+  <Viewbox MaxHeight="150" Margin="40">
+    <Viewbox.Styles>
+      <Style Selector=":is(PathIcon).fadeIn">
+        <Style.Animations>
+          <Animation Duration="0:0:1">
+            <KeyFrame Cue="0%">
+              <Setter Property="Opacity" Value="0.0" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0.6" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+    </Viewbox.Styles>
+    <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}" Classes="fadeIn" />
+  </Viewbox>
+</UserControl>
+
