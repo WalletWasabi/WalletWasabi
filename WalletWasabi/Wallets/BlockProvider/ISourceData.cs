@@ -14,7 +14,7 @@ public enum Source
 	/// <summary>Trusted full node that can provide blocks and there is no concern over privacy.</summary>
 	TrustedFullNode = 1,
 
-	/// <summary>P2P node that provided a block to us.</summary>
+	/// <summary>Node from the P2P Network that provided a block to us.</summary>
 	P2P = 2,
 }
 
@@ -34,7 +34,7 @@ public enum P2pSourceDataStatusCode
 
 	/// <summary>Failed to get block.</summary>
 	/// <remarks>This covers for example networking errors.</remarks>
-	Failure,
+	Failure
 }
 
 public interface ISourceData
@@ -52,7 +52,7 @@ public record EmptySourceData(Source Source) : ISourceData
 }
 
 /// <summary>
-/// Source data for a bitcoin block downloaded over P2P.
+/// Source data for a bitcoin block downloaded over the P2P Network.
 /// </summary>
 /// <param name="StatusCode">Description of the P2P operation result.</param>
 /// <param name="Node">Node from which we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
