@@ -40,6 +40,8 @@ If you are using Visual Studio Code make sure to add the following settings to y
     "editor.formatOnSave": true,
 ```
 
+# Code conventions
+
 ## Refactoring
 
 If you are a new contributor **DO** keep refactoring pull requests short, uncomplex and easy to verify. It requires a certain level of experience to know where the code belongs to and to understand the full ramification (including rebase effort of open pull requests) - [source](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#refactoring).
@@ -90,7 +92,10 @@ using (AsyncLock.Lock())
 **DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
-if (foo is null) return;
+if (foo is null)
+{
+	return;
+}
 ```
 
 ## Empty quotes
@@ -164,6 +169,18 @@ myUiControl.Text = result;
 ## Never throw AggregateException and Exception in a mixed way
 It causes confusion and awkward catch clauses.
 [Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files)
+
+## Unused return value
+
+- Good: `using IDisposable _ = BenchmarkLogger.Measure();`
+- Bad: `_ = PrevOutsIndex.Remove(txInput.PrevOut);`
+- Bad: `_ = Directory.CreateDirectory(dir);`
+- Good: `_ = WaitAsync();` - disables warning message. Remark: you should always `await` or store the reference of the task.
+
+In general
+- If the return value is not used, write nothing.
+- In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used. 
+- If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment. 
 
 ---
 
