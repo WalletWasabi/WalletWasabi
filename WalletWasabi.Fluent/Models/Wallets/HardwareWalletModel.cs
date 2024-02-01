@@ -22,7 +22,15 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 		try
 		{
 			var client = new HwiClient(Wallet.Network);
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+
+			int baseTimeoutMinutes = 3;
+			int additionalTimeoutPer10Inputs = 1; // Example: 1 minute extra for every 10 inputs
+			int inputCount = transactionAuthorizationInfo.Transaction.WalletInputs.Count;
+
+			// Calculate total timeout
+			int totalTimeoutMinutes = baseTimeoutMinutes + inputCount / 10 * additionalTimeoutPer10Inputs;
+
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(totalTimeoutMinutes));
 
 			var signedPsbt = await client.SignTxAsync(
 				Wallet.KeyManager.MasterFingerprint!.Value,
@@ -35,6 +43,7 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 		}
 		catch (Exception ex)
 		{
+			//TODO: In Coldcard case, the error could be to higher fee rate, so we should ask the user to lower it.
 			Logger.LogError(ex);
 			return false;
 		}
