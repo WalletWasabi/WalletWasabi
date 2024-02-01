@@ -30,13 +30,13 @@ public class TerminateService
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	private TaskCompletionSource ForcefulTerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private TaskCompletionSource ForcefulTerminationRequested { get; } = new (TaskCreationOptions.RunContinuationsAsynchronously);
 
 	/// <summary>Task is set, if user requested the application to stop in a "forceful" way (e.g. CTRL+C or by the stop RPC request).</summary>
 	public Task ForcefulTerminationRequestedTask => ForcefulTerminationRequested.Task;
 
 	/// <summary>Cancellation token source cancelled once <see cref="ForcefulTerminationRequested"/> is assigned a result.</summary>
-	private CancellationTokenSource TerminationCts { get; } = new();
+	private CancellationTokenSource TerminationCts { get; } = new ();
 
 	/// <summary>Cancellation token that denotes that user requested to stop the application.</summary>
 	/// <remarks>Assigned once so that there are no issues with <see cref="TerminationCts"/> being disposed.</remarks>
