@@ -19,6 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tests.Helpers;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -34,10 +35,11 @@ public class WalletBuilder : IAsyncDisposable
 
 		Filters = node.BuildFilters();
 
-		var blockRepositoryMock = new MockBlockRepository(node.BlockChain);
+		var blockRepositoryMock = new MockFileSystemBlockRepository(node.BlockChain);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
+		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
 	}
 
 	private IndexStore IndexStore { get; }
@@ -45,6 +47,7 @@ public class WalletBuilder : IAsyncDisposable
 	private BitcoinStore BitcoinStore { get; }
 	private MemoryCache Cache { get; }
 	private WasabiHttpClientFactory HttpClientFactory { get; }
+	private WasabiSynchronizer Synchronizer { get; }
 	public IEnumerable<FilterModel> Filters { get; }
 	public string DataDir { get; }
 
@@ -57,16 +60,17 @@ public class WalletBuilder : IAsyncDisposable
 		keyManager.GetKeys(_ => true); // Make sure keys are asserted.
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+
+		HybridFeeProvider feeProvider = new(Synchronizer, null);
 		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, synchronizer, DataDir, serviceConfiguration, feeProvider, blockProvider);
+		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, blockProvider);
 	}
 
 	public async ValueTask DisposeAsync()
 	{
 		await IndexStore.DisposeAsync().ConfigureAwait(false);
+		await Synchronizer.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		Cache.Dispose();

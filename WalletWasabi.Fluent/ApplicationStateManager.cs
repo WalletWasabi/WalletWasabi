@@ -31,6 +31,12 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 
+		if (_lifetime is IActivatableApplicationLifetime activatableLifetime)
+		{
+			activatableLifetime.Activated += ActivatableLifetimeOnActivated;
+			activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+		}
+
 		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
@@ -117,6 +123,33 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Fire(shouldShutdown ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 
+	private void ActivatableLifetimeOnActivated(object? sender, ActivatedEventArgs e)
+	{
+		switch (e.Kind)
+		{
+			case ActivationKind.Background:
+			case ActivationKind.Reopen:
+				if (this is IMainWindowService service)
+				{
+					service.Show();
+				}
+				break;
+		}
+	}
+
+	private void ActivatableLifetimeOnDeactivated(object? sender, ActivatedEventArgs e)
+	{
+		switch (e.Kind)
+		{
+			case ActivationKind.Background:
+				if (this is IMainWindowService service)
+				{
+					service.Hide();
+				}
+				break;
+		}
+	}
+
 	private void CreateAndShowMainWindow()
 	{
 		if (_lifetime.MainWindow is { })
@@ -149,7 +182,7 @@ public class ApplicationStateManager : IMainWindowService
 
 				// _hideRequest flag is used to distinguish what is the user's intent.
 				// It is only true when the request comes from the Tray.
-				if ((Services.UiConfig.HideOnClose || _hideRequest) && App.EnableFeatureHide)
+				if (Services.UiConfig.HideOnClose || _hideRequest)
 				{
 					_hideRequest = false; // request processed, set it back to the default.
 					return;

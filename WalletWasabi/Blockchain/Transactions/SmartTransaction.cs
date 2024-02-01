@@ -507,24 +507,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#region LineSerialization
 
-	public string ToLine()
-	{
-		// GetHash is also serialized, so file can be interpreted with our eyes better.
-
-		return string.Join(
-			':',
-			GetHash(),
-			Transaction.ToHex(),
-			Height,
-			BlockHash,
-			BlockIndex,
-			Labels,
-			FirstSeen.ToUnixTimeSeconds(),
-			IsReplacement,
-			IsSpeedup,
-			IsCancellation);
-	}
-
 	public static SmartTransaction FromLine(string line, Network expectedNetwork)
 	{
 		var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();

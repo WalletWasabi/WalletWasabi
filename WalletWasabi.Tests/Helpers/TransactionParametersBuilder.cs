@@ -13,7 +13,8 @@ public class TransactionParametersBuilder
 		bool allowUnconfirmed = false,
 		bool allowDoubleSpend = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		bool overrideFeeProtection = false)
 	{
 		Payment = payment;
 		FeeRate = feeRate;
@@ -21,6 +22,7 @@ public class TransactionParametersBuilder
 		AllowDoubleSpend = allowDoubleSpend;
 		AllowedInputs = allowedInputs;
 		TryToSign = tryToSign;
+		OverrideFeeProtection = overrideFeeProtection;
 	}
 
 	private PaymentIntent? Payment { get; set; }
@@ -29,6 +31,7 @@ public class TransactionParametersBuilder
 	private bool AllowDoubleSpend { get; set; }
 	private IEnumerable<OutPoint>? AllowedInputs { get; set; }
 	private bool TryToSign { get; set; }
+	private bool OverrideFeeProtection { get; set; }
 
 	public TransactionParametersBuilder SetPayment(PaymentIntent payment)
 	{
@@ -66,6 +69,12 @@ public class TransactionParametersBuilder
 		return this;
 	}
 
+	public TransactionParametersBuilder SetOverrideFeeProtection(bool value)
+	{
+		OverrideFeeProtection = value;
+		return this;
+	}
+
 	public TransactionParameters Build()
 	{
 		if (Payment is null)
@@ -78,7 +87,7 @@ public class TransactionParametersBuilder
 			throw new InvalidOperationException("Fee rate is a required parameter.");
 		}
 
-		return new TransactionParameters(Payment, FeeRate, AllowUnconfirmed, AllowDoubleSpend, AllowedInputs, TryToSign);
+		return new TransactionParameters(Payment, FeeRate, AllowUnconfirmed, AllowDoubleSpend, AllowedInputs, TryToSign, OverrideFeeProtection);
 	}
 
 	public static TransactionParametersBuilder CreateDefault()

@@ -64,6 +64,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
+		WalletId = new WalletId(Guid.NewGuid());
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -71,6 +72,8 @@ public class Wallet : BackgroundService, IWallet
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
+
+	public WalletId WalletId { get; }
 
 	public WalletState State
 	{
@@ -269,6 +272,8 @@ public class Wallet : BackgroundService, IWallet
 
 		try
 		{
+			EnsureHeightsAreAtLeastSegWitActivation();
+
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
@@ -293,11 +298,6 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			State = WalletState.Starting;
-
-			if (!Synchronizer.IsRunning)
-			{
-				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-			}
 
 			using (BenchmarkLogger.Measure())
 			{
@@ -350,6 +350,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			await PerformSynchronizationAsync(SyncType.NonTurbo, stoppingToken).ConfigureAwait(false);
 		}
+
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
 	}
 
@@ -463,18 +464,7 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		Height bestTurboSyncHeight = KeyManager.GetBestTurboSyncHeight();
-
-		// Make sure heights are at least height of segwit activation.
-		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-		if (startingSegwitHeight > KeyManager.GetBestHeight())
-		{
-			KeyManager.SetBestHeight(startingSegwitHeight);
-		}
-		if (startingSegwitHeight > bestTurboSyncHeight)
-		{
-			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
-		}
+		Height bestTurboSyncHeight = KeyManager.GetBestHeight(SyncType.Turbo);
 
 		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 		{
@@ -599,5 +589,19 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	private void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
+		{
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Turbo))
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
+		}
 	}
 }

@@ -34,15 +34,13 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
-	private string _title;
+	private string _title = "";
 
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
 		UiContext = uiContext;
 		WalletModel = walletModel;
 		Wallet = wallet;
-
-		_title = WalletName;
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
@@ -117,6 +115,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
+
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
 	public ICommand BuyCommand { get; set; }
@@ -143,8 +143,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public Wallet Wallet { get; }
 
 	public IWalletModel WalletModel { get; }
-
-	public string WalletName => WalletModel.Name;
 
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
@@ -207,8 +205,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return new ActionableItem("Send", "Display wallet send dialog", () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
-
-	public override string ToString() => WalletName;
 
 	public void NavigateAndHighlight(uint256 txid)
 	{

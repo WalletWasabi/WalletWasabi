@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
@@ -33,11 +34,11 @@ public class WalletFilterProcessorTests
 			new(SyncType.Turbo, new TaskCompletionSource()),
 		};
 
-		PriorityQueue<WalletFilterProcessor.SyncRequest, WalletFilterProcessor.Priority> synchronizationRequests = new(WalletFilterProcessor.Comparer);
+		PriorityQueue<WalletFilterProcessor.SyncRequest, Priority> synchronizationRequests = new(Priority.Comparer);
 
 		foreach (var request in requests)
 		{
-			WalletFilterProcessor.Priority priority = new(request.SyncType);
+			Priority priority = new(request.SyncType);
 			synchronizationRequests.Enqueue(request, priority);
 		}
 
@@ -84,9 +85,12 @@ public class WalletFilterProcessorTests
 		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(realWallet.WalletFilterProcessor);
 
 		// Mock the database
-		foreach (var filter in allFilters)
+		foreach (SyncType syncType in Enum.GetValues<SyncType>())
 		{
-			realWallet.WalletFilterProcessor.FiltersCache[filter.Header.Height] = filter;
+			foreach (var filter in allFilters)
+			{
+				realWallet.WalletFilterProcessor.FilterIteratorsBySyncType[syncType].Cache[filter.Header.Height] = filter;
+			}
 		}
 
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
@@ -143,8 +147,8 @@ public class WalletFilterProcessorTests
 		await whenAllNonTurbo;
 
 		// Blockchain Tip should be reach for both SyncTypes.
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight().Value);
-		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestTurboSyncHeight().Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight(SyncType.Complete).Value);
+		Assert.Equal(realWallet.BitcoinStore.SmartHeaderChain.TipHeight, (uint)realWallet.KeyManager.GetBestHeight(SyncType.Turbo).Value);
 	}
 
 	// This emulates the NewFiltersProcessed event with SyncType separation to keep the track of the order.

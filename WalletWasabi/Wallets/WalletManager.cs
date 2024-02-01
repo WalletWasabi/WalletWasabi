@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -47,7 +50,7 @@ public class WalletManager : IWalletProvider
 		ServiceConfiguration = serviceConfiguration;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
-		RefreshWalletList();
+		LoadWalletListFromFileSystem();
 	}
 
 	/// <summary>
@@ -89,22 +92,32 @@ public class WalletManager : IWalletProvider
 	private IBlockProvider BlockProvider { get; }
 	private string WorkDir { get; }
 
-	private void RefreshWalletList()
+	private void LoadWalletListFromFileSystem()
 	{
-		foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
+
+		string[]? walletNamesToLoad = null;
+		lock (Lock)
 		{
+			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
+		}
+
+		if (walletNamesToLoad.Length == 0)
+		{
+			return;
+		}
+
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), CancelAllTasksToken)).ToList();
+
+		while (walletLoadTasks.Count > 0)
+		{
+			var tasksArray = walletLoadTasks.ToArray();
+			var finishedTaskIndex = Task.WaitAny(tasksArray, CancelAllTasksToken);
+			var finishedTask = tasksArray[finishedTaskIndex];
+			walletLoadTasks.Remove(finishedTask);
 			try
 			{
-				string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-				lock (Lock)
-				{
-					if (Wallets.Any(w => w.WalletName == walletName))
-					{
-						continue;
-					}
-				}
-
-				Wallet wallet = GetWalletByName(walletName);
+				var wallet = finishedTask.Result;
 				AddWallet(wallet);
 			}
 			catch (Exception ex)
@@ -114,15 +127,68 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
-
-	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
+	public void RenameWallet(Wallet wallet, string newWalletName)
 	{
-		if (refreshWalletList)
+		if (newWalletName == wallet.WalletName)
 		{
-			RefreshWalletList();
+			return;
 		}
 
+		if (ValidateWalletName(newWalletName) is { } error)
+		{
+			Logger.LogWarning($"Invalid name '{newWalletName}' when attempting to rename '{error.Message}'");
+			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
+		}
+
+		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
+		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
+
+		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
+		File.Move(currentWalletFilePath, newWalletFilePath);
+
+		try
+		{
+			File.Move(currentWalletBackupFilePath, newWalletBackupFilePath);
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
+		}
+
+		wallet.KeyManager.SetFilePath(newWalletFilePath);
+	}
+
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
+	{
+		string walletFilePath = Path.Combine(WalletDirectories.WalletsDir, $"{walletName}.json");
+
+		if (string.IsNullOrEmpty(walletName))
+		{
+			return (ErrorSeverity.Error, "The name cannot be empty");
+		}
+
+		if (walletName.IsTrimmable())
+		{
+			return (ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+		}
+
+		if (File.Exists(walletFilePath))
+		{
+			return (ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+		}
+
+		if (!WalletGenerator.ValidateWalletName(walletName))
+		{
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
+		}
+
+		return null;
+	}
+
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets());
+
+	public IEnumerable<Wallet> GetWallets()
+	{
 		lock (Lock)
 		{
 			return Wallets.ToList();
@@ -200,7 +266,7 @@ public class WalletManager : IWalletProvider
 		return wallet;
 	}
 
-	private Wallet GetWalletByName(string walletName)
+	private Wallet LoadWalletByNameFromDisk(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 		Wallet wallet;
@@ -243,7 +309,7 @@ public class WalletManager : IWalletProvider
 	{
 		lock (Lock)
 		{
-			if (Wallets.Any(w => w.WalletName == wallet.WalletName))
+			if (Wallets.Any(w => w.WalletId == wallet.WalletId))
 			{
 				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}
@@ -262,7 +328,7 @@ public class WalletManager : IWalletProvider
 	}
 
 	private Wallet CreateWalletInstance(KeyManager keyManager)
-		=> new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+		=> new (WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
@@ -412,14 +478,14 @@ public class WalletManager : IWalletProvider
 		// * Testnet block 2542919 (https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799) was mined before the PR was created.
 		var heightPriorTo12137 = Network == Network.Main ? 822621 : 2542919;
 
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
-			if (km.GetBestHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
 			{
 				km.SetBestHeight(heightPriorTo12137);
 			}
 
-			if (km.GetBestTurboSyncHeight() > heightPriorTo12137)
+			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
 			{
 				km.SetBestTurboSyncHeight(heightPriorTo12137);
 			}
@@ -428,7 +494,7 @@ public class WalletManager : IWalletProvider
 
 	public void EnsureTurboSyncHeightConsistency()
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.EnsureTurboSyncHeightConsistency();
 		}
@@ -436,19 +502,14 @@ public class WalletManager : IWalletProvider
 
 	public void SetMaxBestHeight(uint bestHeight)
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.SetMaxBestHeight(new Height(bestHeight));
 		}
 	}
 
-	/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
-	public Wallet GetWalletByName(string walletName, bool refreshWalletList = true)
+	public Wallet GetWalletByName(string walletName)
 	{
-		if (refreshWalletList)
-		{
-			RefreshWalletList();
-		}
 		lock (Lock)
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);

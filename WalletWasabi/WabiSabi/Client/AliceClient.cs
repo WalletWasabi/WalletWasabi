@@ -24,7 +24,6 @@ public class AliceClient
 		RoundState roundState,
 		ArenaClient arenaClient,
 		SmartCoin coin,
-		OwnershipProof ownershipProof,
 		IEnumerable<Credential> issuedAmountCredentials,
 		IEnumerable<Credential> issuedVsizeCredentials,
 		bool isCoordinationFeeExempted)
@@ -34,7 +33,6 @@ public class AliceClient
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
-		OwnershipProof = ownershipProof;
 		FeeRate = roundParameters.MiningFeeRate;
 		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
@@ -48,7 +46,6 @@ public class AliceClient
 	public uint256 RoundId { get; }
 	private ArenaClient ArenaClient { get; }
 	public SmartCoin SmartCoin { get; }
-	private OwnershipProof OwnershipProof { get; }
 	private FeeRate FeeRate { get; }
 	private CoordinationFeeRate CoordinationFeeRate { get; }
 	public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
@@ -115,7 +112,7 @@ public class AliceClient
 			new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
 
 		var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-		aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
+		aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
 		coin.CoinJoinInProgress = true;
 
 		Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");

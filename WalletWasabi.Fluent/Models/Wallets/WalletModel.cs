@@ -1,20 +1,16 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletModel : INotifyPropertyChanged
-{
-}
+public partial interface IWalletModel : INotifyPropertyChanged;
 
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
@@ -39,7 +35,7 @@ public partial class WalletModel : ReactiveObject
 
 		Transactions = new WalletTransactionsModel(this, wallet);
 
-		AddressesModel = new AddressesModel(Transactions.TransactionProcessed.ToSignal().Merge(_newAddressGenerated.ToSignal()), Wallet.KeyManager);
+		Addresses = new AddressesModel(Wallet);
 
 		State =
 			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
@@ -69,9 +65,11 @@ public partial class WalletModel : ReactiveObject
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
 
-	public IAddressesModel AddressesModel { get; }
+	public IAddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }
+
+	public WalletId Id => Wallet.WalletId;
 
 	public string Name => Wallet.WalletName;
 
@@ -99,25 +97,6 @@ public partial class WalletModel : ReactiveObject
 
 	public IAmountProvider AmountProvider { get; }
 
-	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
-	{
-		var pubKey = Wallet.GetNextReceiveAddress(destinationLabels);
-		var nextReceiveAddress = new Address(Wallet.KeyManager, pubKey);
-		_newAddressGenerated.OnNext(nextReceiveAddress);
-
-		return nextReceiveAddress;
-	}
-
-	public IWalletInfoModel GetWalletInfo()
-	{
-		return new WalletInfoModel(Wallet);
-	}
-
-	public IWalletStatsModel GetWalletStats()
-	{
-		return new WalletStatsModel(this, Wallet);
-	}
-
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
@@ -125,5 +104,21 @@ public partial class WalletModel : ReactiveObject
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);
+	}
+
+	public IWalletStatsModel GetWalletStats()
+	{
+		return new WalletStatsModel(this, Wallet);
+	}
+
+	public IWalletInfoModel GetWalletInfo()
+	{
+		return new WalletInfoModel(Wallet);
+	}
+
+	public void Rename(string newWalletName)
+	{
+		Services.WalletManager.RenameWallet(Wallet, newWalletName);
+		this.RaisePropertyChanged(nameof(Name));
 	}
 }

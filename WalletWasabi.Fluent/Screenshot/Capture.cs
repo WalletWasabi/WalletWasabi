@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Screenshot;
 
@@ -30,27 +31,14 @@ public static class Capture
 
 	private static async Task SaveAsync(TopLevel root)
 	{
-		if (root is not Window window)
+		var file = await FileDialogHelper.SaveFileAsync(
+			"Save screenshot...",
+			new[] { "png", "*" },
+			"WalletWasabi.png",
+			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+		if (file is not null)
 		{
-			return;
-		}
-
-		var dlg = new SaveFileDialog
-		{
-			Title = "Save screenshot",
-			Filters = new()
-			{
-				new() { Name = "Png", Extensions = { "png" } },
-				new() { Name = "All", Extensions = { "*" } }
-			},
-			InitialFileName = "WalletWasabi",
-			DefaultExtension = "png"
-		};
-
-		var result = await dlg.ShowAsync(window);
-		if (result is { } path)
-		{
-			Save(root, root.Bounds.Size, path);
+			Save(root, root.Bounds.Size, file.Path.AbsolutePath);
 		}
 	}
 

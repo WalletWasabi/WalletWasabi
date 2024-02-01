@@ -10,6 +10,7 @@ using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -43,23 +44,24 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		UseBitcoinCore = applicationSettings.StartLocalBitcoinCoreOnStartup;
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
+		var synchronizer = Services.HostedServices.Get<WasabiSynchronizer>();
 
 		// Tor Status
-		Services.Synchronizer.WhenAnyValue(x => x.TorStatus)
+		synchronizer.WhenAnyValue(x => x.TorStatus)
 							 .ObserveOn(RxApp.MainThreadScheduler)
 							 .Select(status => UseTor ? status : TorStatus.TurnedOff)
 							 .BindTo(this, x => x.TorStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend Status
-		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+		synchronizer.WhenAnyValue(x => x.BackendStatus)
 							 .ObserveOn(RxApp.MainThreadScheduler)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend Connection Issues flag
 		// TODO: the event invoke must be refactored in Synchronizer
-		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
+		Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
 				  .Where(x => BackendStatus != BackendStatus.Connected)
 				  .Do(_ => IsConnectionIssueDetected = true)
 				  .Subscribe()
@@ -86,9 +88,9 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		// Peers
 		Observable.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
 				  .Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
-				  .Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).ToSignal())))
+				  .Merge(synchronizer.WhenAnyValue(x => x.TorStatus).ToSignal())))
 				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Select(_ => Services.Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				  .Select(_ => synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 				  .BindTo(this, x => x.Peers)
 				  .DisposeWith(Disposables);
 

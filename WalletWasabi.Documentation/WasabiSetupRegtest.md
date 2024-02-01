@@ -14,9 +14,9 @@ Todo:
 1. Install [Bitcoin Knots](https://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
 2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
     ```
-    Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
-    macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
-    Linux:  ~/bitcoin-[version number]/bin/bitcoin-qt -regtest
+    Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+    macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+    Linux:  ~/bitcoin-[version number]/bin/bitcoin-qt -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
     ```
 3. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
     ```
@@ -35,6 +35,7 @@ Todo:
     regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
     regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
     regtest.disablewallet = 0
+    regtest.softwareexpiry = 0
     ```
 5. Save it.
 6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
@@ -112,4 +113,4 @@ Todo:
 12. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
     - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
-Happy CoinJoin!
+Happy coinjoin!

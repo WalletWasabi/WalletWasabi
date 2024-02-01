@@ -17,6 +17,7 @@ public partial class WalletPageViewModel : ViewModelBase
 	[AutoNotify] private string? _iconNameFocused;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
+	[AutoNotify] private string? _title;
 
 	private WalletPageViewModel(IWalletModel walletModel)
 	{
@@ -24,7 +25,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		// TODO: Finish partial refactor
 		// Wallet property must be removed
-		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
+		Wallet = Services.WalletManager.GetWalletByName(walletModel.Name);
 
 		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
@@ -54,14 +55,14 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
+
 		SetIcon();
 	}
 
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
-
-	public string Title => WalletModel.Name;
 
 	private void ShowLogin()
 	{

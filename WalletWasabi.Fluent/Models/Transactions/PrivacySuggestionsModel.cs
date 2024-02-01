@@ -145,7 +145,7 @@ public class PrivacySuggestionsModel
 			yield return new SemiPrivateFundsWarning();
 		}
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
+		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
 		bool wasCoinjoiningCoinUsed = originalTransaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
@@ -165,7 +165,7 @@ public class PrivacySuggestionsModel
 		var totalAmount = originalTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
-		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Any() &&
+		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Length != 0 &&
 			TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
@@ -188,7 +188,7 @@ public class PrivacySuggestionsModel
 		}
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
-		if (foundNonPrivate && allSemiPrivateCoin.Any() &&
+		if (foundNonPrivate && allSemiPrivateCoin.Length != 0 &&
 			TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
@@ -259,15 +259,20 @@ public class PrivacySuggestionsModel
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletName];
-
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : coinsToUse.Except(coinsToExclude).ToImmutableArray();
+		var coinsInCoinJoin = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
+		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
+
+		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
+		if (spentCoins.All(x => x.Confirmed))
+		{
+			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
+		}
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
 

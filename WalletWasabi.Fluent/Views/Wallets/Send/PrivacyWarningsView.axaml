@@ -4,7 +4,10 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView">
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView"
+             x:DataType="send:PrivacySuggestionsFlyoutViewModel"
+             x:CompileBindings="True">
   <UserControl.Styles>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="Transparent" />
