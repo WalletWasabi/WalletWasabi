@@ -247,7 +247,7 @@ public class BlockDownloadService : BackgroundService
 
 		try
 		{
-			// Try get the block from the file-system storage.
+			// Try to get the block from the file-system storage.
 			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
@@ -257,8 +257,9 @@ public class BlockDownloadService : BackgroundService
 			SuccessResult? successResult = null;
 			ISourceData? failureSourceData = null;
 
-			if (request.SourceRequest is FullNodeSourceRequest)
+			if (request.SourceRequest is TrustedFullNodeSourceRequest)
 			{
+				// Try to get the block from a trusted node, whether it's integrated or distant.
 				if (TrustedFullNodeBlockProviders.Length == 0)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);
@@ -282,6 +283,7 @@ public class BlockDownloadService : BackgroundService
 			}
 			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
 			{
+				// Try to get the block from the P2P Network.
 				if (P2PBlockProvider is null)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);
