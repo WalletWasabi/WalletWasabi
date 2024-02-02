@@ -202,6 +202,13 @@ public partial class CurrencyEntryBox : TextBox
 		{
 			ViewModel.SelectAll();
 		}
+		else if (e.Key is Key.Enter or Key.Tab)
+		{
+			// Let these pass through so it can be handled elsewhere
+
+			_isUpdating = false;
+			return;
+		}
 		else
 		{
 			var input =
