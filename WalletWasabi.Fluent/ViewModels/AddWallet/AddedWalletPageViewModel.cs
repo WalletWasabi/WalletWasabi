@@ -44,7 +44,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		IsBusy = false;
 
-		await Task.Delay(500);
+		await Task.Delay(UiConstants.CloseSuccessDialogMillisecondsDelay);
 
 		Navigate().Clear();
 
