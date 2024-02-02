@@ -9,8 +9,7 @@
              x:DataType="vm:SendSuccessViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableNext="False" NextContent="Done"
+  <c:ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  MinWidth="500">
     <views:SuccessAnimationView VerticalAlignment="Center" />
