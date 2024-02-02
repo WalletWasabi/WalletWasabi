@@ -587,7 +587,7 @@ public class MockedDeviceTests
 		await client.SetupAsync(deviceType, devicePath, false, cts.Token);
 		await client.RestoreAsync(deviceType, devicePath, false, cts.Token);
 
-		// Trezor T doesn't support it.
+		// BitBox02 doesn't support it.
 		var promptpin = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 		Assert.Equal("The BitBox02 does not need a PIN sent from the host", promptpin.Message);
 		Assert.Equal(HwiErrorCode.UnavailableAction, promptpin.ErrorCode);
