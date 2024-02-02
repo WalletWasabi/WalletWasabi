@@ -45,6 +45,8 @@ public partial class CurrencyEntryBox : TextBox
 		SetCurrentValue(TextProperty, "");
 
 		AddHandler(KeyDownEvent, CustomOnKeyDown, RoutingStrategies.Tunnel);
+		AddHandler(PointerMovedEvent, CustomPointerMove, RoutingStrategies.Tunnel);
+		AddHandler(PointerPressedEvent, CustomPointerPressed, RoutingStrategies.Tunnel);
 
 		this.GetObservable(ViewModelProperty)
 			.Do(cf =>
@@ -264,6 +266,21 @@ public partial class CurrencyEntryBox : TextBox
 		e.Handled = true;
 
 		_isUpdating = false;
+	}
+
+	private void CustomPointerMove(object? sender, PointerEventArgs e)
+	{
+		// TODO: Mouse selection as implemented in TextBox control is incompatible with CurrencyEntryBox.
+		e.Handled = true;
+	}
+
+	private void CustomPointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		if (e.ClickCount == 2 && ViewModel is { })
+		{
+			ViewModel.SelectAll();
+			e.Handled = true;
+		}
 	}
 
 	public async Task OnPasteAsync(RoutedEventArgs? e = null)
