@@ -45,7 +45,7 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel>
+        <DockPanel x:Name="Root">
           <DataValidationErrors DockPanel.Dock="Bottom" x:Name="PART_DataValidationErrors" />
 
           <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}">
@@ -249,15 +249,6 @@
     <!-- Error state -->
     <Style Selector="^:error /template/ Border#PART_BorderElement">
       <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-    </Style>
-
-    <!-- Move Suggestion Behavior Flyout Placement -->
-    <Style Selector="^[HorizontalContentAlignment=Left] /template/ behaviors|FlyoutSuggestionBehavior#SuggestionBehavior">
-      <Setter Property="PlacementMode" Value="BottomEdgeAlignedLeft" />
-    </Style>
-
-    <Style Selector="^[HorizontalContentAlignment=Right] /template/ behaviors|FlyoutSuggestionBehavior#SuggestionBehavior">
-      <Setter Property="PlacementMode" Value="BottomEdgeAlignedRight" />
     </Style>
 
     <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->

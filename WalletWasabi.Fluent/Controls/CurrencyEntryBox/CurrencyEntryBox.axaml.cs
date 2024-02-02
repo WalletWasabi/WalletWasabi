@@ -4,11 +4,15 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
+using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
@@ -311,6 +315,37 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
+	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	{
+		base.OnApplyTemplate(e);
+
+		var root = e.NameScope.Find<DockPanel>("Root");
+		if (root is not { })
+		{
+			return;
+		}
+
+		var behavior = Interaction.GetBehaviors(root).OfType<FlyoutSuggestionBehavior>().FirstOrDefault();
+
+		if (behavior is not { })
+		{
+			return;
+		}
+
+		this.GetObservable(HorizontalContentAlignmentProperty)
+			.Do(hz =>
+			{
+				behavior.PlacementMode =
+					hz switch
+					{
+						HorizontalAlignment.Left => PlacementMode.BottomEdgeAlignedLeft,
+						HorizontalAlignment.Right => PlacementMode.BottomEdgeAlignedRight,
+						_ => PlacementMode.Center
+					};
+			})
+			.Subscribe();
+	}
+
 
 	private async Task OnCopyAsync(RoutedEventArgs? e = null)
 	{
@@ -337,4 +372,6 @@ public partial class CurrencyEntryBox : TextBox
 			e.Handled = true;
 		}
 	}
+
+	
 }
