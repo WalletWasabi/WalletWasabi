@@ -42,10 +42,11 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
 
-		if (text != null)
+		if (_text != text)
 		{
 			_text = text;
 			_privacyText = new string('#', _numberOfPrivacyChars);
+			_formattedText = null;
 		}
 
 		base.Realize(factory, selection, model, columnIndex, rowIndex);
