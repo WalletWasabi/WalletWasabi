@@ -28,7 +28,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
-		await Task.Delay(UiConstants.CloseSendSuccessDialogMillisecondsDelay);
+		await Task.Delay(UiConstants.CloseSuccessDialogMillisecondsDelay);
 
 		Navigate().Clear();
 
