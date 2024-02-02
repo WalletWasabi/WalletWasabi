@@ -480,6 +480,11 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 		SetValue(currencyValue);
 	}
 
+	public bool IsValid()
+	{
+		return !Validations.Any;
+	}
+
 	public async Task CopySelectionToClipboardAsync()
 	{
 		try

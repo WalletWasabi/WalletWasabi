@@ -55,6 +55,11 @@ public partial class TransactionInfo
 
 	public bool IsFixedAmount { get; init; }
 
+	public decimal? CustomFee =>
+		IsCustomFeeUsed
+		? FeeRate.SatoshiPerByte
+		: null;
+
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
