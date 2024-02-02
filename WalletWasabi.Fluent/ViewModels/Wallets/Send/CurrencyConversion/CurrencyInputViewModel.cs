@@ -449,15 +449,21 @@ public partial class CurrencyInputViewModel : ViewModelBase
 			var format = new string('#', maxIntegral);
 			if (hasFractional)
 			{
+				var formatChar =
+					CurrencyFormat.ForceFractionalFormatToMaxFractionalDigits
+					? '0'
+					: '#';
+
 				format += DecimalSeparator;
-				format += new string('#', maxFractional);
-				var formatted = v.Value.ToString(format);
-				if (formatted.StartsWith(DecimalSeparator))
-				{
-					formatted = "0" + formatted;
-				}
-				Text = formatted;
+				format += new string(formatChar, maxFractional);
 			}
+
+			var formatted = v.Value.ToString(format);
+			if (formatted.StartsWith(DecimalSeparator))
+			{
+				formatted = "0" + formatted;
+			}
+			Text = formatted;
 		}
 
 		SetDecimalSeparatorPosition();

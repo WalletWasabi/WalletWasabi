@@ -28,6 +28,7 @@ public partial class CurrencyFormat : ReactiveObject
 		MaxFractionalDigits = 2,
 		MaxIntegralDigits = 12,
 		MaxLength = 20,
+		ForceFractionalFormatToMaxFractionalDigits = true
 	};
 
 	public static readonly CurrencyFormat SatsvByte = new()
@@ -45,6 +46,7 @@ public partial class CurrencyFormat : ReactiveObject
 	public int? MaxFractionalDigits { get; init; }
 	public int? MaxLength { get; init; }
 	public string? DefaultWatermark { get; set; }
+	public bool ForceFractionalFormatToMaxFractionalDigits { get; init; }
 }
 
 public abstract record CurrencyValue

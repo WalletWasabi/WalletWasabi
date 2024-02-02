@@ -7,14 +7,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -120,6 +117,23 @@ public partial class CurrencyEntryBox : TextBox
 					})
 					.Subscribe()
 					.DisposeWith(_disposables);
+
+				this.GetObservable(IsFocusedProperty)
+					.DistinctUntilChanged()
+					.Where(_ => ViewModel is { })
+					.Do(f =>
+					{
+						if (f)
+						{
+							ViewModel.ClearSelection();
+							ViewModel.SelectAll();
+						}
+						else
+						{
+							ViewModel.ClearSelection();
+						}
+					})
+					.Subscribe();
 			})
 			.Subscribe();
 		// Set MaxLength according to CurrencyFormat
