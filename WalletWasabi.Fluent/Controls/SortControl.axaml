@@ -1,0 +1,85 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <controls:SortControl />
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type controls:SortControl}" TargetType="controls:SortControl">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <StackPanel Spacing="8">
+            <StackPanel.Styles>
+              <Style Selector="HeaderedContentControl">
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate>
+                      <DockPanel>
+                        <ContentPresenter VerticalContentAlignment="Center" Content="{TemplateBinding Header}" />
+                        <ContentPresenter Margin="10 0 0 0" Content="{TemplateBinding Content}" />
+                      </DockPanel>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+
+              <Style Selector="HeaderedContentControl StackPanel">
+                <Setter Property="Orientation" Value="Horizontal" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="Spacing" Value="2" />
+              </Style>
+
+              <Style Selector="HeaderedContentControl Button">
+                <Setter Property="Padding" Value="4" />
+                <Setter Property="CornerRadius" Value="8" />
+              </Style>
+
+            </StackPanel.Styles>
+            <HeaderedContentControl Header="Status">
+              <StackPanel>
+                <Button Command="{TemplateBinding StatusDescending}">
+                  <PathIcon Data="{StaticResource down_arrow}" />
+                </Button>
+                <Button Command="{TemplateBinding StatusAscending}">
+                  <PathIcon Data="{StaticResource up_arrow}" />
+                </Button>
+              </StackPanel>
+            </HeaderedContentControl>
+            <HeaderedContentControl Header="Date">
+              <StackPanel>
+                <Button Command="{TemplateBinding DateDescending}">
+                  <PathIcon Data="{StaticResource down_arrow}" />
+                </Button>
+                <Button Command="{TemplateBinding DateAscending}">
+                  <PathIcon Data="{StaticResource up_arrow}" />
+                </Button>
+              </StackPanel>
+            </HeaderedContentControl>
+            <HeaderedContentControl Header="Amount">
+              <StackPanel>
+                <Button Command="{TemplateBinding AmountDescending}">
+                  <PathIcon Data="{StaticResource down_arrow}" />
+                </Button>
+                <Button Command="{TemplateBinding AmountAscending}">
+                  <PathIcon Data="{StaticResource up_arrow}" />
+                </Button>
+              </StackPanel>
+            </HeaderedContentControl>
+            <HeaderedContentControl Header="Label">
+              <StackPanel>
+                <Button Command="{TemplateBinding LabelDescending}">
+                  <PathIcon Data="{StaticResource down_arrow}" />
+                </Button>
+                <Button Command="{TemplateBinding LabelAscending}">
+                  <PathIcon Data="{StaticResource up_arrow}" />
+                </Button>
+              </StackPanel>
+            </HeaderedContentControl>
+          </StackPanel>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+
+  </ControlTheme>
+</ResourceDictionary>
