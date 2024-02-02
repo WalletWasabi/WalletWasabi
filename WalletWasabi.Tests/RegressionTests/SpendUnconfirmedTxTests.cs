@@ -68,7 +68,7 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
-		var workDir = Helpers.Common.GetWorkDir();
+		var workDir = Common.GetWorkDir();
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
