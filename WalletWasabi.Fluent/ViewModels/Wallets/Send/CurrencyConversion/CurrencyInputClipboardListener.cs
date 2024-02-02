@@ -72,7 +72,7 @@ public partial class CurrencyInputClipboardListener: ActivatableViewModel
 			.Do(text =>
 			{
 				// Validate that value can be parsed with current CurrencyFormat
-				var vm = new CurrencyInputViewModel(UiContext, _wallet, currencyFormat);
+				var vm = new CurrencyInputViewModel(UiContext, currencyFormat, _wallet);
 				vm.InsertRaw(text);
 
 				if (vm.Value is not CurrencyValue.Valid v)

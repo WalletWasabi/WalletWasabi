@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -6,6 +7,7 @@ using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -26,24 +28,32 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinP2PEndPoint;
-	[AutoNotify] private decimal? _dustThreshold;
 
-	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
+	public BitcoinTabSettingsViewModel(UiContext uiContext)
 	{
-		Settings = settings;
+		UiContext = uiContext;
+		Settings = uiContext.ApplicationSettings;
 
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
-		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
-		_dustThreshold = CurrencyInput.TryParse(settings.DustThreshold);
+		_bitcoinP2PEndPoint = Settings.BitcoinP2PEndPoint;
 
-		this.WhenAnyValue(x => x.DustThreshold)
-			.BindTo(settings, x => x.DustThreshold);
+		var dustThreshold = CurrencyInput.TryParse(Settings.DustThreshold);
+
+		DustThreshold = new CurrencyInputViewModel(uiContext, CurrencyFormat.Btc, null);
+
+		DustThreshold.SetValue(dustThreshold);
+
+		this.WhenAnyValue(x => x.DustThreshold.Value)
+			.Select(x => x.ToInvariantFormatString())
+			.BindTo(Settings, x => x.DustThreshold);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
+
+	public CurrencyInputViewModel DustThreshold { get; }
 
 	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 

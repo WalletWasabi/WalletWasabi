@@ -36,7 +36,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
-		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
+		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext);
 		AdvancedSettingsTab = new AdvancedSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));

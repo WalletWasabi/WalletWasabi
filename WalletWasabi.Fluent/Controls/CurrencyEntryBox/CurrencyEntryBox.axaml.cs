@@ -129,11 +129,14 @@ public partial class CurrencyEntryBox : TextBox
 					{
 						if (f)
 						{
+							ClearSelection();
+							SelectAll();
 							ViewModel.ClearSelection();
 							ViewModel.SelectAll();
 						}
 						else
 						{
+							ClearSelection();
 							ViewModel.ClearSelection();
 						}
 					})

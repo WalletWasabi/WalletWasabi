@@ -21,4 +21,14 @@ public static class CurrencyInput
 			? value
 			: null;
 	}
+
+	public static string Format(decimal? value)
+	{
+		if (value is not { })
+		{
+			return string.Empty;
+		}
+
+		return value.Value.ToString(InvariantNumberFormat);
+	}
 }

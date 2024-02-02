@@ -25,10 +25,11 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 	[AutoNotify] private int? _fractionalLength;
 	[AutoNotify] private CurrencyValue _value = CurrencyValue.EmptyValue;
 
-	public CurrencyInputViewModel(UiContext uiContext, IWalletModel wallet, CurrencyFormat currencyFormat, bool enableClipboardSuggestion = false)
+	public CurrencyInputViewModel(UiContext uiContext, CurrencyFormat currencyFormat, IWalletModel? wallet = null, bool enableClipboardSuggestion = false)
 	{
 		CurrencyFormat = currencyFormat;
-		if (enableClipboardSuggestion)
+
+		if (wallet is { } && enableClipboardSuggestion)
 		{
 			Suggestion = new CurrencyInputClipboardListener(uiContext, wallet, this);
 		}
@@ -468,6 +469,15 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 		}
 
 		SetDecimalSeparatorPosition();
+	}
+
+	public void SetValue(decimal? value)
+	{
+		CurrencyValue currencyValue =
+			value is { } v
+			? new CurrencyValue.Valid(v)
+			: CurrencyValue.EmptyValue;
+		SetValue(currencyValue);
 	}
 
 	public async Task CopySelectionToClipboardAsync()

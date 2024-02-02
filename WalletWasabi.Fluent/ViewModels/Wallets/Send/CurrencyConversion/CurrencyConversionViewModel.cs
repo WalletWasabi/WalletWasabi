@@ -21,8 +21,8 @@ public partial class CurrencyConversionViewModel : ViewModelBase
 		Wallet = wallet;
 
 		// TODO: this could be used to show conversion to currencies other than USD
-		var btc = new CurrencyInputViewModel(uiContext, wallet, CurrencyFormat.Btc, true);
-		var usd = new CurrencyInputViewModel(uiContext, wallet, CurrencyFormat.Usd, true);
+		var btc = new CurrencyInputViewModel(uiContext, CurrencyFormat.Btc, wallet, true);
+		var usd = new CurrencyInputViewModel(uiContext, CurrencyFormat.Usd, wallet, true);
 
 		_left = btc;
 		_right = usd;

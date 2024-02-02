@@ -78,4 +78,19 @@ public abstract record CurrencyValue
 	public record Invalid : CurrencyValue;
 
 	public record Empty : CurrencyValue;
+
+	public decimal? ToDecimal()
+	{
+		return this switch
+		{
+			Valid v => v.Value,
+			_ => null
+		};
+	}
+
+	public string ToInvariantFormatString()
+	{
+		var decimalValue = ToDecimal();
+		return CurrencyInput.Format(decimalValue);
+	}
 }
