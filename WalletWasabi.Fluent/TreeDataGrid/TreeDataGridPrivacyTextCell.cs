@@ -19,6 +19,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private FormattedText? _privacyFormattedText;
 	private int _numberOfPrivacyChars;
 	private string? _privacyText;
+	private Size? _availableSize;
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -42,10 +43,16 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
 
-		if (text != null)
+		if (_text != text)
 		{
 			_text = text;
 			_privacyText = new string('#', _numberOfPrivacyChars);
+			_formattedText = null;
+
+			if (_availableSize is not null)
+			{
+				_formattedText = CreateFormattedText(_availableSize.Value, _text);
+			}
 		}
 
 		base.Realize(factory, selection, model, columnIndex, rowIndex);
@@ -100,11 +107,13 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (_formattedText is null || _privacyFormattedText is null)
+		if (_formattedText is null || _privacyFormattedText is null || (_availableSize is not null && _availableSize != availableSize))
 		{
 			_formattedText = CreateFormattedText(availableSize, _text);
 			_privacyFormattedText = CreateFormattedText(availableSize, _privacyText);
 		}
+
+		_availableSize = availableSize;
 
 		return new Size(
 			Math.Max(_formattedText.Width, _privacyFormattedText.Width),
