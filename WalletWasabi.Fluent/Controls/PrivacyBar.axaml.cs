@@ -76,7 +76,7 @@ public class PrivacyBar : ItemsControl
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
 		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
-		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		if (segmentsToEnlarge.Length != 0 && segmentsToReduce.Length != 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
 			rawSegments = rawSegments.Select(x =>
 			{

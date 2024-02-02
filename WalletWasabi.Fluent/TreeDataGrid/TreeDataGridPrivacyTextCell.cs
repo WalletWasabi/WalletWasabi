@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia;
@@ -13,13 +12,14 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private IDisposable? Subscription;
-	private bool IsContentVisible = true;
-	private string? _value;
+	private IDisposable? _subscription;
+	private bool _isContentVisible = true;
+	private string? _text;
 	private FormattedText? _formattedText;
+	private FormattedText? _privacyFormattedText;
 	private int _numberOfPrivacyChars;
-
-	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
+	private string? _privacyText;
+	private Size? _availableSize;
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -31,32 +31,54 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 
-	public override void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection, ICell model, int columnIndex, int rowIndex)
+	public override void Realize(
+		TreeDataGridElementFactory factory,
+		ITreeDataGridSelectionInteraction? selection,
+		ICell model,
+		int columnIndex,
+		int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell)model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
 
-		if (text != _value)
+		if (_text != text)
 		{
-			_value = text;
+			_text = text;
+			_privacyText = new string('#', _numberOfPrivacyChars);
 			_formattedText = null;
+
+			if (_availableSize is not null)
+			{
+				_formattedText = CreateFormattedText(_availableSize.Value, _text);
+			}
 		}
 
 		base.Realize(factory, selection, model, columnIndex, rowIndex);
 	}
 
+	public override void Unrealize()
+	{
+		_formattedText = null;
+		base.Unrealize();
+	}
+
 	public override void Render(DrawingContext context)
 	{
-		if (_formattedText is not null)
+		context.FillRectangle(Brushes.Transparent, new Rect(new Point(), DesiredSize));
+
+		var formattedText = _isContentVisible ? _formattedText : _privacyFormattedText;
+
+		if (formattedText is not null)
 		{
-			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(_formattedText.Width, _formattedText.Height)));
+			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
 			if (Foreground is { })
 			{
-				_formattedText.SetForegroundBrush(Foreground);
+				formattedText.SetForegroundBrush(Foreground);
 			}
-			context.DrawText(_formattedText, new Point(0, r.Position.Y));
+
+			context.DrawText(formattedText, new Point(0, r.Position.Y));
 		}
 	}
 
@@ -64,9 +86,9 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		base.OnAttachedToVisualTree(e);
 
-		Subscription = PrivacyModeHelper.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
+		_subscription = PrivacyModeHelper.DelayedRevealAndHide(
+				this.WhenAnyValue(x => x.IsPointerOver),
+				Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(SetContentVisible)
 			.Subscribe();
@@ -74,44 +96,50 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		Subscription?.Dispose();
-		Subscription = null;
+		_subscription?.Dispose();
+		_subscription = null;
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (string.IsNullOrWhiteSpace(Text))
+		if (string.IsNullOrWhiteSpace(_text))
 		{
 			return default;
 		}
 
-		if (availableSize.Width != _formattedText?.MaxTextWidth
-		    || availableSize.Height != _formattedText?.MaxTextHeight)
+		if (_formattedText is null || _privacyFormattedText is null || (_availableSize is not null && _availableSize != availableSize))
 		{
-			_formattedText = new FormattedText(
-				Text,
-				CultureInfo.CurrentCulture,
-				FlowDirection.LeftToRight,
-				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				null)
-			{
-				TextAlignment = TextAlignment.Left,
-				MaxTextHeight = availableSize.Height,
-				MaxTextWidth = availableSize.Width,
-				Trimming = TextTrimming.None
-			};
+			_formattedText = CreateFormattedText(availableSize, _text);
+			_privacyFormattedText = CreateFormattedText(availableSize, _privacyText);
 		}
 
-		return new Size(_formattedText.Width, _formattedText.Height);
+		_availableSize = availableSize;
+
+		return new Size(
+			Math.Max(_formattedText.Width, _privacyFormattedText.Width),
+			Math.Max(_formattedText.Height, _privacyFormattedText.Height));
 	}
 
 	private void SetContentVisible(bool value)
 	{
-		IsContentVisible = value;
-
-		_formattedText = null;
-		InvalidateMeasure();
+		_isContentVisible = value;
 		InvalidateVisual();
+	}
+
+	private FormattedText CreateFormattedText(Size availableSize, string? text)
+	{
+		return new FormattedText(
+			text ?? string.Empty,
+			CultureInfo.CurrentCulture,
+			FlowDirection.LeftToRight,
+			new Typeface(FontFamily, FontStyle, FontWeight),
+			FontSize,
+			null)
+		{
+			TextAlignment = TextAlignment.Left,
+			MaxTextHeight = availableSize.Height,
+			MaxTextWidth = availableSize.Width,
+			Trimming = TextTrimming.None
+		};
 	}
 }

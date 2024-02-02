@@ -147,7 +147,7 @@ public static class RPCClientExtensions
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
 	{
-		if (mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any())
+		if (mempoolInfo.Histogram is null || mempoolInfo.Histogram.Length == 0)
 		{
 			return new FeeRateByConfirmationTarget(0);
 		}

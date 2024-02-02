@@ -90,7 +90,7 @@ public partial class WalletRepository : ReactiveObject
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
 	{
-		var existingWallet = Services.WalletManager.GetWallets(false).FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
+		var existingWallet = Services.WalletManager.GetWallets().FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
 			return GetById(existingWallet.WalletId);

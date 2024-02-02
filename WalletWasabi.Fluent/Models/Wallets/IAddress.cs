@@ -14,8 +14,6 @@ public interface IAddress : IReactiveObject
 
 	LabelsArray Labels { get; }
 
-	bool IsUsed { get; }
-
 	void Hide();
 
 	void SetLabels(LabelsArray labels);

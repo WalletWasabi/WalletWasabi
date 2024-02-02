@@ -42,7 +42,12 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		await AutoLoginAsync(options);
 
+		IsBusy = false;
+
+		await Task.Delay(UiConstants.CloseSuccessDialogMillisecondsDelay);
+
 		Navigate().Clear();
+
 		UiContext.Navigate().To(_wallet);
 	}
 
@@ -51,6 +56,11 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet = UiContext.WalletRepository.SaveWallet(_walletSettings);
+
+		if (NextCommand is not null && NextCommand.CanExecute(default))
+		{
+			NextCommand.Execute(default);
+		}
 	}
 
 	private async Task AutoLoginAsync(WalletCreationOptions? options)
