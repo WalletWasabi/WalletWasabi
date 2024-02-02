@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -14,6 +15,7 @@ public static class FlyoutHelpers
 	{
 		var window = VisualLocator
 			.Track(target, ancestorLevel: 0, ancestorType: typeof(Window))
+			.WhereNotNull()
 			.Cast<Window>();
 
 		window
