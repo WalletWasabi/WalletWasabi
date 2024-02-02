@@ -13,6 +13,8 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Hardware Wallets
 
+- Blockstream Jade
+- BitBox02-BtcOnly
 - ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
@@ -21,8 +23,7 @@ This document lists all the officially supported software and devices by Wasabi 
 - Ledger Nano S Plus
 - Ledger Nano X
 - Trezor Model T
-- Blockstream Jade
-- BitBox02
+
 
 # Officially Supported Architectures
 
