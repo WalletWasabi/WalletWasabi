@@ -136,6 +136,7 @@ public partial class CurrencyEntryBox : TextBox
 					.Subscribe();
 			})
 			.Subscribe();
+
 		// Set MaxLength according to CurrencyFormat
 		this.GetObservable(CurrencyFormatProperty)
 			.WhereNotNull()

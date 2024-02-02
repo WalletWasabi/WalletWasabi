@@ -330,6 +330,9 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		}
 
+		CurrencyConversion.Left.Activate(disposables);
+		CurrencyConversion.Right.Activate(disposables);
+
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);

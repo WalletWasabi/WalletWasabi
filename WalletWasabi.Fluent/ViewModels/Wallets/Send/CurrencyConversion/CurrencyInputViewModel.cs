@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 
-public partial class CurrencyInputViewModel : ViewModelBase
+public partial class CurrencyInputViewModel : ActivatableViewModel
 {
 	public const string DecimalSeparator = ".";
 
@@ -515,6 +516,16 @@ public partial class CurrencyInputViewModel : ViewModelBase
 		}
 	}
 
+	protected override void OnActivated(CompositeDisposable disposables)
+	{
+		base.OnActivated(disposables);
+
+		if (Suggestion is { })
+		{
+			Suggestion.Activate(disposables);
+		}
+	}
+
 	private void SetDecimalSeparatorPosition()
 	{
 		DecimalSeparatorPosition =
@@ -586,7 +597,8 @@ public partial class CurrencyInputViewModel : ViewModelBase
 			var integralText = unformattedText[..(IntegralLength ?? Text.Length)];
 
 			var formattedText =
-				string.Join(GroupSeparator,
+				string.Join(
+					GroupSeparator,
 					integralText.Reverse()
 								.Chunk(3)
 								.Reverse()
