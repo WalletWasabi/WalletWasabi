@@ -35,6 +35,8 @@ public partial class CurrencyInputClipboardListener: ActivatableViewModel
 		ApplyCommand = ReactiveCommand.Create<string>(parent.InsertRawFullText);
 	}
 
+	public ICommand ApplyCommand { get; }
+
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
@@ -94,6 +96,4 @@ public partial class CurrencyInputClipboardListener: ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
-
-	public ICommand ApplyCommand { get; }
 }

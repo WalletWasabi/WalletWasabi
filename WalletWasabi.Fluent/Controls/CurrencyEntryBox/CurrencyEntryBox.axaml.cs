@@ -372,6 +372,4 @@ public partial class CurrencyEntryBox : TextBox
 			e.Handled = true;
 		}
 	}
-
-	
 }
