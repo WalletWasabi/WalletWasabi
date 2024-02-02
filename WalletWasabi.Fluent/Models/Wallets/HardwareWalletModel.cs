@@ -45,7 +45,6 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 		}
 		catch (Exception ex)
 		{
-			// TODO: In Coldcard case, the error could be to higher fee rate, so we should ask the user to lower it.
 			Logger.LogError(ex);
 			return false;
 		}
