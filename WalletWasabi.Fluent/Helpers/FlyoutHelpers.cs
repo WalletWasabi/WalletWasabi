@@ -17,9 +17,11 @@ public static class FlyoutHelpers
 			.Cast<Window>();
 
 		window
-			.Select(x => Observable.FromEventPattern<PixelPointEventArgs>(
-				handler => x.PositionChanged += handler,
-				handler => x.PositionChanged -= handler))
+			.Select(window => window is { }
+				? Observable.FromEventPattern<PixelPointEventArgs>(
+					handler => window.PositionChanged += handler,
+					handler => window.PositionChanged -= handler)
+				: Observable.Never<EventPattern<PixelPointEventArgs>>())
 			.Switch()
 			.Subscribe(e => (e.Sender as Window)?.Focus())
 			.DisposeWith(disposable);
@@ -28,7 +30,7 @@ public static class FlyoutHelpers
 		{
 			condition = condition.CombineLatest(
 				window
-					.Select(x => x.GetObservable(WindowBase.IsActiveProperty))
+					.Select(window => window?.GetObservable(WindowBase.IsActiveProperty) ?? Observable.Return(false))
 					.Switch(),
 				static (condition, isActive) => condition && isActive);
 		}
