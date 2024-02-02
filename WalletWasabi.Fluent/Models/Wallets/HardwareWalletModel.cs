@@ -25,6 +25,7 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 
 			// Define the base timeout as a TimeSpan.
 			TimeSpan baseTimeout = TimeSpan.FromMinutes(3);
+
 			// Define the additional timeout increment as a TimeSpan for every 10 inputs.
 			TimeSpan additionalTimeoutPer10Inputs = TimeSpan.FromMinutes(1);
 			int inputCount = transactionAuthorizationInfo.Transaction.WalletInputs.Count;
