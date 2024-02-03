@@ -711,17 +711,20 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	public bool IsRoundEconomic(FeeRate roundFeeRate)
+	private bool IsRoundEconomic(FeeRate roundFeeRate)
 	{
 		if (FeeRateMedianTimeFrame == default)
 		{
 			return true;
 		}
 
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(FeeRateMedianTimeFrame, out var medianFeeRate))
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.ContainsKey(FeeRateMedianTimeFrame))
 		{
+			// Round is not economic if any TimeFrame lower than FeeRateMedianTimeFrame has a FeeRate lower than current round's FeeRate.
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m;
+			return RoundStatusUpdater.CoinJoinFeeRateMedians
+				.Where(x => x.Key <= FeeRateMedianTimeFrame)
+				.All(lowerTimeFrame => roundFeeRate.SatoshiPerByte <= lowerTimeFrame.Value.SatoshiPerByte + 0.5m);
 		}
 
 		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
