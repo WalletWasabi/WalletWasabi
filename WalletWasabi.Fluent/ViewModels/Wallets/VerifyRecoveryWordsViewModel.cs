@@ -71,7 +71,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			var verificationResult = wallet.Auth.VerifyRecoveryWords(currentMnemonics);
 			if (verificationResult)
 			{
-				Navigate().To().Success("Your Recovery Words have been verified and are correct.", navigationMode: NavigationMode.Clear);
+				Navigate().To().Success(navigationMode: NavigationMode.Clear);
 			}
 			else
 			{

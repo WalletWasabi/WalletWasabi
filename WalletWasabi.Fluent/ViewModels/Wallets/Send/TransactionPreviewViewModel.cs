@@ -170,7 +170,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To().Success("The PSBT has been successfully created.");
+				Navigate().To().Success();
 			}
 		}
 	}
