@@ -21,8 +21,8 @@ namespace WalletWasabi.Fluent.Controls;
 
 public partial class CurrencyEntryBox : TextBox
 {
-	public static readonly StyledProperty<CurrencyInputViewModel> ViewModelProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyInputViewModel>(nameof(ViewModel));
+	public static readonly StyledProperty<CurrencyInputViewModel?> ViewModelProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyInputViewModel?>(nameof(ViewModel));
 
 	public static readonly StyledProperty<CurrencyFormat> CurrencyFormatProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, CurrencyFormat>(nameof(CurrencyFormat), defaultValue: CurrencyFormat.Btc);
@@ -50,32 +50,32 @@ public partial class CurrencyEntryBox : TextBox
 		AddHandler(PointerPressedEvent, CustomPointerPressed, RoutingStrategies.Tunnel);
 
 		this.GetObservable(ViewModelProperty)
-			.Do(cf =>
+			.Do(viewModel =>
 			{
 				_disposables.Dispose();
 				_disposables = new();
 
-				if (ViewModel is not { })
+				if (viewModel is not { })
 				{
 					return;
 				}
 
-				SetCurrentValue(CurrencyFormatProperty, ViewModel.CurrencyFormat);
+				SetCurrentValue(CurrencyFormatProperty, viewModel.CurrencyFormat);
 
-				ViewModel.WhenAnyValue(x => x.InsertPosition)
+				viewModel.WhenAnyValue(x => x.InsertPosition)
 						 .BindTo(this, x => x.CaretIndex)
 						 .DisposeWith(_disposables);
 
-				ViewModel.WhenAnyValue(x => x.Text)
+				viewModel.WhenAnyValue(x => x.Text)
 						 .BindTo(this, x => x.Text)
 						 .DisposeWith(_disposables);
 
-				ViewModel.WhenAnyValue(x => x.Value)
+				viewModel.WhenAnyValue(x => x.Value)
 						 .Do(v => SetCurrentValue(ValueProperty, v))
 						 .Subscribe()
 						 .DisposeWith(_disposables);
 
-				ViewModel.WhenAnyValue(x => x.SelectionStart, x => x.SelectionEnd)
+				viewModel.WhenAnyValue(x => x.SelectionStart, x => x.SelectionEnd)
 						 .Where(_ => !_isUpdatingSelection)
 						 .Do(t =>
 						 {
@@ -96,10 +96,7 @@ public partial class CurrencyEntryBox : TextBox
 						 .DisposeWith(_disposables);
 
 				this.GetObservable(CaretIndexProperty)
-					.Do(x =>
-					{
-						ViewModel?.SetInsertPosition(x);
-					})
+					.Do(viewModel.SetInsertPosition)
 					.Subscribe()
 					.DisposeWith(_disposables);
 
@@ -115,7 +112,7 @@ public partial class CurrencyEntryBox : TextBox
 
 						_isUpdatingSelection = true;
 
-						ViewModel.SetSelection(t.First, t.Second);
+						viewModel.SetSelection(t.First, t.Second);
 
 						_isUpdatingSelection = false;
 					})
@@ -124,23 +121,23 @@ public partial class CurrencyEntryBox : TextBox
 
 				this.GetObservable(IsFocusedProperty)
 					.DistinctUntilChanged()
-					.Where(_ => ViewModel is { })
 					.Do(f =>
 					{
 						if (f)
 						{
 							ClearSelection();
 							SelectAll();
-							ViewModel.ClearSelection();
-							ViewModel.SelectAll();
+							viewModel.ClearSelection();
+							viewModel.SelectAll();
 						}
 						else
 						{
 							ClearSelection();
-							ViewModel.ClearSelection();
+							viewModel.ClearSelection();
 						}
 					})
-					.Subscribe();
+					.Subscribe()
+					.DisposeWith(_disposables);
 			})
 			.Subscribe();
 
@@ -161,7 +158,7 @@ public partial class CurrencyEntryBox : TextBox
 	public ICommand CustomCopyCommand { get; }
 	public ICommand CustomPasteCommand { get; }
 
-	public CurrencyInputViewModel ViewModel
+	public CurrencyInputViewModel? ViewModel
 	{
 		get => GetValue(ViewModelProperty);
 		set => SetValue(ViewModelProperty, value);
