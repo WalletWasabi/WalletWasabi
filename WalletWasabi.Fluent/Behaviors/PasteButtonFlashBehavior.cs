@@ -74,44 +74,41 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 	private async Task CheckClipboardForValidAddressAsync(bool forceCheck = false)
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
+		var clipboardValue = await ApplicationHelper.GetTextAsync();
+
+		// Yes, it can be null, the software crashed without this condition.
+		if (clipboardValue is null)
 		{
-			var clipboardValue = (await clipboard.GetTextAsync()) ?? "";
+			return;
+		}
 
-			// Yes, it can be null, the software crashed without this condition.
-			if (clipboardValue is null)
-			{
-				return;
-			}
+		if (AssociatedObject is null)
+		{
+			return;
+		}
 
-			if (AssociatedObject is null)
-			{
-				return;
-			}
+		if (_lastFlashedOn == clipboardValue && !forceCheck)
+		{
+			return;
+		}
 
-			if (_lastFlashedOn == clipboardValue && !forceCheck)
-			{
-				return;
-			}
+		AssociatedObject.Classes.Remove(FlashAnimation);
 
-			AssociatedObject.Classes.Remove(FlashAnimation);
+		clipboardValue = clipboardValue.Trim();
 
-			clipboardValue = clipboardValue.Trim();
-
-			// ClipboardValue might not match CurrentAddress, but it might be a PayJoin address pointing to the CurrentAddress
-			// Hence we need to compare both string value and parse result
-			if (clipboardValue != CurrentAddress &&
-				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out var address) &&
-				address?.Address?.ToString() != CurrentAddress)
-			{
-				AssociatedObject.Classes.Add(FlashAnimation);
-				_lastFlashedOn = clipboardValue;
-				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
-			}
-			else
-			{
-				ToolTip.SetTip(AssociatedObject, "Paste");
-			}
+		// ClipboardValue might not match CurrentAddress, but it might be a PayJoin address pointing to the CurrentAddress
+		// Hence we need to compare both string value and parse result
+		if (clipboardValue != CurrentAddress &&
+			AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out var address) &&
+			address?.Address?.ToString() != CurrentAddress)
+		{
+			AssociatedObject.Classes.Add(FlashAnimation);
+			_lastFlashedOn = clipboardValue;
+			ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
+		}
+		else
+		{
+			ToolTip.SetTip(AssociatedObject, "Paste");
 		}
 	}
 }

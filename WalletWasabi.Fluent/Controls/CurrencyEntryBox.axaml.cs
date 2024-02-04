@@ -305,26 +305,23 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
+		var text = await ApplicationHelper.GetTextAsync();
+
+		if (string.IsNullOrEmpty(text))
 		{
-			var text = await clipboard.GetTextAsync();
+			return;
+		}
 
-			if (string.IsNullOrEmpty(text))
-			{
-				return;
-			}
+		text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			text = text.Replace("\r", "").Replace("\n", "").Trim();
+		if (!TryParse(text, out text))
+		{
+			return;
+		}
 
-			if (!TryParse(text, out text))
-			{
-				return;
-			}
-
-			if (ValidateEntryText(text))
-			{
-				OnTextInput(new TextInputEventArgs { Text = text });
-			}
+		if (ValidateEntryText(text))
+		{
+			OnTextInput(new TextInputEventArgs { Text = text });
 		}
 	}
 
