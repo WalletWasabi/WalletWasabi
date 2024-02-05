@@ -592,7 +592,7 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 				return;
 			}
 
-			var selectedText = Text.Substring(start, end);
+			var selectedText = Text[start..end];
 			selectedText = selectedText.Replace(GroupSeparator, "");
 
 			await UiContext.Clipboard.SetTextAsync(selectedText);
