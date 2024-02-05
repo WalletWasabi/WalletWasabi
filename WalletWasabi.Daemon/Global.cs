@@ -224,17 +224,24 @@ public class Global
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
-
-				SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
-
-				if (sleepInhibitor is not null)
+				if (Config.RunSleepInhibitorAfterRoundStart)
 				{
-					HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
+					SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+					if (sleepInhibitor is not null)
+					{
+						HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
+					}
+					else
+					{
+						Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
+					}
 				}
 				else
 				{
-					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
+					Logger.LogInfo("Sleep Inhibitor is disabled.");
 				}
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Start synchronizing filters...");

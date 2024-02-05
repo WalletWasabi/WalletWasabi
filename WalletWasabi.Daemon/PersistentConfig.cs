@@ -134,6 +134,11 @@ public record PersistentConfig : IConfigNg
 	[System.Text.Json.Serialization.JsonPropertyName("EnableGpu")]
 	public bool EnableGpu { get; init; } = true;
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "RunSleepInhibitorAfterRoundStart", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[System.Text.Json.Serialization.JsonPropertyName("RunSleepInhibitorAfterRoundStart")]
+	public bool RunSleepInhibitorAfterRoundStart { get; init; } = true;
+
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[System.Text.Json.Serialization.JsonPropertyName("CoordinatorIdentifier")]
@@ -164,6 +169,7 @@ public record PersistentConfig : IConfigNg
 			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
+			RunSleepInhibitorAfterRoundStart == other.RunSleepInhibitorAfterRoundStart &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier;
 	}
 

@@ -106,6 +106,9 @@ public class Config
 			[ nameof(EnableGpu)] = (
 				"Use a GPU to render the user interface",
 				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
+			[ nameof(RunSleepInhibitorAfterRoundStart)] = (
+				"Run SleepInhibitor automatically after the start of the CoinJoin round",
+				GetBoolValue("RunSleepInhibitorAfterRoundStart", PersistentConfig.RunSleepInhibitorAfterRoundStart, cliArgs)),
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
@@ -156,6 +159,7 @@ public class Config
 	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
+	public bool RunSleepInhibitorAfterRoundStart => GetEffectiveValue<BoolValue, bool>(nameof(RunSleepInhibitorAfterRoundStart));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
 	public ServiceConfiguration ServiceConfiguration { get; }
 
