@@ -6,9 +6,12 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Currency;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -29,14 +32,13 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
-	[AutoNotify] private decimal? _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
-	private CoinJoinSettingsViewModel(IWalletModel walletModel)
+	public CoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
-		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC);
+		var plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC);
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -68,20 +70,25 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
-		this.WhenAnyValue(x => x.PlebStopThreshold)
+		PlebStopThreshold = new CurrencyInputViewModel(uiContext, CurrencyFormat.Btc);
+		PlebStopThreshold.SetValue(plebStopThreshold);
+
+		this.WhenAnyValue(x => x.PlebStopThreshold.Value)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(
 				x =>
 				{
-					if (x is { } value && value != _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC))
+					if (x.ToDecimal() is { } value && value != _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC))
 					{
 						_wallet.Settings.PlebStopThreshold = new Money(value, MoneyUnit.BTC);
 						_wallet.Settings.Save();
 					}
 				});
 	}
+
+	public CurrencyInputViewModel PlebStopThreshold { get; }
 
 	public ICommand SetAutoCoinJoin { get; }
 
@@ -90,7 +97,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
-		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC);
+		PlebStopThreshold.SetValue(_wallet.Settings.PlebStopThreshold.ToDecimal(MoneyUnit.BTC));
 		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;
