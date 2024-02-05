@@ -48,12 +48,13 @@
              DockPanel.Dock="Left">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <DockPanel ToolTip.Tip="{Binding SibId}">
+          <DockPanel>
             <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Right">
               <PathIcon Classes.CompletedIcon="{Binding IsCompleted}"
                         Classes.UnreadMessagesIcon="{Binding HasUnreadMessagesObs^}" />
               <Button Classes="plain"
                       Command="{Binding RemoveOrderCommand}"
+                      ToolTip.Tip="Remove order"
                       Name="RemoveOrderButton">
                 <Button.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -64,6 +65,7 @@
                 <PathIcon Classes="RemoveOrderIcon" />
               </Button>
               <Button Classes="plain"
+                      ToolTip.Tip="Reset order"
                       Command="{Binding ResetOrderCommand}">
                 <Button.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -75,6 +77,8 @@
               </Button>
             </StackPanel>
             <TextBlock Text="{Binding Title}"
+                       ToolTip.Tip="{Binding SibId}"
+                       Background="Transparent"
                        VerticalAlignment="Center" />
           </DockPanel>
         </DataTemplate>
