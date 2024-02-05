@@ -29,7 +29,7 @@ public partial class OrderViewModel : ViewModelBase
 	private readonly BuyAnythingManager _buyAnythingManager;
 
 	[AutoNotify] private string _title;
-	[AutoNotify] private string _sibId = "New Order";
+	[AutoNotify] private string? _sibId = "New Order";
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
@@ -90,7 +90,7 @@ public partial class OrderViewModel : ViewModelBase
 			.Do(conversation =>
 			{
 				Title = conversation.MetaData.Title;
-				SibId = conversation.Id.OrderNumber;
+				SibId = conversation.Id.OrderNumber == "" ? null : conversation.Id.OrderNumber;
 				RefreshMessageList(conversation);
 			})
 			.Subscribe();
