@@ -21,6 +21,9 @@
         <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       </Style>
     </ControlTheme>
+    <ControlTheme x:Key="Layer2" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+    </ControlTheme>
   </Styles.Resources>
 
   <Design.PreviewWith>
@@ -41,6 +44,7 @@
         <Button Classes="plainHyperlink" Content="Quick" />
         <Button Theme="{StaticResource AccentButton}" Content="Accent Button" />
         <Button Theme="{StaticResource AccentButton}" IsEnabled="False" Content="Accent Button Disabled" />
+        <Button Theme="{StaticResource Layer2}">Layer2</Button>
       </StackPanel>
     </Border>
   </Design.PreviewWith>

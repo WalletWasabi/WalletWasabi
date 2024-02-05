@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+        xmlns:controls="using:WalletWasabi.Fluent.Controls"
+        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
   <Design.PreviewWith>
     <controls:SortControl />
   </Design.PreviewWith>
@@ -23,18 +24,23 @@
                   </Setter.Value>
                 </Setter>
               </Style>
-
               <Style Selector="HeaderedContentControl StackPanel">
                 <Setter Property="Orientation" Value="Horizontal" />
                 <Setter Property="HorizontalAlignment" Value="Right" />
                 <Setter Property="Spacing" Value="2" />
               </Style>
-
               <Style Selector="HeaderedContentControl Button">
                 <Setter Property="Padding" Value="4" />
                 <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Theme" Value="{StaticResource Layer2}" />
+                <Setter Property="Interaction.Behaviors">
+                  <BehaviorCollectionTemplate>
+                    <BehaviorCollection>
+                      <behaviors:HideFlyoutOnClickBehavior />
+                    </BehaviorCollection>
+                  </BehaviorCollectionTemplate>
+                </Setter>
               </Style>
-
             </StackPanel.Styles>
             <HeaderedContentControl Header="Status">
               <StackPanel>
