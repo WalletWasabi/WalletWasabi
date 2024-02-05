@@ -38,7 +38,7 @@ internal class HyperlinkViewModel
 		Text = text;
 		Url = url;
 		OpenLinkCommand = ReactiveCommand.Create(() => IoHelpers.OpenBrowserAsync(url));
-		CopyCommand = ReactiveCommand.CreateFromTask(() => ApplicationHelper.Clipboard?.SetTextAsync(Url) ?? Task.CompletedTask);
+		CopyCommand = ReactiveCommand.CreateFromTask(() => ApplicationHelper.SetTextAsync(Url) ?? Task.CompletedTask);
 	}
 
 	public ICommand OpenLinkCommand { get; set; }
