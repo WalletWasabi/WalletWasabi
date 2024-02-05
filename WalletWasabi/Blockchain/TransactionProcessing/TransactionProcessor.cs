@@ -146,7 +146,7 @@ public class TransactionProcessor
 			if (tx.Height == Height.Mempool)
 			{
 				// if the received transaction is spending at least one input already
-				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+				// spent by a previous unconfirmed transaction then it is not considered a double
 				// spending transaction but a replacement transaction.
 				var isReplacementTx = doubleSpentSpenders.Any();
 				if (isReplacementTx)
