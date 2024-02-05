@@ -4,14 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
              x:DataType="advanced:WalletCoinsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoinsView">
-  <c:ContentArea Title="{Binding Title}"
-                 Caption="A list of coins that you own, optionally you can send them."
+  <c:ContentArea Caption="A list of coins that you own, optionally you can send them."
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -19,6 +17,19 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  SkipContent="Send selected coins"
                  EnableSkip="{Binding IsAnySelected^}">
+    <c:ContentArea.Title>
+      <DockPanel>
+        <Button DockPanel.Dock="Right">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <c:SortControl Sortable="{Binding CoinList}" />
+            </Flyout>
+          </Button.Flyout>
+          <PathIcon Data="{StaticResource sorting}" />
+        </Button>
+        <TextBlock Text="{Binding Title, FallbackValue='Title'}" />
+      </DockPanel>
+    </c:ContentArea.Title>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </c:ContentArea>
 </UserControl>
