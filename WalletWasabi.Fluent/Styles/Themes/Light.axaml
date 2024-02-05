@@ -93,6 +93,7 @@
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#E0E0E0" />
   <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
   <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
+  <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
 
