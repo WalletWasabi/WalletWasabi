@@ -116,7 +116,7 @@
       <Button>
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft">
-            <c:SortControl></c:SortControl>
+            <c:SortControl Sortable="{Binding}" />
           </Flyout>
         </Button.Flyout>
         <PathIcon Data="{StaticResource sorting}" />

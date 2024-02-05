@@ -38,44 +38,45 @@
             </StackPanel.Styles>
             <HeaderedContentControl Header="Status">
               <StackPanel>
-                <Button Command="{TemplateBinding StatusDescending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.StatusDescending}">
                   <PathIcon Data="{StaticResource down_arrow}" />
                 </Button>
-                <Button Command="{TemplateBinding StatusAscending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.StatusAscending}">
                   <PathIcon Data="{StaticResource up_arrow}" />
                 </Button>
               </StackPanel>
             </HeaderedContentControl>
             <HeaderedContentControl Header="Date">
               <StackPanel>
-                <Button Command="{TemplateBinding DateDescending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.DateDescending}">
                   <PathIcon Data="{StaticResource down_arrow}" />
                 </Button>
-                <Button Command="{TemplateBinding DateAscending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.DateAscending}">
                   <PathIcon Data="{StaticResource up_arrow}" />
                 </Button>
               </StackPanel>
             </HeaderedContentControl>
             <HeaderedContentControl Header="Amount">
               <StackPanel>
-                <Button Command="{TemplateBinding AmountDescending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.AmountDescending}">
                   <PathIcon Data="{StaticResource down_arrow}" />
                 </Button>
-                <Button Command="{TemplateBinding AmountAscending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.AmountAscending}">
                   <PathIcon Data="{StaticResource up_arrow}" />
                 </Button>
               </StackPanel>
             </HeaderedContentControl>
             <HeaderedContentControl Header="Label">
               <StackPanel>
-                <Button Command="{TemplateBinding LabelDescending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.LabelDescending}">
                   <PathIcon Data="{StaticResource down_arrow}" />
                 </Button>
-                <Button Command="{TemplateBinding LabelAscending}">
+                <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type controls:SortControl}}, Path=Sortable.LabelAscending}">
                   <PathIcon Data="{StaticResource up_arrow}" />
                 </Button>
               </StackPanel>
             </HeaderedContentControl>
+
           </StackPanel>
         </ControlTemplate>
       </Setter.Value>

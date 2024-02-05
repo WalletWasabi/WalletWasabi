@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -61,5 +62,13 @@ public class SortControl : TemplatedControl
     {
         get => GetValue(LabelDescendingProperty);
         set => SetValue(LabelDescendingProperty, value);
+    }
+
+    public static readonly StyledProperty<ISortable> SortableProperty = AvaloniaProperty.Register<SortControl, ISortable>("Sortable");
+
+    public ISortable Sortable
+    {
+	    get => GetValue(SortableProperty);
+	    set => SetValue(SortableProperty, value);
     }
 }
