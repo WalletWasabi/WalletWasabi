@@ -37,6 +37,15 @@ public partial class HistoryViewModel : ActivatableViewModel, ISortable
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
+	public ICommand StatusDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending));
+	public ICommand StatusAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending));
+	public ICommand DateDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending));
+	public ICommand DateAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending));
+	public ICommand AmountDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending));
+	public ICommand AmountAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending));
+	public ICommand LabelDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending));
+	public ICommand LabelAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending));
+
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
 		return new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
@@ -224,13 +233,4 @@ public partial class HistoryViewModel : ActivatableViewModel, ISortable
 
 		return viewModel;
 	}
-
-	public ICommand StatusDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending));
-	public ICommand StatusAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending));
-	public ICommand DateDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending));
-	public ICommand DateAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending));
-	public ICommand AmountDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending));
-	public ICommand AmountAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending));
-	public ICommand LabelDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending));
-	public ICommand LabelAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending));
 }
