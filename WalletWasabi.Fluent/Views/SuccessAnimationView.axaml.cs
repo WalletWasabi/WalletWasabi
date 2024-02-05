@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
+namespace WalletWasabi.Fluent.Views;
 
-public class SelectionColumnView : UserControl
+public class SuccessAnimationView : UserControl
 {
-	public SelectionColumnView()
+	public SuccessAnimationView()
 	{
 		InitializeComponent();
 	}

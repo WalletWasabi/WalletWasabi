@@ -5,11 +5,12 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITreeDataGridExpanderItem
+public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem
 {
 	private bool? _isSelected;
 
@@ -20,7 +21,7 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 
-	protected CoinControlItemViewModelBase()
+	protected CoinListItem()
 	{
 		// Temporarily enable the selection no matter what.
 		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
@@ -71,7 +72,7 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, ITre
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public IReadOnlyCollection<CoinCoinControlItemViewModel> Children { get; protected set; } = new List<CoinCoinControlItemViewModel>();
+	public IReadOnlyCollection<CoinViewModel> Children { get; protected set; } = new List<CoinViewModel>();
 
 	public bool IsConfirmed { get; protected set; }
 
