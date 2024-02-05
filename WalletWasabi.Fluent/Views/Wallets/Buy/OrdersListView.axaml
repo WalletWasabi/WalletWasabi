@@ -90,7 +90,9 @@
           <Setter Property="Template">
             <ControlTemplate>
               <Border x:Name="PART_Container" CornerRadius="5">
-                <ContentPresenter Background="Transparent" Padding="{TemplateBinding Padding}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                <ContentPresenter Background="Transparent" Padding="{TemplateBinding Padding}"
+                                  Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}" />
               </Border>
             </ControlTemplate>
           </Setter>
