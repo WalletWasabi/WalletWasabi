@@ -49,280 +49,336 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 
 	public void Insert(string text)
 	{
-		// Ignore allowed input rules if there was a selection.
-		var hadSelection = HasSelection;
-
-		if (HasSelection)
+		try
 		{
-			RemoveSelection();
+			// Ignore allowed input rules if there was a selection.
+			var hadSelection = HasSelection;
+
+			if (HasSelection)
+			{
+				RemoveSelection();
+			}
+
+			var left = Text[..InsertPosition];
+
+			var right =
+				InsertPosition < Text.Length
+				? Text[InsertPosition..]
+				: "";
+
+			if (!hadSelection)
+			{
+				text = GetAllowedInput(text);
+			}
+
+			Text = left + text + right;
+
+			InsertPosition += text.Length;
+
+			ClearSelection();
+
+			SetDecimalSeparatorPosition();
 		}
-
-		var left = Text[..InsertPosition];
-
-		var right =
-			InsertPosition < Text.Length
-			? Text[InsertPosition..]
-			: "";
-
-		if (!hadSelection)
+		catch (Exception ex)
 		{
-			text = GetAllowedInput(text);
+			Logger.LogError(ex);
 		}
-
-		Text = left + text + right;
-
-		InsertPosition += text.Length;
-
-		ClearSelection();
-
-		SetDecimalSeparatorPosition();
 	}
 
 	public void InsertDecimalSeparator()
 	{
-		if (HasSelection)
+		try
 		{
-			RemoveSelection();
-		}
-
-		// step-through decimal separator
-		if (DecimalSeparatorPosition is { } dsp && InsertPosition == dsp)
-		{
-			InsertPosition++;
-			this.RaisePropertyChanged(nameof(InsertPosition));
-		}
-		if (DecimalSeparatorPosition is null)
-		{
-			// Allow user to start input with "."
-			if (Text == "")
+			if (HasSelection)
 			{
-				Insert("0.");
-			}
-			else
-			{
-				Insert(".");
+				RemoveSelection();
 			}
 
-			SetDecimalSeparatorPosition();
+			// step-through decimal separator
+			if (DecimalSeparatorPosition is { } dsp && InsertPosition == dsp)
+			{
+				InsertPosition++;
+				this.RaisePropertyChanged(nameof(InsertPosition));
+			}
+			if (DecimalSeparatorPosition is null)
+			{
+				// Allow user to start input with "."
+				if (Text == "")
+				{
+					Insert("0.");
+				}
+				else
+				{
+					Insert(".");
+				}
+
+				SetDecimalSeparatorPosition();
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 		}
 	}
 
 	public void InsertRawFullText(string? text)
 	{
-		Clear();
-		InsertRaw(text);
+		try
+		{
+			Clear();
+			InsertRaw(text);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void InsertRaw(string? text)
 	{
-		text ??= "";
-
-		text = text.Replace("\r", "").Replace("\n", "").Trim();
-
-		if (Regex.IsMatch(text, @"[^0-9,\.٫٬⎖·']"))
+		try
 		{
-			return;
+			text ??= "";
+
+			text = text.Replace("\r", "").Replace("\n", "").Trim();
+
+			if (Regex.IsMatch(text, @"[^0-9,\.٫٬⎖·']"))
+			{
+				return;
+			}
+
+			// TODO: it is very hard to cover all cases for different localizations, including group and decimal separators.
+			// We really need to leave that to the .NET runtime by removing invariant localization
+			// and letting it decide what value does the text on the clipboard really represent
+
+			// Correct amount
+			Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
+
+			// Make it digits and .,٫٬⎖·\ only.
+			text = digitsOnly.Replace(text, "");
+
+			// https://en.wikipedia.org/wiki/Decimal_separator
+			text = text.Replace(",", DecimalSeparator);
+			text = text.Replace("٫", DecimalSeparator);
+			text = text.Replace("٬", DecimalSeparator);
+			text = text.Replace("⎖", DecimalSeparator);
+			text = text.Replace("·", DecimalSeparator);
+			text = text.Replace("'", DecimalSeparator);
+
+			// Prevent inserting multiple '.'
+			if (Regex.Matches(text, @"\.").Count > 1)
+			{
+				return;
+			}
+
+			if (HasSelection)
+			{
+				RemoveSelection();
+			}
+
+			// do not allow pasting decimal separator if it already exists
+			if (Text.Contains(DecimalSeparator) && text.Contains(DecimalSeparator))
+			{
+				return;
+			}
+
+			Insert(text);
 		}
-
-		// TODO: it is very hard to cover all cases for different localizations, including group and decimal separators.
-		// We really need to leave that to the .NET runtime by removing invariant localization
-		// and letting it decide what value does the text on the clipboard really represent
-
-		// Correct amount
-		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
-
-		// Make it digits and .,٫٬⎖·\ only.
-		text = digitsOnly.Replace(text, "");
-
-		// https://en.wikipedia.org/wiki/Decimal_separator
-		text = text.Replace(",", DecimalSeparator);
-		text = text.Replace("٫", DecimalSeparator);
-		text = text.Replace("٬", DecimalSeparator);
-		text = text.Replace("⎖", DecimalSeparator);
-		text = text.Replace("·", DecimalSeparator);
-		text = text.Replace("'", DecimalSeparator);
-
-		// Prevent inserting multiple '.'
-		if (Regex.Matches(text, @"\.").Count > 1)
+		catch (Exception ex)
 		{
-			return;
+			Logger.LogError(ex);
 		}
-
-		if (HasSelection)
-		{
-			RemoveSelection();
-		}
-
-		// do not allow pasting decimal separator if it already exists
-		if (Text.Contains(DecimalSeparator) && text.Contains(DecimalSeparator))
-		{
-			return;
-		}
-
-		Insert(text);
 	}
 
 	public void RemoveNext()
 	{
-		if (HasSelection)
+		try
 		{
-			RemoveSelection();
+			if (HasSelection)
+			{
+				RemoveSelection();
+			}
+			else if (InsertPosition < Text.Length)
+			{
+				var left = Text[..InsertPosition];
+				var right =
+					InsertPosition < Text.Length
+					? Text[(InsertPosition + 1)..]
+					: "";
+
+				Text = left + right;
+
+				SkipGroupSeparator(true);
+
+				SetDecimalSeparatorPosition();
+			}
 		}
-		else if (InsertPosition < Text.Length)
+		catch (Exception ex)
 		{
-			var left = Text[..InsertPosition];
-			var right =
-				InsertPosition < Text.Length
-				? Text[(InsertPosition + 1)..]
-				: "";
-
-			Text = left + right;
-
-			SkipGroupSeparator(true);
-
-			SetDecimalSeparatorPosition();
+			Logger.LogError(ex);
 		}
 	}
 
 	public void RemovePrevious()
 	{
-		if (HasSelection)
+		try
 		{
-			RemoveSelection();
+			if (HasSelection)
+			{
+				RemoveSelection();
+			}
+			else if (InsertPosition > 0)
+			{
+				InsertPosition--;
+				SkipGroupSeparator(false);
+
+				var left = Text[..InsertPosition];
+				var right =
+					InsertPosition < Text.Length
+					? Text[(InsertPosition + 1)..]
+					: "";
+
+				Text = left + right;
+
+				SetDecimalSeparatorPosition();
+			}
 		}
-		else if (InsertPosition > 0)
+		catch (Exception ex)
 		{
-			InsertPosition--;
-			SkipGroupSeparator(false);
-
-			var left = Text[..InsertPosition];
-			var right =
-				InsertPosition < Text.Length
-				? Text[(InsertPosition + 1)..]
-				: "";
-
-			Text = left + right;
-
-			SetDecimalSeparatorPosition();
+			Logger.LogError(ex);
 		}
 	}
 
 	public void MoveBack(bool enableSelection)
 	{
-		var moveInsertPosition = !HasSelection || (HasSelection && enableSelection) || (HasSelection && !enableSelection && SelectionStart != InsertPosition);
-
-		if (HasSelection && !enableSelection)
+		try
 		{
-			ClearSelection();
-		}
+			var moveInsertPosition = !HasSelection || (HasSelection && enableSelection) || (HasSelection && !enableSelection && SelectionStart != InsertPosition);
 
-		if (InsertPosition == 0)
-		{
-			return;
-		}
-
-		if (HasSelection && enableSelection)
-		{
-			if (SelectionStart == InsertPosition)
+			if (HasSelection && !enableSelection)
 			{
-				SelectionStart--;
+				ClearSelection();
 			}
-			else if (SelectionEnd == InsertPosition)
+
+			if (InsertPosition == 0)
 			{
-				SelectionEnd--;
+				return;
 			}
-		}
-		else if (enableSelection)
-		{
-			SelectionStart = InsertPosition - 1;
-			SelectionEnd = InsertPosition;
-		}
 
-		if (moveInsertPosition)
-		{
-			InsertPosition--;
-		}
+			if (HasSelection && enableSelection)
+			{
+				if (SelectionStart == InsertPosition)
+				{
+					SelectionStart--;
+				}
+				else if (SelectionEnd == InsertPosition)
+				{
+					SelectionEnd--;
+				}
+			}
+			else if (enableSelection)
+			{
+				SelectionStart = InsertPosition - 1;
+				SelectionEnd = InsertPosition;
+			}
 
-		if (SelectionStart == InsertPosition && SelectionEnd == InsertPosition)
-		{
-			ClearSelection();
-		}
+			if (moveInsertPosition)
+			{
+				InsertPosition--;
+			}
 
-		if (InsertPosition == SelectionEnd && Text.Substring(InsertPosition - 1, 1) == GroupSeparator)
-		{
-			MoveBack(enableSelection);
-		}
-		else if (InsertPosition == SelectionStart && Text.Substring(InsertPosition, 1) == GroupSeparator)
-		{
-			MoveBack(enableSelection);
-		}
-		else if (!enableSelection && moveInsertPosition)
-		{
-			SkipGroupSeparator(false);
-		}
+			if (SelectionStart == InsertPosition && SelectionEnd == InsertPosition)
+			{
+				ClearSelection();
+			}
 
-		this.RaisePropertyChanged(nameof(InsertPosition));
-		this.RaisePropertyChanged(nameof(SelectionStart));
-		this.RaisePropertyChanged(nameof(SelectionEnd));
+			if (InsertPosition == SelectionEnd && Text.Substring(InsertPosition - 1, 1) == GroupSeparator)
+			{
+				MoveBack(enableSelection);
+			}
+			else if (InsertPosition == SelectionStart && Text.Substring(InsertPosition, 1) == GroupSeparator)
+			{
+				MoveBack(enableSelection);
+			}
+			else if (!enableSelection && moveInsertPosition)
+			{
+				SkipGroupSeparator(false);
+			}
+
+			this.RaisePropertyChanged(nameof(InsertPosition));
+			this.RaisePropertyChanged(nameof(SelectionStart));
+			this.RaisePropertyChanged(nameof(SelectionEnd));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void MoveForward(bool enableSelection)
 	{
-		var moveInsertPosition = !HasSelection || (HasSelection && enableSelection) || (HasSelection && !enableSelection && SelectionEnd != InsertPosition);
-
-		if (HasSelection && !enableSelection)
+		try
 		{
-			ClearSelection();
-		}
+			var moveInsertPosition = !HasSelection || (HasSelection && enableSelection) || (HasSelection && !enableSelection && SelectionEnd != InsertPosition);
 
-		if (InsertPosition >= Text.Length)
-		{
-			return;
-		}
-
-		if (HasSelection && enableSelection)
-		{
-			if (SelectionEnd == InsertPosition)
+			if (HasSelection && !enableSelection)
 			{
-				SelectionEnd++;
+				ClearSelection();
 			}
-			else if (SelectionStart == InsertPosition)
+
+			if (InsertPosition >= Text.Length)
 			{
-				SelectionStart++;
+				return;
 			}
-		}
-		else if (enableSelection)
-		{
-			SelectionStart = InsertPosition;
-			SelectionEnd = InsertPosition + 1;
-		}
 
-		if (moveInsertPosition)
-		{
-			InsertPosition++;
-		}
+			if (HasSelection && enableSelection)
+			{
+				if (SelectionEnd == InsertPosition)
+				{
+					SelectionEnd++;
+				}
+				else if (SelectionStart == InsertPosition)
+				{
+					SelectionStart++;
+				}
+			}
+			else if (enableSelection)
+			{
+				SelectionStart = InsertPosition;
+				SelectionEnd = InsertPosition + 1;
+			}
 
-		if (SelectionStart == InsertPosition && SelectionEnd == InsertPosition)
-		{
-			ClearSelection();
-		}
+			if (moveInsertPosition)
+			{
+				InsertPosition++;
+			}
 
-		if (InsertPosition == SelectionEnd && Text.Substring(InsertPosition - 1, 1) == GroupSeparator)
-		{
-			MoveForward(enableSelection);
-		}
-		else if (InsertPosition == SelectionStart && Text.Substring(InsertPosition, 1) == GroupSeparator)
-		{
-			MoveForward(enableSelection);
-		}
-		else if (!enableSelection && moveInsertPosition)
-		{
-			SkipGroupSeparator(true);
-		}
+			if (SelectionStart == InsertPosition && SelectionEnd == InsertPosition)
+			{
+				ClearSelection();
+			}
 
-		this.RaisePropertyChanged(nameof(InsertPosition));
-		this.RaisePropertyChanged(nameof(SelectionStart));
-		this.RaisePropertyChanged(nameof(SelectionEnd));
+			if (InsertPosition == SelectionEnd && Text.Substring(InsertPosition - 1, 1) == GroupSeparator)
+			{
+				MoveForward(enableSelection);
+			}
+			else if (InsertPosition == SelectionStart && Text.Substring(InsertPosition, 1) == GroupSeparator)
+			{
+				MoveForward(enableSelection);
+			}
+			else if (!enableSelection && moveInsertPosition)
+			{
+				SkipGroupSeparator(true);
+			}
+
+			this.RaisePropertyChanged(nameof(InsertPosition));
+			this.RaisePropertyChanged(nameof(SelectionStart));
+			this.RaisePropertyChanged(nameof(SelectionEnd));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void MoveToStart(bool enableSelection) => MoveTo(0, enableSelection);
@@ -331,69 +387,83 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 
 	public void MoveTo(int position, bool enableSelection)
 	{
-		if (HasSelection && !enableSelection)
+		try
 		{
-			ClearSelection();
-		}
-
-		if (position >= 0 && position <= Text.Length)
-		{
-			var selectionStart = InsertPosition;
-			var selectionEnd = InsertPosition;
-
-			if (enableSelection)
+			if (HasSelection && !enableSelection)
 			{
-				if (InsertPosition == SelectionEnd && SelectionStart > position)
+				ClearSelection();
+			}
+
+			if (position >= 0 && position <= Text.Length)
+			{
+				var selectionStart = InsertPosition;
+				var selectionEnd = InsertPosition;
+
+				if (enableSelection)
 				{
-					selectionEnd = SelectionStart ?? InsertPosition;
-					selectionStart = position;
+					if (InsertPosition == SelectionEnd && SelectionStart > position)
+					{
+						selectionEnd = SelectionStart ?? InsertPosition;
+						selectionStart = position;
+					}
+					else if (InsertPosition == SelectionStart && SelectionEnd < position)
+					{
+						selectionStart = SelectionEnd ?? InsertPosition;
+						selectionEnd = position;
+					}
+					else
+					{
+						selectionStart = Math.Min(position, SelectionStart ?? InsertPosition);
+						selectionEnd = Math.Max(position, SelectionEnd ?? InsertPosition);
+					}
 				}
-				else if (InsertPosition == SelectionStart && SelectionEnd < position)
+
+				InsertPosition = position;
+
+				if (enableSelection)
 				{
-					selectionStart = SelectionEnd ?? InsertPosition;
-					selectionEnd = position;
-				}
-				else
-				{
-					selectionStart = Math.Min(position, SelectionStart ?? InsertPosition);
-					selectionEnd = Math.Max(position, SelectionEnd ?? InsertPosition);
+					SelectionStart = selectionStart;
+					SelectionEnd = selectionEnd;
 				}
 			}
 
-			InsertPosition = position;
+			SkipGroupSeparator(false);
 
-			if (enableSelection)
-			{
-				SelectionStart = selectionStart;
-				SelectionEnd = selectionEnd;
-			}
+			this.RaisePropertyChanged(nameof(InsertPosition));
+			this.RaisePropertyChanged(nameof(SelectionStart));
+			this.RaisePropertyChanged(nameof(SelectionEnd));
 		}
-
-		SkipGroupSeparator(false);
-
-		this.RaisePropertyChanged(nameof(InsertPosition));
-		this.RaisePropertyChanged(nameof(SelectionStart));
-		this.RaisePropertyChanged(nameof(SelectionEnd));
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void RemoveSelection()
 	{
-		if (SelectionStart is null || SelectionEnd is null)
+		try
 		{
-			return;
+			if (SelectionStart is null || SelectionEnd is null)
+			{
+				return;
+			}
+
+			var left = Text[..SelectionStart.Value];
+			var right = Text[SelectionEnd.Value..];
+
+			Text = left + right;
+
+			InsertPosition = SelectionStart.Value;
+			this.RaisePropertyChanging(nameof(InsertPosition));
+
+			ClearSelection();
+
+			SetDecimalSeparatorPosition();
 		}
-
-		var left = Text[..SelectionStart.Value];
-		var right = Text[SelectionEnd.Value..];
-
-		Text = left + right;
-
-		InsertPosition = SelectionStart.Value;
-		this.RaisePropertyChanging(nameof(InsertPosition));
-
-		ClearSelection();
-
-		SetDecimalSeparatorPosition();
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void ClearSelection()
@@ -407,14 +477,28 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 
 	public void Clear()
 	{
-		SelectAll();
-		RemoveSelection();
+		try
+		{
+			SelectAll();
+			RemoveSelection();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void SelectAll()
 	{
-		ClearSelection();
-		SetSelection(0, Text.Length);
+		try
+		{
+			ClearSelection();
+			SetSelection(0, Text.Length);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void SetInsertPosition(int value)
@@ -425,50 +509,64 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 
 	public void SetSelection(int start, int end)
 	{
-		var actualStart = Math.Min(start, end);
-		var actualEnd = Math.Max(start, end);
+		try
+		{
+			var actualStart = Math.Min(start, end);
+			var actualEnd = Math.Max(start, end);
 
-		SelectionStart = actualStart;
-		SelectionEnd = actualEnd;
+			SelectionStart = actualStart;
+			SelectionEnd = actualEnd;
 
-		this.RaisePropertyChanged(nameof(SelectionStart));
-		this.RaisePropertyChanged(nameof(SelectionEnd));
+			this.RaisePropertyChanged(nameof(SelectionStart));
+			this.RaisePropertyChanged(nameof(SelectionEnd));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void SetValue(CurrencyValue value)
 	{
-		Value = value;
-		if (value is CurrencyValue.Empty or CurrencyValue.Invalid)
+		try
 		{
-			Text = "";
-		}
-		else if (value is CurrencyValue.Valid v)
-		{
-			var hasFractional = Math.Floor(v.Value) != v.Value;
-			var maxIntegral = CurrencyFormat.MaxIntegralDigits ?? 10;
-			var maxFractional = CurrencyFormat.MaxFractionalDigits ?? 2;
-
-			var format = new string('#', maxIntegral);
-			if (hasFractional)
+			Value = value;
+			if (value is CurrencyValue.Empty or CurrencyValue.Invalid)
 			{
-				var formatChar =
-					CurrencyFormat.ForceFractionalFormatToMaxFractionalDigits
-					? '0'
-					: '#';
+				Text = "";
+			}
+			else if (value is CurrencyValue.Valid v)
+			{
+				var hasFractional = Math.Floor(v.Value) != v.Value;
+				var maxIntegral = CurrencyFormat.MaxIntegralDigits ?? 10;
+				var maxFractional = CurrencyFormat.MaxFractionalDigits ?? 2;
 
-				format += DecimalSeparator;
-				format += new string(formatChar, maxFractional);
+				var format = new string('#', maxIntegral);
+				if (hasFractional)
+				{
+					var formatChar =
+						CurrencyFormat.ForceFractionalFormatToMaxFractionalDigits
+						? '0'
+						: '#';
+
+					format += DecimalSeparator;
+					format += new string(formatChar, maxFractional);
+				}
+
+				var formatted = v.Value.ToString(format);
+				if (formatted.StartsWith(DecimalSeparator))
+				{
+					formatted = "0" + formatted;
+				}
+				Text = formatted;
 			}
 
-			var formatted = v.Value.ToString(format);
-			if (formatted.StartsWith(DecimalSeparator))
-			{
-				formatted = "0" + formatted;
-			}
-			Text = formatted;
+			SetDecimalSeparatorPosition();
 		}
-
-		SetDecimalSeparatorPosition();
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
 	}
 
 	public void SetValue(decimal? value)
@@ -499,7 +597,7 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 
 			await UiContext.Clipboard.SetTextAsync(selectedText);
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			Logger.LogError(ex);
 		}
