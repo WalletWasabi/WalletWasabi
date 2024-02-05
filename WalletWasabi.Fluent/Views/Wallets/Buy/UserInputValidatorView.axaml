@@ -192,6 +192,9 @@
                    Suggestions="{Binding States}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
+            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+            </DataTriggerBehavior>
           </i:Interaction.Behaviors>
         </c:TagsBox>
       </DataTemplate>
