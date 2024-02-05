@@ -146,9 +146,13 @@
       <DataTemplate DataType="vm:SupportChatStep">
         <TextBox VerticalAlignment="Center"
                  Text="{Binding Value}"
+                 x:Name="TextBox"
                  Watermark="{Binding Watermark}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
+            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+            </DataTriggerBehavior>
           </i:Interaction.Behaviors>
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
