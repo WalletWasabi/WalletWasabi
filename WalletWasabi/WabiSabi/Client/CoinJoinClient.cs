@@ -158,7 +158,7 @@ public class CoinJoinClient
 			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, OutputProvider.DestinationProvider.SupportedScriptTypes.ToArray() );
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, OutputProvider.DestinationProvider.SupportedScriptTypes.ToArray());
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, stopWhenAllMixed, utxoSelectionParameters, liquidityClue);
 
@@ -711,9 +711,9 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	internal static bool IsRoundEconomic(FeeRate roundFeeRate, Dictionary<TimeSpan, FeeRate>? coinJoinFeeRateMedians, TimeSpan feeRateMedianTimeFrame)
+	internal static bool IsRoundEconomic(FeeRate roundFeeRate, Dictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians, TimeSpan feeRateMedianTimeFrame)
 	{
-		if (coinJoinFeeRateMedians == default)
+		if (feeRateMedianTimeFrame == default)
 		{
 			return true;
 		}
