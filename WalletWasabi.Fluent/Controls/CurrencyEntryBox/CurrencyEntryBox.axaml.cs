@@ -64,7 +64,7 @@ public partial class CurrencyEntryBox : TextBox
 				SetCurrentValue(CurrencyFormatProperty, viewModel.CurrencyFormat);
 
 				viewModel.WhenAnyValue(x => x.InsertPosition)
-						 .BindTo(this, x => x.CaretIndex)
+						 .Subscribe(x => Dispatcher.UIThread.Post(() => CaretIndex = x, DispatcherPriority.Input))
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Text)
