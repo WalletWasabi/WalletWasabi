@@ -18,7 +18,7 @@
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:ContentArea.Title>
       <DockPanel>
-        <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}">
+        <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight">
               <c:SortControl Sortables="{Binding CoinList.Sortables}" />

@@ -113,7 +113,7 @@
   <DockPanel>
     <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
       <TextBlock VerticalAlignment="Center" Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
-      <Button Theme="{StaticResource Layer2}">
+      <Button Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft">
             <c:SortControl Sortables="{Binding Sortables}" />
