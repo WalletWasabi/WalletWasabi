@@ -16,7 +16,7 @@
                                Content="{Binding Amounts^.Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
     </c:CopyableItem>
     <c:TileControl.BottomContent>
-      <c:CopyableItem ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdFriendlyDecimals}}" HorizontalContentAlignment="Center">
+      <c:CopyableItem ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
         <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                  Opacity="0.8"
                                  Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
