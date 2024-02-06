@@ -135,9 +135,8 @@
           <Interaction.Behaviors>
             <behaviors:FlyoutSuggestionBehavior Target="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                                                 Content="{Binding ClipboardSuggestion, RelativeSource={RelativeSource TemplatedParent}}"
-                                                ApplySuggestionCommand="{Binding ApplySuggestionCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                                                x:Name="SuggestionBehavior" />
-          </Interaction.Behaviors> 
+                                                ApplySuggestionCommand="{Binding ApplySuggestionCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+          </Interaction.Behaviors>
         </DockPanel>
       </ControlTemplate>
     </Setter>
