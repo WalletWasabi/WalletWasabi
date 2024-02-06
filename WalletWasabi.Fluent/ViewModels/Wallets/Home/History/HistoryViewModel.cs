@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Windows.Input;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -20,7 +20,7 @@ using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
-public partial class HistoryViewModel : ActivatableViewModel, ISortable
+public partial class HistoryViewModel : ActivatableViewModel
 {
 	private readonly IWalletModel _wallet;
 
@@ -37,14 +37,13 @@ public partial class HistoryViewModel : ActivatableViewModel, ISortable
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
-	public ICommand StatusDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending));
-	public ICommand StatusAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending));
-	public ICommand DateDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending));
-	public ICommand DateAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending));
-	public ICommand AmountDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending));
-	public ICommand AmountAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending));
-	public ICommand LabelDescending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending));
-	public ICommand LabelAscending => ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending));
+	public IEnumerable<SortableItem> Sortables =>
+	[
+		new SortableItem("Status") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
+		new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
+		new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
+		new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+	];
 
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
