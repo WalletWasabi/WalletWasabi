@@ -85,19 +85,18 @@ public class DualCurrencyEntryBox : TemplatedControl
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
 	private decimal _amountBtc;
-	private bool _canUpdateDisplay = true;
-	private bool _canUpdateFiat = true;
+	private bool _isLeftFocused;
+	private bool _isRightFocused;
 
 	public DualCurrencyEntryBox()
 	{
 		this.GetObservable(TextProperty).Subscribe(InputText);
 		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
-		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
+		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay());
 
-		UpdateDisplay(false);
+		UpdateDisplay();
 
 		PseudoClasses.Set(":noexchangerate", true);
 	}
@@ -222,130 +221,90 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
 
-	protected override void OnLostFocus(RoutedEventArgs e)
-	{
-		base.OnLostFocus(e);
-
-		UpdateDisplay(true);
-	}
-
 	private void InputText(string? text)
 	{
-		if (!_canUpdateDisplay)
-		{
-			return;
-		}
-
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			InputBtcValue(0);
-			UpdateDisplay(false);
+			SetCurrentValue(AmountBtcProperty, 0);
 		}
 		else
 		{
-			InputBtcString(text);
+			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
+			{
+				text = better;
+			}
+
+			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			{
+				SetCurrentValue(AmountBtcProperty, decimalValue);
+			}
 		}
+
+		UpdateDisplay();
 	}
 
 	private void InputConversionText(string? text)
 	{
-		if (!_canUpdateDisplay)
-		{
-			return;
-		}
-
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			InputBtcValue(0);
-			UpdateDisplay(false);
+			SetCurrentValue(AmountBtcProperty, 0);
 		}
 		else
 		{
-			InputFiatString(text);
+			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			{
+				SetCurrentValue(AmountBtcProperty, FiatToBitcoin(decimalValue));
+			}
 		}
+
+		UpdateDisplay();
 	}
 
-	private void InputBtcValue(decimal value)
+	private void UpdateDisplay()
 	{
-		SetCurrentValue(AmountBtcProperty, value);
+		UpdateDisplayBtc();
+		UpdateDisplayFiat();
 	}
 
-	private void InputBtcString(string value)
-	{
-		if (CurrencyInput.TryCorrectBitcoinAmount(value, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
-		{
-			value = better;
-		}
-
-		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
-		{
-			InputBtcValue(decimalValue);
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void InputFiatString(string value)
-	{
-		if (!_canUpdateFiat)
-		{
-			return;
-		}
-
-		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
-		{
-			InputBtcValue(FiatToBitcoin(decimalValue));
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void UpdateDisplay(bool updateTextField)
+	private void UpdateDisplayBtc()
 	{
 		Watermark = FullFormatBtc(0);
 
-		if (updateTextField)
+		string text;
+		if (_isLeftFocused)
 		{
-			_canUpdateDisplay = false;
-
-			var oldText = LeftEntryBox?.Text;
-			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
-			SetCurrentValue(TextProperty, text);
-
-			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(LeftEntryBox, text, oldText);
-
-			_canUpdateDisplay = true;
+			text = LeftEntryBox?.Text?.Replace(" ", "") ?? "";
+		}
+		else
+		{
+			text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 		}
 
-		UpdateDisplayFiat(updateTextField);
+		SetCurrentValue(TextProperty, text);
 	}
 
-	private void UpdateDisplayFiat(bool updateTextField)
+	private void UpdateDisplayFiat()
 	{
-		_canUpdateFiat = false;
-
 		if (ConversionRate == 0m)
 		{
 			return;
 		}
 
-		var conversion = BitcoinToFiat(AmountBtc);
-
 		SetCurrentValue(IsConversionApproximateProperty, AmountBtc > 0);
 		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
-		if (updateTextField)
+		string text;
+		if (_isRightFocused)
 		{
-			var oldText = RightEntryBox?.Text;
-			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
-			SetCurrentValue(ConversionTextProperty, text);
-
-			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(RightEntryBox, text, oldText);
+			text = RightEntryBox?.Text?.Replace(" ","") ?? "";
+		}
+		else
+		{
+			var conversion = BitcoinToFiat(AmountBtc);
+			text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
 		}
 
-		_canUpdateFiat = true;
+		SetCurrentValue(ConversionTextProperty, text);
 	}
 
 	private void SetCaretIndex(CurrencyEntryBox? entryBox, string newText, string? oldText)
@@ -395,6 +354,24 @@ public class DualCurrencyEntryBox : TemplatedControl
 		_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
 		LeftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
 		RightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
+
+		LeftEntryBox?
+			.GetObservable(IsKeyboardFocusWithinProperty)
+			.Subscribe(x =>
+			{
+				_isLeftFocused = x;
+				UpdateDisplay();
+			})
+			.DisposeWith(_disposable);
+
+		RightEntryBox?
+			.GetObservable(IsKeyboardFocusWithinProperty)
+			.Subscribe(x =>
+			{
+				_isRightFocused = x;
+				UpdateDisplay();
+			})
+			.DisposeWith(_disposable);
 
 		if (_swapButton is { })
 		{
@@ -446,7 +423,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		{
 			PseudoClasses.Set(":reversed", change.GetNewValue<bool>());
 			ReorganizeVisuals();
-			UpdateDisplay(false);
+			UpdateDisplay();
 		}
 	}
 
