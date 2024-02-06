@@ -43,7 +43,7 @@ public partial class CurrencyInputViewModel : ActivatableViewModel
 	public int? SelectionStart { get; set; }
 	public int? SelectionEnd { get; set; }
 
-	public bool HasSelection => SelectionEnd is { } && SelectionEnd is { };
+	public bool HasSelection => SelectionStart is { } && SelectionEnd is { };
 
 	public string GroupSeparator { get; init; } = " ";
 
