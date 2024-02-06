@@ -10,6 +10,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
@@ -67,7 +68,7 @@ public partial class CurrencyEntryBox : TextBox
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Text)
-						 .BindTo(this, x => x.Text)
+						 .Subscribe(x => Dispatcher.UIThread.Post(() => Text = x, DispatcherPriority.Input))
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Value)
