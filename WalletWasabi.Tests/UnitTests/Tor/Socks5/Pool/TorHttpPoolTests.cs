@@ -281,7 +281,7 @@ public class TorHttpPoolTests
 				X-GitHub-Request-Id: AFCA:0EE6:208343C:21F2436:6395A726
 
 				"""
-				+ Environment.NewLine // Adding the newline like this otherwise CodeMaid removes the double empty lines.
+				+ "\r\n" // Adding the newline like this otherwise CodeMaid removes the double empty lines.
 				.ReplaceLineEndings("\r\n");
 
 			await serverWriter1.WriteAsync(serverResponse1.AsMemory(), timeoutCts.Token);
