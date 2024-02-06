@@ -224,23 +224,8 @@ public class Global
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
-				if (Config.RunSleepInhibitorAfterRoundStart)
-				{
-					SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
 
-					if (sleepInhibitor is not null)
-					{
-						HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
-					}
-					else
-					{
-						Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
-					}
-				}
-				else
-				{
-					Logger.LogInfo("Sleep Inhibitor is disabled.");
-				}
+				await CreateSleepInhibitorIfEnabledAsync().ConfigureAwait(false);
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -257,6 +242,27 @@ public class Global
 			{
 				Logger.LogTrace("Initialization finished.");
 			}
+		}
+	}
+
+	private async Task CreateSleepInhibitorIfEnabledAsync()
+	{
+		if (Config.RunSleepInhibitorAfterRoundStart)
+		{
+			SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+			if (sleepInhibitor is not null)
+			{
+				HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
+			}
+			else
+			{
+				Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
+			}
+		}
+		else
+		{
+			Logger.LogInfo("Sleep Inhibitor is disabled.");
 		}
 	}
 
