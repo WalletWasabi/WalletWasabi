@@ -120,7 +120,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
-		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
+		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, FeeRateMedianTimeFrame))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
@@ -145,7 +145,7 @@ public class CoinJoinClient
 
 			if (!currentRoundState.IsBlame)
 			{
-				if (!IsRoundEconomic(roundParameters.MiningFeeRate))
+				if (!IsRoundEconomic(roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, FeeRateMedianTimeFrame))
 				{
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, "Uneconomical round skipped.");
 				}
@@ -711,23 +711,23 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	private bool IsRoundEconomic(FeeRate roundFeeRate)
+	internal static bool IsRoundEconomic(FeeRate roundFeeRate, Dictionary<TimeSpan, FeeRate>? coinJoinFeeRateMedians, TimeSpan feeRateMedianTimeFrame)
 	{
-		if (FeeRateMedianTimeFrame == default)
+		if (coinJoinFeeRateMedians == default)
 		{
 			return true;
 		}
 
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.ContainsKey(FeeRateMedianTimeFrame))
+		if (coinJoinFeeRateMedians.ContainsKey(feeRateMedianTimeFrame))
 		{
 			// Round is not economic if any TimeFrame lower than FeeRateMedianTimeFrame has a FeeRate lower than current round's FeeRate.
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return RoundStatusUpdater.CoinJoinFeeRateMedians
-				.Where(x => x.Key <= FeeRateMedianTimeFrame)
+			return coinJoinFeeRateMedians
+				.Where(x => x.Key <= feeRateMedianTimeFrame)
 				.All(lowerTimeFrame => roundFeeRate.SatoshiPerByte <= lowerTimeFrame.Value.SatoshiPerByte + 0.5m);
 		}
 
-		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
+		throw new InvalidOperationException($"Could not find median fee rate for time frame: {feeRateMedianTimeFrame}.");
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
