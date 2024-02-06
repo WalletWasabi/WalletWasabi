@@ -218,6 +218,11 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
+	protected override void OnTextInput(TextInputEventArgs e)
+	{
+		e.Handled = true;
+	}
+
 	private void CustomOnKeyDown(object? sender, KeyEventArgs e)
 	{
 		if (ViewModel is null)
