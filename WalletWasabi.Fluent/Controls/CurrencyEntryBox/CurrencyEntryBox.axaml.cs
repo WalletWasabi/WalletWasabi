@@ -73,13 +73,16 @@ public partial class CurrencyEntryBox : TextBox
 							 }
 
 							 _isUpdatingCaretIndex = true;
-							 Dispatcher.UIThread.Post(() => CaretIndex = x, DispatcherPriority.Input);
+							 CaretIndex = x;
 							 _isUpdatingCaretIndex = false;
 						 })
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Text)
-						 .Subscribe(x => Dispatcher.UIThread.Post(() => Text = x, DispatcherPriority.Input))
+						 .Subscribe(x =>
+						 {
+							 Text = x;
+						 })
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Value)
