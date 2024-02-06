@@ -221,7 +221,7 @@ public class CoinVerifier : IAsyncDisposable
 			}
 		}
 
-		_ = Task.Run(
+		Task.Run(
 			async () =>
 			{
 				try
