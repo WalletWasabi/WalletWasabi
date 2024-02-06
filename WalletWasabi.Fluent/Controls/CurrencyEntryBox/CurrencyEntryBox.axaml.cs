@@ -41,6 +41,7 @@ public partial class CurrencyEntryBox : TextBox
 	private CompositeDisposable _disposables = new();
 	private bool _isUpdating;
 	private bool _isUpdatingSelection;
+	private bool _isUpdatingCaretIndex;
 
 	public CurrencyEntryBox()
 	{
@@ -64,7 +65,17 @@ public partial class CurrencyEntryBox : TextBox
 				SetCurrentValue(CurrencyFormatProperty, viewModel.CurrencyFormat);
 
 				viewModel.WhenAnyValue(x => x.InsertPosition)
-						 .Subscribe(x => Dispatcher.UIThread.Post(() => CaretIndex = x, DispatcherPriority.Input))
+						 .Subscribe(x =>
+						 {
+							 if (_isUpdatingCaretIndex)
+							 {
+								 return;
+							 }
+
+							 _isUpdatingCaretIndex = true;
+							 Dispatcher.UIThread.Post(() => CaretIndex = x, DispatcherPriority.Input);
+							 _isUpdatingCaretIndex = false;
+						 })
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Text)
@@ -97,7 +108,17 @@ public partial class CurrencyEntryBox : TextBox
 						 .DisposeWith(_disposables);
 
 				this.GetObservable(CaretIndexProperty)
-					.Do(viewModel.SetInsertPosition)
+					.Do(x =>
+					{
+						if (_isUpdatingCaretIndex)
+						{
+							return;
+						}
+
+						_isUpdatingCaretIndex = true;
+						viewModel.SetInsertPosition(x);
+						_isUpdatingCaretIndex = false;
+					})
 					.Subscribe()
 					.DisposeWith(_disposables);
 
