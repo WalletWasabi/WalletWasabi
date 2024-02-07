@@ -5,9 +5,9 @@ namespace WalletWasabi.BuyAnything;
 
 public class ConversationTracking
 {
+	private readonly object _syncObj = new();
 	public Dictionary<string, int> NextConversationIds { get; private set; } = new();
 	public List<ConversationUpdateTrack> Conversations { get; } = new();
-	private readonly object _syncObj = new();
 
 	public void Load(ConversationTracking conversations)
 	{
