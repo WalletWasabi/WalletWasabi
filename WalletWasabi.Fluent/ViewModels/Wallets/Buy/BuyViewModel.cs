@@ -1,21 +1,20 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
-using DynamicData;
-using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
-using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.BuyAnything;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Logging;
-using Country = WalletWasabi.BuyAnything.Country;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
+using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
+using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -31,15 +30,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	Searchable = false)]
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
-	private readonly CancellationTokenSource _cts;
-	private readonly Wallet _wallet;
-	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
-	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private readonly Country[] _countries;
+	private readonly CancellationTokenSource _cts;
+	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
+	private readonly SourceCache<OrderViewModel, int> _ordersCache;
+	private readonly Wallet _wallet;
+	[AutoNotify] private OrderViewModel? _emptyOrder; // Used to track the "Empty" order (with empty ConversationId)
 
 	[AutoNotify] private OrderViewModel? _selectedOrder;
-	[AutoNotify] private OrderViewModel? _emptyOrder; // Used to track the "Empty" order (with empty ConversationId)
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -75,6 +74,17 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
 	public WalletViewModel WalletVm { get; }
+
+	async Task IOrderManager.RemoveOrderAsync(int id)
+	{
+		if (Orders.FirstOrDefault(x => x.OrderNumber == id) is { } orderToRemove)
+		{
+			await _buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.ConversationId }, _cts.Token);
+		}
+
+		_ordersCache.RemoveKey(id);
+		SelectedOrder = _orders.FirstOrDefault();
+	}
 
 	public void Activate(CompositeDisposable disposable)
 	{
@@ -165,16 +175,5 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		_ordersCache.AddOrUpdate(order);
 
 		return order;
-	}
-
-	async Task IOrderManager.RemoveOrderAsync(int id)
-	{
-		if (Orders.FirstOrDefault(x => x.OrderNumber == id) is { } orderToRemove)
-		{
-			await _buyAnythingManager.RemoveConversationsByIdsAsync(new[] { orderToRemove.ConversationId }, _cts.Token);
-		}
-
-		_ordersCache.RemoveKey(id);
-		SelectedOrder = _orders.FirstOrDefault();
 	}
 }
