@@ -47,7 +47,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 					CanUserSortColumn = true,
 					CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.IsCoinjoin),
 					CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.IsCoinjoin),
-					MinWidth = new GridLength(80, GridUnitType.Pixel)
 				},
 				width: new GridLength(0, GridUnitType.Auto)),
 			x => x.Children,
@@ -66,7 +65,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Date),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Date),
-				MinWidth = new GridLength(150, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 15);
@@ -100,8 +98,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.IncomingAmount),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.IncomingAmount),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 9);
@@ -118,8 +114,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.OutgoingAmount),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.OutgoingAmount),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 9);
@@ -136,8 +130,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Balance),
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Balance),
-				MinWidth = new GridLength(145, GridUnitType.Pixel),
-				MaxWidth = new GridLength(210, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 9);
