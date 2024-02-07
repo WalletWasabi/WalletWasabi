@@ -39,14 +39,15 @@ public record ConversationId(string WalletId, string EmailAddress, string Passwo
 
 public record Chat : IReadOnlyCollection<ChatMessage>
 {
+	private readonly ChatMessage[] _messages;
 	public static readonly Chat Empty = new(Array.Empty<ChatMessage>());
+
 	[JsonConstructor]
 	public Chat(IEnumerable<ChatMessage> messages)
 	{
 		_messages = Enumerable.ToArray(messages);
 	}
 
-	private readonly ChatMessage[] _messages;
 	public ChatMessage this[int i] => _messages[i];
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
