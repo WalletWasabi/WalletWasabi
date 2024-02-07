@@ -228,7 +228,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
         BuyViewModel.Activate(disposables);
 	}
-
 	
 	public IObservable<bool> HasUnreadConversations { get; }
 
