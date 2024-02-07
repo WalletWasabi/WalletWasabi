@@ -1,14 +1,15 @@
 using System.Globalization;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -90,8 +91,31 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public DualCurrencyEntryBox()
 	{
-		this.GetObservable(TextProperty).Subscribe(InputText);
-		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
+		this.GetObservable(TextProperty)
+			.Buffer(2, 1)
+			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				if (x is { OldValue: { } oldValue, NewValue: { } newValue } &&
+				    RemoveFormat(oldValue) != RemoveFormat(newValue))
+				{
+					InputText(newValue);
+				}
+			});
+
+		this.GetObservable(ConversionTextProperty)
+			.Buffer(2, 1)
+			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
+			.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				if (x is { OldValue: { } oldValue, NewValue: { } newValue } &&
+				    RemoveFormat(oldValue) != RemoveFormat(newValue))
+				{
+					InputConversionText(newValue);
+				}
+			});
+
 		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay());
