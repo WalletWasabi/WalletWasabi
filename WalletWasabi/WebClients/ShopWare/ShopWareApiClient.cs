@@ -131,7 +131,8 @@ public class ShopWareApiClient : IShopWareApiClient
 	[Conditional("DEBUG")]
 	private void WriteRequest<TRequest>(HttpRequestMessage httpRequest, TRequest request)
 	{
-		string body = JsonConvert.SerializeObject(request,
+		string body = JsonConvert.SerializeObject(
+			request,
 			new JsonSerializerSettings
 			{
 				ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -149,7 +150,8 @@ public class ShopWareApiClient : IShopWareApiClient
 
 	private static StringContent Serialize<T>(T obj)
 	{
-		string jsonString = JsonConvert.SerializeObject(obj,
+		string jsonString = JsonConvert.SerializeObject(
+			obj,
 			new JsonSerializerSettings
 			{
 				ContractResolver = new CamelCasePropertyNamesContractResolver()

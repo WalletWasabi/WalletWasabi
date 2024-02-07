@@ -165,8 +165,7 @@ public class BuyAnythingClient
 				.Where(x => x.Active)
 				.Select(x => new Country(
 					Id: x.Id,
-					Name: x.Name)
-				);
+					Name: x.Name));
 
 			results.AddRange(cachedCountries);
 

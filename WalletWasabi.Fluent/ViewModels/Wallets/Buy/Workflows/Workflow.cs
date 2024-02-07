@@ -73,8 +73,8 @@ public abstract partial class Workflow : ReactiveObject
 	/// <summary>
 	/// Marks the conversation messages as read and Saves to disk.
 	/// </summary>
-	/// <param name="cts"></param>
-	public async Task MarkConversationAsReadAsync(CancellationToken token)
+	/// <param name="cancellationToken">The cancellation token</param>
+	public async Task MarkConversationAsReadAsync(CancellationToken cancellationToken)
 	{
 		if (CurrentStep is { })
 		{
@@ -92,7 +92,7 @@ public abstract partial class Workflow : ReactiveObject
 
 			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
-			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, token));
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
 		}
 		finally
 		{

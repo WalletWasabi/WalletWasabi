@@ -53,10 +53,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
 
+	public int Count => _messages.Length;
+
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
-
-	public int Count => _messages.Length;
 
 	public static Chat FromText(string updatedConversation, Chat oldConversation)
 	{

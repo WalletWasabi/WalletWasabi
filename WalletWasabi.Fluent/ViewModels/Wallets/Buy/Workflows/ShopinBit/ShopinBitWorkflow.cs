@@ -21,6 +21,8 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		IsCompleted = conversation.ConversationStatus >= ConversationStatus.Finished;
 	}
 
+	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this, _token);
+
 	public override async Task ExecuteAsync(CancellationToken token)
 	{
 		_token = token;
@@ -102,13 +104,11 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		WorkflowCompleted();
 	}
 
-	public override IMessageEditor MessageEditor => new ShopinBitMessageEditor(this, _token);
-
 	/// <summary>
 	/// Listen to Conversation Updates from the Server. Upon that, it updates the Conversation
 	/// </summary>
-	/// <returns>an IDisposable for the event subscription.</returns>
-	/// <remarks>if the ConversationStatus changes, this handler will Ignore the Current Step</remarks>
+	/// <returns>An <see cref="IDisposable"/> for the event subscription.</returns>
+	/// <remarks>If the ConversationStatus changes, this handler will Ignore the Current Step</remarks>
 	/// <exception cref="InvalidOperationException"></exception>
 	private IDisposable ListenToServerUpdates()
 	{
