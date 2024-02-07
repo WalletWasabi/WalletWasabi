@@ -85,8 +85,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
 	private decimal _amountBtc;
-	private bool _isLeftFocused;
-	private bool _isRightFocused;
+	private bool _isTextInputFocused;
+	private bool _isConversationTextFocused;
 
 	public DualCurrencyEntryBox()
 	{
@@ -223,6 +223,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private void InputText(string? text)
 	{
+		if (!_isTextInputFocused)
+		{
+			return;
+		}
+
 		if (string.IsNullOrWhiteSpace(text))
 		{
 			SetCurrentValue(AmountBtcProperty, 0);
@@ -245,6 +250,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private void InputConversionText(string? text)
 	{
+		if (!_isConversationTextFocused)
+		{
+			return;
+		}
+
 		if (string.IsNullOrWhiteSpace(text))
 		{
 			SetCurrentValue(AmountBtcProperty, 0);
@@ -262,16 +272,16 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private void UpdateDisplay()
 	{
-		UpdateDisplayBtc();
-		UpdateDisplayFiat();
+		UpdateTextDisplay();
+		UpdateConversationTextDisplay();
 	}
 
-	private void UpdateDisplayBtc()
+	private void UpdateTextDisplay()
 	{
 		Watermark = FullFormatBtc(0);
 
 		string text;
-		if (_isLeftFocused)
+		if (_isTextInputFocused)
 		{
 			text = LeftEntryBox?.Text?.Replace(" ", "") ?? "";
 		}
@@ -283,7 +293,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		SetCurrentValue(TextProperty, text);
 	}
 
-	private void UpdateDisplayFiat()
+	private void UpdateConversationTextDisplay()
 	{
 		if (ConversionRate == 0m)
 		{
@@ -294,7 +304,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
 		string text;
-		if (_isRightFocused)
+		if (_isConversationTextFocused)
 		{
 			text = RightEntryBox?.Text?.Replace(" ","") ?? "";
 		}
@@ -305,17 +315,6 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 
 		SetCurrentValue(ConversionTextProperty, text);
-	}
-
-	private void SetCaretIndex(CurrencyEntryBox? entryBox, string newText, string? oldText)
-	{
-		if (entryBox is not null)
-		{
-			var oldTextLength = oldText?.Length ?? 0;
-			var newTextLength = newText.Length;
-			var newCaretIndex = entryBox.CaretIndex + (newTextLength - oldTextLength);
-			Dispatcher.UIThread.Post(() => entryBox?.SetCurrentValue(TextBox.CaretIndexProperty, newCaretIndex + 1));
-		}
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -359,7 +358,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
-				_isLeftFocused = x;
+				_isTextInputFocused = x;
 				UpdateDisplay();
 			})
 			.DisposeWith(_disposable);
@@ -368,7 +367,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
-				_isRightFocused = x;
+				_isConversationTextFocused = x;
 				UpdateDisplay();
 			})
 			.DisposeWith(_disposable);
