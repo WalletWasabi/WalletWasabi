@@ -280,10 +280,10 @@ public class DualCurrencyEntryBox : TemplatedControl
 	{
 		Watermark = FullFormatBtc(0);
 
-		string text;
+		var text = LeftEntryBox?.Text ?? "";
 		if (_isTextInputFocused)
 		{
-			text = LeftEntryBox?.Text?.Replace(" ", "") ?? "";
+			text = RemoveFormat(text);
 		}
 		else
 		{
@@ -303,10 +303,10 @@ public class DualCurrencyEntryBox : TemplatedControl
 		SetCurrentValue(IsConversionApproximateProperty, AmountBtc > 0);
 		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
-		string text;
+		var text = RightEntryBox?.Text ?? "";
 		if (_isConversationTextFocused)
 		{
-			text = RightEntryBox?.Text?.Replace(" ","") ?? "";
+			text = RemoveFormat(text);
 		}
 		else
 		{
@@ -397,6 +397,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		focusOn?.Focus();
 	}
+
+	private string RemoveFormat(string text) => text.Replace(" ", "");
 
 	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
