@@ -6,6 +6,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:currency="using:WalletWasabi.Fluent.Models.Currency"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:CustomFeeRateDialogViewModel"
              x:CompileBindings="True"
@@ -18,13 +19,16 @@
                  IsBusy="{Binding IsBusy}">
     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Top">
       <Label Content="_Transaction fee rate:" Target="CustomFee" />
-      <c:CurrencyEntryBox Text="{Binding CustomFee}" CurrencyCode="sat/vByte"
-                          Width="220" MaxDecimals="2" Classes="standalone"
-                          Watermark="1 sat/vByte" x:Name="CustomFee">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
-      </c:CurrencyEntryBox>
+
+      <Panel>
+        <c:CurrencyEntryBox ViewModel="{Binding CustomFeeViewModel}"
+                            Value="{Binding CustomFeeViewModel.Value}"
+                            Width="220" Watermark="1 sat/vByte">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:CurrencyEntryBox>
+      </Panel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

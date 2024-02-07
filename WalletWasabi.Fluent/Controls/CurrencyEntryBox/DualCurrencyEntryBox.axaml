@@ -1,0 +1,104 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+
+  <!-- TextControlBoxBorderThemeThickness -->
+  <Thickness x:Key="DualCurrencyEntryBoxBorderThemeThickness">0,0,0,2</Thickness>
+  <!-- TextControlBorderThemeThicknessFocused -->
+  <Thickness x:Key="DualCurrencyEntryBoxBorderThemeThicknessFocused">0,0,0,2</Thickness>
+  <!-- TextControlThemePadding -->
+  <Thickness x:Key="DualCurrencyEntryBoxThemePadding">15,10,15,8</Thickness>
+
+  <ControlTheme x:Key="{x:Type c:DualCurrencyEntryBox}" TargetType="c:DualCurrencyEntryBox">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThickness}" />
+    <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+    <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+    <Setter Property="Padding" Value="0 1 0 0" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Focusable" Value="False" />
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <DataValidationErrors DockPanel.Dock="Bottom" />
+
+          <Panel>
+            <Border Name="PART_BorderElement"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    MinWidth="{TemplateBinding MinWidth}"
+                    MinHeight="{TemplateBinding MinHeight}" />
+            <Panel Margin="{TemplateBinding BorderThickness}">
+              <Panel Margin="{TemplateBinding Padding}">
+                <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
+                  <!-- Left Content -->
+                  <ContentPresenter Content="{TemplateBinding LeftEntryBox}"
+                                    Grid.Column="1" />
+
+                  <!-- Swap Button -->
+                  <ToggleButton x:Name="PART_SwapButton" Grid.Column="2"
+                                IsVisible="{TemplateBinding IsConversionAvailable}"
+                                IsChecked="{Binding IsConversionReversed, RelativeSource={RelativeSource TemplatedParent}}"
+                                Classes="plain" Margin="5"
+                                ToolTip.Tip="Swap BTC and USD">
+                    <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
+                  </ToggleButton>
+
+                  <!-- Right Content -->
+                  <ContentPresenter Content="{TemplateBinding RightEntryBox}"
+                                    IsVisible="{TemplateBinding IsConversionAvailable}"
+                                    Grid.Column="3" />
+                </Grid>
+              </Panel>
+            </Panel>
+          </Panel>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- Disabled State -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+    </Style>
+
+    <Style Selector="^:disabled /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="^:disabled /template/ ToggleButton#PART_SwapButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
+    <Style Selector="^/template/ DataValidationErrors">
+      <Setter Property="MinHeight" Value="21" />
+    </Style>
+
+    <Style Selector="^:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
+
+    <Style Selector="^:error /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Style>
+
+    <Style Selector="^/template/ ToggleButton#PART_SwapButton">
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="^:focus-within /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

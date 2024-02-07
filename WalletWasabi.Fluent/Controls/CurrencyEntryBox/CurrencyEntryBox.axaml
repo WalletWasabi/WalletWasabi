@@ -1,6 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
+                    xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+                    xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
   <Design.PreviewWith>
     <c:CurrencyEntryBox IsReadOnly="True" />
   </Design.PreviewWith>
@@ -25,13 +27,16 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource CurrencyEntryBoxThemePadding}" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
+
+    <Setter Property="Watermark" Value="{Binding $self.CurrencyFormat.DefaultWatermark}" />
+
     <Setter Property="ContextMenu">
       <ContextMenu>
-        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
+        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].CustomCutCommand}" IsEnabled="{Binding $parent[TextBox].CanCut}"
                   InputGesture="{x:Static TextBox.CutGesture}" />
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].CustomCopyCommand}"
                   IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding ModifiedPaste, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}"
+        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].CustomPasteCommand}"
                   IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
       </ContextMenu>
     </Setter>
@@ -40,20 +45,13 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel>
+        <DockPanel x:Name="Root">
           <DataValidationErrors DockPanel.Dock="Bottom" x:Name="PART_DataValidationErrors" />
 
-          <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
-          <ContentPresenter x:Name="PART_HeaderContentPresenter"
-                            DockPanel.Dock="Top"
-                            TextElement.FontWeight="Normal"
-                            TextElement.Foreground="{DynamicResource TextControlHeaderForeground}"
-                            IsVisible="False"
-                            Margin="{DynamicResource TextBoxTopHeaderMargin}" />
-
           <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}">
-            <Border
-              Name="PART_BorderElement"
+
+            <!-- Main Border -->
+            <Border Name="PART_BorderElement"
               Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
               BorderThickness="{TemplateBinding BorderThickness}"
@@ -63,6 +61,8 @@
             <Panel
               Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- InnerLeftContent -->
                 <ContentPresenter Grid.Column="0"
                                   Content="{TemplateBinding InnerLeftContent}" />
                 <Panel x:Name="PART_InnerDockPanel" Grid.Column="1"
@@ -72,6 +72,8 @@
                     VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                     <DockPanel>
                       <Panel>
+
+                        <!-- Watermark -->
                         <TextBlock Name="PART_Watermark"
                                    Opacity="0.5"
                                    Text="{TemplateBinding Watermark}"
@@ -80,25 +82,31 @@
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-                          <TextBlock Text="≈"
-                                     IsVisible="{TemplateBinding IsApproximate}"
-                                     Margin="0 0 5 0"
-                                     Opacity="0.5"
-                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Left" />
 
-                          <!-- Current Currency Code -->
+                        <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+
+                          <!-- Approx symbol -->
+                          <Panel DockPanel.Dock="Left"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                 IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}">
+                            <TextBlock Text="≈"
+                                       IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       Opacity="0.5"
+                                       Margin="0 0 5 0" />
+                          </Panel>
+
+                          <!-- Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
                                      Margin="5 0 0 0"
-                                     Text="{TemplateBinding CurrencyCode}"
+                                     Text="{Binding CurrencyFormat.CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
                                      IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                      DockPanel.Dock="Right" />
 
+                          <!-- Main TextPresenter -->
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"
@@ -113,7 +121,6 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-
                         </DockPanel>
                       </Panel>
                     </DockPanel>
@@ -124,6 +131,12 @@
               </Grid>
             </Panel>
           </Panel>
+
+          <Interaction.Behaviors>
+            <behaviors:FlyoutSuggestionBehavior Target="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                                Content="{Binding ClipboardSuggestion, RelativeSource={RelativeSource TemplatedParent}}"
+                                                ApplySuggestionCommand="{Binding ApplySuggestionCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+          </Interaction.Behaviors>
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -153,7 +166,7 @@
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Margin="0 0 5 0"
                                  Text="≈"
-                                 IsVisible="{TemplateBinding IsFiat}"
+                                 IsVisible="{Binding CurrencyFormat.IsApproximate, RelativeSource={RelativeSource TemplatedParent}}"
                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       <TextPresenter Name="PART_TextPresenter"
@@ -171,7 +184,7 @@
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       <TextBlock Margin="5 0 0 0"
-                                 Text="{TemplateBinding CurrencyCode}"
+                                 Text="{Binding CurrencyFormat.CurrencyCode, RelativeSource={RelativeSource TemplatedParent}}"
                                  IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
@@ -226,30 +239,20 @@
       <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
     </Style>
 
-    <Style Selector="^:isrightside">
-      <Setter Property="TextAlignment" Value="Right" />
-      <Setter Property="HorizontalContentAlignment" Value="Right" />
+    <Style Selector="^:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
+
+    <!-- Error state -->
+    <Style Selector="^:error /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
 
     <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
-    <Style Selector="^:empty /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 0 0" />
+    <Style Selector="^:empty[HorizontalContentAlignment=Right] /template/ TextPresenter#PART_TextPresenter">
+      <Setter Property="Margin" Value="0 0 35 0" />
     </Style>
-    <Style Selector="^:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="13 0 0 0" />
-    </Style>
-    <Style Selector="^:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 40 0" />
-    </Style>
-    <Style Selector="^:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
-      <Setter Property="Margin" Value="0 0 63 0" />
-    </Style>
-
-    <!-- Hide DataValidationErrors by default -->
-    <Style Selector="^/template/ DataValidationErrors#PART_DataValidationErrors">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
-
   </ControlTheme>
-
 </ResourceDictionary>

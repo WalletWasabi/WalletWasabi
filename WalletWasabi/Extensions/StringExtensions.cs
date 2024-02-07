@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace WalletWasabi.Extensions;
 
@@ -70,5 +71,13 @@ public static class StringExtensions
 		List<string> result = new();
 		InternalSplit(text, lineWidth, result);
 		return result.ToArray();
+	}
+
+	/// <summary>
+	/// Counts the occurrences of subText inside of text using Regex.Match()
+	/// </summary>
+	public static int CountOccurrencesOf(this string text, string subText)
+	{
+		return Regex.Matches(text, Regex.Escape(subText)).Count;
 	}
 }

@@ -52,6 +52,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
+	[AutoNotify] private bool _sendAmountConversionReversed;
 
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
@@ -94,6 +95,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_useTor = _startupConfig.UseTor;
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
+		_sendAmountConversionReversed = _uiConfig.SendAmountConversionReversed;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
@@ -130,7 +132,8 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.RunOnSystemStartup,
 			x => x.HideOnClose,
 			x => x.Oobe,
-			x => x.WindowState)
+			x => x.WindowState,
+			x => x.SendAmountConversionReversed)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
@@ -260,6 +263,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.Oobe = Oobe;
 		_uiConfig.WindowState = WindowState.ToString();
+		_uiConfig.SendAmountConversionReversed = SendAmountConversionReversed;
 	}
 
 	private void ApplyUiConfigPrivacyModeChange()

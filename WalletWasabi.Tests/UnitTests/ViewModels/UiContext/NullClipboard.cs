@@ -19,4 +19,9 @@ public class NullClipboard : IUiClipboard
 	{
 		return Task.CompletedTask;
 	}
+
+	public Task<string?> TryGetTextAsync()
+	{
+		return Task.FromResult<string?>("");
+	}
 }

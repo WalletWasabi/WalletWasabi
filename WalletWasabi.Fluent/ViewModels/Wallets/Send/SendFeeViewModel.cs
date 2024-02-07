@@ -69,7 +69,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private async Task<FeeRate?> ShowCustomFeeRateDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(UiContext, _transactionInfo), NavigationTarget.CompactDialogScreen);
 		return result.Result;
 	}
 

@@ -6,16 +6,14 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
+             xmlns:currencyConversion="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
 
   <UserControl.DataTemplates>
-
     <DataTemplate DataType="models:Suggestion">
       <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
         <DockPanel HorizontalAlignment="Center">
@@ -128,33 +126,31 @@
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-          <c:DualCurrencyEntryBox x:Name="amountTb"
-                                  KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
-                                  IsReadOnly="{Binding IsFixedAmount}"
-                                  AmountBtc="{Binding AmountBtc}"
-                                  ConversionRate="{Binding ExchangeRate}"
-                                  CurrencyCode="BTC"
-                                  ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
-                                  BalanceBtc="{Binding Balance^.Btc}"
-                                  BalanceUsd="{Binding Balance^.Usd^}"
-                                  ValidatePasteBalance="True">
-            <c:DualCurrencyEntryBox.Resources>
+          <Panel>
+            <c:DualCurrencyEntryBox x:Name="amountTb" Amount="{Binding Amount}"
+                                    IsConversionReversed="{Binding CurrencyConversion.IsConversionReversed}"
+                                    IsConversionAvailable="{Binding CurrencyConversion.IsConversionAvailable}"
+                                    IsVisible="{Binding !IsFixedAmount}">
+              <c:DualCurrencyEntryBox.LeftEntryBox>
+                <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Left}"
+                                    CurrencyFormat="{Binding Format}"
+                                    ViewModel="{Binding}"
+                                    ClipboardSuggestion="{Binding Suggestion.Text}"
+                                    ApplySuggestionCommand="{Binding Suggestion.ApplyCommand}"
+                                    HorizontalContentAlignment="Left" />
+              </c:DualCurrencyEntryBox.LeftEntryBox>
+              <c:DualCurrencyEntryBox.RightEntryBox>
+                <c:CurrencyEntryBox DataContext="{Binding CurrencyConversion.Right}"
+                                    CurrencyFormat="{Binding Format}"
+                                    ViewModel="{Binding}"
+                                    ClipboardSuggestion="{Binding Suggestion.Text}"
+                                    ApplySuggestionCommand="{Binding Suggestion.ApplyCommand}"
+                                    HorizontalContentAlignment="Right" />
+              </c:DualCurrencyEntryBox.RightEntryBox>
+            </c:DualCurrencyEntryBox>
 
-              <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
-                                           TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
-                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}">
-              </converters:BooleanConverter>
-            </c:DualCurrencyEntryBox.Resources>
-            <i:Interaction.Behaviors>
-              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-            </i:Interaction.Behaviors>
-          </c:DualCurrencyEntryBox>
+            <c:AmountControl Amount="{Binding Amount}" IsVisible="{Binding IsFixedAmount}" Margin="0,9" />
+          </Panel>
         </DockPanel>
       </DockPanel>
     </DockPanel>

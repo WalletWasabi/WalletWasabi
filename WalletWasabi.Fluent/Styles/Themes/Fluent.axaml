@@ -10,9 +10,9 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox/CurrencyEntryBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox/DualCurrencyEntryBox.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/DualCurrencyEntryBox.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/FadeOutTextControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/HistoryPlaceholderPanel.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
@@ -37,4 +37,3 @@
     </ResourceDictionary>
   </Styles.Resources>
 </Styles>
-

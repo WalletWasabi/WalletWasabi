@@ -1,8 +1,13 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Currency;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.CurrencyConversion;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -23,22 +28,32 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinP2PEndPoint;
-	[AutoNotify] private string _dustThreshold;
 
-	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
+	public BitcoinTabSettingsViewModel(UiContext uiContext)
 	{
-		Settings = settings;
+		UiContext = uiContext;
+		Settings = uiContext.ApplicationSettings;
 
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
-		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
-		_dustThreshold = settings.DustThreshold;
+		_bitcoinP2PEndPoint = Settings.BitcoinP2PEndPoint;
+
+		var dustThreshold = CurrencyInput.TryParse(Settings.DustThreshold);
+
+		DustThreshold = new CurrencyInputViewModel(uiContext, CurrencyFormat.Btc, null);
+
+		DustThreshold.SetValue(dustThreshold);
+
+		this.WhenAnyValue(x => x.DustThreshold.Value)
+			.Select(x => x.ToInvariantFormatString())
+			.BindTo(Settings, x => x.DustThreshold);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
+
+	public CurrencyInputViewModel DustThreshold { get; }
 
 	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
@@ -55,34 +70,6 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			else
 			{
 				Settings.BitcoinP2PEndPoint = BitcoinP2PEndPoint;
-			}
-		}
-	}
-
-	private void ValidateDustThreshold(IValidationErrors errors)
-	{
-		var dustThreshold = DustThreshold;
-		if (!string.IsNullOrWhiteSpace(dustThreshold))
-		{
-			bool error = false;
-
-			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
-				',',
-				StringComparison.InvariantCultureIgnoreCase))
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-			}
-
-			if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
-			}
-
-			if (!error)
-			{
-				Settings.DustThreshold = dustThreshold;
 			}
 		}
 	}
