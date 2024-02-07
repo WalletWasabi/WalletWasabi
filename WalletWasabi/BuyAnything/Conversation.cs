@@ -79,13 +79,6 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 			chatEntries.Add(new ChatMessage(source, text, isUnread, null, data));
 		}
 
-		//var systemMessages = oldConversation.Where(line => line is SystemChatMessage);
-		//foreach (var message in systemMessages)
-		//{
-		//	int index = oldConversation.ToList().IndexOf(message);
-		//	chatEntries[index] = message;
-		//}
-
 		return new Chat(chatEntries);
 	}
 
