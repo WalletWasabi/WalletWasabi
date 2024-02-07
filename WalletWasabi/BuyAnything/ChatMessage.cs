@@ -20,14 +20,14 @@ public record AttachmentLinks(IEnumerable<string> Links) : DataCarrier;
 
 public record NoData : DataCarrier;
 
-public record ChatMessage(MessageSource Source, string Text, bool IsUnread, string? StepName, DataCarrier? Data = null)
-{
-	public bool IsMyMessage => Source == MessageSource.User;
-}
-
 public enum MessageSource
 {
 	User = 1,
 	Agent = 2,
 	Bot = 3
+}
+
+public record ChatMessage(MessageSource Source, string Text, bool IsUnread, string? StepName, DataCarrier? Data = null)
+{
+	public bool IsMyMessage => Source == MessageSource.User;
 }

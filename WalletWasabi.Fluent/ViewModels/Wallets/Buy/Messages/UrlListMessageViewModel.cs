@@ -1,11 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
@@ -26,22 +21,4 @@ internal class UrlListMessageViewModel : AssistantMessageViewModel
 	public DataCarrier? Data { get; }
 
 	public IEnumerable<HyperlinkViewModel> Links { get; }
-}
-
-internal class HyperlinkViewModel
-{
-	public string Text { get; }
-	public string Url { get; }
-
-	public HyperlinkViewModel(string text, string url)
-	{
-		Text = text;
-		Url = url;
-		OpenLinkCommand = ReactiveCommand.Create(() => IoHelpers.OpenBrowserAsync(url));
-		CopyCommand = ReactiveCommand.CreateFromTask(() => ApplicationHelper.Clipboard?.SetTextAsync(Url) ?? Task.CompletedTask);
-	}
-
-	public ICommand OpenLinkCommand { get; set; }
-
-	public ICommand CopyCommand { get; set; }
 }
