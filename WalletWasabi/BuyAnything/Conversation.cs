@@ -15,7 +15,7 @@ public enum OrderStatus
 	Done,
 	Cancelled,
 	InProgress,
-};
+}
 
 public enum ConversationStatus
 {
@@ -48,12 +48,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 		_messages = Enumerable.ToArray(messages);
 	}
 
-	public ChatMessage this[int i] => _messages[i];
+	public int Count => _messages.Length;
 
 	public IEnumerator<ChatMessage> GetEnumerator() =>
 		Enumerable.AsEnumerable(_messages).GetEnumerator();
-
-	public int Count => _messages.Length;
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();

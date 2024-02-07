@@ -8,9 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
 
 internal class HyperlinkViewModel
 {
-	public string Text { get; }
-	public string Url { get; }
-
 	public HyperlinkViewModel(string text, string url)
 	{
 		Text = text;
@@ -18,6 +15,9 @@ internal class HyperlinkViewModel
 		OpenLinkCommand = ReactiveCommand.Create(() => IoHelpers.OpenBrowserAsync(url));
 		CopyCommand = ReactiveCommand.CreateFromTask(() => ApplicationHelper.SetTextAsync(Url) ?? Task.CompletedTask);
 	}
+
+	public string Text { get; }
+	public string Url { get; }
 
 	public ICommand OpenLinkCommand { get; set; }
 
