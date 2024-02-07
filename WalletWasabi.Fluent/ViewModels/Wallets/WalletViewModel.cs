@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -21,8 +19,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
-
-#endregion
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
