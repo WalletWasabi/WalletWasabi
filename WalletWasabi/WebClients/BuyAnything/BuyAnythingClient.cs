@@ -13,27 +13,6 @@ namespace WalletWasabi.WebClients.BuyAnything;
 
 public class BuyAnythingClient
 {
-	// Concierge request status
-	public enum ConciergeRequestStatus
-	{
-		Open,
-		Claimed,
-		Offer
-	}
-
-	// Services provided by Concierge
-	public enum Product
-	{
-		[Description("All-Purpose Concierge Assistant")]
-		ConciergeRequest,
-
-		[Description("Fast Travel Assistant")]
-		FastTravelBooking,
-
-		[Description("General Travel Assistant")]
-		TravelConcierge
-	}
-
 	// Product Id mapping for Concierge services
 	private static readonly Dictionary<Product, string> ProductIdsProduction = new()
 	{
@@ -71,6 +50,27 @@ public class BuyAnythingClient
 		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
 		SalutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
 		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
+	}
+
+	// Concierge request status
+	public enum ConciergeRequestStatus
+	{
+		Open,
+		Claimed,
+		Offer
+	}
+
+	// Services provided by Concierge
+	public enum Product
+	{
+		[Description("All-Purpose Concierge Assistant")]
+		ConciergeRequest,
+
+		[Description("Fast Travel Assistant")]
+		FastTravelBooking,
+
+		[Description("General Travel Assistant")]
+		TravelConcierge
 	}
 
 	// Product Id mapping for Concierge services
