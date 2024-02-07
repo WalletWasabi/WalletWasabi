@@ -3,9 +3,11 @@ using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
 
-public abstract record DataCarrier
+public enum MessageSource
 {
-	public static readonly DataCarrier NoData = new NoData();
+	User = 1,
+	Agent = 2,
+	Bot = 3
 }
 
 public record Invoice(string Bip21Link, decimal Amount, string BitcoinAddress, bool IsPaid) : DataCarrier;
@@ -20,11 +22,9 @@ public record AttachmentLinks(IEnumerable<string> Links) : DataCarrier;
 
 public record NoData : DataCarrier;
 
-public enum MessageSource
+public abstract record DataCarrier
 {
-	User = 1,
-	Agent = 2,
-	Bot = 3
+	public static readonly DataCarrier NoData = new NoData();
 }
 
 public record ChatMessage(MessageSource Source, string Text, bool IsUnread, string? StepName, DataCarrier? Data = null)
