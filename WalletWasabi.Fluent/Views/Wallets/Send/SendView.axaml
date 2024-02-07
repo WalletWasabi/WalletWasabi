@@ -138,7 +138,7 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                                   BalanceBtc="{Binding Balance^.Btc}"
                                   BalanceUsd="{Binding Balance^.Usd^}"
-                                  ValidatePasteBalance="False">
+                                  ValidatePasteBalance="True">
             <c:DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
