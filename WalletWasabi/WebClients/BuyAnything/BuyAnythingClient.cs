@@ -1,10 +1,10 @@
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Country = WalletWasabi.BuyAnything.Country;
@@ -13,6 +13,14 @@ namespace WalletWasabi.WebClients.BuyAnything;
 
 public class BuyAnythingClient
 {
+	// Concierge request status
+	public enum ConciergeRequestStatus
+	{
+		Open,
+		Claimed,
+		Offer
+	}
+
 	// Services provided by Concierge
 	public enum Product
 	{
@@ -48,20 +56,6 @@ public class BuyAnythingClient
 	private static readonly string StorefrontUrlProduction = "https://wasabi.shopinbit.com";
 	private static readonly string StorefrontUrlTesting = "https://shopinbit.solution360.dev/wasabi";
 
-	// Product Id mapping for Concierge services
-	private Dictionary<Product, string> ProductIds { get; }
-
-	private string SalutationId { get; }
-	private string StorefrontUrl { get; }
-
-	// Concierge request status
-	public enum ConciergeRequestStatus
-	{
-		Open,
-		Claimed,
-		Offer
-	}
-
 	// Customer information. We need this values to update the messages
 	// we have three options:
 	// 1. Create a new customer with random names and store them in the disk
@@ -79,8 +73,16 @@ public class BuyAnythingClient
 		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
 	}
 
+	// Product Id mapping for Concierge services
+	private Dictionary<Product, string> ProductIds { get; }
+
+	private string SalutationId { get; }
+	private string StorefrontUrl { get; }
+
 	private IShopWareApiClient ApiClient { get; }
 	private AsyncLock ContextTokenCacheLock { get; } = new();
+
+	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();
 
 	// Creates a new "conversation" (or Request). This means that we have to:
 	// 1. Create a dummy customer
@@ -150,26 +152,6 @@ public class BuyAnythingClient
 		await ApiClient.HandlePaymentAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
-	// Login the customer and return the context token.
-	// This method implements a caching mechanism to avoid multiple login requests.
-	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
-	{
-		using (await ContextTokenCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
-			{
-				if (cacheEntry.expriresAt > DateTimeOffset.UtcNow)
-				{
-					return cacheEntry.token;
-				}
-			}
-			var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
-			var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
-			ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
-			return response.ContextToken;
-		}
-	}
-
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
 	{
 		var results = new List<Country>();
@@ -203,5 +185,23 @@ public class BuyAnythingClient
 		return stateResponse.Elements.ToArray();
 	}
 
-	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();
+	// Login the customer and return the context token.
+	// This method implements a caching mechanism to avoid multiple login requests.
+	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
+	{
+		using (await ContextTokenCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
+			{
+				if (cacheEntry.expriresAt > DateTimeOffset.UtcNow)
+				{
+					return cacheEntry.token;
+				}
+			}
+			var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
+			var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
+			ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
+			return response.ContextToken;
+		}
+	}
 }
