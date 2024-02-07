@@ -9,7 +9,6 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -88,37 +87,17 @@ public class DualCurrencyEntryBox : TemplatedControl
 	private decimal _amountBtc;
 	private bool _isTextInputFocused;
 	private bool _isConversationTextFocused;
+	private bool _skipProcessing;
+	private bool _skipTextProcessing;
 
 	public DualCurrencyEntryBox()
 	{
-		this.GetObservable(TextProperty)
-			.Buffer(2, 1)
-			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
-			{
-				if (x is { OldValue: { } oldValue, NewValue: { } newValue } &&
-				    RemoveFormat(oldValue) != RemoveFormat(newValue))
-				{
-					InputText(newValue);
-				}
-			});
-
-		this.GetObservable(ConversionTextProperty)
-			.Buffer(2, 1)
-			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
-			.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
-			{
-				if (x is { OldValue: { } oldValue, NewValue: { } newValue } &&
-				    RemoveFormat(oldValue) != RemoveFormat(newValue))
-				{
-					InputConversionText(newValue);
-				}
-			});
-
+		this.GetObservable(TextProperty).Where(_ => !_skipTextProcessing).Subscribe(InputText);
+		this.GetObservable(ConversionTextProperty).Where(_ => !_skipTextProcessing).Subscribe(InputConversionText);
 		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(AmountBtcProperty).Where(_ => !_skipProcessing).Subscribe(_ => UpdateDisplay(true));
 
 		UpdateDisplay();
 
@@ -254,7 +233,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			SetCurrentValue(AmountBtcProperty, 0);
+			SetBtcAmount(0);
 		}
 		else
 		{
@@ -265,7 +244,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
-				SetCurrentValue(AmountBtcProperty, decimalValue);
+				SetBtcAmount(decimalValue);
 			}
 		}
 
@@ -281,33 +260,35 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			SetCurrentValue(AmountBtcProperty, 0);
+			SetBtcAmount(0);
 		}
 		else
 		{
 			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
-				SetCurrentValue(AmountBtcProperty, FiatToBitcoin(decimalValue));
+				SetBtcAmount(FiatToBitcoin(decimalValue));
 			}
 		}
 
 		UpdateDisplay();
 	}
 
-	private void UpdateDisplay()
+	private void UpdateDisplay(bool insertValue = false)
 	{
-		UpdateTextDisplay();
-		UpdateConversationTextDisplay();
+		_skipTextProcessing = true;
+		UpdateTextDisplay(insertValue);
+		UpdateConversationTextDisplay(insertValue);
+		_skipTextProcessing = false;
 	}
 
-	private void UpdateTextDisplay()
+	private void UpdateTextDisplay(bool insertValue)
 	{
 		Watermark = FullFormatBtc(0);
 
 		var text = LeftEntryBox?.Text ?? "";
 		if (_isTextInputFocused)
 		{
-			text = RemoveFormat(text);
+			text = insertValue ? AmountBtc.ToString(CultureInfo.InvariantCulture) : RemoveFormat(text);
 		}
 		else
 		{
@@ -317,7 +298,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		SetCurrentValue(TextProperty, text);
 	}
 
-	private void UpdateConversationTextDisplay()
+	private void UpdateConversationTextDisplay(bool insertValue)
 	{
 		if (ConversionRate == 0m)
 		{
@@ -327,18 +308,26 @@ public class DualCurrencyEntryBox : TemplatedControl
 		SetCurrentValue(IsConversionApproximateProperty, AmountBtc > 0);
 		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
+		var conversion = BitcoinToFiat(AmountBtc);
+
 		var text = RightEntryBox?.Text ?? "";
 		if (_isConversationTextFocused)
 		{
-			text = RemoveFormat(text);
+			text = insertValue ? RemoveFormat(conversion.FormattedFiat()) : RemoveFormat(text);
 		}
 		else
 		{
-			var conversion = BitcoinToFiat(AmountBtc);
 			text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
 		}
 
 		SetCurrentValue(ConversionTextProperty, text);
+	}
+
+	private void SetBtcAmount(decimal amount)
+	{
+		_skipProcessing = true;
+		SetCurrentValue(AmountBtcProperty, amount);
+		_skipProcessing = false;
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
