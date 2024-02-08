@@ -31,7 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
 	private readonly BuyAnythingManager _buyAnythingManager;
-	private readonly Country[] _countries;
 	private readonly CancellationTokenSource _cts;
 	private readonly ReadOnlyObservableCollection<OrderViewModel> _orders;
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
@@ -48,7 +47,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_wallet = walletVm.Wallet;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-		_countries = _buyAnythingManager.Countries.ToArray();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
