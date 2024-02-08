@@ -45,8 +45,6 @@ public abstract partial class Workflow : ReactiveObject
 		CurrentStep = step;
 		step.Conversation = Conversation;
 
-		var errorCount = 0;
-
 		// this is looped until Step execution is successfully completed.
 		// If it errors out, then the Workflow won't move forward to the next step.
 		// All Steps should be be able to be re-executed more than once, gracefully.
@@ -60,17 +58,8 @@ public abstract partial class Workflow : ReactiveObject
 			catch (Exception ex)
 			{
 				step.Reset();
-
-				// Only show error dialog for the first time, or if step requires user input
-				if (errorCount == 0 || step.IsInteractive)
-				{
-					OnStepError.SafeInvoke(this, ex);
-
-					// TODO: Roland, are we 100% sure we want to swallow errors and not log them?
-					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
-				}
-
-				errorCount++;
+				Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+				OnStepError.SafeInvoke(this, ex);
 			}
 		}
 	}
