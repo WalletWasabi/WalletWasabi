@@ -26,7 +26,7 @@ public static class ConversationExtensions
 	public static Conversation AddUserMessage(this Conversation conversation, string msg, string? stepName = null) =>
 		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.User, msg, IsUnread: false, stepName))) };
 
-	public static Conversation AddBotMessage(this Conversation conversation, string msg, DataCarrier? data = null, string? stepName = null, bool isUnread = true) =>
+	public static Conversation AddBotMessage(this Conversation conversation, string msg, string? stepName = null, bool isUnread = true) =>
 		conversation with { ChatMessages = new(conversation.ChatMessages.Append(new ChatMessage(MessageSource.Bot, msg, IsUnread: isUnread, stepName))) };
 
 	public static Conversation AddAgentMessage(this Conversation conversation, string msg) =>
