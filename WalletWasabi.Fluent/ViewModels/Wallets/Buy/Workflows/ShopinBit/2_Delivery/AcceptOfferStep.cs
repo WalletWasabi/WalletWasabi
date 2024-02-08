@@ -37,6 +37,8 @@ public class AcceptOfferStep : WorkflowStep<object>
 		}
 	}
 
+	public override bool IsInteractive => false;
+
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;
 
 	protected override object? RetrieveValue(Conversation conversation) => conversation;
