@@ -62,6 +62,11 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
+			if (Services.TerminateService.GracefulCrashException is not null)
+			{
+				throw Services.TerminateService.GracefulCrashException;
+			}
+
 			if (exitCode == ExitCode.Ok && (Services.UpdateManager?.DoUpdateOnClose ?? false))
 			{
 				Services.UpdateManager.StartInstallingNewVersion();
