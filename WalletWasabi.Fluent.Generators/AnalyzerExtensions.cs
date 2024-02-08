@@ -240,6 +240,8 @@ public static class AnalyzerExtensions
 		return parameter.ExplicitDefaultValue switch
 		{
 			string s => $"\"{s}\"",
+			bool b when b => "true",
+			bool b when !b => "false",
 			null => "null",
 			_ => parameter.ExplicitDefaultValue.ToString()
 		};
