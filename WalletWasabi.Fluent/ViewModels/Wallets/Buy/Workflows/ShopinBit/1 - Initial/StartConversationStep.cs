@@ -37,8 +37,6 @@ public class StartConversationStep : WorkflowStep<ConversationId>
 		}
 	}
 
-	public override bool IsInteractive => false;
-
 	protected override Conversation PutValue(Conversation conversation, ConversationId value) => conversation with { Id = value };
 
 	protected override ConversationId? RetrieveValue(Conversation conversation) => conversation.Id;
