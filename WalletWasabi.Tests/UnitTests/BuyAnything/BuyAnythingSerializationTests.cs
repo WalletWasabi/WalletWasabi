@@ -37,7 +37,6 @@ public class BuyAnythingSerializationTests
 		updatedConversation = track.Conversation.AddUserMessage("My sent message").AddBotMessage("My received message", DataCarrier.NoData);
 
 		track.Conversation = updatedConversation;
-		track.LastUpdate = DateTimeOffset.Now;
 
 		JsonSerializerSettings settings = new()
 		{

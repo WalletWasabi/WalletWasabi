@@ -269,7 +269,7 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		// Get full customer profile to get updated messages.
 		var customerProfileResponse = await Client
-			.GetCustomerProfileAsync(track.Credential, track.LastUpdate, cancel)
+			.GetCustomerProfileAsync(track.Credential, cancel)
 			.ConfigureAwait(false);
 
 		var customer = customerProfileResponse;
@@ -371,7 +371,6 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		track.Conversation = conversation;
-		track.LastUpdate = DateTimeOffset.Now;
 
 		var rawText = track.Conversation.ChatMessages.ToText();
 		await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
@@ -423,7 +422,6 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			ConversationStatus = ConversationStatus.OfferAccepted
 		};
-		track.LastUpdate = DateTimeOffset.Now;
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 
