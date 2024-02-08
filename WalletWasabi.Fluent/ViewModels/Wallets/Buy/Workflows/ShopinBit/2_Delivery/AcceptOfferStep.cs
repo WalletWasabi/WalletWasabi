@@ -13,6 +13,8 @@ public class AcceptOfferStep : WorkflowStep<object>
 		_token = token;
 	}
 
+	public override bool IsInteractive => false;
+
 	public override async Task ExecuteAsync()
 	{
 		if (Conversation.MetaData.OfferAccepted)
@@ -36,8 +38,6 @@ public class AcceptOfferStep : WorkflowStep<object>
 			IsBusy = false;
 		}
 	}
-
-	public override bool IsInteractive => false;
 
 	protected override Conversation PutValue(Conversation conversation, object value) => conversation;
 
