@@ -499,7 +499,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 		if (order.CustomFields?.BtcpayOrderStatus == "invoiceExpired")
 		{
-			if (order.CustomFields?.Concierge_Request_Status_State == "CLAIMED")
+			if (order.CustomFields.Concierge_Request_Status_State == "CLAIMED")
 			{
 				events |= ServerEvent.GenerateNewInvoice;
 			}
@@ -620,7 +620,7 @@ public class BuyAnythingManager : PeriodicRunner
 			{
 				// Something happened with the file.
 				var bakFilePath = $"{FilePath}.bak";
-				Logger.LogError($"Wasabi was not able to load conversations file. Resetting the onversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
+				Logger.LogError($"Wasabi was not able to load conversations file. Resetting the conversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
 				File.Move(FilePath, bakFilePath, true);
 				ConversationTracking.Load(new ConversationTracking());
 				await SaveAsync(cancellationToken).ConfigureAwait(false);
