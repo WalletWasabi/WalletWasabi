@@ -29,7 +29,6 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
-	private bool _showBuyAnythingInfo;
 
 	public UiConfig() : base()
 	{
