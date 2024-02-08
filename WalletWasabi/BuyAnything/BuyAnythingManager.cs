@@ -200,7 +200,7 @@ public class BuyAnythingManager : PeriodicRunner
 					var trackingCodes = order.Deliveries.SelectMany(x => x.TrackingCodes).ToArray();
 
 					// We do not step the state machine until the tracking number is added, but only in the case of ConciergeRequest.
-					if (!trackingCodes.Any() && track.Conversation.MetaData.Product is BuyAnythingClient.Product.ConciergeRequest)
+					if (trackingCodes.Length == 0 && track.Conversation.MetaData.Product is BuyAnythingClient.Product.ConciergeRequest)
 					{
 						break;
 					}
@@ -209,7 +209,7 @@ public class BuyAnythingManager : PeriodicRunner
 					await SendSystemChatLinesAsync(track, "Fantastic! Your order is now completed.", order.UpdatedAt ?? DateTimeOffset.Now, track.Conversation.ConversationStatus, cancel).ConfigureAwait(false);
 
 					// Otherwise not having tracking number is OK.
-					if (trackingCodes.Any())
+					if (trackingCodes.Length != 0)
 					{
 						var newMessage = "Tracking link" + (trackingCodes.Length >= 2 ? "s" : "");
 						await SendSystemChatLinesAsync(track,
@@ -318,7 +318,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
-		return await Client.GetStatesbyCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
+		return await Client.GetStatesByCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)
@@ -428,7 +428,7 @@ public class BuyAnythingManager : PeriodicRunner
 		return track.Conversation;
 	}
 
-	// This method is used to mark conversations as read without sending requests to the webshop.
+	// This method is used to mark conversations as read without sending requests to the web shop.
 	// ChatMessage.IsUnread will arrive as false from the ViewModel, all we need to do is update the track and save to disk.
 	public async Task UpdateConversationOnlyLocallyAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
@@ -548,7 +548,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task SaveAsync(CancellationToken cancellationToken)
 	{
-		JsonSerializerSettings settings = new JsonSerializerSettings
+		JsonSerializerSettings settings = new()
 		{
 			TypeNameHandling = TypeNameHandling.Objects
 		};
@@ -605,7 +605,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 			try
 			{
-				JsonSerializerSettings settings = new JsonSerializerSettings
+				JsonSerializerSettings settings = new()
 				{
 					TypeNameHandling = TypeNameHandling.Objects
 				};

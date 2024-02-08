@@ -178,7 +178,7 @@ public class BuyAnythingClient
 		return results.ToArray();
 	}
 
-	public async Task<State[]> GetStatesbyCountryIdAsync(string countryId, CancellationToken cancellationToken)
+	public async Task<State[]> GetStatesByCountryIdAsync(string countryId, CancellationToken cancellationToken)
 	{
 		var stateResponse = await ApiClient.GetStatesByCountryIdAsync("", countryId, cancellationToken).ConfigureAwait(false);
 		return stateResponse.Elements.ToArray();
