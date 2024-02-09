@@ -47,7 +47,7 @@ public abstract partial class Workflow : ReactiveObject
 
 		var errorCount = 0;
 
-		// this is looped until Step execution is successfully completed.
+		// this is looped until Step execution is successfully completed or cancellation is requested.
 		// If it errors out, then the Workflow won't move forward to the next step.
 		// All Steps should be be able to be re-executed more than once, gracefully.
 		while (true)
@@ -57,7 +57,7 @@ public abstract partial class Workflow : ReactiveObject
 				await step.ExecuteAsync();
 				break;
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				step.Reset();
 
