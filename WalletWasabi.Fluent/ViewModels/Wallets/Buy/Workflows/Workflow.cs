@@ -74,7 +74,7 @@ public abstract partial class Workflow : ReactiveObject
 						Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
 					}
 
-					// Keep the step Busy under the Delay so the user's will not notice anything in the UI.
+					// Keep the step Busy under the Delay so the user will not notice anything in the UI.
 					var isBusy = step.IsBusy;
 					step.IsBusy = true;
 					await Task.Delay(3000, token);
