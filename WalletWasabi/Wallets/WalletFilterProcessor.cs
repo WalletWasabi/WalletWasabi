@@ -222,7 +222,7 @@ public class WalletFilterProcessor : BackgroundService
 			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
 		};
 
-		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
+		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey).ToList();
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
