@@ -34,10 +34,9 @@ public class BuyAnythingSerializationTests
 			.AddSystemChatLine("my offer arrive", new OfferCarrier(lineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), new ShippingCosts("599")), ConversationStatus.OfferReceived)
 			.AddSystemChatLine("my tracking arrived", new TrackingCodes(new[] { "www.mytacking.com/44343", "www.mytacking.com/1234" }), ConversationStatus.PaymentConfirmed);
 
-		updatedConversation = track.Conversation.AddUserMessage("My sent message").AddBotMessage("My received message", DataCarrier.NoData);
+		updatedConversation = track.Conversation.AddUserMessage("My sent message").AddBotMessage("My received message");
 
 		track.Conversation = updatedConversation;
-		track.LastUpdate = DateTimeOffset.Now;
 
 		JsonSerializerSettings settings = new()
 		{

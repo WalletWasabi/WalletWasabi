@@ -107,7 +107,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 
 			foreach (var message in botMessages)
 			{
-				newConversation = newConversation.AddBotMessage(message, null, StepName, isUnread: addAsUnread);
+				newConversation = newConversation.AddBotMessage(message, StepName, isUnread: addAsUnread);
 			}
 
 			// Set Conversation updated with Bot Messages

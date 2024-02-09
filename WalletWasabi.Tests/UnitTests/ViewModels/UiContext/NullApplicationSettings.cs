@@ -32,7 +32,6 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool Oobe { get; set; }
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
-    public bool ShowBuyAnythingInfo { get; set; }
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{

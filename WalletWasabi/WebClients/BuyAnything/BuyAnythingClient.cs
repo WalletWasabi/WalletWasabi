@@ -138,7 +138,7 @@ public class BuyAnythingClient
 		return orderList.Orders.Elements;
 	}
 
-	public async Task<CustomerProfileResponse> GetCustomerProfileAsync(NetworkCredential credential, DateTimeOffset lastUpdate, CancellationToken cancellationToken)
+	public async Task<CustomerProfileResponse> GetCustomerProfileAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
@@ -178,7 +178,7 @@ public class BuyAnythingClient
 		return results.ToArray();
 	}
 
-	public async Task<State[]> GetStatesbyCountryIdAsync(string countryId, CancellationToken cancellationToken)
+	public async Task<State[]> GetStatesByCountryIdAsync(string countryId, CancellationToken cancellationToken)
 	{
 		var stateResponse = await ApiClient.GetStatesByCountryIdAsync("", countryId, cancellationToken).ConfigureAwait(false);
 		return stateResponse.Elements.ToArray();

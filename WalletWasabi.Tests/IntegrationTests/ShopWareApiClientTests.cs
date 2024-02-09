@@ -10,9 +10,6 @@ using Xunit;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
-using System.IO;
-using System.Text.Json;
-using static System.Net.WebRequestMethods;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -81,7 +78,7 @@ public class ShopWareApiClientTests
 		Assert.Equal(loggedInCustomer.ContextToken, customer.ContextTokens[0]);
 
 		// Register with a new user.
-		var newCustomerRequestWithRandomData = CreateRandomCustomer("no comments", out var newEmail, out var newPassword);
+		var newCustomerRequestWithRandomData = CreateRandomCustomer("no comments", out _, out _);
 		var newCustomer = await shopWareApiClient.RegisterCustomerAsync("none", newCustomerRequestWithRandomData, CancellationToken.None);
 		Assert.NotNull(newCustomer);
 

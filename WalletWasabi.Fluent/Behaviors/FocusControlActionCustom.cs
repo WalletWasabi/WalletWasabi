@@ -11,13 +11,13 @@ namespace WalletWasabi.Fluent.Behaviors;
 public class FocusControlActionCustom : AvaloniaObject, IAction
 {
 	/// <summary>
-	/// Identifies the <seealso cref="TargetControl"/> avalonia property.
+	/// Identifies the <seealso cref="TargetControl"/> Avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Control?> TargetControlProperty =
 		AvaloniaProperty.Register<FocusControlActionCustom, Control?>(nameof(TargetControl));
 
 	/// <summary>
-	/// Gets or sets the target control. This is a avalonia property.
+	/// Gets or sets the target control. This is an Avalonia property.
 	/// </summary>
 	[ResolveByName]
 	public Control? TargetControl

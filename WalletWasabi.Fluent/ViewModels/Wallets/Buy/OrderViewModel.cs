@@ -25,7 +25,6 @@ public partial class OrderViewModel : ViewModelBase
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly IWalletModel _wallet;
 	private readonly IOrderManager _orderManager;
-	private readonly CancellationToken _cancellationToken;
 	private readonly BuyAnythingManager _buyAnythingManager;
 
 	[AutoNotify] private string _title;
@@ -40,7 +39,6 @@ public partial class OrderViewModel : ViewModelBase
 	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
 	{
 		_orderManager = orderManager;
-		_cancellationToken = cancellationToken;
 		_title = workflow.Conversation.MetaData.Title;
 		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
