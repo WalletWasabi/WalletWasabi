@@ -40,7 +40,7 @@ public abstract partial class Workflow : ReactiveObject
 
 	public abstract Task ExecuteAsync(CancellationToken token);
 
-	protected async Task ExecuteStepAsync(IWorkflowStep step)
+	protected async Task ExecuteStepAsync(IWorkflowStep step, CancellationToken token)
 	{
 		CurrentStep = step;
 		step.Conversation = Conversation;
@@ -66,10 +66,19 @@ public abstract partial class Workflow : ReactiveObject
 					OnStepError.SafeInvoke(this, ex);
 					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
 				}
-				else if (!step.IsInteractive && lastException?.Message != ex.Message)
+
+				if (!step.IsInteractive)
 				{
-					lastException = ex;
-					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+					if (lastException?.Message != ex.Message)
+					{
+						lastException = ex;
+						Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+					}
+
+					var isBusy = step.IsBusy;
+					step.IsBusy = true;
+					await Task.Delay(3000, token);
+					step.IsBusy = isBusy;
 				}
 			}
 		}
