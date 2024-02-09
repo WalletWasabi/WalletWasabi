@@ -73,6 +73,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<WalletState>? StateChanged;
 
+	private bool NewFiltersEventSubscribed { get; set; }
+
 	public WalletId WalletId { get; }
 
 	public WalletState State
@@ -276,7 +278,6 @@ public class Wallet : BackgroundService, IWallet
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
-			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 
 			State = WalletState.Initialized;
 		}
@@ -452,9 +453,18 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
+	private void RegisterNewFiltersEvent()
+	{
+		NewFiltersEventSubscribed = true;
+		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
+	}
+
 	internal void UnregisterNewFiltersEvent()
 	{
-		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
+		if (NewFiltersEventSubscribed)
+		{
+			BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
+		}
 	}
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
@@ -470,6 +480,8 @@ public class Wallet : BackgroundService, IWallet
 		{
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 		}
+
+		RegisterNewFiltersEvent();
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
 		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
