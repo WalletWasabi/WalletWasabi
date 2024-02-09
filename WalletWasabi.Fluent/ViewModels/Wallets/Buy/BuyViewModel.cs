@@ -69,6 +69,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Where(x => x.Id != ConversationId.Empty)
 			.Do(_ => EmptyOrder = NewEmptyOrder())
 			.Subscribe();
+
+		Activate();
 	}
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
@@ -86,9 +88,9 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		SelectedOrder = _orders.FirstOrDefault();
 	}
 
-	public void Activate(CompositeDisposable disposable)
+	public void Activate()
 	{
-		Task.Run(async () => await InitializeAsync(disposable), _cts.Token);
+		Task.Run(async () => await InitializeAsync(), _cts.Token);
 	}
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -127,7 +129,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Subscribe();
 	}
 
-	private async Task InitializeAsync(CompositeDisposable disposable)
+	private async Task InitializeAsync()
 	{
 		try
 		{
