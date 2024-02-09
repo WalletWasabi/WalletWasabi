@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
-using WalletWasabi.Wallets;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -45,7 +45,7 @@ public abstract partial class Workflow : ReactiveObject
 		CurrentStep = step;
 		step.Conversation = Conversation;
 
-		var errorCount = 0;
+		Exception? lastException = null;
 
 		// this is looped until Step execution is successfully completed or cancellation is requested.
 		// If it errors out, then the Workflow won't move forward to the next step.
@@ -61,16 +61,16 @@ public abstract partial class Workflow : ReactiveObject
 			{
 				step.Reset();
 
-				// Only show error dialog for the first time, or if step requires user input
-				if (errorCount == 0 || step.IsInteractive)
+				if (step.IsInteractive)
 				{
 					OnStepError.SafeInvoke(this, ex);
-
-					// TODO: Roland, are we 100% sure we want to swallow errors and not log them?
 					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
 				}
-
-				errorCount++;
+				else if (!step.IsInteractive && lastException?.Message != ex.Message)
+				{
+					lastException = ex;
+					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+				}
 			}
 		}
 	}
