@@ -24,7 +24,7 @@ public static class CrashReporter
 				throw new InvalidOperationException($"Invalid path: '{path}'");
 			}
 
-			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(path, args);
+			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(path, args, true);
 			using Process? p = Process.Start(startInfo);
 		}
 		catch (Exception ex)
