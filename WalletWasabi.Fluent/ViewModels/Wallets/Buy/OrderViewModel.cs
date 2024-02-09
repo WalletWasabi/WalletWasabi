@@ -105,7 +105,7 @@ public partial class OrderViewModel : ViewModelBase
 			.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
 			.DoAsync(async e =>
 			{
-				// Do not bother the user with an error dialog if they or not on BAB dialog.
+				// Do not bother the user with an error dialog if they are not on BAB dialog.
 				if (uiContext.Navigate().DialogScreen.CurrentPage is not BuyViewModel)
 				{
 					return;
