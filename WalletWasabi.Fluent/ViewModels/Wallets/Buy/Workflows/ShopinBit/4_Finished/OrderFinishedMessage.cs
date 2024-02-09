@@ -32,6 +32,8 @@ public class OrderFinishedMessage : WorkflowStep<object>
 		}
 	}
 
+	public override bool IsInteractive => false;
+
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		yield return "I'll be available for the next 30 days to assist with any questions you might have. Thank you very much for using the Buy Anything Button!";
