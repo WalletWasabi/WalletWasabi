@@ -16,6 +16,8 @@ public class OrderFinishedMessage : WorkflowStep<object>
 		SetCompleted();
 	}
 
+	public override bool IsInteractive => false;
+
 	public override async Task ExecuteAsync()
 	{
 		await base.ExecuteAsync();
@@ -31,8 +33,6 @@ public class OrderFinishedMessage : WorkflowStep<object>
 			IsBusy = false;
 		}
 	}
-
-	public override bool IsInteractive => false;
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
