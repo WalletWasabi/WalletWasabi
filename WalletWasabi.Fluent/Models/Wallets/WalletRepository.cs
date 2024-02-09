@@ -192,7 +192,7 @@ public partial class WalletRepository : ReactiveObject
 	{
 		if (_walletDictionary.TryGetValue(wallet.WalletId, out var existing))
 		{
-			if (!object.ReferenceEquals(existing.Wallet, wallet))
+			if (!ReferenceEquals(existing.Wallet, wallet))
 			{
 				throw new InvalidOperationException($"Different instance of: {wallet.WalletName}");
 			}

@@ -105,7 +105,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			{
 				if (textBox != null)
 				{
-					textBox.Text = content;
+					textBox.SetCurrentValue(TextBox.TextProperty, content);
 				}
 
 				_flyout.Hide();

@@ -4,26 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}"
-                 NextContent="Done" EnableNext="True"
+  <c:ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel VerticalAlignment="Center">
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 40 0 0">
-        <TextBlock Text="Your wallet " />
-        <TextBlock Text="{Binding WalletName}" FontWeight="Bold" />
-        <TextBlock Text=" was added to Wasabi." />
-      </StackPanel>
-      <Viewbox MaxHeight="200">
-        <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
-      </Viewbox>
-    </DockPanel>
+    <views:SuccessAnimationView VerticalAlignment="Center" />
   </c:ContentArea>
 </UserControl>

@@ -51,8 +51,17 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private static Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
 	{
-		MainViewModel.Instance.NavBar.SelectedWallet = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
-		wallet.NavigateAndHighlight(item.Transaction.Id);
+		var walletPageViewModel = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
+		if (walletPageViewModel == MainViewModel.Instance.NavBar.SelectedWallet)
+		{
+			wallet.SelectTransaction(item.Transaction.Id);
+		}
+		else
+		{
+			MainViewModel.Instance.NavBar.SelectedWallet = walletPageViewModel;
+			wallet.NavigateAndHighlight(item.Transaction.Id);
+		}
+
 		return Task.CompletedTask;
 	}
 

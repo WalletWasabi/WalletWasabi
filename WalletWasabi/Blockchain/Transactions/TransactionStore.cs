@@ -98,7 +98,7 @@ public class TransactionStore : IAsyncDisposable
 						cancellationToken.ThrowIfCancellationRequested();
 					}
 
-					_ = TryAddOrUpdateNoLockNoSerialization(tx);
+					TryAddOrUpdateNoLockNoSerialization(tx);
 				}
 			}
 		}

@@ -49,7 +49,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 		try
 		{
 			await UiContext.TransactionBroadcaster.SendAsync(transaction);
-			Navigate().To().Success("The transaction has been successfully broadcasted.");
+			Navigate().To().Success();
 		}
 		catch (Exception ex)
 		{

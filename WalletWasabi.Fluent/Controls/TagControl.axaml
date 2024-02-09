@@ -22,7 +22,7 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel Name="PART_TagPanel" Margin="0,3,2,3">
+        <Panel Name="PART_TagPanel">
           <Border Name="PART_TagItemBorder"
                   Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
@@ -84,6 +84,10 @@
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+    </Style>
+
+    <Style Selector="^/template/ Panel#PART_TagPanel">
+      <Setter Property="Margin" Value="0,3,2,3" />
     </Style>
 
     <Style Selector="^/template/ Panel#PART_TagPanel Button#PART_DeleteButton">
