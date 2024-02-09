@@ -81,7 +81,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
 
 		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
-		
+
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (await AuthorizeForPasswordAsync())
@@ -200,8 +200,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletModel.State
 				   .BindTo(this, x => x.WalletState)
 				   .DisposeWith(disposables);
-
-        BuyViewModel.Activate(disposables);
 	}
 
 	private bool GetIsBuyButtonVisible(bool hasBalance)
