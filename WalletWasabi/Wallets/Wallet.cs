@@ -378,7 +378,7 @@ public class Wallet : BackgroundService, IWallet
 					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 					WalletFilterProcessor.Dispose();
 
-					UnregisterNewFiltersEvent();
+					BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				}
@@ -457,14 +457,6 @@ public class Wallet : BackgroundService, IWallet
 	{
 		NewFiltersEventSubscribed = true;
 		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
-	}
-
-	internal void UnregisterNewFiltersEvent()
-	{
-		if (NewFiltersEventSubscribed)
-		{
-			BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
-		}
 	}
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
