@@ -71,7 +71,7 @@ public static class IoHelpers
 		// If root is given, then do not worry.
 		if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
 		{
-			_ = Directory.CreateDirectory(dir);
+			Directory.CreateDirectory(dir);
 		}
 	}
 

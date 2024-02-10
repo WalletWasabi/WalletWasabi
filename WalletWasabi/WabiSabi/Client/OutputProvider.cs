@@ -30,7 +30,7 @@ public class OutputProvider
 			roundParameters.CalculateMinReasonableOutputAmount(DestinationProvider.SupportedScriptTypes),
 			roundParameters.AllowedOutputAmounts.Max,
 			availableVsize,
-			roundParameters.AllowedOutputTypes,
+			DestinationProvider.SupportedScriptTypes,
 			Random);
 
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();

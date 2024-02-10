@@ -378,7 +378,7 @@ public class CoinsRegistryTests
 		Assert.False(Coins.TryGetTxAmount(tx0.GetHash(), out _));
 
 		// Now process tx0 twice.
-		_ = ProcessTransaction(tx0);
+		ProcessTransaction(tx0);
 		Assert.Empty(ProcessTransaction(tx0));
 
 		// There is only a single coin.

@@ -305,47 +305,49 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
+		var text = await ApplicationHelper.GetTextAsync();
+
+		if (string.IsNullOrEmpty(text))
 		{
-			var text = await clipboard.GetTextAsync();
+			return;
+		}
 
-			if (string.IsNullOrEmpty(text))
-			{
-				return;
-			}
+		text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-			text = text.Replace("\r", "").Replace("\n", "").Trim();
+		if (!TryParse(text, out text))
+		{
+			return;
+		}
 
-			if (!TryParse(text, out text))
-			{
-				return;
-			}
-
-			if (ValidateEntryText(text))
-			{
-				OnTextInput(new TextInputEventArgs { Text = text });
-			}
+		if (ValidateEntryText(text))
+		{
+			OnTextInput(new TextInputEventArgs { Text = text });
 		}
 	}
 
 	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
 	{
-		var money = ValidatePasteBalance
-			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-			: ClipboardObserver.ParseToMoney(text);
-		if (money is not null)
+		if (!IsFiat)
 		{
-			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
-			return true;
+			var money = ValidatePasteBalance
+				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+				: ClipboardObserver.ParseToMoney(text);
+			if (money is not null)
+			{
+				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+				return true;
+			}
 		}
-
-		var usd = ValidatePasteBalance
-			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-			: ClipboardObserver.ParseToUsd(text);
-		if (usd is not null)
+		else
 		{
-			result = usd.Value.ToString("0.00");
-			return true;
+			var usd = ValidatePasteBalance
+				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+				: ClipboardObserver.ParseToUsd(text);
+			if (usd is not null)
+			{
+				result = usd.Value.ToString("0.00");
+				return true;
+			}
 		}
 
 		result = null;

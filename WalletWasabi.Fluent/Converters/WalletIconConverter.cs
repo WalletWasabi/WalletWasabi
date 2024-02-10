@@ -51,6 +51,14 @@ public class WalletIconConverter : IValueConverter
 				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
 				break;
 
+			case WalletType.BitBox:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/bitbox.png");
+				break;
+
+			case WalletType.Jade:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/jade.png");
+				break;
+
 			case WalletType.Normal:
 			case WalletType.Unknown:
 				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");

@@ -30,7 +30,7 @@ public class BlockFilterIteratorTests
 		FilterModel filter4 = FilterModel.Create(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006506);
 
 		Mock<IIndexStore> mockIndexStore = new(MockBehavior.Strict);
-		_ = mockIndexStore.Setup(c => c.FetchBatchAsync(610_001, 3, It.IsAny<CancellationToken>()))
+		mockIndexStore.Setup(c => c.FetchBatchAsync(610_001, 3, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new FilterModel[] { filter1, filter2, filter3 });
 
 		BlockFilterIterator filterIterator = new(mockIndexStore.Object, maxNumberFiltersInMemory: 3);
@@ -64,7 +64,7 @@ public class BlockFilterIteratorTests
 
 		// Iterator needs to do a database lookup, but now that lookup returns only 1 record and not 3 (we are close to the blockchain tip).
 		{
-			_ = mockIndexStore.Setup(c => c.FetchBatchAsync(610_004, 3, It.IsAny<CancellationToken>()))
+			mockIndexStore.Setup(c => c.FetchBatchAsync(610_004, 3, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new FilterModel[] { filter4 });
 
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_004, testCts.Token);
