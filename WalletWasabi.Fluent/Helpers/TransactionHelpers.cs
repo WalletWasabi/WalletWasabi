@@ -73,7 +73,7 @@ public static class TransactionHelpers
 				AllowUnconfirmed: true,
 				AllowDoubleSpend: false,
 				AllowedInputs: allowedCoins.Select(x => x.Outpoint),
-				TryToSign: false,
+				TryToSign: transactionInfo.PayJoinClient is not null,
 				OverrideFeeOverpaymentProtection: false);
 
 			builder.BuildTransaction(
