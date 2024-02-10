@@ -38,7 +38,6 @@ public class BatchController : ControllerBase
 	[ResponseCache(Duration = 60)]
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
-		[FromQuery] string indexType = "segwittaproot",
 		CancellationToken cancellationToken = default)
 	{
 		if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
@@ -46,13 +45,8 @@ public class BatchController : ControllerBase
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 		}
 
-		if (!BlockchainController.TryGetIndexer(indexType, out var indexer))
-		{
-			return BadRequest("Not supported index type.");
-		}
-
 		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
+		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 

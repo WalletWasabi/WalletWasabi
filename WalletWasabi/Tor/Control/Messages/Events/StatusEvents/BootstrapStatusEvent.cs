@@ -57,7 +57,7 @@ public record BootstrapStatusEvent : StatusEvent
 	{
 		get
 		{
-			_ = Arguments.TryGetValue("WARNING", out string? result);
+			Arguments.TryGetValue("WARNING", out string? result);
 			return result;
 		}
 	}
@@ -67,7 +67,7 @@ public record BootstrapStatusEvent : StatusEvent
 	{
 		get
 		{
-			_ = Arguments.TryGetValue("REASON", out string? result);
+			Arguments.TryGetValue("REASON", out string? result);
 			return result;
 		}
 	}
@@ -83,7 +83,7 @@ public record BootstrapStatusEvent : StatusEvent
 	{
 		get
 		{
-			_ = Arguments.TryGetValue("RECOMMENDATION", out string? result);
+			Arguments.TryGetValue("RECOMMENDATION", out string? result);
 			return result;
 		}
 	}

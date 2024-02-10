@@ -181,36 +181,11 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
 			}
 		}
-		catch (OperationCanceledException)
+		catch (HttpRequestException)
 		{
-			Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
-		}
-		catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
-		{
-			// When stopping, we do not want to wait.
-			if (cancel.IsCancellationRequested)
-			{
-				Logger.LogTrace(ex);
-				return;
-			}
-
-			Logger.LogError(ex);
-			try
-			{
-				await Task.Delay(3000, cancel).ConfigureAwait(false); // Give other threads time to do stuff.
-			}
-			catch (TaskCanceledException ex2)
-			{
-				Logger.LogTrace(ex2);
-			}
-		}
-		catch (TimeoutException ex)
-		{
-			Logger.LogTrace(ex);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
+			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
+			TriggerRound();
+			throw;
 		}
 	}
 

@@ -272,6 +272,8 @@ public class Wallet : BackgroundService, IWallet
 
 		try
 		{
+			EnsureHeightsAreAtLeastSegWitActivation();
+
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
@@ -587,5 +589,19 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	private void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
+		{
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Turbo))
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
+		}
 	}
 }

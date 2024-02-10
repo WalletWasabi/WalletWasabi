@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -14,14 +15,13 @@ public static class FlyoutHelpers
 	{
 		var window = VisualLocator
 			.Track(target, ancestorLevel: 0, ancestorType: typeof(Window))
+			.WhereNotNull()
 			.Cast<Window>();
 
 		window
-			.Select(window => window is { }
-				? Observable.FromEventPattern<PixelPointEventArgs>(
-					handler => window.PositionChanged += handler,
-					handler => window.PositionChanged -= handler)
-				: Observable.Never<EventPattern<PixelPointEventArgs>>())
+			.Select(x => Observable.FromEventPattern<PixelPointEventArgs>(
+				handler => x.PositionChanged += handler,
+				handler => x.PositionChanged -= handler))
 			.Switch()
 			.Subscribe(e => (e.Sender as Window)?.Focus())
 			.DisposeWith(disposable);
@@ -30,7 +30,7 @@ public static class FlyoutHelpers
 		{
 			condition = condition.CombineLatest(
 				window
-					.Select(window => window?.GetObservable(Window.IsActiveProperty) ?? Observable.Return(false))
+					.Select(x => x.GetObservable(WindowBase.IsActiveProperty))
 					.Switch(),
 				static (condition, isActive) => condition && isActive);
 		}

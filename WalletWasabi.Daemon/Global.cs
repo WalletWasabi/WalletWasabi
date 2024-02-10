@@ -34,6 +34,9 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.BuyAnything;
+using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare;
 
 namespace WalletWasabi.Daemon;
 
@@ -214,9 +217,6 @@ public class Global
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();
 
-					// Make sure that the heights of all wallet are at least SegWit activation.
-					WalletManager.EnsureHeightsAreAtLeastSegWitActivation();
-
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
 					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
 				}
@@ -241,6 +241,18 @@ public class Global
 				{
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
+
+				bool useTestApi = Network != Network.Main;
+				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
+				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
+				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), apiKey);
+
+				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
+				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
+				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
+				await buyAnythingManager.EnsureCountriesAreLoadedAsync(cancel).ConfigureAwait(false);
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Start synchronizing filters...");
