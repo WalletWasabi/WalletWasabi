@@ -67,12 +67,8 @@ public partial class ChatViewModel : ViewModelBase
 		{
 			Temperature = 0.7m,
 			MaxTokens = 8000,
-			//Model = "",
-			//ApiUrl = "",
-
 			Model = "mistralai/Mistral-7B-Instruct-v0.2",
 			ApiUrl = "https://enclave.blyss.dev/v1/chat/completions",
-
 			// TODO: No api key for now
 			ApiKey = null,
 			Format = ChatGPT.Defaults.TextMessageFormat,
