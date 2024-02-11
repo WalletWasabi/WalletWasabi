@@ -125,6 +125,8 @@ public partial class ChatViewModel : ViewModelBase
 		catch (Exception exception)
 		{
 			Logger.LogError($"Error while sending chat message: {exception}).");
+
+			await ShowErrorAsync(exception.Message);
 		}
 		finally
 		{
