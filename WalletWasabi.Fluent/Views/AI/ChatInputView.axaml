@@ -26,7 +26,7 @@
     </Button>
 
     <Panel IsEnabled="{Binding !IsBusy}">
-      <ai:UserInputView DataContext="{Binding CurrentUserMessage}" />
+      <ai:UserInputView />
     </Panel>
   </DockPanel>
 
