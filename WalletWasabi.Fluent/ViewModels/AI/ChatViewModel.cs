@@ -109,11 +109,16 @@ public partial class ChatViewModel : ViewModelBase
 			var input = _currentUserMessage.Message;
 
 			_chat.AddUserMessage(input);
-			var result = await _chat.SendAsync(_chat.CreateChatMessages(), _cts.Token);
-			_chat.AddAssistantMessage(result?.Message);
 
-			AddMessage(_currentUserMessage);
-			AddMessage(new AssistantMessageViewModel(result?.Message));
+			var result = await _chat.SendAsync(_chat.CreateChatMessages(), _cts.Token);
+
+			if (result?.Message is not null)
+			{
+				_chat.AddAssistantMessage(result.Message);
+
+				AddMessage(_currentUserMessage);
+				AddMessage(new AssistantMessageViewModel(result.Message));
+			}
 
 			CurrentUserMessage = new UserMessageViewModel("");
 		}
