@@ -34,17 +34,6 @@
                 <TextBlock Text="Broadcast" />
               </StackPanel>
             </Button>
-            <Panel>
-              <Button Classes="function"
-                      IsVisible="{Binding CanBuy^}"
-                      Command="{Binding BuyCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="15">
-                  <PathIcon Data="{StaticResource wallet_action_buy}" />
-                  <TextBlock Text="Buy Anything" />
-                </StackPanel>
-              </Button>
-              <Ellipse IsHitTestVisible="False" IsVisible="{Binding HasUnreadConversations^}" VerticalAlignment="Top" Margin="0 5 5 0" HorizontalAlignment="Right" Width="8" Height="8" Fill="{StaticResource UnreadBadgeColor}" />
-            </Panel>
             <Button Classes="function"
                     IsVisible="{Binding IsSendButtonVisible}"
                     Command="{Binding SendCommand}">
@@ -60,6 +49,17 @@
                 <TextBlock Text="Receive" />
               </StackPanel>
             </Button>
+            <Panel>
+              <Button Classes="function"
+                      IsVisible="{Binding CanBuy^}"
+                      Command="{Binding BuyCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="15">
+                  <PathIcon Data="{StaticResource wallet_action_buy}" />
+                  <TextBlock Text="Buy Anything" />
+                </StackPanel>
+              </Button>
+              <Ellipse IsHitTestVisible="False" IsVisible="{Binding HasUnreadConversations^}" VerticalAlignment="Top" Margin="0 5 5 0" HorizontalAlignment="Right" Width="8" Height="8" Fill="{StaticResource UnreadBadgeColor}" />
+            </Panel>
             <Button Classes="function">
               <Button.Flyout>
                 <MenuFlyout Placement="Bottom">
