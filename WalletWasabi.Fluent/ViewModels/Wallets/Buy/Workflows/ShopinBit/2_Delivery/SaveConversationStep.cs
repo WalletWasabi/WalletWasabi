@@ -14,6 +14,8 @@ public class SaveConversationStep : WorkflowStep<object>
 		_ignored = false;
 	}
 
+	public override bool IsInteractive => false;
+
 	public override async Task ExecuteAsync()
 	{
 		if (Conversation.Id == ConversationId.Empty || _ignored)

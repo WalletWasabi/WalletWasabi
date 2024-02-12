@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
-using WalletWasabi.Wallets;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -40,12 +40,14 @@ public abstract partial class Workflow : ReactiveObject
 
 	public abstract Task ExecuteAsync(CancellationToken token);
 
-	protected async Task ExecuteStepAsync(IWorkflowStep step)
+	protected async Task ExecuteStepAsync(IWorkflowStep step, CancellationToken token)
 	{
 		CurrentStep = step;
 		step.Conversation = Conversation;
 
-		// this is looped until Step execution is successfully completed.
+		Exception? lastException = null;
+
+		// this is looped until Step execution is successfully completed or cancellation is requested.
 		// If it errors out, then the Workflow won't move forward to the next step.
 		// All Steps should be be able to be re-executed more than once, gracefully.
 		while (true)
@@ -55,11 +57,29 @@ public abstract partial class Workflow : ReactiveObject
 				await step.ExecuteAsync();
 				break;
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				step.Reset();
-				Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
-				OnStepError.SafeInvoke(this, ex);
+
+				if (step.IsInteractive)
+				{
+					OnStepError.SafeInvoke(this, ex);
+					Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+				}
+				else
+				{
+					if (lastException?.Message != ex.Message)
+					{
+						lastException = ex;
+						Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
+					}
+
+					// Keep the step Busy under the Delay so the user will not notice anything in the UI.
+					var isBusy = step.IsBusy;
+					step.IsBusy = true;
+					await Task.Delay(3000, token);
+					step.IsBusy = isBusy;
+				}
 			}
 		}
 	}
