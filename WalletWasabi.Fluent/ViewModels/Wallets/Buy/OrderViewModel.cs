@@ -103,7 +103,7 @@ public partial class OrderViewModel : ViewModelBase
 		// Handle Workflow Step Execution Errors and show UI message
 		Observable
 			.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
-			.DoAsync(async e => await ShowErrorAsync("Error while processing order."))
+			.DoAsync(async e => await _orderManager.OnError(e.EventArgs))
 			.Subscribe();
 
 		StartWorkflow(_cts.Token);
