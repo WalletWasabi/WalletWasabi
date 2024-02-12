@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -16,6 +17,29 @@ public static class ApplicationHelper
 	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
 
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+	public static IFocusManager? FocusManager => GetTopLevel()?.FocusManager;
+
+	public static IObservable<bool> MainWindowActivated
+	{
+		get
+		{
+			if (MainWindow is not { } mainWindow)
+			{
+				return Observable.Return(false);
+			}
+
+			var activated = Observable
+				.FromEventPattern(mainWindow, nameof(Window.Activated))
+				.Select(_ => true);
+
+			var deactivated = Observable
+				.FromEventPattern(mainWindow, nameof(Window.Deactivated))
+				.Select(_ => false);
+
+			return activated.Merge(deactivated);
+		}
+	}
 
 	public static async Task<string> GetTextAsync()
 	{
@@ -43,6 +67,12 @@ public static class ApplicationHelper
 		}
 	}
 
+	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default) => Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
+		.Repeat()
+		.Select(_ => Observable.FromAsync(GetTextAsync, RxApp.MainThreadScheduler))
+		.Merge(1)
+		.DistinctUntilChanged();
+
 	private static IClipboard? GetClipboard()
 	{
 		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
@@ -62,33 +92,18 @@ public static class ApplicationHelper
 		return null;
 	}
 
-	public static IObservable<bool> MainWindowActivated
+	private static TopLevel? GetTopLevel()
 	{
-		get
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
 		{
-			if (MainWindow is not { } mainWindow)
-			{
-				return Observable.Return(false);
-			}
-
-			var activated = Observable
-				.FromEventPattern(mainWindow, nameof(Window.Activated))
-				.Select(_ => true);
-
-			var deactivated = Observable
-				.FromEventPattern(mainWindow, nameof(Window.Deactivated))
-				.Select(_ => false);
-
-			return activated.Merge(deactivated);
+			return window;
 		}
-	}
 
-	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default)
-	{
-		return Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
-			.Repeat()
-			.Select(_ => Observable.FromAsync(GetTextAsync, RxApp.MainThreadScheduler))
-			.Merge(1)
-			.DistinctUntilChanged();
+		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
+		{
+			return TopLevel.GetTopLevel(mainView);
+		}
+
+		return null;
 	}
 }
