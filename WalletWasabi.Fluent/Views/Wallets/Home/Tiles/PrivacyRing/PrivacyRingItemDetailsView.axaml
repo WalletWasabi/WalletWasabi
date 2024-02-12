@@ -44,7 +44,7 @@
             <TextBlock
               Text="{Binding PrivacyLevelText, Converter={x:Static conv:StringConverters.ToUpperCase}}" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
           </Border>
-          <TextBlock Text="{Binding AnonScore, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding AnonScoreText, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </StackPanel>
       </StackPanel>
 

@@ -155,7 +155,15 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 			var end = start + (Math.Abs(groupAmount) / total);
 
-			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end);
+			var maxAnonScore = group.Max(x => x.AnonScore);
+			var minAnonScore = group.Min(x => x.AnonScore);
+
+			var anonScoreText =
+				maxAnonScore == minAnonScore
+				? $"{minAnonScore}"
+				: $"{minAnonScore}-{maxAnonScore}";
+
+			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end, anonScoreText);
 
 			yield return item;
 
