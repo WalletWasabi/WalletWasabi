@@ -230,9 +230,9 @@ public partial class OrderViewModel : ViewModelBase
 			{
 				await Workflow.ExecuteAsync(token);
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				// Ignore.
+				Logger.LogDebug(ex.Message);
 			}
 			catch (Exception ex)
 			{
