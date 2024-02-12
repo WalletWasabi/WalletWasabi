@@ -108,6 +108,10 @@ public partial class OrderViewModel : ViewModelBase
 			.DoAsync(async e => await _orderManager.OnError(e.EventArgs))
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.Workflow.Conversation, x => x.IsSelected, (_, b) => b)
+			.Do(tuple => MarkAsReadAsync())
+			.Subscribe();
+		
 		StartWorkflow(_cts.Token);
 	}
 

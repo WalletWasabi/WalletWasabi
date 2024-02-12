@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,6 +105,11 @@ public abstract partial class Workflow : ReactiveObject
 
 		try
 		{
+			if (!Conversation.ChatMessages.Any(x => x.IsUnread))
+			{
+				return;
+			}
+			
 			Conversation = Conversation.MarkAsRead();
 
 			if (Conversation.Id == ConversationId.Empty)
