@@ -28,22 +28,22 @@ public sealed partial class ShopinBitWorkflow : Workflow
 		_token = token;
 
 		// Initial message + Select Product
-		await ExecuteStepAsync(new WelcomeStep(Conversation, token));
+		await ExecuteStepAsync(new WelcomeStep(Conversation, token), token);
 
 		// Select Country
-		await ExecuteStepAsync(new CountryStep(Conversation, _buyAnythingManager.Countries, token));
+		await ExecuteStepAsync(new CountryStep(Conversation, _buyAnythingManager.Countries, token), token);
 
 		// Specify your request
-		await ExecuteStepAsync(new RequestedItemStep(Conversation, token));
+		await ExecuteStepAsync(new RequestedItemStep(Conversation, token), token);
 
 		// Accept Privacy Policy
-		await ExecuteStepAsync(new PrivacyPolicyStep(Conversation, token));
+		await ExecuteStepAsync(new PrivacyPolicyStep(Conversation, token), token);
 
 		// Start Conversation (only if it's a new Conversation)
-		await ExecuteStepAsync(new StartConversationStep(Conversation, _wallet, token));
+		await ExecuteStepAsync(new StartConversationStep(Conversation, _wallet, token), token);
 
 		// Save the entire conversation
-		await ExecuteStepAsync(new SaveConversationStep(Conversation, token));
+		await ExecuteStepAsync(new SaveConversationStep(Conversation, token), token);
 
 		using (ListenToServerUpdates())
 		{
@@ -51,39 +51,39 @@ public sealed partial class ShopinBitWorkflow : Workflow
 			while (!Conversation.MetaData.OfferReceived)
 			{
 				// User might send chat messages to Support Agent
-				await ExecuteStepAsync(new SupportChatStep(Conversation, token));
+				await ExecuteStepAsync(new SupportChatStep(Conversation, token), token);
 			}
 		}
 
 		// Firstname
-		await ExecuteStepAsync(new FirstNameStep(Conversation, token));
+		await ExecuteStepAsync(new FirstNameStep(Conversation, token), token);
 
 		// Lastname
-		await ExecuteStepAsync(new LastNameStep(Conversation, token));
+		await ExecuteStepAsync(new LastNameStep(Conversation, token), token);
 
 		// Streetname
-		await ExecuteStepAsync(new StreetNameStep(Conversation, token));
+		await ExecuteStepAsync(new StreetNameStep(Conversation, token), token);
 
 		// Housenumber
-		await ExecuteStepAsync(new HouseNumberStep(Conversation, token));
+		await ExecuteStepAsync(new HouseNumberStep(Conversation, token), token);
 
 		// ZIP/Postalcode
-		await ExecuteStepAsync(new ZipPostalCodeStep(Conversation, token));
+		await ExecuteStepAsync(new ZipPostalCodeStep(Conversation, token), token);
 
 		// City
-		await ExecuteStepAsync(new CityStep(Conversation, token));
+		await ExecuteStepAsync(new CityStep(Conversation, token), token);
 
 		// State
-		await ExecuteStepAsync(new StateStep(Conversation, token));
+		await ExecuteStepAsync(new StateStep(Conversation, token), token);
 
 		// Accept Terms of service
-		await ExecuteStepAsync(new ConfirmTosStep(Conversation, token));
+		await ExecuteStepAsync(new ConfirmTosStep(Conversation, token), token);
 
 		// Accept Offer
-		await ExecuteStepAsync(new AcceptOfferStep(Conversation, token));
+		await ExecuteStepAsync(new AcceptOfferStep(Conversation, token), token);
 
 		// Save Conversation
-		await ExecuteStepAsync(new SaveConversationStep(Conversation, token));
+		await ExecuteStepAsync(new SaveConversationStep(Conversation, token), token);
 
 		using (ListenToServerUpdates())
 		{
@@ -93,11 +93,11 @@ public sealed partial class ShopinBitWorkflow : Workflow
 				if (Conversation.ConversationStatus == ConversationStatus.Finished && !IsCompleted)
 				{
 					IsCompleted = true;
-					await ExecuteStepAsync(new OrderFinishedMessage(Conversation, token));
+					await ExecuteStepAsync(new OrderFinishedMessage(Conversation, token), token);
 				}
 
 				// User might send chat messages to Support Agent
-				await ExecuteStepAsync(new SupportChatStep(Conversation, token));
+				await ExecuteStepAsync(new SupportChatStep(Conversation, token), token);
 			}
 		}
 

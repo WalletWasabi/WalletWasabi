@@ -203,8 +203,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletModel.State
 				   .BindTo(this, x => x.WalletState)
 				   .DisposeWith(disposables);
-
-        BuyViewModel.Activate(disposables);
 	}
 
 	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)

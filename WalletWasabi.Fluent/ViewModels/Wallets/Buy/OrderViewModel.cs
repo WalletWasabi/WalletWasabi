@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -102,19 +101,10 @@ public partial class OrderViewModel : ViewModelBase
 		_cts = new CancellationTokenSource();
 
 		// Handle Workflow Step Execution Errors and show UI message
-		Observable.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
-				  .DoAsync(async e =>
-				  {
-					  if (e.EventArgs is OperationCanceledException)
-					  {
-						  // Ignore
-					  }
-					  else
-					  {
-						  await ShowErrorAsync("Error while processing order.");
-					  }
-				  })
-				  .Subscribe();
+		Observable
+			.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
+			.DoAsync(async e => await ShowErrorAsync("Error while processing order."))
+			.Subscribe();
 
 		StartWorkflow(_cts.Token);
 	}
@@ -240,9 +230,9 @@ public partial class OrderViewModel : ViewModelBase
 			{
 				await Workflow.ExecuteAsync(token);
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				// Ignore.
+				Logger.LogDebug(ex.Message);
 			}
 			catch (Exception ex)
 			{

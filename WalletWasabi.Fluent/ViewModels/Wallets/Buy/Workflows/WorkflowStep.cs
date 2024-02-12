@@ -15,6 +15,12 @@ public interface IWorkflowStep
 
 	bool IsEditing { get; }
 
+	bool IsInteractive { get; }
+
+	ICommand SendCommand { get; }
+
+	string Caption { get; }
+
 	Conversation Conversation { get; set; }
 
 	Task ExecuteAsync();
@@ -24,10 +30,6 @@ public interface IWorkflowStep
 	void Ignore();
 
 	void Reset();
-
-	ICommand SendCommand { get; }
-
-	string Caption { get; }
 }
 
 /// <summary>
@@ -83,6 +85,8 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	public bool IsEditing { get; }
 
 	public ICommand SendCommand { get; }
+
+	public virtual bool IsInteractive => true;
 
 	protected string StepName => GetType().Name;
 

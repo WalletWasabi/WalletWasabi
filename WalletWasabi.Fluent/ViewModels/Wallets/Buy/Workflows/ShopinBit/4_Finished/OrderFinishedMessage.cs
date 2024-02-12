@@ -16,6 +16,8 @@ public class OrderFinishedMessage : WorkflowStep<object>
 		SetCompleted();
 	}
 
+	public override bool IsInteractive => false;
+
 	public override async Task ExecuteAsync()
 	{
 		await base.ExecuteAsync();
