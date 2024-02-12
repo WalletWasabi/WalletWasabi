@@ -104,8 +104,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Tiles = GetTiles().ToList();
 
 		CanBuy =
-			walletModel.HasBalance.CombineLatest(
-				this.WhenAnyValue(x => x.BuyViewModel.HasNonEmptyOrder).Switch(), GetIsBuyButtonVisible);
+			walletModel.HasBalance
+				.CombineLatest(BuyViewModel.HasNonEmptyOrder)
+				.Select(x => GetIsBuyButtonVisible(x.First, x.Second));
 
 		HasUnreadConversations = BuyViewModel.Orders
 			.ToObservableChangeSet(x => x.OrderNumber)
