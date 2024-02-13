@@ -14,6 +14,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -543,6 +544,10 @@ public class CoinJoinManager : BackgroundService
 			// there are Alices that didn't confirm.
 			// The fix is already done but the clients have to upgrade.
 			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+		}
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+		{
+			wallet.LogInfo($"{nameof(CoinJoinClient)} failed because of abnormal round phase change with exception: '{wpe}'");
 		}
 		catch (Exception e)
 		{
