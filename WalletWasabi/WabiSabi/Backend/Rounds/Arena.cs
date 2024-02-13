@@ -224,7 +224,7 @@ public partial class Arena : PeriodicRunner
 						if (offendingAliceCounter > 0)
 						{
 							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
-							if (round.InputCount - offendingAliceCounter >= round.Parameters.MinInputCountByRound)
+							if (round.InputCount - offendingAliceCounter >= Config.MinInputCountByBlameRound)
 							{
 								EndRound(round, EndRoundState.NotAllAlicesSign);
 								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
@@ -441,7 +441,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= round.Parameters.MinInputCountByRound)
+		if (round.InputCount >= Config.MinInputCountByBlameRound)
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -466,7 +466,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= round.Parameters.MinInputCountByRound)
+		if (round.InputCount >= Config.MinInputCountByBlameRound)
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -485,7 +485,11 @@ public partial class Arena : PeriodicRunner
 			.Where(x => !Prison.IsBanned(x, Config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
-		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
+		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round) with
+		{
+			MinInputCountByRound = Config.MinInputCountByBlameRound
+		};
+
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		AddRound(blameRound);
 		blameRound.LogInfo($"Blame round created from round '{round.Id}'.");
