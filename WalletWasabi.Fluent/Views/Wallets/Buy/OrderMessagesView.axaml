@@ -124,7 +124,8 @@
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
-              <TextBlock Inlines="{Binding UiMessage, Converter={x:Static converters:TextToInlineCollectionConverter.Instance}, Mode=OneWay}" />
+              <TextBlock Inlines="{Binding UiMessage, Converter={x:Static converters:TextToInlineCollectionConverter.Instance}, Mode=OneWay}"
+                         Width="300" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>

@@ -50,11 +50,12 @@ public class TextToInlineCollectionConverter
 						Content = new LinkViewModel(UiContext.Default)
 						{
 							IsClickable = true,
-							Description = "Link",
+							Description = url,
 							Link = url
 						}
-					})
-				{ BaselineAlignment = BaselineAlignment.Center };
+					});
+
+				hyperlink.BaselineAlignment = BaselineAlignment.Center;
 				inlines.Add(hyperlink);
 			}
 
