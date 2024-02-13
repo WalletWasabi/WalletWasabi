@@ -116,7 +116,7 @@
                  MaxLength="5000"
                  Watermark="{Binding Watermark}">
           <TextBox.InnerRightContent>
-            <TextBlock VerticalAlignment="Center" Margin="0 0 2 0" Opacity="0.4">
+            <TextBlock VerticalAlignment="Center" Margin="0 0 15 0" Opacity="0.4">
               <TextBlock.Inlines>
                 <Run Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
                 <Run Text="/" />
@@ -165,7 +165,7 @@
                  MaxLength="5000"
                  Watermark="{Binding Watermark}">
           <TextBox.InnerRightContent>
-            <TextBlock VerticalAlignment="Center" Margin="0 0 2 0" Opacity="0.4">
+            <TextBlock VerticalAlignment="Center" Margin="0 0 15 0" Opacity="0.4">
               <TextBlock.Inlines>
                 <Run Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
                 <Run Text="/" />
