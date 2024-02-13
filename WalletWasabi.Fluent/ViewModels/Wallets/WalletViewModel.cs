@@ -208,16 +208,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)
 	{
-		var network = UiContext.ApplicationSettings.Network;
+#if DEBUG
+		return true;
+#endif
 
+		var network = UiContext.ApplicationSettings.Network;
 		if (network == Network.Main && (hasBalance || hasNonEmptyOrder))
 		{
 			return true;
 		}
 
-#if DEBUG
-		return true;
-#endif
 		return false;
 	}
 
