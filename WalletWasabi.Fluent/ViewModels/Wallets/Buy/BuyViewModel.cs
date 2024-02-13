@@ -116,13 +116,18 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		base.OnNavigatedTo(inHistory, disposables);
 
 		// Mark Conversation as read for selected order
-		this.WhenAnyValue(x => x.SelectedOrder)
+		this.WhenAnyValue(x => x.SelectedOrder, x => x.SelectedOrder.Workflow.Conversation, (order, _) => order)
 			.WhereNotNull()
 			.DoAsync(async order => await order.MarkAsReadAsync())
 			.Subscribe()
 			.DisposeWith(disposables);
 
 		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
 
 		SelectNewOrderIfAny();
 	}
@@ -169,7 +174,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				EmptyOrder = NewEmptyOrder();
 			}
 
-			SelectedOrder = _orders.FirstOrDefault();
+			SelectNewOrderIfAny();
 		}
 		catch (Exception exception)
 		{
