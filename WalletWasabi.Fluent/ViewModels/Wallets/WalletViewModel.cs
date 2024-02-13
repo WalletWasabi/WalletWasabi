@@ -216,10 +216,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		}
 
 #if DEBUG
-		if (hasBalance || hasNonEmptyOrder)
-		{
-			return true;
-		}
+		return true;
 #endif
 		return false;
 	}
