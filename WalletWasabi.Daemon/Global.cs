@@ -236,6 +236,15 @@ public class Global
 				bool useTestApi = Network != Network.Main;
 				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
 				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
+
+#if DEBUG
+				// If we are on MainNet, but in DEBUG we will use the production server but the test sales channel. ShopinBit agent will reply.
+				if (!useTestApi)
+				{
+					apiKey = "SWSCZVNZU2M0EULMNJLDSUZDWG";
+					uri = new Uri("https://shopinbit.com/wasabidevelopment/store-api/");
+				}
+#endif
 				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), apiKey);
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
