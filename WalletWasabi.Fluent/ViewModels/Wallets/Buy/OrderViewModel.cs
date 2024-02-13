@@ -78,12 +78,6 @@ public partial class OrderViewModel : ViewModelBase
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
-			.Merge(_messagesList.Connect().ToSignal())
-			.DoAsync(async _ => await UpdateConversationLocallyAsync(cancellationToken))
-			.Subscribe();
-
 		this.WhenAnyValue(x => x.Workflow.Conversation)
 			.Do(conversation =>
 			{
@@ -186,16 +180,6 @@ public partial class OrderViewModel : ViewModelBase
 	}
 
 	private void ClearMessageList() => _messagesList.Edit(x => x.Clear());
-
-	private Task UpdateConversationLocallyAsync(CancellationToken cancellationToken)
-	{
-		if (ConversationId == ConversationId.Empty)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _buyAnythingManager.UpdateConversationOnlyLocallyAsync(Workflow.Conversation, cancellationToken);
-	}
 
 	private MessageViewModel CreateMessageViewModel(ChatMessage message)
 	{
