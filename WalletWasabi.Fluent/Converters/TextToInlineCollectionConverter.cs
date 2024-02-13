@@ -12,6 +12,7 @@ namespace WalletWasabi.Fluent.Converters;
 public class TextToInlineCollectionConverter
 {
     public static readonly FuncValueConverter<string, InlineCollection> Instance = new(ToInlineCollection);
+    private static readonly Regex Regex = new(@"(\*\*(.*?)\*\*)|(\b(?:https?://|www\.)\S+\b)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
     private static InlineCollection ToInlineCollection(string? str)
     {
@@ -21,11 +22,11 @@ public class TextToInlineCollectionConverter
         }
 
         // This regular expression will handle detecting URLs and **bold** tags.
-        var regex = new Regex(@"(\*\*(.*?)\*\*)|(\b(?:https?://|www\.)\S+\b)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        
         var inlines = new List<Inline>();
         var lastIndex = 0;
 
-        foreach (Match match in regex.Matches(str))
+        foreach (Match match in Regex.Matches(str))
         {
             // Add normal text before the found match.
             if (match.Index > lastIndex)
