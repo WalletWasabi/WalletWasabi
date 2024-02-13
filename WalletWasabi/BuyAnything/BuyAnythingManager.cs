@@ -122,7 +122,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
-					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.ShippingCosts),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.Deliveries.Single().ShippingCosts),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
@@ -585,7 +585,7 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
-		sb.AppendLine($"(Including ${order.ShippingCosts.TotalPrice} shipping cost.)");
+		sb.AppendLine($"(Including ${order.Deliveries.Single().ShippingCosts.TotalPrice} shipping cost.)");
 		return sb.ToString();
 	}
 
