@@ -31,7 +31,7 @@ public enum EndRoundState
 
 public class Round
 {
-	public Round(RoundParameters parameters, WasabiRandom random)
+	public Round(RoundParameters parameters, WasabiRandom random, int minInputCountBlameRound)
 	{
 		Parameters = parameters;
 
@@ -46,6 +46,8 @@ public class Round
 		ConnectionConfirmationTimeFrame = TimeFrame.Create(Parameters.ConnectionConfirmationTimeout);
 		OutputRegistrationTimeFrame = TimeFrame.Create(Parameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
+
+		MinInputCountForBlameRound = minInputCountBlameRound;
 
 		Id = CalculateHash();
 		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
@@ -77,6 +79,8 @@ public class Round
 	public Script CoordinatorScript { get; set; }
 
 	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData { get; init; }
+
+	public int MinInputCountForBlameRound { get; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -175,4 +179,6 @@ public class Round
 			CoinjoinState = signingState.PublishWitnesses();
 		}
 	}
+
+	public bool AreEnoughInputsForBlameRound(int remainingInputs) => remainingInputs >= MinInputCountForBlameRound;
 }

@@ -78,14 +78,18 @@ public static class WabiSabiFactory
 			cfg.CoordinationFeeRate,
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
-	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters, InsecureRandom.Instance);
+	public static Round CreateRound(RoundParameters parameters, int minInputCountBlameRound) =>
+		new(parameters, InsecureRandom.Instance, minInputCountBlameRound);
 
-	public static Round CreateRound(WabiSabiConfig cfg) =>
-		CreateRound(CreateRoundParameters(cfg) with
+	public static Round CreateRound(WabiSabiConfig cfg)
+	{
+		var roundParameters = CreateRoundParameters(cfg) with
 		{
 			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
-		});
+		};
+
+		return CreateRound(roundParameters, cfg.MinInputCountByBlameRound);
+	}
 
 	public static MockRpcClient CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
@@ -288,14 +292,11 @@ public static class WabiSabiFactory
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 	{
 		var roundParameters = RoundParameters.Create(
-				cfg,
-				round.Parameters.Network,
-				round.Parameters.MiningFeeRate,
-				round.Parameters.CoordinationFeeRate,
-				round.Parameters.MaxSuggestedAmount) with
-			{
-				MinInputCountByRound = cfg.MinInputCountByBlameRound
-			};
+			cfg,
+			round.Parameters.Network,
+			round.Parameters.MiningFeeRate,
+			round.Parameters.CoordinationFeeRate,
+			round.Parameters.MaxSuggestedAmount);
 
 		return new BlameRound(
 			parameters: roundParameters,

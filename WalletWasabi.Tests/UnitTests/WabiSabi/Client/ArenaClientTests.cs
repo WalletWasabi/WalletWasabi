@@ -156,7 +156,7 @@ public class ArenaClientTests
 	private async Task TestFullCoinjoinAsync(ScriptPubKeyType scriptPubKeyType, int inputVirtualSize)
 	{
 		var config = new WabiSabiConfig { MaxInputCountByRound = 1, AllowP2trInputs = true, AllowP2trOutputs = true };
-		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config));
+		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config), config.MinInputCountByBlameRound);
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();

@@ -224,7 +224,7 @@ public partial class Arena : PeriodicRunner
 						if (offendingAliceCounter > 0)
 						{
 							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
-							if (round.InputCount - offendingAliceCounter >= Config.MinInputCountByBlameRound)
+							if (round.AreEnoughInputsForBlameRound(round.InputCount - offendingAliceCounter))
 							{
 								EndRound(round, EndRoundState.NotAllAlicesSign);
 								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
@@ -441,7 +441,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByBlameRound)
+		if (round.AreEnoughInputsForBlameRound(round.InputCount))
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -466,7 +466,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByBlameRound)
+		if (round.AreEnoughInputsForBlameRound(round.InputCount))
 		{
 			EndRound(round, EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
@@ -487,7 +487,7 @@ public partial class Arena : PeriodicRunner
 
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round) with
 		{
-			MinInputCountByRound = Config.MinInputCountByBlameRound
+			MinInputCountByRound = round.MinInputCountForBlameRound
 		};
 
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
@@ -564,7 +564,7 @@ public partial class Arena : PeriodicRunner
 			feeRate ??= (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 
-			var r = new Round(parameters, SecureRandom.Instance);
+			var r = new Round(parameters, SecureRandom.Instance, Config.MinInputCountByBlameRound);
 			AddRound(r);
 			r.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
@@ -584,7 +584,7 @@ public partial class Arena : PeriodicRunner
 		do
 		{
 			var roundsCopy = rounds.ToList();
-			r = new Round(parameters, SecureRandom.Instance);
+			r = new Round(parameters, SecureRandom.Instance, Config.MinInputCountByBlameRound);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
 				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))

@@ -7,6 +7,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -419,12 +420,14 @@ public class MultipartyTransactionTests
 		FeeRate feeRate = new(satoshiPerByte: decimal.Parse(feeRateString));
 		CoordinationFeeRate coordinatorFeeRate = new(0m, Money.Zero);
 
-		var parameters = WabiSabiFactory.CreateRoundParameters(new()
+		WabiSabiConfig cfg = new()
 		{
 			MinRegistrableAmount = Money.Zero,
 			MaxRegistrableAmount = Money.Coins(43000m),
 			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
-		}) with
+		};
+
+		var parameters = WabiSabiFactory.CreateRoundParameters(cfg) with
 		{
 			MiningFeeRate = feeRate
 		};
@@ -456,7 +459,7 @@ public class MultipartyTransactionTests
 		while (coinjoin.Balance > tenPercent);
 
 		var coordinatorScript = BitcoinFactory.CreateScript();
-		var round = WabiSabiFactory.CreateRound(parameters);
+		var round = WabiSabiFactory.CreateRound(parameters, cfg.MinInputCountByBlameRound);
 
 		// Make sure the highest fee rate is low, so coordinator script will be added.
 		var coinjoinWithCoordinatorScript = Arena.AddCoordinationFee(round, coinjoin, coordinatorScript);

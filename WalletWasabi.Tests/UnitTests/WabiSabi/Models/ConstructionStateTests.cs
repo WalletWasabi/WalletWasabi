@@ -24,7 +24,7 @@ public class ConstructionStateTests
 				cfg.CoordinationFeeRate,
 				Money.Coins(10));
 
-		var round = WabiSabiFactory.CreateRound(roundParameters);
+		var round = WabiSabiFactory.CreateRound(roundParameters, cfg.MinInputCountByBlameRound);
 		var state = round.Assert<ConstructionState>();
 
 		var (coin, ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(
