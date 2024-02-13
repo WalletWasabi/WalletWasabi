@@ -29,8 +29,7 @@ public record Order
 	LineItem[] LineItems,
 	string Id,
 	OrderCustomFields? CustomFields,
-	string Btcpay_PaymentLink,
-	ShippingCosts ShippingCosts
+	string Btcpay_PaymentLink
 );
 
 public record ShippingCosts
@@ -41,7 +40,8 @@ public record Deliveries
 (
 	string OrderId,
 	string[] TrackingCodes,
-	StateMachineState StateMachineState
+	StateMachineState StateMachineState,
+	ShippingCosts ShippingCosts
 
 	);
 public record OrderCustomFields
