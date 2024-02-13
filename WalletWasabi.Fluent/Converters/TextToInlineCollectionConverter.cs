@@ -62,7 +62,7 @@ public class TextToInlineCollectionConverter
         // Add any remaining text after the last match.
         if (lastIndex < str.Length)
         {
-            inlines.Add(new Run { Text = str.Substring(lastIndex) });
+            inlines.Add(new Run { Text = str[lastIndex..] });
         }
 
         var inlineCollection = new InlineCollection();
