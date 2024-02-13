@@ -50,6 +50,7 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 	[AutoNotify] private TValue? _value;
 	[AutoNotify] private bool _isValid;
 	[AutoNotify] private bool _isBusy;
+	[AutoNotify] private bool _isInputLengthValid = true;
 	protected bool _ignored;
 
 	public WorkflowStep(Conversation conversation, CancellationToken token, bool isEditing = false)
@@ -76,11 +77,13 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			.BindTo(this, x => x.IsValid);
 
 		var canExecuteSendCommand =
-			this.WhenAnyValue(x => x.IsValid, x => x.IsBusy)
-				.Select(t => t.Item1 && !t.Item2);
+			this.WhenAnyValue(x => x.IsValid, x => x.IsBusy, x => x.IsInputLengthValid)
+				.Select(t => t.Item1 && !t.Item2 && t.Item3);
 
 		SendCommand = ReactiveCommand.Create(Send, canExecuteSendCommand);
 	}
+
+	public virtual int MinCharLimit => 0;
 
 	public bool IsEditing { get; }
 
