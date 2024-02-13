@@ -1,4 +1,3 @@
-using System.Linq;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages;
@@ -21,7 +20,7 @@ public partial class AssistantMessageViewModel : MessageViewModel
 			// Find the index of the second '@'
 			int secondAt = raw.IndexOf('@', 1);
 
-			if (secondAt != -1)
+			if (secondAt != -1 && long.TryParse(raw[1..secondAt], out _))
 			{
 				// Take the substring starting after the second '@'
 				raw = raw[(secondAt + 1)..];
