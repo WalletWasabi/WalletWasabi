@@ -286,10 +286,23 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount),
+	{
+		var roundParameters = RoundParameters.Create(
+				cfg,
+				round.Parameters.Network,
+				round.Parameters.MiningFeeRate,
+				round.Parameters.CoordinationFeeRate,
+				round.Parameters.MaxSuggestedAmount) with
+			{
+				MinInputCountByRound = cfg.MinInputCountByBlameRound
+			};
+
+		return new BlameRound(
+			parameters: roundParameters,
 			blameOf: round,
 			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
 			InsecureRandom.Instance);
+	}
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
@@ -357,6 +370,7 @@ public static class WabiSabiFactory
 			.Returns(CreateRoundParameters(cfg)
 				with
 			{
+				MinInputCountByRound = cfg.MinInputCountByBlameRound,
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 			});
 		return mockRoundParameterFactory.Object;
