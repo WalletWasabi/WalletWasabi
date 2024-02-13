@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Threading;
+using ReactiveUI;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -12,7 +14,13 @@ public class RequestedItemStep : WorkflowStep<string>
 	public RequestedItemStep(Conversation conversation, CancellationToken token) : base(conversation, token)
 	{
 		Watermark = "Describe here...";
+
+		this.WhenAnyValue(x => x.Value)
+			.Select(text => text?.Length >= MinCharLimit)
+			.BindTo(this, x => x.IsInputLengthValid);
 	}
+
+	public override int MinCharLimit => 60;
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
