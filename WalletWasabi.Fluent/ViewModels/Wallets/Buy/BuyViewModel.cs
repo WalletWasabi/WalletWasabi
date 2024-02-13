@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
@@ -86,6 +85,20 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_ordersCache.RemoveKey(id);
 		SelectedOrder = _orders.FirstOrDefault();
+	}
+
+	public async Task OnError(Exception ex)
+	{
+		if (!IsActive)
+		{
+			return;
+		}
+
+		await ShowErrorAsync(
+			"Buy Anything",
+			ex.ToUserFriendlyString(),
+			"",
+			NavigationTarget.CompactDialogScreen);
 	}
 
 	public void Activate()

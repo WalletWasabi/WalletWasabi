@@ -71,6 +71,7 @@ public abstract partial class Workflow : ReactiveObject
 					if (lastException?.Message != ex.Message)
 					{
 						lastException = ex;
+						OnStepError.SafeInvoke(this, ex);
 						Logger.LogError($"An error occurred trying to execute Step '{step.GetType().Name}' in Workflow '{GetType().Name}'", ex);
 					}
 
