@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Converters;
 
 public class TextToInlineCollectionConverter
 {
-    public static FuncValueConverter<string, InlineCollection> Instance = new(s => ToInlineCollection(s));
+    public static readonly FuncValueConverter<string, InlineCollection> Instance = new(ToInlineCollection);
 
     private static InlineCollection ToInlineCollection(string? str)
     {
