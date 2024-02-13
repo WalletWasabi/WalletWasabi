@@ -13,12 +13,21 @@ public partial class AssistantMessageViewModel : MessageViewModel
 
 	private string ParseRawMessage(ChatMessage message)
 	{
-		// Remove @timestamp@ from message.
 		string raw = message.Text;
-		if (raw.Contains('@'))
+
+		// Check if the string starts with '@'
+		if (raw.StartsWith('@'))
 		{
-			raw = raw.Split('@').Last();
+			// Find the index of the second '@'
+			int secondAt = raw.IndexOf('@', 1);
+
+			if (secondAt != -1)
+			{
+				// Take the substring starting after the second '@'
+				raw = raw[(secondAt + 1)..];
+			}
 		}
+
 		return raw;
 	}
 }
