@@ -547,7 +547,8 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
 		{
-			wallet.LogInfo($"{nameof(CoinJoinClient)} failed because of abnormal round phase change with exception: '{wpe}'");
+			// This can happen when the coordinator aborts the round in Signing phase because of detected double spend.
+			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with: '{wpe.Message}'");
 		}
 		catch (Exception e)
 		{
