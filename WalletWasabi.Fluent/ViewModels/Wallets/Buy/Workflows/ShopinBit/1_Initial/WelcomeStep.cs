@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// </summary>
 public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 {
-	public const string ServiceDescriptionUrl = "https://shopinbit.com/wasabiwelcome";
+	public const string ServiceDescriptionUrl = "https://wasabiwallet.io/buy-anything.html";
 	
 	[AutoNotify] private EnumValue<BuyAnythingClient.Product>? _product;
 
