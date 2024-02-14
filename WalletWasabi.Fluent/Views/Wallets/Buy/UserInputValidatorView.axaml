@@ -61,8 +61,12 @@
       <Style Selector="ComboBox:pointerover /template/ Border#Background">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
-      <Style Selector="Run.minLimit">
+      <Style Selector="TextBlock.minLimit">
         <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+      <Style Selector="TextBlock.fade">
+        <Setter Property="Opacity" Value="0.4" />
       </Style>
     </ContentControl.Styles>
     <ContentControl.DataTemplates>
@@ -116,13 +120,11 @@
                  MaxLength="5000"
                  Watermark="{Binding Watermark}">
           <TextBox.InnerRightContent>
-            <TextBlock VerticalAlignment="Center" Margin="0 0 15 0" Opacity="0.4">
-              <TextBlock.Inlines>
-                <Run Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
-                <Run Text="/" />
-                <Run Text="{Binding #RequestTextBox.MaxLength}" />
-              </TextBlock.Inlines>
-            </TextBlock>
+            <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}" VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+              <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
+              <TextBlock Classes="fade" Text="/" />
+              <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
+            </StackPanel>
           </TextBox.InnerRightContent>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
@@ -165,13 +167,11 @@
                  MaxLength="5000"
                  Watermark="{Binding Watermark}">
           <TextBox.InnerRightContent>
-            <TextBlock VerticalAlignment="Center" Margin="0 0 15 0" Opacity="0.4">
-              <TextBlock.Inlines>
-                <Run Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
-                <Run Text="/" />
-                <Run Text="{Binding #TextBox.MaxLength}" />
-              </TextBlock.Inlines>
-            </TextBlock>
+            <StackPanel VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+              <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
+              <TextBlock Classes="fade" Text="/" />
+              <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
+            </StackPanel>
           </TextBox.InnerRightContent>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
