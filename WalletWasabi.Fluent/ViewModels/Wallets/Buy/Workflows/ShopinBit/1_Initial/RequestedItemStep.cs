@@ -25,7 +25,7 @@ public class RequestedItemStep : WorkflowStep<string>
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		// Ask for item to buy
-		yield return "What do you exactly need? Be as precise as possible for a faster response.";
+		yield return $"What do you exactly need? Describe it with at least {MinCharLimit} characters and be as precise as possible for a faster response.";
 	}
 
 	protected override Conversation PutValue(Conversation conversation, string value) =>
