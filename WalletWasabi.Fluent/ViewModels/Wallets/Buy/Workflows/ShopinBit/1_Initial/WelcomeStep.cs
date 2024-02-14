@@ -36,7 +36,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		yield return "README / EXPLANATION: https://shopinbit.com/wasabiwelcome";
+		yield return $"Please select the assistant that best fits your needs. Read more about them here: {ServiceDescriptionUrl}";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
