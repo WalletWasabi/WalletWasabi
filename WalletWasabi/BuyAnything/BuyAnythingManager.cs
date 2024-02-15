@@ -571,6 +571,8 @@ public class BuyAnythingManager : PeriodicRunner
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
 		StringBuilder sb = new();
+
+		var shippingCost = GetShippingCostFromOrder(order);
 		sb.AppendLine("Our offer includes:");
 		foreach (var lineItem in order.LineItems)
 		{
@@ -585,8 +587,23 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
-		sb.AppendLine($"(Including ${order.Deliveries.Single().ShippingCosts.TotalPrice} shipping cost.)");
+		sb.AppendLine($"(Including ${shippingCost} shipping cost.)");
 		return sb.ToString();
+	}
+
+	private static float GetShippingCostFromOrder(Order order)
+	{
+		if (order.ShippingCosts.TotalPrice != "0")
+		{
+			return float.Parse(order.ShippingCosts.TotalPrice);
+		}
+
+		float sum = 0;
+		foreach (var delivery in order.Deliveries)
+		{
+			sum += float.Parse(delivery.ShippingCosts.TotalPrice);
+		}
+		return sum;
 	}
 
 	public async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
