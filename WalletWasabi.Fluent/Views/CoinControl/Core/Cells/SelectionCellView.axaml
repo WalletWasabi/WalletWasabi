@@ -15,7 +15,7 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </UserControl.Styles>
-  <Border CornerRadius="30" HorizontalAlignment="Right" Margin="20 0 0 0" Background="{DynamicResource Layer2BackgroundBrush}">
+  <Border CornerRadius="30" HorizontalAlignment="Right" Margin="0 0 2 0">
     <Classes.transparent>
       <MultiBinding Converter="{x:Static BoolConverters.Or}">
         <Binding Path="IsExpanded" />
