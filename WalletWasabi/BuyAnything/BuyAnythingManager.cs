@@ -122,7 +122,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
-					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.Deliveries.Single().ShippingCosts),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), GetShippingCostFromOrder(order)),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
@@ -587,15 +587,15 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
-		sb.AppendLine($"(Including ${shippingCost} shipping cost.)");
+		sb.AppendLine($"(Including ${shippingCost.TotalPrice} shipping cost.)");
 		return sb.ToString();
 	}
 
-	private static float GetShippingCostFromOrder(Order order)
+	private static ShippingCosts GetShippingCostFromOrder(Order order)
 	{
 		if (order.ShippingCosts.TotalPrice != "0")
 		{
-			return float.Parse(order.ShippingCosts.TotalPrice);
+			return order.ShippingCosts;
 		}
 
 		float sum = 0;
@@ -603,7 +603,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			sum += float.Parse(delivery.ShippingCosts.TotalPrice);
 		}
-		return sum;
+		return new ShippingCosts(sum.ToString());
 	}
 
 	public async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
