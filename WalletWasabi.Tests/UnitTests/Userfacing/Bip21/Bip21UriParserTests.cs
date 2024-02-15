@@ -154,6 +154,19 @@ public class Bip21UriParserTests
 		Assert.Equal("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP", result.Address.ToString());
 		Assert.Equal("bolt11_example", result.Label);
 		Assert.Equal(Money.Coins(0.02m), result.Amount);
+
+		// Handling of unknown parameters.
+		Assert.True(Bip21UriParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=0.02&label=unknown_params&unknown1=1&unknown2=true&unknown3=someValue", Network.TestNet, out result, out error));
+		Assert.Null(error);
+		Assert.Equal("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP", result.Address.ToString());
+		Assert.Equal("unknown_params", result.Label);
+		Assert.Equal(Money.Coins(0.02m), result.Amount);
+		Assert.True(result.UnknownParameters.TryGetValue("unknown1", out string? unknown1));
+		Assert.Equal("1", unknown1);
+		Assert.True(result.UnknownParameters.TryGetValue("unknown2", out string? unknown2));
+		Assert.Equal("true", unknown2);
+		Assert.True(result.UnknownParameters.TryGetValue("unknown3", out string? unknown3));
+		Assert.Equal("someValue", unknown3);
 	}
 
 	/// <summary>
