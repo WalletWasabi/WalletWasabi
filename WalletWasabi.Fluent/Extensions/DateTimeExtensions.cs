@@ -14,6 +14,11 @@ public static class DateTimeExtensions
 			return "Today";
 		}
 
+		if (value.Date == DateTime.Today.AddDays(-1))
+		{
+			return "Yesterday";
+		}
+
 		return value.ToString("MMM d, yyyy");
 	}
 }

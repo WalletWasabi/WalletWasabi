@@ -68,7 +68,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Date),
 			},
 			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 15);
+			numberOfPrivacyChars: 8);
 	}
 
 	private static IColumn<HistoryItemViewModelBase> LabelsColumn()
