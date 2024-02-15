@@ -100,7 +100,7 @@
   <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
-  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
+  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#262626</SolidColorBrush>
 
   <SolidColorBrush x:Key="DialogOverlayColor">#80333333</SolidColorBrush>
 
