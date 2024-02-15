@@ -62,7 +62,7 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
-			if (exitCode == ExitCode.Ok && (Services.UpdateManager.DoUpdateOnClose))
+			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)
 			{
 				Services.UpdateManager.StartInstallingNewVersion();
 			}
