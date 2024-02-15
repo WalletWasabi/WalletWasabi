@@ -14,6 +14,9 @@ public static class MoneyConverters
 	public static readonly IValueConverter ToUsdNumber =
 		new FuncValueConverter<Money, string?>(n => n?.ToDecimal(MoneyUnit.BTC).WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
 
+	public static readonly IValueConverter ToUsdAmountFormattedWithoutSpaces =
+		new FuncValueConverter<decimal, string>(n => n.ToUsdAmountFormatted().Replace(" ", ""));
+
 	public static readonly IValueConverter ToUsdApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
 

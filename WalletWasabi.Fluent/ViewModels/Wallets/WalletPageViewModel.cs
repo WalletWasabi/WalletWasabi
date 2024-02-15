@@ -99,6 +99,8 @@ public partial class WalletPageViewModel : ViewModelBase
 			WalletType.Coldcard => "coldcard_24",
 			WalletType.Trezor => "trezor_24",
 			WalletType.Ledger => "ledger_24",
+			WalletType.BitBox => "bitbox_24",
+			WalletType.Jade => "jade_24",
 			_ => "wallet_24"
 		};
 

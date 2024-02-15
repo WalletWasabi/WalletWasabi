@@ -99,7 +99,6 @@ public class CoinJoinCoinSelectionTests
 		Assert.NotEmpty(coins);
 	}
 
-
 	[Fact]
 	public void SelectSomethingFromPrivateButNotDistancedSetOfCoins2()
 	{
@@ -347,12 +346,12 @@ public class CoinJoinCoinSelectionTests
 	{
 		WasabiRandom rng = InsecureRandom.Instance;
 		Mock<CoinJoinCoinSelectorRandomnessGenerator> mockGenerator = new(MockBehavior.Loose, CoinJoinCoinSelector.MaxInputsRegistrableByWallet, rng) { CallBase = true };
-		_ = mockGenerator.Setup(c => c.GetInputTarget())
+		mockGenerator.Setup(c => c.GetInputTarget())
 			.Returns(inputTarget);
 
 		if (sameTxAllowance is not null)
 		{
-			_ = mockGenerator.Setup(c => c.GetRandomBiasedSameTxAllowance(It.IsAny<int>()))
+			mockGenerator.Setup(c => c.GetRandomBiasedSameTxAllowance(It.IsAny<int>()))
 				.Returns(sameTxAllowance.Value);
 		}
 
