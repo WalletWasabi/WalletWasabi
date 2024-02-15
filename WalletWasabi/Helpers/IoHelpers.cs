@@ -117,13 +117,21 @@ public static class IoHelpers
 		}
 		else
 		{
-			using var process = Process.Start(new ProcessStartInfo
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
-				Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
-				CreateNoWindow = true,
-				UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-			});
+				url = url.Replace(" ", "\\ ");
+
+				await EnvironmentHelpers.ShellExecAsync($"open {url}").ConfigureAwait(false);
+			}
+			else
+			{
+				using var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = url,
+					CreateNoWindow = true,
+					UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+				});
+			}
 		}
 	}
 
