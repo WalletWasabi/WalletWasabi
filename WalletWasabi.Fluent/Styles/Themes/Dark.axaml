@@ -90,15 +90,14 @@
   <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
   <Color x:Key="LineChartLineColor">#5E96ED</Color>
 
-  <Color x:Key="BuyAnythingConversationsBackground">#21252D</Color>
-  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333A47" />
-  <SolidColorBrush x:Key="ChatInputBackground" Color="#232932" />
-  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#333A47" />
-  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333A47" Opacity="0.5" />
-  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333A47" Opacity="0.8" />
-  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#21252D" />
+  <Color x:Key="BuyAnythingConversationsBackground">#262626</Color>
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333333" />
+  <SolidColorBrush x:Key="ChatInputBackground" Color="#262626" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#333333" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333333" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333333" Opacity="0.8" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#262626" />
   <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
-  <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
@@ -185,9 +184,9 @@
   <Color x:Key="LogoFixedAccentColor">#97D234</Color>
   <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
-  <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#A9C35E" />
-  <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#3E992F" />
-  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#B8B8B8" />
+  <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
+  <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
+  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 
   <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
   <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />

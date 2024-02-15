@@ -18,8 +18,8 @@
     <c:TileControl.BottomContent>
       <c:CopyableItem ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
         <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
-                                 Opacity="0.8"
-                                 Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
+                                 Opacity="0.6"
+                                 Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}}" />
       </c:CopyableItem>
     </c:TileControl.BottomContent>
   </c:TileControl>
