@@ -25,11 +25,11 @@ public partial class CopyablePasswordTextBox : TextBox
 			nameof(CanPasteModified),
 			o => o.CanPasteModified);
 
-	protected override Type StyleKeyOverride => typeof(TextBox);
-
 	private bool _canCutModified;
 	private bool _canCopyModified;
 	private bool _canPasteModified;
+
+	protected override Type StyleKeyOverride => typeof(TextBox);
 
 	public bool CanCutModified
 	{
