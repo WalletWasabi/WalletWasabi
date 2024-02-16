@@ -41,9 +41,9 @@ public record Deliveries
 (
 	string OrderId,
 	string[] TrackingCodes,
-	StateMachineState StateMachineState
-
-	);
+	StateMachineState StateMachineState,
+	ShippingCosts ShippingCosts
+);
 public record OrderCustomFields
 (
 	string Concierge_Request_Status_State,
