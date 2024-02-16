@@ -12,6 +12,42 @@
   <!-- TextControlThemePadding -->
   <Thickness x:Key="CurrencyEntryBoxThemePadding">15,10,15,8</Thickness>
 
+  <MenuFlyout x:Key="CurrencyEntryBoxDefaultTextBoxContextFlyout">
+    <MenuItem x:Name="TextBoxContextFlyoutCutItem"
+              Header="Cut"
+              Command="{Binding $parent[TextBox].Cut}"
+              IsEnabled="{Binding $parent[TextBox].CanCut}"
+              InputGesture="{x:Static TextBox.CutGesture}" />
+    <MenuItem x:Name="TextBoxContextFlyoutCopyItem"
+              Header="Copy"
+              Command="{Binding $parent[TextBox].Copy}"
+              IsEnabled="{Binding $parent[TextBox].CanCopy}"
+              InputGesture="{x:Static TextBox.CopyGesture}"/>
+    <MenuItem x:Name="TextBoxContextFlyoutPasteItem"
+              Header="Paste"
+              Command="{Binding ModifiedPaste, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}"
+              IsEnabled="{Binding $parent[TextBox].CanPaste}"
+              InputGesture="{x:Static TextBox.PasteGesture}"/>
+  </MenuFlyout>
+  <MenuFlyout x:Key="CurrencyEntryBoxHorizontalTextBoxContextFlyout"
+              FlyoutPresenterTheme="{StaticResource HorizontalMenuFlyoutPresenter}"
+              ItemContainerTheme="{StaticResource HorizontalMenuItem}">
+    <MenuItem x:Name="HorizontalTextBoxContextFlyoutCutItem"
+              Header="Cut"
+              Command="{Binding $parent[TextBox].Cut}"
+              IsEnabled="{Binding $parent[TextBox].CanCut}"
+              IsVisible="{Binding $parent[TextBox].CanCut}" />
+    <MenuItem x:Name="HorizontalTextBoxContextFlyoutCopyItem"
+              Header="Copy"
+              Command="{Binding $parent[TextBox].Copy}"
+              IsEnabled="{Binding $parent[TextBox].CanCopy}"
+              IsVisible="{Binding $parent[TextBox].CanCopy}" />
+    <MenuItem x:Name="HorizontalTextBoxContextFlyoutPasteItem"
+              Header="Paste"
+              Command="{Binding ModifiedPaste, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}"
+              IsEnabled="{Binding $parent[TextBox].CanPaste}" />
+  </MenuFlyout>
+
   <ControlTheme x:Key="{x:Type c:CurrencyEntryBox}" TargetType="c:CurrencyEntryBox">
 
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
@@ -25,16 +61,7 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource CurrencyEntryBoxThemePadding}" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
-    <Setter Property="ContextMenu">
-      <ContextMenu>
-        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
-                  InputGesture="{x:Static TextBox.CutGesture}" />
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
-                  IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding ModifiedPaste, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}"
-                  IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
-      </ContextMenu>
-    </Setter>
+    <Setter Property="ContextFlyout" Value="{OnFormFactor Desktop={StaticResource CurrencyEntryBoxDefaultTextBoxContextFlyout}, Mobile={StaticResource CurrencyEntryBoxHorizontalTextBoxContextFlyout}}" />
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="HorizontalContentAlignment" Value="Left" />
 
