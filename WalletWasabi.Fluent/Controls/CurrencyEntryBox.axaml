@@ -30,7 +30,7 @@
                   InputGesture="{x:Static TextBox.CutGesture}" />
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
                   IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding ModifiedPaste, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}"
+        <MenuItem Header="Paste" Command="{Binding $parent[CurrencyEntryBox].ModifiedPaste}"
                   IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
       </ContextMenu>
     </Setter>
