@@ -1,14 +1,13 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:conv="using:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="40">
-      <c:InfoMessage Padding="25">This is a test message.</c:InfoMessage>
+      <InfoMessage Padding="25">This is a test message.</InfoMessage>
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:InfoMessage}" TargetType="c:InfoMessage">
+  <ControlTheme x:Key="{x:Type InfoMessage}" TargetType="InfoMessage">
 
     <Setter Property="IsVisible"
             x:CompileBindings="False"

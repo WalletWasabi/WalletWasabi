@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -46,10 +45,10 @@
                 </MultiBinding>
               </ToggleButton.IsEnabled>
               <ToggleButton.Styles>
-                <Style Selector="ToggleButton /template/ c|TagControl">
+                <Style Selector="ToggleButton /template/ TagControl">
                   <Setter Property="Cursor" Value="Hand" />
                 </Style>
-                <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
+                <Style Selector="ToggleButton[IsEnabled=False] /template/ TagControl">
                   <Setter Property="Opacity" Value="0.6" />
                   <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
                   <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
@@ -57,7 +56,7 @@
               </ToggleButton.Styles>
               <ToggleButton.Template>
                 <ControlTemplate>
-                  <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
+                  <TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
                 </ControlTemplate>
               </ToggleButton.Template>
             </ToggleButton>
@@ -94,5 +93,5 @@
         </Grid>
       </Panel>
     </Grid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

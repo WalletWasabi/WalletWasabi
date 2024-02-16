@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
@@ -10,13 +9,13 @@
              x:DataType="receive:AddressLabelEditViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.AddressLabelEditView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Edit the selected address's labels here:"
                  EnableBack="{Binding EnableBack}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableNext="True" NextContent="Save"
                  Height="280">
-    <c:TagsBox x:Name="LabelTagBox"
+    <TagsBox x:Name="LabelTagBox"
                TagSeparator=","
                Items="{Binding SuggestionLabels.Labels}"
                Suggestions="{Binding SuggestionLabels.Suggestions}"
@@ -30,6 +29,6 @@
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
-    </c:TagsBox>
-  </c:ContentArea>
+    </TagsBox>
+  </ContentArea>
 </UserControl>

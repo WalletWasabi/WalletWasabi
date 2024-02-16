@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
-  <c:ContentArea Title="Address Awaiting Payment"
+  <ContentArea Title="Address Awaiting Payment"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
@@ -18,42 +17,42 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
-            <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
+            <AnimatedButton ToolTip.Tip="Show on the hardware wallet"
                               IsVisible="{Binding IsHardwareWallet}"
                               Command="{Binding ShowOnHwWalletCommand}"
                               NormalIcon="{StaticResource share_regular}"
                               ClickIcon="{StaticResource copy_confirmed}" />
 
-            <c:AnimatedButton ToolTip.Tip="Copy"
+            <AnimatedButton ToolTip.Tip="Copy"
                               Command="{Binding CopyAddressCommand}"
                               NormalIcon="{StaticResource copy_regular}"
                               ClickIcon="{StaticResource copy_confirmed}"
                               AnimateIcon="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
+          <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
-          </c:PrivacyContentControl>
+          </PrivacyContentControl>
         </DockPanel>
-        <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
-          <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
-        </c:PrivacyContentControl>
+        <PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
+          <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+        </PrivacyContentControl>
       </StackPanel>
 
-      <c:AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
-        <c:AdorningContentControl.Adornment>
+      <AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
+        <AdorningContentControl.Adornment>
           <Panel Margin="5 0 -5 20">
             <Button Command="{Binding #QrCode.SaveCommand}" CommandParameter="{Binding Address}" ToolTip.Tip="Save" Classes="plain icon"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
               <PathIcon Data="{StaticResource save_regular}" />
             </Button>
           </Panel>
-        </c:AdorningContentControl.Adornment>
+        </AdorningContentControl.Adornment>
         <Viewbox Margin="20" MaxHeight="270" MinHeight="100">
-          <c:PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
-            <c:QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
-          </c:PrivacyContentControl>
+          <PrivacyContentControl Height="264" PrivacyReplacementMode="Icon">
+            <QrCode x:Name="QrCode" Matrix="{Binding QrCode^}" />
+          </PrivacyContentControl>
         </Viewbox>
-      </c:AdorningContentControl>
+      </AdorningContentControl>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

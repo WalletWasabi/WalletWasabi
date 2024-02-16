@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
@@ -59,7 +58,7 @@
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|SuggestionItem > DockPanel > PathIcon">
+    <Style Selector="SuggestionItem > DockPanel > PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Margin" Value="0 0 10 0" />
       <Setter Property="DockPanel.Dock" Value="Left" />
@@ -121,7 +120,7 @@
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -133,7 +132,7 @@
               <PathIcon />
               <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -216,7 +215,7 @@
 
         <!-- Label Management Suggestion -->
         <DataTemplate DataType="{x:Type model:LabelManagementSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource entities_edit_regular}" />
               <StackPanel Classes="suggestion">
@@ -226,12 +225,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Full Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:FullPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_tick_regular}" />
               <StackPanel Classes="suggestion">
@@ -243,12 +242,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Better Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:BetterPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_regular}" />
               <StackPanel Classes="suggestion">
@@ -260,12 +259,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Change Avoidance Suggestion -->
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <DockPanel.Styles>
                 <Style Selector="PathIcon">
@@ -289,13 +288,13 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>
 
     <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
-      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
+      <ProgressRing Height="100" Width="100" IsIndeterminate="True" />
     </Viewbox>
   </StackPanel>
 </UserControl>
