@@ -47,11 +47,11 @@
           <DockPanel DockPanel.Dock="Top"
                      VerticalAlignment="Bottom"
                      IsVisible="{Binding IsPasswordNeeded}">
-            <TextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton">
+            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton copyablePasswordTextBox">
               <i:Interaction.Behaviors>
                 <behaviors:FocusOnAttachedBehavior />
               </i:Interaction.Behaviors>
-            </TextBox>
+            </CopyablePasswordTextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" IsVisible="{Binding IsForgotPasswordVisible}" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
               <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
