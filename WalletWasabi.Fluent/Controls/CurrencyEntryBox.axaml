@@ -46,6 +46,7 @@
               Command="{Binding $parent[CurrencyEntryBox].ModifiedPasteAsync}"
               IsEnabled="{Binding $parent[TextBox].CanPaste}" />
   </MenuFlyout>
+
   <ControlTheme x:Key="{x:Type CurrencyEntryBox}" TargetType="CurrencyEntryBox">
 
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
@@ -252,8 +253,15 @@
     </Style>
 
     <Style Selector="^:isrightside">
-      <Setter Property="TextAlignment" Value="Right" />
       <Setter Property="HorizontalContentAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="^:isrightside /template/ TextBlock#PART_Watermark">
+      <Setter Property="TextAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="^:isrightside /template/ TextPresenter#PART_TextPresenter">
+      <Setter Property="TextAlignment" Value="Right" />
     </Style>
 
     <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
