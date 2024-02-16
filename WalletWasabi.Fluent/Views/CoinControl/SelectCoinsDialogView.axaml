@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
@@ -12,7 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
 
-  <controls:ContentArea
+  <ContentArea
     Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
     EnableNext="True"
@@ -21,7 +20,7 @@
     IsBusy="{Binding IsBusy}"
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <controls:ContentArea.Styles>
+    <ContentArea.Styles>
 
       <Style Selector="TreeDataGridRow">
         <Setter Property="Focusable" Value="False" />
@@ -75,7 +74,7 @@
         <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridExpanderCell}" />
       </Style>
 
-    </controls:ContentArea.Styles>
+    </ContentArea.Styles>
 
       <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}" CanUserSortColumns="True" CanUserResizeColumns="False">
         <TreeDataGrid.ElementFactory>
@@ -83,5 +82,5 @@
         </TreeDataGrid.ElementFactory>
       </TreeDataGrid>
 
-  </controls:ContentArea>
+  </ContentArea>
 </UserControl>

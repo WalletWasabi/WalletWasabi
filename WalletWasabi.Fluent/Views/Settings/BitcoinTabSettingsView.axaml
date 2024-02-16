@@ -2,9 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
@@ -41,15 +39,15 @@
     <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <c:PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" UseOpacity="True">
+      <PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" UseOpacity="True">
         <TextBox Text="{Binding BitcoinP2PEndPoint}" />
-      </c:PrivacyContentControl>
+      </PrivacyContentControl>
     </DockPanel>
 
     <StackPanel Spacing="10"
                 ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
       <TextBlock Text="Dust Threshold" />
-      <controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+      <CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </StackPanel>
   </StackPanel>
 </UserControl>

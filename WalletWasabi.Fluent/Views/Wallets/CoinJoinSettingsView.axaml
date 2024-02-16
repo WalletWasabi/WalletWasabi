@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              x:DataType="wallets:CoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoinSettingsView"
              x:CompileBindings="True">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
@@ -24,7 +23,7 @@
         <StackPanel Spacing="10"
                     ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
           <TextBlock Text="Auto-start coinjoin threshold" />
-          <c:CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
+          <CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
         </StackPanel>
 
         <DockPanel>
@@ -34,5 +33,5 @@
         </DockPanel>
       </StackPanel>
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

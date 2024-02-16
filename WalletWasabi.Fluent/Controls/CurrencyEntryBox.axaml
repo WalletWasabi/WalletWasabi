@@ -1,8 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
-    <c:CurrencyEntryBox IsReadOnly="True" />
+    <CurrencyEntryBox IsReadOnly="True" />
   </Design.PreviewWith>
 
   <!-- TextControlBorderThemeThickness -->
@@ -12,7 +11,7 @@
   <!-- TextControlThemePadding -->
   <Thickness x:Key="CurrencyEntryBoxThemePadding">15,10,15,8</Thickness>
 
-  <ControlTheme x:Key="{x:Type c:CurrencyEntryBox}" TargetType="c:CurrencyEntryBox">
+  <ControlTheme x:Key="{x:Type CurrencyEntryBox}" TargetType="CurrencyEntryBox">
 
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -51,7 +50,7 @@
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
-          <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type c:CurrencyEntryBox}}}">
+          <Panel IsVisible="{Binding !IsReadOnly, RelativeSource={RelativeSource AncestorType={x:Type CurrencyEntryBox}}}">
             <Border
               Name="PART_BorderElement"
               Background="{TemplateBinding Background}"

@@ -1,14 +1,13 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:i="using:Avalonia.Xaml.Interactivity"
-                    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+                    xmlns:ia="using:Avalonia.Xaml.Interactions.Core">
 
   <Design.PreviewWith>
-    <c:AnimatedButton />
+    <AnimatedButton />
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:AnimatedButton}" TargetType="c:AnimatedButton">
+  <ControlTheme x:Key="{x:Type AnimatedButton}" TargetType="AnimatedButton">
 
     <Setter Property="Template">
       <ControlTemplate>
