@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -68,7 +67,7 @@ public partial class CopyablePasswordTextBox : TextBox
 			return "";
 		}
 
-		return text.Substring(start, end - start);
+		return text[start..end];
 	}
 
 	private void UpdateCommandStates()
