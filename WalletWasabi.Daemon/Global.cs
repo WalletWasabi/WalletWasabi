@@ -37,6 +37,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Daemon;
 
@@ -116,14 +117,16 @@ public class Global
 		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
 		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled);
 
-		var blockProvider = new SmartBlockProvider(
-			BitcoinStore.BlockRepository,
-			BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
-			SpecificNodeBlockProvider,
-			new P2PBlockProvider(P2PNodesManager),
-			Cache);
+		IBlockProvider[] trustedFullNodeBlockProviders = BitcoinCoreNode?.RpcClient is null
+			? [SpecificNodeBlockProvider]
+			: [new RpcBlockProvider(BitcoinCoreNode.RpcClient), SpecificNodeBlockProvider];
 
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, wasabiSynchronizer, HostedServices.Get<HybridFeeProvider>(), blockProvider, config.ServiceConfiguration);
+		BlockDownloadService = new BlockDownloadService(
+			fileSystemBlockRepository: BitcoinStore.BlockRepository,
+			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
+			new P2PBlockProvider(P2PNodesManager));
+
+		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, wasabiSynchronizer, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, config.ServiceConfiguration);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
@@ -155,6 +158,7 @@ public class Global
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
+	private BlockDownloadService BlockDownloadService { get; }
 	private P2PNodesManager P2PNodesManager { get; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
@@ -451,6 +455,12 @@ public class Global
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				if (BlockDownloadService is { } blockDownloadService)
+				{
+					blockDownloadService.Dispose();
+					Logger.LogInfo($"{nameof(BlockDownloadService)} is disposed.");
 				}
 
 				if (SpecificNodeBlockProvider is { } specificNodeBlockProvider)
