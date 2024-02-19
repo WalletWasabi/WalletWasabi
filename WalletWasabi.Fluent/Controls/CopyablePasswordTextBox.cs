@@ -74,8 +74,8 @@ public partial class CopyablePasswordTextBox : TextBox
 	{
 		var text = GetSelection();
 		var isSelectionNullOrEmpty = string.IsNullOrEmpty(text);
-		CanCopyModified = !isSelectionNullOrEmpty;
-		CanCutModified = !isSelectionNullOrEmpty && !IsReadOnly;
+		CanCopyModified = RevealPassword && !isSelectionNullOrEmpty;
+		CanCutModified = RevealPassword && !isSelectionNullOrEmpty && !IsReadOnly;
 		CanPasteModified = !IsReadOnly;
 	}
 
@@ -125,6 +125,10 @@ public partial class CopyablePasswordTextBox : TextBox
 			UpdateCommandStates();
 		}
 		else if (change.Property == SelectionEndProperty)
+		{
+			UpdateCommandStates();
+		}
+		else if (change.Property == RevealPasswordProperty)
 		{
 			UpdateCommandStates();
 		}
