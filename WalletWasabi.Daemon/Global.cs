@@ -176,7 +176,7 @@ public class Global
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
-	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
+	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
@@ -228,15 +228,9 @@ public class Global
 
 				RegisterCoinJoinComponents();
 
-				SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
-
-				if (sleepInhibitor is not null)
+				if (initializeSleepInhibitor)
 				{
-					HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
-				}
-				else
-				{
-					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
+					await CreateSleepInhibitorAsync().ConfigureAwait(false);
 				}
 
 				bool useTestApi = Network != Network.Main;
@@ -265,6 +259,20 @@ public class Global
 			{
 				Logger.LogTrace("Initialization finished.");
 			}
+		}
+	}
+
+	private async Task CreateSleepInhibitorAsync()
+	{
+		SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+		if (sleepInhibitor is not null)
+		{
+			HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
+		}
+		else
+		{
+			Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 		}
 	}
 
