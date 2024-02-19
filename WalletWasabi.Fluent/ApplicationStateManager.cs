@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Fluent;
 
@@ -31,11 +30,11 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 
-		/*if (_lifetime is IActivatableApplicationLifetime activatableLifetime)
+		if (_lifetime is IActivatableApplicationLifetime activatableLifetime)
 		{
 			activatableLifetime.Activated += ActivatableLifetimeOnActivated;
 			activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
-		}*/
+		}
 
 		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
@@ -123,7 +122,7 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Fire(shouldShutdown ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 
-	/*private void ActivatableLifetimeOnActivated(object? sender, ActivatedEventArgs e)
+	private void ActivatableLifetimeOnActivated(object? sender, ActivatedEventArgs e)
 	{
 		switch (e.Kind)
 		{
@@ -148,7 +147,7 @@ public class ApplicationStateManager : IMainWindowService
 				}
 				break;
 		}
-	}*/
+	}
 
 	private void CreateAndShowMainWindow()
 	{
