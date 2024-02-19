@@ -10,11 +10,11 @@ public class ContentArea : ContentControl
 	public static readonly StyledProperty<object> TitleProperty =
 		AvaloniaProperty.Register<ContentArea, object>(nameof(Title));
 
-	public static readonly StyledProperty<object> TopContentProperty =
-		AvaloniaProperty.Register<ContentArea, object>(nameof(TopContent));
+	public static readonly StyledProperty<object?> TopContentProperty =
+		AvaloniaProperty.Register<ContentArea, object?>(nameof(TopContent));
 
-	public static readonly StyledProperty<object> BottomContentProperty =
-		AvaloniaProperty.Register<ContentArea, object>(nameof(BottomContent));
+	public static readonly StyledProperty<object?> BottomContentProperty =
+		AvaloniaProperty.Register<ContentArea, object?>(nameof(BottomContent));
 
 	public static readonly StyledProperty<object> CaptionProperty =
 		AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
@@ -61,13 +61,13 @@ public class ContentArea : ContentControl
 		set => SetValue(TitleProperty, value);
 	}
 
-	public object TopContent
+	public object? TopContent
 	{
 		get => GetValue(TopContentProperty);
 		set => SetValue(TopContentProperty, value);
 	}
 
-	public object BottomContent
+	public object? BottomContent
 	{
 		get => GetValue(BottomContentProperty);
 		set => SetValue(BottomContentProperty, value);
