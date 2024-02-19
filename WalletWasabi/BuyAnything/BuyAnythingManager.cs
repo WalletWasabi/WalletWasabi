@@ -122,7 +122,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 				await SendSystemChatLinesAsync(track,
 					ConvertOfferDetailToMessages(order),
-					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), order.ShippingCosts),
+					new OfferCarrier(order.LineItems.Select(x => new OfferItem(x.Quantity, x.Label, x.UnitPrice, x.TotalPrice)), GetShippingCostFromOrder(order)),
 					order.UpdatedAt, ConversationStatus.OfferReceived, cancel).ConfigureAwait(false);
 				break;
 
@@ -573,6 +573,8 @@ public class BuyAnythingManager : PeriodicRunner
 	private static string ConvertOfferDetailToMessages(Order order)
 	{
 		StringBuilder sb = new();
+
+		var shippingCost = GetShippingCostFromOrder(order);
 		sb.AppendLine("Our offer includes:");
 		foreach (var lineItem in order.LineItems)
 		{
@@ -587,8 +589,23 @@ public class BuyAnythingManager : PeriodicRunner
 		}
 
 		sb.AppendLine($"\nFor a total price of ${order.AmountTotal}.");
-		sb.AppendLine($"(Including ${order.ShippingCosts.TotalPrice} shipping cost.)");
+		sb.AppendLine($"(Including ${shippingCost.TotalPrice} shipping cost.)");
 		return sb.ToString();
+	}
+
+	private static ShippingCosts GetShippingCostFromOrder(Order order)
+	{
+		if (order.ShippingCosts.TotalPrice != "0")
+		{
+			return order.ShippingCosts;
+		}
+
+		float sum = 0;
+		foreach (var delivery in order.Deliveries)
+		{
+			sum += float.Parse(delivery.ShippingCosts.TotalPrice);
+		}
+		return new ShippingCosts(sum.ToString());
 	}
 
 	public async Task EnsureConversationsAreLoadedAsync(CancellationToken cancellationToken)
