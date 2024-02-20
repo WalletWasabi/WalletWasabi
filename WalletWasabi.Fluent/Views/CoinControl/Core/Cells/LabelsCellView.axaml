@@ -12,17 +12,25 @@
   <UserControl.Styles>
 
     <Style Selector="controls|LabelsItemsPresenter.NonPrivate">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
     </Style>
+
+    <Style Selector="controls|LabelsItemsPresenter.Private TextBlock">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="controls|LabelsItemsPresenter.SemiPrivate TextBlock">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
     <Style Selector="controls|LabelsItemsPresenter.SemiPrivate">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelMediumBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      <Setter Property="Background" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
     <Style Selector="controls|LabelsItemsPresenter.Private">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="Background" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
   </UserControl.Styles>
