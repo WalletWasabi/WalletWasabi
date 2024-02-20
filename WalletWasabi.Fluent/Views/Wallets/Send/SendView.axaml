@@ -47,20 +47,16 @@
                  NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
+                 Title="Send"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-    <ContentArea.Title>
-      <DockPanel>
-        <TextBlock Text="Send" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
-          <!-- Balance -->
-          <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
-            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-              <AmountControl Amount="{Binding Balance^}" />
-            </Button>
-          </PrivacyContentControl>
-        </StackPanel>
-      </DockPanel>
-    </ContentArea.Title>
+    <ContentArea.TopContent>
+      <!-- Balance -->
+      <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
+        <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+          <AmountControl Amount="{Binding Balance^}" />
+        </Button>
+      </PrivacyContentControl>
+    </ContentArea.TopContent>
     <DockPanel LastChildFill="False">
       <DockPanel.Styles>
         <Style Selector="DockPanel > Label">
