@@ -88,27 +88,26 @@
                 <!-- Warnings -->
                 <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
 
-                  <!-- Full privacy message -->
-                  <DockPanel IsVisible="{Binding MaxPrivacy}">
-                    <TextBlock Text="This transaction is well optimized" DockPanel.Dock="Top" HorizontalAlignment="Center" />
-                    <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
-                  </DockPanel>
-                </Panel>
-              </Flyout>
-            </FlyoutBase.AttachedFlyout>
-            <Viewbox Height="20">
-              <Panel>
-                <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
-                          Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
-                          Classes.badPrivacy="{Binding PrivacySuggestions.BadPrivacy}"
-                          Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
-                          Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+                <!-- Full privacy message -->
+                <DockPanel IsVisible="{Binding MaxPrivacy}">
+                  <TextBlock Text="This transaction is well optimized" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                  <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
+                </DockPanel>
               </Panel>
-            </Viewbox>
-          </Border>
-        </StackPanel>
-      </DockPanel>
-    </ContentArea.Title>
+            </Flyout>
+          </FlyoutBase.AttachedFlyout>
+          <Viewbox Height="20">
+            <Panel>
+              <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
+                        Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
+                        Classes.badPrivacy="{Binding PrivacySuggestions.BadPrivacy}"
+                        Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
+                        Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+            </Panel>
+          </Viewbox>
+        </Border>
+      </StackPanel>
+    </ContentArea.TopContent>
     <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
