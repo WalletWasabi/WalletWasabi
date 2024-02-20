@@ -61,11 +61,12 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 		// Backend Connection Issues flag
 		// TODO: the event invoke must be refactored in Synchronizer
-		Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
-				  .Where(x => BackendStatus != BackendStatus.Connected)
-				  .Do(_ => IsConnectionIssueDetected = true)
-				  .Subscribe()
-				  .DisposeWith(Disposables);
+		Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.SynchronizeRequestFinished))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Where(x => x.EventArgs is false)
+			.Do(_ => IsConnectionIssueDetected = true)
+			.Subscribe()
+			.DisposeWith(Disposables);
 
 		// Set IsConnectionIssueDetected to false when BackedStatus == Connected
 		this.WhenAnyValue(x => x.BackendStatus)
