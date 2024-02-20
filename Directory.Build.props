@@ -7,6 +7,6 @@
 	<Nullable>enable</Nullable>
 	<Deterministic>true</Deterministic>
 	<InvariantGlobalization>true</InvariantGlobalization>
-	 <WarningsAsErrors>false</WarningsAsErrors>
+	 <WarningsAsErrors>true</WarningsAsErrors>
  </PropertyGroup>
 </Project>
