@@ -20,6 +20,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private int _numberOfPrivacyChars;
 	private string? _privacyText;
 	private Size? _availableSize;
+	private bool _haveText;
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -46,6 +47,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		if (_text != text)
 		{
 			_text = text;
+			_haveText = !string.IsNullOrWhiteSpace(_text);
 			_privacyText = new string('#', _numberOfPrivacyChars);
 			_formattedText = null;
 
@@ -67,6 +69,11 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	public override void Render(DrawingContext context)
 	{
 		context.FillRectangle(Brushes.Transparent, new Rect(new Point(), DesiredSize));
+
+		if (!_haveText)
+		{
+			return;
+		}
 
 		var formattedText = _isContentVisible ? _formattedText : _privacyFormattedText;
 
