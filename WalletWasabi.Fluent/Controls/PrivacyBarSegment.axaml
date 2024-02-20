@@ -1,8 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <ControlTheme x:Key="{x:Type controls:PrivacyBarSegment}" TargetType="controls:PrivacyBarSegment">
+  <ControlTheme x:Key="{x:Type PrivacyBarSegment}" TargetType="PrivacyBarSegment">
 
     <Setter Property="Template">
       <ControlTemplate>

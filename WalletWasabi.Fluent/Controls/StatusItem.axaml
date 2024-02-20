@@ -1,19 +1,18 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon">
 
   <Design.PreviewWith>
     <Border Width="200">
-      <c:StatusItem Title="Title" StatusText="Item text">
-        <c:StatusItem.Icon>
+      <StatusItem Title="Title" StatusText="Item text">
+        <StatusItem.Icon>
           <statusIcon:TorIssues />
-        </c:StatusItem.Icon>
-      </c:StatusItem>
+        </StatusItem.Icon>
+      </StatusItem>
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:StatusItem}" TargetType="c:StatusItem">
+  <ControlTheme x:Key="{x:Type StatusItem}" TargetType="StatusItem">
 
     <Setter Property="Template">
       <ControlTemplate>

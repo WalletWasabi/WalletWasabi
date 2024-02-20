@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:AddressViewModel"
@@ -10,7 +9,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.AddressColumnView">
   <DockPanel LastChildFill="True" Margin="10 0">
     <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
-    <c:PrivacyContentControl Content="{Binding AddressText}" VerticalAlignment="Center"
+    <PrivacyContentControl Content="{Binding AddressText}" VerticalAlignment="Center"
                              Classes="monoSpaced"
                              UseOpacity="True" />
   </DockPanel>

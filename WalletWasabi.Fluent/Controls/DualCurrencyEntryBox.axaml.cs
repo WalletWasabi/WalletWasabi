@@ -371,6 +371,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
+				if (LeftEntryBox.ContextFlyout is null || LeftEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
 				_isTextInputFocused = x;
 				UpdateDisplay();
 			})
@@ -380,6 +385,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
+				if (RightEntryBox.ContextFlyout is null || RightEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
 				_isConversationTextFocused = x;
 				UpdateDisplay();
 			})

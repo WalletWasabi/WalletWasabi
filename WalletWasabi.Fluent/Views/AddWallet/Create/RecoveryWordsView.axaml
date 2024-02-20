@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
@@ -63,11 +62,11 @@
         </Grid>
       </Panel>
 
-      <c:InfoMessage Opacity="0.5"
+      <InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
                      Grid.Row="4">
         <TextBlock Text="You will not be able to see these words again once the wallet is created." />
-      </c:InfoMessage>
+      </InfoMessage>
     </Grid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:model="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
              xmlns:viewmodel="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
@@ -44,14 +43,14 @@
 
     <!-- Second icon (Transaction Type) -->
     <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
-    <c:PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="True">
-      <c:PrivacyContentControl.Styles>
-        <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
+    <PrivacyContentControl PrivacyReplacementMode="Icon" UseOpacity="True">
+      <PrivacyContentControl.Styles>
+        <Style Selector="PrivacyContentControl /template/ Viewbox#PART_Icon">
           <Setter Property="Opacity" Value="0.6" />
           <Setter Property="Height" Value="14" />
           <Setter Property="Margin" Value="0" />
         </Style>
-      </c:PrivacyContentControl.Styles>
+      </PrivacyContentControl.Styles>
       <Panel Height="15">
         <PathIcon Opacity="0.6"
                   Classes.IncomingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.IncomingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
@@ -99,6 +98,6 @@
           </PathIcon.Styles>
         </PathIcon>
       </Panel>
-    </c:PrivacyContentControl>
+    </PrivacyContentControl>
   </StackPanel>
 </UserControl>

@@ -7,7 +7,6 @@ using System.Threading;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.WebClients.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
@@ -17,6 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 /// </summary>
 public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 {
+	public const string ServiceDescriptionUrl = "https://wasabiwallet.io/buy-anything.html";
+
 	[AutoNotify] private EnumValue<BuyAnythingClient.Product>? _product;
 
 	public WelcomeStep(Conversation conversation, CancellationToken token) : base(conversation, token)
@@ -35,8 +36,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		// Welcome
-		yield return "Please select the assistant that best fits your needs:";
+		yield return $"Please select the assistant that best fits your needs.\nRead more about them here:\n{ServiceDescriptionUrl}";
 
 		// All-Purpose Concierge Assistant
 		yield return "All-Purpose Concierge Assistant\n\nFor a wide range of purchases, from vehicles to tech gadgets and more.";

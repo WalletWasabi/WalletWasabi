@@ -3,14 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
-  <c:ContentArea EnableNext="False"
+  <ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <views:SuccessAnimationView VerticalAlignment="Center" />
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>
