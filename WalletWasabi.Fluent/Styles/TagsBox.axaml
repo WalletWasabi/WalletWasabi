@@ -1,17 +1,16 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
+  <Style Selector="TagsBox:not(:readonly) TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="1" />
     <Setter Property="RenderTransform" Value="scale(1,1)" />
   </Style>
 
-  <Style Selector="c|TagsBox c|TagControl">
+  <Style Selector="TagsBox TagControl">
     <Setter Property="Margin" Value="0,0,4,3" />
   </Style>
 
-  <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+  <Style Selector="TagsBox ConcatenatingWrapPanel:wrapped TagControl">
     <Setter Property="Margin" Value="0,0,4,4" />
   </Style>
 

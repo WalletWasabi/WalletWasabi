@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
@@ -15,12 +14,12 @@
   </i:Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
+    <Style Selector="ContentArea /template/ StackPanel#PART_Header">
       <Setter Property="Height" Value="32" />
     </Style>
   </UserControl.Styles>
 
-  <controls:ContentArea EnableCancel="False"
+  <ContentArea EnableCancel="False"
                         EnableBack="{Binding CanGoBack^}"
                         EnableNext="True"
                         ClipToBounds="False"
@@ -249,5 +248,5 @@
         </Grid>
       </Carousel>
     </DockPanel>
-  </controls:ContentArea>
+  </ContentArea>
 </UserControl>

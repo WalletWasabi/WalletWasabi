@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
@@ -11,7 +10,7 @@
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
-  <c:ContentArea Caption=""
+  <ContentArea Caption=""
                  MinWidth="550"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -24,7 +23,7 @@
       <behaviors:HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
     </i:Interaction.Behaviors>
 
-    <c:ContentArea.Title>
+    <ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
@@ -110,7 +109,7 @@
           </Border>
         </StackPanel>
       </DockPanel>
-    </c:ContentArea.Title>
+    </ContentArea.Title>
     <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
@@ -122,5 +121,5 @@
         </DataTemplate>
       </Carousel.ItemTemplate>
     </Carousel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>
