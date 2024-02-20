@@ -203,8 +203,8 @@ public class CoinJoinManager : BackgroundService
 				// If there are pending payments, ignore already achieved privacy.
 				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
 				{
-					// If all coins are already private, then don't mix.
-					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
+					// If all coins are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
+					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false) && startCommand.StopWhenAllMixed)
 					{
 						walletToStart.LogTrace("All mixed!");
 						throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
