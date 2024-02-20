@@ -175,16 +175,13 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
-		{
-			var text = await clipboard.GetTextAsync();
+		var text = await ApplicationHelper.GetTextAsync();
 
-			lock (_parsingLock)
+		lock (_parsingLock)
+		{
+			if (!TryParseUrl(text) && pasteIfInvalid)
 			{
-				if (!TryParseUrl(text) && pasteIfInvalid)
-				{
-					To = text;
-				}
+				To = text;
 			}
 		}
 	}
@@ -195,7 +192,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (!Services.PersistentConfig.UseTor)
+			if (!Services.Config.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{

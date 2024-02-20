@@ -198,7 +198,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 					}
 					else
 					{
-						_ = MempoolStore.TryUpdate(removedTx);
+						MempoolStore.TryUpdate(removedTx);
 					}
 				}
 			}

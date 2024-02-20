@@ -271,7 +271,7 @@ public class TransactionTreeBuilder
 			return TransactionType.IncomingTransaction;
 		}
 
-		if (!transactionSummary.IsCPFP && transactionSummary.Amount < Money.Zero)
+		if (!transactionSummary.IsCPFP && !transactionSummary.IsCancellation && transactionSummary.Amount < Money.Zero)
 		{
 			return TransactionType.OutgoingTransaction;
 		}

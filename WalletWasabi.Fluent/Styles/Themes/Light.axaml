@@ -90,6 +90,17 @@
   <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
   <Color x:Key="LineChartLineColor">#5E96ED</Color>
 
+  <Color x:Key="BuyAnythingConversationsBackground">White</Color>
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#F5F5F5" />
+  <SolidColorBrush x:Key="ChatInputBackground" Color="White" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#F5F5F5" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#F5F5F5" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#F5F5F5" Opacity="0.8" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#E0E0E0" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
+  <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
+
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
 
   <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>

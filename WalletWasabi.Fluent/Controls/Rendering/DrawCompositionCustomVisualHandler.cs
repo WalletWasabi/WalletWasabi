@@ -38,8 +38,10 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 			case
 			{
 				HandlerCommand: HandlerCommand.Update,
+				Bounds: var bounds
 			}:
 			{
+				_bounds = bounds;
 				RegisterForNextAnimationFrameUpdate();
 				break;
 			}

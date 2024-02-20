@@ -40,7 +40,7 @@ public static class TransactionBuilderWalletExtensions
 			throw new NotSupportedException(feeStrategy.Type.ToString());
 		}
 
-		TransactionParameters parameters = new(
+		TransactionParameters parameters = new (
 			payments,
 			FeeRate: feeRate,
 			AllowUnconfirmed: allowUnconfirmed,
@@ -150,4 +150,36 @@ public static class TransactionBuilderWalletExtensions
 			allowDoubleSpend,
 			tryToSign: true,
 			overrideFeeOverpaymentProtection: true);
+
+	public static BuildTransactionResult BuildTransactionForSIB(
+		this Wallet wallet,
+		IDestination destination,
+		Money amount,
+		LabelsArray label,
+		bool subtractFee,
+		IPayjoinClient? payJoinClient = null,
+		bool tryToSign = true)
+	{
+		if (payJoinClient is { } && subtractFee)
+		{
+			throw new InvalidOperationException("Not possible to subtract the fee.");
+		}
+
+		var intent = new PaymentIntent(
+			destination: destination,
+			amount: amount,
+			subtractFee: subtractFee,
+			label: label);
+
+		var txRes = wallet.BuildTransaction(
+			password: wallet.Kitchen.SaltSoup(),
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromConfirmationTarget(2),
+			allowUnconfirmed: true,
+			allowedInputs: null,
+			payjoinClient: payJoinClient,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
 }

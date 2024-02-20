@@ -30,7 +30,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 			.Where(x => x)
 			.SubscribeAsync(async _ =>
 			{
-				await Task.Delay(1260);
+				await Task.Delay(1800);
 				IsFlashing = false;
 			});
 

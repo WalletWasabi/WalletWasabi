@@ -91,9 +91,11 @@
   </Style>
   <Style Selector="Button.function:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
   </Style>
   <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
   </Style>
 
   <!-- Transparent Function -->
@@ -121,9 +123,13 @@
   </Style>
   <Style Selector="Button.transparentFunction:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
   </Style>
   <Style Selector="Button.transparentFunction:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
+  </Style>
+  <Style Selector="Button.transparentFunction:disabled PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
   </Style>
 
   <!-- Plain -->

@@ -38,10 +38,10 @@ public class ByteArrayJsonConverterTests
 	{
 		BinaryConverter converter = new();
 
-		_ = Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("invalid", converter));
-		_ = Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("NULL", converter)); // Only "null" is allowed by JSON grammar.
-		_ = Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("{}", converter));
-		_ = Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("{", converter));
-		_ = Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("}", converter));
+		Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("invalid", converter));
+		Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("NULL", converter)); // Only "null" is allowed by JSON grammar.
+		Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("{}", converter));
+		Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("{", converter));
+		Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<byte[]>("}", converter));
 	}
 }

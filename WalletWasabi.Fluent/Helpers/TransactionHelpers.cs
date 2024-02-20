@@ -67,7 +67,7 @@ public static class TransactionHelpers
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);
 
-			TransactionParameters parameters = new(
+			TransactionParameters parameters = new (
 				intent,
 				transactionInfo.FeeRate,
 				AllowUnconfirmed: true,
