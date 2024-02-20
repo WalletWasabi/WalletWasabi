@@ -39,13 +39,13 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 		yield return $"Please select the assistant that best fits your needs.\nRead more about them here:\n{ServiceDescriptionUrl}";
 
 		// All-Purpose Concierge Assistant
-		yield return $"**{BuyAnythingClient.Product.ConciergeRequest.GetDescription()}**\nFor a wide range of purchases, from vehicles to tech gadgets and more.";
+		yield return "All-Purpose Concierge Assistant\n\nFor a wide range of purchases, from vehicles to tech gadgets and more.";
 
 		// Fast Travel Assistant
-		yield return $"**{BuyAnythingClient.Product.FastTravelBooking.GetDescription()}**\nIf you've a specific flight or hotel in mind and need quick assistance with booking.";
+		yield return "Fast Travel Assistant\n\nIf you've a specific flight or hotel in mind and need quick assistance with booking.";
 
 		// General Travel Assistant
-		yield return $"**{BuyAnythingClient.Product.TravelConcierge.GetDescription()}**\nIf you're just starting to plan your travel and don't have any details yet.";
+		yield return "General Travel Assistant\n\nIf you're just starting to plan your travel and don't have any details yet.";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
