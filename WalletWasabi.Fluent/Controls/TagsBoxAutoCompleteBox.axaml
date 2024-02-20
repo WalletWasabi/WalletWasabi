@@ -1,8 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Style Selector="c|TagsBox AutoCompleteBox">
+  <Style Selector="TagsBox AutoCompleteBox">
     <Setter Property="VerticalAlignment" Value="Top" />
     <Setter Property="Background" Value="{x:Null}" />
     <Setter Property="Padding" Value="15 10 15 8" />
@@ -10,7 +9,7 @@
     <Setter Property="MaxDropDownHeight" Value="90" />
     <Setter Property="MinimumPrefixLength" Value="1" />
     <Setter Property="Focusable" Value="False" />
-    <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}" />
+    <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[TagsBox].RestrictInputToSuggestions}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid Name="PART_LayoutRoot">
@@ -52,33 +51,33 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+  <Style Selector="TagsBox AutoCompleteBox /template/ TextBox">
     <Setter Property="Padding" Value="0" />
     <Setter Property="Margin" Value="0" />
     <Setter Property="Focusable" Value="True" />
     <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
     <Setter Property="MaxLength"
-            Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
+            Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type TagsBox}}}" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+  <Style Selector="TagsBox AutoCompleteBox /template/ TextBox">
     <Setter Property="Padding" Value="0" />
     <Setter Property="Margin" Value="0" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ DataValidationErrors">
+  <Style Selector="TagsBox AutoCompleteBox /template/ TextBox /template/ DataValidationErrors">
     <Setter Property="IsVisible" Value="False" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
+  <Style Selector="TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
     <Setter Property="IsVisible" Value="False" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
+  <Style Selector="TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
     <Setter Property="MinWidth" Value="286" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+  <Style Selector="TagsBox AutoCompleteBox /template/ TextBox">
     <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
     <Setter Property="ContextMenu">
       <ContextMenu>

@@ -1,16 +1,15 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
-    <c:TileControl Height="140" Width="310" Title="Tile">
-      <c:TileControl.BottomContent>
+    <TileControl Height="140" Width="310" Title="Tile">
+      <TileControl.BottomContent>
         <Button VerticalAlignment="Stretch">Bye</Button>
-      </c:TileControl.BottomContent>
+      </TileControl.BottomContent>
       <Button VerticalAlignment="Bottom">hello</Button>
-    </c:TileControl>
+    </TileControl>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:TileControl}" TargetType="c:TileControl">
+  <ControlTheme x:Key="{x:Type TileControl}" TargetType="TileControl">
 
     <Setter Property="SeparatorMargin" Value="0 6" />
     <Setter Property="BottomPartHeight" Value="22" />

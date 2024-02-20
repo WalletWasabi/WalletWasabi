@@ -1,22 +1,21 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+<Styles xmlns="https://github.com/avaloniaui">
 
-  <Style Selector="c|ContentArea :is(Control).title TextBlock">
+  <Style Selector="ContentArea :is(Control).title TextBlock">
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
-  <Style Selector="c|ContentArea :is(TextBlock).title">
+  <Style Selector="ContentArea :is(TextBlock).title">
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
-  <Style Selector="c|ContentArea :is(Control).caption TextBlock">
+  <Style Selector="ContentArea :is(Control).caption TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
 
-  <Style Selector="c|ContentArea :is(TextBlock).caption">
+  <Style Selector="ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
     <Setter Property="TextWrapping" Value="Wrap" />

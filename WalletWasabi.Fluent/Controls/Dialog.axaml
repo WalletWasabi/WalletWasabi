@@ -1,9 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
 
-  <ControlTheme x:Key="{x:Type c:Dialog}" TargetType="c:Dialog">
+  <ControlTheme x:Key="{x:Type Dialog}" TargetType="Dialog">
 
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />

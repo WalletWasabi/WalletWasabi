@@ -1,11 +1,10 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
                     xmlns:i="using:Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea Width="500" Height="300"
+      <ContentArea Width="500" Height="300"
                      IsBusy="False"
                      Title="Add a Wallet"
                      EnableBack="True"
@@ -13,11 +12,11 @@
                      EnableNext="True" NextContent="Continue" FocusNext="True"
                      Caption="Type in your Wallet's name and select an option below:">
         This is the content.
-      </c:ContentArea>
+      </ContentArea>
     </Panel>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:ContentArea}" TargetType="c:ContentArea">
+  <ControlTheme x:Key="{x:Type ContentArea}" TargetType="ContentArea">
 
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
@@ -26,7 +25,7 @@
       <ControlTemplate>
         <Panel>
           <Panel IsHitTestVisible="False" Background="{TemplateBinding Background}" />
-          <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
+          <ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
           <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
             <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
@@ -145,7 +144,7 @@
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style Selector="^/template/ c|ProgressRing#LoadingRing">
+    <Style Selector="^/template/ ProgressRing#LoadingRing">
       <Setter Property="Width" Value="100" />
       <Setter Property="Height" Value="100" />
     </Style>

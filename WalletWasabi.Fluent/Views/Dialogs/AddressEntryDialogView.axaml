@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
@@ -10,17 +9,17 @@
              x:DataType="dialogs:AddressEntryDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AddressEntryDialogView">
-  <c:ContentArea Width="515" Height="300"
+  <ContentArea Width="515" Height="300"
                  Title="{Binding Title}"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <c:ContentArea.Styles>
-      <Style Selector="c|AnimatedButton.flash">
+    <ContentArea.Styles>
+      <Style Selector="AnimatedButton.flash">
         <Setter Property="InitialOpacity" Value="0.8" />
       </Style>
-      <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
+      <Style Selector="AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
         <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         <Style.Animations>
           <Animation Duration="0.25" IterationCount="6"
@@ -35,7 +34,7 @@
           </Animation>
         </Style.Animations>
       </Style>
-    </c:ContentArea.Styles>
+    </ContentArea.Styles>
     <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
              Watermark="Enter the destination bitcoin address"
              AcceptsReturn="False"
@@ -46,7 +45,7 @@
       </i:Interaction.Behaviors>
       <TextBox.InnerRightContent>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-          <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+          <AnimatedButton KeyboardNavigation.IsTabStop="False"
                             Focusable="False"
                             Command="{Binding PasteCommand}"
                             ToolTip.Tip="Paste"
@@ -55,8 +54,8 @@
             <i:Interaction.Behaviors>
               <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
             </i:Interaction.Behaviors>
-          </c:AnimatedButton>
-          <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+          </AnimatedButton>
+          <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                             KeyboardNavigation.IsTabStop="False"
                             Focusable="False"
                             Command="{Binding QrCommand}"
@@ -65,5 +64,5 @@
         </StackPanel>
       </TextBox.InnerRightContent>
     </TextBox>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>
