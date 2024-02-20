@@ -7,11 +7,11 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:buyAnything="clr-namespace:WalletWasabi.BuyAnything;assembly=WalletWasabi"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
              x:CompileBindings="True">
-
   <ScrollViewer x:Name="MessagesScrollViewer"
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
@@ -124,7 +124,7 @@
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
-              <TextBlock Text="{Binding UiMessage}" />
+              <TextBlock Inlines="{Binding UiMessage, Converter={x:Static converters:TextToInlineCollectionConverter.Instance}, Mode=OneWay}" />
             </Border>
           </c:PreviewMessageItem>
         </DataTemplate>
