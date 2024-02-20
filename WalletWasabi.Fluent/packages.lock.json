@@ -5,11 +5,11 @@
       "Avalonia": {
         "type": "Direct",
         "requested": "[11.0.999-cibuild0045149-beta, )",
-        "resolved": "11.1.999-cibuild0043857-beta",
-        "contentHash": "rttpkl7vIPYsk/NL82lT1RQIIaha0FHPkL8eoY8WF2P0hokzA8vxTZM36H6T4ILZGcfllFno9Wjvi/7q2g2TjA==",
+        "resolved": "11.0.999-cibuild0045149-beta",
+        "contentHash": "64NwJ3HgkXsvxPFF2jn2xOom2RRC+FLAc/lKU6vHikrgtEFfmn4WxzX6xg9YndL8oBR5Z2n6gLGMAyEpNtor7A==",
         "dependencies": {
           "Avalonia.BuildServices": "0.0.29",
-          "Avalonia.Remote.Protocol": "11.1.999-cibuild0043857-beta",
+          "Avalonia.Remote.Protocol": "11.0.999-cibuild0045149-beta",
           "MicroCom.Runtime": "0.11.0",
           "System.ComponentModel.Annotations": "4.5.0"
         }
@@ -152,8 +152,8 @@
       },
       "Avalonia.Remote.Protocol": {
         "type": "Transitive",
-        "resolved": "11.1.999-cibuild0043857-beta",
-        "contentHash": "d59ZRQKK7aCKSDYtOzv3uFlRgen/b8ajRyrTc9c6Gxb1ZNdY/8DKm7bVEhkm5jdCgUaGB5pcnpEuyT0Ov+wXsw=="
+        "resolved": "11.0.999-cibuild0045149-beta",
+        "contentHash": "2SwzY03nh1NVgsrscgvpp/CmEU7su0w+7hj5HlBEHf0uR/3AqK4rIaVBwz9kXoiOJlG4vYiPoy2FvO6Rb3ZqWw=="
       },
       "Avalonia.Themes.Simple": {
         "type": "Transitive",
