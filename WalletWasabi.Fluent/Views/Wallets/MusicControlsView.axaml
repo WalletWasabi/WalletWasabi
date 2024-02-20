@@ -82,7 +82,7 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <ContentControl Content="{Binding LeftText, Converter={StaticResource ReplaceWordsByContentConverter}}" />
+              <TextBlock Text="{Binding LeftText}" DockPanel.Dock="Left" />
               <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
