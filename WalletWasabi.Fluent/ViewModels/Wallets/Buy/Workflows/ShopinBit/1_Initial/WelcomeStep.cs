@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 {
 	public const string ServiceDescriptionUrl = "https://wasabiwallet.io/buy-anything.html";
-	
+
 	[AutoNotify] private EnumValue<BuyAnythingClient.Product>? _product;
 
 	public WelcomeStep(Conversation conversation, CancellationToken token) : base(conversation, token)
@@ -37,6 +37,15 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
 		yield return $"Please select the assistant that best fits your needs.\nRead more about them [here]({ServiceDescriptionUrl})";
+
+		// All-Purpose Concierge Assistant
+		yield return $"**{BuyAnythingClient.Product.ConciergeRequest.GetDescription()}**\nFor a wide range of purchases, from vehicles to tech gadgets and more.";
+
+		// Fast Travel Assistant
+		yield return $"**{BuyAnythingClient.Product.FastTravelBooking.GetDescription()}**\nIf you've a specific flight or hotel in mind and need quick assistance with booking.";
+
+		// General Travel Assistant
+		yield return $"**{BuyAnythingClient.Product.TravelConcierge.GetDescription()}**\nIf you're just starting to plan your travel and don't have any details yet.";
 	}
 
 	protected override BuyAnythingClient.Product? RetrieveValue(Conversation conversation) =>
