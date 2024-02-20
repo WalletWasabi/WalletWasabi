@@ -69,10 +69,7 @@ public static class CoinListDataGridSource
 				}),
 			group => group.Children,
 			node => node.HasChildren(),
-			node => node.IsExpanded)
-		{
-			Tag = "Status"
-		};
+			node => node.IsExpanded);
 	}
 
 	private static TemplateColumn<CoinListItem> SelectionColumn()
@@ -95,12 +92,8 @@ public static class CoinListDataGridSource
 			new ColumnOptions<CoinListItem>
 			{
 				CompareAscending = Sort<CoinListItem>.Ascending(x => x.Amount),
-				CompareDescending = Sort<CoinListItem>.Descending(x => x.Amount),
-				CanUserSortColumn = true
-			})
-		{
-			Tag = "Amount"
-		};
+				CompareDescending = Sort<CoinListItem>.Descending(x => x.Amount)
+			});
 	}
 
 	private static IColumn<CoinListItem> AnonymityScoreColumn()
@@ -114,10 +107,7 @@ public static class CoinListDataGridSource
 			{
 				CompareAscending = Sort<CoinListItem>.Ascending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore)),
 				CompareDescending = Sort<CoinListItem>.Descending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore))
-			})
-		{
-			Tag = "Anonscore"
-		};
+			});
 	}
 
 	private static IColumn<CoinListItem> LabelsColumn()
@@ -130,11 +120,7 @@ public static class CoinListDataGridSource
 			new TemplateColumnOptions<CoinListItem>
 			{
 				CompareAscending = CoinControlLabelComparer.Ascending,
-				CompareDescending = CoinControlLabelComparer.Descending,
-				CanUserSortColumn = true
-			})
-		{
-			Tag = "Labels"
-		};
+				CompareDescending = CoinControlLabelComparer.Descending
+			});
 	}
 }

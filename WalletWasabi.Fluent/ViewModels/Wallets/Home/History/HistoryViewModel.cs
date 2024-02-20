@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
@@ -9,6 +11,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -34,6 +37,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
+	public IEnumerable<SortableItem> Sortables =>
+	[
+		new SortableItem("Status") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
+		new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
+		new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
+		new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+	];
+
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
 		return new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
@@ -51,10 +62,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				width: new GridLength(0, GridUnitType.Auto)),
 			x => x.Children,
 			x => x.HasChildren(),
-			x => x.IsExpanded)
-		{
-			Tag = "Status"
-		};
+			x => x.IsExpanded);
 	}
 
 	private static IColumn<HistoryItemViewModelBase> DateColumn()
@@ -71,10 +79,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Date),
 			},
 			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 15)
-		{
-			Tag = "Date"
-		};
+			numberOfPrivacyChars: 15);
 	}
 
 	private static IColumn<HistoryItemViewModelBase> LabelsColumn()
@@ -91,10 +96,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Labels, LabelsArrayComparer.OrdinalIgnoreCase),
 				MinWidth = new GridLength(100, GridUnitType.Pixel)
 			},
-			width: new GridLength(1, GridUnitType.Star))
-		{
-			Tag = "Labels"
-		};
+			width: new GridLength(1, GridUnitType.Star));
 	}
 
 	private static IColumn<HistoryItemViewModelBase> AmountColumn()
@@ -111,10 +113,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.DisplayAmount),
 			},
 			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 9)
-		{
-			Tag = "Amount"
-		};
+			numberOfPrivacyChars: 9);
 	}
 
 	private IColumn<HistoryItemViewModelBase> ActionsColumn()

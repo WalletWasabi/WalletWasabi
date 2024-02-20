@@ -53,10 +53,7 @@ public static class ReceiveAddressesDataGridSource
 				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.AddressText),
 				CompareDescending = Sort<AddressViewModel>.Descending(x => x.AddressText)
 			},
-			width: new GridLength(0, GridUnitType.Auto))
-		{
-			Tag = "Address",
-		};
+			width: new GridLength(0, GridUnitType.Auto));
 	}
 
 	private static IColumn<AddressViewModel> LabelsColumn()
@@ -72,9 +69,6 @@ public static class ReceiveAddressesDataGridSource
 				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.Labels),
 				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Labels)
 			},
-			width: new GridLength(1, GridUnitType.Star))
-		{
-			Tag = "Label"
-		};
+			width: new GridLength(1, GridUnitType.Star));
 	}
 }

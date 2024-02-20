@@ -17,7 +17,7 @@
         <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight">
-              <c:SortControl DataGridSource="{Binding Source}" />
+              <c:SortControl Sortables="{Binding Sortables}" />
             </Flyout>
           </Button.Flyout>
           <PathIcon Data="{StaticResource sorting}" />
