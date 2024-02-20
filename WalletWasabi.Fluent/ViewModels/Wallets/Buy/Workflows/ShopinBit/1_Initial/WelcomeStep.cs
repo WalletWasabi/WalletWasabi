@@ -36,7 +36,7 @@ public partial class WelcomeStep : WorkflowStep<BuyAnythingClient.Product?>
 
 	protected override IEnumerable<string> BotMessages(Conversation conversation)
 	{
-		yield return $"Please select the assistant that best fits your needs.\nRead more about them [here]({ServiceDescriptionUrl})";
+		yield return $"Please select the assistant that best fits your needs.\nRead more about them here:\n{ServiceDescriptionUrl}";
 
 		// All-Purpose Concierge Assistant
 		yield return $"**{BuyAnythingClient.Product.ConciergeRequest.GetDescription()}**\nFor a wide range of purchases, from vehicles to tech gadgets and more.";
