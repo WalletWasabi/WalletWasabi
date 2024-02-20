@@ -1,16 +1,15 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:WalletWasabi.Fluent.Controls"
                     xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Width="300" Height="200">
-      <controls:CopyableItem HorizontalContentAlignment="Center" Background="Red">
+      <CopyableItem HorizontalContentAlignment="Center" Background="Red">
         <Button Background="Blue">Hello everyone!</Button>
-      </controls:CopyableItem>
+      </CopyableItem>
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type controls:CopyableItem}" TargetType="controls:CopyableItem">
+  <ControlTheme x:Key="{x:Type CopyableItem}" TargetType="CopyableItem">
 
     <Setter Property="ClipToBounds" Value="False" />
 
@@ -24,14 +23,14 @@
             <ContentPresenter
               Content="{TemplateBinding Content}"
               ContentTemplate="{TemplateBinding ContentTemplate}" />
-            <controls:ClipboardCopyButton x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}" HorizontalAlignment="Right" Margin="0 0 -24 0">
-              <controls:ClipboardCopyButton.IsVisible>
+            <ClipboardCopyButton x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}" HorizontalAlignment="Right" Margin="0 0 -24 0">
+              <ClipboardCopyButton.IsVisible>
                 <MultiBinding Converter="{x:Static converters:BooleanConverters.Or}">
                   <Binding Path="#ContentPane.IsPointerOver" />
                   <Binding Path="#CopyButton.CopyCommand.IsExecuting^" />
                 </MultiBinding>
-              </controls:ClipboardCopyButton.IsVisible>
-            </controls:ClipboardCopyButton>
+              </ClipboardCopyButton.IsVisible>
+            </ClipboardCopyButton>
           </Grid>
         </Border>
       </ControlTemplate>
