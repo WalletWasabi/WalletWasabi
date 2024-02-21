@@ -70,23 +70,22 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		context.FillRectangle(Brushes.Transparent, new Rect(new Point(), DesiredSize));
 
-		if (!_haveText)
+		var formattedText = _isContentVisible && _haveText
+			? _formattedText
+			:  !_isContentVisible ? _privacyFormattedText : null;
+
+		if (formattedText is null)
 		{
 			return;
 		}
 
-		var formattedText = _isContentVisible ? _formattedText : _privacyFormattedText;
-
-		if (formattedText is not null)
+		var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
+		if (Foreground is { })
 		{
-			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
-			if (Foreground is { })
-			{
-				formattedText.SetForegroundBrush(Foreground);
-			}
-
-			context.DrawText(formattedText, new Point(0, r.Position.Y));
+			formattedText.SetForegroundBrush(Foreground);
 		}
+
+		context.DrawText(formattedText, new Point(0, r.Position.Y));
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
