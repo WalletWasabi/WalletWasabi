@@ -224,15 +224,8 @@ public partial class Arena : PeriodicRunner
 						if (offendingAliceCounter > 0)
 						{
 							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
-							if (round.InputCount - offendingAliceCounter >= Config.MinInputCountByBlameRound)
-							{
-								EndRound(round, EndRoundState.NotAllAlicesSign);
-								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
-							}
-							else
-							{
-								EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-							}
+
+							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
 						}
 					}
@@ -441,15 +434,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByBlameRound)
-		{
-			EndRound(round, EndRoundState.NotAllAlicesSign);
-			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-		}
-		else
-		{
-			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
-		}
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
@@ -466,19 +451,21 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= Config.MinInputCountByBlameRound)
-		{
-			EndRound(round, EndRoundState.NotAllAlicesSign);
-			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-		}
-		else
-		{
-			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
-		}
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
+	private async Task EndRoundAndTryCreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
+		if (round.InputCount < Config.MinInputCountByBlameRound)
+		{
+			// There are not enough inputs, makes no sense to create the blame round.
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
+			return;
+		}
+
+		// This indicates to the client that there will be a blame round.
+		EndRound(round, EndRoundState.NotAllAlicesSign);
+
 		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
