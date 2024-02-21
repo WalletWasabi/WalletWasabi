@@ -67,7 +67,6 @@ public class TransactionStore : IAsyncDisposable
 
 			File.Delete(oldPath);
 			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed} seconds.");
-
 		}
 	}
 
