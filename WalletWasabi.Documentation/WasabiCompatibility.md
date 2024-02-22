@@ -13,6 +13,8 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Hardware Wallets
 
+- BitBox02-BtcOnly<sup><sup>1*</sup></sup>
+- Blockstream Jade
 - ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
@@ -21,7 +23,8 @@ This document lists all the officially supported software and devices by Wasabi 
 - Ledger Nano S Plus
 - Ledger Nano X
 - Trezor Model T
-- Blockstream Jade
+
+<sup><sup>1*</sup> The device by default asks for a "Pairing code", currently, there is no such function in Wasabi. Therefore, either disable the feature or unlock the device with BitBoxApp or hwi-qt before using it with Wasabi.</sup>
 
 # Officially Supported Architectures
 
