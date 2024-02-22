@@ -318,6 +318,12 @@ public partial class CurrencyEntryBox : TextBox
 		if (ValidateEntryText(text))
 		{
 			OnTextInput(new TextInputEventArgs { Text = text });
+
+			Dispatcher.UIThread.Post(() =>
+			{
+				ClearSelection();
+				CaretIndex = Text?.Length ?? 0;
+			});
 		}
 	}
 
