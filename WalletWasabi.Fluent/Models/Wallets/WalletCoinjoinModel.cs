@@ -26,7 +26,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 					  .Where(x => x.EventArgs.Wallet == wallet)
 					  .Select(x => x.EventArgs)
-					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs)
+					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs or CompletedEventArgs)
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
