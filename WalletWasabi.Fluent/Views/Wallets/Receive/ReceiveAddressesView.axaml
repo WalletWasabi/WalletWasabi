@@ -7,8 +7,8 @@
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <ContentArea Caption="You can choose to hide, modify, or display the addresses listed below."
-               Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
+               Caption="You can choose to hide, modify, or display the addresses listed below."
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
