@@ -135,7 +135,7 @@
   <!-- Base -->
   <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">15 7</Thickness>
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
-  <CornerRadius x:Key="ControlCornerRadius">3</CornerRadius>
+  <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />

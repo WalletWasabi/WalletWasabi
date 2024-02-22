@@ -186,7 +186,7 @@
 
   <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
   <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
-  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#323232" />
+  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 
   <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
   <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
