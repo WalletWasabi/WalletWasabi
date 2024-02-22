@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
              x:DataType="advanced:WalletCoinsViewModel"

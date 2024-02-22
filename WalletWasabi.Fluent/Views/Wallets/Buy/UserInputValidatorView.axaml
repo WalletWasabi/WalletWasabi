@@ -5,8 +5,6 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:shopinBit="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit"
              xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.UserInputValidatorView">
@@ -31,7 +29,7 @@
     </ContentControl.Resources>
     <ContentControl.Styles>
 
-      <Style Selector="c|TagControl /template/ Panel#PART_TagPanel">
+      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
         <Setter Property="Margin" Value="0,0,0,-1" />
       </Style>
 
@@ -44,13 +42,13 @@
       <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
-      <Style Selector="c|TagsBox">
+      <Style Selector="TagsBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
-      <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+      <Style Selector="TagsBox:pointerover /template/ Border#PART_Border">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
-      <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
+      <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
       <Style Selector="ComboBox">
@@ -96,7 +94,7 @@
 
       <!-- CountryStep -->
       <DataTemplate DataType="vm:CountryStep">
-        <c:TagsBox VerticalAlignment="Center"
+        <TagsBox VerticalAlignment="Center"
                    RestrictInputToSuggestions="True"
                    SuggestionsAreCaseSensitive="False"
                    Watermark="{Binding Watermark}"
@@ -109,7 +107,7 @@
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-        </c:TagsBox>
+        </TagsBox>
       </DataTemplate>
 
       <!-- RequestedItemStep -->
@@ -206,7 +204,7 @@
 
       <!-- StateStep -->
       <DataTemplate DataType="vm:StateStep">
-        <c:TagsBox VerticalAlignment="Center"
+        <TagsBox VerticalAlignment="Center"
                    RestrictInputToSuggestions="True"
                    SuggestionsAreCaseSensitive="False"
                    Watermark="{Binding Watermark}"
@@ -222,7 +220,7 @@
               <behaviors:FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
           </i:Interaction.Behaviors>
-        </c:TagsBox>
+        </TagsBox>
       </DataTemplate>
 
       <!-- ConfirmTosStep -->

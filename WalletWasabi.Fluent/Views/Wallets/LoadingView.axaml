@@ -6,14 +6,12 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingView">
-  <controls:ContentArea Title="{Binding WalletName, FallbackValue=My Wallet with a very long name}"
-                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
-
+  <ContentArea Title="{Binding WalletName, FallbackValue=My Wallet with a very long name}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Panel>
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
@@ -69,5 +67,5 @@
         </Panel>
       </DockPanel>
     </Panel>
-  </controls:ContentArea>
+  </ContentArea>
 </UserControl>

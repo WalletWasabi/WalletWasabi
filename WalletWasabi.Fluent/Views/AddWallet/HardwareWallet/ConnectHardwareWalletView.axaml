@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:hardwareWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
@@ -12,7 +11,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
 
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet to the PC"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
@@ -40,12 +39,12 @@
 
         <Panel IsVisible="{Binding !ConfirmationRequired}">
           <Viewbox MaxHeight="100" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />
+            <ProgressRing IsIndeterminate="True" Height="100" Width="100" />
           </Viewbox>
-          <c:InfoMessage Content="Enter your passphrase on the hardware wallet if needed." HorizontalAlignment="Center" VerticalAlignment="Bottom" Opacity="0.6"/>
+          <InfoMessage Content="Enter your passphrase on the hardware wallet if needed." HorizontalAlignment="Center" VerticalAlignment="Bottom" Opacity="0.6"/>
         </Panel>
 
       </Panel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

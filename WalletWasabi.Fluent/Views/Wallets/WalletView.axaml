@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
@@ -16,8 +15,13 @@
   <i:Interaction.Behaviors>
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
   </i:Interaction.Behaviors>
-  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
-    <c:ContentArea.Title>
+
+  <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" Classes="StretchTopContent">
+    <ContentArea.Title>
+      <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
+    </ContentArea.Title>
+    <ContentArea.TopContent>
+      <StackPanel>
         <DockPanel>
 
           <!-- Buttons -->
@@ -94,16 +98,14 @@
               <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
             </Button>
           </StackPanel>
-
-          <!-- Title -->
-          <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontWeight="Bold" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
         </DockPanel>
-    </c:ContentArea.Title>
+      </StackPanel>
+    </ContentArea.TopContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" />
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

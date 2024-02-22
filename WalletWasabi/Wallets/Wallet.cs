@@ -272,6 +272,7 @@ public class Wallet : BackgroundService, IWallet
 
 		try
 		{
+			KeyManager.AssertNetworkOrClearBlockState(Network);
 			EnsureHeightsAreAtLeastSegWitActivation();
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -453,8 +454,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
-		KeyManager.AssertNetworkOrClearBlockState(Network);
-
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
