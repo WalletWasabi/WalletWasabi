@@ -2,29 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
   <ContentArea Caption="You can choose to hide, modify, or display the addresses listed below."
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <ContentArea.Title>
-      <DockPanel>
-        <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
-          <Button.Flyout>
-            <Flyout Placement="BottomEdgeAlignedRight">
-              <c:SortControl Sortables="{Binding Sortables}" />
-            </Flyout>
-          </Button.Flyout>
-          <PathIcon Data="{StaticResource sorting}" />
-        </Button>
-        <TextBlock Text="{Binding Title, FallbackValue='Title'}" />
-      </DockPanel>
-    </ContentArea.Title>
+               Title="{Binding Title}"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.TopContent>
+      <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <SortControl Sortables="{Binding Sortables}" />
+          </Flyout>
+        </Button.Flyout>
+        <PathIcon Data="{StaticResource sorting}" />
+      </Button>
+    </ContentArea.TopContent>
     <TreeDataGrid Source="{Binding Source}"
                   VerticalAlignment="Stretch"
                   Margin="0 20 0 0">

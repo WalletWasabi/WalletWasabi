@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
@@ -10,25 +9,23 @@
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
   <ContentArea
+    Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
-                        EnableNext="True"
-                        NextContent="Continue"
-                        EnableCancel="{Binding EnableCancel}"
-                        IsBusy="{Binding IsBusy}"
-                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <ContentArea.Title>
-      <DockPanel>
-        <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
-          <Button.Flyout>
-            <Flyout Placement="BottomEdgeAlignedRight">
-              <c:SortControl Sortables="{Binding CoinList.Sortables}" />
-            </Flyout>
-          </Button.Flyout>
-          <PathIcon Data="{StaticResource sorting}" />
-        </Button>
-        <TextBlock Text="{Binding Title, FallbackValue='Title'}" />
-      </DockPanel>
-    </ContentArea.Title>
+    EnableNext="True"
+    NextContent="Continue"
+    EnableCancel="{Binding EnableCancel}"
+    IsBusy="{Binding IsBusy}"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.TopContent>
+      <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <SortControl Sortables="{Binding CoinList.Sortables}" />
+          </Flyout>
+        </Button.Flyout>
+        <PathIcon Data="{StaticResource sorting}" />
+      </Button>
+    </ContentArea.TopContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </ContentArea>
 </UserControl>
