@@ -20,6 +20,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private int _numberOfPrivacyChars;
 	private string? _privacyText;
 	private Size? _availableSize;
+	private bool _haveText;
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -42,11 +43,13 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
+		_privacyText = new string('#', _numberOfPrivacyChars);
+		_privacyFormattedText = null;
 
 		if (_text != text)
 		{
 			_text = text;
-			_privacyText = new string('#', _numberOfPrivacyChars);
+			_haveText = !string.IsNullOrWhiteSpace(_text);
 			_formattedText = null;
 
 			if (_availableSize is not null)
@@ -61,6 +64,8 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	public override void Unrealize()
 	{
 		_formattedText = null;
+		_text = null;
+		_haveText = false;
 		base.Unrealize();
 	}
 
@@ -68,18 +73,22 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		context.FillRectangle(Brushes.Transparent, new Rect(new Point(), DesiredSize));
 
-		var formattedText = _isContentVisible ? _formattedText : _privacyFormattedText;
+		var formattedText = !_isContentVisible
+			? _privacyFormattedText
+			: _haveText ? _formattedText : null;
 
-		if (formattedText is not null)
+		if (formattedText is null)
 		{
-			var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
-			if (Foreground is { })
-			{
-				formattedText.SetForegroundBrush(Foreground);
-			}
-
-			context.DrawText(formattedText, new Point(0, r.Position.Y));
+			return;
 		}
+
+		var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
+		if (Foreground is { })
+		{
+			formattedText.SetForegroundBrush(Foreground);
+		}
+
+		context.DrawText(formattedText, new Point(0, r.Position.Y));
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -102,18 +111,24 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (string.IsNullOrWhiteSpace(_text))
-		{
-			return default;
-		}
+		_availableSize = availableSize;
 
-		if (_formattedText is null || _privacyFormattedText is null || (_availableSize is not null && _availableSize != availableSize))
+		if ((_formattedText is null && !string.IsNullOrWhiteSpace(_text))
+		    || _privacyFormattedText is null
+		    || (_availableSize is not null && _availableSize != availableSize))
 		{
-			_formattedText = CreateFormattedText(availableSize, _text);
+			_formattedText = !string.IsNullOrWhiteSpace(_text)
+				? CreateFormattedText(availableSize, _text)
+				: null;
 			_privacyFormattedText = CreateFormattedText(availableSize, _privacyText);
 		}
 
-		_availableSize = availableSize;
+		if (_formattedText is null)
+		{
+			return new Size(
+				_privacyFormattedText.Width,
+				_privacyFormattedText.Height);
+		}
 
 		return new Size(
 			Math.Max(_formattedText.Width, _privacyFormattedText.Width),

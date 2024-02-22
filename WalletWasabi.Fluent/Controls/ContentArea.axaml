@@ -39,24 +39,28 @@
                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                 </i:Interaction.Behaviors>
               </Button>
-              <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Right">
-                <Button Name="PART_SkipButton"
-                        IsVisible="{TemplateBinding EnableSkip}"
-                        Content="{TemplateBinding SkipContent}"
-                        Command="{Binding SkipCommand}"
-                        Classes="activeHyperLink skip"
-                        VerticalAlignment="Center" />
-                <Button Name="PART_NextButton" Classes="action"
-                        IsVisible="{TemplateBinding EnableNext}"
-                        Content="{TemplateBinding NextContent}"
-                        Command="{Binding NextCommand}"
-                        IsDefault="{Binding IsActive}">
-                  <i:Interaction.Behaviors>
-                    <behaviors:FocusOnAttachedBehavior
-                      IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-                  </i:Interaction.Behaviors>
-                </Button>
-              </StackPanel>
+              <DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Right">
+                  <Button Name="PART_SkipButton"
+                          IsVisible="{TemplateBinding EnableSkip}"
+                          Content="{TemplateBinding SkipContent}"
+                          Command="{Binding SkipCommand}"
+                          Classes="activeHyperLink skip"
+                          VerticalAlignment="Center" />
+                  <Button Name="PART_NextButton" Classes="action"
+                          IsVisible="{TemplateBinding EnableNext}"
+                          Content="{TemplateBinding NextContent}"
+                          Command="{Binding NextCommand}"
+                          IsDefault="{Binding IsActive}">
+                    <i:Interaction.Behaviors>
+                      <behaviors:FocusOnAttachedBehavior
+                        IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
+                    </i:Interaction.Behaviors>
+                  </Button>
+                </StackPanel>
+                <ContentPresenter Content="{TemplateBinding BottomContent}"
+                                  x:Name="PART_BottomContentPresenter" />
+              </DockPanel>
             </Panel>
 
             <Panel DockPanel.Dock="Top">
@@ -74,7 +78,10 @@
                     </i:Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                   </Button>
-                  <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+                  <Panel>
+                    <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+                    <ContentPresenter Name="PART_TopContentPresenter" Content="{TemplateBinding TopContent}" />
+                  </Panel>
                 </DockPanel>
                 <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
                 <Panel Height="6" IsVisible="{Binding !EnableBack}" />
@@ -104,28 +111,42 @@
       </ControlTemplate>
     </Setter>
 
-  <Style Selector="^/template/ StackPanel#PART_Header">
-    <Setter Property="Margin" Value="31 0 31 0" />
-  </Style>
+    <Style Selector="^/template/ StackPanel#PART_Header">
+      <Setter Property="Margin" Value="31 0 31 0" />
+    </Style>
 
-  <Style Selector="^/template/ ScrollViewer#PART_ScrollViewer">
-    <Setter Property="Margin" Value="31 11 31 21" />
-  </Style>
+    <Style Selector="^/template/ ScrollViewer#PART_ScrollViewer">
+      <Setter Property="Margin" Value="31 11 31 21" />
+    </Style>
 
-  <Style Selector="^/template/ Panel#PART_ButtonArea">
-    <Setter Property="Margin" Value="31,10" />
-  </Style>
+    <Style Selector="^/template/ Panel#PART_ButtonArea">
+      <Setter Property="Margin" Value="31,10" />
+    </Style>
 
-  <Style Selector="^/template/ ContentPresenter#PART_TitlePresenter">
-    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />
-  </Style>
+    <Style Selector="^/template/ ContentPresenter#PART_TitlePresenter">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
+      <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />
+    </Style>
 
-  <Style Selector="^/template/ ProgressRing#LoadingRing">
-    <Setter Property="Width" Value="100" />
-    <Setter Property="Height" Value="100" />
-  </Style>
+    <!-- Top ContentPresenter-->
+    <Style Selector="^/template/ ContentPresenter#PART_TopContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Right" />
+    </Style>
 
+    <!-- Stretch Top Content -->
+    <Style Selector="^.StretchTopContent /template/ ContentPresenter#PART_TopContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Bottom ContentPresenter -->
+    <Style Selector="^/template/ ContentPresenter#PART_BottomContentPresenter">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="^/template/ ProgressRing#LoadingRing">
+      <Setter Property="Width" Value="100" />
+      <Setter Property="Height" Value="100" />
+    </Style>
   </ControlTheme>
-
 </ResourceDictionary>
