@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
@@ -116,7 +115,7 @@
       <Button Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft">
-            <c:SortControl Sortables="{Binding Sortables}" />
+            <SortControl Sortables="{Binding Sortables}" />
           </Flyout>
         </Button.Flyout>
         <PathIcon Data="{StaticResource sorting}" />
@@ -161,7 +160,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
           </Style>
-          <Style Selector="TextBlock, c|PrivacyContentControl">
+          <Style Selector="TextBlock, PrivacyContentControl">
             <Setter Property="VerticalAlignment" Value="Center" />
           </Style>
           <Style Selector="TreeDataGridRow Button.historyDetails">
@@ -203,11 +202,10 @@
           </Style>
         </TreeDataGrid.Styles>
       </TreeDataGrid>
-      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}"
-                                 IsVisible="{Binding IsTransactionHistoryEmpty}"
-                                 Opacity="0.1" />
+      <HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                               RowHeight="{StaticResource HistoryTableRowHeight}"
+                               IsVisible="{Binding IsTransactionHistoryEmpty}"
+                               Opacity="0.1" />
     </Panel>
   </DockPanel>
-
 </UserControl>

@@ -9,14 +9,14 @@
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
-  <c:ContentArea
+  <ContentArea
     EnableBack="{Binding EnableBack}"
                         EnableNext="True"
                         NextContent="Continue"
                         EnableCancel="{Binding EnableCancel}"
                         IsBusy="{Binding IsBusy}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <c:ContentArea.Title>
+    <ContentArea.Title>
       <DockPanel>
         <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
           <Button.Flyout>
@@ -28,7 +28,7 @@
         </Button>
         <TextBlock Text="{Binding Title, FallbackValue='Title'}" />
       </DockPanel>
-    </c:ContentArea.Title>
+    </ContentArea.Title>
     <coins:CoinListView DataContext="{Binding CoinList}" />
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

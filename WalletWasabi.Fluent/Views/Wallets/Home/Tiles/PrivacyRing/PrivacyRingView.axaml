@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
@@ -58,7 +57,7 @@
       <Setter Property="Width" Value="160" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="False"
                  EnableBack="False"
@@ -132,8 +131,7 @@
                     Classes.private="{Binding IsPrivate}"
                     Classes.semiPrivate="{Binding IsSemiPrivate}"
                     Classes.nonPrivate="{Binding IsNonPrivate}"
-                    Classes.unconfirmed="{Binding Unconfirmed}">
-              </Path>
+                    Classes.unconfirmed="{Binding Unconfirmed}" />
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
@@ -160,5 +158,5 @@
         </Carousel>
       </Panel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

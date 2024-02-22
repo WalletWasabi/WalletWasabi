@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
@@ -42,35 +41,31 @@
     </Style>
   </UserControl.Styles>
 
-  <c:ContentArea
+  <ContentArea
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
                  NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
+                 Title="Send"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-    <c:ContentArea.Title>
-      <DockPanel>
-        <TextBlock Text="Send" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
-          <!-- Balance -->
-          <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
-            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-              <c:AmountControl Amount="{Binding Balance^}" />
-            </Button>
-          </c:PrivacyContentControl>
-        </StackPanel>
-      </DockPanel>
-    </c:ContentArea.Title>
+    <ContentArea.TopContent>
+      <!-- Balance -->
+      <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
+        <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+          <AmountControl Amount="{Binding Balance^}" />
+        </Button>
+      </PrivacyContentControl>
+    </ContentArea.TopContent>
     <DockPanel LastChildFill="False">
       <DockPanel.Styles>
         <Style Selector="DockPanel > Label">
           <Setter Property="MinWidth" Value="80" />
         </Style>
-        <Style Selector="c|AnimatedButton.flash">
+        <Style Selector="AnimatedButton.flash">
           <Setter Property="InitialOpacity" Value="0.8" />
         </Style>
-        <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
+        <Style Selector="AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
           <Style.Animations>
             <Animation Duration="0.25" IterationCount="6"
@@ -102,7 +97,7 @@
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+              <AnimatedButton KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
@@ -111,8 +106,8 @@
                 <i:Interaction.Behaviors>
                   <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
                 </i:Interaction.Behaviors>
-              </c:AnimatedButton>
-              <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+              </AnimatedButton>
+              <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                                 KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding QrCommand}"
@@ -128,7 +123,7 @@
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-          <c:DualCurrencyEntryBox x:Name="amountTb"
+          <DualCurrencyEntryBox x:Name="amountTb"
                                   KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
                                   IsReadOnly="{Binding IsFixedAmount}"
                                   AmountBtc="{Binding AmountBtc}"
@@ -139,13 +134,12 @@
                                   BalanceBtc="{Binding Balance^.Btc}"
                                   BalanceUsd="{Binding Balance^.Usd^}"
                                   ValidatePasteBalance="True">
-            <c:DualCurrencyEntryBox.Resources>
+            <DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
                                            TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
-                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}">
-              </converters:BooleanConverter>
-            </c:DualCurrencyEntryBox.Resources>
+                                           FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}" />
+            </DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
@@ -154,9 +148,9 @@
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
             </i:Interaction.Behaviors>
-          </c:DualCurrencyEntryBox>
+          </DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

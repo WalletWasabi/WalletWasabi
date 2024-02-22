@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:AddressViewModel"
@@ -10,7 +9,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.ActionsColumnView">
   <Border CornerRadius="30" HorizontalAlignment="Right" Margin="0 0 2 0" Background="{DynamicResource Layer2BackgroundBrush}">
     <Border.Styles>
-      <Style Selector="c|AnimatedButton /template/ PathIcon">
+      <Style Selector="AnimatedButton /template/ PathIcon">
         <Setter Property="Height" Value="15" />
       </Style>
       <Style Selector="Button > PathIcon">
@@ -41,12 +40,12 @@
       </Button>
 
       <!-- Copy -->
-      <c:AnimatedButton Classes="plain"
-                        ToolTip.Tip="Copy"
-                        Command="{Binding CopyAddressCommand}"
-                        NormalIcon="{StaticResource copy_regular}"
-                        ClickIcon="{StaticResource copy_confirmed}"
-                        InitialOpacity="1.0" />
+      <AnimatedButton Classes="plain"
+                      ToolTip.Tip="Copy"
+                      Command="{Binding CopyAddressCommand}"
+                      NormalIcon="{StaticResource copy_regular}"
+                      ClickIcon="{StaticResource copy_confirmed}"
+                      InitialOpacity="1.0" />
 
     </StackPanel>
   </Border>

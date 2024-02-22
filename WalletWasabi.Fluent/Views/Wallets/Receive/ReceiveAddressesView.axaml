@@ -8,11 +8,11 @@
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <c:ContentArea Caption="You can choose to hide, modify, or display the addresses listed below."
+  <ContentArea Caption="You can choose to hide, modify, or display the addresses listed below."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <c:ContentArea.Title>
+    <ContentArea.Title>
       <DockPanel>
         <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
           <Button.Flyout>
@@ -24,7 +24,7 @@
         </Button>
         <TextBlock Text="{Binding Title, FallbackValue='Title'}" />
       </DockPanel>
-    </c:ContentArea.Title>
+    </ContentArea.Title>
     <TreeDataGrid Source="{Binding Source}"
                   VerticalAlignment="Stretch"
                   Margin="0 20 0 0">
@@ -34,5 +34,5 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>
