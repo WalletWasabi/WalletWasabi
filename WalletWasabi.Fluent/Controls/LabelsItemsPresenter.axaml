@@ -1,8 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
-
+                    xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections">
   <ControlTheme x:Key="LabelBorder" TargetType="Border">
     <Setter Property="Margin" Value="0" />
     <Setter Property="Padding" Value="12,5,12,5" />
@@ -14,7 +12,7 @@
     <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
   </ControlTheme>
 
-  <ControlTheme x:Key="{x:Type c:LabelsItemsPresenter}" TargetType="c:LabelsItemsPresenter">
+  <ControlTheme x:Key="{x:Type LabelsItemsPresenter}" TargetType="LabelsItemsPresenter">
     
     <Setter Property="Margin" Value="0" />
     <Setter Property="HorizontalAlignment" Value="Left" />
@@ -43,13 +41,13 @@
         <Panel Margin="0 0 4 0">
           <Border Theme="{StaticResource LabelBorder}"
                   ToolTip.Tip="{Binding}"
-                  Background="{Binding Background, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
-                  BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
+                  Background="{Binding Background, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
+                  BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
             <TextBlock Text="{Binding}"
                        TextTrimming="CharacterEllipsis"
                        TextWrapping="NoWrap"
-                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
-                       MaxWidth="{Binding MaxLabelWidth, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
+                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
+                       MaxWidth="{Binding MaxLabelWidth, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
               <TextBlock.Styles>
                 <Style Selector="TextBlock">
                   <Setter Property="Opacity" Value="0.6" />
@@ -63,15 +61,15 @@
 
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
-                       InfiniteWidthMeasure="{Binding InfiniteWidthMeasure, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
-          <c:LabelsPanel.EllipsisControl>
+        <LabelsPanel HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
+                       InfiniteWidthMeasure="{Binding InfiniteWidthMeasure, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
+          <LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
               <Border Theme="{StaticResource LabelBorder}"
-                      BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}">
+                      BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
                 <ToolTip.Tip>
                   <Panel>
-                    <c:TagsBox IsReadOnly="True"
+                    <TagsBox IsReadOnly="True"
                                Margin="4,6,0,0"
                                Items="{Binding}" />
                   </Panel>
@@ -80,12 +78,12 @@
                            Opacity="0.6"
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type c:LabelsItemsPresenter}}}"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
                            MaxWidth="{DynamicResource LabelMaxWidth}" />
               </Border>
             </Panel>
-          </c:LabelsPanel.EllipsisControl>
-        </c:LabelsPanel>
+          </LabelsPanel.EllipsisControl>
+        </LabelsPanel>
       </ItemsPanelTemplate>
     </Setter>
 
@@ -94,16 +92,16 @@
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
       <StackPanel>
-        <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
-          <c:LabelsItemsPresenter.ItemsSource>
+        <LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
+          <LabelsItemsPresenter.ItemsSource>
             <g:List x:TypeArguments="x:String">
               <x:String>Label 1</x:String>
               <x:String>Label 2</x:String>
               <x:String>Label 3</x:String>
               <x:String>Label 4</x:String>
             </g:List>
-          </c:LabelsItemsPresenter.ItemsSource>
-        </c:LabelsItemsPresenter>
+          </LabelsItemsPresenter.ItemsSource>
+        </LabelsItemsPresenter>
         <Border Background="Red" Theme="{StaticResource LabelBorder}" Width="200" Height="20" />
       </StackPanel>
     </Border>

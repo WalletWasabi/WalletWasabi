@@ -5,7 +5,6 @@
              xmlns:vms="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
@@ -37,7 +36,7 @@
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
-        <controls:PrivacyContentControl Classes="bold"
+        <PrivacyContentControl Classes="bold"
                                         VerticalAlignment="Center" HorizontalAlignment="Center"
                                         VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                                         Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />

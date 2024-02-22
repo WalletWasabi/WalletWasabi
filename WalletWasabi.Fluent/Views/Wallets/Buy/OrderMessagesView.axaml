@@ -4,24 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:buyAnything="clr-namespace:WalletWasabi.BuyAnything;assembly=WalletWasabi"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
              x:CompileBindings="True">
-
   <ScrollViewer x:Name="MessagesScrollViewer"
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
     <ItemsControl x:Name="MessagesItemsControl"
                            ItemsSource="{Binding Messages}">
       <ItemsControl.Styles>
-        <Style Selector="ContentPresenter > c|PreviewMessageItem">
+        <Style Selector="ContentPresenter > PreviewMessageItem">
           <Setter Property="Margin" Value="5 5 5 0" />
         </Style>
-        <Style Selector="ContentPresenter > c|PreviewMessageItem > Border">
+        <Style Selector="ContentPresenter > PreviewMessageItem > Border">
           <Setter Property="CornerRadius" Value="10" />
           <Setter Property="MaxWidth" Value="330" />
           <Setter Property="Padding" Value="15 10" />
@@ -35,7 +34,7 @@
 
         <!-- Pay chat bubble -->
         <DataTemplate DataType="vmMessage:PayNowAssistantMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding PaymentUrl}"
+          <PreviewMessageItem CopyableContent="{Binding PaymentUrl}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
@@ -45,7 +44,7 @@
                        Height="40"
                        Margin="0 10 0 0">
                   <Viewbox Height="30" IsVisible="{Binding IsBusy}" VerticalAlignment="Center">
-                    <c:ProgressRing Height="50" Width="50" Name="LoadingRing" IsIndeterminate="True" />
+                    <ProgressRing Height="50" Width="50" Name="LoadingRing" IsIndeterminate="True" />
                   </Viewbox>
 
                   <Button Command="{Binding PayNowCommand}"
@@ -61,12 +60,12 @@
                 <TextBlock Text="{Binding UiMessage}" />
               </DockPanel>
             </Border>
-          </c:PreviewMessageItem>
+          </PreviewMessageItem>
         </DataTemplate>
 
         <!-- Offer chat bubble -->
         <DataTemplate DataType="vmMessage:OfferMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+          <PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
@@ -88,12 +87,12 @@
                 <TextBlock HorizontalAlignment="Left" Text="{Binding TotalMessage}" Margin="0 8 0 0" />
               </StackPanel>
             </Border>
-          </c:PreviewMessageItem>
+          </PreviewMessageItem>
         </DataTemplate>
 
         <!-- Link chat bubble -->
         <DataTemplate DataType="vmMessage:UrlListMessageViewModel">
-          <c:PreviewMessageItem HorizontalAlignment="Left">
+          <PreviewMessageItem HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
               <StackPanel>
                 <TextBlock HorizontalAlignment="Left" Text="{Binding UiMessage}" Margin="0 0 0 8" />
@@ -103,7 +102,7 @@
                       <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0 1 0 1">
                         <TextBlock Grid.Column="0" Text="- " />
                         <Button MaxWidth="250" Grid.Column="1" ToolTip.Tip="{Binding Url}" Classes="activeHyperLink" Content="{Binding Text}" Command="{Binding OpenLinkCommand}" />
-                        <c:AnimatedButton Grid.Column="2"
+                        <AnimatedButton Grid.Column="2"
                                           Margin="5 0 0 0"
                                           ToolTip.Tip="Copy"
                                           Command="{Binding CopyCommand}"
@@ -115,23 +114,23 @@
                 </ItemsControl>
               </StackPanel>
             </Border>
-          </c:PreviewMessageItem>
+          </PreviewMessageItem>
         </DataTemplate>
 
         <!-- Generic Assistant chat bubble-->
         <DataTemplate DataType="vmMessage:AssistantMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+          <PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Right"
                                 HorizontalAlignment="Left">
             <Border Background="{DynamicResource AssistantMessageBackground}">
-              <TextBlock Text="{Binding UiMessage}" />
+              <SelectableTextBlock Text="{Binding UiMessage}" />
             </Border>
-          </c:PreviewMessageItem>
+          </PreviewMessageItem>
         </DataTemplate>
 
         <!-- Generic User chat bubble -->
         <DataTemplate DataType="vmMessage:UserMessageViewModel">
-          <c:PreviewMessageItem CopyableContent="{Binding UiMessage}"
+          <PreviewMessageItem CopyableContent="{Binding UiMessage}"
                                 CopyButtonPlacement="Left"
                                 HorizontalAlignment="Right"
                                 IsEditButtonVisible="{Binding CanEditObservable^, FallbackValue=False}"
@@ -139,7 +138,7 @@
             <Border Background="{DynamicResource UserMessageBackground}">
               <TextBlock Text="{Binding UiMessage}" />
             </Border>
-          </c:PreviewMessageItem>
+          </PreviewMessageItem>
         </DataTemplate>
       </ItemsControl.DataTemplates>
 

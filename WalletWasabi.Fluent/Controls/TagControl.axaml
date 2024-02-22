@@ -1,14 +1,13 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
-      <c:TagControl Content="Label One Two Three" />
+      <TagControl Content="Label One Two Three" />
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:TagControl}" TargetType="c:TagControl">
+  <ControlTheme x:Key="{x:Type TagControl}" TargetType="TagControl">
 
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
