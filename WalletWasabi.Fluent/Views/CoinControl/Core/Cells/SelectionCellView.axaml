@@ -23,7 +23,7 @@
       </MultiBinding>
     </Classes.transparent>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="15 0">
-      <CheckBox IsChecked="{Binding IsSelected}" IsVisible="{Binding CanBeSelected}" />
+      <CheckBox Padding="0" IsChecked="{Binding IsSelected}" IsVisible="{Binding CanBeSelected}" />
     </StackPanel>
   </Border>
 </UserControl>

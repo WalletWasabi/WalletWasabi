@@ -21,7 +21,7 @@
           </Style>
         </Panel.Styles>
 
-        <ProgressBar />
+        <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" />
         <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
                      Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"  Foreground="#5769954A" />
         <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
