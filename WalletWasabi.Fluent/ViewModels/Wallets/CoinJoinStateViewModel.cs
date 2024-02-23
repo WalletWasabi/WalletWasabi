@@ -224,27 +224,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				StopCountDown();
-
-				// Playbutton only visible if we have more coins to mix.
-				PlayVisible = !AreAllCoinsPrivate;
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
 
-				// We only touch the message if we can continue with CJ. Otherwise we keep AllPrivateMessage.
-				if (!AreAllCoinsPrivate)
-				{
-					CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
-				}
-
-				// We only show the text if there is a button.
-				LeftText = AreAllCoinsPrivate ? "" : CoinJoinStateViewModel.PressPlayToStartMessage;
+				// PlayVisible, CurrentStatus and LeftText set inside.
+				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
 			.OnTrigger(Trigger.AreAllCoinsPrivateChanged, () =>
 			{
 				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
-				PlayVisible = !AreAllCoinsPrivate;
-				LeftText = AreAllCoinsPrivate ? "" : CoinJoinStateViewModel.PressPlayToStartMessage;
+				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
 			.OnExit(() => LeftText = "");
 
@@ -277,6 +267,58 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				LeftText = PlebStopMessageBelow;
 			})
 			.OnExit(() => LeftText = "");
+	}
+
+	private void RefreshButtonAndTextInStateStoppedOrPaused()
+	{
+		// Set visibility of Play button.
+		if (IsAutoCoinJoinEnabled)
+		{
+			PlayVisible = true;
+		}
+		else
+		{
+			if (AreAllCoinsPrivate)
+			{
+				PlayVisible = false;
+			}
+			else
+			{
+				PlayVisible = true;
+			}
+		}
+
+		// Set the message,
+		if (IsAutoCoinJoinEnabled)
+		{
+			CurrentStatus = PauseMessage;
+		}
+		else
+		{
+			if (!AreAllCoinsPrivate)
+			{
+				CurrentStatus = StoppedMessage;
+			}
+
+			// No compulsory update, we do not touch the message. If it was AllPrivateMessage we will keep that.
+		}
+
+		// Set the LeftText.
+		if (IsAutoCoinJoinEnabled)
+		{
+			LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
+		}
+		else
+		{
+			if (!AreAllCoinsPrivate)
+			{
+				LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
+			}
+			else
+			{
+				LeftText = "";
+			}
+		}
 	}
 
 	private void UpdateCountDown()
