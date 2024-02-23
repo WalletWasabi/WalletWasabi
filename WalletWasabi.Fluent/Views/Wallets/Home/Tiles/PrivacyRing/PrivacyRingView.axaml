@@ -49,11 +49,11 @@
       <Setter Property="Background" Value="Red" />
     </Style>
 
-    <Style Selector="ContentControl#PreviewItem">
+    <Style Selector="ContentControl#SelectedItem">
       <Setter Property="Width" Value="250" />
     </Style>
 
-    <Style Selector="ContentControl#PreviewItem.small">
+    <Style Selector="ContentControl#SelectedItem.small">
       <Setter Property="Width" Value="160" />
     </Style>
   </UserControl.Styles>
