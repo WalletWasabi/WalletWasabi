@@ -218,12 +218,27 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				StopCountDown();
-				PlayVisible = true;
+
+				// Playbutton only visible if we have more coins to mix.
+				PlayVisible = !AreAllCoinsPrivate;
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
-				CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
-				LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
+
+				// We only touch the message if we can continue with CJ. Otherwise we keep AllPrivateMessage.
+				if (!AreAllCoinsPrivate)
+				{
+					CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
+				}
+
+				// We only show the text if there is a button.
+				LeftText = AreAllCoinsPrivate ? "" : CoinJoinStateViewModel.PressPlayToStartMessage;
+			})
+			.OnTrigger(Trigger.BalanceChanged, () =>
+			{
+				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
+				PlayVisible = !AreAllCoinsPrivate;
+				LeftText = AreAllCoinsPrivate ? "" : CoinJoinStateViewModel.PressPlayToStartMessage;
 			})
 			.OnExit(() => LeftText = "");
 
