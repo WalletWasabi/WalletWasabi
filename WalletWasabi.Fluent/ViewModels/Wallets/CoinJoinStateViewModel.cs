@@ -96,8 +96,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 			  .Subscribe();
 
-		AreAllCoinsPrivate
-			.WhenAnyValue(_ => _)
+		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
 			.Subscribe();
 
@@ -299,8 +298,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				CurrentStatus = StoppedMessage;
 			}
-
-			// No compulsory update, we do not touch the message. If it was AllPrivateMessage we will keep that.
+			else
+			{
+				CurrentStatus = AllPrivateMessage;
+			}
 		}
 
 		// Set the LeftText.
