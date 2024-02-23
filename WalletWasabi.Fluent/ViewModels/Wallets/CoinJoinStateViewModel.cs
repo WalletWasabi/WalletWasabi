@@ -96,6 +96,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 			  .Subscribe();
 
+		AreAllCoinsPrivate
+			.WhenAnyValue(_ => _)
+			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
+			.Subscribe();
+
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!wallet.Settings.IsCoinjoinProfileSelected)
@@ -167,7 +172,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlebStopChanged,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
-		AutoCoinJoinOff
+		AutoCoinJoinOff,
+		AreAllCoinsPrivateChanged
 	}
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
@@ -234,7 +240,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				// We only show the text if there is a button.
 				LeftText = AreAllCoinsPrivate ? "" : CoinJoinStateViewModel.PressPlayToStartMessage;
 			})
-			.OnTrigger(Trigger.BalanceChanged, () =>
+			.OnTrigger(Trigger.AreAllCoinsPrivateChanged, () =>
 			{
 				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
 				PlayVisible = !AreAllCoinsPrivate;
