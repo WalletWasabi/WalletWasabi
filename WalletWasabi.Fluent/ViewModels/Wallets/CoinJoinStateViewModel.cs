@@ -270,55 +270,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void RefreshButtonAndTextInStateStoppedOrPaused()
 	{
-		// Set visibility of Play button.
 		if (IsAutoCoinJoinEnabled)
 		{
 			PlayVisible = true;
-		}
-		else
-		{
-			if (AreAllCoinsPrivate)
-			{
-				PlayVisible = false;
-			}
-			else
-			{
-				PlayVisible = true;
-			}
-		}
-
-		// Set the message,
-		if (IsAutoCoinJoinEnabled)
-		{
 			CurrentStatus = PauseMessage;
+			LeftText = PressPlayToStartMessage;
+		}
+		else if (AreAllCoinsPrivate)
+		{
+			PlayVisible = false;
+			LeftText = "";
+			CurrentStatus = AllPrivateMessage;
 		}
 		else
 		{
-			if (!AreAllCoinsPrivate)
-			{
-				CurrentStatus = StoppedMessage;
-			}
-			else
-			{
-				CurrentStatus = AllPrivateMessage;
-			}
-		}
-
-		// Set the LeftText.
-		if (IsAutoCoinJoinEnabled)
-		{
-			LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
-		}
-		else
-		{
-			if (!AreAllCoinsPrivate)
-			{
-				LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
-			}
-			else
-			{
-				LeftText = "";
-			}
+			PlayVisible = true;
+			CurrentStatus = StoppedMessage;
+			LeftText = PressPlayToStartMessage;
 		}
 	}
 
