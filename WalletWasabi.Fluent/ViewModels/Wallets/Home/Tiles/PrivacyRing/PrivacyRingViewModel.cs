@@ -39,12 +39,13 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		PrivacyTile.Activate(_disposables);
 
 		// Show PrivacyTile info when SelectedItem is null
-		Observable.Return(Unit.Default)
-				  .Delay(TimeSpan.FromMilliseconds(750)) // Wait for Ring animation to render
-				  .Concat(this.WhenAnyValue(x => x.SelectedItem).Where(x => x is null).ToSignal())
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Do(_ => SelectedItem = PrivacyTile)
-				  .Subscribe();
+		Observable
+			.Return(Unit.Default)
+			.Delay(TimeSpan.FromMilliseconds(0)) // Wait for Ring animation to render TODO: Calculate delay based on the number of segments
+			.Concat(this.WhenAnyValue(x => x.SelectedItem).Where(x => x is null).ToSignal())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ => SelectedItem = PrivacyTile)
+			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
