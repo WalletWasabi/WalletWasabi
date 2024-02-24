@@ -586,6 +586,11 @@ public class CoinJoinManager : BackgroundService
 				// In auto CJ mode we never stop trying.
 				ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, finishedCoinJoin.OutputWallet, cancellationToken);
 			}
+			else
+			{
+				// We finished with CJ permanently.
+				NotifyWalletStoppedCoinJoin(wallet);
+			}
 		}
 		else if (cjClientException is not null)
 		{
