@@ -96,6 +96,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 			  .Subscribe();
 
+		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
+			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
+			.Subscribe();
+
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!wallet.Settings.IsCoinjoinProfileSelected)
@@ -167,7 +171,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlebStopChanged,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
-		AutoCoinJoinOff
+		AutoCoinJoinOff,
+		AreAllCoinsPrivateChanged
 	}
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
@@ -218,12 +223,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				StopCountDown();
-				PlayVisible = true;
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
-				CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
-				LeftText = CoinJoinStateViewModel.PressPlayToStartMessage;
+
+				// PlayVisible, CurrentStatus and LeftText set inside.
+				RefreshButtonAndTextInStateStoppedOrPaused();
+			})
+			.OnTrigger(Trigger.AreAllCoinsPrivateChanged, () =>
+			{
+				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
+				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
 			.OnExit(() => LeftText = "");
 
@@ -256,6 +266,28 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				LeftText = PlebStopMessageBelow;
 			})
 			.OnExit(() => LeftText = "");
+	}
+
+	private void RefreshButtonAndTextInStateStoppedOrPaused()
+	{
+		if (IsAutoCoinJoinEnabled)
+		{
+			PlayVisible = true;
+			CurrentStatus = PauseMessage;
+			LeftText = PressPlayToStartMessage;
+		}
+		else if (AreAllCoinsPrivate)
+		{
+			PlayVisible = false;
+			LeftText = "";
+			CurrentStatus = AllPrivateMessage;
+		}
+		else
+		{
+			PlayVisible = true;
+			CurrentStatus = StoppedMessage;
+			LeftText = PressPlayToStartMessage;
+		}
 	}
 
 	private void UpdateCountDown()
