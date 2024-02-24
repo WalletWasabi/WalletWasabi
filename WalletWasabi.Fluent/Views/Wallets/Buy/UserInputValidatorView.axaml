@@ -213,7 +213,8 @@
                    TagSeparator=";"
                    EnableDelete="False"
                    Items="{Binding SelectedStates}"
-                   Suggestions="{Binding States}">
+                   Suggestions="{Binding States}"
+                   x:Name="TextBox">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
