@@ -15,10 +15,10 @@ public class TerminateService
 	private const long TerminateStatusInProgress = 1;
 	private const long TerminateStatusFinished = 2;
 	private readonly Func<Task> _terminateApplicationAsync;
-	private readonly Action<Exception?> _terminateApplication;
+	private readonly Action _terminateApplication;
 	private long _terminateStatus;
 
-	public TerminateService(Func<Task> terminateApplicationAsync, Action<Exception?> terminateApplication)
+	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
 	{
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
@@ -123,7 +123,7 @@ public class TerminateService
 			TerminationCts.Dispose();
 
 			// Run this callback just once.
-			_terminateApplication(TerminationException);
+			_terminateApplication();
 		}
 	}
 
@@ -151,7 +151,7 @@ public class TerminateService
 		// We want to call the callback once. Not multiple times.
 		if (!ForcefulTerminationRequested.Task.IsCompleted)
 		{
-			_terminateApplication(TerminationException);
+			_terminateApplication();
 		}
 
 		// Async termination has to be started on another thread otherwise there is a possibility of deadlock.

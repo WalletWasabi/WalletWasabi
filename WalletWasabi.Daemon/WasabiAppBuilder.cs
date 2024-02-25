@@ -178,7 +178,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 	internal bool MustCheckSingleInstance { get; init; }
 	internal EventHandler<Exception>? UnhandledExceptionEventHandler { get; init; }
 	internal EventHandler<AggregateException>? UnobservedTaskExceptionsEventHandler { get; init; }
-	internal Action<Exception?> Terminate { get; init; } = (Exception? ex) => { };
+	internal Action Terminate { get; init; } = () => { };
 
 	public WasabiAppBuilder EnsureSingleInstance(bool ensure = true) =>
 		this with { MustCheckSingleInstance = ensure };
@@ -189,7 +189,7 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 	public WasabiAppBuilder OnUnobservedTaskExceptions(EventHandler<AggregateException> handler) =>
 		this with { UnobservedTaskExceptionsEventHandler = handler };
 
-	public WasabiAppBuilder OnTermination(Action<Exception?> action) =>
+	public WasabiAppBuilder OnTermination(Action action) =>
 		this with { Terminate = action };
 	public WasabiApplication Build() =>
 		new(this);

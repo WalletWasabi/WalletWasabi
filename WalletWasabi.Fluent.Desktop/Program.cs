@@ -80,7 +80,7 @@ public class Program
 	/// <summary>
 	/// Do not call this method it should only be called by TerminateService.
 	/// </summary>
-	private static void TerminateApplication(Exception? ex)
+	private static void TerminateApplication()
 	{
 		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
 	}
@@ -190,6 +190,7 @@ public static class WasabiAppExtensions
 					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 				}
 
+				// Invoke the crash reporter if we terminated with an exception.
 				if (app.TerminateService.TerminationException is not null)
 				{
 					throw app.TerminateService.TerminationException;

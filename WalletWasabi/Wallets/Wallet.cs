@@ -23,7 +23,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 
