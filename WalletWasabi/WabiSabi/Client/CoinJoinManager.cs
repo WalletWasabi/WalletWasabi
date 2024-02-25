@@ -181,137 +181,6 @@ public partial class CoinJoinManager : BackgroundService
 		await CoinJoinManagerHelpers.WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet walletToStart, int bestHeight)
-	{
-		var coinCandidates = new CoinsView(await walletToStart.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
-			.Available()
-			.Where(x => !CoinRefrigerator.IsFrozen(x))
-			.ToArray();
-
-		// If there is no available coin candidates, then don't mix.
-		if (coinCandidates.Length == 0)
-		{
-			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
-		}
-
-		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
-		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
-		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
-		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
-
-		coinCandidates = coinCandidates
-			.Except(bannedCoins)
-			.Except(immatureCoins)
-			.Except(unconfirmedCoins)
-			.Except(excludedCoins)
-			.ToArray();
-
-		if (coinCandidates.Length == 0)
-		{
-			var anyNonPrivateUnconfirmed = unconfirmedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
-			var anyNonPrivateImmature = immatureCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
-			var anyNonPrivateBanned = bannedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
-			var anyNonPrivateExcluded = excludedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
-
-			var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} {nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} {nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} {nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
-
-			if (anyNonPrivateUnconfirmed)
-			{
-				throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
-			}
-
-			if (anyNonPrivateImmature)
-			{
-				throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
-			}
-
-			if (anyNonPrivateBanned)
-			{
-				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
-			}
-
-			if (anyNonPrivateExcluded)
-			{
-				throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
-			}
-		}
-
-		return coinCandidates;
-	}
-
-	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
-	{
-		if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
-		{
-			trackedAutoStart.CancellationTokenSource.Cancel();
-			trackedAutoStart.CancellationTokenSource.Dispose();
-			return true;
-		}
-		return false;
-	}
-
-	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, IWallet outputWallet, CancellationToken stoppingToken)
-	{
-		var skipDelay = false;
-		if (trackedAutoStarts.TryGetValue(walletToStart, out var trackedAutoStart))
-		{
-			if (stopWhenAllMixed == trackedAutoStart.StopWhenAllMixed && overridePlebStop == trackedAutoStart.OverridePlebStop && outputWallet.WalletId == trackedAutoStart.OutputWallet.WalletId)
-			{
-				walletToStart.LogDebug("AutoStart was already scheduled");
-				return;
-			}
-
-			walletToStart.LogDebug("AutoStart was already scheduled with different parameters, cancel the last task and do not wait.");
-			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
-			skipDelay = true;
-		}
-
-		NotifyWalletStartedCoinJoin(walletToStart);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
-		var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
-		var restartTask = new Task(
-			async () =>
-			{
-				try
-				{
-					if (!skipDelay)
-					{
-						await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
-					}
-				}
-				catch (OperationCanceledException)
-				{
-					return;
-				}
-				finally
-				{
-					linkedCts.Dispose();
-				}
-
-				if (trackedAutoStarts.TryRemove(walletToStart, out _))
-				{
-					await StartAsync(walletToStart, outputWallet, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
-				}
-				else
-				{
-					walletToStart.LogInfo("AutoStart was already handled.");
-				}
-			},
-			linkedCts.Token);
-
-		if (trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, outputWallet, linkedCts)))
-		{
-			restartTask.Start();
-		}
-		else
-		{
-			walletToStart.LogInfo("AutoCoinJoin task was already added.");
-		}
-	}
-
 	private async Task MonitorAndHandlingCoinJoinFinalizationAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
 		while (!stoppingToken.IsCancellationRequested)
@@ -458,6 +327,137 @@ public partial class CoinJoinManager : BackgroundService
 		{
 			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
 			finishedCoinJoin.Dispose();
+		}
+	}
+
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet walletToStart, int bestHeight)
+	{
+		var coinCandidates = new CoinsView(await walletToStart.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+			.Available()
+			.Where(x => !CoinRefrigerator.IsFrozen(x))
+			.ToArray();
+
+		// If there is no available coin candidates, then don't mix.
+		if (coinCandidates.Length == 0)
+		{
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
+		}
+
+		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
+		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
+		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
+		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
+
+		coinCandidates = coinCandidates
+			.Except(bannedCoins)
+			.Except(immatureCoins)
+			.Except(unconfirmedCoins)
+			.Except(excludedCoins)
+			.ToArray();
+
+		if (coinCandidates.Length == 0)
+		{
+			var anyNonPrivateUnconfirmed = unconfirmedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateImmature = immatureCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateBanned = bannedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+			var anyNonPrivateExcluded = excludedCoins.Any(x => !x.IsPrivate(walletToStart.AnonScoreTarget));
+
+			var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} {nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} {nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} {nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
+
+			if (anyNonPrivateUnconfirmed)
+			{
+				throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
+			}
+
+			if (anyNonPrivateImmature)
+			{
+				throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
+			}
+
+			if (anyNonPrivateBanned)
+			{
+				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
+			}
+
+			if (anyNonPrivateExcluded)
+			{
+				throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
+			}
+		}
+
+		return coinCandidates;
+	}
+
+	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
+	{
+		if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
+		{
+			trackedAutoStart.CancellationTokenSource.Cancel();
+			trackedAutoStart.CancellationTokenSource.Dispose();
+			return true;
+		}
+		return false;
+	}
+
+	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, IWallet outputWallet, CancellationToken stoppingToken)
+	{
+		var skipDelay = false;
+		if (trackedAutoStarts.TryGetValue(walletToStart, out var trackedAutoStart))
+		{
+			if (stopWhenAllMixed == trackedAutoStart.StopWhenAllMixed && overridePlebStop == trackedAutoStart.OverridePlebStop && outputWallet.WalletId == trackedAutoStart.OutputWallet.WalletId)
+			{
+				walletToStart.LogDebug("AutoStart was already scheduled");
+				return;
+			}
+
+			walletToStart.LogDebug("AutoStart was already scheduled with different parameters, cancel the last task and do not wait.");
+			TryRemoveTrackedAutoStart(trackedAutoStarts, walletToStart);
+			skipDelay = true;
+		}
+
+		NotifyWalletStartedCoinJoin(walletToStart);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+		var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+		var restartTask = new Task(
+			async () =>
+			{
+				try
+				{
+					if (!skipDelay)
+					{
+						await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
+					}
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
+				finally
+				{
+					linkedCts.Dispose();
+				}
+
+				if (trackedAutoStarts.TryRemove(walletToStart, out _))
+				{
+					await StartAsync(walletToStart, outputWallet, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
+				}
+				else
+				{
+					walletToStart.LogInfo("AutoStart was already handled.");
+				}
+			},
+			linkedCts.Token);
+
+		if (trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, outputWallet, linkedCts)))
+		{
+			restartTask.Start();
+		}
+		else
+		{
+			walletToStart.LogInfo("AutoCoinJoin task was already added.");
 		}
 	}
 
