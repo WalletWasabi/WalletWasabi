@@ -100,6 +100,11 @@ public partial class WalletLoadWorkflow
 		{
 			Logger.LogTrace(ex);
 		}
+		catch (UnreachableException ex)
+		{
+			Logger.LogError(ex);
+			throw;
+		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);

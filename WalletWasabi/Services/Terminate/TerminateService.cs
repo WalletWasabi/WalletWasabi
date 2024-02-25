@@ -15,16 +15,19 @@ public class TerminateService
 	private const long TerminateStatusInProgress = 1;
 	private const long TerminateStatusFinished = 2;
 	private readonly Func<Task> _terminateApplicationAsync;
-	private readonly Action _terminateApplication;
+	private readonly Action<Exception?> _terminateApplication;
 	private long _terminateStatus;
 
-	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
+	public TerminateService(Func<Task> terminateApplicationAsync, Action<Exception?> terminateApplication)
 	{
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
-		CancellationToken = TerminationCts.Token; 
+		CancellationToken = TerminationCts.Token;
+		Instance = this;
 	}
+
+	public static TerminateService? Instance { get; private set; }
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
@@ -41,6 +44,9 @@ public class TerminateService
 	public CancellationToken CancellationToken { get; }
 
 	private bool IsSystemEventsSubscribed { get; set; }
+
+	/// <summary>If the termination is due to a crash of a service/component, the exception is stored to be presented to user.</summary>
+	public Exception? TerminationException { get; private set; }
 
 	public void Activate()
 	{
@@ -103,6 +109,12 @@ public class TerminateService
 		SignalForceTerminate();
 	}
 
+	public void SignalServiceCrash(Exception ex)
+	{
+		TerminationException = ex;
+		SignalForceTerminate();
+	}
+
 	public void SignalForceTerminate()
 	{
 		if (ForcefulTerminationRequested.TrySetResult())
@@ -111,7 +123,7 @@ public class TerminateService
 			TerminationCts.Dispose();
 
 			// Run this callback just once.
-			_terminateApplication();
+			_terminateApplication(TerminationException);
 		}
 	}
 
@@ -139,7 +151,7 @@ public class TerminateService
 		// We want to call the callback once. Not multiple times.
 		if (!ForcefulTerminationRequested.Task.IsCompleted)
 		{
-			_terminateApplication();
+			_terminateApplication(TerminationException);
 		}
 
 		// Async termination has to be started on another thread otherwise there is a possibility of deadlock.

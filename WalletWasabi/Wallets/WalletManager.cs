@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -17,6 +18,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
 
@@ -240,7 +242,7 @@ public class WalletManager : IWalletProvider
 			try
 			{
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
+				await wallet.StartAndSetUpUnhandledExceptionCallbackAsync(TerminateService.Instance, CancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;

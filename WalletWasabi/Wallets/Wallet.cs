@@ -20,8 +20,10 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 
@@ -303,7 +305,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
-				await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
+				await WalletFilterProcessor.StartAndSetUpUnhandledExceptionCallbackAsync(TerminateService.Instance, cancel).ConfigureAwait(false);
 
 				await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 				await LoadDummyMempoolAsync().ConfigureAwait(false);
