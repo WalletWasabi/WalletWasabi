@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
@@ -130,4 +130,79 @@ public partial class CoinJoinManager
 			NotifyWalletStoppedCoinJoin(walletToStop);
 		}
 	}
+
+	#region UI Related methods
+
+	public void WalletEnteredSendWorkflow(WalletId walletId)
+	{
+		if (CoinJoinClientStates.TryGetValue(walletId, out var stateHolder))
+		{
+			WalletsBlockedByUi.TryAdd(walletId, new UiBlockedStateHolder(NeedRestart: false, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet));
+		}
+	}
+
+	public async Task WalletEnteredSendingAsync(Wallet wallet)
+	{
+		if (!WalletsBlockedByUi.ContainsKey(wallet.WalletId))
+		{
+			Logger.LogDebug("Wallet tried to enter sending but it was not in the send workflow.");
+			return;
+		}
+
+		if (!CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder))
+		{
+			Logger.LogDebug("Wallet tried to enter sending but state was missing.");
+			return;
+		}
+
+		// Evaluate and set if we should restart after the send workflow.
+		if (stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
+		{
+			WalletsBlockedByUi[wallet.WalletId] = new UiBlockedStateHolder(NeedRestart: true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet);
+		}
+
+		await StopAsync(wallet, CancellationToken.None).ConfigureAwait(false);
+	}
+
+	public void WalletLeftSendWorkflow(Wallet wallet)
+	{
+		if (!WalletsBlockedByUi.TryRemove(wallet.WalletId, out var stateHolder))
+		{
+			Logger.LogDebug("Wallet was not in send workflow but left it.");
+			return;
+		}
+
+		if (stateHolder.NeedRestart)
+		{
+			Task.Run(async () => await StartAsync(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false));
+		}
+	}
+
+	public async Task SignalToStopCoinjoinsAsync()
+	{
+		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		{
+			if (CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
+			{
+				if (!WalletsBlockedByUi.TryAdd(wallet.WalletId, new UiBlockedStateHolder(true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet)))
+				{
+					WalletsBlockedByUi[wallet.WalletId] = new UiBlockedStateHolder(true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet);
+				}
+				await StopAsync((Wallet)wallet, CancellationToken.None).ConfigureAwait(false);
+			}
+		}
+	}
+
+	public async Task RestartAbortedCoinjoinsAsync()
+	{
+		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		{
+			if (WalletsBlockedByUi.TryRemove(wallet.WalletId, out var stateHolder) && stateHolder.NeedRestart)
+			{
+				await StartAsync(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, CancellationToken.None).ConfigureAwait(false);
+			}
+		}
+	}
+
+	#endregion
 }
