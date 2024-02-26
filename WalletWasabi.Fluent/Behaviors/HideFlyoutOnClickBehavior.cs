@@ -7,7 +7,7 @@ using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class HideFlyoutOnClickBehavior : Behavior<Button>
+public class HideFlyoutOnClickBehavior : Behavior<RadioButton>
 {
 	private IDisposable? _subscription;
 

@@ -51,12 +51,12 @@
                 </Setter>
               </Style>
 
-              <Style Selector="HeaderedContentControl Button">
+              <Style Selector="HeaderedContentControl RadioButton">
                 <Setter Property="Padding" Value="4" />
                 <Setter Property="CornerRadius" Value="6" />
                 <Setter Property="Height" Value="20" />
                 <Setter Property="Width" Value="19" />
-                <Setter Property="Theme" Value="{StaticResource Layer2}" />
+                <Setter Property="Theme" Value="{StaticResource ToggleRadioButton}" />
                 <Setter Property="Interaction.Behaviors">
                   <BehaviorCollectionTemplate>
                     <BehaviorCollection>
@@ -73,14 +73,16 @@
                 <DataTemplate DataType="sorting:ISortableItem">
                   <HeaderedContentControl Header="{Binding Name}">
                     <StackPanel>
-                      <Button
-                        Command="{Binding SortByDescendingCommand }">
+                      <RadioButton IsChecked="{Binding IsDescendingActive}"
+                                   GroupName="Sorting"
+                                   Command="{Binding SortByDescendingCommand}">
                         <PathIcon Data="{StaticResource down_arrow}" />
-                      </Button>
-                      <Button
-                        Command="{Binding SortByAscendingCommand}">
+                      </RadioButton>
+                      <RadioButton IsChecked="{Binding IsAscendingActive}"
+                                   GroupName="Sorting"
+                                   Command="{Binding SortByAscendingCommand}">
                         <PathIcon Data="{StaticResource up_arrow}" />
-                      </Button>
+                      </RadioButton>
                     </StackPanel>
                   </HeaderedContentControl>
                 </DataTemplate>
