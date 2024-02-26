@@ -44,7 +44,11 @@
 
               <Style Selector="HeaderedContentControl PathIcon">
                 <Setter Property="Width" Value="8" />
-                <Setter Property="Foreground" Value="Gray" />
+                <Setter Property="Foreground">
+                  <Setter.Value>
+                    <SolidColorBrush Color="{DynamicResource AcrylicTrimForeground}" Opacity="0.6" />
+                  </Setter.Value>
+                </Setter>
               </Style>
 
               <Style Selector="HeaderedContentControl Button">
