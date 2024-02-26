@@ -54,7 +54,7 @@
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="1" />
       <Setter Property="CornerRadius" Value="30" />
-      <Setter Property="Height" Value="38" />
+      <Setter Property="Height" Value="{StaticResource TreeDataGridRowHeight}" />
     </Style>
 
     <!-- Child item style -->
