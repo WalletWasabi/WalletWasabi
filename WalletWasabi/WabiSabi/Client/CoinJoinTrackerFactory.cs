@@ -5,6 +5,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
+using static WalletWasabi.WabiSabi.Client.CoinJoinManager;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -29,7 +30,12 @@ public class CoinJoinTrackerFactory
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(
+		IWallet wallet,
+		IWallet outputWallet,
+		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
+		bool stopWhenAllMixed,
+		bool overridePlebStop)
 	{
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
