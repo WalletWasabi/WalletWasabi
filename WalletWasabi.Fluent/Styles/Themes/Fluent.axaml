@@ -33,7 +33,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/DummyRowsControl.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/SortControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/Sorting/SortControl.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Styles.Resources>

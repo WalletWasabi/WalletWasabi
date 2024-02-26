@@ -5,6 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              x:DataType="advanced:WalletCoinsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoinsView">
@@ -21,7 +22,7 @@
       <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}"  ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedRight">
-            <SortControl Sortables="{Binding CoinList.Sortables}" />
+            <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
           </Flyout>
         </Button.Flyout>
       </Button>

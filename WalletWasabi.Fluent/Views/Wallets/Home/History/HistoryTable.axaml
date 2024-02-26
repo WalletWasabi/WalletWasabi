@@ -7,6 +7,7 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -115,7 +116,7 @@
       <Button Theme="{StaticResource HistorySortButton}" ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft">
-            <SortControl Sortables="{Binding Sortables}" />
+            <sorting:SortControl Sortables="{Binding Sortables}" />
           </Flyout>
         </Button.Flyout>
       </Button>
