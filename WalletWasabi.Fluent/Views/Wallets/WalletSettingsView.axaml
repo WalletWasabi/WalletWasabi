@@ -7,56 +7,92 @@
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
+  <UserControl.Styles>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="MinHeight" Value="50" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="TabItem /template/ Border#PART_LayoutRoot">
+      <Setter Property="Margin" Value="0 0 24 24" />
+    </Style>
+    <Style Selector="TabControl">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Done"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}">
+               EnableNext="True" NextContent="Done"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <StackPanel Spacing="20" Margin="0 30">
+    <TabControl>
+      <TabItem Header="General">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
 
-      <StackPanel Classes="settingsLayout">
-        <DockPanel>
-          <TextBlock Text="Name" />
-          <Button MaxWidth="150"
-            Command="{Binding RenameCommand}"
-            Theme="{StaticResource AccentButton}"
-            ToolTip.Tip="{Binding WalletName}"
-            DockPanel.Dock="Right">
-            <Button.Content>
+          <StackPanel Spacing="20" Margin="0 30">
+
+            <StackPanel Classes="settingsLayout">
               <DockPanel>
-                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
-                <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
+                <TextBlock Text="Name" />
+                <Button MaxWidth="150"
+                        Command="{Binding RenameCommand}"
+                        Theme="{StaticResource AccentButton}"
+                        ToolTip.Tip="{Binding WalletName}"
+                        DockPanel.Dock="Right">
+                  <Button.Content>
+                    <DockPanel>
+                      <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Margin="8 0 0 0" DockPanel.Dock="Right" Data="{StaticResource edit_regular}"/>
+                      <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
+                    </DockPanel>
+                  </Button.Content>
+                </Button>
               </DockPanel>
-            </Button.Content>
-          </Button>
-        </DockPanel>
-      </StackPanel>
+            </StackPanel>
 
-      <Separator />
+            <Separator />
 
-      <StackPanel Classes="settingsLayout">
-        <DockPanel IsVisible="{Binding IsHardwareWallet}">
-          <TextBlock Text="PSBT workflow" />
-          <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
-        </DockPanel>
-      </StackPanel>
+            <StackPanel Classes="settingsLayout">
+              <DockPanel IsVisible="{Binding IsHardwareWallet}">
+                <TextBlock Text="PSBT workflow" />
+                <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
+              </DockPanel>
+            </StackPanel>
 
-      <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
-        <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
-        <InfoMessage>
-          <DockPanel>
-            <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
-            <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
-          </DockPanel>
-        </InfoMessage>
-        <InfoMessage>
-          <DockPanel>
-            <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
-          </DockPanel>
-        </InfoMessage>
-      </StackPanel>
+            <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
+              <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
+              <InfoMessage>
+                <DockPanel>
+                  <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+                  <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
+                </DockPanel>
+              </InfoMessage>
+              <InfoMessage>
+                <DockPanel>
+                  <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+                </DockPanel>
+              </InfoMessage>
+            </StackPanel>
 
-    </StackPanel>
+          </StackPanel>
+
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Coinjoin">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <!-- TODO: -->
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Backup">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <!-- TODO: -->
+        </ScrollViewer>
+      </TabItem>
+
+    </TabControl>
 
   </ContentArea>
 </UserControl>
