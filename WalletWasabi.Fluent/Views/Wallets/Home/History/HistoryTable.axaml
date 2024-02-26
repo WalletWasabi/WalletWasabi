@@ -112,13 +112,12 @@
   <DockPanel>
     <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
       <TextBlock VerticalAlignment="Center" Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
-      <Button Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
+      <Button Theme="{StaticResource HistorySortButton}" ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft">
             <SortControl Sortables="{Binding Sortables}" />
           </Flyout>
         </Button.Flyout>
-        <PathIcon Data="{StaticResource sorting}" />
       </Button>
     </StackPanel>
     <Panel>

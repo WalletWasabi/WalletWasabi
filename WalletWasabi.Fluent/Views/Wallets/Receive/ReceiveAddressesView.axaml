@@ -13,13 +13,12 @@
                EnableBack="{Binding EnableBack}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <ContentArea.TopContent>
-      <Button DockPanel.Dock="Right" Theme="{StaticResource Layer2}" ToolTip.Tip="Sorting">
+      <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedRight">
             <SortControl Sortables="{Binding Sortables}" />
           </Flyout>
         </Button.Flyout>
-        <PathIcon Data="{StaticResource sorting}" />
       </Button>
     </ContentArea.TopContent>
     <TreeDataGrid Source="{Binding Source}"
