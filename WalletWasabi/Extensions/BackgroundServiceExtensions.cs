@@ -18,7 +18,7 @@ public static class BackgroundServiceExtensions
 	/// <param name="terminateService">Termination service to use to signal graceful shutdown, or <c>null</c> not to register any callback at all.</param>
 	/// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
 	/// <returns>A <see cref="Task"/> that represents the asynchronous Start operation.</returns>
-	public static async Task StartAndSetUpUnhandledExceptionCallbackAsync(this BackgroundService backgroundService, TerminateService? terminateService, CancellationToken cancellationToken)
+	public static async Task StartAndSetUpUnhandledExceptionCallbackAsync(this BackgroundService backgroundService, ITerminateService? terminateService, CancellationToken cancellationToken)
 	{
 		Task startTask = backgroundService.StartAsync(cancellationToken);
 

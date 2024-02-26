@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.Terminate;
 
-public class TerminateService
+public class TerminateService : ITerminateService
 {
 	private const long TerminateStatusNotStarted = 0;
 	private const long TerminateStatusInProgress = 1;
@@ -109,6 +109,7 @@ public class TerminateService
 		SignalForceTerminate();
 	}
 
+	/// <inheritdoc/>
 	public void SignalServiceCrash(Exception ex)
 	{
 		TerminationException = ex;
