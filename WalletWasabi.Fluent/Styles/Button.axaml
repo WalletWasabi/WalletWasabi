@@ -23,6 +23,11 @@
     </ControlTheme>
     <ControlTheme x:Key="Layer2" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+      <Setter Property="Foreground">
+        <Setter.Value>
+          <SolidColorBrush Color="{DynamicResource AcrylicTrimForeground}" Opacity="0.6" />
+        </Setter.Value>
+      </Setter>
     </ControlTheme>
   </Styles.Resources>
 

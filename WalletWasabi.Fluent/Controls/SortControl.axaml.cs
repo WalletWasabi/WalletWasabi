@@ -6,9 +6,9 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class SortControl : TemplatedControl
 {
-	public static readonly StyledProperty<IEnumerable<SortableItem>> SortablesProperty = AvaloniaProperty.Register<SortControl, IEnumerable<SortableItem>>(nameof(Sortables));
+	public static readonly StyledProperty<IEnumerable<ISortableItem>> SortablesProperty = AvaloniaProperty.Register<SortControl, IEnumerable<ISortableItem>>(nameof(Sortables));
 
-	public IEnumerable<SortableItem> Sortables
+	public IEnumerable<ISortableItem> Sortables
 	{
 		get => GetValue(SortablesProperty);
 		set => SetValue(SortablesProperty, value);
