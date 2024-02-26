@@ -245,7 +245,7 @@
     </LinearGradientBrush.GradientStops>
   </LinearGradientBrush>
 
-  <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
+  <system:Double x:Key="TreeDataGridRowHeight">38</system:Double>
   <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
   <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0</Thickness>
 

@@ -195,11 +195,11 @@
         </TreeDataGrid.Styles>
       </TreeDataGrid>
       <DummyRowsControl Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                        RowHeight="35"
+                        RowHeight="{StaticResource TreeDataGridRowHeight}"
                         IsVisible="{Binding IsTransactionHistoryEmpty}">
         <DummyRowsControl.RowTemplate>
           <ControlTemplate>
-            <Border CornerRadius="15" Background="#262626" Margin="2" />
+            <Border CornerRadius="15" Background="{DynamicResource Layer1BackgroundBrush}" Margin="2" />
           </ControlTemplate>
         </DummyRowsControl.RowTemplate>
       </DummyRowsControl>
