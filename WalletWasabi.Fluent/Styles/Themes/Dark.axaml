@@ -50,8 +50,22 @@
   <Color x:Key="ActionColorDark3">#FF3C8600</Color>
 
   <Color x:Key="RegionColor">#1F1F1F</Color>
+
   <Color x:Key="Layer1BackgroundBrush">#262626</Color>
+  <Color x:Key="Layer1BackgroundBrushLight1">#FF414141</Color>
+  <Color x:Key="Layer1BackgroundBrushLight2">#FF5D5D5D</Color>
+  <Color x:Key="Layer1BackgroundBrushLight3">#FF787878</Color>
+  <Color x:Key="Layer1BackgroundBrushDark1">#FF202020</Color>
+  <Color x:Key="Layer1BackgroundBrushDark2">#FF1B1B1B</Color>
+  <Color x:Key="Layer1BackgroundBrushDark3">#FF151515</Color>
+
   <Color x:Key="Layer2BackgroundBrush">#333333</Color>
+  <Color x:Key="Layer2BackgroundBrushLight1">#FF4D4D4D</Color>
+  <Color x:Key="Layer2BackgroundBrushLight2">#FF676767</Color>
+  <Color x:Key="Layer2BackgroundBrushLight3">#FF808080</Color>
+  <Color x:Key="Layer2BackgroundBrushDark1">#FF2C2C2C</Color>
+  <Color x:Key="Layer2BackgroundBrushDark2">#FF242424</Color>
+  <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
 
