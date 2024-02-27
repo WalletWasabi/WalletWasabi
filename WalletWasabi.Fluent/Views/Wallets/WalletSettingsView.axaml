@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:walletsViews="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
@@ -51,28 +52,13 @@
               </DockPanel>
             </StackPanel>
 
-            <Separator />
+            <Separator IsVisible="{Binding IsHardwareWallet}" />
 
             <StackPanel Classes="settingsLayout">
               <DockPanel IsVisible="{Binding IsHardwareWallet}">
                 <TextBlock Text="PSBT workflow" />
                 <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
               </DockPanel>
-            </StackPanel>
-
-            <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
-              <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
-              <InfoMessage>
-                <DockPanel>
-                  <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
-                  <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
-                </DockPanel>
-              </InfoMessage>
-              <InfoMessage>
-                <DockPanel>
-                  <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
-                </DockPanel>
-              </InfoMessage>
             </StackPanel>
 
           </StackPanel>
@@ -82,13 +68,28 @@
 
       <TabItem Header="Coinjoin">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-          <!-- TODO: -->
+          <walletsViews:CoinJoinSettingsView DataContext="{Binding CoinJoinSettings}" />
         </ScrollViewer>
       </TabItem>
 
       <TabItem Header="Backup">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-          <!-- TODO: -->
+
+          <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
+            <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
+            <InfoMessage>
+              <DockPanel>
+                <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+                <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
+              </DockPanel>
+            </InfoMessage>
+            <InfoMessage>
+              <DockPanel>
+                <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+              </DockPanel>
+            </InfoMessage>
+          </StackPanel>
+
         </ScrollViewer>
       </TabItem>
 

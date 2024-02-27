@@ -7,31 +7,28 @@
              x:DataType="wallets:CoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoinSettingsView"
              x:CompileBindings="True">
-  <ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Done"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20" Margin="0 30">
 
-      <StackPanel Classes="settingsLayout">
+  <StackPanel Spacing="20">
 
-        <DockPanel>
-          <TextBlock Text="Automatically start coinjoin" />
-          <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
-        </DockPanel>
+    <StackPanel Classes="settingsLayout">
 
-        <StackPanel Spacing="10"
-                    ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
-          <TextBlock Text="Auto-start coinjoin threshold" />
-          <CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-        </StackPanel>
+      <DockPanel>
+        <TextBlock Text="Automatically start coinjoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+      </DockPanel>
 
-        <DockPanel>
-          <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
-          <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-          <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
-        </DockPanel>
+      <StackPanel Spacing="10"
+                  ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
+        <TextBlock Text="Auto-start coinjoin threshold" />
+        <CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
       </StackPanel>
+
+      <DockPanel>
+        <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+        <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+        <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+      </DockPanel>
     </StackPanel>
-  </ContentArea>
+  </StackPanel>
+
 </UserControl>
