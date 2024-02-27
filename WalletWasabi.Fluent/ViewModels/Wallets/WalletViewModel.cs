@@ -212,8 +212,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return true;
 #endif
 
-		var network = UiContext.ApplicationSettings.Network;
-		if (network == Network.Main && (hasBalance || hasNonEmptyOrder))
+		if (hasBalance || hasNonEmptyOrder)
 		{
 			return true;
 		}
