@@ -152,7 +152,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 					IsBlameRound: r is BlameRound,
 					InputCount: r.InputCount,
 					Phase: r.Phase.ToString(),
-					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(NBitcoin.MoneyUnit.BTC),
+					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(MoneyUnit.BTC),
 					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
 
 		return new HumanMonitorResponse(response.ToArray());

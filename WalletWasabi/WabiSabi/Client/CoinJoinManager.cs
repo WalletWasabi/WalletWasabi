@@ -14,6 +14,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -544,6 +545,11 @@ public class CoinJoinManager : BackgroundService
 			// The fix is already done but the clients have to upgrade.
 			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
+		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+		{
+			// This can happen when the coordinator aborts the round in Signing phase because of detected double spend.
+			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with: '{wpe.Message}'");
+		}
 		catch (Exception e)
 		{
 			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
@@ -579,6 +585,11 @@ public class CoinJoinManager : BackgroundService
 			{
 				// In auto CJ mode we never stop trying.
 				ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, finishedCoinJoin.OutputWallet, cancellationToken);
+			}
+			else
+			{
+				// We finished with CJ permanently.
+				NotifyWalletStoppedCoinJoin(wallet);
 			}
 		}
 		else if (cjClientException is not null)

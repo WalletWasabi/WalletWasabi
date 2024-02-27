@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -12,13 +11,16 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class Address : ReactiveObject, IAddress
 {
-	public Address(KeyManager keyManager, HdPubKey hdPubKey)
+	private readonly Action<Address> _onHide;
+	
+	public Address(KeyManager keyManager, HdPubKey hdPubKey, Action<Address> onHide)
 	{
 		KeyManager = keyManager;
 		HdPubKey = hdPubKey;
 		Network = keyManager.GetNetwork();
 		HdFingerprint = KeyManager.MasterFingerprint;
 		BitcoinAddress = HdPubKey.GetAddress(Network);
+		_onHide = onHide;
 	}
 
 	public KeyManager KeyManager { get; }
@@ -31,15 +33,9 @@ public class Address : ReactiveObject, IAddress
 	public KeyPath FullKeyPath => HdPubKey.FullKeyPath;
 	public string Text => BitcoinAddress.ToString();
 
-	private bool IsUnused => Labels.Any() && !HdPubKey.IsInternal && HdPubKey.KeyState == KeyState.Clean;
-
-	public bool IsUsed => !IsUnused;
-
 	public void Hide()
 	{
-		KeyManager.SetKeyState(KeyState.Locked, HdPubKey);
-		KeyManager.ToFile();
-		this.RaisePropertyChanged(nameof(IsUsed));
+		_onHide(this);
 	}
 
 	public void SetLabels(LabelsArray labels)
@@ -77,4 +73,13 @@ public class Address : ReactiveObject, IAddress
 			throw;
 		}
 	}
+
+	public override int GetHashCode() => Text.GetHashCode();
+
+	public override bool Equals(object? obj)
+	{
+		return obj is IAddress address && Equals(address);
+	}
+	
+	protected bool Equals(IAddress other) => Text.Equals(other.Text);
 }

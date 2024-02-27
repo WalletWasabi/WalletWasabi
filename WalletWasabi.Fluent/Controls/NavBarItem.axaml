@@ -1,18 +1,17 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <Border Padding="0">
-      <c:NavBarItem>
+      <NavBarItem>
         Test Header
-      </c:NavBarItem>
+      </NavBarItem>
     </Border>
   </Design.PreviewWith>
 
   <!-- ListBoxItemPadding -->
   <Thickness x:Key="NavBarItemPadding">12</Thickness>
 
-  <ControlTheme x:Key="{x:Type c:NavBarItem}" TargetType="c:NavBarItem">
+  <ControlTheme x:Key="{x:Type NavBarItem}" TargetType="NavBarItem">
 
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />

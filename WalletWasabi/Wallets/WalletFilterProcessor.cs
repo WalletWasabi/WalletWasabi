@@ -46,6 +46,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
+
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
 	private KeyManager KeyManager { get; }
@@ -192,7 +193,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				while (SynchronizationRequests.TryDequeue(out var request, out _))
 				{
-					_ = request.Tcs.TrySetCanceled(cancellationToken);
+					request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
 		}

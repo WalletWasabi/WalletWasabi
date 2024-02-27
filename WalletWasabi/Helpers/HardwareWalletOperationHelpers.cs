@@ -30,13 +30,7 @@ public static class HardwareWalletOperationHelpers
 			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit),
 			genCts.Token).ConfigureAwait(false);
 
-		var taprootExtPubKey = await client.GetXpubAsync(
-			device.Model,
-			device.Path,
-			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86),
-			genCts.Token).ConfigureAwait(false);
-
-		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, taprootExtPubKey, network, walletFilePath);
+		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, null, network, walletFilePath);
 	}
 
 	public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)

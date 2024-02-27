@@ -2,15 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
@@ -20,11 +17,11 @@
         <Style Selector="TreeDataGridRow">
           <Setter Property="Theme" Value="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
         </Style>
-        <Style Selector="c|AnimatedButton.addressActionButton">
+        <Style Selector="AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right" />
           <Setter Property="Margin" Value="5 0 0 0" />
         </Style>
-        <Style Selector="c|AnimatedButton /template/ PathIcon">
+        <Style Selector="AnimatedButton /template/ PathIcon">
           <Setter Property="Height" Value="15" />
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
@@ -38,5 +35,5 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

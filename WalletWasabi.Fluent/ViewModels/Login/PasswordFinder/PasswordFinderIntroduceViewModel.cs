@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 
-[NavigationMetaData(Title = "Password Finder")]
+[NavigationMetaData(Title = "Password Finder", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 {
 	private PasswordFinderIntroduceViewModel(IWalletModel wallet)

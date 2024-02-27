@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:login="using:WalletWasabi.Fluent.ViewModels.Login"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
@@ -11,7 +10,7 @@
              x:DataType="login:LoginViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.LoginView">
-  <c:ContentArea HorizontalAlignment="Stretch"
+  <ContentArea HorizontalAlignment="Stretch"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  IsBusy="{Binding IsBusy}">
     <DockPanel HorizontalAlignment="Stretch"
@@ -48,11 +47,11 @@
           <DockPanel DockPanel.Dock="Top"
                      VerticalAlignment="Bottom"
                      IsVisible="{Binding IsPasswordNeeded}">
-            <TextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Passphrase" PasswordChar="•" Classes="revealPasswordButton">
+            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Passphrase" PasswordChar="•" Classes="revealPasswordButton copyablePasswordTextBox">
               <i:Interaction.Behaviors>
                 <behaviors:FocusOnAttachedBehavior />
               </i:Interaction.Behaviors>
-            </TextBox>
+            </CopyablePasswordTextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" IsVisible="{Binding IsForgotPasswordVisible}" Content="Forgot passphrase?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
               <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
@@ -93,5 +92,5 @@
         <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

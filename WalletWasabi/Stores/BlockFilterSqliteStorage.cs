@@ -277,7 +277,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			prevBlockHashParameter.Value = filter.Header.PrevHash.ToBytes(lendian: true);
 			epochBlockTimeParameter.Value = filter.Header.EpochBlockTime;
 
-			_ = command.ExecuteNonQuery();
+			command.ExecuteNonQuery();
 		}
 
 		transaction.Commit();
@@ -347,7 +347,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			prevBlockHashParameter.Value = prevBlockHash;
 			epochBlockTimeParameter.Value = blockTime;
 
-			_ = command.ExecuteNonQuery();
+			command.ExecuteNonQuery();
 		}
 
 		transaction.Commit();
