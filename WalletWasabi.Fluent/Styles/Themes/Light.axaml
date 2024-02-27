@@ -60,12 +60,12 @@
   <Color x:Key="Layer1BackgroundBrushDark3">#FF151515</Color>
 
   <Color x:Key="Layer2BackgroundBrush">#333333</Color>
-  <Color x:Key="Layer2BackgroundBrushDark1">#FF4D4D4D</Color>
-  <Color x:Key="SLayer2BackgroundBrushDark2">#FF676767</Color>
-  <Color x:Key="Layer2BackgroundBrushDark3">#FF808080</Color>
-  <Color x:Key="Layer2BackgroundBrushLight1">#FF2C2C2C</Color>
-  <Color x:Key="Layer2BackgroundBrushLight2">#FF242424</Color>
-  <Color x:Key="Layer2BackgroundBrushLight3">#FF1D1D1D</Color>
+  <Color x:Key="Layer2BackgroundBrushLight1">#FF4D4D4D</Color>
+  <Color x:Key="Layer2BackgroundBrushLight2">#FF676767</Color>
+  <Color x:Key="Layer2BackgroundBrushLight3">#FF808080</Color>
+  <Color x:Key="Layer2BackgroundBrushDark1">#FF2C2C2C</Color>
+  <Color x:Key="Layer2BackgroundBrushDark2">#FF242424</Color>
+  <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
 

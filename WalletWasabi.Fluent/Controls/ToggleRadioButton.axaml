@@ -13,10 +13,10 @@
   </Design.PreviewWith>
 
   <SolidColorBrush x:Key="ToggleButtonBackground" Color="{DynamicResource Layer2BackgroundBrush}" />
-  <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="{DynamicResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="{DynamicResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="{DynamicResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Opacity="0.8" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="{DynamicResource Layer2BackgroundBrushLight1}" />
+  <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="{DynamicResource Layer2BackgroundBrushLight2}" />
+  <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="{DynamicResource Layer2BackgroundBrushLight2}" />
+  <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="{DynamicResource Layer2BackgroundBrushLight2}" />
 
   <ControlTheme x:Key="ToggleRadioButton" TargetType="RadioButton">
 

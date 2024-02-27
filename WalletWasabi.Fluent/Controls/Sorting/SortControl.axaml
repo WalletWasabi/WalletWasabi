@@ -29,7 +29,7 @@
                     <ControlTemplate>
                       <DockPanel>
                         <ContentPresenter VerticalContentAlignment="Center" Content="{TemplateBinding Header}" />
-                        <ContentPresenter Margin="10 0 0 0" Content="{TemplateBinding Content}" />
+                        <ContentPresenter Margin="20 0 0 0" Content="{TemplateBinding Content}" />
                       </DockPanel>
                     </ControlTemplate>
                   </Setter.Value>
