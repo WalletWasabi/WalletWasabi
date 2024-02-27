@@ -11,7 +11,6 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -38,7 +37,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
-	public IEnumerable<SortableItem> Sortables { get; private set; } 
+	public IEnumerable<SortableItem> Sortables { get; private set; }
 
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
