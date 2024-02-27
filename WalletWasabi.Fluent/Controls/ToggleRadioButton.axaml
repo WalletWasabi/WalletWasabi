@@ -12,7 +12,7 @@
     </Border>
   </Design.PreviewWith>
 
-  <SolidColorBrush x:Key="ToggleButtonBackground" Color="{DynamicResource AcrylicTrimBackground}" />
+  <SolidColorBrush x:Key="ToggleButtonBackground" Color="{DynamicResource Layer2BackgroundBrush}" />
   <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="{DynamicResource SystemAccentColor}" />
   <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="{DynamicResource SystemAccentColor}" />
   <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="{DynamicResource SystemAccentColor}" />
