@@ -211,7 +211,7 @@ public class CoinJoinManager : BackgroundService
 					}
 
 					// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
-					if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+					if (coinCandidates.All(x => !x.Confirmed || x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 					{
 						throw new CoinJoinClientException(
 							CoinjoinError.NoCoinsEligibleToMix,
