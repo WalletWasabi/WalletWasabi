@@ -55,7 +55,7 @@
       <Setter Property="(Interaction.Behaviors)">
         <BehaviorCollectionTemplate>
           <BehaviorCollection>
-            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
+            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.50" />
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>
