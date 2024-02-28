@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using WalletWasabi.WebClients.ShopWare.Models;
 
 namespace WalletWasabi.BuyAnything;
@@ -27,7 +28,45 @@ public abstract record DataCarrier
 	public static readonly DataCarrier NoData = new NoData();
 }
 
-public record ChatMessage(MessageSource Source, string Text, bool IsUnread, string? StepName, DataCarrier? Data = null)
+public record ChatMessage
 {
+	public ChatMessage(MessageSource source, string text, bool isUnread, string? stepName, DataCarrier? data = null)
+	{
+		Source = source;
+		Text = text;
+		IsUnread = isUnread;
+		StepName = stepName;
+		Data = data;
+		DateTime = ReadUnixTimestamp();
+	}
+
+	private DateTimeOffset ReadUnixTimestamp()
+	{
+		if (Text.StartsWith('@'))
+		{
+			int secondAt = Text.IndexOf('@', 1);
+
+			if (secondAt != -1 && long.TryParse(Text[1..secondAt], out long unixTimestamp))
+			{
+				DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp).ToLocalTime();
+				return dateTime;
+			}
+		}
+		var now = DateTimeOffset.UtcNow;
+		StringBuilder sb = new();
+		sb.Append($"@{now.ToUnixTimeMilliseconds()}@");
+		sb.Append(Text);
+		Text = sb.ToString();
+
+		return now;
+	}
+
 	public bool IsMyMessage => Source == MessageSource.User;
+
+	public MessageSource Source { get; }
+	public string Text { get; set; }
+	public bool IsUnread { get; set; }
+	public string? StepName { get; }
+	public DataCarrier? Data { get; set; }
+	public DateTimeOffset DateTime { get; }
 }
