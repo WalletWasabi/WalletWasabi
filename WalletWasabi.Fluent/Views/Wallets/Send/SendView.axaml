@@ -87,7 +87,7 @@
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  Watermark="(e.g. Bitcoin address or payjoin URL)"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
           <i:Interaction.Behaviors>

@@ -203,15 +203,15 @@ public class CoinJoinManager : BackgroundService
 				// If there are pending payments, ignore already achieved privacy.
 				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
 				{
-					// If all coins are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
-					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false) && startCommand.StopWhenAllMixed)
+					// If all coins are already private, then don't mix.
+					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 					{
 						walletToStart.LogTrace("All mixed!");
 						throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 					}
 
 					// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
-					if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
+					if (coinCandidates.All(x => !x.Confirmed || x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 					{
 						throw new CoinJoinClientException(
 							CoinjoinError.NoCoinsEligibleToMix,
@@ -585,6 +585,11 @@ public class CoinJoinManager : BackgroundService
 			{
 				// In auto CJ mode we never stop trying.
 				ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, finishedCoinJoin.OutputWallet, cancellationToken);
+			}
+			else
+			{
+				// We finished with CJ permanently.
+				NotifyWalletStoppedCoinJoin(wallet);
 			}
 		}
 		else if (cjClientException is not null)
