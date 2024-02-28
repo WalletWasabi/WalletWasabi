@@ -37,7 +37,7 @@ public record ChatMessage
 		IsUnread = isUnread;
 		StepName = stepName;
 		Data = data;
-		DateTime = ReadUnixTimestamp();
+		CreatedAt = ReadUnixTimestamp();
 	}
 
 	private DateTimeOffset ReadUnixTimestamp()
@@ -68,5 +68,5 @@ public record ChatMessage
 	public bool IsUnread { get; set; }
 	public string? StepName { get; }
 	public DataCarrier? Data { get; set; }
-	public DateTimeOffset DateTime { get; }
+	public DateTimeOffset CreatedAt { get; }
 }
