@@ -65,7 +65,8 @@ public static partial class TextHelpers
 
 		var moneyString = money.ToString();
 
-		moneyString = moneyString.Insert(moneyString.Length - 4, " ");
+		moneyString = moneyString.Insert(moneyString.Length - 3, " ");
+		moneyString = moneyString.Insert(moneyString.Length - 7, " ");
 
 		var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
 
