@@ -213,8 +213,14 @@ public partial class FeeChartViewModel : ViewModelBase
 		return 0;
 	}
 
-	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
+	public void UpdateFeeEstimates(IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> wildFeeEstimates, FeeRate? maxFee = null)
 	{
+		Dictionary<int, decimal> feeEstimates = wildFeeEstimates
+			.ToDictionary(
+				x => (int)x.timeSpan.TotalMinutes / 10,
+				x => x.feeRate.SatoshiPerByte
+			);
+
 		var enableCursor = true;
 		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
 		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
@@ -353,9 +359,9 @@ public partial class FeeChartViewModel : ViewModelBase
 		return values;
 	}
 
-	private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+	private Dictionary<int, decimal> DistinctByValues(Dictionary<int, decimal> feeEstimates)
 	{
-		Dictionary<int, int> valuesToReturn = new();
+		Dictionary<int, decimal> valuesToReturn = new();
 
 		foreach (var estimate in feeEstimates)
 		{
@@ -371,7 +377,7 @@ public partial class FeeChartViewModel : ViewModelBase
 		return valuesToReturn;
 	}
 
-	private bool AreEstimatedFeeRatesEqual(Dictionary<int, int> feeEstimates)
+	private bool AreEstimatedFeeRatesEqual(Dictionary<int, decimal> feeEstimates)
 	{
 		var first = feeEstimates.First();
 		var last = feeEstimates.Last();
