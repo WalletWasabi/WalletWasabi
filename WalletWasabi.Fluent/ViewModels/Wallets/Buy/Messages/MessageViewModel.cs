@@ -19,6 +19,8 @@ public abstract partial class MessageViewModel : ReactiveObject
 		UiMessage = uiMessage;
 	}
 
+	public string? OriginalText { get; set; }
+
 	public string ParseRawMessage(ChatMessage message)
 	{
 		string raw = message.Text;
@@ -38,6 +40,4 @@ public abstract partial class MessageViewModel : ReactiveObject
 
 		return raw;
 	}
-
-	public string? OriginalText { get; set; }
 }
