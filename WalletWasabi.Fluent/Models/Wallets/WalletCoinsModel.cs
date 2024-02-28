@@ -74,7 +74,13 @@ public partial class WalletCoinsModel : IDisposable
 
 	private ICoinModel[] GetCoins()
 	{
-		return _wallet.Coins.Select(GetCoinModel).ToArray();
+		var asd =
+			Enumerable.Repeat(_wallet.Coins, 100)
+					  .SelectMany(x => x)
+					  .Select(GetCoinModel)
+					  .ToArray();
+		return asd;
+		//return _wallet.Coins.Select(GetCoinModel).ToArray();
 	}
 
 	public void Dispose() => _disposables.Dispose();

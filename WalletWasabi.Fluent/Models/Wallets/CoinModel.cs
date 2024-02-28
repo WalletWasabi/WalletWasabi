@@ -26,22 +26,35 @@ public partial class CoinModel : ReactiveObject
 		Amount = coin.Amount;
 
 		Labels = coin.GetLabels(anonScoreTarget);
-		Key = coin.Outpoint.GetHashCode();
+		Key = HashCode.Combine(Guid.NewGuid().GetHashCode(), coin.Outpoint.GetHashCode());
 		BannedUntilUtc = coin.BannedUntilUtc;
 		ScriptType = ScriptType.FromEnum(coin.ScriptType);
 
-		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
-		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
-		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore);
-		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
-		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);
-		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
+		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin, c => c.Coin.Confirmed, c => c.Coin.HdPubKey.AnonymitySet)
+			//.Skip(1)
+			//.Do(x => IsExcludedFromCoinJoin = x)
+			.Subscribe();
 
-		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
-		{
-			Confirmations = x;
-			ConfirmedToolTip = TextHelpers.GetConfirmationText(x);
-		});
+		//this.WhenAnyValue(c => c.Coin.Confirmed)
+		//.Skip(1)
+		//.Do(x => IsConfirmed = x)
+		//.Subscribe();
+
+		//this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet)
+		//.Skip(1)
+		//.Select(x => (int)x)
+		//.Do(x => AnonScore = x)
+		//.Subscribe();
+
+		//this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).Skip(1).BindTo(this, x => x.IsCoinJoinInProgress);
+		//this.WhenAnyValue(c => c.Coin.IsBanned).Skip(1).BindTo(this, x => x.IsBanned);
+		//this.WhenAnyValue(c => c.Coin.BannedUntilUtc).Skip(1).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
+
+		//this.WhenAnyValue(c => c.Coin.Height).Skip(1).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
+		//{
+		//	Confirmations = x;
+		//	ConfirmedToolTip = TextHelpers.GetConfirmationText(x);
+		//});
 	}
 
 	internal SmartCoin Coin { get; }
