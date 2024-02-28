@@ -82,6 +82,7 @@ public class ConfigManagerTests
 			  "RoundExpiryTimeout": "0d 0h 5m 0s",
 			  "MaxInputCountByRound": 100,
 			  "MinInputCountByRoundMultiplier": 0.5,
+			  "MinInputCountByBlameRoundMultiplier": 0.4,
 			  "CoordinationFeeRate": {
 			    "Rate": {{coordinationFeeRate}},
 			    "PlebsDontPayThreshold": 1000000
