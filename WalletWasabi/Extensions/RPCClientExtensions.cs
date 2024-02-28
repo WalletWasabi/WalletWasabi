@@ -134,9 +134,9 @@ public static class RPCClientExtensions
 
 		// EstimateSmartFeeAsync returns the block number where estimate was found - not always what the requested one.
 		return rpcFeeEstimationTasks
-			.Zip(Constants.ConfirmationTargets, (task, target) => (task, target))
-			.Where(x => x.task.IsCompletedSuccessfully)
-			.Select(x => (x.target, feeRate: x.task.Result.FeeRate))
+			.Where(x => x.IsCompletedSuccessfully)
+			.Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
+			.DistinctBy(x => x.target)
 			.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 	}
 
