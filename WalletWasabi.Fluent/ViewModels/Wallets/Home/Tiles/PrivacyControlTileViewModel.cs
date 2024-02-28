@@ -85,7 +85,11 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<ICoinModel> coins)
 	{
-		PercentText = $"{privacyProgress} %";
+		PercentText =
+			coins.TotalAmount() > Money.Zero
+			? $"{privacyProgress} %"
+			: "N/A";
+
 		FullyMixed = isWalletPrivate;
 
 		BalancePrivate = coins.Where(x => x.IsPrivate).TotalAmount();
