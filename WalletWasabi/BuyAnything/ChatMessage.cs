@@ -40,6 +40,14 @@ public record ChatMessage
 		CreatedAt = ReadUnixTimestamp();
 	}
 
+	public bool IsMyMessage => Source == MessageSource.User;
+	public MessageSource Source { get; }
+	public string Text { get; set; }
+	public bool IsUnread { get; set; }
+	public string? StepName { get; }
+	public DataCarrier? Data { get; set; }
+	public DateTimeOffset CreatedAt { get; }
+
 	private DateTimeOffset ReadUnixTimestamp()
 	{
 		if (Text.StartsWith('@'))
@@ -60,13 +68,4 @@ public record ChatMessage
 
 		return now;
 	}
-
-	public bool IsMyMessage => Source == MessageSource.User;
-
-	public MessageSource Source { get; }
-	public string Text { get; set; }
-	public bool IsUnread { get; set; }
-	public string? StepName { get; }
-	public DataCarrier? Data { get; set; }
-	public DateTimeOffset CreatedAt { get; }
 }
