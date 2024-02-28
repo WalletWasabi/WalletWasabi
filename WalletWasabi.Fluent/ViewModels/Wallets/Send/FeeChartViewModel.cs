@@ -215,11 +215,9 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void UpdateFeeEstimates(IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> wildFeeEstimates, FeeRate? maxFee = null)
 	{
-		Dictionary<int, double> feeEstimates = wildFeeEstimates
-			.ToDictionary(
+		Dictionary<int, double> feeEstimates = wildFeeEstimates.ToDictionary(
 				x => (int)x.timeSpan.TotalMinutes / 10,
-				x => Math.Round((double)x.feeRate.SatoshiPerByte, 1)
-			);
+				x => Math.Round((double)x.feeRate.SatoshiPerByte, 1));
 
 		var enableCursor = true;
 		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
