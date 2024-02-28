@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;
@@ -53,12 +54,12 @@ public class HybridFeeProvider : IHostedService
 		await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
 	}
 
-	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
+	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
 	{
 		using (RunningTasks.RememberWith(ProcessingEvents))
 		{
 			// Only go further if we have estimations.
-			if (fees?.Estimations?.Any() is not true)
+			if (fees.Estimations.Any() is not true)
 			{
 				return;
 			}
@@ -81,55 +82,28 @@ public class HybridFeeProvider : IHostedService
 					}
 					else
 					{
-						if (rpcProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcProvider.InError)
+						if (!rpcProvider.InError)
 						{
 							// If user's full node is properly serving data, then we don't care about the third party.
 							return;
 						}
-						else
-						{
-							if (fees.IsAccurate)
-							{
-								// If the third party is properly serving accurate data then, this is the best we got.
-								notify = SetAllFeeEstimate(fees);
-							}
-							else
-							{
-								// If neither user's full node, nor third party is ready, then let's try our best effort figuring out which data looks better:
-								notify = SetAllFeeEstimateIfLooksBetter(fees);
-							}
-						}
+
+						// If the third party is properly serving accurate data then, this is the best we got.
+						notify = SetAllFeeEstimate(fees);
 					}
 				}
 				else if (sender is RpcFeeProvider rpcProvider)
 				{
-					if (fees.IsAccurate)
-					{
-						// If user's full node is properly serving data, we're done here.
-						notify = SetAllFeeEstimate(fees);
-					}
-					else
-					{
-						if (ThirdPartyFeeProvider.InError)
-						{
-							// If neither user's full node, nor the third party is ready, then let's try our best effort figuring out which data looks better:
-							notify = SetAllFeeEstimateIfLooksBetter(fees);
-						}
-						else
-						{
-							// If the user's full node isn't ready, but the third party is, then let's leave it to the third party.
-							return;
-						}
-					}
+					// If user's full node is properly serving data, we're done here.
+					notify = SetAllFeeEstimate(fees);
 				}
 			}
 
 			if (notify)
 			{
-				var accuracy = fees.IsAccurate ? "Accurate" : "Inaccurate";
 				var from = fees.Estimations.First();
 				var to = fees.Estimations.Last();
-				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} blocks at {from.Value} sat/vByte to target {to.Key} blocks at {to.Value} sat/vByte.");
+				Logger.LogInfo($"Fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} blocks at {from.Value} sat/vByte to target {to.Key} blocks at {to.Value} sat/vByte.");
 				AllFeeEstimateChanged?.Invoke(this, fees);
 			}
 		}
@@ -141,7 +115,7 @@ public class HybridFeeProvider : IHostedService
 		var current = AllFeeEstimate;
 		if (fees is null
 			|| fees == current
-			|| (current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count)))
+			|| (current is not null && fees.Estimations.Count <= current.Estimations.Count))
 		{
 			return false;
 		}

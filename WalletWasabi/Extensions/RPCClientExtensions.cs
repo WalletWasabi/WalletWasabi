@@ -74,12 +74,7 @@ public static class RPCClientExtensions
 			? smartEstimations
 			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
-		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
-
-		return new AllFeeEstimate(
-			EstimateMode,
-			finalEstimations,
-			rpcStatus.Synchronized);
+		return new AllFeeEstimate(finalEstimations);
 	}
 
 	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
