@@ -92,6 +92,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection);
 		TreeDataGridSource.DisposeWith(_disposables);
+		CoinItems = coinItemsCollection;
 
 		wallet.Coins.Pockets
 			.Connect()
@@ -124,6 +125,8 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending)) },
 		];
 	}
+
+	public ReadOnlyObservableCollection<CoinViewModel> CoinItems { get; }
 
 	public ReactiveCommand<Unit, Unit> ExpandAllCommand { get; set; }
 
