@@ -89,6 +89,7 @@
     <Style Selector="Border.warning.fadeout">
       <Setter Property="Opacity" Value=".4" />
       <Setter Property="IsEnabled" Value="False" />
+      <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
     </Style>
 
     <Style Selector="Border.warning PathIcon">
