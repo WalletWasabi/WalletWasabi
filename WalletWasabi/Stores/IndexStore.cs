@@ -34,10 +34,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 		RunMigration = File.Exists(OldIndexFilePath);
 
-		if (network == Network.RegTest)
-		{
-			File.Delete(NewIndexFilePath);
-		}
 
 		try
 		{

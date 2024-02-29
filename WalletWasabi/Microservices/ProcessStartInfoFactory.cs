@@ -16,7 +16,7 @@ public class ProcessStartInfoFactory
 	/// <param name="openConsole">Open console window. Only for Windows platform.</param>
 	/// <param name="windowStyleNormal">Set WindowStyle to ProcessWindowStyle.Normal when <see cref="openConsole"/> is disabled.</param>
 	/// <returns><see cref="ProcessStartInfo"/> instance.</returns>
-	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false, bool windowStyleNormal = false)
+	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false)
 	{
 		ProcessWindowStyle windowStyle;
 
@@ -31,7 +31,8 @@ public class ProcessStartInfoFactory
 		}
 		else
 		{
-			windowStyle = windowStyleNormal ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
+			// Todo: Replace by ProcessWindowStyle.Hidden when it won't cause any issue with Avalonia.
+			windowStyle = ProcessWindowStyle.Normal;
 		}
 
 		var p = new ProcessStartInfo(fileName: processPath, arguments)
