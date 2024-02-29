@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.WebClients.ShopWare.Models;
@@ -33,10 +34,11 @@ public record ChatMessage
 	public ChatMessage(MessageSource source, string text, bool isUnread, string? stepName, DataCarrier? data = null)
 	{
 		Source = source;
-		Text = text;
+		Text = AddUnixTimestampIfMissing(text);
 		IsUnread = isUnread;
 		StepName = stepName;
 		Data = data;
+
 		CreatedAt = ReadUnixTimestamp();
 	}
 
@@ -50,22 +52,27 @@ public record ChatMessage
 
 	private DateTimeOffset ReadUnixTimestamp()
 	{
-		if (Text.StartsWith('@'))
+		int secondAt = Text.IndexOf('@', 1);
+
+		if (long.TryParse(Text[1..secondAt], out long unixTimestamp))
 		{
-			int secondAt = Text.IndexOf('@', 1);
-
-			if (secondAt != -1 && long.TryParse(Text[1..secondAt], out long unixTimestamp))
-			{
-				DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp).ToLocalTime();
-				return dateTime;
-			}
+			DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp).ToLocalTime();
+			return dateTime;
 		}
-		var now = DateTimeOffset.UtcNow;
-		StringBuilder sb = new();
-		sb.Append($"@{now.ToUnixTimeMilliseconds()}@");
-		sb.Append(Text);
-		Text = sb.ToString();
 
-		return now;
+		return DateTimeOffset.UtcNow;
+	}
+
+	private string AddUnixTimestampIfMissing(string text)
+	{
+		if (!text.StartsWith('@'))
+		{
+			var now = DateTimeOffset.UtcNow;
+			StringBuilder sb = new();
+			sb.Append($"@{now.ToUnixTimeMilliseconds()}@");
+			sb.Append(text);
+			return sb.ToString();
+		}
+		return text;
 	}
 }
