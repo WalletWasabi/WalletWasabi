@@ -352,11 +352,10 @@ public class PrivacySuggestionsModel
 				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, usdExchangeRate);
 				var differenceText = GetDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
-				yield return new ChangeAvoidanceSuggestion(transaction, differenceText, differenceAmountText, IsMore: fiatDifference > 0, IsLess: fiatDifference < 0);
-				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
-				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, differenceFiat, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
+				var isMore = fiatDifference > 0;
+				var isLess = fiatDifference < 0;
+
+				yield return new ChangeAvoidanceSuggestion(transaction, fiatDifference, differenceText, differenceAmountText, isMore, isLess);
 			}
 		}
 	}
