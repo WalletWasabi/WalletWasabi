@@ -9,7 +9,7 @@
              x:DataType="tiles:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView" ClipToBounds="False">
 
-  <TileControl Title="BALANCE" IsBottomContentVisible="{Binding Amounts^.HasBalance}" SeparatorMargin="0 0 0 6">
+  <TileControl Title="BALANCE" IsBottomContentVisible="{Binding Amounts^.HasUsdBalance^}" SeparatorMargin="0 0 0 6">
     <CopyableItem ContentToCopy="{Binding Amounts^.Btc}" HorizontalContentAlignment="Center">
       <PrivacyContentControl Classes="h3 monoSpaced" Margin="4" HorizontalContentAlignment="Center"
                                Content="{Binding Amounts^.Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}" />

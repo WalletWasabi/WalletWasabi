@@ -10,6 +10,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class CoinModel : ReactiveObject
 {
+	private bool _subscribedToCoinChanges;
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private bool _isCoinJoinInProgress;
 	[AutoNotify] private bool _isBanned;
@@ -30,18 +31,16 @@ public partial class CoinModel : ReactiveObject
 		BannedUntilUtc = coin.BannedUntilUtc;
 		ScriptType = ScriptType.FromEnum(coin.ScriptType);
 
-		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
-		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
-		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore);
-		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
-		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);
-		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
+		IsExcludedFromCoinJoin = coin.IsExcludedFromCoinJoin;
+		IsConfirmed = coin.Confirmed;
+		AnonScore = (int)coin.HdPubKey.AnonymitySet;
+		IsCoinJoinInProgress = coin.CoinJoinInProgress;
+		IsBanned = coin.IsBanned;
+		BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {coin.BannedUntilUtc}";
 
-		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
-		{
-			Confirmations = x;
-			ConfirmedToolTip = TextHelpers.GetConfirmationText(x);
-		});
+		var confirmations = coin.GetConfirmations();
+		Confirmations = confirmations;
+		ConfirmedToolTip = TextHelpers.GetConfirmationText(confirmations);
 	}
 
 	internal SmartCoin Coin { get; }
@@ -63,6 +62,31 @@ public partial class CoinModel : ReactiveObject
 	public bool IsSemiPrivate => PrivacyLevel == PrivacyLevel.SemiPrivate;
 
 	public bool IsNonPrivate => PrivacyLevel == PrivacyLevel.NonPrivate;
+
+	/// <summary>Subscribes to property changes of underlying SmartCoin.</summary>
+	/// <remarks>This method is not thread safe. Make sure it's not called concurrently.</remarks>
+	public void SubscribeToCoinChanges()
+	{
+		if (_subscribedToCoinChanges)
+		{
+			return;
+		}
+
+		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin);
+		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
+		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore);
+		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress);
+		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned);
+		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}");
+
+		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
+		{
+			Confirmations = x;
+			ConfirmedToolTip = TextHelpers.GetConfirmationText(x);
+		});
+
+		_subscribedToCoinChanges = true;
+	}
 
 	public bool IsSameAddress(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.HdPubKey == Coin.HdPubKey;
 
