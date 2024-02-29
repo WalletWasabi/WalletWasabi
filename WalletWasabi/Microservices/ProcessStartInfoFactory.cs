@@ -18,23 +18,6 @@ public class ProcessStartInfoFactory
 	/// <returns><see cref="ProcessStartInfo"/> instance.</returns>
 	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false)
 	{
-		ProcessWindowStyle windowStyle;
-
-		if (openConsole)
-		{
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-			}
-
-			windowStyle = ProcessWindowStyle.Normal;
-		}
-		else
-		{
-			// Todo: Replace by ProcessWindowStyle.Hidden when it won't cause any issue with Avalonia.
-			windowStyle = ProcessWindowStyle.Normal;
-		}
-
 		var p = new ProcessStartInfo(fileName: processPath, arguments)
 		{
 			FileName = processPath,
@@ -42,7 +25,7 @@ public class ProcessStartInfoFactory
 			RedirectStandardOutput = !openConsole,
 			UseShellExecute = openConsole,
 			CreateNoWindow = !openConsole,
-			WindowStyle = windowStyle
+			WindowStyle = ProcessWindowStyle.Normal
 		};
 
 		return p;
