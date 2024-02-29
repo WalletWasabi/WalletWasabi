@@ -26,6 +26,28 @@ public class OffchainController : ControllerBase
 	private IMemoryCache Cache { get; }
 	private IExchangeRateProvider ExchangeRateProvider { get; }
 
+	/// <summary>
+	/// Gets exchange rates for one Bitcoin.
+	/// </summary>
+	/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
+	/// <response code="200">Returns an array of exchange rates.</response>
+	/// <response code="404">Exchange rates are not available.</response>
+	[HttpGet("exchange-rates")]
+	[ProducesResponseType(200)]
+	[ProducesResponseType(404)]
+	[ResponseCache(Duration = 120)]
+	public async Task<IActionResult> GetExchangeRatesAsync(CancellationToken cancellationToken)
+	{
+		IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync(cancellationToken);
+
+		if (!exchangeRates.Any())
+		{
+			return NotFound("Exchange rates are not available.");
+		}
+
+		return Ok(exchangeRates);
+	}
+
 	internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync(CancellationToken cancellationToken)
 	{
 		var cacheKey = nameof(GetExchangeRatesCollectionAsync);

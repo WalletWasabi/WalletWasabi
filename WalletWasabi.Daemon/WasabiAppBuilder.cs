@@ -2,10 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
+using WalletWasabi.Bases;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Daemon;
 
@@ -20,6 +22,7 @@ public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
+	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -27,7 +30,11 @@ public class WasabiApplication
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
 		AppConfig = wasabiAppBuilder;
+
+		ConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
+		Directory.CreateDirectory(Config.DataDir);
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
+
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 		SingleInstanceChecker = new(Config.Network);
@@ -39,6 +46,11 @@ public class WasabiApplication
 		if (AppConfig.Arguments.Contains("--version"))
 		{
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			return ExitCode.Ok;
+		}
+		if (AppConfig.Arguments.Contains("--help"))
+		{
+			ShowHelp();
 			return ExitCode.Ok;
 		}
 
@@ -94,19 +106,16 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-		=> new(Config.DataDir, Config);
+		=> new(Config.DataDir, ConfigFilePath, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		Directory.CreateDirectory(Config.DataDir);
+		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
-		PersistentConfig persistentConfig = new(Path.Combine(Config.DataDir, "Config.json"));
-		persistentConfig.LoadFile(createIfMissing: true);
-
-		if (persistentConfig.MigrateOldDefaultBackendUris())
+		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
 		{
-			// Logger.LogInfo("Configuration file with the new coordinator API URIs was saved.");
-			persistentConfig.ToFile();
+			persistentConfig = newConfig;
+			ConfigManagerNg.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;
@@ -141,6 +150,26 @@ public class WasabiApplication
 			? parsedLevel
 			: LogLevel.Info;
 		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel);
+	}
+
+	private void ShowHelp()
+	{
+		Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+		Console.WriteLine($"Usage: {AppConfig.AppName} [OPTION]...");
+		Console.WriteLine();
+		Console.WriteLine("Available options are:");
+
+		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.ParameterName))
+		{
+			Console.Write($"  --{parameter.ToLower(),-30} ");
+			var hintLines = hint.SplitLines(lineWidth: 40);
+			Console.WriteLine(hintLines[0]);
+			foreach (var hintLine in hintLines.Skip(1))
+			{
+				Console.WriteLine($"{' ',-35}{hintLine}");
+			}
+			Console.WriteLine();
+		}
 	}
 }
 
@@ -177,7 +206,7 @@ public static class WasabiAppExtensions
 		{
 			var arguments = app.AppConfig.Arguments;
 			var walletNames = ArgumentHelpers
-				.GetValues("wallet", arguments, x => x)
+				.GetValues("wallet", arguments)
 				.Distinct();
 
 			foreach (var walletName in walletNames)
@@ -199,7 +228,7 @@ public static class WasabiAppExtensions
 			{
 				try
 				{
-					await app.Global!.InitializeNoWalletAsync(app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
+					await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
 				}
 				catch (OperationCanceledException) when (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
@@ -209,7 +238,7 @@ public static class WasabiAppExtensions
 				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
 					ProcessCommands();
-					await app.TerminateService.TerminationRequestedTask.ConfigureAwait(false);
+					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
 
 			}).ConfigureAwait(false);

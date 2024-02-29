@@ -5,11 +5,19 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <UserControl.Resources>
+    <converters:ReplaceWordsByContentConverter x:Key="ReplaceWordsByContentConverter">
+      <ResourceDictionary x:CompileBindings="False">
+        <StaticResource x:Key="Play" ResourceKey="play_regular" />
+      </ResourceDictionary>
+    </converters:ReplaceWordsByContentConverter>
+  </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
   </i:Interaction.Behaviors>
@@ -37,7 +45,7 @@
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
           Classes.IsActive="{Binding IsMusicBoxVisible^}"
-          TextBlock.FontFamily="{StaticResource MonospacedFont}"
+          TextElement.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
@@ -55,7 +63,7 @@
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
               <TransitioningContentControl.PageTransition>
-                <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
+                <PageSlide Duration="0:0:0.125" Orientation="Vertical" SlideInEasing="0.4,0,0.6,1" SlideOutEasing="0.4,0,0.6,1" />
               </TransitioningContentControl.PageTransition>
               <TransitioningContentControl.DataTemplates>
                 <DataTemplate DataType="x:String">
@@ -74,7 +82,7 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding LeftText}" DockPanel.Dock="Left" />
               <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>

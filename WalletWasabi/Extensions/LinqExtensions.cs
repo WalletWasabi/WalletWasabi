@@ -7,37 +7,6 @@ namespace WalletWasabi.Extensions;
 
 public static class LinqExtensions
 {
-	public static IEnumerable<IEnumerable<T>> Batch<T>(
-	   this IEnumerable<T> source, int size)
-	{
-		T[]? bucket = null;
-		var count = 0;
-
-		foreach (var item in source)
-		{
-			bucket ??= new T[size];
-
-			bucket[count++] = item;
-
-			if (count != size)
-			{
-				continue;
-			}
-
-			yield return bucket.Select(x => x);
-
-			bucket = null;
-			count = 0;
-		}
-
-		// Return the last bucket with all remaining elements
-		if (bucket is { } && count > 0)
-		{
-			Array.Resize(ref bucket, count);
-			yield return bucket.Select(x => x);
-		}
-	}
-
 	public static T? RandomElement<T>(this IEnumerable<T> source, WasabiRandom random)
 	{
 		T? current = default;
@@ -133,27 +102,6 @@ public static class LinqExtensions
 			.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
 	}
 
-	public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
-	{
-		int i = 0;
-		foreach (var item in items)
-		{
-			if (count == 1)
-			{
-				yield return new T[] { item };
-			}
-			else
-			{
-				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-				{
-					yield return new T[] { item }.Concat(result);
-				}
-			}
-
-			++i;
-		}
-	}
-
 	public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
 		=> me
 			.OrderBy(x => x.Height)
@@ -165,11 +113,6 @@ public static class LinqExtensions
 			.OrderBy(x => x.Height)
 			.ThenBy(x => x.BlockIndex)
 			.ThenBy(x => x.FirstSeen);
-
-	public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
-		=> me
-			.OrderByBlockchain()
-			.Select(x => x.ToLine());
 
 	/// <summary>
 	/// Chunks the source list to sub-lists by the specified chunk size.
@@ -221,6 +164,11 @@ public static class LinqExtensions
 				yield break;
 			}
 		}
+	}
+
+	public static IEnumerable<T> Singleton<T>(this T item)
+	{
+		yield return item;
 	}
 
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)

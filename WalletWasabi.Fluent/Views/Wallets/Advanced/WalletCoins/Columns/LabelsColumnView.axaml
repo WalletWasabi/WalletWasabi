@@ -2,20 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
-  <c:PrivacyContentControl PrivacyReplacementMode="Text" FontSize="15"
+  <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
+  <PrivacyContentControl PrivacyReplacementMode="Text" FontSize="15"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Stretch"
                            HorizontalContentAlignment="Left"
                            Classes="monoSpacedPrivacyReplacement"
-                           UseOpacity="False"
+                           UseOpacity="True"
+                           MaxPrivacyChars="11"
                            MinWidth="100"
                            Margin="0 0 7 0">
-    <c:LabelsItemsPresenter Items="{Binding Model.Labels}" Margin="0 -4 0 0" />
-  </c:PrivacyContentControl>
+    <LabelsItemsPresenter ItemsSource="{Binding Model.Labels}"
+                            InfiniteWidthMeasure="True"
+                            Margin="0 0 0 0" />
+  </PrivacyContentControl>
 </UserControl>

@@ -345,7 +345,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return false;
 		}
 
-		if (!remainingUsablePockets.Any())
+		if (remainingUsablePockets.Count == 0)
 		{
 			return false;
 		}

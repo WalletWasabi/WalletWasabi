@@ -1,10 +1,13 @@
+using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
@@ -18,11 +21,10 @@ public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
 
-	private static readonly object ConfigLock = new();
-
 	private readonly Subject<bool> _isRestartNeeded = new();
+	private readonly string _persistentConfigFilePath;
 	private readonly PersistentConfig _startupConfig;
-	private readonly PersistentConfig _config;
+	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
 
 	// Advanced
@@ -53,24 +55,30 @@ public partial class ApplicationSettings : ReactiveObject
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
 
-	public ApplicationSettings(PersistentConfig config, UiConfig uiConfig)
+	[AutoNotify] private bool _oobe;
+	[AutoNotify] private WindowState _windowState;
+
+	// Non-persistent
+	[AutoNotify] private bool _doUpdateOnClose;
+
+	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_startupConfig = new PersistentConfig(config.FilePath);
-		_startupConfig.LoadFile();
+		_persistentConfigFilePath = persistentConfigFilePath;
+		_startupConfig = persistentConfig;
 
 		_config = config;
 		_uiConfig = uiConfig;
 
 		// Advanced
-		_enableGpu = _config.EnableGpu;
+		_enableGpu = _startupConfig.EnableGpu;
 
 		// Bitcoin
-		_network = _config.Network;
-		_startLocalBitcoinCoreOnStartup = _config.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _config.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _config.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _config.DustThreshold.ToString();
+		_network = config.Network;
+		_startLocalBitcoinCoreOnStartup = _startupConfig.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
@@ -82,12 +90,16 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _config.UseTor;
-		_terminateTorOnExit = _config.TerminateTorOnExit;
-		_downloadNewVersion = _config.DownloadNewVersion;
+		_useTor = _startupConfig.UseTor;
+		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
+		_downloadNewVersion = _startupConfig.DownloadNewVersion;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
+
+		_oobe = _uiConfig.Oobe;
+
+		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
 
 		// Save on change
 		this.WhenAnyValue(
@@ -116,10 +128,18 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.SelectedFeeDisplayUnit,
 			x => x.RunOnSystemStartup,
 			x => x.HideOnClose,
-			x => x.PrivacyMode)
+			x => x.Oobe,
+			x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
+			.Subscribe();
+
+		// Save UiConfig on change without throttling
+		this.WhenAnyValue(
+				x => x.PrivacyMode)
+			.Skip(1)
+			.Do(_ => ApplyUiConfigPrivacyModeChange())
 			.Subscribe();
 
 		// Set Default BitcoinCoreDataDir if required
@@ -128,39 +148,37 @@ public partial class ApplicationSettings : ReactiveObject
 			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
 			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 
-		// Apply RunOnSystenStartup
+		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
 			.Subscribe();
+
+		// Apply DoUpdateOnClose
+		this.WhenAnyValue(x => x.DoUpdateOnClose)
+			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
+			.Subscribe();
 	}
+
+	public bool IsOverridden => _config.IsOverridden;
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.AreDeepEqual(config);
+		return !_startupConfig.DeepEquals(config);
 	}
 
 	private void Save()
 	{
-		var config = new PersistentConfig(_startupConfig.FilePath);
-
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
 			{
 				try
 				{
-					lock (ConfigLock)
-					{
-						// TODO: Roland: do we really need to do this?
-						config.LoadFile();
+					PersistentConfig newConfig = ApplyChanges(_startupConfig);
+					ConfigManagerNg.ToFile(_persistentConfigFilePath, newConfig);
 
-						ApplyChanges(config);
-
-						config.ToFile();
-					}
-
-					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(config));
+					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}
 				catch (Exception ex)
 				{
@@ -169,36 +187,65 @@ public partial class ApplicationSettings : ReactiveObject
 			});
 	}
 
-	private void ApplyChanges(PersistentConfig config)
+	private PersistentConfig ApplyChanges(PersistentConfig config)
 	{
+		PersistentConfig result = config;
+
 		// Advanced
-		config.EnableGpu = EnableGpu;
+		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
 		if (Network == config.Network)
 		{
-			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
+			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				if (Network == Network.Main)
+				{
+					result = result with { MainNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.TestNet)
+				{
+					result = result with { TestNetBitcoinP2pEndPoint = endPoint };
+				}
+				else if (Network == Network.RegTest)
+				{
+					result = result with { RegTestBitcoinP2pEndPoint = endPoint };
+				}
+				else
+				{
+					throw new NotSupportedNetworkException(Network);
+				}
 			}
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-				? Money.Coins(threshold)
-				: PersistentConfig.DefaultDustThreshold;
+			result = result with
+			{
+				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
+				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
+				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
+				DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+					? Money.Coins(threshold)
+					: PersistentConfig.DefaultDustThreshold,
+			};
 		}
 		else
 		{
-			config.Network = Network;
+			result = result with
+			{
+				Network = Network
+			};
+
 			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 
 		// General
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.DownloadNewVersion = DownloadNewVersion;
+		result = result with
+		{
+			UseTor = UseTor,
+			TerminateTorOnExit = TerminateTorOnExit,
+			DownloadNewVersion = DownloadNewVersion,
+		};
+
+		return result;
 	}
 
 	private void ApplyUiConfigChanges()
@@ -210,6 +257,12 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+		_uiConfig.Oobe = Oobe;
+		_uiConfig.WindowState = WindowState.ToString();
+	}
+
+	private void ApplyUiConfigPrivacyModeChange()
+	{
 		_uiConfig.PrivacyMode = PrivacyMode;
 	}
 }

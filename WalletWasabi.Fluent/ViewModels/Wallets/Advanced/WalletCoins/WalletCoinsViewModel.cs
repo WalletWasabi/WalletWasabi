@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -52,7 +53,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		var coinChanges =
 			_wallet.Coins.List
-				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
+				.Connect()
+				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x), (_, _) => { })
 				.Replay(1)
 				.RefCount();
 
@@ -177,7 +179,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
-			options: new ColumnOptions<WalletCoinViewModel>
+			null,
+			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = false
@@ -190,7 +193,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
-			options: new ColumnOptions<WalletCoinViewModel>
+			null,
+			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
@@ -222,7 +226,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			new AnonymitySetHeaderView(),
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
-			options: new ColumnOptions<WalletCoinViewModel>
+			null,
+			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
@@ -237,7 +242,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new TemplateColumn<WalletCoinViewModel>(
 			"Labels",
 			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
-			options: new ColumnOptions<WalletCoinViewModel>
+			null,
+			options: new TemplateColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,

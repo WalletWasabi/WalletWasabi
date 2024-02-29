@@ -26,7 +26,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 		AmountText = coin.Amount.ToBtcWithUnit();
 		Unconfirmed = !coin.IsConfirmed;
 		Confirmations = coin.Confirmations;
-		AnonScore = coin.AnonScore;
+		AnonScoreText = $"{coin.AnonScore}";
 		Labels = coin.Labels;
 
 		PrivacyLevelText = GetPrivacyLevelDescription();
@@ -38,7 +38,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 		}
 	}
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end, string anonScoreText)
 	{
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
@@ -48,6 +48,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 		IsSemiPrivate = privacyLevel == PrivacyLevel.SemiPrivate;
 		IsNonPrivate = privacyLevel == PrivacyLevel.NonPrivate;
 		AmountText = $"{amount.ToFormattedString()} BTC";
+		AnonScoreText = anonScoreText;
 		Unconfirmed = false;
 
 		PrivacyLevelText = GetPrivacyLevelDescription();
@@ -62,7 +63,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
-	public double AnonScore { get; }
+	public string AnonScoreText { get; }
 	public LabelsArray Labels { get; }
 	public string AmountText { get; }
 	public string PrivacyLevelText { get; }

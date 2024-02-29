@@ -1,14 +1,9 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -30,34 +25,39 @@ public static class TransactionBuilderWalletExtensions
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
 		bool allowDoubleSpend = false,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		bool overrideFeeOverpaymentProtection = false)
 	{
-		var builder = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password, allowUnconfirmed: allowUnconfirmed, allowDoubleSpend: allowDoubleSpend);
-		return builder.BuildTransaction(
+		FeeRate? feeRate;
+
+		if (feeStrategy.TryGetTarget(out int? target))
+		{
+			feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value)
+				?? throw new InvalidOperationException("Cannot get fee estimations.");
+		}
+		else if (!feeStrategy.TryGetFeeRate(out feeRate))
+		{
+			throw new NotSupportedException(feeStrategy.Type.ToString());
+		}
+
+		TransactionParameters parameters = new (
 			payments,
-			feeRateFetcher: () =>
-			{
-				if (feeStrategy.TryGetTarget(out int? target))
-				{
-					return wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
-				}
-				else if (feeStrategy.TryGetFeeRate(out FeeRate? feeRate))
-				{
-					return feeRate;
-				}
-				else
-				{
-					throw new NotSupportedException(feeStrategy.Type.ToString());
-				}
-			},
-			allowedInputs,
+			FeeRate: feeRate,
+			AllowUnconfirmed: allowUnconfirmed,
+			AllowDoubleSpend: allowDoubleSpend,
+			AllowedInputs: allowedInputs,
+			TryToSign: tryToSign,
+			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
+
+		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
+		return factory.BuildTransaction(
+			parameters,
 			lockTimeSelector: () =>
 			{
 				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient,
-			tryToSign: tryToSign);
+			payjoinClient);
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(
@@ -124,6 +124,59 @@ public static class TransactionBuilderWalletExtensions
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
 			allowedInputs: coins.Select(coin => coin.Outpoint),
+			payjoinClient: payJoinClient,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
+
+	public static BuildTransactionResult BuildTransactionWithoutOverpaymentProtection(
+		this Wallet wallet,
+		string password,
+		PaymentIntent payments,
+		FeeStrategy feeStrategy,
+		bool allowUnconfirmed = false,
+		IEnumerable<OutPoint>? allowedInputs = null,
+		IPayjoinClient? payjoinClient = null,
+		bool allowDoubleSpend = false)
+		=> BuildTransaction(
+			wallet,
+			password,
+			payments,
+			feeStrategy,
+			allowUnconfirmed,
+			allowedInputs,
+			payjoinClient,
+			allowDoubleSpend,
+			tryToSign: true,
+			overrideFeeOverpaymentProtection: true);
+
+	public static BuildTransactionResult BuildTransactionForSIB(
+		this Wallet wallet,
+		IDestination destination,
+		Money amount,
+		LabelsArray label,
+		bool subtractFee,
+		IPayjoinClient? payJoinClient = null,
+		bool tryToSign = true)
+	{
+		if (payJoinClient is { } && subtractFee)
+		{
+			throw new InvalidOperationException("Not possible to subtract the fee.");
+		}
+
+		var intent = new PaymentIntent(
+			destination: destination,
+			amount: amount,
+			subtractFee: subtractFee,
+			label: label);
+
+		var txRes = wallet.BuildTransaction(
+			password: wallet.Kitchen.SaltSoup(),
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromConfirmationTarget(2),
+			allowUnconfirmed: true,
+			allowedInputs: null,
 			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 

@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:local="using:WalletWasabi.Fluent"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:Class="WalletWasabi.Fluent.Views.Settings.GeneralSettingsTabView"
              x:CompileBindings="True"
@@ -21,7 +21,7 @@
       <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
     </DockPanel>
 
-    <DockPanel IsVisible="{x:Static local:App.EnableFeatureHide}">
+    <DockPanel>
       <TextBlock Text="Run in background when window closed" />
       <ToggleSwitch IsChecked="{Binding Settings.HideOnClose}" />
     </DockPanel>
@@ -60,9 +60,9 @@
 
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display unit" />
-      <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayUnits}" SelectedItem="{Binding Settings.SelectedFeeDisplayUnit}">
+      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding FeeDisplayUnits}" SelectedItem="{Binding Settings.SelectedFeeDisplayUnit}">
         <ComboBox.ItemTemplate>
-          <DataTemplate>
+          <DataTemplate x:DataType="models:FeeDisplayUnit">
             <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
           </DataTemplate>
         </ComboBox.ItemTemplate>

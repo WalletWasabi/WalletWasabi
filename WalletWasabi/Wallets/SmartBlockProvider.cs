@@ -19,12 +19,12 @@ public class SmartBlockProvider : IBlockProvider
 	};
 
 	[SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "The cast is necessary to call the other constructor.")]
-	public SmartBlockProvider(IRepository<uint256, Block> blockRepository, RpcBlockProvider? rpcBlockProvider, SpecificNodeBlockProvider? specificNodeBlockProvider, P2PBlockProvider? p2PBlockProvider, IMemoryCache cache)
+	public SmartBlockProvider(IFileSystemBlockRepository blockRepository, RpcBlockProvider? rpcBlockProvider, SpecificNodeBlockProvider? specificNodeBlockProvider, P2PBlockProvider? p2PBlockProvider, IMemoryCache cache)
 		: this(blockRepository, (IBlockProvider?)rpcBlockProvider, (IBlockProvider?)specificNodeBlockProvider, (IBlockProvider?)p2PBlockProvider, cache)
 	{
 	}
 
-	internal SmartBlockProvider(IRepository<uint256, Block> blockRepository, IBlockProvider? rpcBlockProvider, IBlockProvider? specificNodeBlockProvider, IBlockProvider? p2PBlockProvider, IMemoryCache cache)
+	internal SmartBlockProvider(IFileSystemBlockRepository blockRepository, IBlockProvider? rpcBlockProvider, IBlockProvider? specificNodeBlockProvider, IBlockProvider? p2PBlockProvider, IMemoryCache cache)
 	{
 		BlockRepository = blockRepository;
 		RpcProvider = rpcBlockProvider;
@@ -42,7 +42,7 @@ public class SmartBlockProvider : IBlockProvider
 	/// <seealso cref="P2PBlockProvider"/>
 	private IBlockProvider? P2PProvider { get; }
 	private IdempotencyRequestCache Cache { get; }
-	private IRepository<uint256, Block> BlockRepository { get; }
+	private IFileSystemBlockRepository BlockRepository { get; }
 
 	/// <summary>
 	/// Tries to get the block from file-system storage or from other block providers.
@@ -96,7 +96,15 @@ public class SmartBlockProvider : IBlockProvider
 
 		if (result is null && P2PProvider is not null)
 		{
-			result = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			while (true)
+			{
+				Block? block = await P2PProvider.TryGetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+
+				if (block is not null)
+				{
+					return block;
+				}
+			}
 		}
 
 		return result;

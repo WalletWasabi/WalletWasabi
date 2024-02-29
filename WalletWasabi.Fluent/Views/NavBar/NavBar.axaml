@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
@@ -13,9 +11,6 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-  <i:Interaction.Behaviors>
-    <behaviors:NavBarSelectedIndicatorParentBehavior />
-  </i:Interaction.Behaviors>
   <UserControl.Styles>
 
     <Style Selector="Separator">
@@ -25,7 +20,7 @@
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
     </Style>
 
-    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+    <Style Selector="NavBarItem" x:DataType="vm:NavBarItemViewModel">
       <Setter Property="Width" Value="75" />
       <Setter Property="Height" Value="58" />
       <Setter Property="Margin" Value="4 1" />
@@ -33,17 +28,17 @@
       <Setter Property="Cursor" Value="Hand" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel">
+    <Style Selector="NavBarItem StackPanel">
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Spacing" Value="2" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center" />
+    <Style Selector="NavBarItem StackPanel FadeOutTextControl">
+      <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel PathIcon" x:CompileBindings="False">
+    <Style Selector="NavBarItem StackPanel PathIcon" x:CompileBindings="False">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -52,7 +47,7 @@
       <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel LayoutTransformControl">
+    <Style Selector="NavBarItem StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
       <Setter Property="Transitions">
@@ -99,13 +94,6 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0"/>
       <Setter Property="ClipToBounds" Value="False"/>
-      <Setter Property="(Interaction.Behaviors)">
-        <BehaviorCollectionTemplate>
-          <BehaviorCollection>
-            <behaviors:NavBarSelectedIndicatorChildBehavior />
-          </BehaviorCollection>
-        </BehaviorCollectionTemplate>
-      </Setter>
     </Style>
     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
@@ -115,24 +103,24 @@
     </Style>
 
     <!-- Selected State -->
-    <Style Selector="c|NavBarItem.selected /template/ Border#SelectionBackground">
+    <Style Selector="NavBarItem.selected /template/ Border#SelectionBackground">
       <Setter Property="Opacity" Value="0.1" />
     </Style>
-    <Style Selector="c|NavBarItem.selected StackPanel LayoutTransformControl">
+    <Style Selector="NavBarItem.selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
-    <Style Selector="c|NavBarItem.selected PathIcon" x:CompileBindings="False">
+    <Style Selector="NavBarItem.selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
     <!-- Selected PointerOver State -->
-    <Style Selector="c|NavBarItem.selected:pointerover /template/ Border">
+    <Style Selector="NavBarItem.selected:pointerover /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
     </Style>
 
     <!-- Selected Pressed State -->
-    <Style Selector="c|NavBarItem.selected:pressed /template/ Border">
+    <Style Selector="NavBarItem.selected:pressed /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
     </Style>
 
@@ -140,7 +128,7 @@
 
   <DockPanel Margin="0 0 0 5">
     <!-- Bottom items -->
-    <ItemsControl Items="{Binding BottomItems}"
+    <ItemsControl ItemsSource="{Binding BottomItems}"
                   DockPanel.Dock="Bottom">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
@@ -149,14 +137,14 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.DataTemplates>
         <DataTemplate DataType="vm:NavBarItemViewModel">
-          <c:NavBarItem Command="{Binding OpenCommand}">
+          <NavBarItem Command="{Binding OpenCommand}">
             <StackPanel>
               <PathIcon Classes="new size24" />
               <LayoutTransformControl>
-                <c:FadeOutTextBlock Text="{Binding Title}" />
+                <FadeOutTextControl Text="{Binding Title}" />
               </LayoutTransformControl>
             </StackPanel>
-          </c:NavBarItem>
+          </NavBarItem>
         </DataTemplate>
       </ItemsControl.DataTemplates>
     </ItemsControl>
@@ -166,18 +154,27 @@
 
     <!-- Wallet List -->
     <DockPanel MaxWidth="75" LastChildFill="True">
-      <ListBox Items="{Binding Wallets}"
-               SelectionMode="AlwaysSelected"
+      <ListBox ItemsSource="{Binding Wallets}"
                SelectedItem="{Binding SelectedWallet}"
                Background="Transparent"
-               VirtualizationMode="None">
+               behaviors:SelectingItemsControlBehavior.EnableSelectionAnimation="True">
         <Interaction.Behaviors>
           <behaviors:ListBoxReselectingBehavior />
         </Interaction.Behaviors>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletPageViewModel">
-            <c:NavBarItem Classes.selected="{Binding IsSelected}">
-              <Panel ToolTip.Tip="{Binding Title}">
+            <NavBarItem Classes.selected="{Binding IsSelected}">
+              <ToolTip.Tip>
+                <StackPanel>
+                  <TextBlock Text="{Binding Title}" />
+                </StackPanel>
+              </ToolTip.Tip>
+              <Panel>
                 <Ellipse Classes="loadingindicator"
                          Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
@@ -186,11 +183,11 @@
                   <PathIcon Classes="new size24 wallet"
                             Classes.isfocused="{Binding $parent[ListBoxItem].IsSelected}" />
                   <LayoutTransformControl>
-                    <c:FadeOutTextBlock Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
+                    <FadeOutTextControl Text="{Binding Title}" HorizontalAlignment="Center" FontSize="{StaticResource FontSizeH9}" />
                   </LayoutTransformControl>
                 </StackPanel>
               </Panel>
-            </c:NavBarItem>
+            </NavBarItem>
           </DataTemplate>
         </ListBox.DataTemplates>
       </ListBox>

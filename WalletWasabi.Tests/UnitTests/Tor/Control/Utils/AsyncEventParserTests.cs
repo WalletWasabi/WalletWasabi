@@ -19,7 +19,7 @@ public class AsyncEventParserTests
 		string data = "650 XXX NOTICE\r\n";
 
 		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
-		_ = Assert.Throws<NotSupportedException>(() => AsyncEventParser.Parse(rawReply));
+		Assert.Throws<NotSupportedException>(() => AsyncEventParser.Parse(rawReply));
 	}
 
 	[Fact]

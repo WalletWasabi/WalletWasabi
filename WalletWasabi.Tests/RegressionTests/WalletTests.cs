@@ -54,7 +54,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		// 2. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 3. Create key manager service.
@@ -63,7 +63,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		// 4. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
 
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
@@ -93,7 +93,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			synchronizer.Start(); // Start wasabi synchronizer service.
+			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			await feeProvider.StartAsync(testDeadlineCts.Token);
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
@@ -227,7 +227,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		{
 			wallet.NewFiltersProcessed -= setup.Wallet_NewFiltersProcessed;
 			await wallet.StopAsync(testDeadlineCts.Token);
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(testDeadlineCts.Token);
 			await feeProvider.StopAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();

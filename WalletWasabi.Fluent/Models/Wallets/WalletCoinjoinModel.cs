@@ -11,10 +11,11 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletCoinjoinModel
+public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private CoinJoinManager _coinJoinManager;
+	[AutoNotify] private bool _isCoinjoining;
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
@@ -25,7 +26,7 @@ public partial class WalletCoinjoinModel
 			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 					  .Where(x => x.EventArgs.Wallet == wallet)
 					  .Select(x => x.EventArgs)
-					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs)
+					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs or CompletedEventArgs)
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
@@ -46,15 +47,22 @@ public partial class WalletCoinjoinModel
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
 						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
-						 .Select(x => true);
+						 .Select(_ => true);
+
+		var coinjoinStopped =
+			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
+				.Select(_ => false);
 
 		var coinjoinCompleted =
 			StatusUpdated.OfType<CompletedEventArgs>()
-						 .Select(x => false);
+				.Select(_ => false);
 
 		IsRunning =
-			coinjoinStarted.Merge(coinjoinCompleted)
+			coinjoinStarted.Merge(coinjoinStopped)
+				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
+
+		IsRunning.BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
@@ -63,7 +71,7 @@ public partial class WalletCoinjoinModel
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await _coinJoinManager.StartAsync(_wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.StartAsync(_wallet, _wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()

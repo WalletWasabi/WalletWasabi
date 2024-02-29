@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Extensions;
 public static class AvaloniaExtensions
 {
 	public static IObservable<EventPattern<TEventArgs>> OnEvent<TEventArgs>(
-		this IInteractive target,
+		this Interactive target,
 		RoutedEvent<TEventArgs> routedEvent,
 		RoutingStrategies routingStrategies = RoutingStrategies.Bubble) where TEventArgs : RoutedEventArgs
 	{

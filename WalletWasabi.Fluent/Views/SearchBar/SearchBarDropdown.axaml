@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              x:CompileBindings="True"
@@ -32,7 +33,7 @@
     </Style>
 
     <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
-      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Background">
         <Setter.Value>
           <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
@@ -59,6 +60,16 @@
     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
     <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="{DynamicResource AcrylicTrimForeground}" />
     <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+
+    <!--Disabled overrides-->
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchHeaderForegroundDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchStrokeOffDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchKnobFillOffDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchKnobFillOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchFillOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush Opacity="0.6" x:Key="ToggleSwitchStrokeOnDisabled" Color="{DynamicResource AcrylicTrimForeground}" />
+    <!--Disabled overrides-->
+
   </UserControl.Resources>
 
   <UserControl.DataTemplates>
@@ -73,7 +84,7 @@
 
     <DataTemplate DataType="searchItems:IContentSearchItem">
 
-      <DockPanel Background="Transparent" Margin="10">
+      <DockPanel Background="Transparent" Margin="10" IsEnabled="{Binding IsEnabled}">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
           <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
         </Panel>
@@ -86,7 +97,7 @@
 
     <DataTemplate DataType="searchItems:ActionableItem">
 
-      <Button Command="{Binding Command}" ClickMode="Press" Classes="searchItem" Background="Transparent"
+      <Button ClickMode="Press" Classes="searchItem" Background="Transparent"
               Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
         <DockPanel Background="Transparent" Margin="10">
@@ -100,10 +111,11 @@
         </DockPanel>
 
         <i:Interaction.Behaviors>
-          <EventTriggerBehavior EventName="Click">
-            <CallMethodAction MethodName="Focus" TargetObject="{x:Static helpers:ApplicationHelper.MainWindow}" />
+          <ButtonClickEventTriggerBehavior>
+            <behaviors:FocusControlAction TargetControl="{x:Static helpers:ApplicationHelper.MainWindow}" />
+            <InvokeCommandAction Command="{Binding Command}" />
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
-          </EventTriggerBehavior>
+          </ButtonClickEventTriggerBehavior>
         </i:Interaction.Behaviors>
       </Button>
     </DataTemplate>
@@ -111,12 +123,12 @@
 
   <Panel VerticalAlignment="Center">
     <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}" Margin="10">No results</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults}" Items="{Binding Groups}">
+    <ItemsControl IsVisible="{Binding HasResults}" ItemsSource="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
+            <ItemsControl x:Name="ListBox" ItemsSource="{Binding Items}" />
           </DockPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>

@@ -21,8 +21,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
 		exclusion.dic = exclusion.dic
+		global.json = global.json
 		README.md = README.md
 		Settings.StyleCop = Settings.StyleCop
+		NuGet.Config = NuGet.Config
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Packager", "WalletWasabi.Packager\WalletWasabi.Packager.csproj", "{8BE916A0-1F3F-4757-BAD9-BFBAB8EAC3C2}"

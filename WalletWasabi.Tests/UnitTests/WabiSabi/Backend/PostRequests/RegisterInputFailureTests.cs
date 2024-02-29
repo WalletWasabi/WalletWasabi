@@ -91,7 +91,7 @@ public class RegisterInputFailureTests
 	}
 
 	[Fact]
-	public async Task InputRegistrationTimedoutAsync()
+	public async Task InputRegistrationTimedOutAsync()
 	{
 		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
@@ -121,7 +121,7 @@ public class RegisterInputFailureTests
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
@@ -176,7 +176,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-		WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.AllowNotedInputRegistration = false;
+
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 

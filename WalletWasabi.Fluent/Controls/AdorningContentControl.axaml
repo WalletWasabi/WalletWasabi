@@ -1,11 +1,10 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary  xmlns="https://github.com/avaloniaui"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
-    <controls:AdorningContentControl />
+    <AdorningContentControl />
   </Design.PreviewWith>
 
-  <Style Selector="controls|AdorningContentControl">
+  <ControlTheme x:Key="{x:Type AdorningContentControl}" TargetType="AdorningContentControl">
     <!-- Set Defaults -->
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Template">
@@ -22,5 +21,6 @@
         </Border>
       </ControlTemplate>
     </Setter>
-  </Style>
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

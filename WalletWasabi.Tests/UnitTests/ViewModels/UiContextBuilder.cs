@@ -1,6 +1,5 @@
 using Moq;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.UI;
@@ -44,13 +43,17 @@ public class UiContextBuilder
 			QrReader,
 			Clipboard,
 			WalletRepository,
+			Mock.Of<ICoinjoinModel>(),
 			HardwareWalletInterface,
 			FileSystem,
 			ClientConfig,
 			new NullApplicationSettings(),
 			TransactionBroadcaster,
-            Mock.Of<IAmountProvider>(),
-			new EditableSearchSourceSource());
+			Mock.Of<IAmountProvider>(),
+			new EditableSearchSourceSource(),
+			Mock.Of<ITorStatusCheckerModel>(),
+			Mock.Of<ILegalDocumentsProvider>(),
+			Mock.Of<IHealthMonitor>());
 
 		uiContext.RegisterNavigation(Navigate);
 		return uiContext;

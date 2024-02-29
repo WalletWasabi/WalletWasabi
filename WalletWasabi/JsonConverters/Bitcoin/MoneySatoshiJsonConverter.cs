@@ -16,7 +16,8 @@ public class MoneySatoshiJsonConverter : JsonConverter<Money>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, Money? value, JsonSerializer serializer)
 	{
-		var longValue = value?.Satoshi ?? throw new ArgumentNullException(nameof(value));
+		long longValue = value?.Satoshi
+			?? throw new ArgumentNullException(nameof(value));
 		writer.WriteValue(longValue);
 	}
 }

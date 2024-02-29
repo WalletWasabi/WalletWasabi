@@ -72,7 +72,7 @@ public class BlockchainAnalyzer
 	private static void AnalyzeCancellation(SmartTransaction tx)
 	{
 		// If the tx is a cancellation and we have at least one input or output that is not ours, then we set the anonset to 1.
-		if (tx.IsCancellation && (tx.ForeignOutputs.Any() || tx.ForeignInputs.Any()))
+		if (tx.IsCancellation && (tx.ForeignOutputs.Count != 0 || tx.ForeignInputs.Count != 0))
 		{
 			foreach (var k in tx.WalletInputs.Select(x => x.HdPubKey).Distinct())
 			{
@@ -285,7 +285,7 @@ public class BlockchainAnalyzer
 	private static void AdjustWalletInputs(SmartTransaction tx, double startingOutputAnonset)
 	{
 		// Sanity check.
-		if (!tx.WalletOutputs.Any())
+		if (tx.WalletOutputs.Count == 0)
 		{
 			return;
 		}
@@ -375,12 +375,12 @@ public class BlockchainAnalyzer
 	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
 	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartCoin output)
 	{
-		if (!output.Transaction.WalletInputs.Any())
+		if (output.Transaction.WalletInputs.Count == 0)
 		{
 			// If there's no wallet input, then money is coming from external sources.
 			output.IsSufficientlyDistancedFromExternalKeys = false;
 		}
-		else if (output.Transaction.WalletInputs.All(x => !x.Transaction.WalletInputs.Any()))
+		else if (output.Transaction.WalletInputs.All(x => x.Transaction.WalletInputs.Count == 0))
 		{
 			// If there are wallet inputs, and each and every one of them are coming from external sources, then we consider this as not sufficiently distanced as well.
 			output.IsSufficientlyDistancedFromExternalKeys = false;

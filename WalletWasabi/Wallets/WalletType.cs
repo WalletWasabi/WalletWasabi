@@ -7,5 +7,7 @@ public enum WalletType
 	Coldcard,
 	Trezor,
 	Ledger,
+	Jade,
+	BitBox,
 	Unknown
 }

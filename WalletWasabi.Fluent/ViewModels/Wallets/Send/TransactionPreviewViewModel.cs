@@ -133,7 +133,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				_info = previous.Item2;
 				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
-				CanUndo = _undoHistory.Any();
+				CanUndo = _undoHistory.Count != 0;
 			}
 		});
 
@@ -173,7 +173,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To().Success("The PSBT has been successfully created.");
+				Navigate().To().Success();
 			}
 		}
 	}
@@ -198,7 +198,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		var feeDialog = new SendFeeViewModel(UiContext, _wallet, _info, false);
+		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
+			? new CustomFeeRateDialogViewModel(_info)
+			: new SendFeeViewModel(UiContext, _wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -394,7 +396,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
-				Navigate().To().SendSuccess(_wallet, finalTransaction);
+				Navigate().To().SendSuccess(finalTransaction);
 			}
 		}
 		catch (Exception ex)
@@ -471,7 +473,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList());
+		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}

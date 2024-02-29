@@ -7,22 +7,41 @@ You do not need to download the blockchain for this setup!
 
 ## Setup Bitcoin Knots with RegTest
 
-Bitcoin Knots is working very similarly to Bitcoin Core. You can get a grasp with [this guide](https://bitcoin.org/en/developer-examples).
+Currently, the latest version(25.1) of Bitcoin Knots is not tested, so the preferred version is [23.0](https://github.com/bitcoinknots/bitcoin/releases/tag/v23.0.knots20220529).
 
 Todo:
 
-1. Install [Bitcoin Knots](https://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](https://bitcoinknots.org/)
-2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
+1. Install [Bitcoin Knots 23.0](https://bitcoinknots.org/files/23.x/23.0.knots20220529/) on your computer. Verify the PGP signatures. Check the security notice [here](https://bitcoinknots.org/).
+2. Start Bitcoin Knots with: `bitcoin-qt.exe -regtest` then quit immediately. In this way the data directory and the config files will be generated. If you use the `-datadir` parameter, make sure the directory exists.
+
+     Windows x64:
     ```
-    Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
-    macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
-    Linux:  ~/bitcoin-[version number]/bin/bitcoin-qt -regtest
+    "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+    ```        
+    macOS: 
     ```
-3. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
+    "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest -blockfilterindex -txindex -datadir=$HOME/Library/Application Support/Bitcoin"
     ```
-    Windows: %APPDATA%\Bitcoin\
-    macOS: $HOME/Library/Application Support/Bitcoin/
-    Linux: $HOME/.bitcoin/
+    Linux: 
+    ```
+     ~/bitcoin-[version number]/bin/bitcoin-qt -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+    ```
+4. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
+    
+    There may be differences if you used the "-datadir" parameter before.
+    
+    Defaults:
+    Windows
+    ```
+    %APPDATA%\Bitcoin\
+    ```
+    macOS
+    ```
+    $HOME/Library/Application Support/Bitcoin/
+    ```
+    Linux
+    ```
+    $HOME/.bitcoin/
     ```
 4. Add a file called **bitcoin.conf** and add these lines:
     ```C#
@@ -34,6 +53,9 @@ Todo:
     regtest.rpcport = 18443
     regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
     regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
+    regtest.disablewallet = 0
+    regtest.softwareexpiry = 0
+    regtest.listenonion = 0
     ```
 5. Save it.
 6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
@@ -111,4 +133,4 @@ Todo:
 12. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
     - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
-Happy CoinJoin!
+Happy coinjoin!

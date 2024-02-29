@@ -3,80 +3,79 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.CoinJoinsDetailsView"
              Name="CoinJoinDetails">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
     <StackPanel Spacing="15">
 
       <!-- Date -->
-      <c:PreviewItem Icon="{StaticResource timer_regular}"
+      <PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date"
                      CopyableContent="{Binding Date}">
         <TextBlock Text="{Binding Date}" />
-      </c:PreviewItem>
+      </PreviewItem>
 
       <Separator />
 
       <!-- Status -->
-      <c:PreviewItem Icon="{StaticResource status_regular}"
+      <PreviewItem Icon="{StaticResource status_regular}"
                      Label="Status">
         <TextBlock Text="{Binding Status}" />
-      </c:PreviewItem>
+      </PreviewItem>
 
       <Separator />
 
       <!-- TX Count  -->
-      <c:PreviewItem Icon="{StaticResource info_regular}"
+      <PreviewItem Icon="{StaticResource info_regular}"
                      Label="Number of transactions"
                      CopyableContent="{Binding TxCount}">
         <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
-      </c:PreviewItem>
+      </PreviewItem>
 
       <Separator />
 
       <!-- CJ fee  -->
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
+      <PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
                      CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
-        <c:AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
-      </c:PreviewItem>
+        <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
+      </PreviewItem>
 
       <Separator />
 
       <!-- Confirmation Time -->
-      <c:PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
+      <PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
                      Label="Expected confirmation time"
                      ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
-        <c:PrivacyContentControl>
+        <PrivacyContentControl>
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
-      </c:PreviewItem>
+        </PrivacyContentControl>
+      </PreviewItem>
 
       <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
 
       <!-- Transaction IDs -->
-      <c:PreviewItem Icon="{StaticResource transaction_id}"
+      <PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction IDs">
-        <ItemsRepeater Items="{Binding TransactionIds}">
-          <ItemsRepeater.ItemTemplate>
+        <ItemsControl ItemsSource="{Binding TransactionIds}">
+          <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <c:PreviewItem CopyableContent="{Binding }">
-                <c:PrivacyContentControl>
+              <PreviewItem CopyableContent="{Binding }">
+                <PrivacyContentControl>
                   <TextBlock Text="{Binding }" Classes="monoSpaced" />
-                </c:PrivacyContentControl>
-              </c:PreviewItem>
+                </PrivacyContentControl>
+              </PreviewItem>
             </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-      </c:PreviewItem>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </PreviewItem>
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

@@ -15,6 +15,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
+	private readonly Lazy<Script> _p2wpkhScript;
+	private readonly Lazy<Script> _p2Taproot;
+
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
@@ -27,14 +30,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
-		P2pkScript = PubKey.ScriptPubKey;
-		P2pkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
-		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
-		P2shOverP2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.SegwitP2SH);
-		P2Taproot = PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
-
-		PubKeyHash = PubKey.Hash;
-		HashCode = PubKeyHash.GetHashCode();
+		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
+		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
 		Index = (int)FullKeyPath.Indexes[4];
 
@@ -86,18 +83,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
 	public Height? LatestSpendingHeight { get; set; }
 
-	public Script P2pkScript { get; }
-	public Script P2pkhScript { get; }
-	public Script P2wpkhScript { get; }
-	public Script P2shOverP2wpkhScript { get; }
-	public Script P2Taproot { get; }
-
-	public KeyId PubKeyHash { get; }
+	public Script P2wpkhScript => _p2wpkhScript.Value;
+	public Script P2Taproot => _p2Taproot.Value;
 
 	public int Index { get; }
 	public bool IsInternal { get; }
-
-	private int HashCode { get; }
 
 	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReason = null)
 	{
@@ -134,20 +124,13 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		kmToFile?.ToFile();
 	}
 
-	public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
-
 	public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => (BitcoinWitPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-
-	public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => (BitcoinScriptAddress)PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network);
 
 	public bool ContainsScript(Script scriptPubKey)
 	{
 		var scripts = new[]
 		{
-			P2pkScript,
-			P2pkhScript,
 			P2wpkhScript,
-			P2shOverP2wpkhScript,
 			P2Taproot
 		};
 
@@ -160,9 +143,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public bool Equals(HdPubKey? other) => this == other;
 
-	public override int GetHashCode() => HashCode;
+	public override int GetHashCode() => PubKey.GetHashCode();
 
-	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKeyHash == y?.PubKeyHash;
+	public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKey == y?.PubKey;
 
 	public static bool operator !=(HdPubKey? x, HdPubKey? y) => !(x == y);
 

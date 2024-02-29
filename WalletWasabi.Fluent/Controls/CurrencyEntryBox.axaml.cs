@@ -48,20 +48,18 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
+	private static readonly string[] InvalidCharacters = new string[1] { "\u007f" };
+
 	public CurrencyEntryBox()
 	{
-		Text = string.Empty;
+		SetCurrentValue(TextProperty, string.Empty);
 
 		PseudoClasses.Set(":noexchangerate", true);
 		PseudoClasses.Set(":isrightside", false);
 
 		this.GetObservable(IsRightSideProperty)
 			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
-
-		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
-
-	public ICommand ModifiedPaste { get; }
 
 	public decimal ConversionRate
 	{
@@ -131,7 +129,7 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		base.OnGotFocus(e);
 
-		CaretIndex = Text?.Length ?? 0;
+		SetCurrentValue(CaretIndexProperty, Text?.Length ?? 0);
 
 		Dispatcher.UIThread.Post(SelectAll);
 	}
@@ -150,17 +148,15 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (IsReplacingWithImplicitDecimal(input))
 		{
-			ReplaceCurrentTextWithLeadingZero(e);
-
-			base.OnTextInput(e);
+			var result = ReplaceCurrentTextWithLeadingZero(e);
+			base.OnTextInput(result);
 			return;
 		}
 
 		if (IsInsertingImplicitDecimal(input))
 		{
-			InsertLeadingZeroForDecimal(e);
-
-			base.OnTextInput(e);
+			var result = InsertLeadingZeroForDecimal(e);
+			base.OnTextInput(result);
 			return;
 		}
 
@@ -192,21 +188,21 @@ public partial class CurrencyEntryBox : TextBox
 		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
-	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
 	{
 		var finalText = "0" + e.Text;
-		Text = "";
-		e.Text = finalText;
-		CaretIndex = finalText.Length;
+		SetCurrentValue(TextProperty, "");
+		SetCurrentValue(CaretIndexProperty, finalText.Length);
 		ClearSelection();
+		return new TextInputEventArgs { Text = finalText };
 	}
 
-	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
 	{
 		var prependText = "0" + e.Text;
-		Text = Text.Insert(0, prependText);
-		e.Text = "";
-		CaretIndex += prependText.Length;
+		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
+		SetCurrentValue(CaretIndexProperty, CaretIndex + prependText.Length);
+		return new TextInputEventArgs { Text = "" };
 	}
 
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
@@ -289,7 +285,7 @@ public partial class CurrencyEntryBox : TextBox
 
 	private void DoPasteCheck(KeyEventArgs e)
 	{
-		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
+		var keymap = Application.Current?.PlatformSettings?.HotkeyConfiguration;
 
 		bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
 
@@ -305,47 +301,55 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
+		var text = await ApplicationHelper.GetTextAsync();
+
+		if (string.IsNullOrEmpty(text))
 		{
-			var text = await clipboard.GetTextAsync();
+			return;
+		}
 
-			if (string.IsNullOrEmpty(text))
+		text = text.Replace("\r", "").Replace("\n", "").Trim();
+
+		if (!TryParse(text, out text))
+		{
+			return;
+		}
+
+		if (ValidateEntryText(text))
+		{
+			OnTextInput(new TextInputEventArgs { Text = text });
+
+			Dispatcher.UIThread.Post(() =>
 			{
-				return;
-			}
-
-			text = text.Replace("\r", "").Replace("\n", "").Trim();
-
-			if (!TryParse(text, out text))
-			{
-				return;
-			}
-
-			if (ValidateEntryText(text))
-			{
-				OnTextInput(new TextInputEventArgs { Text = text });
-			}
+				ClearSelection();
+				CaretIndex = Text?.Length ?? 0;
+			});
 		}
 	}
 
 	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
 	{
-		var money = ValidatePasteBalance
-			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-			: ClipboardObserver.ParseToMoney(text);
-		if (money is not null)
+		if (!IsFiat)
 		{
-			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
-			return true;
+			var money = ValidatePasteBalance
+				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+				: ClipboardObserver.ParseToMoney(text);
+			if (money is not null)
+			{
+				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+				return true;
+			}
 		}
-
-		var usd = ValidatePasteBalance
-			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-			: ClipboardObserver.ParseToUsd(text);
-		if (usd is not null)
+		else
 		{
-			result = usd.Value.ToString("0.00");
-			return true;
+			var usd = ValidatePasteBalance
+				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+				: ClipboardObserver.ParseToUsd(text);
+			if (usd is not null)
+			{
+				result = usd.Value.ToString("0.00");
+				return true;
+			}
 		}
 
 		result = null;
@@ -354,6 +358,21 @@ public partial class CurrencyEntryBox : TextBox
 
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
 	// be committed to the TextPresenter in this control.
+
+	private string? RemoveInvalidCharacters(string? text)
+	{
+		if (text is null)
+		{
+			return null;
+		}
+
+		for (var i = 0; i < InvalidCharacters.Length; i++)
+		{
+			text = text.Replace(InvalidCharacters[i], string.Empty);
+		}
+
+		return text;
+	}
 
 	// An event in Avalonia's TextBox with this function should be implemented there for brevity.
 	private string PreComposeText(string input)
@@ -382,21 +401,21 @@ public partial class CurrencyEntryBox : TextBox
 		return "";
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.GetNewValue<bool>());
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", change.GetNewValue<decimal>() == 0m);
 		}
 		else if (change.Property == IsFiatProperty)
 		{
-			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":isfiat", change.GetNewValue<bool>());
 		}
 	}
 }

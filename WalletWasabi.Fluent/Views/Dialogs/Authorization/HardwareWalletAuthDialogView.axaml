@@ -2,14 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:authorization="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs.Authorization"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="authorization:HardwareWalletAuthDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.Authorization.HardwareWalletAuthDialogView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet, press Continue and then follow the instructions on the device."
                  MaxWidth="500"
                  CancelContent="Cancel"
@@ -22,10 +21,10 @@
       <Viewbox MaxHeight="120">
         <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
-      <TextBlock TextAlignment="Center" Foreground="{StaticResource SystemErrorTextColor}"
+      <TextBlock TextAlignment="Center" Foreground="{DynamicResource SystemErrorTextColor}"
                  Text="{Binding AuthorizationFailedMessage}"
                  TextWrapping="Wrap"
                  IsVisible="{Binding HasAuthorizationFailed}" />
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

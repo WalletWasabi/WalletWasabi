@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Analyzers;
 
 /// <summary>
 /// Report an error if UiContext is referenced in the constructor directly without being closed on by a lambda expression.
@@ -99,7 +99,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 		var uiContextReferencesInClass =
 			classDeclaration.GetUiContextReferences(context.SemanticModel);
 
-		if (uiContextReferencesInClass.Any() && !ctor.IsPrivate())
+		if (uiContextReferencesInClass.Count != 0 && !ctor.IsPrivate())
 		{
 			var location = ctor.GetLocation();
 			var diagnostic = Diagnostic.Create(Rule2, location);

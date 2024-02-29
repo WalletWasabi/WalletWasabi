@@ -3,8 +3,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Fluent.Generators.Abstractions;
+using WalletWasabi.Fluent.Generators.Analyzers;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Generators;
 
 internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyntax>
 {
@@ -61,7 +63,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 
 		foreach (var constructor in constructors)
 		{
-			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
+			if (classDeclaration.GetUiContextReferences(semanticModel).Count == 0)
 			{
 				if (!classDeclaration.IsAbstractClass(semanticModel) && constructor.IsPublic())
 				{
@@ -83,7 +85,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 					.Select(x => x.Identifier.ValueText)
 					.ToArray();
 
-				var hasConstructorArgs = constructorArgs.Any();
+				var hasConstructorArgs = constructorArgs.Length != 0;
 				var constructorArgsString = string.Join(",", constructorArgs);
 				var constructorString = hasConstructorArgs
 					? $": this({constructorArgsString})"

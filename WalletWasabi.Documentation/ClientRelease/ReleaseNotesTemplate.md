@@ -33,10 +33,10 @@ Wasabi uses [reproducible builds](https://reproducible-builds.org/), which you c
 ## Requirements
 - Windows 10 1607+
 - Windows 11 22000+
-- macOS 10.15+
-- Ubuntu 18.04+
-- Fedora 36+
-- Debian 10+
+- macOS 12.0+
+- Ubuntu 20.04+
+- Fedora 37+
+- Debian 11+
 ---
 
 ## Full Changelog

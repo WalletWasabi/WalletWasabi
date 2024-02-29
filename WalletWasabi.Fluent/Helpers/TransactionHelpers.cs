@@ -65,15 +65,21 @@ public static class TransactionHelpers
 				label: transactionInfo.Recipient);
 
 			var network = keyManager.GetNetwork();
-			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
+			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);
+
+			TransactionParameters parameters = new (
+				intent,
+				transactionInfo.FeeRate,
+				AllowUnconfirmed: true,
+				AllowDoubleSpend: false,
+				AllowedInputs: allowedCoins.Select(x => x.Outpoint),
+				TryToSign: false,
+				OverrideFeeOverpaymentProtection: false);
 
 			builder.BuildTransaction(
-				intent,
-				feeRateFetcher: () => transactionInfo.FeeRate,
-				allowedCoins.Select(x => x.Outpoint),
+				parameters,
 				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
-				transactionInfo.PayJoinClient,
-				tryToSign: false);
+				transactionInfo.PayJoinClient);
 
 			return true;
 		}
@@ -128,7 +134,13 @@ public static class TransactionHelpers
 	{
 		var psbtExtension = "psbt";
 		string initialFileName = transaction.Transaction.GetHash().ToString();
-		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new[] { psbtExtension }, initialFileName);
+		var file = await FileDialogHelper.SaveFileAsync("Export transaction", new[] { psbtExtension }, initialFileName);
+		if (file is null)
+		{
+			return false;
+		}
+
+		var filePath = file.Path.AbsolutePath;
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{

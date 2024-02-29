@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
@@ -10,35 +10,46 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletCoinsModel
+public partial class WalletCoinsModel : IDisposable
 {
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
-	private readonly IObservable<Unit> _signals;
+	private readonly CompositeDisposable _disposables = new();
 
 	public WalletCoinsModel(Wallet wallet, IWalletModel walletModel)
 	{
 		_wallet = wallet;
 		_walletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
-		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).ToSignal();
+		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 
-		_signals =
+		var signals =
 			transactionProcessed
 				.Merge(anonScoreTargetChanged)
 				.Merge(isCoinjoinRunningChanged)
-				.StartWith(Unit.Default);
+				.Publish();
+
+		List = signals.Fetch(GetCoins, x => x.Key).DisposeWith(_disposables);
+		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
+
+		signals
+			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		signals.Connect();
 	}
 
-	public IObservable<IChangeSet<ICoinModel, int>> List => _signals.ProjectList(GetCoins, x => x.Key);
+	public IObservableCache<ICoinModel, int> List { get; }
 
-	public IObservable<IChangeSet<Pocket, LabelsArray>> Pockets => _signals.ProjectList(GetPockets, x => x.Labels);
+	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
 
 	public List<ICoinModel> GetSpentCoins(BuildTransactionResult? transaction)
 	{
@@ -65,4 +76,6 @@ public partial class WalletCoinsModel
 	{
 		return _wallet.Coins.Select(GetCoinModel).ToArray();
 	}
+
+	public void Dispose() => _disposables.Dispose();
 }

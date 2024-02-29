@@ -4,12 +4,14 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Wallets;
 
 public interface IWallet
 {
 	string WalletName { get; }
+	WalletId WalletId { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
 
@@ -19,6 +21,9 @@ public interface IWallet
 	IKeyChain? KeyChain { get; }
 
 	IDestinationProvider DestinationProvider { get; }
+	OutputProvider OutputProvider => new(DestinationProvider);
+	PaymentBatch BatchedPayments => new();
+
 	int AnonScoreTarget { get; }
 	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }

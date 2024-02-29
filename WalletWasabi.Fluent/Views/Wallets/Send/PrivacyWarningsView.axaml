@@ -1,10 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView">
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView"
+             x:DataType="send:PrivacySuggestionsFlyoutViewModel"
+             x:CompileBindings="True">
   <UserControl.Styles>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="Transparent" />
@@ -35,8 +37,8 @@
 
       <Setter Property="BorderBrush" Value="#14FFFFFF" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
     </Style>
 
     <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
@@ -46,8 +48,8 @@
 
       <Setter Property="BorderBrush" Value="#2AFFFFFF" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+      <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
 
       <Setter Property="Opacity" Value="0" />
     </Style>
@@ -56,7 +58,7 @@
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|SuggestionItem > DockPanel > PathIcon">
+    <Style Selector="SuggestionItem > DockPanel > PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Margin" Value="0 0 10 0" />
       <Setter Property="DockPanel.Dock" Value="Left" />
@@ -126,7 +128,7 @@
     </Style>
   </UserControl.Styles>
   <StackPanel>
-    <ItemsControl Items="{Binding Warnings}">
+    <ItemsControl ItemsSource="{Binding Warnings}">
       <ItemsControl.DataTemplates>
         <!-- Interlinks Labels Warning -->
         <DataTemplate DataType="{x:Type model:InterlinksLabelsWarning}">
@@ -135,7 +137,7 @@
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter Items="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -147,7 +149,7 @@
               <PathIcon />
               <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter Items="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -222,7 +224,7 @@
     <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
                Margin="0 10 0 5"
                IsVisible="{Binding !!Suggestions.Count}" />
-    <ListBox Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+    <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
       <i:Interaction.Behaviors>
         <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
       </i:Interaction.Behaviors>
@@ -230,7 +232,7 @@
 
         <!-- Label Management Suggestion -->
         <DataTemplate DataType="{x:Type model:LabelManagementSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource entities_edit_regular}" />
               <StackPanel Classes="suggestion">
@@ -240,12 +242,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Full Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:FullPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_tick_regular}" />
               <StackPanel Classes="suggestion">
@@ -258,12 +260,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Better Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:BetterPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_regular}" />
               <StackPanel Classes="suggestion">
@@ -276,12 +278,12 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Change Avoidance Suggestion -->
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <DockPanel.Styles>
                 <Style Selector="PathIcon">
@@ -306,13 +308,13 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>
 
     <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
-      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
+      <ProgressRing Height="100" Width="100" IsIndeterminate="True" />
     </Viewbox>
   </StackPanel>
 </UserControl>

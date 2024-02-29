@@ -5,10 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using Avalonia.Rendering;
-using Avalonia.Skia.Helpers;
-using SkiaSharp;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Screenshot;
 
@@ -34,37 +31,15 @@ public static class Capture
 
 	private static async Task SaveAsync(TopLevel root)
 	{
-		if (root is not Window window)
+		var file = await FileDialogHelper.SaveFileAsync(
+			"Save screenshot...",
+			new[] { "png", "*" },
+			"WalletWasabi.png",
+			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+		if (file is not null)
 		{
-			return;
+			Save(root, root.Bounds.Size, file.Path.AbsolutePath);
 		}
-
-		var dlg = new SaveFileDialog
-		{
-			Title = "Save screenshot",
-			Filters = new()
-			{
-				new() { Name = "Svg", Extensions = { "svg" } },
-				new() { Name = "Png", Extensions = { "png" } },
-				new() { Name = "Pdf", Extensions = { "pdf" } },
-				new() { Name = "Skp", Extensions = { "skp" } },
-				new() { Name = "All", Extensions = { "*" } }
-			},
-			InitialFileName = "WalletWasabi",
-			DefaultExtension = "svg"
-		};
-
-		var result = await dlg.ShowAsync(window);
-		if (result is { } path)
-		{
-			Save(root, root.Bounds.Size, path);
-		}
-	}
-
-	private static void Render(Control target, SKCanvas canvas, double dpi)
-	{
-		using var renderTarget = new CanvasRenderTarget(canvas, dpi);
-		ImmediateRenderer.Render(target, renderTarget);
 	}
 
 	private static void Save(Control? target, Size size, string path)
@@ -89,62 +64,6 @@ public static class Capture
 					bitmap.Save(stream);
 					break;
 				}
-			case ".svg":
-				{
-					using var stream = File.Create(path);
-					using var managedWStream = new SKManagedWStream(stream);
-					var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
-					using var canvas = SKSvgCanvas.Create(bounds, managedWStream);
-					target.Measure(size);
-					target.Arrange(new Rect(size));
-					Render(target, canvas, 96d);
-					break;
-				}
-			case ".pdf":
-				{
-					using var stream = File.Create(path);
-					using var managedWStream = new SKManagedWStream(stream);
-					using var document = SKDocument.CreatePdf(stream, 72f);
-					using var canvas = document.BeginPage((float)size.Width, (float)size.Height);
-					target.Measure(size);
-					target.Arrange(new Rect(size));
-					Render(target, canvas, 72f);
-					break;
-				}
-			case ".skp":
-				{
-					using var stream = File.Create(path);
-					var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
-					using var pictureRecorder = new SKPictureRecorder();
-					using var canvas = pictureRecorder.BeginRecording(bounds);
-					target.Measure(size);
-					target.Arrange(new Rect(size));
-					Render(target, canvas, 96d);
-					using var picture = pictureRecorder.EndRecording();
-					picture.Serialize(stream);
-					break;
-				}
-		}
-	}
-
-	private class CanvasRenderTarget : IRenderTarget
-	{
-		private readonly SKCanvas _canvas;
-		private readonly double _dpi;
-
-		public CanvasRenderTarget(SKCanvas canvas, double dpi)
-		{
-			_canvas = canvas;
-			_dpi = dpi;
-		}
-
-		public IDrawingContextImpl CreateDrawingContext(IVisualBrushRenderer? visualBrushRenderer)
-		{
-			return DrawingContextHelper.WrapSkiaCanvas(_canvas, new Vector(_dpi, _dpi), visualBrushRenderer);
-		}
-
-		public void Dispose()
-		{
 		}
 	}
 }

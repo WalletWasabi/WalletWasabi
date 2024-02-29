@@ -5,12 +5,9 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -31,21 +28,27 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private Amount? _amount;
 
-	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionSummary transactionSummary)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-		Fee = uiContext.AmountProvider.Create(transactionSummary.GetFee());
-		IsFeeVisible = Fee != null && transactionSummary.Amount < Money.Zero;
-		TransactionId = transactionSummary.GetHash();
-		DestinationAddresses = transactionSummary.Transaction.GetDestinationAddresses(wallet.Network).ToArray();
+		Fee = wallet.AmountProvider.Create(model.Fee);
+		FeeRate = model.FeeRate;
+		IsFeeVisible = model.Fee != null;
+		TransactionId = model.Id;
+		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
+		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		UpdateValues(transactionSummary);
+		UpdateValues(model);
 	}
+
+	public BitcoinAddress? SingleAddress { get; set; }
+
+	public FeeRate? FeeRate { get; set; }
 
 	public uint256 TransactionId { get; }
 
@@ -55,14 +58,14 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public bool IsFeeVisible { get; }
 
-	private void UpdateValues(TransactionSummary transactionSummary)
+	private void UpdateValues(TransactionModel model)
 	{
-		DateString = transactionSummary.FirstSeen.ToLocalTime().ToUserFacingString();
-		Labels = transactionSummary.Labels;
-		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-		Confirmations = transactionSummary.GetConfirmations();
+		DateString = model.DateString;
+		Labels = model.Labels;
+		BlockHeight = model.BlockHeight;
+		Confirmations = model.Confirmations;
 
-		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transactionSummary);
+		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })
 		{
 			ConfirmationTime = confirmationTime;
@@ -70,18 +73,18 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		IsConfirmed = Confirmations > 0;
 
-		if (transactionSummary.Amount < Money.Zero)
+		if (model.Amount < Money.Zero)
 		{
-			Amount = UiContext.AmountProvider.Create(-transactionSummary.Amount - (transactionSummary.GetFee() ?? Money.Zero));
+			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
 			AmountText = "Amount sent";
 		}
 		else
 		{
-			Amount = UiContext.AmountProvider.Create(transactionSummary.Amount);
+			Amount = _wallet.AmountProvider.Create(model.Amount);
 			AmountText = "Amount received";
 		}
 
-		BlockHash = transactionSummary.BlockHash?.ToString();
+		BlockHash = model.BlockHash?.ToString();
 
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
@@ -96,7 +99,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
+		_wallet.Transactions.Cache
+			                .Connect()
 							.Do(_ => UpdateCurrentTransaction())
 							.Subscribe()
 							.DisposeWith(disposables);
@@ -104,9 +108,9 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateCurrentTransaction()
 	{
-		if (_wallet.Transactions.TryGetById(TransactionId, out var transactionSummary))
+		if (_wallet.Transactions.TryGetById(TransactionId, false, out var transaction))
 		{
-			UpdateValues(transactionSummary);
+			UpdateValues(transaction);
 		}
 	}
 }

@@ -63,19 +63,20 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.Select(GetSelectedCoins);
 
 		wallet.Coins.Pockets
-					.ToCollection()
-					.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-					.Do(
-						tuple =>
-						{
-							var (pockets, sl) = tuple;
-							var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-							RefreshFromPockets(sourceItems, pockets);
-							UpdateSelection(coinItemsCollection, sl.ToList());
-							RestoreExpandedRows(oldExpandedItemsLabel);
-						})
-					.Subscribe()
-					.DisposeWith(_disposables);
+			.Connect()
+			.ToCollection()
+			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
+			.Do(
+				tuple =>
+				{
+					var (pockets, sl) = tuple;
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					RefreshFromPockets(sourceItems, pockets);
+					UpdateSelection(coinItemsCollection, sl.ToList());
+					RestoreExpandedRows(oldExpandedItemsLabel);
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Project selected coins to public property. Throttle for improved UI performance
 		selectedCoins
@@ -87,8 +88,9 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 
 		wallet.Coins.Pockets
+					.Connect()
 					.ToCollection()
-					.Take(1)
+					.SkipWhile(pockets => pockets.Count == 0)
 					.Do(
 						pockets =>
 						{

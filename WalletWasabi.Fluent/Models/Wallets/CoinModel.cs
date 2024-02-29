@@ -40,7 +40,7 @@ public partial class CoinModel : ReactiveObject
 		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x =>
 		{
 			Confirmations = x;
-			ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}";
+			ConfirmedToolTip = TextHelpers.GetConfirmationText(x);
 		});
 	}
 

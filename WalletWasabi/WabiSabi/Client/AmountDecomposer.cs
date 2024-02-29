@@ -65,7 +65,7 @@ public class AmountDecomposer
 		foreach (var denom in preFilteredDenoms)
 		{
 			var filterSeverity = 1 + currentLength * increment;
-			if (!denoms.Any() || denom.Amount.Satoshi <= (long)(denoms.Last().Amount.Satoshi / filterSeverity))
+			if (denoms.Count == 0 || denom.Amount.Satoshi <= (long)(denoms.Last().Amount.Satoshi / filterSeverity))
 			{
 				denoms.Add(denom);
 			}
@@ -82,6 +82,13 @@ public class AmountDecomposer
 		var myInputSum = myInputs.Sum();
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
+
+		// If there are no output denominations, the participation in coinjoin makes no sense.
+		if (!denoms.Any())
+		{
+			throw new InvalidOperationException(
+				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin.");
+		}
 
 		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
 		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
@@ -114,7 +121,7 @@ public class AmountDecomposer
 
 		// If there are changeless candidates, don't even consider ones with change.
 		var changelessCandidates = preCandidates.Where(x => x.Decomposition.All(y => denomHashSet.Contains(y))).ToList();
-		var changeAvoided = changelessCandidates.Any();
+		var changeAvoided = changelessCandidates.Count != 0;
 		if (changeAvoided)
 		{
 			preCandidates = changelessCandidates;

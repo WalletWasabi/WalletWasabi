@@ -18,18 +18,20 @@ public class TransactionFactoryTests
 	[Fact]
 	public void InsufficientBalance()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
-			("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
+				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1)
+			});
 
 		// We try to spend 100btc but we only have 0.03
 		var amount = Money.Coins(100m);
 		using Key key = new();
 		var payment = new PaymentIntent(key, amount);
 
-		var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(2m)));
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(txParameters));
 
 		Assert.Equal(ex.Minimum, amount);
 		Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
@@ -38,42 +40,47 @@ public class TransactionFactoryTests
 	[Fact]
 	public void TooMuchFeePaid()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
+			});
 
 		using Key key = new();
 		var payment = new PaymentIntent(key, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
-		var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(44.25m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 		var output = Assert.Single(result.OuterWalletOutputs);
 		Assert.Equal(result.Fee, output.Amount); // edge case! paid amount equal to paid fee
 
 		// The transaction cost is higher than the intended payment.
-		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(50m)));
+		txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(50m).Build();
+		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(txParameters));
 
 		// self spend case
 		var ownKey = transactionFactory.KeyManager.GetNextReceiveKey("Alice");
 		var selfSpendPayment = new PaymentIntent(ownKey.GetAddress(transactionFactory.Network), MoneyRequest.CreateAllRemaining(subtractFee: true));
-		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(selfSpendPayment, new FeeRate(50m)));
+		txParameters = CreateBuilder().SetPayment(selfSpendPayment).SetFeeRate(50m).Build();
+		Assert.Throws<TransactionFeeOverpaymentException>(() => transactionFactory.BuildTransaction(txParameters));
 	}
 
 	[Fact]
 	public void SelectMostPrivateIndependentlyOfCluster()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("", 0, 0.08m, confirmed: true, anonymitySet: 50),
-			("", 1, 0.16m, confirmed: true, anonymitySet: 200)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
+				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
+			});
 
 		// There is a 0.08 coin with AS=50. However it selects the most private one with AS= 200
 		using Key key = new();
 		var destination = key;
 		var payment = new PaymentIntent(destination, Money.Coins(0.07m), label: "Sophie");
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
@@ -93,17 +100,18 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectMostPrivateCoin()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
-			("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
+				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
+			});
 
 		// There is a 0.8 coin with AS=50. However it selects the most private one with AS= 200
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.07m), label: "Sophie");
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
@@ -123,20 +131,21 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectMostPrivateCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
-			("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
-			("Daniel", 2, 0.04m, confirmed: true, anonymitySet: 100),
-			("Maria",  3, 0.08m, confirmed: true, anonymitySet: 50),
-			("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
+				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
+				("Daniel", 2, 0.04m, confirmed: true, anonymitySet: 100),
+				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 50),
+				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
+			});
 
 		// It has to select the most private coins regardless of the amounts
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.17m));
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Equal(2, result.SpentCoins.Count());
@@ -155,19 +164,20 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectSameScriptPubKeyCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
-			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
-			("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
-			("Maria",  2, 0.08m, confirmed: true, anonymitySet: 20)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
+				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
+				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
+				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 20)
+			});
 
 		// Selecting 0.08 + 0.04 should be enough but it has to select 0.02 too because it is the same address
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.1m), label: "Sophie");
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.True(result.SpendsUnconfirmed);
@@ -230,8 +240,8 @@ public class TransactionFactoryTests
 		// Two 0.9btc coins are enough
 		using Key key1 = new();
 		var payment = new PaymentIntent(key1, Money.Coins(1.75m), label: "Sophie");
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.Equal(2, result.SpentCoins.Count());
 		Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster2));
@@ -241,8 +251,8 @@ public class TransactionFactoryTests
 		// Three 0.9btc coins are enough
 		using Key key2 = new();
 		payment = new PaymentIntent(key2, Money.Coins(1.85m), label: "Sophie");
-		feeRate = new FeeRate(2m);
-		result = transactionFactory.BuildTransaction(payment, feeRate);
+		txParameters = CreateBuilder().SetPayment(payment).Build();
+		result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.Equal(3, result.SpentCoins.Count());
 		Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster2));
@@ -254,8 +264,8 @@ public class TransactionFactoryTests
 		// That's why it has to use the coins in the cluster number 1
 		using Key key3 = new();
 		payment = new PaymentIntent(key3, Money.Coins(3.5m), label: "Sophie");
-		feeRate = new FeeRate(2m);
-		result = transactionFactory.BuildTransaction(payment, feeRate);
+		txParameters = CreateBuilder().SetPayment(payment).Build();
+		result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.Equal(4, result.SpentCoins.Count());
 		Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster1));
@@ -268,8 +278,8 @@ public class TransactionFactoryTests
 		// That's why it has to use the coins from both the clusters
 		using Key key = new();
 		payment = new PaymentIntent(key, Money.Coins(7.4m), label: "Sophie");
-		feeRate = new FeeRate(2m);
-		result = transactionFactory.BuildTransaction(payment, feeRate);
+		txParameters = CreateBuilder().SetPayment(payment).Build();
+		result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.Equal(9, result.SpentCoins.Count());
 	}
@@ -277,10 +287,11 @@ public class TransactionFactoryTests
 	[Fact]
 	public void CustomChangeScript()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key = new();
 		using Key changeKey = new();
@@ -290,8 +301,8 @@ public class TransactionFactoryTests
 			new DestinationRequest(key.PubKey, Money.Coins(0.1m)),
 			new DestinationRequest(changeKey.PubKey, MoneyRequest.CreateChange(subtractFee: true))
 		});
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Single(result.SpentCoins);
@@ -308,10 +319,11 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SubtractFeeFromSpecificOutput()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key1 = new();
 		using Key key2 = new();
@@ -323,8 +335,8 @@ public class TransactionFactoryTests
 			new DestinationRequest(key2, Money.Coins(0.3m), subtractFee: true),
 			new DestinationRequest(key3, Money.Coins(0.3m))
 		});
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
@@ -343,10 +355,11 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SubtractFeeFromTooSmallOutput()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key1 = new();
 		using Key key2 = new();
@@ -358,8 +371,8 @@ public class TransactionFactoryTests
 			new DestinationRequest(key2, Money.Coins(0.00001m), subtractFee: true),
 			new DestinationRequest(key3, Money.Coins(0.3m))
 		});
-		var feeRate = new FeeRate(20m);
-		var ex = Assert.Throws<OutputTooSmallException>(() => transactionFactory.BuildTransaction(payment, feeRate));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(20m).Build();
+		var ex = Assert.Throws<OutputTooSmallException>(() => transactionFactory.BuildTransaction(txParameters));
 
 		Assert.Equal(Money.Satoshis(3240), ex.Missing);
 	}
@@ -367,10 +380,11 @@ public class TransactionFactoryTests
 	[Fact]
 	public void MultiplePaymentsToSameAddress()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key = new();
 		var destination = key.PubKey;
@@ -380,8 +394,8 @@ public class TransactionFactoryTests
 			new DestinationRequest(destination, Money.Coins(0.3m), subtractFee: true),
 			new DestinationRequest(destination, Money.Coins(0.3m))
 		});
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
@@ -401,13 +415,14 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SendAbsolutelyAllCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
-			("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
-			("Eve",    2, 0.3m, confirmed: false, anonymitySet: 40),
-			("Julio",  3, 0.2m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
+				("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
+				("Eve",    2, 0.3m, confirmed: false, anonymitySet: 40),
+				("Julio",  3, 0.2m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key = new();
 		var destination = key;
@@ -415,8 +430,8 @@ public class TransactionFactoryTests
 		{
 			new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee: true))
 		});
-		var feeRate = new FeeRate(2m);
-		var result = transactionFactory.BuildTransaction(payment, feeRate);
+		var txParameters = CreateBuilder().SetPayment(payment).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(1.4m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -428,24 +443,29 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendOnlyAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
-			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
-			("Jack",  2, 0.04m, confirmed: true, anonymitySet: 1),
-			("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
+				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
+				("Jack",  2, 0.04m, confirmed: true, anonymitySet: 1),
+				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.095m));
-		var feeRate = new FeeRate(2m);
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
 			coins.Single(x => x.HdPubKey.Labels == "Maria"),
 			coins.Single(x => x.HdPubKey.Labels == "Jack")
 		}.ToArray();
-		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.12m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -457,18 +477,18 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendWholeAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
-			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
-			("Jack",  2, 0.04m, confirmed: true, anonymitySet: 1),
-			("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
+				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
+				("Jack",  2, 0.04m, confirmed: true, anonymitySet: 1),
+				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
+			});
 
 		using Key key = new();
 		var destination = key.PubKey;
 		var payment = new PaymentIntent(destination, MoneyRequest.CreateAllRemaining(subtractFee: true));
-		var feeRate = new FeeRate(2m);
 		var coins = transactionFactory.Coins;
 		var allowedCoins = new[]
 		{
@@ -476,7 +496,12 @@ public class TransactionFactoryTests
 			coins.Single(x => x.HdPubKey.Labels == "Maria"),
 			coins.Single(x => x.HdPubKey.Labels == "Jack")
 		}.ToArray();
-		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.13m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -494,11 +519,12 @@ public class TransactionFactoryTests
 	[Fact]
 	public void InsufficientAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
-			("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
+				("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
+			});
 
 		var allowedCoins = new[]
 		{
@@ -509,8 +535,12 @@ public class TransactionFactoryTests
 		using Key key = new();
 		var payment = new PaymentIntent(key, amount);
 
-		var ex = Assert.Throws<InsufficientBalanceException>(() =>
-			transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint)));
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.Build();
+
+		var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(txParameters));
 
 		Assert.Equal(ex.Minimum, amount);
 		Assert.Equal(ex.Actual, allowedCoins[0].Amount);
@@ -519,18 +549,18 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendWholeCoinsEvenWhenNotAllowed()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		{
-			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
-			("Jack", 1, 0.02m, confirmed: false, anonymitySet: 1),
-			("Jack", 1, 0.04m, confirmed: true, anonymitySet: 1),
-			("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
-		});
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
+				("Jack", 1, 0.02m, confirmed: false, anonymitySet: 1),
+				("Jack", 1, 0.04m, confirmed: true, anonymitySet: 1),
+				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
+			});
 
 		// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
 		using Key key = new();
 		var payment = new PaymentIntent(key, Money.Coins(0.095m));
-		var feeRate = new FeeRate(2m);
 		var coins = transactionFactory.Coins;
 
 		// the allowed coins contain enough money but one of those has the same script that
@@ -540,7 +570,13 @@ public class TransactionFactoryTests
 			coins.Single(x => x.Amount == Money.Coins(0.08m)).Outpoint,
 			coins.Single(x => x.Amount == Money.Coins(0.02m)).Outpoint
 		}.ToArray();
-		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedInputs);
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(allowedInputs)
+			.Build();
+
+		var result = transactionFactory.BuildTransaction(txParameters);
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -562,8 +598,8 @@ public class TransactionFactoryTests
 
 		using Key key = new();
 		var payment = new PaymentIntent(key, MoneyRequest.CreateAllRemaining(subtractFee: true));
-
-		var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(44.25m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
 		Assert.Single(result.OuterWalletOutputs);
 		Assert.False(result.Signed);
 	}
@@ -583,7 +619,8 @@ public class TransactionFactoryTests
 		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
 
-		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(12m).Build();
+		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(txParameters));
 		Assert.Equal(paymentAmount, ex.Target);
 		Assert.Equal(Money.Coins(0.24209089m), ex.MaximumPossible);
 	}
@@ -686,7 +723,8 @@ public class TransactionFactoryTests
 		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
 
-		transactionFactory.BuildTransaction(payment, new FeeRate(7703m));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(7703m).Build();
+		transactionFactory.BuildTransaction(txParameters);
 	}
 
 	[Fact]
@@ -721,7 +759,7 @@ public class TransactionFactoryTests
 	{
 		// Fee rate: 5.0 sat/vb.
 		{
-			BuildTransactionResult txResult = ComputeTxResult(new FeeRate(5.0m));
+			BuildTransactionResult txResult = ComputeTxResult(5.0m);
 			Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
 			AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(689m), txResult.Transaction.Transaction.Outputs);
 			Assert.Equal(7.2m, txResult.FeePercentOfSent);
@@ -730,7 +768,7 @@ public class TransactionFactoryTests
 
 		// Fee rate: 6.0 sat/vb.
 		{
-			BuildTransactionResult txResult = ComputeTxResult(new FeeRate(6.0m));
+			BuildTransactionResult txResult = ComputeTxResult(6.0m);
 			Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
 			AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(545m), txResult.Transaction.Transaction.Outputs);
 			Assert.Equal(8.64m, txResult.FeePercentOfSent);
@@ -739,7 +777,7 @@ public class TransactionFactoryTests
 
 		// Fee rate: 7.0 sat/vb.
 		{
-			BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.0m));
+			BuildTransactionResult txResult = ComputeTxResult(7.0m);
 			Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
 			AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(401m), txResult.Transaction.Transaction.Outputs);
 			Assert.Equal(10.08m, txResult.FeePercentOfSent);
@@ -748,7 +786,7 @@ public class TransactionFactoryTests
 
 		// Fee rate: 7.74 sat/vb.
 		{
-			BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.74m));
+			BuildTransactionResult txResult = ComputeTxResult(7.74m);
 			Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
 			AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(295m), txResult.Transaction.Transaction.Outputs);
 			Assert.Equal(11.14m, txResult.FeePercentOfSent);
@@ -757,23 +795,25 @@ public class TransactionFactoryTests
 
 		// Fee rate: 7.75 sat/vb. There is only ONE output now!
 		{
-			BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.75m));
+			BuildTransactionResult txResult = ComputeTxResult(7.75m);
 			Assert.Single(txResult.Transaction.Transaction.Outputs);
 			Assert.Equal(Money.Satoshis(10000m), txResult.Transaction.Transaction.Outputs[0].Value);
 			Assert.Equal(14.09m, txResult.FeePercentOfSent);
 			Assert.Equal(Money.Satoshis(1409), txResult.Fee);
 		}
 
-		static BuildTransactionResult ComputeTxResult(FeeRate feeRate)
+		static BuildTransactionResult ComputeTxResult(decimal feeRate)
 		{
-			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-			{
+			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(
+				new[]
+				{
 					(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)
 				});
 
 			using Key key = new();
 			PaymentIntent payment = new(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
-			return transactionFactory.BuildTransaction(payment, feeRate);
+			TransactionParameters txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(feeRate).Build();
+			return transactionFactory.BuildTransaction(txParameters);
 		}
 
 		static void AssertOutputValues(Money mainValue, Money changeValue, TxOutList txOuts)
@@ -792,4 +832,7 @@ public class TransactionFactoryTests
 			}
 		}
 	}
+
+	private static TransactionParametersBuilder CreateBuilder()
+		=> TransactionParametersBuilder.CreateDefault().SetFeeRate(2m).SetAllowUnconfirmed(true);
 }

@@ -4,7 +4,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -18,6 +17,7 @@ public partial class WalletPageViewModel : ViewModelBase
 	[AutoNotify] private string? _iconNameFocused;
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
+	[AutoNotify] private string? _title;
 
 	private WalletPageViewModel(IWalletModel walletModel)
 	{
@@ -25,7 +25,7 @@ public partial class WalletPageViewModel : ViewModelBase
 
 		// TODO: Finish partial refactor
 		// Wallet property must be removed
-		Wallet = Services.WalletManager.GetWallets(false).First(x => x.WalletName == walletModel.Name);
+		Wallet = Services.WalletManager.GetWalletByName(walletModel.Name);
 
 		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
@@ -55,22 +55,14 @@ public partial class WalletPageViewModel : ViewModelBase
 			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
 			.Subscribe();
 
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
+
 		SetIcon();
-
-		SearchItems = CreateSearchItems();
-
-		this.WhenAnyValue(x => x.IsSelected, x => x.IsLoggedIn, (selected, loggedIn) => selected && loggedIn)
-			.Do(AddOrRemoveSearchItems)
-			.Subscribe();
 	}
 
 	public IWalletModel WalletModel { get; }
 
 	public Wallet Wallet { get; }
-
-	public string Title => WalletModel.Name;
-
-	private ISearchItem[] SearchItems { get; }
 
 	private void ShowLogin()
 	{
@@ -85,7 +77,15 @@ public partial class WalletPageViewModel : ViewModelBase
 
 	private void ShowWallet()
 	{
-		WalletViewModel = WalletViewModel.Create(UiContext, this);
+		WalletViewModel =
+			WalletModel.IsHardwareWallet
+			? new HardwareWalletViewModel(UiContext, WalletModel, Wallet)
+			: new WalletViewModel(UiContext, WalletModel, Wallet);
+
+		// Pass IsSelected down to WalletViewModel.IsSelected
+		this.WhenAnyValue(x => x.IsSelected)
+			.BindTo(WalletViewModel, x => x.IsSelected);
+
 		CurrentPage = WalletViewModel;
 		IsLoading = false;
 	}
@@ -99,36 +99,12 @@ public partial class WalletPageViewModel : ViewModelBase
 			WalletType.Coldcard => "coldcard_24",
 			WalletType.Trezor => "trezor_24",
 			WalletType.Ledger => "ledger_24",
+			WalletType.BitBox => "bitbox_24",
+			WalletType.Jade => "jade_24",
 			_ => "wallet_24"
 		};
 
 		IconName = $"nav_{baseResourceName}_regular";
 		IconNameFocused = $"nav_{baseResourceName}_filled";
-	}
-
-	private ISearchItem[] CreateSearchItems()
-	{
-		return new ISearchItem[]
-		{
-			new ActionableItem("Send", "Display wallet send dialog", async () => UiContext.Navigate().To().Send(WalletViewModel!), "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 },
-			new ActionableItem("Receive", "Display wallet receive dialog", async () => UiContext.Navigate().To().Receive(WalletModel), "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
-			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", async () => UiContext.Navigate().To().CoinJoinSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
-			new ActionableItem("Wallet Settings", "Display wallet settings", async () => UiContext.Navigate().To().WalletSettings(WalletModel), "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
-			new ActionableItem("Wallet Coins", "Display wallet coins", async () => UiContext.Navigate().To().WalletCoins(WalletModel), "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 5 },
-			new ActionableItem("Wallet Stats", "Display wallet stats", async () => UiContext.Navigate().To().WalletStats(WalletViewModel!), "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 6 },
-			new ActionableItem("Wallet Info", "Display wallet info", async () => UiContext.Navigate().To().WalletInfo(WalletModel), "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 7 },
-		};
-	}
-
-	private void AddOrRemoveSearchItems(bool shouldAdd)
-	{
-		if (shouldAdd)
-		{
-			UiContext.EditableSearchSource.Add(SearchItems);
-		}
-		else
-		{
-			UiContext.EditableSearchSource.Remove(SearchItems);
-		}
 	}
 }

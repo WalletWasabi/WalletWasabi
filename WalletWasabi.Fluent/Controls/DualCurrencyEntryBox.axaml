@@ -1,26 +1,29 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
-  <Styles.Resources>
-    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
-    <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
-    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
-  </Styles.Resources>
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Style Selector="c|DualCurrencyEntryBox">
+  <!-- TextControlBoxBorderThemeThickness -->
+  <Thickness x:Key="DualCurrencyEntryBoxBorderThemeThickness">0,0,0,2</Thickness>
+  <!-- TextControlBorderThemeThicknessFocused -->
+  <Thickness x:Key="DualCurrencyEntryBoxBorderThemeThicknessFocused">0,0,0,2</Thickness>
+  <!-- TextControlThemePadding -->
+  <Thickness x:Key="DualCurrencyEntryBoxThemePadding">15,10,15,8</Thickness>
+
+  <ControlTheme x:Key="{x:Type DualCurrencyEntryBox}" TargetType="DualCurrencyEntryBox">
+
     <Setter Property="LeftColumn" Value="1" />
     <Setter Property="RightColumn" Value="3" />
 
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThickness}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
     <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="0 1 0 0" />
     <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel>
@@ -36,7 +39,7 @@
             <Panel Margin="{TemplateBinding BorderThickness}">
               <Panel Margin="{TemplateBinding Padding}">
                 <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
-                  <c:CurrencyEntryBox x:Name="PART_LeftEntryBox"
+                  <CurrencyEntryBox x:Name="PART_LeftEntryBox"
                                       Text="{TemplateBinding Text, Mode=TwoWay}"
                                       IsReadOnly="{TemplateBinding IsReadOnly}"
                                       CurrencyCode="{TemplateBinding CurrencyCode}"
@@ -56,10 +59,15 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                           BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="5"
                           Grid.Column="2">
+                    <Button.Styles>
+                      <Style Selector=":pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="Transparent" />
+                      </Style>
+                    </Button.Styles>
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
                   </Button>
 
-                  <c:CurrencyEntryBox x:Name="PART_RightEntryBox"
+                  <CurrencyEntryBox x:Name="PART_RightEntryBox"
                                       Text="{TemplateBinding ConversionText, Mode=TwoWay}"
                                       IsReadOnly="{TemplateBinding IsReadOnly}"
                                       CurrencyCode="{TemplateBinding ConversionCurrencyCode}"
@@ -81,134 +89,131 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <!-- Readonly Template -->
-  <Style Selector="c|DualCurrencyEntryBox:readonly">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel>
-          <DataValidationErrors DockPanel.Dock="Bottom" />
-          <Panel>
-            <Border
-              Name="PART_BorderElement"
-              BorderThickness="{TemplateBinding BorderThickness}"
-              MinWidth="{TemplateBinding MinWidth}"
-              MinHeight="{TemplateBinding MinHeight}" />
-            <Panel
-              Margin="{TemplateBinding BorderThickness}">
+    <!-- Readonly Template -->
+    <Style Selector="^:readonly">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <DockPanel>
+            <DataValidationErrors DockPanel.Dock="Bottom" />
+            <Panel>
+              <Border
+                Name="PART_BorderElement"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                MinWidth="{TemplateBinding MinWidth}"
+                MinHeight="{TemplateBinding MinHeight}" />
               <Panel
-                Margin="{TemplateBinding Padding}">
-                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
-                  <StackPanel Orientation="Horizontal"
-                              Grid.Column="{TemplateBinding LeftColumn}" Margin="0 6 0 0">
-                    <TextPresenter Name="PART_LeftTextPresenter"
-                                   Text="{TemplateBinding Text, Mode=TwoWay}"
-                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                Margin="{TemplateBinding BorderThickness}">
+                <Panel
+                  Margin="{TemplateBinding Padding}">
+                  <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="{TemplateBinding LeftColumn}" Margin="0 6 0 0">
+                      <TextPresenter Name="PART_LeftTextPresenter"
+                                     Text="{TemplateBinding Text, Mode=TwoWay}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-                    <TextBlock Margin="5 0 0 0"
-                               Text="{TemplateBinding CurrencyCode}"
-                               IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                  </StackPanel>
+                      <TextBlock Margin="5 0 0 0"
+                                 Text="{TemplateBinding CurrencyCode}"
+                                 IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </StackPanel>
 
-                  <TextBlock Text="(" Grid.Column="2" Margin="5 6 0 0"
-                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-
-                  <StackPanel Orientation="Horizontal"
-                              Grid.Column="{TemplateBinding RightColumn}" Margin="0 6 0 0">
-                    <TextBlock Margin="0 0 5 0"
-                               Text="≈"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                    <TextBlock Text="(" Grid.Column="2" Margin="5 6 0 0"
                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-                    <TextPresenter Name="PART_RightTextPresenter"
-                                   Text="{TemplateBinding ConversionText, Mode=TwoWay}"
-                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="{TemplateBinding RightColumn}" Margin="0 6 0 0">
+                      <TextBlock Margin="0 0 5 0"
+                                 Text="≈"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-                    <TextBlock Margin="5 0 0 0"
-                               Text="{TemplateBinding ConversionCurrencyCode}"
-                               IsVisible="{TemplateBinding ConversionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                      <TextPresenter Name="PART_RightTextPresenter"
+                                     Text="{TemplateBinding ConversionText, Mode=TwoWay}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+                      <TextBlock Margin="5 0 0 0"
+                                 Text="{TemplateBinding ConversionCurrencyCode}"
+                                 IsVisible="{TemplateBinding ConversionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </StackPanel>
+
+                    <TextBlock Text=")" Grid.Column="4" Margin="0 6 0 0"
                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                  </StackPanel>
-
-                  <TextBlock Text=")" Grid.Column="4" Margin="0 6 0 0"
-                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                </Grid>
+                  </Grid>
+                </Panel>
               </Panel>
             </Panel>
-          </Panel>
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+          </DockPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:noexchangerate Button#PART_SwapButton">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
+    <Style Selector="^:noexchangerate /template/ Button#PART_SwapButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:noexchangerate c|CurrencyEntryBox#PART_RightEntryBox">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
+    <Style Selector="^:noexchangerate /template/ CurrencyEntryBox#PART_RightEntryBox">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:reversed">
-    <Setter Property="LeftColumn" Value="3" />
-    <Setter Property="RightColumn" Value="1" />
-  </Style>
+    <Style Selector="^:reversed">
+      <Setter Property="LeftColumn" Value="3" />
+      <Setter Property="RightColumn" Value="1" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox /template/ Border#PART_RightEntryBox">
-    <Setter Property="HorizontalAlignment" Value="Right" />
-  </Style>
+    <Style Selector="^/template/ Border#PART_RightEntryBox">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:reversed /template/ Border#PART_LeftEntryBox">
-    <Setter Property="HorizontalAlignment" Value="Right" />
-  </Style>
+    <Style Selector="^:reversed /template/ Border#PART_LeftEntryBox">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
 
-  <!-- Disabled State -->
-  <Style Selector="c|DualCurrencyEntryBox:disabled">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
-  </Style>
+    <!-- Disabled State -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:disabled /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
-  </Style>
+    <Style Selector="^:disabled /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+    </Style>
 
-  <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
-  <Style Selector="c|DualCurrencyEntryBox /template/ DataValidationErrors">
-    <Setter Property="MinHeight" Value="21" />
-  </Style>
+    <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
+    <Style Selector="^/template/ DataValidationErrors">
+      <Setter Property="MinHeight" Value="21" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
+    <Style Selector="^:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:error /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-  </Style>
+    <Style Selector="^:error /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton">
-    <Setter Property="Opacity" Value="0.5" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
+    <Style Selector="^/template/ Button#PART_SwapButton">
+      <Setter Property="Opacity" Value="0.5" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
+    <Style Selector="^/template/ Button#PART_SwapButton:pointerover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
 
-  <Style
-    Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-  </Style>
+    <Style Selector="^:focus-within /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource DualCurrencyEntryBoxBorderThemeThicknessFocused}" />
+    </Style>
 
-  <Style Selector="c|DualCurrencyEntryBox:focus-within /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

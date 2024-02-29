@@ -41,7 +41,6 @@ public partial class WalletSettingsModel : ReactiveObject
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
-		WalletName = _keyManager.WalletName;
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
@@ -64,13 +63,15 @@ public partial class WalletSettingsModel : ReactiveObject
 			.Subscribe();
 	}
 
-	public string WalletName { get; }
-
 	public WalletType WalletType { get; }
 
 	public bool IsCoinJoinPaused { get; set; }
 
-	public void Save()
+	/// <summary>
+	/// Saves to current configuration to file.
+	/// </summary>
+	/// <returns>The unique ID of the wallet.</returns>
+	public WalletId Save()
 	{
 		if (_isDirty)
 		{
@@ -84,6 +85,8 @@ public partial class WalletSettingsModel : ReactiveObject
 
 			_isDirty = false;
 		}
+
+		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
 
 	private void SetValues()

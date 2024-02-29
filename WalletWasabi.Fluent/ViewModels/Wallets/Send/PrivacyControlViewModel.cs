@@ -36,6 +36,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
+
+		IsBusy = true;
 	}
 
 	public LabelSelectionViewModel LabelSelection { get; }
@@ -52,7 +54,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		var privateThreshold = _wallet.AnonScoreTarget;
 
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
-		var coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList();
+		var coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList();
 
 		await LabelSelection.ResetAsync(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray(), coinsToExclude);
 		await LabelSelection.SetUsedLabelAsync(_usedCoins, privateThreshold);

@@ -1,39 +1,23 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
-        xmlns:id="using:Avalonia.Xaml.Interactivity"
-        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <Border Padding="0">
-      <c:NavBarItem>
+      <NavBarItem>
         Test Header
-      </c:NavBarItem>
+      </NavBarItem>
     </Border>
   </Design.PreviewWith>
-  <Styles.Resources>
-    <Thickness x:Key="ListBoxItemPadding">12</Thickness>
-  </Styles.Resources>
 
-  <Style Selector="c|NavBarItem">
+  <!-- ListBoxItemPadding -->
+  <Thickness x:Key="NavBarItemPadding">12</Thickness>
+
+  <ControlTheme x:Key="{x:Type NavBarItem}" TargetType="NavBarItem">
+
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
-  </Style>
-
-  <!-- TODO: Enable back when item dragging is enabled
-  <Style Selector="c|NavBarItem:not(:dragging):selectable">
-    <Setter Property="Transitions">
-      <Setter.Value>
-        <Transitions>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" />
-        </Transitions>
-      </Setter.Value>
-    </Setter>
-  </Style>
-  -->
-
-  <Style Selector="c|NavBarItem">
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     <Setter Property="ClipToBounds" Value="False" />
-    <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
+    <Setter Property="Padding" Value="{StaticResource NavBarItemPadding}" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <Panel Height="{TemplateBinding Height}"
@@ -51,57 +35,57 @@
                             Padding="{TemplateBinding Padding}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <!-- NOTE: This margin value is to force the dirty rect in Avalonia's Deferred Renderer
-                     to be rounded up so that it doesnt show up the artifacts when animated on high-res displays.  -->
-          <Border Name="SelectionIndicator" Margin="0.5,0,0,0" />
+          <Border Name="PART_SelectedPipe" />
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator" x:DataType="Border" x:CompileBindings="True">
-    <Setter Property="Opacity" Value="0" />
-  </Style>
+    <Style Selector="^/template/ Border#PART_SelectedPipe" x:DataType="Border" x:CompileBindings="True">
+      <!-- <Setter Property="Opacity" Value="0" /> -->
+    </Style>
 
-  <Style Selector="c|NavBarItem:vertical /template/ Border#SelectionIndicator">
-    <Setter Property="VerticalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalAlignment" Value="Left" />
-    <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="Width" Value="4" />
-    <Setter Property="Height" Value="24" />
-    <Setter Property="CornerRadius" Value="3" />
-  </Style>
+    <Style Selector="^:vertical /template/ Border#PART_SelectedPipe">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Width" Value="4" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="CornerRadius" Value="15" />
+      <Setter Property="ClipToBounds" Value="False" />
+      <Setter Property="ZIndex" Value="1" />
+    </Style>
 
-  <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator">
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
-  </Style>
+    <Style Selector="^/template/ Border#PART_SelectedPipe">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
 
-  <Style Selector="c|NavBarItem /template/ Border#SelectionBackground">
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="Background" Value="{DynamicResource NavBarItemSelectedBrush}" />
-    <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
-      </Transitions>
-    </Setter>
-  </Style>
+    <Style Selector="^/template/ Border#SelectionBackground">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Background" Value="{DynamicResource NavBarItemSelectedBrush}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
 
-  <!-- Disabled State -->
-  <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Opacity" Value="0.5" />
-    <Setter Property="Background" Value="Transparent" />
-  </Style>
+    <!-- Disabled State -->
+    <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
 
-  <!-- PointerOver State -->
-  <Style Selector="c|NavBarItem:pointerover /template/ Border#SelectionBackground">
-    <Setter Property="Opacity" Value="0.05" />
-  </Style>
+    <!-- PointerOver State -->
+    <Style Selector="^:pointerover /template/ Border#SelectionBackground">
+      <Setter Property="Opacity" Value="0.05" />
+    </Style>
 
-  <!-- Pressed State -->
-  <Style Selector="c|NavBarItem:pressed">
-    <Setter Property="RenderTransform" Value="scale(0.98)" />
-  </Style>
+    <!-- Pressed State -->
+    <Style Selector="^:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.98)" />
+    </Style>
 
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

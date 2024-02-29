@@ -17,9 +17,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
-	private const string RandomlySkippedRoundMessage = "Awaiting cheaper coinjoins";
+	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
+	private const string PressPlayToStartMessage = "Press Play to start";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
 	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
@@ -28,7 +29,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingForBlameRoundMessage = "Awaiting the blame round";
 	private const string WaitingRoundMessage = "Awaiting a round";
 	private const string PlebStopMessage = "Coinjoin may be uneconomical";
-	private const string PlebStopMessageBelow = "Add more funds or press 'Play' to bypass";
+	private const string PlebStopMessageBelow = "Add more funds or press Play to bypass";
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
@@ -94,6 +95,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		wallet.Balances
 			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
 			  .Subscribe();
+
+		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
+			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
+			.Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -166,7 +171,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlebStopChanged,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
-		AutoCoinJoinOff
+		AutoCoinJoinOff,
+		AreAllCoinsPrivateChanged
 	}
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
@@ -217,12 +223,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				StopCountDown();
-				PlayVisible = true;
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
-				CurrentStatus = IsAutoCoinJoinEnabled ? PauseMessage : StoppedMessage;
-				LeftText = "Press Play to start";
+
+				// PlayVisible, CurrentStatus and LeftText set inside.
+				RefreshButtonAndTextInStateStoppedOrPaused();
+			})
+			.OnTrigger(Trigger.AreAllCoinsPrivateChanged, () =>
+			{
+				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
+				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
 			.OnExit(() => LeftText = "");
 
@@ -255,6 +266,28 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				LeftText = PlebStopMessageBelow;
 			})
 			.OnExit(() => LeftText = "");
+	}
+
+	private void RefreshButtonAndTextInStateStoppedOrPaused()
+	{
+		if (IsAutoCoinJoinEnabled)
+		{
+			PlayVisible = true;
+			CurrentStatus = PauseMessage;
+			LeftText = PressPlayToStartMessage;
+		}
+		else if (AreAllCoinsPrivate)
+		{
+			PlayVisible = false;
+			LeftText = "";
+			CurrentStatus = AllPrivateMessage;
+		}
+		else
+		{
+			PlayVisible = true;
+			CurrentStatus = StoppedMessage;
+			LeftText = PressPlayToStartMessage;
+		}
 	}
 
 	private void UpdateCountDown()
@@ -319,6 +352,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					_ => GeneralErrorMessage
 				};
+
+				StopCountDown();
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

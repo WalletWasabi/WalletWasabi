@@ -29,8 +29,8 @@ public class ClearnetHttpClient : IHttpClient
 	private HttpClient HttpClient { get; }
 
 	/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
-	public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		return HttpClient.SendAsync(request, token);
+		return HttpClient.SendAsync(request, cancellationToken);
 	}
 }

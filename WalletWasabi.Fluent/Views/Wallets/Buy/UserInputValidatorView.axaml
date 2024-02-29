@@ -1,0 +1,250 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows"
+             xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.UserInputValidatorView">
+  <!-- x:DataType="vm:InputValidator" -->
+  <!-- x:CompileBindings="True" -->
+  <ContentControl Content="{Binding .}">
+    <ContentControl.Resources>
+      <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
+
+      <DataTemplate x:Key="DefaultChatInput">
+        <TextBox  VerticalAlignment="Center"
+                 Text=""
+                 MaxLength="5000"
+                 Watermark="{Binding Watermark}">
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+    </ContentControl.Resources>
+    <ContentControl.Styles>
+
+      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
+        <Setter Property="Margin" Value="0,0,0,-1" />
+      </Style>
+
+      <Style Selector="TextBox">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TagsBox">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TagsBox:pointerover /template/ Border#PART_Border">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="ComboBox">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="ComboBox:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+      </Style>
+      <Style Selector="TextBlock.minLimit">
+        <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+      <Style Selector="TextBlock.fade">
+        <Setter Property="Opacity" Value="0.4" />
+      </Style>
+    </ContentControl.Styles>
+    <ContentControl.DataTemplates>
+      <!-- Default views for steps that don't require user interaction -->
+      <DataTemplate DataType="vm:StartConversationStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:AcceptOfferStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:SaveConversationStep">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+      <DataTemplate DataType="vm:OrderFinishedMessage">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DefaultChatInput}" />
+      </DataTemplate>
+
+      <!-- WelcomeStep -->
+      <DataTemplate DataType="vm:WelcomeStep">
+        <ComboBox ItemsSource="{Binding Products}"
+                  SelectedItem="{Binding Product, Mode=TwoWay}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </ComboBox>
+      </DataTemplate>
+
+      <!-- CountryStep -->
+      <DataTemplate DataType="vm:CountryStep">
+        <TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding SelectedCountries}"
+                   Suggestions="{Binding Countries}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </TagsBox>
+      </DataTemplate>
+
+      <!-- RequestedItemStep -->
+      <DataTemplate DataType="vm:RequestedItemStep">
+        <TextBox Name="RequestTextBox"
+                 VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 MaxLength="5000"
+                 Watermark="{Binding Watermark}">
+          <TextBox.InnerRightContent>
+            <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}" VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+              <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
+              <TextBlock Classes="fade" Text="/" />
+              <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
+            </StackPanel>
+          </TextBox.InnerRightContent>
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- PrivacyPolicyStep-->
+      <DataTemplate DataType="vm:PrivacyPolicyStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox x:Name="CheckBox"
+                    VerticalAlignment="Center"
+                    TabIndex="0"
+                    IsChecked="{Binding Value}"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+              <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+                <behaviors:FocusNextControlAction />
+              </DataTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding PrivacyPolicyLink}" />
+          </StackPanel>
+        </StackPanel>
+      </DataTemplate>
+
+      <!-- SupportChatStep -->
+      <DataTemplate DataType="vm:SupportChatStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 x:Name="TextBox"
+                 MaxLength="5000"
+                 Watermark="{Binding Watermark}">
+          <TextBox.InnerRightContent>
+            <StackPanel VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+              <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
+              <TextBlock Classes="fade" Text="/" />
+              <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
+            </StackPanel>
+          </TextBox.InnerRightContent>
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+            </DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- TextInputStep -->
+      <DataTemplate DataType="vm:TextInputStep">
+        <TextBox VerticalAlignment="Center"
+                 Text="{Binding Value}"
+                 MaxLength="5000"
+                 Watermark="{Binding Watermark}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+          <TextBox.Styles>
+            <Style Selector="TextBox /template/ DataValidationErrors">
+              <Setter Property="IsVisible" Value="False" />
+            </Style>
+          </TextBox.Styles>
+        </TextBox>
+      </DataTemplate>
+
+      <!-- StateStep -->
+      <DataTemplate DataType="vm:StateStep">
+        <TagsBox VerticalAlignment="Center"
+                   RestrictInputToSuggestions="True"
+                   SuggestionsAreCaseSensitive="False"
+                   Watermark="{Binding Watermark}"
+                   MaxTextLength="5000"
+                   ItemCountLimit="1"
+                   TagSeparator=";"
+                   EnableDelete="False"
+                   Items="{Binding SelectedStates}"
+                   Suggestions="{Binding States}"
+                   x:Name="TextBox">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+            </DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </TagsBox>
+      </DataTemplate>
+
+      <!-- ConfirmTosStep -->
+      <DataTemplate DataType="vm:ConfirmTosStep">
+        <StackPanel Orientation="Horizontal">
+          <CheckBox VerticalAlignment="Center"
+                    IsChecked="{Binding Value}"
+                    TabIndex="0"
+                    x:Name="CheckBox"
+                    Margin="8 0 0 0">
+            <i:Interaction.Behaviors>
+              <behaviors:FocusOnAttachedBehavior />
+              <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+                <behaviors:FocusNextControlAction />
+              </DataTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </CheckBox>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="I Accept the" VerticalAlignment="Center" />
+            <helpAndSupport:LinkView DataContext="{Binding Link}" />
+          </StackPanel>
+        </StackPanel>
+      </DataTemplate>
+    </ContentControl.DataTemplates>
+  </ContentControl>
+</UserControl>

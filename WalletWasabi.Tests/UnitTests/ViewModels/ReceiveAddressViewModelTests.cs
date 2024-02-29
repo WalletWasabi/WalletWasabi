@@ -1,15 +1,9 @@
 using System.Collections.Generic;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using DynamicData;
+using System.ComponentModel;
 using Moq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
@@ -43,75 +37,42 @@ public class ReceiveAddressViewModelTests
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 	}
 
-	[Fact]
-	public void WhenAddressBecomesUsedNavigationGoesBack()
-	{
-		var ns = Mock.Of<INavigationStack<RoutableViewModel>>(MockBehavior.Loose);
-		var uiContext = Mocks.ContextWith(ns);
-		var address = new TestAddress("SomeAddress");
-		var wallet = WalletWithAddresses(address);
-		var vm = new ReceiveAddressViewModel(uiContext, wallet, address, true);
-		vm.OnNavigatedTo(false);
-
-		address.IsUsed = true;
-
-		Mock.Get(ns).Verify(x => x.Back(), Times.Once);
-	}
-
-	private static IWalletModel WalletWithAddresses(TestAddress address)
-	{
-		return Mock.Of<IWalletModel>(x => x.Addresses == AddressList(address).Connect(null).AutoRefresh(null, null, null));
-	}
-
-	private static ISourceCache<IAddress, string> AddressList(params IAddress[] addresses)
-	{
-		var cache = new SourceCache<IAddress, string>(s => s.Text);
-		cache.PopulateFrom(addresses.ToObservable());
-		return cache;
-	}
-
 	private class TestWallet : IWalletModel
 	{
-		public string Name => throw new NotSupportedException();
+		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses => Observable.Empty<IChangeSet<IAddress, string>>();
+		public IAddressesModel Addresses => throw new NotSupportedException();
+		public WalletId Id => throw new NotSupportedException();
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotSupportedException();
+		}
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
-
 		bool IWalletModel.IsHardwareWallet => false;
-
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-
 		public IWalletAuthModel Auth => throw new NotSupportedException();
-
 		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
-
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
-
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-
-		public IObservable<IChangeSet<ICoinModel>> Coins => throw new NotSupportedException();
-
 		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
-
 		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
-
 		public IObservable<Amount> Balances => throw new NotSupportedException();
+		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
+		public Network Network => throw new NotSupportedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
-		IWalletCoinsModel IWalletModel.Coins => throw new NotImplementedException();
-
-		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
-
-		public Network Network => throw new NotImplementedException();
-
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
-
-		public IAmountProvider AmountProvider => throw new NotImplementedException();
+		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
+
+		public void Rename(string newWalletName) => throw new NotSupportedException();
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
@@ -121,6 +82,11 @@ public class ReceiveAddressViewModelTests
 		public IWalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
+		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

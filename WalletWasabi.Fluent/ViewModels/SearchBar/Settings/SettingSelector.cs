@@ -9,7 +9,7 @@ public class SettingSelector : IDataTemplate
 {
 	public List<IDataTemplate> DataTemplates { get; set; } = new();
 
-	public IControl Build(object param)
+	public Control Build(object param)
 	{
 		var prop = param.GetType().GetProperty("Value");
 		var template = DataTemplates.FirstOrDefault(d =>

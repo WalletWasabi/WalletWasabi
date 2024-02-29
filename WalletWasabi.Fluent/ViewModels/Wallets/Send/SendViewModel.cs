@@ -3,12 +3,13 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -20,11 +21,10 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using Constants = WalletWasabi.Helpers.Constants;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Userfacing.Bip21;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -49,7 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
-	[AutoNotify] private decimal _amountBtc;
+	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
@@ -61,6 +61,7 @@ public partial class SendViewModel : RoutableViewModel
 		UiContext = uiContext;
 		WalletVm = walletVm;
 		_to = "";
+
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
@@ -108,7 +109,8 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
 				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
@@ -117,7 +119,12 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
-				var amount = new Money(AmountBtc, MoneyUnit.BTC);
+				if (AmountBtc is not { } amountBtc)
+				{
+					return;
+				}
+
+				var amount = new Money(amountBtc, MoneyUnit.BTC);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
 					Amount = amount,
@@ -173,16 +180,13 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			var text = await clipboard.GetTextAsync();
+		var text = await ApplicationHelper.GetTextAsync();
 
-			lock (_parsingLock)
+		lock (_parsingLock)
+		{
+			if (!TryParseUrl(text) && pasteIfInvalid)
 			{
-				if (!TryParseUrl(text) && pasteIfInvalid)
-				{
-					To = text;
-				}
+				To = text;
 			}
 		}
 	}
@@ -193,7 +197,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (!Services.PersistentConfig.UseTor)
+			if (!Services.Config.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
@@ -201,7 +205,7 @@ public partial class SendViewModel : RoutableViewModel
 					return null;
 				}
 
-				if (Services.PersistentConfig.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+				if (UiContext.ApplicationSettings.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 				{
 					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 					return null;
@@ -217,6 +221,11 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateAmount(IValidationErrors errors)
 	{
+		if (AmountBtc is null)
+		{
+			return;
+		}
+
 		if (AmountBtc > Constants.MaximumNumberOfBitcoins)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
@@ -317,7 +326,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (_coinJoinManager is { } coinJoinManager)
 			{
-				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
+				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletId);
 			}
 		}
 

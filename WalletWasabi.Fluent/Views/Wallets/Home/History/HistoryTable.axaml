@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
@@ -19,42 +18,42 @@
     <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:TransactionHistoryItemViewModel">
       <MenuItem Header="Copy Transaction ID"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Id, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Id, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Label"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Labels, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Labels, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource entities_regular}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding IncomingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding IncomingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.IncomingAmount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.IncomingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding OutgoingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.OutgoingAmount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>
       </MenuItem>
       <Separator IsVisible="{Binding TransactionOperationsVisible}" />
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanSpeedUpTransaction}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding Transaction.CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
@@ -72,7 +71,7 @@
     <ContextMenu x:Key="CoinJoinContextMenu" x:DataType="historyItems:CoinJoinHistoryItemViewModel">
       <MenuItem Header="Copy Transaction ID"
                 Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding Id, StringFormat={}{0}}">
+                CommandParameter="{Binding Transaction.Id, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
@@ -96,13 +95,13 @@
     </ContextMenu>
 
     <ContextMenu x:Key="SpeedUpContextMenu" x:DataType="historyItems:SpeedUpHistoryItemViewModel">
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanSpeedUpTransaction}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding Transaction.CanSpeedUpTransaction}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
@@ -125,6 +124,7 @@
                   IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
       <i:Interaction.Behaviors>
         <behaviors:ScrollToSelectedItemBehavior />
+        <behaviors:HistoryItemTypeClassBehavior />
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PrivacyElementFactory />
@@ -144,6 +144,7 @@
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
           <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
         </Style>
         <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
           <Setter Property="Fill" Value="Transparent" />
@@ -156,13 +157,8 @@
           <Setter Property="VerticalAlignment" Value="Center" />
           <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
-        <Style Selector="TextBlock, c|PrivacyContentControl">
+        <Style Selector="TextBlock, PrivacyContentControl">
           <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="StackPanel">
-          <Setter Property="Orientation" Value="Horizontal" />
-          <Setter Property="Spacing" Value="10" />
-          <Setter Property="Margin" Value="10 0" />
         </Style>
         <Style Selector="TreeDataGridRow Button.historyDetails">
           <Setter Property="Opacity" Value="0" />
@@ -170,40 +166,9 @@
         <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
           <Setter Property="Opacity" Value="1" />
         </Style>
+
         <Style Selector="TreeDataGridRow">
-          <Setter Property="Focusable" Value="False" />
-          <Setter Property="Height" Value="37.5" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <DockPanel LastChildFill="True"
-                         Background="Transparent"
-                         x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
-                <i:Interaction.Behaviors>
-                  <behaviors:ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
-                </i:Interaction.Behaviors>
-                <Border Name="PART_SelectionIndicator"
-                        BorderThickness="2 0 0 0"
-                        DockPanel.Dock="Left"
-                        VerticalAlignment="Stretch" />
-                <Panel>
-                  <Rectangle Name="BackgroundRectangle"
-                             Classes.selectAnimation="{Binding IsFlashing}" />
-                  <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
-                                              ElementFactory="{TemplateBinding ElementFactory}"
-                                              Items="{TemplateBinding Columns}"
-                                              Rows="{TemplateBinding Rows}"
-                                              Classes.isChild="{Binding IsChild}"
-                                              x:CompileBindings="False" />
-                  <Rectangle Name="PART_Separator"
-                             Margin="-2,0,0,0"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Bottom"
-                             IsHitTestVisible="False"
-                             Height="1" />
-                </Panel>
-              </DockPanel>
-            </ControlTemplate>
-          </Setter>
+          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
         </Style>
 
         <Style Selector="TreeDataGridRow.Transaction">
@@ -218,48 +183,6 @@
         <Style Selector="TreeDataGridRow.SpeedUp">
           <Setter Property="ContextMenu" Value="{StaticResource SpeedUpContextMenu}" />
         </Style>
-
-        <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
-          <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-          <Setter Property="Opacity" Value="0" />
-          <Style.Animations>
-            <Animation Duration="1.5">
-              <KeyFrame KeyTime="0:0:0.0">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.25">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.50">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:0.75">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1.25">
-                <Setter Property="Opacity" Value="0.5" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:1.5">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
-        </Style>
-        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeDataGridRow:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.isChild">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
@@ -269,43 +192,12 @@
         <Style Selector="PathIcon.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
-
-        <Style Selector="TreeDataGridRow" x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:HistoryItemTypeClassBehavior />
-                <!-- TODO: The Command binding doesn't work in Avalonia 0.10.x -->
-                <!-- <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}" /> -->
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
-
         <Style Selector="TreeDataGridExpanderCell">
-          <Setter Property="Template">
-            <ControlTemplate>
-              <Border Background="{TemplateBinding Background}"
-                      Padding="0">
-                <DockPanel>
-                  <Border DockPanel.Dock="Left"
-                          Margin="4 0"
-                          Width="12" Height="12">
-                    <ToggleButton Classes="ExpandCollapseChevron"
-                                  Focusable="False"
-                                  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                  IsVisible="{TemplateBinding ShowExpander}"
-                                  Cursor="Hand" />
-                  </Border>
-                  <Decorator Name="PART_Content" />
-                </DockPanel>
-              </Border>
-            </ControlTemplate>
-          </Setter>
+          <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridExpanderCell}" />
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+    <HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                RowHeight="{StaticResource HistoryTableRowHeight}"
                                IsVisible="{Binding IsTransactionHistoryEmpty}"
                                Opacity="0.1" />

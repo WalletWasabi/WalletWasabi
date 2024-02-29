@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -17,6 +16,7 @@ using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi;
 
@@ -104,12 +104,13 @@ public class WabiSabiCoordinator : BackgroundService
 	{
 		var now = DateTimeOffset.UtcNow;
 
-		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, now);
+		bool IsInputBanned(TxIn input) => Warden.Prison.IsBanned(input.PrevOut, Config.GetDoSConfiguration(), now);
 		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
 
 		var outpointsToBan = block.Transactions
+			.Where(tx => !CoinJoinIdStore.Contains(tx.GetHash()))  // We don't ban coinjoin outputs
 			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
-			.Where(x => x.BannedInputs.Any())
+			.Where(x => x.BannedInputs.Length != 0)
 			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
 
 		foreach (var (outpoint, ancestors) in outpointsToBan)
@@ -120,27 +121,49 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public void BanDoubleSpenders(object? sender, Transaction tx)
 	{
-		var outPoints = tx.Inputs.Select(x => x.PrevOut);
-
-		// Detect and punish double spending coins
-		var disrupters = Arena.RoundStates
-			.Where(r => r.Phase != Phase.Ended)
-			.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
-			.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-			.ToArray();
-
-		foreach (var (roundId, offender) in disrupters)
+		var txId = tx.GetHash();
+		if (IsWasabiCoinJoin(txId, tx))
 		{
-			Warden.Prison.DoubleSpent(offender.Outpoint, offender.Amount, roundId);
+			return;
+		}
+
+		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
+		var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
+
+		// No round was disrupted by the received transaction. Nothing to do here.
+		if (disruptedRounds.Length == 0)
+		{
+			return;
+		}
+
+		// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
+		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
+		{
+			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds);
 		}
 
 		// Abort disrupted rounds
-		var disruptedRounds = disrupters.Select(x => x.RoundId).Distinct();
 		foreach (var roundId in disruptedRounds)
 		{
 			Arena.AbortRound(roundId);
 		}
 	}
+
+	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>
+		CoinJoinIdStore.Contains(txId) || IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx);
+
+	private bool IsFinishedCoinJoin(uint256 txId) =>
+		Arena.RoundStates
+		.Select(x => x.CoinjoinState)
+		.OfType<SigningState>()
+		.Any(x => x.CreateUnsignedTransaction().GetHash() == txId);
+
+	private bool IsWasabiCoinJoinLookingTx(Transaction tx) =>
+		tx.RBF == false
+		&& tx.Inputs.Count >= Config.MinInputCountByRound
+		&& tx.Inputs.Count <= Config.MaxInputCountByRound
+		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
+		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{

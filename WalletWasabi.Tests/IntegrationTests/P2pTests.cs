@@ -99,7 +99,7 @@ public class P2pTests
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		await using WasabiHttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
@@ -109,7 +109,7 @@ public class P2pTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		IRepository<uint256, Block> blockRepository = bitcoinStore.BlockRepository;
+		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfig, httpClientFactory.TorEndpoint);
 
 		IBlockProvider blockProvider = new SmartBlockProvider(

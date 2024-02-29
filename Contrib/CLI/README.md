@@ -48,6 +48,11 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
   "walletFile": "/home/ricardo/.walletwasabi/client/Wallets/MyWallet.json",
   "state": "Started",
   "masterKeyFingerprint": "d415c529",
+  "anonScoreTarget": 5,
+  "isWatchOnly": false,
+  "isHardwareWallet": false,
+  "isAutoCoinjoin": true,
+  "isRedCoinIsolation": false,
   "accounts": [
     {
       "name": "segwit",
@@ -60,7 +65,8 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
       "keyPath": "m/86'/0'/0'"
     }
   ],
-  "balance": 198738301
+  "balance": 198738301,
+  "coinjoinStatus": "Idle"
 }
 ```
 

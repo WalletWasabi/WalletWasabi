@@ -90,7 +90,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// Wait for the result of TcpListener.Start().
-			await TaskStartTcpListener.Task.WithAwaitCancellationAsync(DisposeCts.Token).ConfigureAwait(false);
+			await TaskStartTcpListener.Task.WaitAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// This is the first instance, nothing else to do.
 			return true;

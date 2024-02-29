@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:shell="using:WalletWasabi.Fluent.Views.Shell"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="False"
@@ -18,10 +18,10 @@
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
       <Viewbox Stretch="Uniform" ClipToBounds="False">
-        <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
+        <shell:WelcomeBg EnableAnimations="{Binding IsOobeBackgroundVisible, FallbackValue=False}" ClipToBounds="False" />
       </Viewbox>
     </ExperimentalAcrylicBorder>
-    <c:Dialog DataContext="{Binding FullScreen}"
+    <Dialog DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
@@ -33,18 +33,18 @@
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
-      <c:Dialog.Styles>
-        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+      <Dialog.Styles>
+        <Style Selector="Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         </Style>
-        <Style Selector="c|Dialog /template/ Border#PART_Border">
+        <Style Selector="Dialog /template/ Border#PART_Border">
           <Setter Property="Margin" Value="0" />
           <Setter Property="CornerRadius" Value="0" />
         </Style>
-      </c:Dialog.Styles>
+      </Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
-    <c:Dialog DataContext="{Binding DialogScreen}"
+    </Dialog>
+    <Dialog DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
@@ -58,8 +58,8 @@
               MaxContentWidth="800" MaxContentHeight="700"
               IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
-    <c:Dialog DataContext="{Binding CompactDialogScreen}"
+    </Dialog>
+    <Dialog DataContext="{Binding CompactDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
@@ -70,6 +70,6 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
+    </Dialog>
   </Panel>
 </UserControl>

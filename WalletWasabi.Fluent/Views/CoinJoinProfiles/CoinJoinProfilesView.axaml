@@ -3,23 +3,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:prof="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfilesView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
 
-    <c:ContentArea.Styles>
+    <ContentArea.Styles>
       <Style Selector=":is(Control)">
         <Setter Property="ClipToBounds" Value="False" />
       </Style>
-    </c:ContentArea.Styles>
+    </ContentArea.Styles>
 
     <DockPanel>
 
@@ -32,7 +31,7 @@
               VerticalAlignment="Bottom"
               Content="Customize" />
 
-      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
+      <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
                VerticalAlignment="Center"
                ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
         <ListBox.Styles>
@@ -60,17 +59,16 @@
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow1}" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
             <Setter Property="CornerRadius" Value="4" />
-
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+            <Setter Property="Background" Value="{DynamicResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{DynamicResource OptimizePrivacyOptionBoxShadow2}" />
             <Setter Property="Opacity" Value="0" />
           </Style>
 
@@ -85,12 +83,12 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <c:SuggestionItem MaxHeight="280">
+            <SuggestionItem MaxHeight="280">
               <prof:CoinJoinProfileControl Margin="10 10 10 15" />
-            </c:SuggestionItem>
+            </SuggestionItem>
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

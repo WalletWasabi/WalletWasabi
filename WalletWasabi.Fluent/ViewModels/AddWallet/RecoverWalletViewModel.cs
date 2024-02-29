@@ -14,8 +14,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -32,7 +30,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
-			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
+			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
 			.Subscribe(x =>
 			{
 				CurrentMnemonics = x;
@@ -96,6 +94,12 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private void ValidateMnemonics(IValidationErrors errors)
 	{
+		if (CurrentMnemonics is null)
+		{
+			ClearValidations();
+			return;
+		}
+
 		if (IsMnemonicsValid)
 		{
 			return;
@@ -106,7 +110,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Recovery Words are not valid.");
+		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
 	}
 
 	private string GetTagsAsConcatString()

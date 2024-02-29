@@ -3,18 +3,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:SelectCharsetViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.SelectCharsetView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Please select the character set"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="False">
 
-    <ListBox Items="{Binding Charsets}"
+    <ListBox ItemsSource="{Binding Charsets}"
              Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
@@ -32,7 +31,7 @@
       </ListBox.Styles>
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:CharsetViewModel">
-          <c:TileButton Text="{Binding Title}"
+          <TileButton Text="{Binding Title}"
                         IconSize="60" Margin="10 10 10 20" Classes="bottomtext"
                         ToolTip.Tip="{Binding Characters}"
                         Command="{Binding SelectCommand}">
@@ -40,9 +39,9 @@
               <TextBlock FontSize="50" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding ShortTitle}"
                          Foreground="{DynamicResource SystemAccentColor}" />
             </Viewbox>
-          </c:TileButton>
+          </TileButton>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

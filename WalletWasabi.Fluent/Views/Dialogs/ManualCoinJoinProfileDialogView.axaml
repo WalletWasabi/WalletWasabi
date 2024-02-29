@@ -2,39 +2,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:dv="clr-namespace:WalletWasabi.Fluent.Views.Dialogs"
              mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="470"
              x:DataType="dialogs:ManualCoinJoinProfileDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ManualCoinJoinProfileDialogView">
-  <c:ContentArea
+  <ContentArea
     Title="{Binding Title}"
     CancelContent="Cancel"
     EnableCancel="{Binding EnableCancel}"
     EnableBack="{Binding EnableBack}"
     EnableNext="True" NextContent="Done">
-    <StackPanel Classes="settingsLayout">
 
-      <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
-        <TextBlock Text="Red coin isolation" />
-        <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" />
-      </DockPanel>
+    <dv:AdvancedCoinjoinOptionsView DataContext="{Binding CoinjoinAdvancedSettings}" />
 
-      <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-        <TextBlock Text="Anonymity score target" />
-        <DockPanel>
-          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding AnonScoreTarget}" VerticalAlignment="Center" Margin="5" />
-          <Slider Minimum="2" Maximum="300" Value="{Binding AnonScoreTarget}" />
-        </DockPanel>
-      </StackPanel>
-
-      <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
-        <TextBlock Text="Coinjoin time preference" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  Items="{Binding TimeFrames}"
-                  SelectedItem="{Binding SelectedTimeFrame}" />
-      </DockPanel>
-    </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

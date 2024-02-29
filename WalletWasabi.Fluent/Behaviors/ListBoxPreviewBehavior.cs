@@ -41,7 +41,7 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 			return;
 		}
 
-		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerLeave))
+		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerExited))
 			.Subscribe(_ => ClearPreviewItem(0))
 			.DisposeWith(disposables);
 
@@ -81,6 +81,8 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 			PreviewItem = null;
 		}
 	}
+
+	protected override void OnDetachedFromVisualTree() => PreviewItem = null;
 
 	private void CancelClear()
 	{

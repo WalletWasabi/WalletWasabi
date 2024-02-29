@@ -1,6 +1,6 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
@@ -9,13 +9,12 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-[JsonObject(MemberSerialization.OptIn)]
+[DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
@@ -126,8 +125,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
+					.GroupBy(i => i.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
@@ -139,8 +138,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
+					.GroupBy(o => o.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
@@ -159,36 +158,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	[JsonProperty]
-	[JsonConverter(typeof(TransactionJsonConverter))]
 	public Transaction Transaction { get; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(HeightJsonConverter))]
 	public Height Height { get; private set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(Uint256JsonConverter))]
 	public uint256? BlockHash { get; private set; }
 
-	[JsonProperty]
 	public int BlockIndex { get; private set; }
 
-	[JsonProperty(PropertyName = "Label")]
-	[JsonConverter(typeof(LabelsArrayJsonConverter))]
 	public LabelsArray Labels { get; set; }
 
-	[JsonProperty]
-	[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 	public DateTimeOffset FirstSeen { get; private set; }
 
-	[JsonProperty]
 	public bool IsReplacement { get; private set; }
 
-	[JsonProperty]
 	public bool IsSpeedup { get; private set; }
 
-	[JsonProperty]
 	public bool IsCancellation { get; private set; }
 
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
@@ -205,7 +190,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// Parent transactions this transaction is paying for.
 	/// </summary>
 	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
-		IsSpeedup && !IsCancellation && !ForeignInputs.Any() && !ForeignOutputs.Any()
+		IsSpeedup && !IsCancellation && ForeignInputs.Count == 0 && ForeignOutputs.Count == 0
 			? WalletInputs
 				.Select(x => x.Transaction)
 				.Where(x => x.Height == Height
@@ -221,7 +206,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
 	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 	/// </summary>
-	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
+	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.Transaction.IsRBF));
+
+	public bool IsImmature(int bestHeight)
+	{
+		return Transaction.IsCoinBase && Height >= bestHeight - 100;
+	}
 
 	#endregion Members
 
@@ -467,7 +457,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsOwnCoinjoin()
-	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
+	   => WalletInputs.Count != 0 // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	public bool IsSegwitWithoutWitness => !Transaction.HasWitness && Transaction.Inputs.Any(x => x.ScriptSig == Script.Empty);
@@ -477,7 +467,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool TryGetFee([NotNullWhen(true)] out Money? fee)
 	{
-		if (ForeignInputs.Any())
+		if (ForeignInputs.Count != 0)
 		{
 			fee = null;
 			return false;
@@ -494,7 +484,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool TryGetFeeRate([NotNullWhen(true)] out FeeRate? feeRate)
 	{
-		if (ForeignInputs.Any() || IsSegwitWithoutWitness)
+		if (ForeignInputs.Count != 0 || IsSegwitWithoutWitness)
 		{
 			feeRate = null;
 			return false;
@@ -516,24 +506,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	#region LineSerialization
-
-	public string ToLine()
-	{
-		// GetHash is also serialized, so file can be interpreted with our eyes better.
-
-		return string.Join(
-			':',
-			GetHash(),
-			Transaction.ToHex(),
-			Height,
-			BlockHash,
-			BlockIndex,
-			Labels,
-			FirstSeen.ToUnixTimeSeconds(),
-			IsReplacement,
-			IsSpeedup,
-			IsCancellation);
-	}
 
 	public static SmartTransaction FromLine(string line, Network expectedNetwork)
 	{

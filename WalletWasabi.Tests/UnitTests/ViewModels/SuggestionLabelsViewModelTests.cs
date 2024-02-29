@@ -1,11 +1,8 @@
 using System.Collections.Generic;
-using System.Reactive;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using DynamicData;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -168,44 +165,40 @@ public class SuggestionLabelsViewModelTests
 			_mostUsedLabels = mostUsedLabels;
 		}
 
-		public string Name => throw new NotSupportedException();
+		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
+		public IAddressesModel Addresses => throw new NotSupportedException();
+		public WalletId Id => throw new NotSupportedException();
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotSupportedException();
+		}
 
 		public IObservable<WalletState> State => throw new NotSupportedException();
-
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
-
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-
-		public IWalletAuthModel Auth => throw new NotImplementedException();
-
-		public IWalletLoadWorkflow Loader => throw new NotImplementedException();
-
-		public IWalletSettingsModel Settings => throw new NotImplementedException();
-
-		public IWalletCoinsModel Coins => throw new NotImplementedException();
-
-		public IWalletPrivacyModel Privacy => throw new NotImplementedException();
-
-		public IWalletCoinjoinModel Coinjoin => throw new NotImplementedException();
-
-		public IObservable<Unit> TransactionProcessed => throw new NotImplementedException();
-
-		public Network Network => throw new NotImplementedException();
-
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotImplementedException();
-
-		public IObservable<Amount> Balances => throw new NotImplementedException();
-
+		public IWalletAuthModel Auth => throw new NotSupportedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
+		public IWalletSettingsModel Settings => throw new NotSupportedException();
+		public IWalletCoinsModel Coins => throw new NotSupportedException();
+		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
+		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
+		public Network Network => throw new NotSupportedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
-		public IAmountProvider AmountProvider => throw new NotImplementedException();
+		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
+
+		public void Rename(string newWalletName) => throw new NotSupportedException();
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
@@ -215,6 +208,11 @@ public class SuggestionLabelsViewModelTests
 		public IWalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
+		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -1,30 +1,31 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
   <Design.PreviewWith>
     <Panel>
       <Border Margin="10">
-        <c:TagsBox>
-          <c:TagsBox.Items>
+        <TagsBox>
+          <TagsBox.Items>
             <generic:List x:TypeArguments="system:String">
               <system:String>Label1</system:String>
               <system:String>Label2</system:String>
               <system:String>Label3</system:String>
             </generic:List>
-          </c:TagsBox.Items>
-        </c:TagsBox>
+          </TagsBox.Items>
+        </TagsBox>
       </Border>
     </Panel>
   </Design.PreviewWith>
+
   <Styles.Resources>
     <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
   </Styles.Resources>
-  <Style Selector="c|TagsBox">
+
+  <Style Selector="TagsBox">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
@@ -32,11 +33,12 @@
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
     <Setter Property="Cursor" Value="IBeam" />
+    <Setter Property="Focusable" Value="True" />
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>
           <DockPanel x:Name="PART_DockPanel">
-            <ItemsControl Items="{TemplateBinding TopItems}"
+            <ItemsControl ItemsSource="{TemplateBinding TopItems}"
                           IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
                           ClipToBounds="False"
                           Margin="0,10,0,0"
@@ -48,13 +50,14 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Classes="activeHyperLink"
-                          Margin="0,0,6,0"
-                          Focusable="False"
-                          Content="{Binding}"
-                          Command="{Binding #PART_DockPanel.TemplatedParent.AddTag}"
-                          CommandParameter="{Binding }"
-                          x:CompileBindings="False" />
+                  <PrivacyContentControl Margin="0,0,6,0">
+                    <Button Classes="activeHyperLink"
+                            Focusable="False"
+                            Content="{Binding}"
+                            Command="{Binding $parent[TagsBox].AddTag}"
+                            CommandParameter="{Binding }"
+                            x:CompileBindings="False" />
+                  </PrivacyContentControl>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -68,28 +71,29 @@
                            Padding="15 0"
                            VerticalAlignment="Center"
                            Text="{TemplateBinding Watermark}" />
-                <ItemsPresenter Name="PART_ItemsPresenter"
-                                Focusable="False"
-                                Items="{TemplateBinding Items}">
-                  <ItemsPresenter.ItemsPanel>
+                <ItemsControl Name="PART_ItemsPresenter"
+                              ItemsSource="{TemplateBinding Items}"
+                              ClipToBounds="False"
+                              Focusable="False">
+                  <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
-                        <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                          <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                           Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
-                                           FilterMode="StartsWith" />
-                        </c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                      </c:ConcatenatingWrapPanel>
+                      <ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
+                        <ConcatenatingWrapPanel.ConcatenatedChildren>
+                          <TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                    ItemsSource="{Binding $parent[TagsBox].Suggestions}"
+                                                    FilterMode="StartsWith" />
+                        </ConcatenatingWrapPanel.ConcatenatedChildren>
+                      </ConcatenatingWrapPanel>
                     </ItemsPanelTemplate>
-                  </ItemsPresenter.ItemsPanel>
-                  <ItemsPresenter.ItemTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <c:TagControl Content="{Binding .}"
-                                    EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}"
-                                    EnableDelete="{Binding #PART_DockPanel.TemplatedParent.EnableDelete}" />
+                      <TagControl Content="{Binding .}"
+                                    EnableCounter="{Binding $parent[TagsBox].EnableCounter}"
+                                    EnableDelete="{Binding $parent[TagsBox].EnableDelete}" />
                     </DataTemplate>
-                  </ItemsPresenter.ItemTemplate>
-                </ItemsPresenter>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </Panel>
             </Border>
           </DockPanel>
@@ -99,7 +103,7 @@
     <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
   </Style>
 
-  <Style Selector="c|TagsBox:readonly">
+  <Style Selector="TagsBox:readonly">
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="Template">
@@ -115,21 +119,22 @@
                          Padding="15 0"
                          VerticalAlignment="Center"
                          Text="{TemplateBinding Watermark}" />
-              <ItemsPresenter Name="PART_ItemsPresenter"
-                              Focusable="False"
-                              Items="{TemplateBinding Items}">
-                <ItemsPresenter.ItemsPanel>
+              <ItemsControl Name="PART_ItemsPresenter"
+                            ItemsSource="{TemplateBinding Items}"
+                            Focusable="False"
+                            ClipToBounds="False">
+                <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
                   </ItemsPanelTemplate>
-                </ItemsPresenter.ItemsPanel>
-                <ItemsPresenter.ItemTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <c:TagControl Content="{Binding .}"
-                                  EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}" />
+                    <TagControl Content="{Binding .}"
+                                  EnableCounter="{Binding $parent[TagsBox].EnableCounter}" />
                   </DataTemplate>
-                </ItemsPresenter.ItemTemplate>
-              </ItemsPresenter>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
             </Panel>
           </Border>
         </DataValidationErrors>
@@ -138,132 +143,46 @@
     <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
   </Style>
 
-  <Style Selector="c|TagsBox /template/ Border#PART_Border">
+  <Style Selector="TagsBox">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+  </Style>
+
+  <Style Selector="TagsBox /template/ Border#PART_Border">
     <Setter Property="CornerRadius" Value="4" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
   </Style>
 
-  <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+  <Style Selector="TagsBox:pointerover /template/ Border#PART_Border">
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
     <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
   </Style>
 
-  <Style Selector="c|TagsBox:focus-within">
+  <Style Selector="TagsBox:focus-within">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
   </Style>
 
-  <Style Selector="c|TagsBox:focus-within /template/ Border#PART_Border">
+  <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
     <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
   </Style>
 
-  <Style Selector="c|TagsBox:error /template/ Border#PART_Border">
+  <Style Selector="TagsBox:error /template/ Border#PART_Border">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
   </Style>
 
-  <Style Selector="c|TagsBox:readonly /template/ Border#PART_Border">
+  <Style Selector="TagsBox:readonly /template/ Border#PART_Border">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
-  <Style Selector="c|TagsBox c|TagControl">
-    <Setter Property="Margin" Value="0,0,4,3" />
-  </Style>
-
-  <Style
-    Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl,
-                     c|TagsBox:readonly WrapPanel c|TagControl">
+  <Style Selector="TagsBox:readonly WrapPanel TagControl">
     <Setter Property="Margin" Value="0,0,4,4" />
   </Style>
 
-  <Style Selector="c|TagsBox:readonly WrapPanel">
+  <Style Selector="TagsBox:readonly WrapPanel">
     <Setter Property="Margin" Value="0 4 0 0" />
   </Style>
 
-  <Style Selector="c|TagsBox AutoCompleteBox">
-    <Setter Property="Background" Value="{x:Null}" />
-    <Setter Property="Padding" Value="15 10 15 8" />
-    <Setter Property="Margin" Value="0 0 0 2" />
-    <Setter Property="MaxDropDownHeight" Value="90" />
-    <Setter Property="MinimumPrefixLength" Value="1" />
-    <Setter Property="Focusable" Value="False" />
-    <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Grid Name="PART_LayoutRoot">
-          <TextBox Name="PART_TextBox"
-                   Watermark="{TemplateBinding Watermark}"
-                   Width="{TemplateBinding Width}"
-                   Foreground="{TemplateBinding Foreground}"
-                   Background="{TemplateBinding Background}"
-                   BorderBrush="{TemplateBinding BorderBrush}"
-                   BorderThickness="{TemplateBinding BorderThickness}"
-                   FontSize="{TemplateBinding FontSize}"
-                   FontFamily="{TemplateBinding FontFamily}"
-                   FontWeight="{TemplateBinding FontWeight}"
-                   Padding="{TemplateBinding Padding}"
-                   Margin="0"
-                   DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
-
-          <Popup Name="PART_Popup"
-                 WindowManagerAddShadowHint="False"
-                 MaxHeight="120"
-                 IsLightDismissEnabled="True"
-                 PlacementTarget="{TemplateBinding}">
-            <Border Name="PART_SuggestionsContainer"
-                    Padding="{DynamicResource AutoCompleteListMargin}"
-                    BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
-                    BorderBrush="{DynamicResource AutoCompleteBoxSuggestionsListBorderBrush}"
-                    Background="{DynamicResource AutoCompleteBoxSuggestionsListBackground}"
-                    CornerRadius="{DynamicResource OverlayCornerRadius}">
-              <ListBox Name="PART_SelectingItemsControl"
-                       BorderThickness="0"
-                       Background="Transparent"
-                       ItemTemplate="{TemplateBinding ItemTemplate}"
-                       Margin="{DynamicResource AutoCompleteListPadding}" />
-            </Border>
-          </Popup>
-        </Grid>
-      </ControlTemplate>
-    </Setter>
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="Margin" Value="0" />
-    <Setter Property="Focusable" Value="True" />
-    <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
-    <Setter Property="MaxLength"
-            Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="Margin" Value="0" />
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ DataValidationErrors">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
-    <Setter Property="MinWidth" Value="286" />
-  </Style>
-
-  <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
-    <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
-    <Setter Property="ContextMenu">
-      <ContextMenu>
-        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
-                  IsEnabled="{Binding $parent[TextBox].CanPaste}"
-                  InputGesture="{x:Static TextBox.PasteGesture}" />
-      </ContextMenu>
-    </Setter>
-  </Style>
 </Styles>

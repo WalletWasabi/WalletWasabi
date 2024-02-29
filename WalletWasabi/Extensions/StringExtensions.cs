@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace WalletWasabi.Extensions;
 
 public static class StringExtensions
@@ -37,5 +40,35 @@ public static class StringExtensions
 		}
 
 		return char.IsWhiteSpace(me[0]) || char.IsWhiteSpace(me[^1]);
+	}
+
+	public static string[] SplitWords(this string text) =>
+		text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+	public static string[] SplitLines(this string text, int lineWidth)
+	{
+		static void InternalSplit(string text, int lineWidth, List<string> result)
+		{
+			while (true)
+			{
+				if (text.Length < lineWidth)
+				{
+					result.Add(text);
+					return;
+				}
+
+				var line = text.SplitWords()
+					.Scan(string.Empty, (l, w) => l + w + ' ')
+					.TakeWhile(l => l.Length <= lineWidth)
+					.DefaultIfEmpty(text)
+					.Last();
+				result.Add(line);
+				text = text[(line.Length)..];
+			}
+		}
+
+		List<string> result = new();
+		InternalSplit(text, lineWidth, result);
+		return result.ToArray();
 	}
 }

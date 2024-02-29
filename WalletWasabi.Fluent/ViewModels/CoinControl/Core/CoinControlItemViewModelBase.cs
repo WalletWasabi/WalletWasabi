@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -64,4 +65,6 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 	}
 
 	public ScriptType? ScriptType { get; protected set; }
+
+	public virtual bool HasChildren() => Children.Count != 0;
 }

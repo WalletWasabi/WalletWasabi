@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 
-namespace WalletWasabi.Fluent.Generators;
+namespace WalletWasabi.Fluent.Generators.Abstractions;
 
 internal abstract class GeneratorStep<T> : GeneratorStep, ISyntaxReceiver where T : SyntaxNode
 {

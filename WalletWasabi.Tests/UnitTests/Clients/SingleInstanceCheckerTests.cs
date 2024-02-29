@@ -105,7 +105,7 @@ public class SingleInstanceCheckerTests
 				networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
 				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 				await writer.WriteAsync(new StringBuilder("fake message"), cts.Token);
-				await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+				await writer.FlushAsync().WaitAsync(cts.Token);
 				await networkStream.FlushAsync(cts.Token);
 			}
 
@@ -129,7 +129,7 @@ public class SingleInstanceCheckerTests
 
 				// This won't throw if the connection is lost, just continues.
 				await writer.WriteAsync(new StringBuilder("late message"), cts.Token);
-				await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+				await writer.FlushAsync().WaitAsync(cts.Token);
 				await networkStream.FlushAsync(cts.Token);
 			}
 			catch (IOException)

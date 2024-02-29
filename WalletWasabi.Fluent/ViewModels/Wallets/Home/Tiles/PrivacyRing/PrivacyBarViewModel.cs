@@ -38,9 +38,10 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.DisposeWith(disposables);
 
 		Wallet.Coins.List
-					.ToCollection()
-					.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
-					.DisposeWith(disposables);
+			.Connect(suppressEmptyChangeSets: false)
+			.ToCollection()
+			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
+			.DisposeWith(disposables);
 	}
 
 	private void Update(IExtendedList<PrivacyBarItemViewModel> list, IReadOnlyCollection<ICoinModel> coins)

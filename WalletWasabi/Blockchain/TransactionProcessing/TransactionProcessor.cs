@@ -30,7 +30,8 @@ public class TransactionProcessor
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	private static object Lock { get; } = new();
+	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
+	public static object Lock { get; } = new();
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
@@ -128,15 +129,16 @@ public class TransactionProcessor
 				{
 					doubleSpentSpenders.AddRange(coins);
 				}
-				if (Coins.TryGetSpentCoinByOutPoint(txIn.PrevOut, out var spentCoin))
+
+				if (Coins.TryGetByOutPoint(txIn.PrevOut, out var coin) && coin.IsSpent())
 				{
-					doubleSpentCoins.Add(spentCoin);
+					doubleSpentCoins.Add(coin);
 				}
 			}
 
 			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders.Select(x => x.Transaction)).ToHashSet();
 
-			if (doubleSpentTransactions.Any())
+			if (doubleSpentTransactions.Count > 0)
 			{
 				tx.SetReplacement();
 			}
@@ -146,7 +148,7 @@ public class TransactionProcessor
 				// if the received transaction is spending at least one input already
 				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 				// spending transaction but a replacement transaction.
-				var isReplacementTx = doubleSpentSpenders.Any(x => x.IsReplaceable());
+				var isReplacementTx = doubleSpentSpenders.Any(x => x.Transaction.IsRBF);
 				if (isReplacementTx)
 				{
 					// Undo the replaced transaction by removing the coins it created (if other coin
@@ -158,7 +160,7 @@ public class TransactionProcessor
 					result.ReplacedCoins.AddRange(replaced);
 					result.RestoredCoins.AddRange(restored);
 				}
-				else if (doubleSpentSpenders.Any())
+				else if (doubleSpentSpenders.Count > 0)
 				{
 					return result;
 				}
@@ -270,7 +272,7 @@ public class TransactionProcessor
 			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
 		}
 
-		if (tx.WalletInputs.Any() || tx.WalletOutputs.Any())
+		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)
 		{
 			TransactionStore.AddOrUpdate(tx);
 		}

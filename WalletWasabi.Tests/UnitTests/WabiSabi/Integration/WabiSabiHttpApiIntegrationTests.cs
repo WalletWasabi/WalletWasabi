@@ -22,7 +22,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -179,7 +178,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -269,7 +268,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
 
 			// Run the coinjoin client task.
-			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token);
+			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 			if (coinjoinResult is SuccessfulCoinJoinResult)
 			{
 				throw new Exception("Coinjoin should have never finished successfully.");
@@ -360,7 +359,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), cts.Token).ConfigureAwait(false), cts.Token);
+		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
@@ -522,7 +521,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}
-					else if (!participantsFinishedSuccessully.Any() && !cts.IsCancellationRequested)
+					else if (participantsFinishedSuccessully.Length == 0 && !cts.IsCancellationRequested)
 					{
 						var exceptions = tasks
 							.Where(x => x.IsFaulted)
@@ -612,26 +611,4 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return ret;
 		}
 	}
-}
-
-public class MockWasabiHttpClientFactory : IWasabiHttpClientFactory
-{
-	public Func<(PersonCircuit, IHttpClient)>? OnNewHttpClientWithPersonCircuit { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithCircuitPerRequest { get; set; }
-	public Func<IHttpClient>? OnNewHttpClientWithDefaultCircuit { get; set; }
-
-	public (PersonCircuit, IHttpClient) NewHttpClientWithPersonCircuit() =>
-		OnNewHttpClientWithPersonCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithCircuitPerRequest() =>
-		OnNewHttpClientWithCircuitPerRequest?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithPersonCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClientWithDefaultCircuit() =>
-		OnNewHttpClientWithDefaultCircuit?.Invoke()
-			?? throw new NotImplementedException($"{nameof(NewHttpClientWithDefaultCircuit)} was called but never assigned.");
-
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null) =>
-		throw new NotImplementedException();
 }

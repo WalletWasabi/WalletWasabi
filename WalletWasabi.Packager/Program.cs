@@ -36,7 +36,7 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"win7-x64",
+		"win-x64",
 		"linux-x64",
 		"osx-x64",
 		"osx-arm64"
