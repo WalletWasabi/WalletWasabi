@@ -32,11 +32,12 @@ And also enable `Enable EditorConfig support` in `Settings -> Editor -> Code Sty
 
 Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
 
-If you are using Visual Studio Code make sure to add the following settings to your settings file:
+If you are using Visual Studio Code make sure to install "C# Dev Kit" extension and to add the following settings to your settings file:
 
 ```json
-    "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableRoslynAnalyzers": true,
+    "[csharp]": {
+    	"editor.defaultFormatter": "ms-dotnettools.csharp"
+  	},
     "editor.formatOnSave": true,
 ```
 
@@ -141,20 +142,24 @@ private async void Synchronizer_ResponseArrivedAsync(object? sender, EventArgs e
 	}
 }
 ```
+
 - [Async/Await - Best Practices](https://docs.microsoft.com/en-us/archive/msdn-magazine/2013/march/async-await-best-practices-in-asynchronous-programming)
 
 ## `ConfigureAwait(false)`
 
 Basically every async library method should use `ConfigureAwait(false)` except:
+
 - Methods that touch objects on the UI Thread, like modifying UI controls.
 - Methods that are unit tests, xUnit [Fact].
 
 **Usage:**
+
 ```cs
 await MyMethodAsync().ConfigureAwait(false);
 ```
 
 **Top level synchronization**
+
 ```cs
 // Later we need to modify UI control so we need to sync back to this thread, thus don't use .ConfigureAwait(false);.
 // Note: inside MyMethodAsync() you can still use .ConfigureAwait(false);.
@@ -167,6 +172,7 @@ myUiControl.Text = result;
 - [ConfigureAwait FAQ](https://devblogs.microsoft.com/dotnet/configureawait-faq/)
 
 ## Never throw AggregateException and Exception in a mixed way
+
 It causes confusion and awkward catch clauses.
 [Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files)
 
@@ -179,22 +185,24 @@ It causes confusion and awkward catch clauses.
 - Good: `_ = new HwiClient(network);`
 
 In general
+
 - If the return value is not used, write nothing.
 - In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used.
 - In case you want to create an object but do not need the reference, `_ =` should be used.
 - If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment.
-- In special cases `_ =` can be used but a reasonable elaboration is required by adding a comment above. 
+- In special cases `_ =` can be used but a reasonable elaboration is required by adding a comment above.
 
 ---
 
 # UI Coding Conventions
 
 The following is a list of UI specific coding conventions. Follow these any time you are contributing code in the following projects:
- - `WalletWasabi.Fluent`
- - `WalletWasabi.Fluent.Desktop`
- - `WalletWasabi.Fluent.Generators`
 
- ## Disposing Subscriptions in ReactiveObjects
+- `WalletWasabi.Fluent`
+- `WalletWasabi.Fluent.Desktop`
+- `WalletWasabi.Fluent.Generators`
+
+## Disposing Subscriptions in ReactiveObjects
 
 **DO** follow [ReactiveUI's Subscription Disposing Conventions](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions).
 
@@ -234,7 +242,7 @@ this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 
 **DO** follow [ReactiveUI's Oaph Over Properties Principle](https://reactiveui.net/docs/guidelines/framework/prefer-oaph-over-properties).
 
-**DO** use  `ObservableAsPropertyHelper` with `WhenAny` when a property's value depends on another property, a set of properties, or an observable stream, rather than set the value explicitly.
+**DO** use `ObservableAsPropertyHelper` with `WhenAny` when a property's value depends on another property, a set of properties, or an observable stream, rather than set the value explicitly.
 
 ```cs
 public class RepositoryViewModel : ReactiveObject
@@ -262,6 +270,7 @@ All the logic should go into `ViewModels` or `Behaviors`.
 For Avalonia applications the Main method must be synchronous. No async-await here! If you await inside Main before Avalonia has initialised its renderloop / UIThread, then OSX will stop working. Why? Because OSX applications (and some of Unixes) assume that the very first thread created in a program is the UIThread. Cocoa apis check this and crash if they are not called from Thread 0. Awaiting means that Avalonia may not be able to capture Thread 0 for the UIThread.
 
 ## Avoid Binding expressions with SubProperties
+
 If you have a `Binding` expression i.e. `{Binding MyProperty.ChildProperty}` then most likely the UI design is flawed and you have broken the MVVM pattern.
 
 This kind of Binding demonstrates that your View is dependent not on just 1 ViewModel, but multiple Viewmodels and a very specific relationship between them.
@@ -269,40 +278,42 @@ This kind of Binding demonstrates that your View is dependent not on just 1 View
 If you find yourself having to do this, please re-think the UI design. To follow the MVVM pattern correctly to ensure the UI remains maintainable and testable then we should have a 1-1 view, viewmodel relationship. That means every view should only depend on a single viewmodel.
 
 ## Familiarise yourself with MVVM Pattern
+
 It is very important for us to follow the MVVM pattern in UI code. Whenever difficulties arise in refactoring the UI or adding new UI features its usually where we have ventured from this path.
 
 Some pointers on how to recognise if we are breaking MVVM:
 
-* Putting code in .xaml.cs (code-behind files)
-* Putting business logic inside control code
-* Views that depend on more than 1 viewmodel class.
+- Putting code in .xaml.cs (code-behind files)
+- Putting business logic inside control code
+- Views that depend on more than 1 viewmodel class.
 
 If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.
 
 ## Avoid using Grid as much as possible, Use Panel instead
+
 If you don't need any row or column splitting for your child controls, just use `Panel` as your default container control instead of `Grid` since it is a moderately memory and CPU intensive control.
 
 ## ViewModel Hierarchy
 
-The ViewModel structure should reflect the UI structure as much as possible. This means that ViewModels can have *child* ViewModels directly referenced in their code, just like Views have direct reference to *child* views.
+The ViewModel structure should reflect the UI structure as much as possible. This means that ViewModels can have _child_ ViewModels directly referenced in their code, just like Views have direct reference to _child_ views.
 
-❌ **DO NOT** write ViewModel code that depends on *parent* or *sibling* ViewModels in the logical UI structure. This harms both testability and maintainability.
+❌ **DO NOT** write ViewModel code that depends on _parent_ or _sibling_ ViewModels in the logical UI structure. This harms both testability and maintainability.
 
 Examples:
 
- - ✔️ `MainViewModel` represents the Main Wasabi UI and references `NavBarViewModel`.
- - ✔️ `NavBarViewModel` represents the left-side navigation bar and references `WalletListViewModel`.
- - ❌ `NavBarViewModel` code must NOT reference `MainViewModel` (its logical parent).
- - ❌ `WalletListViewModel` code must NOT reference `NavBarViewModel` (its logical parent).
- - ❌ `WalletListViewModel` code must NOT reference other ViewModels that are logical children of `NavBarViewModel` (its logical siblings).
+- ✔️ `MainViewModel` represents the Main Wasabi UI and references `NavBarViewModel`.
+- ✔️ `NavBarViewModel` represents the left-side navigation bar and references `WalletListViewModel`.
+- ❌ `NavBarViewModel` code must NOT reference `MainViewModel` (its logical parent).
+- ❌ `WalletListViewModel` code must NOT reference `NavBarViewModel` (its logical parent).
+- ❌ `WalletListViewModel` code must NOT reference other ViewModels that are logical children of `NavBarViewModel` (its logical siblings).
 
 ## UI Models
 
-The UI Model classes (which comprise the *Model* part of the MVVM pattern) sit as an abstraction layer between the UI and the larger Wasabi Object Model (which lives in the `WalletWasabi` project). This layer is responsible for:
+The UI Model classes (which comprise the _Model_ part of the MVVM pattern) sit as an abstraction layer between the UI and the larger Wasabi Object Model (which lives in the `WalletWasabi` project). This layer is responsible for:
 
- - Exposing Wasabi data and functionality in a UI-friendly manner. Usually in the form of Observables.
+- Exposing Wasabi data and functionality in a UI-friendly manner. Usually in the form of Observables.
 
- - Avoiding tight coupling between UI code and business logic. This is critical for testability of UI code, mainly ViewModels.
+- Avoiding tight coupling between UI code and business logic. This is critical for testability of UI code, mainly ViewModels.
 
 ❌ **DO NOT** write ViewModel code that depends directly on `WalletWasabi` objects such as `Wallet`, `KeyManager`, `HdPubKey`, etc.
 
@@ -318,11 +329,11 @@ The UI Model classes (which comprise the *Model* part of the MVVM pattern) sit a
 
 ViewModels that depend on external components (such as Navigation, Clipboard, QR Reader, etc) can access these via the `ViewModelBase.UIContext` property. For instance:
 
- - Get text from clipboard: `var text = await UIContext.Clipboard.GetTextAsync();`
+- Get text from clipboard: `var text = await UIContext.Clipboard.GetTextAsync();`
 
- - Generate QR Code: `await UIContext.QrGenerator.Generate(data);`
+- Generate QR Code: `await UIContext.QrGenerator.Generate(data);`
 
- - Open a popup or navigate to another Viewmodel: `UIContext.Navigate().To(....)`
+- Open a popup or navigate to another Viewmodel: `UIContext.Navigate().To(....)`
 
 This is done to facilitate unit testing of viewmodels, since all dependencies that live inside the `UiContext` are designed to be mock-friendly.
 
@@ -333,10 +344,11 @@ This is done to facilitate unit testing of viewmodels, since all dependencies th
 Whenever a ViewModel references its `UiContext` property, the `UiContext` object becomes an actual **dependency** of said ViewModel. It must therefore be initialized, ideally as a constructor parameter.
 
 In order to minimize the amount of boilerplate required for such initialization, several things occur in this case:
- - A new constructor is generated for that ViewModel, including all parameters of any existing constructor plus the UiContext.
- - This generated constructor initializes the `UiContext` *after* running the code of the manually written constructor (if any).
- - A Roslyn Analyzer inspects any manually written constructors in the ViewModel to prevent references to `UiContext` in the constructor body, before the above mentioned initialization can take place, resulting in `NullReferenceException`s.
- - The Analyzer demands the manually written constructor to be declared `private`, so that external instatiation of the ViewModel is done by calling the source-generated constructor.
+
+- A new constructor is generated for that ViewModel, including all parameters of any existing constructor plus the UiContext.
+- This generated constructor initializes the `UiContext` _after_ running the code of the manually written constructor (if any).
+- A Roslyn Analyzer inspects any manually written constructors in the ViewModel to prevent references to `UiContext` in the constructor body, before the above mentioned initialization can take place, resulting in `NullReferenceException`s.
+- The Analyzer demands the manually written constructor to be declared `private`, so that external instatiation of the ViewModel is done by calling the source-generated constructor.
 
 ❌ Writing code that directly references `UiContext` in a ViewModel's constructor body will result in a compile-time error.
 
@@ -378,7 +390,3 @@ If you absolutely must reference `UiContext` in the constructor, you can create 
 ```
 
 In this case, no additional constructors will be generated, and the analyzer will be satisfied.
-
-
-
-
