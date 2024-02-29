@@ -32,11 +32,12 @@ And also enable `Enable EditorConfig support` in `Settings -> Editor -> Code Sty
 
 Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
 
-If you are using Visual Studio Code make sure to add the following settings to your settings file:
+If you are using Visual Studio Code make sure to install "C# Dev Kit" extension and add the following settings to your settings file:
 
 ```json
     "omnisharp.enableEditorConfigSupport": true,
     "omnisharp.enableRoslynAnalyzers": true,
+	"editor.defaultFormatter": "ms-dotnettools.csharp",
     "editor.formatOnSave": true,
 ```
 
