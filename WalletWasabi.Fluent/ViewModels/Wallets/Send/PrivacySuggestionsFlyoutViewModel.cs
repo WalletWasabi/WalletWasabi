@@ -40,7 +40,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	{
 		var previewWarningList = new List<PrivacyWarning>();
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: false))
 		{
 			if (item is PrivacyWarning warning)
 			{
@@ -69,7 +69,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: true))
 		{
 			if (item is PrivacyWarning warning)
 			{
