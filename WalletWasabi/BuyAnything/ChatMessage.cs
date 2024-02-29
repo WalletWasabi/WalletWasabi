@@ -38,7 +38,6 @@ public record ChatMessage
 		IsUnread = isUnread;
 		StepName = stepName;
 		Data = data;
-
 		CreatedAt = ReadUnixTimestamp();
 	}
 
