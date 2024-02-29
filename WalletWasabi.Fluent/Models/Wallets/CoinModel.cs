@@ -11,9 +11,9 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class CoinModel : ReactiveObject, IDisposable
 {
-	private bool _subscribedToCoinChanges;
 	private readonly CompositeDisposable _disposable = new();
-	
+	private bool _subscribedToCoinChanges;
+
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private bool _isCoinJoinInProgress;
 	[AutoNotify] private bool _isBanned;
@@ -65,8 +65,6 @@ public partial class CoinModel : ReactiveObject, IDisposable
 	public bool IsSemiPrivate => PrivacyLevel == PrivacyLevel.SemiPrivate;
 
 	public bool IsNonPrivate => PrivacyLevel == PrivacyLevel.NonPrivate;
-
-	
 
 	/// <summary>Subscribes to property changes of underlying SmartCoin.</summary>
 	/// <remarks>This method is not thread safe. Make sure it's not called concurrently.</remarks>
