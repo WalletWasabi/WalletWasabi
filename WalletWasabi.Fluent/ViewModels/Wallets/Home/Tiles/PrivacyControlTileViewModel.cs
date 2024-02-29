@@ -31,7 +31,11 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		PrivacyBar = new PrivacyBarViewModel(wallet);
 
-		var coinList = _wallet.Coins.List.Connect(suppressEmptyChangeSets: false);
+		var coinList =
+			_wallet.Coins.List
+						 .Connect(suppressEmptyChangeSets: false); // coinList here is not subscribed to SmartCoin changes.
+																   // Dynamic updates to SmartCoin properties won't be reflected in the UI.
+																   // See CoinModel.SubscribeToCoinChanges().
 
 		TotalAmount = coinList.Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 		PrivateAmount = coinList.Filter(x => x.IsPrivate, suppressEmptyChangeSets: false).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
@@ -55,9 +59,14 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	{
 		base.OnActivated(disposables);
 
+		var coinList =
+			_wallet.Coins.List                                      // coinList here is not subscribed to SmartCoin changes.
+						 .Connect(suppressEmptyChangeSets: false)   // Dynamic updates to SmartCoin properties won't be reflected in the UI.
+						 .ToCollection();                           // See CoinModel.SubscribeToCoinChanges().
+
 		_wallet.Privacy.Progress
 					   .CombineLatest(_wallet.Privacy.IsWalletPrivate)
-					   .CombineLatest(_wallet.Coins.List.Connect(suppressEmptyChangeSets: false).ToCollection())
+					   .CombineLatest(coinList)
 					   .Flatten()
 					   .Do(tuple =>
 					   {
