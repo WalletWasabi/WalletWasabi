@@ -15,8 +15,7 @@ public abstract partial class MessageViewModel : ReactiveObject
 		_message = message;
 		IsUnread = message.IsUnread;
 		OriginalText = message.Text;
-		string uiMessage = ParseRawMessage(message);
-		UiMessage = uiMessage;
+		UiMessage = ParseRawMessage(message);
 	}
 
 	public string? OriginalText { get; set; }
