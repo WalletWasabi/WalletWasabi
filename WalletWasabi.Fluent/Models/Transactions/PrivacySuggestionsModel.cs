@@ -176,7 +176,7 @@ public class PrivacySuggestionsModel
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
 		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Length != 0 &&
-			TryCreateTransaction((TransactionInfo?)parameters.TransactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
+			TryCreateTransaction(parameters.TransactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
@@ -200,7 +200,7 @@ public class PrivacySuggestionsModel
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
 		if (foundNonPrivate && allSemiPrivateCoin.Length != 0 &&
-			TryCreateTransaction((TransactionInfo?)parameters.TransactionInfo, coins, out newTransaction, out isChangeless))
+			TryCreateTransaction(parameters.TransactionInfo, coins, out newTransaction, out isChangeless))
 		{
 			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
