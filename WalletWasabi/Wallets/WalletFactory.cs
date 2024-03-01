@@ -24,4 +24,12 @@ public record WalletFactory(
 
 		return new(DataDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor);
 	}
+
+	public Wallet CreateAndInitialize(KeyManager keyManager)
+	{
+		Wallet wallet = Create(keyManager);
+		wallet.Initialize();
+
+		return wallet;
+	}
 }
