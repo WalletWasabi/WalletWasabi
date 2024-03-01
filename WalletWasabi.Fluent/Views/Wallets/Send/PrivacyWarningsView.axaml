@@ -72,6 +72,24 @@
       <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
       <Setter Property="Padding" Value="5" />
       <Setter Property="Margin" Value="5 0 5 5" />
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <behaviors:PrivacyWarningFadeOutBehavior PreviewWarnings="{Binding PreviewWarnings^}" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.warning.fadeout">
+      <Setter Property="Opacity" Value=".4" />
+      <Setter Property="IsEnabled" Value="False" />
+      <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
     </Style>
 
     <Style Selector="Border.warning PathIcon">
@@ -237,8 +255,9 @@
                 <TextBlock Text="Full Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to use only private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -254,8 +273,9 @@
                 <TextBlock Text="Better Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to avoid non-private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -283,8 +303,9 @@
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to remove change." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" IsVisible="{Binding !IsSameAmount}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
