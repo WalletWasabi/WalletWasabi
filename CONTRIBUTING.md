@@ -35,9 +35,7 @@ Not only CodeMaid, but Visual Studio also enforces consistent coding style throu
 If you are using Visual Studio Code make sure to install "C# Dev Kit" extension and add the following settings to your settings file:
 
 ```json
-    "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableRoslynAnalyzers": true,
-    "editor.formatOnSave": true,
+	"editor.formatOnSave": true,
 ```
 
 # Code conventions
