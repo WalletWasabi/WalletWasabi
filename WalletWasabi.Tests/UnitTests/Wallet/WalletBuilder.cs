@@ -65,10 +65,7 @@ public class WalletBuilder : IAsyncDisposable
 		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
 
 		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, blockProvider);
-		var result = walletFactory.Create(keyManager);
-		result.Initialize();
-
-		return result;
+		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
 	public async ValueTask DisposeAsync()
