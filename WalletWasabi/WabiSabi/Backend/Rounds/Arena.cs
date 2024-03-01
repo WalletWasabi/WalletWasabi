@@ -491,13 +491,13 @@ public partial class Arena : PeriodicRunner
 		if (Config.WW200CompatibleLoadBalancing)
 		{
 			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
+			var roundDestroyerInputCount = 0.9 * Config.MaxInputCountByRound;
 
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= Math.Min(0.9 * x.Parameters.MaxInputCountByRound, roundDestroyerInputCount)).ToArray())
+				&& x.InputCount >= roundDestroyerInputCount).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
