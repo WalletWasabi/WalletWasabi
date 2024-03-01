@@ -81,6 +81,6 @@ public static class StreamReaderWriterExtensions
 			estimations.Add(reader.ReadInt32(), reader.ReadInt32());
 		}
 
-		return new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		return new AllFeeEstimate(estimations);
 	}
 }
