@@ -491,13 +491,11 @@ public partial class Arena : PeriodicRunner
 		if (Config.WW200CompatibleLoadBalancing)
 		{
 			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = 0.9 * Config.MaxInputCountByRound;
-
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= roundDestroyerInputCount).ToArray())
+				&& x.InputCount >= 0.9 * x.Parameters.MaxInputCountByRound).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -537,7 +535,7 @@ public partial class Arena : PeriodicRunner
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
-						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {0.9 * round.Parameters.MaxInputCountByRound}");
 					}
 				}
 			}
