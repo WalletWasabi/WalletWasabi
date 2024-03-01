@@ -8,6 +8,9 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets;
 
+/// <summary>
+/// Class to create <see cref="Wallet"/> instances.
+/// </summary>
 public record WalletFactory(
 	string DataDir,
 	Network Network,
