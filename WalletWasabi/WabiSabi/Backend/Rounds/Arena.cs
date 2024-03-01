@@ -497,7 +497,7 @@ public partial class Arena : PeriodicRunner
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= roundDestroyerInputCount).ToArray())
+				&& x.InputCount >= Math.Min(0.9 * x.Parameters.MaxInputCountByRound, roundDestroyerInputCount)).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
