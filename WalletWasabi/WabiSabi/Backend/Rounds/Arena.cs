@@ -495,7 +495,7 @@ public partial class Arena : PeriodicRunner
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= 0.9 * x.Parameters.MaxInputCountByRound).ToArray())
+				&& x.InputCount >= CalculateLoadBalanceThreshold(x.Parameters.MinInputCountByRound, x.Parameters.MaxInputCountByRound)).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -535,7 +535,7 @@ public partial class Arena : PeriodicRunner
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
-						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {0.9 * round.Parameters.MaxInputCountByRound}");
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {CalculateLoadBalanceThreshold(round.Parameters.MinInputCountByRound, round.Parameters.MaxInputCountByRound)}");
 					}
 				}
 			}
@@ -554,6 +554,8 @@ public partial class Arena : PeriodicRunner
 			r.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
+
+	private int CalculateLoadBalanceThreshold(int minInputCountByRound, int maxInputCountByRound) => (int)Math.Min(0.9 * maxInputCountByRound, minInputCountByRound * 2 + minInputCountByRound / 2);
 
 	private Round? TryMineRound(RoundParameters parameters, Round[] rounds)
 	{
