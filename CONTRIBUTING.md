@@ -37,7 +37,6 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 ```json
     "omnisharp.enableEditorConfigSupport": true,
     "omnisharp.enableRoslynAnalyzers": true,
-    "editor.defaultFormatter": "ms-dotnettools.csharp",
     "editor.formatOnSave": true,
 ```
 
