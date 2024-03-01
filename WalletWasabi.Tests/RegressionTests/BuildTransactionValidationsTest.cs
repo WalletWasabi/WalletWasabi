@@ -82,9 +82,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			cache);
 
 		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
-
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
-
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();

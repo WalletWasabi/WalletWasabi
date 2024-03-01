@@ -12,7 +12,7 @@ public record WalletFactory(
 	string DataDir,
 	Network Network,
 	BitcoinStore BitcoinStore,
-	WasabiSynchronizer Synchronizer,
+	WasabiSynchronizer WasabiSynchronizer,
 	ServiceConfiguration ServiceConfiguration,
 	HybridFeeProvider FeeProvider,
 	IBlockProvider BlockProvider)
@@ -22,7 +22,7 @@ public record WalletFactory(
 		TransactionProcessor transactionProcessor = new(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
 		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockProvider);
 
-		return new(DataDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor);
+		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor);
 	}
 
 	public Wallet CreateAndInitialize(KeyManager keyManager)
