@@ -8,7 +8,8 @@
 - Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
 - Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
 - For backend, the [Relevance Realization Buffet](https://github.com/orgs/zkSNACKs/projects/18/views/48) view is a list of tasks that has to be investigated or tackled. You can assign yourself to an issue or just make the pull request.
-- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors.
+- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors. 
+- We have [status calls](meet.zksnacks.com/research) on Mondays at 15:00h UTC to discuss what we did, and [peer programming calls](https://meet.zksnacks.com/code) on Thursdays at 13:30h UTC for coding together.
 
 ## Automatic code clean up
 
@@ -37,6 +38,15 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 ```json
 	"editor.formatOnSave": true,
 ```
+
+## Technologies and scope
+
+- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: WalletWasabi/global.json.
+- [C#](https://dotnet.microsoft.com/en-us/languages/csharp): open-source programming language.
+- Model-View-ViewModel (MVVM): architecture.
+- [AvaloniaUI](https://www.avaloniaui.net/): framework to create cross-platform UI.
+- [xUnit](https://xunit.net/): create unit tests.
+- Dependencies path:  WalletWasabi/Directory.Packages.props
 
 # Code conventions
 
@@ -376,7 +386,3 @@ If you absolutely must reference `UiContext` in the constructor, you can create 
 ```
 
 In this case, no additional constructors will be generated, and the analyzer will be satisfied.
-
-
-
-
