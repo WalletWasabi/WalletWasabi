@@ -112,9 +112,25 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]
-	public void LoadWallet(string walletName)
+	public void LoadWallet(string walletName, string? password = null)
 	{
-		SelectWallet(walletName);
+		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
+		try
+		{
+			var wallet = Global.WalletManager.GetWalletByName(walletName);
+
+			AssertWalletIsLoggedIn(wallet, password ?? "");
+
+			ActiveWallet = wallet;
+			if (wallet.State == WalletState.Uninitialized)
+			{
+				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+			}
+		}
+		catch (InvalidOperationException) // wallet not found
+		{
+			throw new Exception($"Wallet '{walletName}' not found.");
+		}
 	}
 
 	[JsonRpcMethod("getwalletinfo")]
@@ -596,7 +612,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
-			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to work.");
 		}
 	}
 
