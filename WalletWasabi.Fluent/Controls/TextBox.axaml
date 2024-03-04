@@ -84,6 +84,11 @@
                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       </Panel>
+                      <ScrollViewer.Styles>
+                        <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Cursor" Value="IBeam" />
+                        </Style>
+                      </ScrollViewer.Styles>
                     </ScrollViewer>
                   </DockPanel>
                   <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
@@ -142,6 +147,11 @@
                            CaretBrush="{TemplateBinding CaretBrush}"
                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            <ScrollViewer.Styles>
+              <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                <Setter Property="Cursor" Value="IBeam" />
+              </Style>
+            </ScrollViewer.Styles>
           </ScrollViewer>
         </ControlTemplate>
       </Setter>
