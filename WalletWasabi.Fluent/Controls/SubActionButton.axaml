@@ -35,6 +35,28 @@
 
     <!-- TODO: Add custom style for Wasabi -->
 
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
+    <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
+    </Style>
+
+    <Style Selector="^/template/ PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+    </Style>
+
   </ControlTheme>
 
 </ResourceDictionary>
