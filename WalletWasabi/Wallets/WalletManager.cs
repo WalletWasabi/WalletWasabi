@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets;
@@ -26,7 +27,8 @@ public class WalletManager : IWalletProvider
 		Network network,
 		string workDir,
 		WalletDirectories walletDirectories,
-		WalletFactory walletFactory)
+		WalletFactory walletFactory,
+		ITerminateService? terminateService = null)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -35,6 +37,7 @@ public class WalletManager : IWalletProvider
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = walletDirectories;
 		WalletFactory = walletFactory;
+		TerminateService = terminateService;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
 		LoadWalletListFromFileSystem();
@@ -71,6 +74,7 @@ public class WalletManager : IWalletProvider
 	private bool IsInitialized { get; set; }
 
 	private WalletFactory WalletFactory { get; }
+	private ITerminateService? TerminateService { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private string WorkDir { get; }
@@ -223,7 +227,7 @@ public class WalletManager : IWalletProvider
 			try
 			{
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
+				await wallet.StartAndSetUpUnhandledExceptionCallbackAsync(TerminateService, CancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;

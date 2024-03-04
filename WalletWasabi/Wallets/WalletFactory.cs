@@ -4,6 +4,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets;
@@ -18,14 +19,15 @@ public record WalletFactory(
 	WasabiSynchronizer WasabiSynchronizer,
 	ServiceConfiguration ServiceConfiguration,
 	HybridFeeProvider FeeProvider,
-	IBlockProvider BlockProvider)
+	IBlockProvider BlockProvider,
+	ITerminateService? TerminateService = null)
 {
 	public Wallet Create(KeyManager keyManager)
 	{
 		TransactionProcessor transactionProcessor = new(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
 		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockProvider);
 
-		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor);
+		return new(DataDir, Network, keyManager, TerminateService, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor);
 	}
 
 	public Wallet CreateAndInitialize(KeyManager keyManager)

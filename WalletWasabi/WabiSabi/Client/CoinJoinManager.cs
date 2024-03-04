@@ -103,6 +103,8 @@ public class CoinJoinManager : BackgroundService
 		// Coinjoin handling Start / Stop and finalization.
 		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
+		// if ("AAA".Contains('A')) { throw new System.Diagnostics.UnreachableException("Bohoooo!"); }
+
 		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
 
 		await WaitAndHandleResultOfTasksAsync(nameof(walletsMonitoringTask), walletsMonitoringTask).ConfigureAwait(false);

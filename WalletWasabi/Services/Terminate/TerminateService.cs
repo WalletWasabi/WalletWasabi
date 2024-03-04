@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.Terminate;
 
-public class TerminateService
+public class TerminateService : ITerminateService
 {
 	private const long TerminateStatusNotStarted = 0;
 	private const long TerminateStatusInProgress = 1;
@@ -23,7 +23,7 @@ public class TerminateService
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
-		CancellationToken = TerminationCts.Token; 
+		CancellationToken = TerminationCts.Token;
 	}
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
@@ -41,6 +41,9 @@ public class TerminateService
 	public CancellationToken CancellationToken { get; }
 
 	private bool IsSystemEventsSubscribed { get; set; }
+
+	/// <summary>If the termination is due to a crash of a service/component, the exception is stored to be presented to user.</summary>
+	public Exception? TerminationException { get; private set; }
 
 	public void Activate()
 	{
@@ -100,6 +103,13 @@ public class TerminateService
 		e.Cancel = true;
 
 		// ... instead signal back that the app should terminate.
+		SignalForceTerminate();
+	}
+
+	/// <inheritdoc/>
+	public void SignalServiceCrash(Exception ex)
+	{
+		TerminationException = ex;
 		SignalForceTerminate();
 	}
 

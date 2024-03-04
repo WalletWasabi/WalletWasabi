@@ -106,6 +106,8 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			while (true)
 			{
+				// if ("AAA".Contains('A')) { throw new System.Diagnostics.UnreachableException("Bohoooo!"); }
+
 				await SynchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
 				SyncRequest? request;

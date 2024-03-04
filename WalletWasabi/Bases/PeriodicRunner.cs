@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,6 +95,11 @@ public abstract class PeriodicRunner : BackgroundService
 						$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
 					ExceptionTracker.Reset();
 				}
+			}
+			catch (UnreachableException ex)
+			{
+				Logger.LogError(ex);
+				throw;
 			}
 			catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 			{

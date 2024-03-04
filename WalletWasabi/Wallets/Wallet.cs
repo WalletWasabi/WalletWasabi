@@ -20,6 +20,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
@@ -35,6 +36,7 @@ public class Wallet : BackgroundService, IWallet
 		string dataDir,
 		Network network,
 		KeyManager keyManager,
+		ITerminateService? terminateService,
 		BitcoinStore bitcoinStore,
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
@@ -45,6 +47,7 @@ public class Wallet : BackgroundService, IWallet
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
 		KeyManager = keyManager;
+		TerminateService = terminateService;
 		BitcoinStore = bitcoinStore;
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
@@ -92,6 +95,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
+	private ITerminateService? TerminateService { get; }
 	public WasabiSynchronizer Synchronizer { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string WalletName => KeyManager.WalletName;
@@ -302,7 +306,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
-				await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
+				await WalletFilterProcessor.StartAndSetUpUnhandledExceptionCallbackAsync(TerminateService, cancel).ConfigureAwait(false);
 
 				await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 				await LoadDummyMempoolAsync().ConfigureAwait(false);
@@ -351,6 +355,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+		// if ("AAA".Contains('A')) { throw new System.Diagnostics.UnreachableException("Bohoooo!"); }
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)

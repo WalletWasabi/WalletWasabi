@@ -106,7 +106,7 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-		=> new(Config.DataDir, ConfigFilePath, Config);
+		=> new(Config.DataDir, ConfigFilePath, Config, TerminateService);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{

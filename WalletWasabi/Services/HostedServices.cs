@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Services;
 
@@ -16,12 +18,19 @@ public class HostedServices : IDisposable
 	private object ServicesLock { get; } = new();
 	private bool IsStartAllAsyncStarted { get; set; } = false;
 
-	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService
+	public HostedServices(ITerminateService? terminateService = null)
 	{
-		Register<T>(serviceFactory(), friendlyName);
+		TerminateService = terminateService;
 	}
 
-	private void Register<T>(IHostedService service, string friendlyName) where T : class, IHostedService
+	private ITerminateService? TerminateService { get; }
+
+	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName, bool terminateAppOnServiceCrash = false) where T : class, IHostedService
+	{
+		Register<T>(serviceFactory(), friendlyName, terminateAppOnServiceCrash);
+	}
+
+	private void Register<T>(IHostedService service, string friendlyName, bool terminateAppOnServiceCrash = false) where T : class, IHostedService
 	{
 		if (typeof(T) != service.GetType())
 		{
@@ -39,7 +48,7 @@ public class HostedServices : IDisposable
 			{
 				throw new InvalidOperationException($"{typeof(T).Name} is already registered.");
 			}
-			Services.Add(new HostedService(service, friendlyName));
+			Services.Add(new HostedService(service, friendlyName, terminateAppOnServiceCrash));
 		}
 	}
 
@@ -54,22 +63,43 @@ public class HostedServices : IDisposable
 		var exceptions = new List<Exception>();
 		var exceptionsLock = new object();
 
-		var tasks = CloneServices().Select(x => x.Service.StartAsync(token).ContinueWith(y =>
+		var tasks = CloneServices().Select(x =>
 		{
-			if (y.Exception is null)
+			Task startTask;
+
+			if (x.TerminateAppOnServiceCrash)
 			{
-				Logger.LogInfo($"Started {x.FriendlyName}.");
+				if (x.Service is BackgroundService backgroundService)
+				{
+					startTask = backgroundService.StartAndSetUpUnhandledExceptionCallbackAsync(TerminateService, token);
+				}
+				else
+				{
+					throw new InvalidOperationException($"Service '{x.Service}' is not a background service to register a crash callback.");
+				}
 			}
 			else
 			{
-				lock (exceptionsLock)
-				{
-					exceptions.Add(y.Exception);
-				}
-				Logger.LogError($"Error starting {x.FriendlyName}.");
-				Logger.LogError(y.Exception);
+				startTask = x.Service.StartAsync(token);
 			}
-		}));
+
+			return startTask.ContinueWith(y =>
+					{
+						if (y.Exception is null)
+						{
+							Logger.LogInfo($"Started {x.FriendlyName}.");
+						}
+						else
+						{
+							lock (exceptionsLock)
+							{
+								exceptions.Add(y.Exception);
+							}
+							Logger.LogError($"Error starting {x.FriendlyName}.");
+							Logger.LogError(y.Exception);
+						}
+					});
+		});
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 

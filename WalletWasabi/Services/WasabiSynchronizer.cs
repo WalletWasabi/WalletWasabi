@@ -113,6 +113,8 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
+				// if ("AAA".Contains('A')) { throw new System.Diagnostics.UnreachableException("Bohoooo!"); }
+
 				// NOT GenSocksServErr
 				BackendStatus = BackendStatus.Connected;
 				TorStatus = TorStatus.Running;
