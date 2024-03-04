@@ -91,8 +91,8 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 		}
 
 		var isMatch =
-			Key is { } k && k == e.Key ||
-			KeyGesture is { } kg && kg.Matches(e);
+			(Key is { } k && k == e.Key) ||
+			(KeyGesture is { } kg && kg.Matches(e));
 
 		if (isMatch && control.IsVisible && control.IsEnabled && IsEnabled)
 		{
