@@ -355,7 +355,6 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
-		// if ("AAA".Contains('A')) { throw new System.Diagnostics.UnreachableException("Bohoooo!"); }
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
