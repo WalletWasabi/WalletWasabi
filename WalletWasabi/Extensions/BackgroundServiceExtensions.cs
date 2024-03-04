@@ -30,20 +30,22 @@ public static class BackgroundServiceExtensions
 		{
 			if (terminateService is not null && backgroundService.ExecuteTask is not null)
 			{
-				_ = backgroundService.ExecuteTask.ContinueWith((Task task) =>
-				{
-					if (task.IsFaulted)
+				_ = backgroundService.ExecuteTask.ContinueWith(
+					(Task task) =>
 					{
-						Logger.LogWarning($"Signal graceful termination because '{backgroundService.GetType()?.FullName}' crashed.");
-						Exception ex = task.Exception.InnerException is not null
-							? task.Exception.InnerException
-							: task.Exception;
+						if (task.IsFaulted)
+						{
+							Logger.LogWarning($"Signal graceful termination because '{backgroundService.GetType()?.FullName}' crashed.");
+							Exception ex = task.Exception.InnerException is not null
+								? task.Exception.InnerException
+								: task.Exception;
 
-						terminateService.SignalServiceCrash(ex);
-					}
+							terminateService.SignalServiceCrash(ex);
+						}
 
-					return Task.CompletedTask;
-				}, cancellationToken);
+						return Task.CompletedTask;
+					},
+					cancellationToken);
 			}
 		}
 	}

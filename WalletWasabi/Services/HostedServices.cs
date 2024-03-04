@@ -13,15 +13,15 @@ public class HostedServices : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	private List<HostedService> Services { get; } = new();
-
-	private object ServicesLock { get; } = new();
-	private bool IsStartAllAsyncStarted { get; set; } = false;
-
 	public HostedServices(ITerminateService? terminateService = null)
 	{
 		TerminateService = terminateService;
 	}
+
+	private List<HostedService> Services { get; } = new();
+
+	private object ServicesLock { get; } = new();
+	private bool IsStartAllAsyncStarted { get; set; } = false;
 
 	private ITerminateService? TerminateService { get; }
 
