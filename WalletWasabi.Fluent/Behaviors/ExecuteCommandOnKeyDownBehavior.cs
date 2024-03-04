@@ -28,9 +28,6 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 	public static readonly StyledProperty<RoutingStrategies> EventRoutingStrategyProperty =
 		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, RoutingStrategies>(nameof(EventRoutingStrategy), RoutingStrategies.Bubble);
 
-	public static readonly StyledProperty<bool> SwallowEventsProperty =
-		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, bool>(nameof(SwallowEvents));
-
 	/// <summary>If specified, the Command will be executed whenever the Key matches, regardless of KeyModifiers </summary>
 	public Key? Key
 	{
@@ -69,12 +66,6 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 		set => SetValue(EventRoutingStrategyProperty, value);
 	}
 
-	public bool SwallowEvents
-	{
-		get => GetValue(SwallowEventsProperty);
-		set => SetValue(SwallowEventsProperty, value);
-	}
-
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var control = AssociatedObject;
@@ -108,10 +99,6 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 			if (!e.Handled && Command?.CanExecute(CommandParameter) == true)
 			{
 				Command.Execute(CommandParameter);
-				e.Handled = true;
-			}
-			else if (SwallowEvents)
-			{
 				e.Handled = true;
 			}
 		}
