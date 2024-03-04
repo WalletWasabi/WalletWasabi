@@ -227,6 +227,20 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return GetDestinationAddresses(inputs, outputs);
 	}
 
+	public IEnumerable<BitcoinAddress?> GetDestinationAddresses(BitcoinAddress destinationAddress)
+	{
+		var transactions = _wallet.BitcoinStore.TransactionStore.GetTransactionsByDestinationAddress(destinationAddress);
+
+		// Collect destination addresses from the outputs of the transactions
+		var destinationAddresses = transactions
+			.SelectMany(tx => tx.Transaction.Outputs)
+			.Select(output => output.ScriptPubKey.GetDestinationAddress(_wallet.Network))
+			.Where(addr => addr != null)
+			.Distinct();
+
+		return destinationAddresses;
+	}
+
 	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
 	{
 		var myOwnInputs = inputs.OfType<KnownInput>().ToList();

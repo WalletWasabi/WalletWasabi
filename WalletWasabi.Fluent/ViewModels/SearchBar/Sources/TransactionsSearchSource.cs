@@ -4,8 +4,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -117,6 +119,26 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-			.Where(tuple => ContainsId(tuple.Item2, queryStr));
+		.Where(tuple =>
+		{
+			try
+			{
+				var address = BitcoinAddress.Create(queryStr, tuple.Item1.WalletModel.Network);
+				return ContainsDestinationAddress(tuple.Item1.WalletModel, queryStr);
+			}
+			catch (FormatException)
+			{
+				return ContainsId(tuple.Item2, queryStr);
+			}
+		});
+	}
+
+	private static bool ContainsDestinationAddress(IWalletModel wallet, string queryStr)
+	{
+		var destinationAddress = BitcoinAddress.Create(queryStr, wallet.Network);
+
+		var destinationAddresses = wallet.Transactions.GetDestinationAddresses(destinationAddress).ToArray();
+
+		return destinationAddresses.Length > 0;
 	}
 }
