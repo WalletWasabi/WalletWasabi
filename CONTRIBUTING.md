@@ -41,13 +41,13 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 
 ## Technologies and scope
 
-- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: WalletWasabi/global.json.
+- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: [WalletWasabi/global.json](https://github.com/zkSNACKs/WalletWasabi/blob/master/global.json).
 - [C#](https://dotnet.microsoft.com/en-us/languages/csharp): open-source programming language.
 - Model-View-ViewModel architecture (MVVM).
 - [Avalonia UI](https://www.avaloniaui.net/): framework to create cross-platform UI.
 - [xUnit](https://xunit.net/): create unit tests.
-- Dependencies path: WalletWasabi/Directory.Packages.props
-- Developer's documentation path: WalletWasabi/WalletWasabi.Documentation
+- Dependencies path: [WalletWasabi/Directory.Packages.props](https://github.com/zkSNACKs/WalletWasabi/blob/master/Directory.Packages.props).
+- Developer's documentation path: [WalletWasabi/WalletWasabi.Documentation/](https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Documentation).
 
 # Code conventions
 
