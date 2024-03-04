@@ -15,9 +15,7 @@
       <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
 
       <DataTemplate x:Key="DefaultChatInput">
-        <TextBox  VerticalAlignment="Center"
-                 Text=""
-                 MaxLength="5000"
+        <TextBox Text=""
                  Watermark="{Binding Watermark}">
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
@@ -35,6 +33,16 @@
 
       <Style Selector="TextBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+        <Setter Property="MaxHeight" Value="105" />
+        <Setter Property="MaxLength" Value="5000" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="(Interaction.Behaviors)">
+          <BehaviorCollectionTemplate>
+            <BehaviorCollection>
+              <behaviors:TextBoxAddLineBreakBehavior />
+            </BehaviorCollection>
+          </BehaviorCollectionTemplate>
+        </Setter>
       </Style>
       <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
@@ -112,11 +120,9 @@
 
       <!-- RequestedItemStep -->
       <DataTemplate DataType="vm:RequestedItemStep">
-        <TextBox Name="RequestTextBox"
-                 VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 MaxLength="5000"
-                 Watermark="{Binding Watermark}">
+        <TextBox Text="{Binding Value}"
+                 Watermark="{Binding Watermark}"
+                 x:Name="RequestTextBox">
           <TextBox.InnerRightContent>
             <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}" VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
               <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
@@ -159,11 +165,9 @@
 
       <!-- SupportChatStep -->
       <DataTemplate DataType="vm:SupportChatStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 x:Name="TextBox"
-                 MaxLength="5000"
-                 Watermark="{Binding Watermark}">
+        <TextBox Text="{Binding Value}"
+                 Watermark="{Binding Watermark}"
+                 x:Name="TextBox">
           <TextBox.InnerRightContent>
             <StackPanel VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
               <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
@@ -187,9 +191,7 @@
 
       <!-- TextInputStep -->
       <DataTemplate DataType="vm:TextInputStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 MaxLength="5000"
+        <TextBox Text="{Binding Value}"
                  Watermark="{Binding Watermark}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
