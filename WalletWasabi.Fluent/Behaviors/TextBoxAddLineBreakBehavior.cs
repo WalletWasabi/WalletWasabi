@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
@@ -27,7 +28,12 @@ internal class TextBoxAddLineBreakBehavior : AttachedToVisualTreeBehavior<TextBo
 
 		AssociatedObject.OnEvent(InputElement.KeyDownEvent)
 						.Where(e => KeyGesture is { } kg && kg.Matches(e.EventArgs))
-						.Do(_ => AssociatedObject.RaiseEvent(new TextInputEventArgs { Text = Environment.NewLine }))
+						.Do(_ =>
+						{
+							AssociatedObject.AcceptsReturn = true;
+							AssociatedObject.RaiseEvent(new TextInputEventArgs { RoutedEvent = InputElement.TextInputEvent, Text = Environment.NewLine, Source = AssociatedObject, Route = RoutingStrategies.Bubble });
+							AssociatedObject.AcceptsReturn = false;
+						})
 						.Subscribe()
 						.DisposeWith(disposable);
 	}

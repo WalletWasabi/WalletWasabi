@@ -132,6 +132,7 @@
           </TextBox.InnerRightContent>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
+            <behaviors:TextBoxAddLineBreakBehavior />
           </i:Interaction.Behaviors>
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
