@@ -10,11 +10,14 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Control>
 {
+	public static readonly StyledProperty<KeyGesture?> KeyGestureProperty =
+		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, KeyGesture?>(nameof(KeyGesture));
+
 	public static readonly StyledProperty<Key?> KeyProperty =
-		AvaloniaProperty.Register<ButtonExecuteCommandOnKeyDownBehavior, Key?>(nameof(Key));
+		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, Key?>(nameof(Key));
 
 	public static readonly StyledProperty<bool> IsEnabledProperty =
-		AvaloniaProperty.Register<ButtonExecuteCommandOnKeyDownBehavior, bool>(nameof(IsEnabled), true);
+		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, bool>(nameof(IsEnabled), true);
 
 	public static readonly StyledProperty<ICommand> CommandProperty =
 		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, ICommand>(nameof(Command));
@@ -25,10 +28,21 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 	public static readonly StyledProperty<RoutingStrategies> EventRoutingStrategyProperty =
 		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, RoutingStrategies>(nameof(EventRoutingStrategy), RoutingStrategies.Bubble);
 
+	public static readonly StyledProperty<bool> SwallowEventsProperty =
+		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, bool>(nameof(SwallowEvents));
+
+	/// <summary>If specified, the Command will be executed whenever the Key matches, regardless of KeyModifiers </summary>
 	public Key? Key
 	{
 		get => GetValue(KeyProperty);
 		set => SetValue(KeyProperty, value);
+	}
+
+	/// <summary>If specified, the Command will be executed only if the gesture matches exactly (including KeyModifiers) </summary>
+	public KeyGesture? KeyGesture
+	{
+		get => GetValue(KeyGestureProperty);
+		set => SetValue(KeyGestureProperty, value);
 	}
 
 	public bool IsEnabled
@@ -55,6 +69,12 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 		set => SetValue(EventRoutingStrategyProperty, value);
 	}
 
+	public bool SwallowEvents
+	{
+		get => GetValue(SwallowEventsProperty);
+		set => SetValue(SwallowEventsProperty, value);
+	}
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var control = AssociatedObject;
@@ -79,11 +99,19 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 			return;
 		}
 
-		if (Key is { } && e.Key == Key && control.IsVisible && control.IsEnabled && IsEnabled)
+		var isMatch =
+			Key is { } k && k == e.Key ||
+			KeyGesture is { } kg && kg.Matches(e);
+
+		if (isMatch && control.IsVisible && control.IsEnabled && IsEnabled)
 		{
 			if (!e.Handled && Command?.CanExecute(CommandParameter) == true)
 			{
 				Command.Execute(CommandParameter);
+				e.Handled = true;
+			}
+			else if (SwallowEvents)
+			{
 				e.Handled = true;
 			}
 		}
