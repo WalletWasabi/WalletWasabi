@@ -25,6 +25,8 @@
     </Border>
   </Design.PreviewWith>
 
+  <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
+
   <ControlTheme x:Key="{x:Type SubActionButton}"
                 TargetType="SubActionButton"
                 BasedOn="{StaticResource {x:Type SplitButton}}">
