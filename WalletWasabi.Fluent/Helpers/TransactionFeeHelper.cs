@@ -1,31 +1,35 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
-	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
-	{
-		[1] = 17,
-		[2] = 12,
-		[3] = 9,
-		[6] = 9,
-		[18] = 2,
-		[36] = 2,
-		[72] = 2,
-		[144] = 2,
-		[432] = 1,
-		[1008] = 1
-	};
+	private static readonly AllFeeEstimate TestNetFeeEstimates = new(
+		new Dictionary<int, int>
+		{
+			[1] = 17,
+			[2] = 12,
+			[3] = 9,
+			[6] = 9,
+			[18] = 2,
+			[36] = 2,
+			[72] = 2,
+			[144] = 2,
+			[432] = 1,
+			[1008] = 1
+		});
 
-	public static async Task<Dictionary<int, int>> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
+	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		var feeProvider = wallet.FeeProvider;
 
@@ -45,75 +49,123 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out Dictionary<int, int>? estimates)
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		return TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+	}
+
+	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		return TryGetFeeEstimates(wallet, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+	}
+
+	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
+	{
+		estimate = null;
+		if (TryGetFeeEstimates(wallet, out var feeEstimates))
+		{
+			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+		}
+
+		return estimate is not null;
+	}
+
+	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out AllFeeEstimate? estimates)
+		=> TryGetFeeEstimates(wallet.FeeProvider, wallet.Network, out estimates);
+
+	public static bool TryGetFeeEstimates(HybridFeeProvider feeProvider, Network network, [NotNullWhen(true)] out AllFeeEstimate? estimates)
 	{
 		estimates = null;
 
-		if (wallet.FeeProvider.AllFeeEstimate is null)
+		if (feeProvider.AllFeeEstimate is null)
 		{
 			return false;
 		}
 
-		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		estimates = network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate;
 		return true;
-	}
-
-	public static bool AreTransactionFeesEqual(Wallet wallet)
-	{
-		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
-		{
-			return false;
-		}
-
-		var first = feeEstimates.First();
-		var last = feeEstimates.Last();
-
-		return first.Value == last.Value;
-	}
-
-	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
-	{
-		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
-		{
-			return TimeSpan.Zero;
-		}
-
-		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
-
-		return feeChartViewModel.TryGetConfirmationTarget(feeRate, out var target)
-			? CalculateConfirmationTime(target)
-			: TimeSpan.Zero;
 	}
 
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
 	{
 		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 		var time = TimeSpan.FromMinutes(timeInMinutes);
+
+		// Format the timespan to only include the largest unit of time.
+		// This is confirmation estimation so we can't be precise and we shouldn't give that impression that we can.
+		if (time.TotalDays >= 1)
+		{
+			time = TimeSpan.FromDays(Math.Ceiling(time.TotalDays));
+		}
+		else if (time.TotalHours >= 1)
+		{
+			time = TimeSpan.FromHours(Math.Ceiling(time.TotalHours));
+		}
+		else if (time.TotalMinutes >= 1)
+		{
+			time = TimeSpan.FromMinutes(Math.Ceiling(time.TotalMinutes));
+		}
+		else if (time.TotalSeconds >= 1)
+		{
+			time = TimeSpan.FromSeconds(Math.Ceiling(time.TotalSeconds));
+		}
+
 		return time;
 	}
 
-	public static bool TryGetMaximumPossibleFeeRate(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	/// <summary>
+	/// Seeks for the maximum possible fee rate that the transaction can pay.
+	/// </summary>
+	/// <remarks>The method does not throw any exception.</remarks>
+	/// <remarks>Stores the found fee rate in the received <see cref="TransactionInfo"/> object. </remarks>
+	/// <returns>True if the seeking was successful, False if not.</returns>
+	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
 	{
-		maximumPossibleFeeRate = FeeRate.Zero;
+		var maxFeeRate =
+			await Task.Run(() =>
+			{
+				var found = FeeHelpers.TryGetMaxFeeRate(wallet, info.Destination, info.Amount, info.Recipient, info.FeeRate, info.Coins, info.SubtractFee, out var maxFeeRate);
 
-		if (percentageOfOverpayment <= 0 || !TryGetFeeEstimates(wallet, out var feeEstimates))
+				return found ? maxFeeRate! : new FeeRate(0m);
+			});
+
+		if (EnsureFeeRateIsPossible(wallet, maxFeeRate))
+		{
+			info.MaximumPossibleFeeRate = maxFeeRate;
+			info.FeeRate = maxFeeRate;
+			info.ConfirmationTimeSpan = TryEstimateConfirmationTime(wallet, maxFeeRate, out var estimate)
+				? estimate.Value
+				: TimeSpan.Zero;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Temporary solution for making sure if a fee rate can be found in the fee chart.
+	/// It is needed otherwise we cannot predict the confirmation time and the fee chart would crash.
+	/// TODO: Remove this hack when the issues mentioned above are fixed.
+	/// </summary>
+	private static bool EnsureFeeRateIsPossible(Wallet wallet, FeeRate feeRate)
+	{
+		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
 			return false;
 		}
 
-		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
-
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates.WildEstimations);
 
-		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
+		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
 		{
 			return false;
 		}
 
 		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
-		return newFeeRate <= maximumPossibleFeeRate;
+		return newFeeRate <= feeRate;
 	}
 }

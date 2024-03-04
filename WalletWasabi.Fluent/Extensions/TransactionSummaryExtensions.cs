@@ -1,9 +1,7 @@
-using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -15,51 +13,9 @@ public static class TransactionSummaryExtensions
 		return confirmations > 0;
 	}
 
-	public static int GetConfirmations(this TransactionSummary model) => model.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - model.Height.Value + 1 : 0;
+	public static int GetConfirmations(this TransactionSummary model)
+		=> model.Transaction.GetConfirmations((int)Services.SmartHeaderChain.ServerTipHeight);
 
-	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
-		feeDisplayUnit switch
-		{
-			FeeDisplayUnit.BTC => MoneyUnit.BTC,
-			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
-			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
-		};
-
-	public static string ToFeeDisplayUnitRawString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
-
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-
-		return displayUnit switch
-		{
-			FeeDisplayUnit.Satoshis => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-	}
-
-	public static string ToFeeDisplayUnitFormattedString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
-
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-		var moneyUnit = displayUnit.ToMoneyUnit();
-
-		var feePartText = moneyUnit switch
-		{
-			MoneyUnit.BTC => fee.ToFormattedString(),
-			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-
-		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
-
-		return feeText;
-	}
+	public static bool TryGetConfirmationTime(this TransactionSummary model, [NotNullWhen(true)] out TimeSpan? estimate)
+		=> TransactionFeeHelper.TryEstimateConfirmationTime(Services.HostedServices.Get<HybridFeeProvider>(), Services.WalletManager.Network, model.Transaction, out estimate);
 }

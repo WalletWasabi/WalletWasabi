@@ -2,31 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:transactionBroadcasting="using:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="transactionBroadcasting:LoadTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.LoadTransactionView">
-  <c:ContentArea Title="{Binding Title}"
-                 Caption="Import or paste the transaction and broadcast it to the network."
+  <ContentArea Title="{Binding Title}"
+                 Caption="Import or paste the transaction hex and broadcast it to the network."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
       <WrapPanel.Styles>
-        <Style Selector="c|TileButton">
+        <Style Selector="TileButton">
           <Setter Property="Margin" Value="20 0" />
           <Setter Property="Height" Value="170" />
           <Setter Property="Width" Value="170" />
           <Setter Property="IconSize" Value="60" />
         </Style>
       </WrapPanel.Styles>
-      <c:TileButton Text="Import transaction"
+      <TileButton Text="Import transaction"
                     Icon="{StaticResource folder_move_regular}"
                     Command="{Binding ImportTransactionCommand}" />
-      <c:TileButton Text="Paste from clipboard"
+      <TileButton Text="Paste from clipboard"
                     Icon="{StaticResource clipboard_text_regular}"
                     Command="{Binding PasteCommand}" />
     </WrapPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

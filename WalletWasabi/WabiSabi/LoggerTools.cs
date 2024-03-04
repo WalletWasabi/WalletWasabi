@@ -32,7 +32,7 @@ public static class LoggerTools
 
 	public static void Log(this RoundState roundState, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-		string round = roundState.BlameOf == uint256.Zero ? "Round" : "Blame Round";
+		string round = roundState.IsBlame ? "Blame Round" : "Round";
 
 		Logger.Log(logLevel, $"{round} ({roundState.Id}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 	}

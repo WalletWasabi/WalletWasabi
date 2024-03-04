@@ -2,27 +2,28 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Recipient")]
-public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?>
+[NavigationMetaData(Title = "Recipient", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray?>
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
+	public LabelEntryDialogViewModel(IWalletModel wallet, LabelsArray labels)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(new WalletModel(wallet), Intent.Send, 3)
+
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Send, 3)
 		{
-			Labels = { label.AsEnumerable() }
+			Labels = { labels.AsEnumerable() }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -40,14 +41,17 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 
 	private void OnNext()
 	{
-		Close(DialogResultKind.Normal, new SmartLabel(SuggestionLabels.Labels.ToArray()));
+		SuggestionLabels.ForceAdd = true;
+		Close(DialogResultKind.Normal, new LabelsArray(SuggestionLabels.Labels.ToArray()));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+		// TODO: why are we using this here and turning it into a Signal, instead of an event like _wallet.TransactionProcessed?
+		_wallet.Coins.List
+			.Connect()
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())

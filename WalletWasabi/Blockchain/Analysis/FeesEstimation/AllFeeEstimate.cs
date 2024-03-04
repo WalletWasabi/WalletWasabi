@@ -2,7 +2,9 @@ using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -14,12 +16,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 {
 	[JsonConstructor]
-	public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+	public AllFeeEstimate(IDictionary<int, int> estimations)
 	{
 		Guard.NotNullOrEmpty(nameof(estimations), estimations);
-
-		Type = type;
-		IsAccurate = isAccurate;
 
 		var targets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 		var targetRanges = targets.Skip(1).Zip(targets.Skip(1).Prepend(0), (x, y) => (Start: y, End: x));
@@ -45,19 +44,10 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 	}
 
-	public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-		: this(other.Type, other.Estimations, isAccurate)
+	public AllFeeEstimate(AllFeeEstimate other)
+		: this(other.Estimations)
 	{
 	}
-
-	[JsonProperty]
-	public EstimateSmartFeeMode Type { get; }
-
-	/// <summary>
-	/// Gets a value indicating whether the fee has been fetched from a fully synced node.
-	/// </summary>
-	[JsonProperty]
-	public bool IsAccurate { get; set; }
 
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
@@ -65,14 +55,135 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	[JsonProperty]
 	public Dictionary<int, int> Estimations { get; }
 
-	public FeeRate GetFeeRate(int feeTarget)
+	/// <summary>
+	/// Estimations where we try to fill out gaps for all valid time spans.
+	/// </summary>
+	public IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
+	{
+		get
+		{
+			var timeSpan = TimeSpan.FromMinutes(20);
+			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
+			if (!convertedEstimations.Any())
+			{
+				return Enumerable.Empty<(TimeSpan timeSpan, FeeRate feeRate)>();
+			}
+
+			var wildEstimations = new List<(TimeSpan timeSpan, FeeRate feeRate)>();
+			var prevFeeRate = FeeRate.Zero;
+			while (timeSpan <= TimeSpan.FromDays(7))
+			{
+				var smaller = convertedEstimations.LastOrDefault(x => x.timeSpan <= timeSpan);
+				var bigger = convertedEstimations.FirstOrDefault(x => x.timeSpan >= timeSpan);
+				if (smaller == default)
+				{
+					smaller = bigger;
+				}
+				if (bigger == default)
+				{
+					bigger = smaller;
+				}
+
+				var diffTime = bigger.timeSpan - smaller.timeSpan;
+				var diffFeeRateSatPerByte = bigger.feeRate.SatoshiPerByte - smaller.feeRate.SatoshiPerByte;
+				var distance = timeSpan - smaller.timeSpan;
+				decimal ratio;
+				if (diffTime == distance || diffTime == TimeSpan.Zero)
+				{
+					ratio = 1;
+				}
+				else
+				{
+					ratio = (decimal)(distance / diffTime);
+				}
+
+				var feeRateSatPerByte = smaller.feeRate.SatoshiPerByte + (ratio * diffFeeRateSatPerByte);
+
+				FeeRate feeRate = new(feeRateSatPerByte);
+				if (feeRate == prevFeeRate)
+				{
+					break;
+				}
+				prevFeeRate = feeRate;
+
+				wildEstimations.Add((timeSpan, feeRate));
+
+				if (timeSpan.TotalDays >= 1)
+				{
+					timeSpan = TimeSpan.FromDays(Math.Ceiling(timeSpan.TotalDays));
+					timeSpan += TimeSpan.FromDays(1);
+				}
+				else if (timeSpan.TotalHours >= 1)
+				{
+					timeSpan = TimeSpan.FromHours(Math.Ceiling(timeSpan.TotalHours));
+					timeSpan += TimeSpan.FromHours(1);
+				}
+				else if (timeSpan.TotalMinutes >= 1)
+				{
+					timeSpan = TimeSpan.FromMinutes(Math.Ceiling(timeSpan.TotalMinutes));
+					timeSpan += TimeSpan.FromMinutes(10);
+				}
+			}
+
+			return wildEstimations;
+		}
+	}
+
+	public FeeRate GetFeeRate(int confirmationTarget)
 	{
 		// Where the target is still under or equal to the requested target.
 		decimal satoshiPerByte = Estimations
-			.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
+			.Last(x => x.Key <= confirmationTarget) // The last should be the largest confirmation target.
 			.Value;
 
 		return new FeeRate(satoshiPerByte);
+	}
+
+	public bool TryEstimateConfirmationTime(SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? confirmationTime)
+	{
+		confirmationTime = default;
+		if (tx.Confirmed)
+		{
+			confirmationTime = TimeSpan.Zero;
+			return true;
+		}
+
+		var unconfirmedChain = new[] { tx }.Concat(tx.ChildrenPayForThisTx).Concat(tx.ParentsThisTxPaysFor);
+
+		// If we cannot estimate the fee rate of one of the unconfirmed transactions then we cannot estimate confirmation time.
+		Money totalFee = Money.Zero;
+		foreach (var currentTx in unconfirmedChain)
+		{
+			// We must have all the inputs and know the size of the tx to estimate the feerate.
+			if (!currentTx.TryGetFee(out var fee) || currentTx.IsSegwitWithoutWitness)
+			{
+				return false;
+			}
+			else
+			{
+				totalFee += fee;
+			}
+		}
+
+		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
+
+		confirmationTime = EstimateConfirmationTime(new FeeRate(totalFee, totalVsize));
+		return true;
+	}
+
+	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)
+	{
+		var wildEstimations = WildEstimations.ToArray();
+		if (feeRate.SatoshiPerByte >= wildEstimations.First().feeRate.SatoshiPerByte * 1.5m)
+		{
+			return TimeSpan.FromMinutes(10);
+		}
+		else if (feeRate <= wildEstimations.Last().feeRate)
+		{
+			return wildEstimations.Last().timeSpan;
+		}
+
+		return WildEstimations.FirstOrDefault(x => x.feeRate <= feeRate).timeSpan;
 	}
 
 	#region Equality
@@ -83,12 +194,11 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 
 	public override int GetHashCode()
 	{
-		int hash = Type.GetHashCode();
+		int hash = 13;
 		foreach (KeyValuePair<int, int> est in Estimations)
 		{
 			hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
 		}
-		hash ^= IsAccurate.GetHashCode();
 
 		return hash;
 	}
@@ -101,16 +211,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 
 		if (x is null || y is null)
-		{
-			return false;
-		}
-
-		if (x.Type != y.Type)
-		{
-			return false;
-		}
-
-		if (x.IsAccurate != y.IsAccurate)
 		{
 			return false;
 		}

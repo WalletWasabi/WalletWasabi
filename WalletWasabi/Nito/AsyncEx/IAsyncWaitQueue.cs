@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Nito.AsyncEx;
 
 /// <summary>
-/// A collection of cancelable <see cref="TaskCompletionSource{T}"/> instances. Implementations must assume the caller is holding a lock.
+/// A collection of cancellable <see cref="TaskCompletionSource{T}"/> instances. Implementations must assume the caller is holding a lock.
 /// </summary>
 /// <typeparam name="T">The type of the results. If this is not needed, use <see cref="object"/>.</typeparam>
 public interface IAsyncWaitQueue<T>

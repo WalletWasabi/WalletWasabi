@@ -1,73 +1,124 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
+using System.ComponentModel;
 using System.Reactive.Linq;
-using DynamicData;
+using System.Reactive.Subjects;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-internal class WalletModel : IWalletModel
+public partial interface IWalletModel : INotifyPropertyChanged;
+
+[AutoInterface]
+public partial class WalletModel : ReactiveObject
 {
-	private readonly Wallet _wallet;
-	private readonly TransactionHistoryBuilder _historyBuilder;
+	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
+	private readonly Lazy<IWalletCoinsModel> _coins;
+	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
 
-	public WalletModel(Wallet wallet)
+	[AutoNotify] private bool _isLoggedIn;
+
+	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
-		_wallet = wallet;
-		_historyBuilder = new TransactionHistoryBuilder(_wallet);
+		Wallet = wallet;
+		AmountProvider = amountProvider;
 
-		RelevantTransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-					  .ObserveOn(RxApp.MainThreadScheduler);
+		Auth = new WalletAuthModel(this, Wallet);
+		Loader = new WalletLoadWorkflow(Wallet);
+		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
-		Transactions =
-			Observable.Defer(() => BuildSummary().ToObservable())
-					  .Concat(RelevantTransactionProcessed.SelectMany(_ => BuildSummary()))
-					  .ToObservableChangeSet(x => x.TransactionId);
+		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
+		_coins = new(() => new WalletCoinsModel(wallet, this));
 
-		Addresses = Observable
-			.Defer(() => GetAddresses().ToObservable())
-			.Concat(RelevantTransactionProcessed.ToSignal().SelectMany(_ => GetAddresses()))
-			.ToObservableChangeSet(x => x.Text);
+		Transactions = new WalletTransactionsModel(this, wallet);
+
+		Addresses = new AddressesModel(Wallet);
+
+		State =
+			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+					  .ObserveOn(RxApp.MainThreadScheduler)
+					  .Select(_ => Wallet.State);
+
+		Privacy = new WalletPrivacyModel(this, Wallet);
+
+		Balances = Transactions.TransactionProcessed
+			.Select(_ => Wallet.Coins.TotalAmount())
+			.Select(AmountProvider.Create);
+
+		HasBalance = Balances.Select(x => x.HasBalance);
+
+		// Start the Loader after wallet is logged in
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
+			.Where(x => x)
+			.Take(1)
+			.Do(_ => Loader.Start())
+			.Subscribe();
+
+		// Stop the loader after load is completed
+		State.Where(x => x == WalletState.Started)
+			 .Do(_ => Loader.Stop())
+			 .Subscribe();
+
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
 	}
 
-	public IObservable<IChangeSet<IAddress, string>> Addresses { get; }
+	public IAddressesModel Addresses { get; }
 
-	private IObservable<EventPattern<ProcessedResult?>> RelevantTransactionProcessed { get; }
+	internal Wallet Wallet { get; }
 
-	public string Name => _wallet.WalletName;
+	public WalletId Id => Wallet.WalletId;
 
-	public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions { get; }
+	public string Name => Wallet.WalletName;
 
-	public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
+	public Network Network => Wallet.Network;
+
+	public IWalletTransactionsModel Transactions { get; }
+
+	public IObservable<Amount> Balances { get; }
+
+	public IObservable<bool> HasBalance { get; }
+
+	public IWalletCoinsModel Coins => _coins.Value;
+
+	public IWalletAuthModel Auth { get; }
+
+	public IWalletLoadWorkflow Loader { get; }
+
+	public IWalletSettingsModel Settings { get; }
+
+	public IWalletPrivacyModel Privacy { get; }
+
+	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
+
+	public IObservable<WalletState> State { get; }
+
+	public IAmountProvider AmountProvider { get; }
+
+	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
+
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
-		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
-		return new Address(_wallet.KeyManager, pubKey);
+		return Wallet.GetLabelsWithRanking(intent);
 	}
 
-	public bool IsHardwareWallet() => _wallet.KeyManager.IsHardwareWallet;
-
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) =>
-		_wallet.GetLabelsWithRanking(intent);
-
-	private IEnumerable<TransactionSummary> BuildSummary()
+	public IWalletStatsModel GetWalletStats()
 	{
-		return _historyBuilder.BuildHistorySummary();
+		return new WalletStatsModel(this, Wallet);
 	}
 
-	private IEnumerable<IAddress> GetAddresses()
+	public IWalletInfoModel GetWalletInfo()
 	{
-		return _wallet.KeyManager
-					  .GetKeys()
-					  .Reverse()
-					  .Select(x => new Address(_wallet.KeyManager, x));
+		return new WalletInfoModel(Wallet);
+	}
+
+	public void Rename(string newWalletName)
+	{
+		Services.WalletManager.RenameWallet(Wallet, newWalletName);
+		this.RaisePropertyChanged(nameof(Name));
 	}
 }

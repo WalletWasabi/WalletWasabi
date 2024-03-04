@@ -1,12 +1,11 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
-    <controls:SuggestionItem />
+    <SuggestionItem />
   </Design.PreviewWith>
 
-  <Style Selector="controls|SuggestionItem">
-    <!-- Set Defaults -->
+  <ControlTheme x:Key="{x:Type SuggestionItem}" TargetType="SuggestionItem">
+
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -29,7 +28,7 @@
             </Border.Transitions>
           </Border>
           <Border Name="PART_MainContentBorder">
-            <ContentControl Name="PART_ContentPresenter"
+            <ContentPresenter Name="PART_ContentPresenter"
                             ClipToBounds="{TemplateBinding ClipToBounds}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -42,5 +41,7 @@
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
-</Styles>
+
+  </ControlTheme>
+
+</ResourceDictionary>

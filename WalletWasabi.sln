@@ -19,8 +19,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		azure-pipelines-windows.yml = azure-pipelines-windows.yml
 		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		exclusion.dic = exclusion.dic
+		global.json = global.json
 		README.md = README.md
 		Settings.StyleCop = Settings.StyleCop
+		NuGet.Config = NuGet.Config
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Packager", "WalletWasabi.Packager\WalletWasabi.Packager.csproj", "{8BE916A0-1F3F-4757-BAD9-BFBAB8EAC3C2}"
@@ -33,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent.Generat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent", "WalletWasabi.Fluent\WalletWasabi.Fluent.csproj", "{1E9A8055-DC14-4C7D-8878-887D50B55A10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Daemon", "WalletWasabi.Daemon\WalletWasabi.Daemon.csproj", "{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Daemon", "WalletWasabi.Daemon\WalletWasabi.Daemon.csproj", "{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

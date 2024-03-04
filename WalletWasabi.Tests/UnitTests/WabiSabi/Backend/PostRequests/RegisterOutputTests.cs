@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
@@ -26,6 +27,31 @@ public class RegisterOutputTests
 		await arena.RegisterOutputAsync(req, CancellationToken.None);
 		Assert.NotEmpty(round.Bobs);
 
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task LegacyOutputsSuccessAsync()
+	{
+		WabiSabiConfig cfg = new() { AllowP2pkhOutputs = true, AllowP2shOutputs = true };
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
+
+		// p2pkh
+		using Key privKey0 = new();
+		var pkhScript = privKey0.PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
+		var req0 = WabiSabiFactory.CreateOutputRegistrationRequest(round, pkhScript, pkhScript.EstimateOutputVsize());
+		await arena.RegisterOutputAsync(req0, CancellationToken.None);
+		Assert.Single(round.Bobs);
+
+		// p2sh
+		using Key privKey1 = new();
+		var shScript = privKey1.PubKey.ScriptPubKey.Hash.ScriptPubKey;
+		var req1 = WabiSabiFactory.CreateOutputRegistrationRequest(round, shScript, shScript.EstimateOutputVsize());
+		await arena.RegisterOutputAsync(req1, CancellationToken.None);
+		Assert.Equal(2, round.Bobs.Count);
 		await arena.StopAsync(CancellationToken.None);
 	}
 

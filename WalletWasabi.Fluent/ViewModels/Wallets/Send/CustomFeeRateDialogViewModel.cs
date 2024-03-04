@@ -22,7 +22,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 		_transactionInfo = transactionInfo;
 
 		_customFee = transactionInfo.IsCustomFeeUsed
-			? transactionInfo.FeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
+			? transactionInfo.FeeRate.SatoshiPerByte.ToString("0.00", CultureInfo.InvariantCulture)
 			: "";
 
 		EnableBack = false;

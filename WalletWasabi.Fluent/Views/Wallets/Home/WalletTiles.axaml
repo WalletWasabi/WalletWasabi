@@ -9,10 +9,16 @@
              x:DataType="collections:IEnumerable">
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-    <ItemsControl Items="{Binding}">
+    <ItemsControl ItemsSource="{Binding}">
+      <ItemsControl.Styles>
+        <Style Selector="ItemsControl > ContentPresenter">
+          <Setter Property="Width" Value="310" />
+          <Setter Property="Height" Value="140" />
+        </Style>
+      </ItemsControl.Styles>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel ItemWidth="310" ItemHeight="140" />
+          <StackPanel Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
     </ItemsControl>

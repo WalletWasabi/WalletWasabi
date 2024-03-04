@@ -15,7 +15,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo;
 
 public class BlockstreamInfoClient
 {
-	public BlockstreamInfoClient(Network network, HttpClientFactory httpClientFactory)
+	public BlockstreamInfoClient(Network network, WasabiHttpClientFactory httpClientFactory)
 	{
 		string uriString;
 
@@ -54,6 +54,6 @@ public class BlockstreamInfoClient
 			myDic.Add(int.Parse(elem.Name), (int)Math.Ceiling(elem.Value.GetDouble()));
 		}
 
-		return new AllFeeEstimate(EstimateSmartFeeMode.Conservative, myDic, isAccurate: true);
+		return new AllFeeEstimate(myDic);
 	}
 }

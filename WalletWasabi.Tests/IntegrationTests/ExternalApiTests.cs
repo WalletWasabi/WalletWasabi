@@ -6,10 +6,10 @@ using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
-using WalletWasabi.WebClients.ItBit;
 using Xunit;
 using WalletWasabi.Interfaces;
 using System.Threading;
+using WalletWasabi.WebClients.Coingate;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -36,13 +36,13 @@ public class ExternalApiTests
 		await AssertProviderAsync(new GeminiExchangeRateProvider());
 
 	[Fact]
-	public async Task ItBitExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new ItBitExchangeRateProvider());
+	public async Task CoingateExchangeRateProviderTestsAsync() =>
+		await AssertProviderAsync(new CoingateExchangeRateProvider());
 
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(timeoutCts.Token);
+		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(timeoutCts.Token).ConfigureAwait(false);
 
 		var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
 		Assert.NotEqual(0.0m, usdRate.Rate);

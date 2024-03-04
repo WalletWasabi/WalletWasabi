@@ -4,7 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -13,12 +13,13 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class IndexStore : IAsyncDisposable
+public class IndexStore : IIndexStore, IAsyncDisposable
 {
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
@@ -29,8 +30,9 @@ public class IndexStore : IAsyncDisposable
 
 		// Migration data.
 		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
 		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		RunMigration = File.Exists(OldIndexFilePath) && !File.Exists(NewIndexFilePath);
+		RunMigration = File.Exists(OldIndexFilePath);
 
 		if (network == Network.RegTest)
 		{
@@ -54,10 +56,13 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? Reorged;
 
-	public event EventHandler<FilterModel>? NewFilter;
+	public event EventHandler<IEnumerable<FilterModel>>? NewFilters;
 
 	/// <summary>Mature index path for migration purposes.</summary>
 	private string OldIndexFilePath { get; }
+
+	/// <summary>Immature index path for migration purposes.</summary>
+	private string OldImmatureIndexFilePath { get; }
 
 	/// <summary>SQLite file path for migration purposes.</summary>
 	private string NewIndexFilePath { get; }
@@ -65,7 +70,11 @@ public class IndexStore : IAsyncDisposable
 	/// <summary>Run migration if SQLite file does not exist.</summary>
 	private bool RunMigration { get; }
 
-	public SmartHeaderChain SmartHeaderChain { get; }
+	private SmartHeaderChain SmartHeaderChain { get; }
+
+	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
+	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
+	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
@@ -78,21 +87,56 @@ public class IndexStore : IAsyncDisposable
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		try
 		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			// Migration code.
-			if (RunMigration)
+			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				await Task.Run(MigrateToSqliteNoLock, cancellationToken).ConfigureAwait(false);
-			}
+				cancellationToken.ThrowIfCancellationRequested();
 
-			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+				// Migration code.
+				if (RunMigration)
+				{
+					MigrateToSqliteNoLock(cancellationToken);
+				}
+
+				// If the automatic migration to SQLite is stopped, we would not delete the old index data.
+				// So check it every time.
+				RemoveOldIndexFilesIfExist();
+
+				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
+
+				// Initialization succeeded.
+				InitializedTcs.SetResult(true);
+			}
+		}
+		catch (Exception)
+		{
+			InitializedTcs.SetResult(false);
+			throw;
 		}
 	}
 
-	private void MigrateToSqliteNoLock()
+	private void RemoveOldIndexFilesIfExist()
+	{
+		if (File.Exists(OldIndexFilePath))
+		{
+			try
+			{
+				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete(OldImmatureIndexFilePath);
+				File.Delete($"{OldIndexFilePath}.dig");
+				File.Delete(OldIndexFilePath);
+
+				Logger.LogInfo("Removed old index file data.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+		}
+	}
+
+	private void MigrateToSqliteNoLock(CancellationToken cancel)
 	{
 		int i = 0;
 
@@ -102,14 +146,17 @@ public class IndexStore : IAsyncDisposable
 
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
-			List<string> filters = new(capacity: 100_000);
+			IndexStorage.Clear();
 
+			List<string> filters = new(capacity: 10_000);
 			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (BufferedStream bs = new(fs))
 			using (StreamReader sr = new(bs))
 			{
 				while (true)
 				{
+					cancel.ThrowIfCancellationRequested();
+
 					i++;
 					string? line = sr.ReadLine();
 
@@ -126,7 +173,7 @@ public class IndexStore : IAsyncDisposable
 
 					filters.Add(line);
 
-					if (i % 100_000 == 0)
+					if (i % 10_000 == 0)
 					{
 						IndexStorage.BulkAppend(filters);
 						filters.Clear();
@@ -137,6 +184,11 @@ public class IndexStore : IAsyncDisposable
 			IndexStorage.BulkAppend(filters);
 
 			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
+		}
+		catch (OperationCanceledException)
+		{
+			SqliteConnection.ClearAllPools();
+			throw;
 		}
 		catch (Exception ex)
 		{
@@ -212,39 +264,41 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		if (NewFilter is null)
+		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			// Lock once.
-			using IDisposable lockDisposable = await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false);
-
 			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
-			foreach (FilterModel filter in filters)
+			int processed = 0;
+
+			try
 			{
-				if (!TryProcessFilterNoLock(filter, enqueue: true))
+				foreach (FilterModel filter in filters)
 				{
-					throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					{
+						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
+
+					processed++;
 				}
 			}
+			finally
+			{
+				sqliteTransaction.Commit();
 
-			sqliteTransaction.Commit();
+				if (processed > 0)
+				{
+					NewFilters?.Invoke(this, filters.Take(processed));
+				}
+			}
 		}
-		else
+	}
+
+	public async Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken)
+	{
+		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			foreach (FilterModel filter in filters)
-			{
-				bool success;
-
-				using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					success = TryProcessFilterNoLock(filter, enqueue: true);
-				}
-
-				if (success)
-				{
-					NewFilter?.Invoke(this, filter); // Event always outside the lock.
-				}
-			}
+			return IndexStorage.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
 		}
 	}
 
@@ -296,17 +350,6 @@ public class IndexStore : IAsyncDisposable
 			if (filterModel is null)
 			{
 				break;
-			}
-		}
-	}
-
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancellationToken)
-	{
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			foreach (FilterModel filter in IndexStorage.Fetch(fromHeight: fromHeight.Value))
-			{
-				await todo(filter).ConfigureAwait(false);
 			}
 		}
 	}

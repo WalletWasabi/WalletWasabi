@@ -58,7 +58,6 @@ public class BlockchainController : ControllerBase
 	[HttpGet("all-fees")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
 	{
 		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
@@ -77,7 +76,7 @@ public class BlockchainController : ControllerBase
 
 		return Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, token),
+			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(token),
 			options: CacheEntryOptions,
 			cancellationToken);
 	}
@@ -92,7 +91,7 @@ public class BlockchainController : ControllerBase
 	[HttpGet("mempool-hashes")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
+	[ResponseCache(Duration = 5)]
 	public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64, CancellationToken cancellationToken = default)
 	{
 		if (compactness is < 1 or > 64)
@@ -185,7 +184,7 @@ public class BlockchainController : ControllerBase
 				}
 			}
 
-			if (missingTxs.Any())
+			if (missingTxs.Count != 0)
 			{
 				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
 				{
@@ -285,7 +284,8 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
+	[ResponseCache(Duration = 60)]
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 	{
 		if (count <= 0)
 		{
@@ -294,12 +294,7 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		if (!TryGetIndexer(indexType, out var indexer))
-		{
-			return BadRequest("Not supported index type.");
-		}
-
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, count, out bool found);
+		var (bestHeight, filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{
@@ -318,30 +313,6 @@ public class BlockchainController : ControllerBase
 		};
 
 		return Ok(response);
-	}
-
-	internal bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
-	{
-		indexer = null;
-		if (indexType is null || indexType.Equals("segwittaproot", StringComparison.OrdinalIgnoreCase))
-		{
-			indexer = Global.SegwitTaprootIndexBuilderService;
-		}
-		else if (indexType.Equals("taproot", StringComparison.OrdinalIgnoreCase))
-		{
-			indexer = Global.TaprootIndexBuilderService;
-		}
-		else
-		{
-			return false;
-		}
-
-		if (indexer is null)
-		{
-			throw new NotSupportedException("This is impossible.");
-		}
-
-		return true;
 	}
 
 	[HttpGet("status")]
@@ -370,20 +341,11 @@ public class BlockchainController : ControllerBase
 	{
 		StatusResponse status = new();
 
-		// Select indexer that's behind the most.
-		var i1 = Global.SegwitTaprootIndexBuilderService;
-		var i2 = Global.TaprootIndexBuilderService;
-		if (i1 is null || i2 is null)
-		{
-			throw new NotSupportedException("This is impossible.");
-		}
-		var indexer = i1.LastFilterBuildTime > i2.LastFilterBuildTime ? i2 : i1;
-
 		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - indexer.LastFilterBuildTime > FilterTimeout)
+		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = indexer.GetLastFilter();
+			var lastFilter = Global.IndexBuilderService.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
 			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
 			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
@@ -397,17 +359,6 @@ public class BlockchainController : ControllerBase
 		else
 		{
 			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of coinjoin.
-		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
-		if (validInterval < TimeSpan.FromHours(1))
-		{
-			validInterval = TimeSpan.FromHours(1);
-		}
-		if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
-		{
-			status.CoinJoinCreationActive = true;
 		}
 
 		// Updating the status of WabiSabi coinjoin.

@@ -2,6 +2,9 @@ using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -15,7 +18,7 @@ public static class CurrencyExtensions
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result)
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination)
 	{
 		var isNormalPayment = result.OuterWalletOutputs.Any();
 
@@ -23,13 +26,11 @@ public static class CurrencyExtensions
 		{
 			return result.OuterWalletOutputs.Sum(x => x.Amount);
 		}
-		else
-		{
-			return result.InnerWalletOutputs
-				.Where(x => !x.HdPubKey.IsInternal)
-				.Select(x => x.Amount)
-				.Sum();
-		}
+
+		return result.InnerWalletOutputs
+			.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
+			.Select(x => x.Amount)
+			.Sum();
 	}
 
 	public static string FormattedBtc(this decimal amount)
@@ -42,16 +43,21 @@ public static class CurrencyExtensions
 		return amount.ToString(format, FormatInfo).Trim();
 	}
 
-	public static decimal BtcToUsd(this Money money, decimal exchangeRate) => money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
-
-	public static string ToUsdAproxBetweenParens(this decimal n) => $"(≈{ToUsd(n)})";
-
-	public static string ToUsd(this decimal n)
+	public static decimal BtcToUsd(this Money money, decimal exchangeRate)
 	{
-		return ToUsdAmount(n) + " USD";
+		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAmount(this decimal n)
+	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsdFormatted(n)}" : "";
+
+	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
+
+	public static string ToUsdFormatted(this decimal n)
+	{
+		return ToUsdAmountFormatted(n) + " USD";
+	}
+
+	public static string ToUsdAmountFormatted(this decimal n)
 	{
 		return n switch
 		{
@@ -60,4 +66,70 @@ public static class CurrencyExtensions
 			_ => n.ToString("N2", FormatInfo)
 		};
 	}
+
+	public static string ToUsd(this decimal n)
+	{
+		return n.WithFriendlyDecimals() + " USD";
+	}
+
+	public static decimal WithFriendlyDecimals(this double n)
+	{
+		return WithFriendlyDecimals((decimal) n);
+	}
+
+	public static decimal WithFriendlyDecimals(this decimal n)
+	{
+		return Math.Abs(n) switch
+		{
+			>= 10 => decimal.Round(n),
+			>= 1 => decimal.Round(n, 1),
+			_ => decimal.Round(n, 2)
+		};
+	}
+
+	public static string ToFeeDisplayUnitRawString(this Money? fee)
+	{
+		if (fee is null)
+		{
+			return "Unknown";
+		}
+
+		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
+
+		return displayUnit switch
+		{
+			FeeDisplayUnit.Satoshis => fee.Satoshi.ToString(),
+			_ => fee.ToString()
+		};
+	}
+
+	public static string ToFeeDisplayUnitFormattedString(this Money? fee)
+	{
+		if (fee is null)
+		{
+			return "Unknown";
+		}
+
+		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
+		var moneyUnit = displayUnit.ToMoneyUnit();
+
+		var feePartText = moneyUnit switch
+		{
+			MoneyUnit.BTC => fee.ToFormattedString(),
+			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
+			_ => fee.ToString()
+		};
+
+		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
+
+		return feeText;
+	}
+
+	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
+		feeDisplayUnit switch
+		{
+			FeeDisplayUnit.BTC => MoneyUnit.BTC,
+			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
+			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
+		};
 }

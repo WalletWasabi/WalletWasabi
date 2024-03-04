@@ -1,0 +1,40 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CaptionButtons.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CopyableItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/DualCurrencyEntryBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/FadeOutTextControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/HistoryPlaceholderPanel.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBar.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBarSegment.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRing.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ProgressRingArc.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/QuestionControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TagControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TextBox.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TreeDataGrid.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AmountControl.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+</Styles>
+

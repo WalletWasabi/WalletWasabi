@@ -22,7 +22,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public WasabiSynchronizer Synchronizer { get; }
 	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
-	private object Lock { get; } = new object();
+	private object Lock { get; } = new();
 	public bool InError { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
@@ -74,7 +74,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		var current = LastAllFeeEstimate;
 		if (fees is null
 			|| fees == current
-			|| (current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count)))
+			|| (current is not null && fees.Estimations.Count <= current.Estimations.Count))
 		{
 			return false;
 		}

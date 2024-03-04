@@ -110,7 +110,7 @@ public class MempoolMirror : PeriodicRunner
 		}
 	}
 
-	internal ISet<uint256> GetMempoolHashes()
+	public ISet<uint256> GetMempoolHashes()
 	{
 		lock (MempoolLock)
 		{

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using DynamicData;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
@@ -137,6 +138,24 @@ public class SuggestionLabelsViewModelTests
 		Assert.Empty(sut.TopSuggestions);
 	}
 
+	[Fact]
+	public void SuggestionsShouldNotContainDuplicates()
+	{
+		var labels = new List<(string Label, int Score)>
+		{
+			("label 1", 1),
+			("label 2", 1),
+			("label 3", 4),
+			("Label 1", 1),
+			("Label 2", 2),
+			("Label 3", 3),
+		};
+		var wallet = new TestWallet(labels);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+
+		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
+	}
+
 	private class TestWallet : IWalletModel
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
@@ -146,24 +165,54 @@ public class SuggestionLabelsViewModelTests
 			_mostUsedLabels = mostUsedLabels;
 		}
 
-		public string Name => throw new NotSupportedException();
-		public IObservable<IChangeSet<TransactionSummary, uint256>> Transactions => throw new NotSupportedException();
-		public IObservable<Money> Balance => throw new NotSupportedException();
-		public IObservable<IChangeSet<IAddress, string>> Addresses => throw new NotSupportedException();
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IAddressesModel Addresses => throw new NotSupportedException();
+		public WalletId Id => throw new NotSupportedException();
+
+		public string Name
+		{
+			get => throw new NotSupportedException();
+			set => throw new NotSupportedException();
+		}
+
+		public IObservable<WalletState> State => throw new NotSupportedException();
+		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
+		public bool IsWatchOnlyWallet => throw new NotSupportedException();
+		public IWalletAuthModel Auth => throw new NotSupportedException();
+		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
+		public IWalletSettingsModel Settings => throw new NotSupportedException();
+		public IWalletCoinsModel Coins => throw new NotSupportedException();
+		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
+		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
+		public Network Network => throw new NotSupportedException();
+		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		public IObservable<Amount> Balances => throw new NotSupportedException();
+		public IObservable<bool> HasBalance => throw new NotSupportedException();
+		public IAmountProvider AmountProvider => throw new NotSupportedException();
+
+		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
 
+		public void Rename(string newWalletName) => throw new NotSupportedException();
+
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{
 			return _mostUsedLabels;
 		}
 
-		public bool IsHardwareWallet()
+		public IWalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
+		}
+
+		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

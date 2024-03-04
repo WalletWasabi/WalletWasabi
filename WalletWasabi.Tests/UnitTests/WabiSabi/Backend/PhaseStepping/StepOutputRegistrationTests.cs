@@ -99,6 +99,8 @@ public class StepOutputRegistrationTests
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			token);
+		await alices[0].ReadyToSignAsync(token);
+		await alices[1].ReadyToSignAsync(token);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -146,12 +148,15 @@ public class StepOutputRegistrationTests
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			token);
+		await alices[0].ReadyToSignAsync(token);
+		await alices[1].ReadyToSignAsync(token);
 
 		// Add another input. The input must be able to pay for itself, but
 		// the remaining amount after deducting the fees needs to be less
 		// than the minimum.
 		var txParameters = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParameters.AllowedOutputAmounts.Min - new Money(1L), round);
+		extraAlice.ReadyToSign = true;
 		round.Alices.Add(extraAlice);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
@@ -388,5 +393,29 @@ public class StepOutputRegistrationTests
 		await roundStateUpdater.StopAsync(token);
 
 		await arena.StopAsync(token);
+	}
+
+	[Fact]
+	public async Task AliceIsNotReadyAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			OutputRegistrationTimeout = TimeSpan.Zero,
+		};
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
+
+		await alices[0].ReadyToSignAsync(token);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
 	}
 }

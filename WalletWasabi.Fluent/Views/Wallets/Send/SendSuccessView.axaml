@@ -2,21 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
              mc:Ignorable="d"
              x:DataType="vm:SendSuccessViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Done"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" />
-
-      <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}" />
-      </Viewbox>
-    </DockPanel>
-  </c:ContentArea>
+  <ContentArea EnableNext="False"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 MinWidth="500">
+    <views:SuccessAnimationView VerticalAlignment="Center" />
+  </ContentArea>
 </UserControl>

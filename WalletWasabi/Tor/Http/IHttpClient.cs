@@ -17,7 +17,7 @@ public interface IHttpClient
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default);
+	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken);
 
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="InvalidOperationException"/>

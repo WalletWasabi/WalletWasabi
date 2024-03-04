@@ -90,7 +90,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// Wait for the result of TcpListener.Start().
-			await TaskStartTcpListener.Task.WithAwaitCancellationAsync(DisposeCts.Token).ConfigureAwait(false);
+			await TaskStartTcpListener.Task.WaitAsync(DisposeCts.Token).ConfigureAwait(false);
 
 			// This is the first instance, nothing else to do.
 			return true;
@@ -155,7 +155,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
-				// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus canceling it.
+				// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
 				using var client = await listener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
 				client.ReceiveBufferSize = 1000;
 				try

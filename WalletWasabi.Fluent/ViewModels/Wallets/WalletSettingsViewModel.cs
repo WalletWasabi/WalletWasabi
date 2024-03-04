@@ -1,9 +1,9 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -15,41 +15,52 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Settings", },
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+	NavigationTarget = NavigationTarget.DialogScreen,
+	Searchable = false)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private string _walletName;
 
-	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
+	private WalletSettingsViewModel(IWalletModel wallet)
 	{
-		_wallet = walletViewModelBase.Wallet;
-		Title = $"{_wallet.WalletName} - Wallet Settings";
-		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
-		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
+		_wallet = wallet;
+		_walletName = wallet.Name;
+		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
+		IsHardwareWallet = wallet.IsHardwareWallet;
+		IsWatchOnly = wallet.IsWatchOnlyWallet;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand =
-			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(wallet));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
-			.Subscribe(
-				value =>
-				{
-					_wallet.KeyManager.PreferPsbtWorkflow = value;
-					_wallet.KeyManager.ToFile();
-					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-				});
+			.Subscribe(value =>
+			{
+				wallet.Settings.PreferPsbtWorkflow = value;
+				wallet.Settings.Save();
+			});
+
+		this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
+		
+		RenameCommand = ReactiveCommand.CreateFromTask(OnRenameWalletAsync);
 	}
+
+	public ICommand RenameCommand { get; set; }
 
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+	
+	private async Task OnRenameWalletAsync()
+	{
+		await Navigate().To().WalletRename(_wallet).GetResultAsync();
+		UiContext.WalletRepository.StoreLastSelectedWallet(_wallet);
+	}
 }

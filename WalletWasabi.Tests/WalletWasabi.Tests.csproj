@@ -1,39 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
-		<AnalysisLevel>latest</AnalysisLevel>
 		<IsPackable>false</IsPackable>
-		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;CA1031;CA1822</NoWarn>
 		<ApplicationIcon />
 		<OutputType>Library</OutputType>
 		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<Nullable>enable</Nullable>
-		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
-		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>
+		<!-- TODO: PathMap breaks Verifier.Verify -->
+		<!--<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>-->
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="coverlet.collector" Version="3.2.0">
+		<PackageReference Include="coverlet.collector">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.2.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
-		<PackageReference Include="Moq" Version="4.18.2" />
-		<PackageReference Include="xunit" Version="2.4.2" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Moq" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
 		<DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
+		<PackageReference Include="Avalonia.Desktop" />
+		<PackageReference Include="Avalonia.Headless.XUnit" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -69,7 +65,10 @@
 		<None Update="./UnitTests/Data/StrobeTestVectors.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="./UnitTests/Data/MempoolInfoWithHistogram.json">
+		<None Update="./UnitTests/Data/MempoolInfoWithHistogram1.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="./UnitTests/Data/MempoolInfoWithHistogram2.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="./UnitTests/Data/VerboseBlock.json">

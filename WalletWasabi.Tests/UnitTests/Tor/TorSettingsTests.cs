@@ -5,7 +5,7 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Tor;
 
 /// <summary>
-/// Tests for <see cref="Tor.TorSettings"/> class.
+/// Tests for <see cref="TorSettings"/> class.
 /// </summary>
 public class TorSettingsTests
 {
@@ -22,6 +22,7 @@ public class TorSettingsTests
 		string expected = string.Join(
 			" ",
 			$"--LogTimeGranularity 1",
+			$"--TruncateLogFile 1",
 			$"--SOCKSPort \"127.0.0.1:37150 ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--MaxCircuitDirtiness 1800",
 			$"--SocksTimeout 30",

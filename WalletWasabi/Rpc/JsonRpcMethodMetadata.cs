@@ -19,6 +19,6 @@ public class JsonRpcMethodMetadata
 	// The name of the remote procedure. This is NOT the name of the method to be invoked.
 	public string Name { get; }
 	public MethodInfo MethodInfo { get; }
-	public bool RequiresInitialization { get; } 
+	public bool RequiresInitialization { get; }
 	public List<(string name, Type type, bool isOptional, object defaultValue)> Parameters { get; }
 }

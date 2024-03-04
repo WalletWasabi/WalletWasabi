@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using NBitcoin;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
+using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -19,12 +22,13 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, AffiliationManager affiliationManager)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, AffiliationManager affiliationManager, CoinJoinMempoolManager coinJoinMempoolManager)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 		AffiliationManager = affiliationManager;
+		CoinJoinMempoolManager = coinJoinMempoolManager;
 	}
 
 	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
@@ -32,6 +36,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
 	private AffiliationManager AffiliationManager { get; }
+	public CoinJoinMempoolManager CoinJoinMempoolManager { get; }
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -147,9 +152,24 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 					IsBlameRound: r is BlameRound,
 					InputCount: r.InputCount,
 					Phase: r.Phase.ToString(),
-					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(NBitcoin.MoneyUnit.BTC),
+					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(MoneyUnit.BTC),
 					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
 
 		return new HumanMonitorResponse(response.ToArray());
 	}
+
+	/// <summary>
+	/// Gets the list of unconfirmed coinjoin transaction Ids.
+	/// </summary>
+	/// <returns>The list of coinjoin transactions in the mempool.</returns>
+	/// <response code="200">An array of transaction Ids</response>
+	[HttpGet("unconfirmed-coinjoins")]
+	[ProducesResponseType(200)]
+	public IActionResult GetUnconfirmedCoinjoins()
+	{
+		IEnumerable<string> unconfirmedCoinJoinString = GetUnconfirmedCoinJoinCollection().Select(x => x.ToString());
+		return Ok(unconfirmedCoinJoinString);
+	}
+
+	internal IEnumerable<uint256> GetUnconfirmedCoinJoinCollection() => CoinJoinMempoolManager.CoinJoinIds;
 }

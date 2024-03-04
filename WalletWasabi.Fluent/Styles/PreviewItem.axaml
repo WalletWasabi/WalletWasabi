@@ -1,0 +1,7 @@
+<Styles xmlns="https://github.com/avaloniaui">
+
+  <Style Selector="PreviewItem :is(Control) TextBlock, PreviewItem :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+</Styles>

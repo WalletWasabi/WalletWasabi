@@ -1,13 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Generators;
-using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
 using System.Linq;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class PrivacyBar : ItemsPresenter
+public class PrivacyBar : ItemsControl
 {
 	private const double GapBetweenSegments = 1.5;
 	private const double EnlargeThreshold = 2;
@@ -22,9 +20,34 @@ public class PrivacyBar : ItemsPresenter
 		set => SetValue(TotalAmountProperty, value);
 	}
 
-	protected override IItemContainerGenerator CreateItemContainerGenerator()
+	protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
 	{
-		return new PrivacyBarItemContainerGenerator(this);
+		return new PrivacyBarSegment();
+	}
+
+	protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
+	{
+		return NeedsContainer<PrivacyBarSegment>(item, out recycleKey);
+	}
+
+	protected override void PrepareContainerForItemOverride(Control element, object? item, int index)
+	{
+		base.PrepareContainerForItemOverride(element, item, index);
+
+		if (element is PrivacyBarSegment privacyBarSegment)
+		{
+			privacyBarSegment.DataContext = item;
+		}
+	}
+
+	protected override void ClearContainerForItemOverride(Control element)
+	{
+		base.ClearContainerForItemOverride(element);
+
+		if (element is PrivacyBarSegment privacyBarSegment)
+		{
+			privacyBarSegment.DataContext = null;
+		}
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
@@ -43,7 +66,7 @@ public class PrivacyBar : ItemsPresenter
 			children.Select(segment =>
 			{
 				var amount = (double)segment.Amount;
-				var width = Math.Abs(usableWidth * amount / (double)totalAmount);
+				var width = totalAmount == 0m ? 0d : Math.Abs(usableWidth * amount / (double)totalAmount);
 
 				return (Coin: segment, Width: width);
 			}).ToArray();
@@ -53,7 +76,7 @@ public class PrivacyBar : ItemsPresenter
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
 		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
-		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		if (segmentsToEnlarge.Length != 0 && segmentsToReduce.Length != 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
 			rawSegments = rawSegments.Select(x =>
 			{
@@ -72,20 +95,5 @@ public class PrivacyBar : ItemsPresenter
 		}
 
 		return base.ArrangeOverride(finalSize);
-	}
-
-	private class PrivacyBarItemContainerGenerator : ItemContainerGenerator
-	{
-		public PrivacyBarItemContainerGenerator(IControl owner) : base(owner)
-		{
-		}
-
-		protected override IControl CreateContainer(object item)
-		{
-			return new PrivacyBarSegment
-			{
-				DataContext = item,
-			};
-		}
 	}
 }

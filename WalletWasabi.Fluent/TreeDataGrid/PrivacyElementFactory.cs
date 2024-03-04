@@ -5,14 +5,14 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class PrivacyElementFactory : TreeDataGridElementFactory
 {
-	protected override IControl CreateElement(object? data)
+	protected override Control CreateElement(object? data)
 	{
 		return data is PrivacyTextCell ?
 			new TreeDataGridPrivacyTextCell() :
 			base.CreateElement(data);
 	}
 
-	protected override string GetDataRecycleKey(object data)
+	protected override string GetDataRecycleKey(object? data)
 	{
 		return data is PrivacyTextCell ?
 			typeof(TreeDataGridPrivacyTextCell).FullName! :

@@ -9,7 +9,8 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:CompileBindings="True"
              x:DataType="searchBar:SearchBarViewModel"
-             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar">
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
+             x:Name="UserControl">
   <UserControl.Resources>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
   </UserControl.Resources>
@@ -128,13 +129,18 @@
     </Style>
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Stretch"
+  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100" HorizontalAlignment="Stretch"
            Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
-      <behaviors:SwallowEnterKeyBehavior />
-      <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
+      <DataTriggerBehavior Binding="{Binding IsSearchListVisible}" Value="False">
+        <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
+      </DataTriggerBehavior>
+      <behaviors:KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
+        <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
+      </behaviors:KeyDownTrigger>
+      <behaviors:ShowFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 
     <TextBox.InnerLeftContent>
@@ -150,4 +156,11 @@
       </Flyout>
     </FlyoutBase.AttachedFlyout>
   </TextBox>
+
+  <i:Interaction.Behaviors>
+    <behaviors:KeyDownTrigger EventRoutingStrategy="Tunnel" Key="Escape">
+      <CallMethodAction MethodName="Unfocus" />
+    </behaviors:KeyDownTrigger>
+  </i:Interaction.Behaviors>
+
 </UserControl>

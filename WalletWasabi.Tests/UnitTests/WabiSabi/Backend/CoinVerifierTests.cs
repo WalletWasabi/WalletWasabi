@@ -25,20 +25,19 @@ public class CoinVerifierTests
 	[Fact]
 	public async Task CanHandleBlacklistedUtxosTestAsync()
 	{
-		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() =>
-			{
-				string content = GenerateDirtyJsonReport();
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
-				response.Content = new StringContent(content);
-				return response;
-			});
+		using MockHttpClient mockIHttpClient = new();
+		mockIHttpClient.OnSendAsync = req =>
+		{
+			string content = GenerateDirtyJsonReport();
+			HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
+			response.Content = new StringContent(content);
+			return Task.FromResult(response);
+		};
 
-		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		mockIHttpClient.BaseAddress = new Uri(TestURL);
 
 		CoinJoinIdStore coinJoinIdStore = new();
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockIHttpClient);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(98);
@@ -62,26 +61,26 @@ public class CoinVerifierTests
 		using HttpResponseMessage dirtyResponse = new(System.Net.HttpStatusCode.OK) { Content = new StringContent(GenerateDirtyJsonReport()) };
 		using HttpResponseMessage cleanResponse = new(System.Net.HttpStatusCode.OK) { Content = new StringContent(GenerateCleanJsonReport()) };
 
-		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.SetupSequence(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(dirtyResponse)
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse)
-			.ThrowsAsync(new InvalidOperationException())
-			.ThrowsAsync(new InvalidOperationException())   // Because of the retry mechanism, we need to fail 3 times to kick out the coin.
-			.ThrowsAsync(new InvalidOperationException())
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse)
-			.ReturnsAsync(cleanResponse);
+		using MockHttpClient mockHttpClient = new();
+		mockHttpClient.SetupSequence(
+			() => dirtyResponse,
+			() => cleanResponse,
+			() => cleanResponse,
+			() => throw new InvalidOperationException(),
+			() => throw new InvalidOperationException(), // Because of the retry mechanism, we need to fail 3 times to kick out the coin.
+			() => throw new InvalidOperationException(),
+			() => cleanResponse,
+			() => cleanResponse,
+			() => cleanResponse,
+			() => cleanResponse,
+			() => cleanResponse,
+			() => cleanResponse);
 
-		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		mockHttpClient.BaseAddress = new Uri(TestURL);
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
@@ -112,20 +111,19 @@ public class CoinVerifierTests
 	[Fact]
 	public async Task HandleAuthenticationErrorTestAsync()
 	{
-		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() =>
-			{
-				string content = """{"error": "User roles access forbidden." }""";
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.Forbidden);
-				response.Content = new StringContent(content);
-				return response;
-			});
-		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		using MockHttpClient mockHttpClient = new();
+		mockHttpClient.OnSendAsync = req =>
+		{
+			string content = """{"error": "User roles access forbidden." }""";
+			HttpResponseMessage response = new(System.Net.HttpStatusCode.Forbidden);
+			response.Content = new StringContent(content);
+			return Task.FromResult(response);
+		};
+		mockHttpClient.BaseAddress = new Uri(TestURL);
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(5);
@@ -151,19 +149,18 @@ public class CoinVerifierTests
 			WabiSabiFactory.CreateCoin(key, Money.Coins(1m))
 		};
 
-		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() =>
-			{
-				string content = GenerateCleanJsonReport();
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
-				response.Content = new StringContent(content);
-				return response;
-			});
+		using MockHttpClient mockHttpClient = new();
+		mockHttpClient.OnSendAsync = req =>
+		{
+			string content = GenerateCleanJsonReport();
+			HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
+			response.Content = new StringContent(content);
+			return Task.FromResult(response);
+		};
 
-		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		mockHttpClient.BaseAddress = new Uri(TestURL);
 		CoinJoinIdStore coinJoinIdStore = new();
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient);
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
@@ -176,21 +173,20 @@ public class CoinVerifierTests
 	[Fact]
 	public async Task CanFillWhitelistAfterVerificationTestAsync()
 	{
-		Mock<HttpClient> mockHttpClient = new();
-		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() =>
-			{
-				string content = GenerateCleanJsonReport();
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
-				response.Content = new StringContent(content);
-				return response;
-			});
+		using MockHttpClient mockHttpClient = new();
+		mockHttpClient.OnSendAsync = req =>
+		{
+			string content = GenerateCleanJsonReport();
+			HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
+			response.Content = new StringContent(content);
+			return Task.FromResult(response);
+		};
 
-		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		mockHttpClient.BaseAddress = new Uri(TestURL);
 
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
-		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient.Object);
+		await using CoinVerifierApiClient apiClient = new(apiToken: "token", mockHttpClient);
 		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig());
 		await using CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig, whitelist);
 

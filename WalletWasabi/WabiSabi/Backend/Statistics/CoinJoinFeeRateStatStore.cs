@@ -43,7 +43,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancel).ConfigureAwait(false)).FeeRate;
+		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancel).ConfigureAwait(false)).FeeRate;
 
 		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
 		Add(feeRateStat);
@@ -58,7 +58,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
-		while (CoinJoinFeeRateStats.Any() && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
+		while (CoinJoinFeeRateStats.Count != 0 && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
 		{
 			CoinJoinFeeRateStats.RemoveAt(0);
 		}

@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -28,7 +29,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	private SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
 		_isSilent = isSilent;
 		IsBusy = isSilent;
@@ -109,12 +110,12 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			})
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
+			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			Dictionary<int, int> feeEstimates;
+			AllFeeEstimate feeEstimates;
 			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
 			try
@@ -128,7 +129,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 				return;
 			}
 
-			FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
+			FeeChart.UpdateFeeEstimates(feeEstimates.WildEstimations, _transactionInfo.MaximumPossibleFeeRate);
 
 			if (_transactionInfo.FeeRate != FeeRate.Zero)
 			{

@@ -11,7 +11,7 @@
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="BorderBrush" Value="Gold" />
-      <Setter Property="BorderThickness" Value="0.5" />
+      <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="7 5 8 5" />
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">

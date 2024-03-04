@@ -1,7 +1,5 @@
-using System.Linq;
-using System.Reactive.Linq;
-using ReactiveUI;
-using WalletWasabi.Daemon;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -15,23 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 			"Settings", "Advanced", "Enable", "GPU"
 	},
 	IconName = "settings_general_regular")]
-public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
+public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _enableGpu;
-
-	public AdvancedSettingsTabViewModel()
+	public AdvancedSettingsTabViewModel(IApplicationSettings settings)
 	{
-		_enableGpu = Services.PersistentConfig.EnableGpu;
-
-		this.WhenAnyValue(x => x.EnableGpu)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
-			.Skip(1)
-			.Subscribe(_ => Save());
+		Settings = settings;
 	}
 
-	protected override void EditConfigOnSave(PersistentConfig persistentConfig)
-	{
-		persistentConfig.EnableGpu = EnableGpu;
-	}
+	public bool IsReadOnly => Settings.IsOverridden;
+
+	public IApplicationSettings Settings { get; }
 }

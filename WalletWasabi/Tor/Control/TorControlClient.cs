@@ -166,6 +166,31 @@ public class TorControlClient : IAsyncDisposable
 		return reply;
 	}
 
+	public async Task<string> CreateOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
+	{
+		var reply = await SendCommandAsync($"ADD_ONION NEW:BEST Flags=DiscardPK Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
+		if (!reply.Success)
+		{
+			throw new TorControlException("Failed to create onion service.");
+		}
+
+		const string Marker = "ServiceID=";
+		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker, StringComparison.Ordinal));
+		if (serviceLine is null)
+		{
+			throw new TorControlException("Tor protocol violation.");
+		}
+
+		var serviceId = serviceLine[Marker.Length..];
+		return serviceId;
+	}
+
+	public async Task<bool> DestroyOnionServiceAsync(string serviceId, CancellationToken cancellationToken)
+	{
+		var reply = await SendCommandAsync($"DEL_ONION {serviceId}\r\n", cancellationToken).ConfigureAwait(false);
+		return reply.Success;
+	}
+
 	/// <summary>
 	/// Causes Tor to stop polling for the existence of a process with its owning controller's PID.
 	/// </summary>
@@ -237,7 +262,7 @@ public class TorControlClient : IAsyncDisposable
 			lock (AsyncChannelsLock)
 			{
 				newList = new(AsyncChannels);
-				_ = newList.Remove(channel);
+				newList.Remove(channel);
 
 				AsyncChannels = newList;
 			}

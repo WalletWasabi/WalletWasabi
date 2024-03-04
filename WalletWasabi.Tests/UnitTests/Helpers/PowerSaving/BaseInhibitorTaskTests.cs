@@ -18,13 +18,12 @@ public class BaseInhibitorTaskTests
 	[Fact]
 	public async Task CancelBehaviorAsync()
 	{
-		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.Setup(p => p.WaitForExitAsync(It.IsAny<CancellationToken>()))
-			.Returns((CancellationToken cancellationToken) => Task.Delay(Timeout.Infinite, cancellationToken));
-		mockProcess.Setup(p => p.HasExited).Returns(false);
-		mockProcess.Setup(p => p.Kill(It.IsAny<bool>()));
+		using MockProcessAsync mockProcess = new(new ProcessStartInfo());
+		mockProcess.OnWaitForExitAsync = (cancellationToken) => Task.Delay(Timeout.Infinite, cancellationToken);
+		mockProcess.OnHasExited = () => false;
+		mockProcess.OnKill = b => { };
 
-		TestInhibitorClass psTask = new(TimeSpan.FromSeconds(10), DefaultReason, mockProcess.Object);
+		TestInhibitorClass psTask = new(TimeSpan.FromSeconds(10), DefaultReason, mockProcess);
 
 		// Task was started and as such it cannot be done yet.
 		Assert.False(psTask.IsDone);
@@ -37,8 +36,6 @@ public class BaseInhibitorTaskTests
 
 		// Prolong after exit must fail.
 		Assert.False(psTask.Prolong(TimeSpan.FromSeconds(5)));
-
-		mockProcess.VerifyAll();
 	}
 
 	public class TestInhibitorClass : BaseInhibitorTask

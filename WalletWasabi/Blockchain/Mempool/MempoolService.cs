@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -19,10 +20,6 @@ public class MempoolService
 
 	private long _totalReceives = 0;
 	private long _duplicatedReceives = 0;
-
-	public MempoolService()
-	{
-	}
 
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
@@ -67,12 +64,12 @@ public class MempoolService
 		}
 	}
 
-	public SmartLabel TryGetLabel(uint256 txid)
+	public LabelsArray TryGetLabel(uint256 txid)
 	{
-		var label = SmartLabel.Empty;
+		var label = LabelsArray.Empty;
 		if (TryGetFromBroadcastStore(txid, out var entry))
 		{
-			label = entry.Transaction.Label;
+			label = entry.Transaction.Labels;
 		}
 
 		return label;
@@ -81,7 +78,7 @@ public class MempoolService
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
 	/// </summary>
-	public async Task<bool> TryPerformMempoolCleanupAsync(HttpClientFactory httpClientFactory)
+	public async Task<bool> TryPerformMempoolCleanupAsync(WasabiHttpClientFactory httpClientFactory)
 	{
 		// If already cleaning, then no need to run it that often.
 		if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -158,7 +155,7 @@ public class MempoolService
 		{
 			if (ProcessedTransactionHashes.Add(tx.GetHash()))
 			{
-				txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
+				txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(tx.GetHash()));
 			}
 			else
 			{
@@ -171,5 +168,22 @@ public class MempoolService
 		{
 			TransactionReceived?.Invoke(this, txAdded);
 		}
+	}
+
+	public bool TrySpend(SmartCoin coin, SmartTransaction tx)
+	{
+		var spent = false;
+		lock (BroadcastStoreLock)
+		{
+			foreach (var foundCoin in BroadcastStore
+				.SelectMany(x => x.Transaction.WalletInputs)
+				.Concat(BroadcastStore.SelectMany(x => x.Transaction.WalletOutputs))
+				.Where(x => x == coin))
+			{
+				foundCoin.SpenderTransaction = tx;
+				spent = true;
+			}
+		}
+		return spent;
 	}
 }

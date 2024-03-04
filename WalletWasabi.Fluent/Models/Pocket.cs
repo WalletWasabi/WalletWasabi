@@ -2,29 +2,28 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Fluent.Models;
 
 public class Pocket
 {
-	public Pocket((SmartLabel labels, ICoinsView coins) pocket)
+	public Pocket((LabelsArray labels, ICoinsView coins) pocket)
 	{
 		Coins = pocket.coins;
 		Labels = pocket.labels;
 	}
 
-	public SmartLabel Labels { get; }
+	public LabelsArray Labels { get; }
 
 	public Money Amount => Coins.TotalAmount();
 
 	public ICoinsView Coins { get; }
 
-	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
+	public static Pocket Empty => new((LabelsArray.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
 
 	public static Pocket Merge(params Pocket[] pockets)
 	{
-		var mergedLabels = SmartLabel.Merge(pockets.Select(p => p.Labels));
+		var mergedLabels = LabelsArray.Merge(pockets.Select(p => p.Labels));
 		var mergedCoins = new CoinsView(pockets.SelectMany(x => x.Coins).ToHashSet());
 
 		return new Pocket((mergedLabels, mergedCoins));

@@ -49,6 +49,7 @@ public class PayjoinClient : IPayjoinClient
 		}
 
 		var originalFee = originalTx.GetFee();
+
 		// By default, we want to keep same fee rate and a single additional input
 		optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Helpers.Constants.P2wpkhInputVirtualSize);
 		optionalParameters.DisableOutputSubstitution = false;
@@ -90,7 +91,8 @@ public class PayjoinClient : IPayjoinClient
 			try
 			{
 				var error = JObject.Parse(errorStr);
-				throw new PayjoinReceiverException((int)bpuResponse.StatusCode,
+				throw new PayjoinReceiverException(
+					(int)bpuResponse.StatusCode,
 					error["errorCode"].Value<string>(),
 					error["message"].Value<string>());
 			}
@@ -106,7 +108,7 @@ public class PayjoinClient : IPayjoinClient
 		var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
 		// Checking that the PSBT of the receiver is clean
-		if (newPSBT.GlobalXPubs.Any())
+		if (newPSBT.GlobalXPubs.Count != 0)
 		{
 			throw new PayjoinSenderException("GlobalXPubs should not be included in the receiver's PSBT");
 		}
@@ -194,6 +196,7 @@ public class PayjoinClient : IPayjoinClient
 				{
 					throw new PayjoinSenderException("The payjoin receiver included a non finalized input");
 				}
+
 				// Making sure that the receiver's inputs are finalized and match format
 				var payjoinInputType = input.GetInputScriptPubKeyType();
 				if (payjoinInputType is null || payjoinInputType.Value != ScriptPubKeyType.Segwit)
@@ -248,6 +251,7 @@ public class PayjoinClient : IPayjoinClient
 			// Let's check the difference is only for the fee and that feerate
 			// did not change that much
 			var expectedFee = originalFeeRate.GetFee(newVirtualSize);
+
 			// Signing precisely is hard science, give some breathing room for error.
 			expectedFee += originalFeeRate.GetFee(newPSBT.Inputs.Count * 2);
 			if (overPaying > (expectedFee - originalFee))

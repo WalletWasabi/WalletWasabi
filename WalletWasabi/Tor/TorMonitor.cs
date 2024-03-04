@@ -42,7 +42,7 @@ public class TorMonitor : PeriodicRunner
 	/// <remarks>Guards <see cref="ForceTorRestartCts"/>.</remarks>
 	private readonly object _lock = new();
 
-	public TorMonitor(TimeSpan period, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, TorProcessManager torProcessManager, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
@@ -137,7 +137,7 @@ public class TorMonitor : PeriodicRunner
 
 					if (statusEvent.Action == StatusEvent.ActionCircuitNotEstablished)
 					{
-						_ = statusEvent.Arguments.TryGetValue("REASON", out string? reason);
+						statusEvent.Arguments.TryGetValue("REASON", out string? reason);
 						Logger.LogError($"Tor circuit failed to be established: {(reason ?? "unknown reason")}.");
 					}
 				}
@@ -145,7 +145,7 @@ public class TorMonitor : PeriodicRunner
 				{
 					CircuitInfo info = circEvent.CircuitInfo;
 
-					if (!circuitEstablished && (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT))
+					if (!circuitEstablished && (info.CircuitStatus is CircuitStatus.BUILT or CircuitStatus.EXTENDED or CircuitStatus.GUARD_WAIT))
 					{
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;

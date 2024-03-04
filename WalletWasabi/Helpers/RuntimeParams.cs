@@ -39,7 +39,7 @@ public class RuntimeParams
 		}
 	}
 
-	private AsyncLock AsyncLock { get; } = new AsyncLock();
+	private AsyncLock AsyncLock { get; } = new();
 	private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 	public static void SetDataDir(string dataDir)
@@ -83,7 +83,7 @@ public class RuntimeParams
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 			InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
-							?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
+				?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
 			return;
 		}
 		catch (Exception ex)

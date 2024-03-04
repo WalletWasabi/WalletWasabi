@@ -1,36 +1,49 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Style Selector="c|QuestionControl">
+  <ControlTheme x:Key="{x:Type QuestionControl}" TargetType="QuestionControl">
+
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
+
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
           <DockPanel
-            x:DataType="c:QuestionControl"
+            x:DataType="QuestionControl"
             x:CompileBindings="True"
             Classes="h6"
             HorizontalAlignment="Stretch" MaxWidth="500" DockPanel.Dock="Bottom">
+            <DockPanel.Styles>
+              <Style Selector="Button.yesNo">
+                <Setter Property="Width" Value="150" />
+                <Setter Property="Height" Value="40" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="0" />
+              </Style>
+            </DockPanel.Styles>
             <Button Name="PART_NoButton"
                     HorizontalAlignment="Left"
-                    Content="No"
+                    Content="{TemplateBinding NoContent}"
                     Classes.action="{TemplateBinding IsNoButton}"
+                    IsDefault="{TemplateBinding IsNoButton}"
                     Classes="yesNo"
                     Command="{TemplateBinding NoCommand}" />
             <Button Name="PART_YesButton"
                     HorizontalAlignment="Right"
-                    Content="Yes"
+                    Content="{TemplateBinding YesContent}"
                     Classes.action="{TemplateBinding IsYesButton}"
+                    IsDefault="{TemplateBinding IsYesButton}"
                     Classes="yesNo"
                     Command="{TemplateBinding YesCommand}" />
           </DockPanel>
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalContentAlignment="Center"
-                            TextBlock.FontSize="{TemplateBinding FontSize}"
+                            TextElement.FontSize="{TemplateBinding FontSize}"
                             DockPanel.Dock="Bottom"
                             Margin="0 10 0 50" />
           <Panel DockPanel.Dock="Top">
@@ -42,15 +55,7 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <!-- YesNo Button style -->
-  <Style Selector="Button.yesNo">
-    <Setter Property="Width" Value="150" />
-    <Setter Property="Height" Value="40" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Padding" Value="0" />
-  </Style>
-</Styles>
+  </ControlTheme>
+
+</ResourceDictionary>

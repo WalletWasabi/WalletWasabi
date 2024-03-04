@@ -12,7 +12,7 @@ jobs:
   - task: UseDotNet@2
     displayName: 'Install .NET'
     inputs:
-      version: 7.0.x
+      version: 8.0.x
   - task: DotNetCoreCLI@2
     displayName: 'Restore'
     inputs:
@@ -30,11 +30,6 @@ jobs:
     inputs:
       command: build
       arguments: --no-restore --configuration Release
-  - task: CmdLine@2
-    inputs:
-      # Remove PathMap properties which ensure deterministic builds, since this
-      # interferes with the coverage analysis.
-      script: 'sed -i "/PathMap/d" $(System.DefaultWorkingDirectory)/*/*.csproj'
   - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
     inputs:
@@ -42,10 +37,3 @@ jobs:
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
       arguments: --configuration $(testConfiguration) --filter "UnitTests" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
       publishTestResults: true
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage report'
-    inputs:
-      codeCoverageTool: 'Cobertura'
-      summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
-      pathToSources: '$(System.DefaultWorkingDirectory)/'
-      failIfCoverageEmpty: true

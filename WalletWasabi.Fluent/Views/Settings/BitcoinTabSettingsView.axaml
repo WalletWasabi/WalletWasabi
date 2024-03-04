@@ -2,9 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
@@ -14,42 +12,42 @@
     <StackPanel Spacing="10">
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
-                Items="{Binding Networks}"
-                SelectedItem="{Binding Network}" />
+                ItemsSource="{Binding Networks}"
+                SelectedItem="{Binding Settings.Network}" />
     </StackPanel>
 
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="(EXPERIMENTAL) Run Bitcoin Knots on startup" />
-      <ToggleSwitch IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" />
+      <ToggleSwitch IsChecked="{Binding Settings.StartLocalBitcoinCoreOnStartup}" />
     </DockPanel>
 
-    <StackPanel Spacing="10" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
-      <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
-    </StackPanel>
+    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
+      <ToggleSwitch IsChecked="{Binding Settings.StopLocalBitcoinCoreOnShutdown}" />
+    </DockPanel>
 
-    <DockPanel>
+    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
       <TextBlock VerticalAlignment="Center" Text="Local Bitcoin Core/Knots version" />
       <Label Content="{Binding BitcoinCoreVersion}" />
     </DockPanel>
 
-    <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
-      <ToggleSwitch IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" />
-    </DockPanel>
+    <StackPanel Spacing="10" IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
+      <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
+    </StackPanel>
 
-    <DockPanel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}"
+    <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <c:PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" UseOpacity="False">
+      <PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" UseOpacity="True">
         <TextBox Text="{Binding BitcoinP2PEndPoint}" />
-      </c:PrivacyContentControl>
+      </PrivacyContentControl>
     </DockPanel>
 
     <StackPanel Spacing="10"
-                ToolTip.Tip="Coins under the dust threshold won't appear.">
+                ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
       <TextBlock Text="Dust Threshold" />
-      <controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+      <CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </StackPanel>
   </StackPanel>
 </UserControl>

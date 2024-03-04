@@ -1,17 +1,18 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls"
-        xmlns:conv="using:WalletWasabi.Fluent.Converters">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="using:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
-    <controls:PrivacyContentControl />
+    <PrivacyContentControl />
   </Design.PreviewWith>
 
-  <Style Selector="controls|PrivacyContentControl">
-    <Setter Property="Template">
-      <ControlTemplate TargetType="controls:PrivacyContentControl">
-        <Panel>
+  <ControlTheme x:Key="{x:Type PrivacyContentControl}" TargetType="PrivacyContentControl">
 
-          <ContentPresenter Name="PART_Content"
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+
+    <Setter Property="Template">
+      <ControlTemplate TargetType="PrivacyContentControl">
+        <Panel>
+          <ContentPresenter Name="PART_ContentPresenter"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -23,56 +24,48 @@
                  HorizontalAlignment="Stretch"
                  Background="Transparent">
             <Viewbox Name="PART_Icon">
-              <PathIcon Data="{StaticResource nav_incognito_24_regular}" />
+              <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
-            <controls:PrivacyTextPresenter Name="PART_PrivacyText" />
+            <PrivacyTextPresenter Name="PART_PrivacyText"
+                                           MaxPrivacyChars="{TemplateBinding MaxPrivacyChars}"/>
           </Panel>
         </Panel>
       </ControlTemplate>
     </Setter>
-  </Style>
 
-  <Style Selector="controls|PrivacyContentControl">
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <Style Selector="^/template/ Viewbox#PART_Icon">
+      <Setter Property="Margin" Value="25" />
+      <Setter Property="Opacity" Value="0.15" />
+    </Style>
 
-  <Style Selector="controls|PrivacyContentControl /template/ Viewbox#PART_Icon">
-    <Setter Property="Margin" Value="25" />
-    <Setter Property="Opacity" Value="0.15" />
-  </Style>
+    <!-- Icon privacy mode -->
+    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ PrivacyTextPresenter#PART_PrivacyText">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
 
-  <Style Selector="controls|PrivacyContentControl.monoSpaced">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-  </Style>
+    <!-- Text privacy mode -->
+    <Style Selector="^[PrivacyReplacementMode=Text] /template/ PrivacyTextPresenter#PART_PrivacyText">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
 
-  <!-- Icon privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
+    <!-- UseOpacity = true -->
+    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
+      <Setter Property="IsEnabled" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="IsHitTestVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
+    </Style>
 
-  <!-- Text privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
+    <!-- UseOpacity = false -->
+    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="IsVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+    </Style>
 
-  <!-- UseOpacity = true -->
-  <Style Selector="controls|PrivacyContentControl[UseOpacity=True] /template/ ContentPresenter#PART_Content">
-    <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
-    <Setter Property="IsEnabled" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
-    <Setter Property="IsHitTestVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
-  </Style>
+  </ControlTheme>
 
-  <!-- UseOpacity = false -->
-  <Style Selector="controls|PrivacyContentControl[UseOpacity=False] /template/ ContentPresenter#PART_Content">
-    <Setter Property="IsVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
-  </Style>
-</Styles>
+</ResourceDictionary>

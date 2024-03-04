@@ -1,7 +1,8 @@
+using System.Globalization;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Selection;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
@@ -9,49 +10,73 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class TreeDataGridPlainTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
-	private string? _text;
+	private string? _value;
 
-	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
+	public string? Text => _value;
+
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == ForegroundProperty)
+		{
+			InvalidateVisual();
+		}
+	}
+
+	public override void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection, ICell model, int columnIndex, int rowIndex)
 	{
 		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
 
-		if (text != _text)
+		if (text != _value)
 		{
-			_text = text;
+			_value = text;
 			_formattedText = null;
 		}
 
-		base.Realize(factory, model, columnIndex, rowIndex);
+		base.Realize(factory, selection, model, columnIndex, rowIndex);
 	}
 
 	public override void Render(DrawingContext context)
 	{
 		if (_formattedText is not null)
 		{
-			var r = Bounds.CenterRect(_formattedText.Bounds);
-			context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+			var r = Bounds.CenterRect(new Rect(new Size(_formattedText.Width, _formattedText.Height)));
+			if (Foreground is { })
+			{
+				_formattedText.SetForegroundBrush(Foreground);
+			}
+			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (string.IsNullOrWhiteSpace(_text))
+		if (string.IsNullOrWhiteSpace(Text))
 		{
 			return default;
 		}
 
-		if (availableSize != _formattedText?.Constraint)
+		if (availableSize.Width != _formattedText?.MaxTextWidth
+		    || availableSize.Height != _formattedText.MaxTextHeight)
 		{
 			_formattedText = new FormattedText(
-				_text,
+				Text,
+				CultureInfo.CurrentCulture,
+				FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
 				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+				null)
+			{
+				TextAlignment = TextAlignment.Left,
+				MaxTextHeight = availableSize.Height,
+				MaxTextWidth = availableSize.Width,
+				Trimming = TextTrimming.None
+			};
+			_formattedText.Trimming = TextTrimming.None;
 		}
 
-		return _formattedText.Bounds.Size;
+		return new Size(_formattedText.Width, _formattedText.Height);
 	}
 }

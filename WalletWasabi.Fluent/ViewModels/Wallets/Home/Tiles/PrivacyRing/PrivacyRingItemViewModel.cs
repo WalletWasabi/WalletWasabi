@@ -1,45 +1,44 @@
 using Avalonia;
 using Avalonia.Media;
 using NBitcoin;
-using System.Linq;
-using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
+public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 {
 	private const double TotalAngle = 2d * Math.PI;
 	private const double UprightAngle = Math.PI / 2d;
 	private const double SegmentWidth = 10.0;
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, ICoinModel coin, double start, double end)
 	{
-		Coin = new WalletCoinViewModel(coin);
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		var anonScore = parent.Wallet.AnonScoreTarget;
-		IsPrivate = coin.IsPrivate(anonScore);
-		IsSemiPrivate = coin.IsSemiPrivate(anonScore);
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
-		Unconfirmed = !coin.Confirmed;
-		Confirmations = coin.GetConfirmations();
+		IsPrivate = coin.IsPrivate;
+		IsSemiPrivate = coin.IsSemiPrivate;
+		IsNonPrivate = coin.IsNonPrivate;
+		AmountText = coin.Amount.ToBtcWithUnit();
+		Unconfirmed = !coin.IsConfirmed;
+		Confirmations = coin.Confirmations;
+		AnonScoreText = $"{coin.AnonScore}";
+		Labels = coin.Labels;
 
 		PrivacyLevelText = GetPrivacyLevelDescription();
 
-		Reference = GetPrivacyLevelDescription();
+		Reference = PrivacyLevelText;
 		if (Unconfirmed)
 		{
 			Reference += " (pending)";
 		}
 	}
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end, string anonScoreText)
 	{
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
@@ -49,14 +48,13 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		IsSemiPrivate = privacyLevel == PrivacyLevel.SemiPrivate;
 		IsNonPrivate = privacyLevel == PrivacyLevel.NonPrivate;
 		AmountText = $"{amount.ToFormattedString()} BTC";
+		AnonScoreText = anonScoreText;
 		Unconfirmed = false;
 
 		PrivacyLevelText = GetPrivacyLevelDescription();
 
 		Reference = GetPrivacyLevelDescription();
 	}
-
-	public WalletCoinViewModel? Coin { get; }
 
 	public PathGeometry Data { get; private set; }
 
@@ -65,6 +63,8 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
+	public string AnonScoreText { get; }
+	public LabelsArray Labels { get; }
 	public string AmountText { get; }
 	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
@@ -128,20 +128,12 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		return new Point(x, y);
 	}
 
-	private string GetPrivacyLevelDescription()
-	{
-		return
-			this switch
-			{
-				{ IsPrivate: true } => "Private",
-				{ IsSemiPrivate: true } => "Semi-private",
-				{ IsNonPrivate: true } => "Non-private",
-				_ => "[Unknown]"
-			};
-	}
-
-	public void Dispose()
-	{
-		Coin?.Dispose();
-	}
+	private string GetPrivacyLevelDescription() =>
+		this switch
+		{
+			{ IsPrivate: true } => "Private",
+			{ IsSemiPrivate: true } => "Semi-private",
+			{ IsNonPrivate: true } => "Non-private",
+			_ => "[Unknown]"
+		};
 }

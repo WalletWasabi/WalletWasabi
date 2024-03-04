@@ -1,9 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -14,29 +13,19 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 public static class CoinSelectorDataGridSource
 {
-	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
 	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
-	}
-
-	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
-	{
-		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
-	}
-
-	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
-	{
-		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
+		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
 		{
-			return 3;
-		}
-
-		if (coin.Labels == CoinPocketHelper.SemiPrivateFundsText)
-		{
-			return 2;
-		}
-
-		return 1;
+			Columns =
+			{
+				ChildrenColumn(),
+				IndicatorsColumn(),
+				AmountColumn(),
+				AnonymityScoreColumn(),
+				PocketColumn()
+			}
+		};
 	}
 
 	private static int GetIndicatorPriority(CoinControlItemViewModelBase x)
@@ -64,7 +53,7 @@ public static class CoinSelectorDataGridSource
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
 			SelectionColumn(),
 			group => group.Children,
-			node => node.Children.Any(),
+			node => node.HasChildren(),
 			node => node.IsExpanded);
 	}
 
@@ -75,6 +64,7 @@ public static class CoinSelectorDataGridSource
 			new FuncDataTemplate<CoinControlItemViewModelBase>(
 				(_, _) => new SelectionCellView(),
 				true),
+			null,
 			GridLength.Auto);
 	}
 
@@ -86,8 +76,8 @@ public static class CoinSelectorDataGridSource
 			GridLength.Auto,
 			new ColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, Money>(x => x.Amount),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, Money>(x => x.Amount)
+				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(x => x.Amount),
+				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(x => x.Amount)
 			});
 	}
 
@@ -96,11 +86,12 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
+			null,
 			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetIndicatorPriority),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetIndicatorPriority)
+				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(GetIndicatorPriority),
+				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(GetIndicatorPriority)
 			});
 	}
 
@@ -108,12 +99,12 @@ public static class CoinSelectorDataGridSource
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
-			node => node is PocketCoinControlItemViewModel ? "" : node.AnonymityScore.ToString(),
+			node => node.AnonymityScore?.ToString() ?? "",
 			new GridLength(55, GridUnitType.Pixel),
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore)
+				CompareAscending = Sort<CoinControlItemViewModelBase>.Ascending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore)),
+				CompareDescending = Sort<CoinControlItemViewModelBase>.Descending(b => b.AnonymityScore ?? b.Children.Min(x => x.AnonymityScore))
 			});
 	}
 
@@ -122,26 +113,12 @@ public static class CoinSelectorDataGridSource
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"Pocket",
 			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
+			null,
 			GridLength.Star,
-			new ColumnOptions<CoinControlItemViewModelBase>
+			new TemplateColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetLabelPriority),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetLabelPriority)
+				CompareAscending = CoinControlLabelComparer.Ascending,
+				CompareDescending = CoinControlLabelComparer.Descending
 			});
-	}
-
-	public static HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Create(IEnumerable<CoinControlItemViewModelBase> source)
-	{
-		return new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(source)
-		{
-			Columns =
-			{
-				ChildrenColumn(),
-				IndicatorsColumn(),
-				AmountColumn(),
-				AnonymityScoreColumn(),
-				PocketColumn()
-			}
-		};
 	}
 }

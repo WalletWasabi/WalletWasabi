@@ -2,13 +2,12 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
 using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Stores;
 
 /// <summary>
-/// Sqlite-based storage for block filters.
+/// SQLite-based storage for block filters.
 /// </summary>
 /// <remarks>The implementation is not thread-safe because <see cref="SqliteConnection"/> is not thread-safe.</remarks>
 /// <seealso href="https://learn.microsoft.com/en-gb/dotnet/standard/data/sqlite/async">
@@ -16,9 +15,6 @@ namespace WalletWasabi.Stores;
 /// </seealso>
 public class BlockFilterSqliteStorage : IDisposable
 {
-	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/in-memory-databases"/>
-	public const string InMemoryDatabase = ":memory:";
-
 	private bool _disposedValue;
 
 	private BlockFilterSqliteStorage(SqliteConnection connection)
@@ -30,9 +26,9 @@ public class BlockFilterSqliteStorage : IDisposable
 	private SqliteConnection Connection { get; }
 
 	/// <summary>
-	/// Opens a new sqlite connection to the given database file.
+	/// Opens a new SQLite connection to the given database file.
 	/// </summary>
-	/// <param name="dataSource">Path to the sqlite database file, or special <c>:memory:</c> string.</param>
+	/// <param name="dataSource">Path to the SQLite database file, or special <c>:memory:</c> string.</param>
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
@@ -82,10 +78,10 @@ public class BlockFilterSqliteStorage : IDisposable
 			if (startingFilter is not null)
 			{
 				using SqliteCommand isEmptyCommand = connection.CreateCommand();
-				isEmptyCommand.CommandText = "SELECT COUNT(*) FROM filter";
-				int count = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
+				isEmptyCommand.CommandText = "SELECT EXISTS (SELECT 1 FROM filter)";
+				int existRows = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
 
-				if (count == 0)
+				if (existRows == 0)
 				{
 					if (!storage.TryAppend(startingFilter))
 					{
@@ -120,11 +116,14 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <summary>
 	/// Returns all filters with height ≥ than the given one.
 	/// </summary>
-	public IEnumerable<FilterModel> Fetch(int fromHeight)
+	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
+	public IEnumerable<FilterModel> Fetch(uint fromHeight, int limit = -1)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height";
+
+		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
 		command.Parameters.AddWithValue("$block_height", fromHeight);
+		command.Parameters.AddWithValue("$limit", limit);
 
 		using SqliteDataReader reader = command.ExecuteReader();
 
@@ -141,7 +140,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	public IEnumerable<FilterModel> FetchLast(int n)
 	{
 		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height >= (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
+		command.CommandText = "SELECT * FROM filter WHERE block_height > (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
 		command.Parameters.AddWithValue("$n", n);
 
 		using SqliteDataReader reader = command.ExecuteReader();
@@ -278,7 +277,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			prevBlockHashParameter.Value = filter.Header.PrevHash.ToBytes(lendian: true);
 			epochBlockTimeParameter.Value = filter.Header.EpochBlockTime;
 
-			_ = command.ExecuteNonQuery();
+			command.ExecuteNonQuery();
 		}
 
 		transaction.Commit();
@@ -348,7 +347,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			prevBlockHashParameter.Value = prevBlockHash;
 			epochBlockTimeParameter.Value = blockTime;
 
-			_ = command.ExecuteNonQuery();
+			command.ExecuteNonQuery();
 		}
 
 		transaction.Commit();

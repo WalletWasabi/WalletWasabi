@@ -7,6 +7,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent;
 

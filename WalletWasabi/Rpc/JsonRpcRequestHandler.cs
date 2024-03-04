@@ -51,14 +51,29 @@ public class JsonRpcRequestHandler<TService>
 	{
 		if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 		{
-			return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+			return CreateParseErrorResponse();
 		}
+
+		return await HandleRequestsAsync(path, jsonRpcRequests, isBatch, cancellationToken).ConfigureAwait(false);
+	}
+
+	public string CreateParseErrorResponse()
+	{
+		return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+	}
+
+	public async Task<string> HandleRequestsAsync(string path, JsonRpcRequest[] jsonRpcRequests, bool isBatch, CancellationToken cancellationToken)
+	{
 		var results = new List<string>();
+
 		foreach (var jsonRpcRequest in jsonRpcRequests)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			results.Add(await HandleRequestAsync(path, jsonRpcRequest, cancellationToken).ConfigureAwait(false));
+
+			string jsonResult = await HandleRequestAsync(path, jsonRpcRequest, cancellationToken).ConfigureAwait(false);
+			results.Add(jsonResult);
 		}
+
 		return isBatch ? $"[{string.Join(",", results)}]" : results[0];
 	}
 
@@ -94,6 +109,11 @@ public class JsonRpcRequestHandler<TService>
 					var parameter = methodParameters[i];
 					if (!jObj.ContainsKey(parameter.name))
 					{
+						if (parameter.isOptional)
+						{
+							parameters.Add(parameter.defaultValue);
+							continue;
+						}
 						return Error(
 							JsonRpcErrorCodes.InvalidParams,
 							$"A value for the '{parameter.name}' is missing.",
@@ -123,12 +143,12 @@ public class JsonRpcRequestHandler<TService>
 
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
-		
+
 			if (procedureMetadata.RequiresInitialization && MetadataProvider.TryGetInitializer(out var initializer))
 			{
 				initializer.Invoke(Service, new object[] { path, procedureMetadata.RequiresInitialization });
 			}
-			
+
 			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
@@ -142,7 +162,7 @@ public class JsonRpcRequestHandler<TService>
 				if (!procedureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
 					await ((Task)result).ConfigureAwait(false);
-					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
+					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id);
 				}
 				else
 				{

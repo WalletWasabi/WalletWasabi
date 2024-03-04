@@ -1,4 +1,14 @@
-# Wasabi Coding Conventions
+# Contributing to Wasabi Wallet
+
+## How to be useful for the project
+
+- Any issue labelled as [good first issue](https://github.com/zkSNACKs/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
+- Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
+- Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
+- Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
+- Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
+- For backend, the [Relevance Realization Buffet](https://github.com/orgs/zkSNACKs/projects/18/views/48) view is a list of tasks that has to be investigated or tackled. You can assign yourself to an issue or just make the pull request.
+- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors.
 
 ## Automatic code clean up
 
@@ -30,6 +40,8 @@ If you are using Visual Studio Code make sure to add the following settings to y
     "editor.formatOnSave": true,
 ```
 
+# Code conventions
+
 ## Refactoring
 
 If you are a new contributor **DO** keep refactoring pull requests short, uncomplex and easy to verify. It requires a certain level of experience to know where the code belongs to and to understand the full ramification (including rebase effort of open pull requests) - [source](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#refactoring).
@@ -55,14 +67,14 @@ If you are a new contributor **DO** keep refactoring pull requests short, uncomp
 
 ```cs
 // GOOD
-private AsyncLock AsyncLock { get; } = new AsyncLock();
+private AsyncLock AsyncLock { get; } = new();
 using (await AsyncLock.LockAsync())
 {
 	...
 }
 
 // GOOD
-private object Lock { get; } = new object();
+private object Lock { get; } = new();
 lock (Lock)
 {
 	...
@@ -80,7 +92,10 @@ using (AsyncLock.Lock())
 **DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
-if (foo is null) return;
+if (foo is null)
+{
+	return;
+}
 ```
 
 ## Empty quotes
@@ -131,7 +146,7 @@ private async void Synchronizer_ResponseArrivedAsync(object? sender, EventArgs e
 ## `ConfigureAwait(false)`
 
 Basically every async library method should use `ConfigureAwait(false)` except:
-- Methods that touch objects on the UI Thread, like modifying UI controls. 
+- Methods that touch objects on the UI Thread, like modifying UI controls.
 - Methods that are unit tests, xUnit [Fact].
 
 **Usage:**
@@ -145,7 +160,7 @@ await MyMethodAsync().ConfigureAwait(false);
 // Note: inside MyMethodAsync() you can still use .ConfigureAwait(false);.
 var result = await MyMethodAsync();
 
-// At this point we are still on the UI thread, so you can safely touch UI elements. 
+// At this point we are still on the UI thread, so you can safely touch UI elements.
 myUiControl.Text = result;
 ```
 
@@ -153,7 +168,22 @@ myUiControl.Text = result;
 
 ## Never throw AggregateException and Exception in a mixed way
 It causes confusion and awkward catch clauses.
-[Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files) 
+[Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files)
+
+## Unused return value
+
+- Good: `using IDisposable _ = BenchmarkLogger.Measure();`
+- Bad: `_ = PrevOutsIndex.Remove(txInput.PrevOut);`
+- Bad: `_ = Directory.CreateDirectory(dir);`
+- Good: `_ = WaitAsync();` - disables warning message. Remark: you should always `await` or store the reference of the task.
+- Good: `_ = new HwiClient(network);`
+
+In general
+- If the return value is not used, write nothing.
+- In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used.
+- In case you want to create an object but do not need the reference, `_ =` should be used.
+- If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment.
+- In special cases `_ =` can be used but a reasonable elaboration is required by adding a comment above. 
 
 ---
 
@@ -187,14 +217,14 @@ this.WhenAnyValue(...)
 
 ## Subscribe triggered once on initialization
 
-When you subscribe with the usage of `.WhenAnyValue()` right after the creation one call of Subcription will be triggered. This is by design and most of the cases it is fine. Still you can supress this behaviour by adding `Skip(1)`. 
+When you subscribe with the usage of `.WhenAnyValue()` right after the creation one call of Subcription will be triggered. This is by design and most of the cases it is fine. Still you can supress this behaviour by adding `Skip(1)`.
 
 ```cs
 this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 	.Skip(1)
 	.Subscribe(value =>
 	{
-		// Expensive operation, that should not run unnecessary. 
+		// Expensive operation, that should not run unnecessary.
 	});
 ```
 
@@ -210,13 +240,13 @@ this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 public class RepositoryViewModel : ReactiveObject
 {
   private ObservableAsPropertyHelper<bool> _canDoIt;
-  
+
   public RepositoryViewModel()
   {
     _canDoIt = this.WhenAnyValue(...)
 		.ToProperty(this, x => x.CanDoIt, scheduler: RxApp.MainThreadScheduler);
   }
-  
+
   public bool CanDoIt => _canDoIt?.Value ?? false;
 }
 ```
@@ -249,7 +279,7 @@ Some pointers on how to recognise if we are breaking MVVM:
 
 If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.
 
-## Avoid using Grid as much as possible, Use Panel instead 
+## Avoid using Grid as much as possible, Use Panel instead
 If you don't need any row or column splitting for your child controls, just use `Panel` as your default container control instead of `Grid` since it is a moderately memory and CPU intensive control.
 
 ## ViewModel Hierarchy
@@ -258,7 +288,7 @@ The ViewModel structure should reflect the UI structure as much as possible. Thi
 
 ❌ **DO NOT** write ViewModel code that depends on *parent* or *sibling* ViewModels in the logical UI structure. This harms both testability and maintainability.
 
-Examples: 
+Examples:
 
  - ✔️ `MainViewModel` represents the Main Wasabi UI and references `NavBarViewModel`.
  - ✔️ `NavBarViewModel` represents the left-side navigation bar and references `WalletListViewModel`.
@@ -276,9 +306,9 @@ The UI Model classes (which comprise the *Model* part of the MVVM pattern) sit a
 
 ❌ **DO NOT** write ViewModel code that depends directly on `WalletWasabi` objects such as `Wallet`, `KeyManager`, `HdPubKey`, etc.
 
-✔️ **DO** write ViewModel code that depends on `IWalletModel`, `IWalletListModel`, `IAddress`, etc.
+✔️ **DO** write ViewModel code that depends on `IWalletModel`, `IWalletRepository`, `IAddress`, etc.
 
-❌ **DO NOT** convert regular .NET properties from `WalletWasabi` objects into observables or INPC properties in ViewModel code. 
+❌ **DO NOT** convert regular .NET properties from `WalletWasabi` objects into observables or INPC properties in ViewModel code.
 
 ❌ **DO NOT** convert regular .NET events from `WalletWasabi` objects into observables in ViewModel code.
 
@@ -303,7 +333,7 @@ This is done to facilitate unit testing of viewmodels, since all dependencies th
 Whenever a ViewModel references its `UiContext` property, the `UiContext` object becomes an actual **dependency** of said ViewModel. It must therefore be initialized, ideally as a constructor parameter.
 
 In order to minimize the amount of boilerplate required for such initialization, several things occur in this case:
- - A new constructor is generated for that ViewModel, including all parameters of any existing constructor plus the UiContext. 
+ - A new constructor is generated for that ViewModel, including all parameters of any existing constructor plus the UiContext.
  - This generated constructor initializes the `UiContext` *after* running the code of the manually written constructor (if any).
  - A Roslyn Analyzer inspects any manually written constructors in the ViewModel to prevent references to `UiContext` in the constructor body, before the above mentioned initialization can take place, resulting in `NullReferenceException`s.
  - The Analyzer demands the manually written constructor to be declared `private`, so that external instatiation of the ViewModel is done by calling the source-generated constructor.
@@ -323,7 +353,7 @@ Example:
 		if (condition)
 		{
 			//❌ BAD, UiContext is null at this point.
-			UiContext.Navigate().To(someOtherViewModel); 
+			UiContext.Navigate().To(someOtherViewModel);
 		}
 	}
 
@@ -331,18 +361,18 @@ Example:
     private AddressViewModel(IAddress address)
 	{
 		//✔️ GOOD, UiContext is already initialized when the Command runs
-		NextCommand = ReactiveCommand.Create(() => UiContext.Navigate().To(someOtherViewModel))); 
+		NextCommand = ReactiveCommand.Create(() => UiContext.Navigate().To(someOtherViewModel)));
 	}
 ```
 
 If you absolutely must reference `UiContext` in the constructor, you can create a public constructor explicitly taking `UiContext` as a parameter:
 
 ```csharp
-    // ✔️ GOOD, 
+    // ✔️ GOOD,
     public AddressViewModel(UiContext uiContext, IAddress address)
 	{
 		UiContext = uiContext;
-		
+
 		// ✔️Other code here can safely use the UiContext since it's explicitly initialized above.
 	}
 ```

@@ -1,0 +1,12 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Style Selector="PrivacyContentControl.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+  <Style Selector="PrivacyContentControl.monoSpacedPrivacyReplacement /template/ PrivacyTextPresenter#PART_PrivacyText">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+</Styles>

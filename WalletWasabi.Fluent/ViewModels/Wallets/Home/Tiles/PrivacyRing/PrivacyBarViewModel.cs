@@ -1,31 +1,27 @@
 using DynamicData;
 using DynamicData.Binding;
-using ReactiveUI;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using NBitcoin;
-using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public partial class PrivacyBarViewModel : ActivatableViewModel
 {
-	private readonly WalletViewModel _walletViewModel;
-
+	[AutoNotify] private bool _hasProgress;
 	[AutoNotify] private decimal _totalAmount;
 
-	public PrivacyBarViewModel(WalletViewModel walletViewModel)
+	public PrivacyBarViewModel(IWalletModel wallet)
 	{
-		_walletViewModel = walletViewModel;
-		Wallet = walletViewModel.Wallet;
+		Wallet = wallet;
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
-	public Wallet Wallet { get; }
+	public IWalletModel Wallet { get; }
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnActivated(CompositeDisposable disposables)
@@ -41,51 +37,35 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-			.Subscribe(_ => itemsSourceList.Edit(Update))
+		Wallet.Coins.List                                 // Wallet.Coins.List here is not subscribed to SmartCoin changes.
+			.Connect(suppressEmptyChangeSets: false)      // Dynamic updates to SmartCoin properties won't be reflected in the UI.
+			.ToCollection()                               // See CoinModel.SubscribeToCoinChanges().
+			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
 			.DisposeWith(disposables);
 	}
 
-	private void Update(IExtendedList<PrivacyBarItemViewModel> list)
+	private void Update(IExtendedList<PrivacyBarItemViewModel> list, IReadOnlyCollection<ICoinModel> coins)
 	{
-		TotalAmount = _walletViewModel.Wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
+		TotalAmount = coins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 
 		list.Clear();
 
-		var coinCount = _walletViewModel.Wallet.Coins.Count();
+		var coinCount = coins.Count;
 
 		if (coinCount == 0d)
 		{
 			return;
 		}
 
-		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
+		var segments =
+			coins
+				.GroupBy(x => x.PrivacyLevel)
+				.OrderBy(x => (int)x.Key)
+				.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+				.ToList();
 
-		var result =
-			shouldCreateSegmentsByCoin
-			? CreateSegmentsByCoin()
-			: CreateSegmentsByPrivacyLevel();
+		HasProgress = segments.Any(x => x.PrivacyLevel != PrivacyLevel.NonPrivate);
 
-		list.AddRange(result);
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
-	{
-		return
-			_walletViewModel.Wallet.Coins
-								   .Select(coin => new PrivacyBarItemViewModel(this, coin))
-								   .OrderBy(x => x.PrivacyLevel)
-								   .ThenByDescending(x => x.Amount)
-								   .ToList();
-	}
-
-	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
-	{
-		return
-			_walletViewModel.Wallet.Coins
-								   .GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
-								   .OrderBy(x => (int)x.Key)
-								   .Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
-								   .ToList();
+		list.AddRange(segments);
 	}
 }

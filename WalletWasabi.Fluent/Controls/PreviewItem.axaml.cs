@@ -22,14 +22,17 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsIconVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
-	public static readonly StyledProperty<string> TextValueProperty =
-		AvaloniaProperty.Register<PreviewItem, string>(nameof(TextValue));
+	public static readonly StyledProperty<object> CopyableContentProperty =
+		AvaloniaProperty.Register<PreviewItem, object>(nameof(CopyableContent));
 
 	public static readonly StyledProperty<ICommand> CopyCommandProperty =
 		AvaloniaProperty.Register<PreviewItem, ICommand>(nameof(CopyCommand));
 
 	public static readonly StyledProperty<bool> IsCopyButtonVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsCopyButtonVisible));
+
+	public static readonly StyledProperty<bool> IsCopyButtonEnabledProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsCopyButtonEnabled), true);
 
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
@@ -58,10 +61,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(IsIconVisibleProperty, value);
 	}
 
-	public string TextValue
+	public object CopyableContent
 	{
-		get => GetValue(TextValueProperty);
-		set => SetValue(TextValueProperty, value);
+		get => GetValue(CopyableContentProperty);
+		set => SetValue(CopyableContentProperty, value);
 	}
 
 	public ICommand CopyCommand
@@ -70,10 +73,16 @@ public class PreviewItem : ContentControl
 		set => SetValue(CopyCommandProperty, value);
 	}
 
-	public bool IsCopyButtonVisible
+	private bool IsCopyButtonVisible
 	{
 		get => GetValue(IsCopyButtonVisibleProperty);
 		set => SetValue(IsCopyButtonVisibleProperty, value);
+	}
+
+	public bool IsCopyButtonEnabled
+	{
+		get => GetValue(IsCopyButtonEnabledProperty);
+		set => SetValue(IsCopyButtonEnabledProperty, value);
 	}
 
 	public bool PrivacyModeEnabled
@@ -88,10 +97,12 @@ public class PreviewItem : ContentControl
 
 		var isCopyButtonVisible =
 			button.CopyCommand.IsExecuting
-			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b)))
-			.Select(x => x.First || x.Second);
+			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
+			.Select(x => x.First || x.Second)
+			.CombineLatest(this.WhenAnyValue(x => x.IsCopyButtonEnabled))
+			.Select(x => x.First && x.Second);
 
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
 		base.OnApplyTemplate(e);
 	}

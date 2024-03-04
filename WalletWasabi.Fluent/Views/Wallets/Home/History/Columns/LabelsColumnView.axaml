@@ -2,20 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.LabelsColumnView"
              x:DataType="historyItems:HistoryItemViewModelBase"
              x:CompileBindings="True">
-  <c:PrivacyContentControl PrivacyReplacementMode="Text" FontSize="15"
+  <!-- NOTE: We use UseOpacity=true so we do not trigger layout update in the TreeDataGrid -->
+  <PrivacyContentControl PrivacyReplacementMode="Text" FontSize="15"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Stretch"
                            HorizontalContentAlignment="Left"
                            Classes="monoSpacedPrivacyReplacement"
-                           UseOpacity="False"
+                           UseOpacity="True"
+                           MaxPrivacyChars="11"
                            MinWidth="100"
                            Margin="0 0 7 0">
-    <c:LabelsItemsPresenter Items="{Binding Label}" Margin="0 -4 0 0" />
-  </c:PrivacyContentControl>
+    <LabelsItemsPresenter ItemsSource="{Binding Transaction.Labels}"
+                            InfiniteWidthMeasure="True"
+                            Margin="0 0 0 0" />
+  </PrivacyContentControl>
 </UserControl>

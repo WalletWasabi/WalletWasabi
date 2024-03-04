@@ -1,32 +1,48 @@
+using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(Title = "Payment successful")]
 public partial class SendSuccessViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly SmartTransaction _finalTransaction;
 
-	public SendSuccessViewModel(Wallet wallet, SmartTransaction finalTransaction)
+	private SendSuccessViewModel(SmartTransaction finalTransaction, string? title = null, string? caption = null)
 	{
-		_wallet = wallet;
 		_finalTransaction = finalTransaction;
+		Title = title ?? "Payment successful";
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		Caption = caption ?? "Your transaction has been successfully sent.";
+
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	private void OnNext()
+	public override string Title { get; protected set; }
+
+	public string? Caption { get; }
+
+	private async Task OnNextAsync()
 	{
+		await Task.Delay(UiConstants.CloseSuccessDialogMillisecondsDelay);
+
 		Navigate().Clear();
 
-		var walletViewModel = UiServices.WalletManager.GetWalletViewModel(_wallet);
+		// TODO: Remove this
+		MainViewModel.Instance.NavBar.SelectedWallet?.WalletViewModel?.SelectTransaction(_finalTransaction.GetHash());
+	}
 
-		walletViewModel.History.SelectTransaction(_finalTransaction.GetHash());
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		if (NextCommand is not null && NextCommand.CanExecute(default))
+		{
+			NextCommand.Execute(default);
+		}
 	}
 }

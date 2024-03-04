@@ -6,9 +6,10 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ReactiveUI;
 using System.Linq;
-using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
@@ -20,8 +21,7 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -62,7 +62,7 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
-			if (exitCode == ExitCode.Ok && (Services.UpdateManager?.DoUpdateOnClose ?? false))
+			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)
 			{
 				Services.UpdateManager.StartInstallingNewVersion();
 			}
@@ -82,15 +82,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() =>
-		{
-			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow.Close();
-
-			MainViewModel.Instance.ClearStacks();
-			MainViewModel.Instance.StatusIcon.Dispose();
-
-			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false);
-		});		
+		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -105,6 +97,7 @@ public class Program
 				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 				Logger.LogTrace(e);
 				break;
+
 			default:
 				Logger.LogDebug(e);
 				break;
@@ -139,9 +132,9 @@ public class Program
 		}
 
 		return result
-			.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
-			.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Report" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+			.With(new Win32PlatformOptions { RenderingMode = new[] { Win32RenderingMode.Software } })
+			.With(new X11PlatformOptions { RenderingMode = new[] { X11RenderingMode.Software }, WmClass = "Wasabi Wallet Crash Report" })
+			.With(new AvaloniaNativePlatformOptions { RenderingMode = new[] { AvaloniaNativeRenderingMode.Software } })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 	}
@@ -166,31 +159,37 @@ public static class WasabiAppExtensions
 					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 				});
 
-				Logger.LogSoftwareStarted("Wasabi GUI");
+				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker);
+				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-				AppBuilder
+				using CancellationTokenSource stopLoadingCts = new();
+
+				AppBuilder appBuilder = AppBuilder
 					.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(app.TerminateService).ConfigureAwait(false);
+							await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 						}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
-					.AfterSetup(_ =>
-					{
-						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo($"Renderer: {glInterface?.PrimaryContext.GlInterface.Renderer ?? "Avalonia Software"}");
+					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
 
-						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					})
-					.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+				if (app.TerminateService.CancellationToken.IsCancellationRequested)
+				{
+					Logger.LogDebug("Skip starting Avalonia UI as requested the application to stop.");
+					stopLoadingCts.Cancel();
+				}
+				else
+				{
+					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+				}
+
 				return Task.CompletedTask;
 			});
 	}

@@ -1,23 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
-		<AnalysisLevel>latest</AnalysisLevel>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Nullable>enable</Nullable>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net7.0\WalletWasabi.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net8.0\WalletWasabi.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,12 +21,23 @@
 		<ErrorReport>none</ErrorReport>
 	</PropertyGroup>
 
+	<Target Name="WriteMetadata" BeforeTargets="PrepareForBuild">
+		<ItemGroup>
+			<AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
+		</ItemGroup>
+	</Target>
+
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.3" />
-		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
-		<PackageReference Include="NBitcoin" Version="7.0.24" />
-		<PackageReference Include="WabiSabi" Version="1.0.1.2" />
+		<!-- TODO: Workaround for incompatible package Microsoft.AspNetCore.Mvc.NewtonsoftJson -->
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="System.IO.Pipelines" />
+		<PackageReference Include="Microsoft.Data.Sqlite" />
+		<PackageReference Include="Microsoft.Win32.SystemEvents" />
+		<PackageReference Include="NBitcoin" />
+		<PackageReference Include="WabiSabi" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -76,6 +81,9 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Tor\Geoip\geoip6">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="BuyAnything\Data\Countries.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

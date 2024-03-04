@@ -31,7 +31,7 @@ public partial class TransactionInfo
 
 	public BitcoinAddress Destination { get; init; }
 
-	public SmartLabel Recipient { get; set; } = SmartLabel.Empty;
+	public LabelsArray Recipient { get; set; } = LabelsArray.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -63,6 +63,7 @@ public partial class TransactionInfo
 	private void OnCoinsChanged()
 	{
 		MaximumPossibleFeeRate = null;
+		ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 	}
 
 	public TransactionInfo Clone()

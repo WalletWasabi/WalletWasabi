@@ -136,7 +136,7 @@ $ git clone --bare git@github.com:zkSNACKs/WalletWasabi.git .git
 
 ## Working with remote repositories
 
-There are two non-mutually exclusive alternatives here. One is to work with the other developers' repositories directy or work with the `origin` repository only.
+There are two non-mutually exclusive alternatives here. One is to work with the other developers' repositories directly or work with the `origin` repository only.
 
 ### Work with devs remote repositories (alternative 1)
 

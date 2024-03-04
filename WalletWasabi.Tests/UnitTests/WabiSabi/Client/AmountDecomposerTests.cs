@@ -1,6 +1,7 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class AmountDecomposerTests
 {
-	private static readonly Random Random = new(1234567);
+	private static readonly InsecureRandom Random = new(seed: 0);
 
 	[Theory]
 	[InlineData(0, 0, 8)]
@@ -49,8 +50,9 @@ public class AmountDecomposerTests
 		var registeredCoinEffectiveValues = GenerateRandomCoins().Take(3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
+		var allowedOutputTypes = isTaprootEnabled ? new List<ScriptType>() { ScriptType.Taproot, ScriptType.P2WPKH } : new List<ScriptType>() { ScriptType.P2WPKH };
 
-		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, availableVsize, isTaprootEnabled, Random);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange.Min, allowedOutputAmountRange.Max, availableVsize, allowedOutputTypes, InsecureRandom.Instance);
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 		var totalEffectiveValue = registeredCoinEffectiveValues.Sum(x => x);
@@ -83,7 +85,7 @@ public class AmountDecomposerTests
 		var script = key.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		while (true)
 		{
-			var amount = Random.NextInt64(100_000, ProtocolConstants.MaxAmountPerAlice);
+			var amount = Random.GetInt64(100_000, ProtocolConstants.MaxAmountPerAlice);
 			yield return CreateCoin(script, amount);
 		}
 	}

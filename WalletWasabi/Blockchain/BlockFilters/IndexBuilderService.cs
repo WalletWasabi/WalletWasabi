@@ -1,6 +1,6 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,7 +9,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -37,9 +36,6 @@ public class IndexBuilderService
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
-		Index = new List<FilterModel>();
-		IndexLock = new AsyncLock();
-
 		PubKeyTypes = IndexTypeConverter.ToRpcPubKeyTypes(IndexType);
 
 		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network, IndexType).Height;
@@ -61,11 +57,15 @@ public class IndexBuilderService
 			}
 			else
 			{
+				ImmutableList<FilterModel>.Builder builder = ImmutableList.CreateBuilder<FilterModel>();
+
 				foreach (var line in File.ReadAllLines(IndexFilePath))
 				{
 					var filter = FilterModel.FromLine(line);
-					Index.Add(filter);
+					builder.Add(filter);
 				}
+
+				Index = builder.ToImmutableList();
 			}
 		}
 
@@ -77,8 +77,10 @@ public class IndexBuilderService
 	private IRPCClient RpcClient { get; }
 	private BlockNotifier BlockNotifier { get; }
 	private string IndexFilePath { get; }
-	private List<FilterModel> Index { get; }
-	private AsyncLock IndexLock { get; }
+	private ImmutableList<FilterModel> Index { get; set; } = ImmutableList<FilterModel>.Empty;
+
+	/// <remarks>Guards <see cref="Index"/>.</remarks>
+	private object IndexLock { get; } = new();
 	private uint StartingHeight { get; }
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
@@ -129,23 +131,30 @@ public class IndexBuilderService
 						{
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-							uint currentHeight;
-							uint256? currentHash = null;
-							using (await IndexLock.LockAsync())
+							FilterModel? lastIndexFilter = null;
+
+							lock (IndexLock)
 							{
 								if (Index.Count != 0)
 								{
-									var lastIndex = Index[^1];
-									currentHeight = lastIndex.Header.Height;
-									currentHash = lastIndex.Header.BlockHash;
+									lastIndexFilter = Index[^1];
 								}
-								else
-								{
-									currentHash = StartingHeight == 0
-										? uint256.Zero
-										: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
-									currentHeight = StartingHeight - 1;
-								}
+							}
+
+							uint currentHeight;
+							uint256? currentHash;
+
+							if (lastIndexFilter is not null)
+							{
+								currentHeight = lastIndexFilter.Header.Height;
+								currentHash = lastIndexFilter.Header.BlockHash;
+							}
+							else
+							{
+								currentHash = StartingHeight == 0
+									? uint256.Zero
+									: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
+								currentHeight = StartingHeight - 1;
 							}
 
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
@@ -198,9 +207,9 @@ public class IndexBuilderService
 
 							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
-							using (await IndexLock.LockAsync())
+							lock (IndexLock)
 							{
-								Index.Add(filterModel);
+								Index = Index.Add(filterModel);
 							}
 
 							// If not close to the tip, just log debug.
@@ -240,7 +249,7 @@ public class IndexBuilderService
 	{
 		var scripts = FetchScripts(block, pubKeyTypes);
 
-		if (scripts.Any())
+		if (scripts.Count != 0)
 		{
 			return new GolombRiceFilterBuilder()
 				.SetKey(block.Hash)
@@ -286,12 +295,16 @@ public class IndexBuilderService
 
 	private async Task ReorgOneAsync()
 	{
-		// 1. Rollback index
-		using (await IndexLock.LockAsync())
+		// 1. Rollback index.
+		uint256 blockHash;
+
+		lock (IndexLock)
 		{
-			Logger.LogInfo($"REORG invalid block: {Index[^1].Header.BlockHash}");
-			Index.RemoveLast();
+			blockHash = Index[^1].Header.BlockHash;
+			Index = Index.RemoveAt(Index.Count - 1);
 		}
+
+		Logger.LogInfo($"REORG invalid block: {blockHash}");
 
 		// 2. Serialize Index. (Remove last line.)
 		var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
@@ -320,43 +333,48 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
-		using (IndexLock.Lock())
-		{
-			found = false; // Only build the filter list from when the known hash is found.
-			var filters = new List<FilterModel>();
-			foreach (var filter in Index)
-			{
-				if (found)
-				{
-					filters.Add(filter);
-					if (filters.Count >= count)
-					{
-						break;
-					}
-				}
-				else
-				{
-					if (filter.Header.BlockHash == bestKnownBlockHash)
-					{
-						found = true;
-					}
-				}
-			}
+		found = false; // Only build the filter list from when the known hash is found.
+		var filters = new List<FilterModel>();
 
-			if (Index.Count == 0)
+		ImmutableList<FilterModel> currentIndex;
+
+		lock (IndexLock)
+		{
+			currentIndex = Index;
+		}
+
+		foreach (var filter in currentIndex)
+		{
+			if (found)
 			{
-				return (Height.Unknown, Enumerable.Empty<FilterModel>());
+				filters.Add(filter);
+				if (filters.Count >= count)
+				{
+					break;
+				}
 			}
 			else
 			{
-				return ((int)Index[^1].Header.Height, filters);
+				if (filter.Header.BlockHash == bestKnownBlockHash)
+				{
+					found = true;
+				}
 			}
+		}
+
+		if (currentIndex.Count == 0)
+		{
+			return (Height.Unknown, Enumerable.Empty<FilterModel>());
+		}
+		else
+		{
+			return ((int)currentIndex[^1].Header.Height, filters);
 		}
 	}
 
 	public FilterModel GetLastFilter()
 	{
-		using (IndexLock.Lock())
+		lock (IndexLock)
 		{
 			return Index[^1];
 		}

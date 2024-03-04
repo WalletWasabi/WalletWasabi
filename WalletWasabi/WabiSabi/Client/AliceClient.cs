@@ -24,7 +24,6 @@ public class AliceClient
 		RoundState roundState,
 		ArenaClient arenaClient,
 		SmartCoin coin,
-		OwnershipProof ownershipProof,
 		IEnumerable<Credential> issuedAmountCredentials,
 		IEnumerable<Credential> issuedVsizeCredentials,
 		bool isCoordinationFeeExempted)
@@ -34,7 +33,6 @@ public class AliceClient
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
-		OwnershipProof = ownershipProof;
 		FeeRate = roundParameters.MiningFeeRate;
 		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
@@ -48,7 +46,6 @@ public class AliceClient
 	public uint256 RoundId { get; }
 	private ArenaClient ArenaClient { get; }
 	public SmartCoin SmartCoin { get; }
-	private OwnershipProof OwnershipProof { get; }
 	private FeeRate FeeRate { get; }
 	private CoordinationFeeRate CoordinationFeeRate { get; }
 	public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
@@ -92,15 +89,15 @@ public class AliceClient
 		}
 		catch (Exception) when (aliceClient is { })
 		{
-            var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-            // We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
-            if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
-            {
-                // Unregistering coins is only possible before connection confirmation phase.
-                await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
-            }
-            throw;
+			// We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
+			if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+			{
+				// Unregistering coins is only possible before connection confirmation phase.
+				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);
+			}
+			throw;
 		}
 
 		return aliceClient;
@@ -109,61 +106,16 @@ public class AliceClient
 	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		AliceClient? aliceClient;
-		try
-		{
-			var ownershipProof = keyChain.GetOwnershipProof(
-				coin,
-				new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
 
-			var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
-			coin.CoinJoinInProgress = true;
+		var ownershipProof = keyChain.GetOwnershipProof(
+			coin,
+			new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
 
-			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
-		}
-		catch (WabiSabiProtocolException wpe)
-		{
-			switch (wpe.ErrorCode)
-			{
-				case WabiSabiProtocolErrorCode.InputSpent:
-					coin.SpentAccordingToBackend = true;
-					Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
-					break;
+		var (response, isCoordinationFeeExempted) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+		aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isCoordinationFeeExempted);
+		coin.CoinJoinInProgress = true;
 
-				case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
-					var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
-					if (inputBannedExData is null)
-					{
-						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
-					}
-					coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-					Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
-					break;
-
-				case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-					coin.SpentAccordingToBackend = false;
-					Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
-					break;
-
-				case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-					Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
-					break;
-
-				case WabiSabiProtocolErrorCode.WrongPhase:
-					Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.");
-					break;
-
-				case WabiSabiProtocolErrorCode.RoundNotFound:
-					Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Abort the rest of the registrations.");
-					break;
-
-				default:
-					Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
-					break;
-			}
-
-			throw;
-		}
+		Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 
 		return aliceClient;
 	}

@@ -1,140 +1,170 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
-using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 
 namespace WalletWasabi.Daemon;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class PersistentConfig : ConfigBase
+public record PersistentConfig : IConfigNg
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
-	/// <summary>
-	/// Constructor for config population using Newtonsoft.JSON.
-	/// </summary>
-	public PersistentConfig() : base()
-	{
-	}
-
-	public PersistentConfig(string filePath) : base(filePath)
-	{
-	}
-
 	[JsonProperty(PropertyName = "Network")]
+	[System.Text.Json.Serialization.JsonPropertyName("Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
+	[System.Text.Json.Serialization.JsonConverter(typeof(NetworkJsonConverterNg))]
 	public Network Network { get; set; } = Network.Main;
 
-	[DefaultValue("https://api.wasabiwallet.io/")]
+	[DefaultValue(Constants.BackendUri)]
 	[JsonProperty(PropertyName = "MainNetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUri { get; private set; } = "https://api.wasabiwallet.io/";
+	[System.Text.Json.Serialization.JsonPropertyName("MainNetBackendUri")]
+	public string MainNetBackendUri { get; init; } = Constants.BackendUri;
 
-	[DefaultValue("https://api.wasabiwallet.co/")]
+	[DefaultValue(Constants.TestnetBackendUri)]
 	[JsonProperty(PropertyName = "TestNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUri { get; private set; } = "https://api.wasabiwallet.co/";
+	[System.Text.Json.Serialization.JsonPropertyName("TestNetClearnetBackendUri")]
+	public string TestNetBackendUri { get; init; } = Constants.TestnetBackendUri;
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string RegTestBackendUri { get; private set; } = "http://localhost:37127/";
+	[System.Text.Json.Serialization.JsonPropertyName("RegTestBackendUri")]
+	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
 	[JsonProperty(PropertyName = "MainNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? MainNetCoordinatorUri { get; private set; }
+	[System.Text.Json.Serialization.JsonPropertyName("MainNetCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+	public string? MainNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "TestNetCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? TestNetCoordinatorUri { get; private set; }
+	[System.Text.Json.Serialization.JsonPropertyName("TestNetCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+	public string? TestNetCoordinatorUri { get; init; }
 
 	[JsonProperty(PropertyName = "RegTestCoordinatorUri", DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string? RegTestCoordinatorUri { get; private set; }
+	[System.Text.Json.Serialization.JsonPropertyName("RegTestCoordinatorUri")]
+	[System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+	public string? RegTestCoordinatorUri { get; init; }
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool UseTor { get; set; } = true;
+	[System.Text.Json.Serialization.JsonPropertyName("UseTor")]
+	public bool UseTor { get; init; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool TerminateTorOnExit { get; set; } = false;
+	[System.Text.Json.Serialization.JsonPropertyName("TerminateTorOnExit")]
+	public bool TerminateTorOnExit { get; init; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool DownloadNewVersion { get; set; } = true;
+	[System.Text.Json.Serialization.JsonPropertyName("DownloadNewVersion")]
+	public bool DownloadNewVersion { get; init; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StartLocalBitcoinCoreOnStartup { get; set; } = false;
+	[System.Text.Json.Serialization.JsonPropertyName("StartLocalBitcoinCoreOnStartup")]
+	public bool StartLocalBitcoinCoreOnStartup { get; init; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StopLocalBitcoinCoreOnShutdown { get; set; } = true;
+	[System.Text.Json.Serialization.JsonPropertyName("StopLocalBitcoinCoreOnShutdown")]
+	public bool StopLocalBitcoinCoreOnShutdown { get; init; } = true;
 
 	[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-	public string LocalBitcoinCoreDataDir { get; set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	[System.Text.Json.Serialization.JsonPropertyName("LocalBitcoinCoreDataDir")]
+	public string LocalBitcoinCoreDataDir { get; init; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
+	[System.Text.Json.Serialization.JsonPropertyName("MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-	public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
+	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
 
 	[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
+	[System.Text.Json.Serialization.JsonPropertyName("TestNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-	public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	[System.Text.Json.Serialization.JsonConverter(typeof(TestNetBitcoinP2pEndPointConverterNg))]
+	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 
 	[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
+	[System.Text.Json.Serialization.JsonPropertyName("RegTestBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
-	public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	[System.Text.Json.Serialization.JsonConverter(typeof(RegTestBitcoinP2pEndPointConverterNg))]
+	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "JsonRpcServerEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool JsonRpcServerEnabled { get; internal set; }
+	[System.Text.Json.Serialization.JsonPropertyName("JsonRpcServerEnabled")]
+	public bool JsonRpcServerEnabled { get; init; }
 
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "JsonRpcUser", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string JsonRpcUser { get; internal set; } = "";
+	[System.Text.Json.Serialization.JsonPropertyName("JsonRpcUser")]
+	public string JsonRpcUser { get; init; } = "";
 
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "JsonRpcPassword", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string JsonRpcPassword { get; internal set; } = "";
+	[System.Text.Json.Serialization.JsonPropertyName("JsonRpcPassword")]
+	public string JsonRpcPassword { get; init; } = "";
 
 	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
-	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
+	[System.Text.Json.Serialization.JsonPropertyName("JsonRpcServerPrefixes")]
+	public string[] JsonRpcServerPrefixes { get; init; } = new[]
 	{
 		"http://127.0.0.1:37128/",
 		"http://localhost:37128/"
 	};
 
 	[JsonProperty(PropertyName = "DustThreshold")]
+	[System.Text.Json.Serialization.JsonPropertyName("DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money DustThreshold { get; set; } = DefaultDustThreshold;
+	[System.Text.Json.Serialization.JsonConverter(typeof(MoneyBtcJsonConverterNg))]
+	public Money DustThreshold { get; init; } = DefaultDustThreshold;
 
 	[JsonProperty(PropertyName = "EnableGpu")]
-	public bool EnableGpu { get; set; } = true;
+	[System.Text.Json.Serialization.JsonPropertyName("EnableGpu")]
+	public bool EnableGpu { get; init; } = true;
 
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+	[System.Text.Json.Serialization.JsonPropertyName("CoordinatorIdentifier")]
+	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
-	public void SetBitcoinP2pEndpoint(EndPoint endPoint)
+	public bool DeepEquals(PersistentConfig other)
 	{
-		if (Network == Network.Main)
-		{
-			MainNetBitcoinP2pEndPoint = endPoint;
-		}
-		else if (Network == Network.TestNet)
-		{
-			TestNetBitcoinP2pEndPoint = endPoint;
-		}
-		else if (Network == Network.RegTest)
-		{
-			RegTestBitcoinP2pEndPoint = endPoint;
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
+		return
+			Network == other.Network &&
+			MainNetBackendUri == other.MainNetBackendUri &&
+			TestNetBackendUri == other.TestNetBackendUri &&
+			RegTestBackendUri == other.RegTestBackendUri &&
+			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
+			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
+			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
+			UseTor == other.UseTor &&
+			TerminateTorOnExit == other.TerminateTorOnExit &&
+			DownloadNewVersion == other.DownloadNewVersion &&
+			StartLocalBitcoinCoreOnStartup == other.StartLocalBitcoinCoreOnStartup &&
+			StopLocalBitcoinCoreOnShutdown == other.StopLocalBitcoinCoreOnShutdown &&
+			LocalBitcoinCoreDataDir == other.LocalBitcoinCoreDataDir &&
+			MainNetBitcoinP2pEndPoint.Equals(other.MainNetBitcoinP2pEndPoint) &&
+			TestNetBitcoinP2pEndPoint.Equals(other.TestNetBitcoinP2pEndPoint) &&
+			RegTestBitcoinP2pEndPoint.Equals(other.RegTestBitcoinP2pEndPoint) &&
+			JsonRpcServerEnabled == other.JsonRpcServerEnabled &&
+			JsonRpcUser == other.JsonRpcUser &&
+			JsonRpcPassword == other.JsonRpcPassword &&
+			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
+			DustThreshold == other.DustThreshold &&
+			EnableGpu == other.EnableGpu &&
+			CoordinatorIdentifier == other.CoordinatorIdentifier;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
@@ -154,20 +184,19 @@ public class PersistentConfig : ConfigBase
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public bool MigrateOldDefaultBackendUris()
+	public bool MigrateOldDefaultBackendUris([NotNullWhen(true)] out PersistentConfig? newConfig)
 	{
 		bool hasChanged = false;
+		newConfig = null;
 
-		if (MainNetBackendUri == "https://wasabiwallet.io/")
+		if (MainNetBackendUri == "https://wasabiwallet.io/" || TestNetBackendUri == "https://wasabiwallet.co/")
 		{
-			MainNetBackendUri = "https://api.wasabiwallet.io/";
 			hasChanged = true;
-		}
-
-		if (TestNetBackendUri == "https://wasabiwallet.co/")
-		{
-			TestNetBackendUri = "https://api.wasabiwallet.co/";
-			hasChanged = true;
+			newConfig = this with
+			{
+				MainNetBackendUri = "https://api.wasabiwallet.io/",
+				TestNetBackendUri = "https://api.wasabiwallet.co/",
+			};
 		}
 
 		return hasChanged;

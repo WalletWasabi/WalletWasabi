@@ -4,8 +4,9 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
@@ -24,11 +25,19 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
-		ApplicationViewModel = new ApplicationViewModel(this);
+
+		if (_lifetime is IActivatableApplicationLifetime activatableLifetime)
+		{
+			activatableLifetime.Activated += ActivatableLifetimeOnActivated;
+			activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+		}
+
+		UiContext = uiContext;
+		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		Observable
@@ -53,6 +62,7 @@ public class ApplicationStateManager : IMainWindowService
 				Trigger.ShutdownPrevented,
 				() =>
 				{
+					_lifetime.MainWindow.BringToFront();
 					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 					_restartRequest = false; // reset the value.
 				});
@@ -98,16 +108,45 @@ public class ApplicationStateManager : IMainWindowService
 		Open,
 	}
 
+	internal UiContext UiContext { get; }
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
-		e.Cancel = !ApplicationViewModel.CanShutdown(false);
+		bool shouldShutdown = ApplicationViewModel.CanShutdown(_restartRequest, out bool isShutdownEnforced) || isShutdownEnforced;
 
+		e.Cancel = !shouldShutdown;
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
-		_stateMachine.Fire(e.Cancel ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+		_stateMachine.Fire(shouldShutdown ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
+	}
+
+	private void ActivatableLifetimeOnActivated(object? sender, ActivatedEventArgs e)
+	{
+		switch (e.Kind)
+		{
+			case ActivationKind.Background:
+			case ActivationKind.Reopen:
+				if (this is IMainWindowService service)
+				{
+					service.Show();
+				}
+				break;
+		}
+	}
+
+	private void ActivatableLifetimeOnDeactivated(object? sender, ActivatedEventArgs e)
+	{
+		switch (e.Kind)
+		{
+			case ActivationKind.Background:
+				if (this is IMainWindowService service)
+				{
+					service.Hide();
+				}
+				break;
+		}
 	}
 
 	private void CreateAndShowMainWindow()
@@ -126,10 +165,20 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false)))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false, out bool isShutdownEnforced), isShutdownEnforced))
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
+				var (e, preventShutdown, isShutdownEnforced) = tup;
+
+				// Check if Ctrl-C was used to forcefully terminate the app.
+				if (isShutdownEnforced)
+				{
+					_isShuttingDown = true;
+					tup.EventArgs.Cancel = false;
+					_stateMachine.Fire(Trigger.ShutdownRequested);
+				}
+
 				// _hideRequest flag is used to distinguish what is the user's intent.
 				// It is only true when the request comes from the Tray.
 				if (Services.UiConfig.HideOnClose || _hideRequest)
@@ -137,8 +186,6 @@ public class ApplicationStateManager : IMainWindowService
 					_hideRequest = false; // request processed, set it back to the default.
 					return;
 				}
-
-				var (e, preventShutdown) = tup;
 
 				_isShuttingDown = !preventShutdown;
 				e.Cancel = preventShutdown;
@@ -197,7 +244,7 @@ public class ApplicationStateManager : IMainWindowService
 		window
 			.WhenAnyValue(x => x.Bounds)
 			.Skip(1)
-			.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
+			.Where(b => b != default && window.WindowState == WindowState.Normal)
 			.Subscribe(b =>
 			{
 				Services.UiConfig.WindowWidth = b.Width;
@@ -220,6 +267,8 @@ public class ApplicationStateManager : IMainWindowService
 	void IMainWindowService.Shutdown(bool restart)
 	{
 		_restartRequest = restart;
-		_stateMachine.Fire(ApplicationViewModel.CanShutdown(_restartRequest) ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
+
+		bool shouldShutdown = ApplicationViewModel.CanShutdown(_restartRequest, out bool isShutdownEnforced) || isShutdownEnforced;
+		_stateMachine.Fire(shouldShutdown ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }

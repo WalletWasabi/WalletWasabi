@@ -72,7 +72,7 @@ public class IdempotencyRequestCacheStressTests
 		public long TestResult
 		{
 			get => Interlocked.Read(ref _testResult);
-			set => _ = Interlocked.Exchange(ref _testResult, value);
+			set => Interlocked.Exchange(ref _testResult, value);
 		}
 
 		public async Task<string> CounterTaskAsync(int n, CancellationToken cancellationToken)

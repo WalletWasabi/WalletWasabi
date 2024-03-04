@@ -1,7 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WalletWasabi.Fluent.CrashReport.ViewModels"
-        xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
         x:Class="WalletWasabi.Fluent.CrashReport.Views.CrashReportWindow"
         Width="640" Height="480"
         MinWidth="640" MinHeight="480"
@@ -13,7 +12,7 @@
         x:CompileBindings="True"
         x:DataType="vm:CrashReportWindowViewModel">
   <Panel Margin="{Binding #CrashReporterWindow.OffScreenMargin}">
-    <controls:ContentArea EnableNext="True"
+    <ContentArea EnableNext="True"
                           EnableCancel="True"
                           NextContent="Exit"
                           CancelContent="Restart Wasabi"
@@ -22,18 +21,18 @@
                           Caption="{Binding Caption}"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           ScrollViewer.VerticalScrollBarVisibility="Disabled">
-      <controls:ContentArea.Styles>
-        <Style Selector="controls|ContentArea /template/ DockPanel#MainDockPanel">
+      <ContentArea.Styles>
+        <Style Selector="ContentArea /template/ DockPanel#MainDockPanel">
           <Setter Property="Margin" Value="0 36 0 0" />
         </Style>
-      </controls:ContentArea.Styles>
+      </ContentArea.Styles>
       <DockPanel LastChildFill="True">
-        <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
+        <InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
                               Margin="0 20 0 0">
           <Panel>
             <WrapPanel>
               <TextBlock Text="You can click this icon" />
-              <controls:AnimatedButton Margin="5 0"
+              <AnimatedButton Margin="5 0"
                                        ToolTip.Tip="Copy Log"
                                        Command="{Binding CopyTraceCommand}"
                                        NormalIcon="{StaticResource copy_regular}"
@@ -41,15 +40,16 @@
                                        InitialOpacity="1.0" />
               <TextBlock Text="to copy the above text and post an issue tracker on our" />
               <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
-                      Command="{Binding OpenGitHubRepoCommand}" />
+                      Command="{Binding OpenGitHubRepoCommand}" ToolTip.Tip="{Binding Link}" />
               <TextBlock Text="so we can take a closer look." />
             </WrapPanel>
           </Panel>
-        </controls:InfoMessage>
-        <TextBox Classes="selectableTextBlock monoSpaced wrap"
+        </InfoMessage>
+        <TextBox Classes="monoSpaced wrap"
+                 Theme="{DynamicResource SelectableTextBlockTextBox}"
                  Text="{Binding Trace}" />
       </DockPanel>
-    </controls:ContentArea>
+    </ContentArea>
     <Viewbox Width="300" Height="300" Opacity="0.1" VerticalAlignment="Center"
              HorizontalAlignment="Right" IsHitTestVisible="False">
       <Image Source="{DynamicResource wasabi_logo_dynamic}" />

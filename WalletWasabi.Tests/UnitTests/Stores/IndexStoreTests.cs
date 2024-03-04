@@ -19,27 +19,16 @@ public class IndexStoreTests
 	[Fact]
 	public async Task IndexStoreTestsAsync()
 	{
-		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
-		var network = Network.Main;
+		string directory = GetWorkDirectory();
+		await IoHelpers.TryDeleteDirectoryAsync(directory);
+		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		var dir = (await GetIndexStorePathsAsync()).dir;
-		if (Directory.Exists(dir))
-		{
-			Directory.Delete(dir, true);
-		}
-		await using var indexStore = new IndexStore(dir, network, new SmartHeaderChain());
+		await using var indexStore = new IndexStore(directory, Network.Main, new SmartHeaderChain());
 		await indexStore.InitializeAsync(testDeadlineCts.Token);
 	}
 
-	private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-	{
-		var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
-		await IoHelpers.TryDeleteDirectoryAsync(dir);
-		var matureFilters = Path.Combine(dir, "MatureIndex.dat");
-		var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
-		IoHelpers.EnsureContainingDirectoryExists(matureFilters);
-		IoHelpers.EnsureContainingDirectoryExists(immatureFilters);
-		return (dir, matureFilters, immatureFilters);
-	}
+	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+		=> Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 }

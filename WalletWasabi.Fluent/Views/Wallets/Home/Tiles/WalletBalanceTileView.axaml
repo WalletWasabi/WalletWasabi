@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="140"
@@ -10,17 +9,17 @@
              x:DataType="tiles:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView" ClipToBounds="False">
 
-  <c:TileControl Title="BALANCE" IsBottomContentVisible="{Binding HasBalance^}" SeparatorMargin="0 0 0 6">
-    <c:CopyableItem ContentToCopy="{Binding BalanceBtc^}" HorizontalContentAlignment="Center">
-      <c:PrivacyContentControl Classes="h3 monoSpaced" Margin="4" HorizontalContentAlignment="Center"
-                               Content="{Binding BalanceBtc^, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
-    </c:CopyableItem>
-    <c:TileControl.BottomContent>
-      <c:CopyableItem ContentToCopy="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdNumber}}" HorizontalContentAlignment="Center">
-        <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
+  <TileControl Title="BALANCE" IsBottomContentVisible="{Binding Amounts^.HasUsdBalance^}" SeparatorMargin="0 0 0 6">
+    <CopyableItem ContentToCopy="{Binding Amounts^.Btc}" HorizontalContentAlignment="Center">
+      <PrivacyContentControl Classes="h3 monoSpaced" Margin="4" HorizontalContentAlignment="Center"
+                               Content="{Binding Amounts^.Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+    </CopyableItem>
+    <TileControl.BottomContent>
+      <CopyableItem ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
+        <PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                  Opacity="0.8"
-                                 Content="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
-      </c:CopyableItem>
-    </c:TileControl.BottomContent>
-  </c:TileControl>
+                                 Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
+      </CopyableItem>
+    </TileControl.BottomContent>
+  </TileControl>
 </UserControl>
