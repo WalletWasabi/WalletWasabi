@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Design.PreviewWith>
+    <Border Padding="0">
+      <Border Padding="60">
+        <StackPanel Spacing="20">
+
+          <SubActionButton Content="SplitButton">
+            <SplitButton.Flyout>
+              <Flyout>Hello</Flyout>
+            </SplitButton.Flyout>
+          </SubActionButton>
+
+          <SubActionButton CornerRadius="16" Content="Rounded">
+            <SplitButton.Flyout>
+              <Flyout>Hello</Flyout>
+            </SplitButton.Flyout>
+          </SubActionButton>
+
+          <SplitButton IsEnabled="False">Disabled</SplitButton>
+
+        </StackPanel>
+      </Border>
+    </Border>
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type SubActionButton}"
+                TargetType="SubActionButton"
+                BasedOn="{StaticResource {x:Type SplitButton}}">
+
+    <!-- TODO: Add Icon property support in the template or add InnerRight/InnerLeft content -->
+
+    <!-- TODO: Add custom style for Wasabi -->
+
+  </ControlTheme>
+
+</ResourceDictionary>
