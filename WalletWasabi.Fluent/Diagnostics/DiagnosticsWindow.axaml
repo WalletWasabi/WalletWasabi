@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="WalletWasabi.Fluent.Diagnostics.DiagnosticsWindow"
         Title="Diagnostics">
@@ -18,8 +17,7 @@
                   BorderBrush="Blue"
                   BorderThickness="1"
                   Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
+                  IsHitTestVisible="False" />
         </Template>
       </Setter>
     </Style>
@@ -46,8 +44,7 @@
                     BorderBrush="Red"
                     BorderThickness="1"
                     Background="Transparent"
-                    IsHitTestVisible="False">
-            </Border>
+                    IsHitTestVisible="False" />
           </Panel>
         </Template>
       </Setter>
@@ -63,8 +60,7 @@
                   BorderBrush="Orange"
                   BorderThickness="1"
                   Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
+                  IsHitTestVisible="False" />
         </Template>
       </Setter>
     </Style>
@@ -79,8 +75,7 @@
                   BorderBrush="Cyan"
                   BorderThickness="1"
                   Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
+                  IsHitTestVisible="False" />
         </Template>
       </Setter>
     </Style>
@@ -95,8 +90,7 @@
                   BorderBrush="Pink"
                   BorderThickness="1"
                   Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
+                  IsHitTestVisible="False" />
         </Template>
       </Setter>
     </Style>
@@ -111,8 +105,7 @@
                   BorderBrush="Yellow"
                   BorderThickness="1"
                   Background="Transparent"
-                  IsHitTestVisible="False">
-          </Border>
+                  IsHitTestVisible="False" />
         </Template>
       </Setter>
     </Style>

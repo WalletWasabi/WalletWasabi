@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.LabelsCellView"
@@ -11,23 +10,23 @@
 
   <UserControl.Styles>
 
-    <Style Selector="controls|LabelsItemsPresenter.NonPrivate">
+    <Style Selector="LabelsItemsPresenter.NonPrivate">
       <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
     </Style>
-    <Style Selector="controls|LabelsItemsPresenter.SemiPrivate">
+    <Style Selector="LabelsItemsPresenter.SemiPrivate">
       <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelMediumBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
-    <Style Selector="controls|LabelsItemsPresenter.Private">
+    <Style Selector="LabelsItemsPresenter.Private">
       <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
   </UserControl.Styles>
 
-  <controls:LabelsItemsPresenter
+  <LabelsItemsPresenter
     Classes.NonPrivate="{Binding IsNonPrivate}"
     Classes.SemiPrivate="{Binding IsSemiPrivate}"
     Classes.Private="{Binding IsPrivate}"

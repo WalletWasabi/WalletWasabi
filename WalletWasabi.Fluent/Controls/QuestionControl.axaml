@@ -1,8 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <ControlTheme x:Key="{x:Type c:QuestionControl}" TargetType="c:QuestionControl">
+  <ControlTheme x:Key="{x:Type QuestionControl}" TargetType="QuestionControl">
 
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -12,7 +11,7 @@
         <DockPanel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
           <DockPanel
-            x:DataType="c:QuestionControl"
+            x:DataType="QuestionControl"
             x:CompileBindings="True"
             Classes="h6"
             HorizontalAlignment="Stretch" MaxWidth="500" DockPanel.Dock="Bottom">

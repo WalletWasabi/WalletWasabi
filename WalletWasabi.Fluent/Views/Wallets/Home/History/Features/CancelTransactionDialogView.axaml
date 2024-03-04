@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:features="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -11,9 +10,9 @@
              x:CompileBindings="True">
 
   <UserControl.Styles>
-    <Style Selector="c|AmountControl" x:CompileBindings="False">
+    <Style Selector="AmountControl" x:CompileBindings="False">
       <Setter Property="Template">
-        <ControlTemplate TargetType="c:AmountControl">
+        <ControlTemplate TargetType="AmountControl">
           <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
             <TextBlock TextAlignment="Center"
                        FontWeight="Bold"
@@ -29,7 +28,7 @@
     </Style>
   </UserControl.Styles>
 
-  <c:ContentArea Title="Cancel Transaction"
+  <ContentArea Title="Cancel Transaction"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Confirm"
@@ -42,8 +41,8 @@
       </Viewbox>
       <StackPanel Spacing="10" HorizontalAlignment="Center">
         <TextBlock Text="Cancelling this transaction will cost you" />
-        <c:AmountControl Amount="{Binding Fee}" />
+        <AmountControl Amount="{Binding Fee}" />
       </StackPanel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

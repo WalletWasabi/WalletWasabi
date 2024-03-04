@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
@@ -10,10 +9,10 @@
              x:DataType="vm:VerifyRecoveryWordsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.VerifyRecoveryWordsView">
-  <controls:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                         NextContent="Verify" EnableNext="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">
-      <controls:TagsBox DockPanel.Dock="Left"
+      <TagsBox DockPanel.Dock="Left"
                         ItemCountLimit="24"
                         SuggestionsAreCaseSensitive="False"
                         RestrictInputToSuggestions="True"
@@ -26,7 +25,7 @@
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
         </i:Interaction.Behaviors>
-      </controls:TagsBox>
+      </TagsBox>
     </DockPanel>
-  </controls:ContentArea>
+  </ContentArea>
 </UserControl>

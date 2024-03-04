@@ -658,7 +658,14 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		if (!Countries.Any())
 		{
-			Countries = await Client.GetCountriesAsync(cancel).ConfigureAwait(false);
+			try
+			{
+				Countries = await Client.GetCountriesAsync(cancel).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Failed to download countries. Reason: '{ex.Message}'.");
+			}
 		}
 	}
 }

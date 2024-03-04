@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:viewsBuy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
              mc:Ignorable="d"
@@ -10,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.BuyView"
              d:DesignWidth="600" d:DesignHeight="600">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="False"
                  NextContent="Continue"
@@ -43,5 +42,5 @@
       </Border>
     </DockPanel>
 
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

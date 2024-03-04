@@ -59,11 +59,7 @@ public partial class CurrencyEntryBox : TextBox
 
 		this.GetObservable(IsRightSideProperty)
 			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
-
-		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
-
-	public ICommand ModifiedPaste { get; }
 
 	public decimal ConversionRate
 	{
@@ -322,6 +318,12 @@ public partial class CurrencyEntryBox : TextBox
 		if (ValidateEntryText(text))
 		{
 			OnTextInput(new TextInputEventArgs { Text = text });
+
+			Dispatcher.UIThread.Post(() =>
+			{
+				ClearSelection();
+				CaretIndex = Text?.Length ?? 0;
+			});
 		}
 	}
 

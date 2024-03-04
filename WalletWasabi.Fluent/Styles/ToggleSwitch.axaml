@@ -25,8 +25,7 @@
   <!-- Fix for https://github.com/zkSNACKs/WalletWasabi/issues/9436 -->
   <Style Selector="ToggleSwitch:not(:dragging) /template/ Grid#MovingKnobs">
     <Setter Property="Transitions">
-      <Transitions>
-      </Transitions>
+      <Transitions />
     </Setter>
   </Style>
 </Styles>

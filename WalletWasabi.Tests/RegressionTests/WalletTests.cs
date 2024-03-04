@@ -80,7 +80,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, setup.ServiceConfiguration, feeProvider, blockProvider);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, setup.ServiceConfiguration, feeProvider, blockProvider);
+		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		// Get some money, make it confirm.
