@@ -10,7 +10,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.VerifyRecoveryWordsView">
   <ContentArea Title="{Binding Title}"
-                        NextContent="Verify" EnableNext="True" EnableCancel="True">
+               NextContent="Verify" EnableNext="True" EnableBack="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">
       <TagsBox DockPanel.Dock="Left"
                         ItemCountLimit="24"
