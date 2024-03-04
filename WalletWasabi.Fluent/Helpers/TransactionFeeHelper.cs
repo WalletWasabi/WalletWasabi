@@ -158,7 +158,7 @@ public static class TransactionFeeHelper
 		}
 
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates.WildEstimations);
 
 		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
 		{
