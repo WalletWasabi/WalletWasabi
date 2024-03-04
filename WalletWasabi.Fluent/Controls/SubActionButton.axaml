@@ -6,10 +6,14 @@
       <Border Padding="60">
         <StackPanel Spacing="20">
 
-          <SubActionButton Content="SplitButton">
+          <SubActionButton>
             <SplitButton.Flyout>
               <Flyout>Hello</Flyout>
             </SplitButton.Flyout>
+            <StackPanel Orientation="Horizontal" Spacing="15">
+              <PathIcon Data="{StaticResource wallet_action_send}" />
+              <TextBlock Text="Send" />
+            </StackPanel>
           </SubActionButton>
 
           <SubActionButton CornerRadius="16" Content="Rounded">
