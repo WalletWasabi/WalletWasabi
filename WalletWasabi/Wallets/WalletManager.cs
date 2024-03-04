@@ -5,9 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -16,8 +13,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets;
@@ -31,11 +26,7 @@ public class WalletManager : IWalletProvider
 		Network network,
 		string workDir,
 		WalletDirectories walletDirectories,
-		BitcoinStore bitcoinStore,
-		WasabiSynchronizer synchronizer,
-		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider,
-		ServiceConfiguration serviceConfiguration)
+		WalletFactory walletFactory)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -43,11 +34,7 @@ public class WalletManager : IWalletProvider
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = walletDirectories;
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		FeeProvider = feeProvider;
-		BlockProvider = blockProvider;
-		ServiceConfiguration = serviceConfiguration;
+		WalletFactory = walletFactory;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
 		LoadWalletListFromFileSystem();
@@ -81,15 +68,11 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; }
-	private WasabiSynchronizer Synchronizer { get; }
-	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; }
+	private WalletFactory WalletFactory { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private IBlockProvider BlockProvider { get; }
 	private string WorkDir { get; }
 
 	private void LoadWalletListFromFileSystem()
@@ -261,7 +244,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = CreateWalletInstance(keyManager);
+		Wallet wallet = WalletFactory.Create(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -272,7 +255,7 @@ public class WalletManager : IWalletProvider
 		Wallet wallet;
 		try
 		{
-			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
+			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -299,7 +282,7 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
+			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 
 		return wallet;
@@ -326,9 +309,6 @@ public class WalletManager : IWalletProvider
 
 		WalletAdded?.Invoke(this, wallet);
 	}
-
-	private Wallet CreateWalletInstance(KeyManager keyManager)
-		=> new (WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
