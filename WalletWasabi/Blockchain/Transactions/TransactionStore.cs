@@ -60,7 +60,7 @@ public class TransactionStore : IAsyncDisposable
 			SqliteStorage.BulkInsert(allTransactions);
 
 			File.Delete(oldPath);
-			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed} seconds.");
+			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed.TotalSeconds} seconds.");
 		}
 	}
 
