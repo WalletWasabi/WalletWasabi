@@ -46,7 +46,7 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 - Model-View-ViewModel architecture (MVVM).
 - [Avalonia UI](https://www.avaloniaui.net/): framework to create cross-platform UI.
 - [xUnit](https://xunit.net/): create unit tests.
-- Dependencies path:  WalletWasabi/Directory.Packages.props
+- Dependencies path: WalletWasabi/Directory.Packages.props
 
 # Code conventions
 
