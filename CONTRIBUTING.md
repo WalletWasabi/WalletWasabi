@@ -43,7 +43,7 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 
 - [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: WalletWasabi/global.json.
 - [C#](https://dotnet.microsoft.com/en-us/languages/csharp): open-source programming language.
-- Model-View-ViewModel (MVVM): architecture.
+- Model-View-ViewModel architecture (MVVM).
 - [AvaloniaUI](https://www.avaloniaui.net/): framework to create cross-platform UI.
 - [xUnit](https://xunit.net/): create unit tests.
 - Dependencies path:  WalletWasabi/Directory.Packages.props
