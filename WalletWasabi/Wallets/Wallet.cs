@@ -293,11 +293,6 @@ public class Wallet : BackgroundService, IWallet
 	/// <inheritdoc/>
 	public override async Task StartAsync(CancellationToken cancel)
 	{
-		if ("AAA".Contains('A'))
-		{
-			throw new InvalidOperationException("Test test test.");
-		}
-
 		if (State != WalletState.Initialized)
 		{
 			throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Initialized}. Current state: {State}.");
