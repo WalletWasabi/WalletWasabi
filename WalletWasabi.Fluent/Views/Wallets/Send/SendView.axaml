@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
@@ -90,11 +88,11 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
-            <behaviors:FocusNextWhenValidBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+            <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
+            <FocusNextWhenValidBehavior />
+          </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
               <AnimatedButton KeyboardNavigation.IsTabStop="False"
@@ -103,9 +101,9 @@
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
-                <i:Interaction.Behaviors>
-                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
-                </i:Interaction.Behaviors>
+                <Interaction.Behaviors>
+                  <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
+                </Interaction.Behaviors>
               </AnimatedButton>
               <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                                 KeyboardNavigation.IsTabStop="False"
@@ -140,14 +138,14 @@
                                            TrueValue="{x:Static PlacementMode.BottomEdgeAlignedRight}"
                                            FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}" />
             </DualCurrencyEntryBox.Resources>
-            <i:Interaction.Behaviors>
-              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
+            <Interaction.Behaviors>
+              <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
+              <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-            </i:Interaction.Behaviors>
+            </Interaction.Behaviors>
           </DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
