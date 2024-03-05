@@ -6,8 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
   <ContentArea Title="Send - Control your privacy"
                  Caption="Choose who can and can't see this transaction"
@@ -74,9 +72,9 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                    </i:Interaction.Behaviors>
+                    <Interaction.Behaviors>
+                      <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                    </Interaction.Behaviors>
                     <TagControl Classes.highlighted="{Binding IsHighlighted}"
                                   Classes.dangerous="{Binding IsDangerous}"
                                   Content="{Binding Value}"
@@ -123,9 +121,9 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                    </i:Interaction.Behaviors>
+                    <Interaction.Behaviors>
+                      <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                    </Interaction.Behaviors>
                     <TagControl
                       Classes.highlighted="{Binding IsHighlighted}"
                       Classes.dangerous="{Binding IsDangerous}"

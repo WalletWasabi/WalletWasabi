@@ -4,9 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
              xmlns:vmMessage="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Messages"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:buyAnything="clr-namespace:WalletWasabi.BuyAnything;assembly=WalletWasabi"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderMessagesView"
              x:DataType="vm:OrderViewModel"
@@ -143,7 +141,7 @@
       </ItemsControl.DataTemplates>
 
       <Interaction.Behaviors>
-        <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
+        <ScrollToEndOnItemsChangedBehavior ScrollViewer="MessagesScrollViewer" />
       </Interaction.Behaviors>
     </ItemsControl>
   </ScrollViewer>
