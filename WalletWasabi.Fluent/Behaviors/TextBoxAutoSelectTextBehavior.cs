@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 
