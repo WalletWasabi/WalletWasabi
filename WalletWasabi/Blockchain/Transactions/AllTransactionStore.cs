@@ -214,21 +214,4 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		await MempoolStore.DisposeAsync().ConfigureAwait(false);
 		await ConfirmedStore.DisposeAsync().ConfigureAwait(false);
 	}
-
-	public IEnumerable<SmartTransaction> GetTransactionsByDestinationAddress(BitcoinAddress destinationAddress)
-	{
-		lock (Lock)
-		{
-			var allTransactions = ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions());
-
-			var supportedNetworks = new[] { Network.Main, Network.TestNet, Network.RegTest };
-
-			var transactionsWithAddress = allTransactions
-				.Where(transaction => supportedNetworks.Any(network =>
-					transaction.Transaction.Outputs.Any(output => output.ScriptPubKey.GetDestinationAddress(network) == destinationAddress)))
-				.ToList();
-
-			return transactionsWithAddress;
-		}
-	}
 }
