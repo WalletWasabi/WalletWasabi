@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows"
              xmlns:helpAndSupport="clr-namespace:WalletWasabi.Fluent.Views.HelpAndSupport"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -86,9 +84,9 @@
       <DataTemplate DataType="vm:WelcomeStep">
         <ComboBox ItemsSource="{Binding Products}"
                   SelectedItem="{Binding Product, Mode=TwoWay}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
         </ComboBox>
       </DataTemplate>
 
@@ -104,9 +102,9 @@
                    EnableDelete="False"
                    Items="{Binding SelectedCountries}"
                    Suggestions="{Binding Countries}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
         </TagsBox>
       </DataTemplate>
 
@@ -124,9 +122,9 @@
               <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
             </StackPanel>
           </TextBox.InnerRightContent>
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
@@ -143,12 +141,12 @@
                     TabIndex="0"
                     IsChecked="{Binding Value}"
                     Margin="8 0 0 0">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
+            <Interaction.Behaviors>
+              <FocusOnAttachedBehavior />
               <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
-                <behaviors:FocusNextControlAction />
+                <FocusNextControlAction />
               </DataTriggerBehavior>
-            </i:Interaction.Behaviors>
+            </Interaction.Behaviors>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="5">
             <TextBlock Text="I Accept the" VerticalAlignment="Center" />
@@ -171,12 +169,12 @@
               <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
             </StackPanel>
           </TextBox.InnerRightContent>
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
-              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+              <FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
-          </i:Interaction.Behaviors>
+          </Interaction.Behaviors>
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
@@ -191,9 +189,9 @@
                  Text="{Binding Value}"
                  MaxLength="5000"
                  Watermark="{Binding Watermark}">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
           <TextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
@@ -215,12 +213,12 @@
                    Items="{Binding SelectedStates}"
                    Suggestions="{Binding States}"
                    x:Name="TextBox">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
-              <behaviors:FocusControlActionCustom TargetControl="TextBox" />
+              <FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
-          </i:Interaction.Behaviors>
+          </Interaction.Behaviors>
         </TagsBox>
       </DataTemplate>
 
@@ -232,12 +230,12 @@
                     TabIndex="0"
                     x:Name="CheckBox"
                     Margin="8 0 0 0">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
+            <Interaction.Behaviors>
+              <FocusOnAttachedBehavior />
               <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
-                <behaviors:FocusNextControlAction />
+                <FocusNextControlAction />
               </DataTriggerBehavior>
-            </i:Interaction.Behaviors>
+            </Interaction.Behaviors>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="5">
             <TextBlock Text="I Accept the" VerticalAlignment="Center" />

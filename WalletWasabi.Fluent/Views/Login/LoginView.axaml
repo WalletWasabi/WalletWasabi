@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:login="using:WalletWasabi.Fluent.ViewModels.Login"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="login:LoginViewModel"
              x:CompileBindings="True"
@@ -48,9 +46,9 @@
                      VerticalAlignment="Bottom"
                      IsVisible="{Binding IsPasswordNeeded}">
             <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton copyablePasswordTextBox">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
+              <Interaction.Behaviors>
+                <FocusOnAttachedBehavior />
+              </Interaction.Behaviors>
             </CopyablePasswordTextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" IsVisible="{Binding IsForgotPasswordVisible}" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
