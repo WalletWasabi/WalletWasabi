@@ -65,17 +65,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
+			.DoAsync(async x =>
 			{
 				if (x?.Transaction is { } transaction)
 				{
 					UpdateTransaction(PreviewTransactionSummary, transaction);
+					await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
 				}
 				else
 				{
 					DisplayedTransactionSummary = CurrentTransactionSummary;
+					PrivacySuggestions.ClearPreviewWarnings();
 				}
-			});
+			})
+			.Subscribe();
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
 			.SubscribeAsync(async suggestion =>

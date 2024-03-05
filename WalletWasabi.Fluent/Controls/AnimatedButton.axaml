@@ -1,7 +1,5 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:i="using:Avalonia.Xaml.Interactivity"
-                    xmlns:ia="using:Avalonia.Xaml.Interactions.Core">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Design.PreviewWith>
     <AnimatedButton />
@@ -16,12 +14,12 @@
                 Command="{TemplateBinding Command}"
                 CommandParameter="{TemplateBinding CommandParameter}"
                 Classes="plain">
-          <i:Interaction.Behaviors>
-            <ia:EventTriggerBehavior EventName="Click">
-              <ia:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="False" />
-              <ia:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="True" />
-            </ia:EventTriggerBehavior>
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="Click">
+              <ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="False" />
+              <ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="True" />
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
           <Panel>
             <PathIcon Name="PART_IconNormal"
                       Classes.hideAndShow="{TemplateBinding AnimateIcon}"

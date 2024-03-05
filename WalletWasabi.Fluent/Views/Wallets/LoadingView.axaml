@@ -3,9 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
@@ -19,11 +16,11 @@
     </ContentArea.Title>
 
     <Panel>
-      <i:Interaction.Behaviors>
-        <ir:AdaptiveBehavior>
-          <ir:AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
-        </ir:AdaptiveBehavior>
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <AdaptiveBehavior>
+          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
+        </AdaptiveBehavior>
+      </Interaction.Behaviors>
 
       <DockPanel VerticalAlignment="Center">
         <DockPanel.Styles>
@@ -60,9 +57,9 @@
               </Style>
             </Viewbox.Styles>
             <Canvas Width="1042" Height="474" Name="WorldCanvas">
-              <i:Interaction.Behaviors>
-                <behaviors:RandomizedWorldPointsBehavior />
-              </i:Interaction.Behaviors>
+              <Interaction.Behaviors>
+                <RandomizedWorldPointsBehavior />
+              </Interaction.Behaviors>
               <Image Source="{StaticResource loading_control_world_map}" />
               <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
               <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />

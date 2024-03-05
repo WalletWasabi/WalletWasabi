@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingItemDetailsView"
@@ -29,11 +27,11 @@
     </Viewbox>
 
     <StackPanel Spacing="8">
-      <i:Interaction.Behaviors>
-        <ir:AdaptiveBehavior>
-          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="190" MaxWidthOperator="LessThanOrEqual" ClassName="small" TargetControl="{Binding #PrivacyLevel}" />
-        </ir:AdaptiveBehavior>
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <AdaptiveBehavior>
+          <AdaptiveClassSetter MinWidth="0" MaxWidth="190" MaxWidthOperator="LessThanOrEqual" ClassName="small" TargetControl="{Binding #PrivacyLevel}" />
+        </AdaptiveBehavior>
+      </Interaction.Behaviors>
 
       <StackPanel IsVisible="{Binding !IsNonPrivate}" MinHeight="42">
         <Separator Margin="0 3 0 9" />

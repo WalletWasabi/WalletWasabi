@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AdvancedRecoveryOptionsView"
              x:DataType="dialogs:AdvancedRecoveryOptionsViewModel"
@@ -26,9 +24,9 @@
                DockPanel.Dock="Top"
                Width="350"
                Classes="hasCheckMark">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <FocusOnAttachedBehavior />
+        </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
   </ContentArea>
