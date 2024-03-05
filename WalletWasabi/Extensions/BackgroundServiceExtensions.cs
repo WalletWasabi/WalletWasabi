@@ -20,19 +20,26 @@ public static class BackgroundServiceExtensions
 	/// <returns>A <see cref="Task"/> that represents the asynchronous Start operation.</returns>
 	public static async Task StartAndSetUpUnhandledExceptionCallbackAsync(this BackgroundService backgroundService, ITerminateService? terminateService, CancellationToken cancellationToken)
 	{
+		Task startTask = backgroundService.StartAsync(cancellationToken);
+
 		try
 		{
 			// Whenever an exception is thrown, we register in "finally" the crash handler.
 			// If this method is not awaited, then the execute task might be null and we might miss crash signals.
-			await backgroundService.StartAsync(cancellationToken).ConfigureAwait(false);
+			await startTask.ConfigureAwait(false);
 		}
 		finally
 		{
-			if (terminateService is not null && backgroundService.ExecuteTask is not null)
+			// If StartAsync crashes with an exception, then continue with that task, otherwise the start task ran to completion and we should monitor the execute task.
+			Task? taskToContinue = startTask.IsFaulted ? startTask : backgroundService.ExecuteTask;
+
+			if (terminateService is not null && taskToContinue is not null)
 			{
-				_ = backgroundService.ExecuteTask.ContinueWith(
+				_ = taskToContinue.ContinueWith(
 					(Task task) =>
 					{
+						Logger.LogWarning($"'{backgroundService.GetType()?.FullName}' continue.");
+
 						if (task.IsFaulted)
 						{
 							Logger.LogWarning($"Signal graceful termination because '{backgroundService.GetType()?.FullName}' crashed.");
