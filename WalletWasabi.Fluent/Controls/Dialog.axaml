@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <ControlTheme x:Key="{x:Type Dialog}" TargetType="Dialog">
 
@@ -42,7 +41,7 @@
       <Setter Property="(Interaction.Behaviors)">
         <BehaviorCollectionTemplate>
           <BehaviorCollection>
-            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.25" EnableScale="False" />
+            <DialogTransitionAttachedBehavior OpacityDuration="0:0:0.25" EnableScale="False" />
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>
@@ -55,7 +54,7 @@
       <Setter Property="(Interaction.Behaviors)">
         <BehaviorCollectionTemplate>
           <BehaviorCollection>
-            <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
+            <DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>

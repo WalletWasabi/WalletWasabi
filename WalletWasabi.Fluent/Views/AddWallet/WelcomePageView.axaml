@@ -3,15 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
-  <i:Interaction.Behaviors>
-    <behaviors:FocusOnAttachedBehavior />
-  </i:Interaction.Behaviors>
+  <Interaction.Behaviors>
+    <FocusOnAttachedBehavior />
+  </Interaction.Behaviors>
 
   <UserControl.Styles>
     <Style Selector="ContentArea /template/ StackPanel#PART_Header">
@@ -65,12 +63,12 @@
       <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
-        <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding BackCommand}"
-                                                     IsEnabled="{Binding CanGoBack^}" Key="Left" />
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}"
-                                                     IsEnabled="{Binding EnableNextKey}" Key="Right" />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <ExecuteCommandOnKeyDownBehavior Command="{Binding BackCommand}"
+                                           IsEnabled="{Binding CanGoBack^}" Key="Left" />
+          <ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}"
+                                           IsEnabled="{Binding EnableNextKey}" Key="Right" />
+        </Interaction.Behaviors>
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
             <Setter Property="Opacity" Value="0.5" />

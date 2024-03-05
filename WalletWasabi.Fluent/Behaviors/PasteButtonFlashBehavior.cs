@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;

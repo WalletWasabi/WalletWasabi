@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
