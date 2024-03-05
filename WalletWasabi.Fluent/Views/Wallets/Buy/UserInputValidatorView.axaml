@@ -178,6 +178,7 @@
           </TextBox.InnerRightContent>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
+            <behaviors:TextBoxAddLineBreakBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
               <behaviors:FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
