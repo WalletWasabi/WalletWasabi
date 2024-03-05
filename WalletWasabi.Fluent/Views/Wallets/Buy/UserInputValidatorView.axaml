@@ -25,15 +25,13 @@
     </ContentControl.Resources>
     <ContentControl.Styles>
 
-      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
-        <Setter Property="Margin" Value="0,0,0,-1" />
-      </Style>
-
+      <!--TextBox -->
       <Style Selector="TextBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
         <Setter Property="MaxHeight" Value="105" />
         <Setter Property="MaxLength" Value="5000" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="(Interaction.Behaviors)">
           <BehaviorCollectionTemplate>
             <BehaviorCollection>
@@ -42,12 +40,23 @@
           </BehaviorCollectionTemplate>
         </Setter>
       </Style>
+
       <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
       <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <Style Selector="StackPanel.limit">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0 0 15 0" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="2" />
+        <Setter Property="Width" Value="80" />
+      </Style>
+
+      <!-- TagsBox -->
       <Style Selector="TagsBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
@@ -57,6 +66,12 @@
       <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
+        <Setter Property="Margin" Value="0,0,0,-1" />
+      </Style>
+
+      <!-- ComboBox -->
       <Style Selector="ComboBox">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -65,6 +80,8 @@
       <Style Selector="ComboBox:pointerover /template/ Border#Background">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <!-- TextBlock -->
       <Style Selector="TextBlock.minLimit">
         <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
         <Setter Property="Opacity" Value="1" />
@@ -122,7 +139,8 @@
                  Watermark="{Binding Watermark}"
                  x:Name="RequestTextBox">
           <TextBox.InnerRightContent>
-            <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}" VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+            <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}"
+                        Classes="limit">
               <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
               <TextBlock Classes="fade" Text="/" />
               <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
@@ -168,7 +186,7 @@
                  Watermark="{Binding Watermark}"
                  x:Name="TextBox">
           <TextBox.InnerRightContent>
-            <StackPanel VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
+            <StackPanel Classes="limit">
               <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
               <TextBlock Classes="fade" Text="/" />
               <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
