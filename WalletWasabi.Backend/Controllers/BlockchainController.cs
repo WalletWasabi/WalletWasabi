@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -437,19 +438,15 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
 	{
-		Dictionary<uint256, UnconfirmedTransactionChainItem> unconfirmedTxsChainById = new();
-
 		try
 		{
 			var mempool = Global.HostedServices.Get<MempoolMirror>();
-			var mempoolHashes = mempool.GetMempoolHashes();
 
-			if (!mempoolHashes.Contains(txId))
+			if (!mempool.GetMempoolHashes().Contains(txId))
 			{
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
 
-			Dictionary<uint256, Transaction> transactionsLocalCache = new();
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 			var linkedCancellationToken = linkedCts.Token;
@@ -457,94 +454,8 @@ public class BlockchainController : ControllerBase
 			// TODO: Use Transaction cache.
 			var requestedTransaction = await RpcClient.GetRawTransactionAsync(txId, true, linkedCancellationToken);
 
-			transactionsLocalCache.Add(txId, requestedTransaction);
-
-			List<Transaction> toFetchFeeList = new() { requestedTransaction };
-
-			while (toFetchFeeList.Count > 0)
-			{
-				linkedCancellationToken.ThrowIfCancellationRequested();
-
-				var currentTx = toFetchFeeList.First();
-
-				List<Coin> inputs = new();
-				HashSet<Transaction> parentTxs = new();
-
-				void AddParentTx(Transaction tx, OutPoint prevOut)
-				{
-					parentTxs.Add(tx);
-					TxOut txOut = tx.Outputs[prevOut.N];
-					inputs.Add(new Coin(prevOut, txOut));
-				}
-
-				// Collect which transactions needs to be fetched.
-				List<OutPoint> prevOutToFetchFromRPC = new();
-
-				foreach (var input in currentTx.Inputs)
-				{
-					if (transactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
-					{
-						AddParentTx(parentTx, input.PrevOut);
-					}
-					else
-					{
-						prevOutToFetchFromRPC.Add(input.PrevOut);
-					}
-				}
-
-				if (prevOutToFetchFromRPC.Count > 0)
-				{
-					var missingTxs = (await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), linkedCancellationToken)).ToArray();
-
-					if (missingTxs.Length != prevOutToFetchFromRPC.Count)
-					{
-						return BadRequest("Some parent transactions couldn't be fetched from RPC");
-					}
-
-					foreach (var tx in missingTxs)
-					{
-						transactionsLocalCache.Add(tx.GetHash(), tx);
-						var prevOut = prevOutToFetchFromRPC.First(x => x.Hash == tx.GetHash());
-						AddParentTx(tx, prevOut);
-					}
-				}
-
-				var unconfirmedParents = parentTxs.Where(x =>
-					mempoolHashes.Contains(x.GetHash()))
-					.ToHashSet();
-
-				var unconfirmedChildrenTxs = mempool
-					.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index)))
-					.ToHashSet();
-
-				// Add the children to the local transaction cache.
-				foreach (var childTx in unconfirmedChildrenTxs)
-				{
-					if (!transactionsLocalCache.ContainsKey(childTx.GetHash()))
-					{
-						transactionsLocalCache.Add(childTx.GetHash(), childTx);
-					}
-				}
-
-				// Remove the item we worked on.
-				toFetchFeeList.Remove(currentTx);
-
-				var discoveredTxsToFetchFee = unconfirmedParents
-					.Union(unconfirmedChildrenTxs)
-					.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()));
-
-				// Fee and size of all unconfirmed parents and children not already known are required to calculate the effective fee rate of the current transaction.
-				toFetchFeeList.AddRange(discoveredTxsToFetchFee);
-
-				unconfirmedTxsChainById.Add(
-					currentTx.GetHash(),
-					new UnconfirmedTransactionChainItem(
-						TxId: currentTx.GetHash().ToString(),
-						Size: currentTx.GetVirtualSize(),
-						Fee: currentTx.GetFee(inputs.ToArray()),
-						Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
-						Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet()));
-			}
+			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(requestedTransaction, mempool, linkedCancellationToken);
+			return Ok(unconfirmedTxsChainById.Values.ToList());
 		}
 		catch (OperationCanceledException)
 		{
@@ -555,7 +466,100 @@ public class BlockchainController : ControllerBase
 			Logger.LogError($"Failed to compute unconfirmed chain for {txId}. {ex}");
 			return BadRequest($"Failed to compute unconfirmed chain for {txId}");
 		}
+	}
 
-		return Ok(unconfirmedTxsChainById.Values.ToList());
+	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(Transaction requestedTransaction, MempoolMirror mempool, CancellationToken cancellationToken)
+	{
+		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
+		var toFetchFeeList = new List<Transaction> { requestedTransaction };
+
+		while (toFetchFeeList.Count > 0)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			var currentTx = toFetchFeeList.First();
+
+			var prevOutToFetchFromRPC = currentTx.Inputs
+			.Select(input => input.PrevOut)
+			.ToList();
+
+			// Fetch parent transactions
+			var parentTxs = await FetchParentTransactionsFromRPCAsync(prevOutToFetchFromRPC, cancellationToken);
+
+			var cacheKey = $"{nameof(UnconfirmedTransactionChainItem)}_{currentTx.GetHash()}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) };
+
+			/* WHY IS THIS FAILING MY TEST?
+			var currentTxChainItem = await Cache.GetCachedResponseAsync(
+				cacheKey,
+				action: (string request, CancellationToken token) => CalculateSingleChainItemAsync(currentTx, mempool, parentTxs, token),
+				options: cacheOptions,
+			cancellationToken);
+			*/
+
+			var currentTxChainItem = await CalculateSingleChainItemAsync(currentTx, mempool, parentTxs, cancellationToken);
+
+			// Get unconfirmed parents and children
+			var mempoolHashes = Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes();
+			var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
+			var unconfirmedChildrenTxs = mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
+
+			toFetchFeeList.Remove(currentTx);
+
+			var discoveredTxsToFetchFee = unconfirmedParents
+				.Union(unconfirmedChildrenTxs)
+				.Where(x => !unconfirmedTxsChainById.ContainsKey(x.GetHash()));
+
+			toFetchFeeList.AddRange(discoveredTxsToFetchFee);
+
+			unconfirmedTxsChainById.Add(currentTx.GetHash(), currentTxChainItem);
+		}
+
+		return unconfirmedTxsChainById;
+	}
+
+	private async Task<UnconfirmedTransactionChainItem> CalculateSingleChainItemAsync(Transaction currentTx, MempoolMirror mempool, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var inputs = new List<Coin>();
+
+		var prevOutsForCurrentTx = currentTx.Inputs
+			.Select(input => input.PrevOut)
+			.ToList();
+
+		foreach (var parentTx in parentTxs)
+		{
+			var prevOut = prevOutsForCurrentTx.First(x => x.Hash == parentTx.GetHash());
+			var txOut = parentTx.Outputs[prevOut.N];
+			inputs.Add(new Coin(prevOut, txOut));
+		}
+
+		// Get unconfirmed parents and children
+		var mempoolHashes = mempool.GetMempoolHashes();
+		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
+		var unconfirmedChildrenTxs = mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
+
+		return new UnconfirmedTransactionChainItem(
+				TxId: currentTx.GetHash().ToString(),
+				Size: currentTx.GetVirtualSize(),
+				Fee: currentTx.GetFee(inputs.ToArray()),
+				Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
+				Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet());
+	}
+
+	private async Task<IEnumerable<Transaction>> FetchParentTransactionsFromRPCAsync(List<OutPoint> prevOutToFetch, CancellationToken cancellationToken)
+	{
+		if (prevOutToFetch.Count > 0)
+		{
+			var parentTxs = await RpcClient.GetRawTransactionsAsync(prevOutToFetch.Select(x => x.Hash), cancellationToken);
+			if (parentTxs.Count() != prevOutToFetch.Count)
+			{
+				throw new Exception("Some parent transactions couldn't be fetched from RPC");
+			}
+
+			return parentTxs;
+		}
+
+		return [];
 	}
 }

@@ -227,7 +227,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		Assert.True(unconfirmedChain.Length == 2);
 		Assert.Contains(txId2.ToString(), unconfirmedChain.Select(x => x.TxId));
 		Assert.Contains(txId.ToString(), unconfirmedChain.Select(x => x.TxId));
-		Assert.Contains(txId.ToString(), unconfirmedChain.First().Parents);
+		Assert.Contains(txId.ToString(), unconfirmedChain.First(tx => tx.TxId == txId2.ToString()).Parents);
 		Assert.Contains(txId2.ToString(), unconfirmedChain.First(tx => tx.TxId == txId.ToString()).Children);
 
 		bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
