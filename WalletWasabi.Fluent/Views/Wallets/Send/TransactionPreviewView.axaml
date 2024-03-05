@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d"
@@ -20,9 +18,9 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  Title="Preview Transaction">
 
-    <i:Interaction.Behaviors>
-      <behaviors:HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
-    </i:Interaction.Behaviors>
+    <Interaction.Behaviors>
+      <HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
+    </Interaction.Behaviors>
 
     <ContentArea.TopContent>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
@@ -80,7 +78,7 @@
             </Style>
           </Border.Styles>
           <Interaction.Behaviors>
-            <behaviors:ShowFlyoutOnPointerOverBehavior />
+            <ShowFlyoutOnPointerOverBehavior />
           </Interaction.Behaviors>
           <FlyoutBase.AttachedFlyout>
             <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
