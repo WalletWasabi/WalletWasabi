@@ -141,6 +141,7 @@ public class StepTransactionSigningTests
 
 		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
+		cfg.MinInputCountByBlameRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 

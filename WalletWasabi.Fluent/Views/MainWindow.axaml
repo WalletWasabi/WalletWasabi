@@ -2,8 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-        xmlns:i="using:Avalonia.Xaml.Interactivity"
         xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
         xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
         mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
@@ -30,9 +28,9 @@
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
   </Window.Styles>
-  <i:Interaction.Behaviors>
-    <behaviors:ContextFlyoutWorkaroundBehavior />
-  </i:Interaction.Behaviors>
+  <Interaction.Behaviors>
+    <ContextFlyoutWorkaroundBehavior />
+  </Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <!--

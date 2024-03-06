@@ -1,11 +1,10 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
-    <controls:SuggestionItem />
+    <SuggestionItem />
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type controls:SuggestionItem}" TargetType="controls:SuggestionItem">
+  <ControlTheme x:Key="{x:Type SuggestionItem}" TargetType="SuggestionItem">
 
     <Setter Property="Template">
       <ControlTemplate>

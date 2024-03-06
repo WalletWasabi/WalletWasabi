@@ -43,9 +43,13 @@ public class PrivacySuggestionsModel
 		_cjManager = Services.HostedServices.Get<CoinJoinManager>();
 	}
 
+	/// <summary>
+	///
+	/// </summary>
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo transactionInfo, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken, bool includeSuggestions)
 	{
+		var parameters = new Parameters(transactionInfo, transactionResult, includeSuggestions);
 		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
@@ -62,16 +66,16 @@ public class PrivacySuggestionsModel
 
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			result.Add(VerifyLabels(info, transactionResult));
-			result.Add(VerifyPrivacyLevel(info, transactionResult));
-			result.Add(VerifyConsolidation(transactionResult));
-			result.Add(VerifyUnconfirmedInputs(transactionResult));
-			result.Add(VerifyCoinjoiningInputs(transactionResult));
+			result.Add(VerifyLabels(parameters));
+			result.Add(VerifyPrivacyLevel(parameters));
+			result.Add(VerifyConsolidation(parameters));
+			result.Add(VerifyUnconfirmedInputs(parameters));
+			result.Add(VerifyCoinjoiningInputs(parameters));
 			foreach (var item in result)
 			{
 				yield return item;
 			}
-			await foreach (var item in VerifyChangeAsync(info, transactionResult, _linkedCancellationTokenSource).ConfigureAwait(false))
+			await foreach (var item in VerifyChangeAsync(parameters, _linkedCancellationTokenSource).ConfigureAwait(false))
 			{
 				yield return item;
 			}
@@ -82,15 +86,15 @@ public class PrivacySuggestionsModel
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyLabels(TransactionInfo info, BuildTransactionResult transactionResult)
+	private IEnumerable<PrivacyItem> VerifyLabels(Parameters parameters)
 	{
-		var warning = GetLabelWarning(transactionResult, info.Recipient);
+		var warning = GetLabelWarning(parameters.Transaction, parameters.TransactionInfo.Recipient);
 
 		if (warning is not null)
 		{
 			yield return warning;
 
-			if (info.IsOtherPocketSelectionPossible)
+			if (parameters.IncludeSuggestions && parameters.TransactionInfo.IsOtherPocketSelectionPossible)
 			{
 				yield return new LabelManagementSuggestion();
 			}
@@ -121,19 +125,19 @@ public class PrivacySuggestionsModel
 		return null;
 	}
 
-	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(TransactionInfo transactionInfo, BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(Parameters parameters)
 	{
-		var canModifyTransactionAmount = !transactionInfo.IsPayJoin && !transactionInfo.IsFixedAmount;
+		var canModifyTransactionAmount = !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsFixedAmount;
 
-		var transactionLabels = originalTransaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
+		var transactionLabels = parameters.Transaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
 		var onlyKnownByRecipient =
-			transactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
+			parameters.TransactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
 		var foundNonPrivate = !onlyKnownByRecipient &&
-							  originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
+							  parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
 
 		var foundSemiPrivate =
-			originalTransaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
+			parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
 
 		if (foundNonPrivate)
 		{
@@ -145,15 +149,21 @@ public class PrivacySuggestionsModel
 			yield return new SemiPrivateFundsWarning();
 		}
 
+		if (!parameters.IncludeSuggestions)
+		{
+			// Return early, to avoid needless compute.
+			yield break;
+		}
+
 		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
-		bool wasCoinjoiningCoinUsed = originalTransaction.SpentCoins.Any(coinsToExclude.Contains);
+		bool wasCoinjoiningCoinUsed = parameters.Transaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
 		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
 
 		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : allPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => transactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
+		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => parameters.TransactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
 		var allSemiPrivateCoin =
 			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
 			.Union(onlyKnownByTheRecipientCoins)
@@ -162,20 +172,21 @@ public class PrivacySuggestionsModel
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
 		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-		var totalAmount = originalTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
+		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
 		if ((foundNonPrivate || foundSemiPrivate) && allPrivateCoin.Length != 0 &&
-			TryCreateTransaction(transactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
+			TryCreateTransaction(parameters.TransactionInfo, allPrivateCoin, out var newTransaction, out var isChangeless))
 		{
-			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
-				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
-				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceFiatText, allPrivateCoin, isChangeless);
+				var (differenceBtc, differenceFiat) = GetDifference(parameters.TransactionInfo, newTransaction, usdExchangeRate);
+				var differenceText = GetDifferenceText(differenceBtc);
+				var differenceAmountText = GetDifferenceAmountText(differenceBtc, differenceFiat);
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceText, differenceAmountText, allPrivateCoin, isChangeless);
 				yield return fullPrivacySuggestion;
 			}
 		}
@@ -189,57 +200,57 @@ public class PrivacySuggestionsModel
 
 		var coins = allPrivateCoin.Union(allSemiPrivateCoin).ToArray();
 		if (foundNonPrivate && allSemiPrivateCoin.Length != 0 &&
-			TryCreateTransaction(transactionInfo, coins, out newTransaction, out isChangeless))
+			TryCreateTransaction(parameters.TransactionInfo, coins, out newTransaction, out isChangeless))
 		{
-			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(transactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
+			var amountDifference = totalAmount - newTransaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 			var amountDifferencePercentage = amountDifference / totalAmount;
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var differenceFiat = GetDifferenceFiat(transactionInfo, newTransaction, usdExchangeRate);
-				var differenceFiatText = GetDifferenceFiatText(differenceFiat);
-				yield return new BetterPrivacySuggestion(newTransaction, differenceFiatText, coins, isChangeless);
+				var (btcDifference, fiatDifference) = GetDifference(parameters.TransactionInfo, newTransaction, usdExchangeRate);
+				var differenceText = GetDifferenceText(btcDifference);
+				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
+				yield return new BetterPrivacySuggestion(newTransaction, differenceText, differenceAmountText, coins, isChangeless);
 			}
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyConsolidation(BuildTransactionResult originalTransaction)
+	private IEnumerable<PrivacyItem> VerifyConsolidation(Parameters parameters)
 	{
-		var consolidatedCoins = originalTransaction.SpentCoins.Count();
-
+		var consolidatedCoins = parameters.Transaction.SpentCoins.Count();
 		if (consolidatedCoins > ConsolidationTolerance)
 		{
 			yield return new ConsolidationWarning(ConsolidationTolerance);
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(Parameters parameters)
 	{
-		if (transaction.SpendsUnconfirmed)
+		if (parameters.Transaction.SpendsUnconfirmed)
 		{
 			yield return new UnconfirmedFundsWarning();
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyCoinjoiningInputs(BuildTransactionResult transaction)
+	private IEnumerable<PrivacyItem> VerifyCoinjoiningInputs(Parameters parameters)
 	{
-		if (transaction.SpendsCoinjoining)
+		if (parameters.Transaction.SpendsCoinjoining)
 		{
 			yield return new CoinjoiningFundsWarning();
 		}
 	}
 
-	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationTokenSource linkedCts)
+	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
+		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != parameters.TransactionInfo.Destination.ScriptPubKey);
 
 		if (hasChange)
 		{
 			yield return new CreatesChangeWarning();
 
-			if (!info.IsFixedAmount && !info.IsPayJoin)
+			if (parameters.IncludeSuggestions && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayJoin)
 			{
-				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(info, transaction, linkedCts).ConfigureAwait(false);
+				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(parameters.TransactionInfo, parameters.Transaction, linkedCts).ConfigureAwait(false);
 				foreach (var suggestion in suggestions)
 				{
 					yield return suggestion;
@@ -259,15 +270,20 @@ public class PrivacySuggestionsModel
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
-
 		var pockets = _wallet.GetPockets();
 		var spentCoins = transaction.SpentCoins;
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		coinsToUse = spentCoins.Any(coinsToExclude.Contains) ? coinsToUse : coinsToUse.Except(coinsToExclude).ToImmutableArray();
+		var coinsInCoinJoin = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
+		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
+
+		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
+		if (spentCoins.All(x => x.Confirmed))
+		{
+			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
+		}
 
 		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
 
@@ -342,8 +358,13 @@ public class PrivacySuggestionsModel
 
 			if (transaction is not null)
 			{
-				var differenceFiat = GetDifferenceFiat(transactionInfo, transaction, usdExchangeRate);
-				yield return new ChangeAvoidanceSuggestion(transaction, differenceFiat, GetDifferenceFiatText(differenceFiat), IsMore: differenceFiat > 0, IsLess: differenceFiat < 0);
+				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, usdExchangeRate);
+				var differenceText = GetDifferenceText(btcDifference);
+				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
+				var isMore = fiatDifference > 0;
+				var isLess = fiatDifference < 0;
+
+				yield return new ChangeAvoidanceSuggestion(transaction, fiatDifference, differenceText, differenceAmountText, isMore, isLess);
 			}
 		}
 	}
@@ -391,25 +412,33 @@ public class PrivacySuggestionsModel
 		return true;
 	}
 
-	private decimal GetDifferenceFiat(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
+	private (decimal BtcDifference, decimal FiatDifference) GetDifference(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
 	{
 		var originalAmount = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 		var totalAmount = transaction.CalculateDestinationAmount(transactionInfo.Destination);
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
+		var btcDifference = total - originalAmount;
 		var fiatTotal = total * usdExchangeRate;
 		var fiatOriginal = originalAmount * usdExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 
-		return fiatDifference;
+		return (btcDifference, fiatDifference);
 	}
 
-	private string GetDifferenceFiatText(decimal fiatDifference)
+	private string GetDifferenceText(decimal btcDifference)
 	{
-		return fiatDifference switch
+		return btcDifference switch
 		{
-			> 0 => $"{fiatDifference.ToUsd()} more",
-			< 0 => $"{Math.Abs(fiatDifference).ToUsd()} less",
+			> 0 => "more",
+			< 0 => "less",
 			_ => "the same amount"
 		};
 	}
+
+	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
+	{
+		return $"{Math.Abs(btcDifference).FormattedBtc()} BTC {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}";
+	}
+
+	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);
 }

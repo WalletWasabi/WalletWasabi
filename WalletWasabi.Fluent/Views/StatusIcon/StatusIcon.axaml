@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
@@ -41,7 +39,7 @@
   <Panel>
 
     <Interaction.Behaviors>
-      <behaviors:ShowFlyoutOnPointerOverBehavior />
+      <ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
 
     <FlyoutBase.AttachedFlyout>
@@ -78,36 +76,35 @@
           <!-- Status -->
           <StackPanel Spacing="16">
 
-            <c:StatusItem Title="Tor" StatusText="{Binding HealthMonitor.TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
-              <c:StatusItem.Icon>
+            <StatusItem Title="Tor" StatusText="{Binding HealthMonitor.TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
+              <StatusItem.Icon>
                 <Panel>
                   <PathIcon Data="{StaticResource tor_icon}" IsVisible="{Binding !HealthMonitor.TorIssues.Count, FallbackValue=True}" />
                   <st:TorIssues IsVisible="{Binding HealthMonitor.TorIssues.Count, FallbackValue=False}" />
                 </Panel>
-              </c:StatusItem.Icon>
-            </c:StatusItem>
+              </StatusItem.Icon>
+            </StatusItem>
 
-            <c:StatusItem Title="Backend"
+            <StatusItem Title="Backend"
                           StatusText="{Binding HealthMonitor.BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}">
-              <c:StatusItem.Icon>
-                <PathIcon Data="{StaticResource connector_regular}">
-                </PathIcon>
-              </c:StatusItem.Icon>
-            </c:StatusItem>
-            <c:StatusItem
+              <StatusItem.Icon>
+                <PathIcon Data="{StaticResource connector_regular}" />
+              </StatusItem.Icon>
+            </StatusItem>
+            <StatusItem
               Title="Peers" StatusText="{Binding HealthMonitor.Peers, Mode=OneWay, StringFormat={}{0} connected}">
-              <c:StatusItem.Icon>
+              <StatusItem.Icon>
                 <PathIcon Data="{StaticResource entities_regular}" />
-              </c:StatusItem.Icon>
-            </c:StatusItem>
-            <c:StatusItem
+              </StatusItem.Icon>
+            </StatusItem>
+            <StatusItem
               Title="{Binding BitcoinCoreName}"
               StatusText="{Binding HealthMonitor.BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
               IsVisible="{Binding HealthMonitor.UseBitcoinCore}">
-              <c:StatusItem.Icon>
+              <StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
-              </c:StatusItem.Icon>
-            </c:StatusItem>
+              </StatusItem.Icon>
+            </StatusItem>
           </StackPanel>
 
           <!-- Update -->
@@ -124,12 +121,12 @@
 
             <Separator Margin="-12 0 -12 6" />
 
-            <c:StatusItem Title="Update available"
+            <StatusItem Title="Update available"
                           StatusText="{Binding VersionText}">
-              <c:StatusItem.Icon>
+              <StatusItem.Icon>
                 <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
-              </c:StatusItem.Icon>
-            </c:StatusItem>
+              </StatusItem.Icon>
+            </StatusItem>
             <Button IsVisible="{Binding HealthMonitor.IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />

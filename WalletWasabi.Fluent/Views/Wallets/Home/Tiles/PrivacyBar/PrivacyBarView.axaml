@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar.PrivacyBarView"
@@ -11,15 +9,15 @@
   <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
           ToolTip.Tip="Show Details"
           IsVisible="{Binding !!PrivacyBar.Items.Count}">
-    <c:PrivacyBar ItemsSource="{Binding PrivacyBar.Items}"
+    <PrivacyBar ItemsSource="{Binding PrivacyBar.Items}"
                   TotalAmount="{Binding PrivacyBar.TotalAmount}"
                   Height="8">
-      <c:PrivacyBar.Styles>
-        <Style Selector="c|PrivacyBarSegment" x:CompileBindings="False">
+      <PrivacyBar.Styles>
+        <Style Selector="PrivacyBarSegment" x:CompileBindings="False">
           <Setter Property="Amount" Value="{Binding Amount}" />
           <Setter Property="PrivacyLevel" Value="{Binding PrivacyLevel}" />
         </Style>
-      </c:PrivacyBar.Styles>
-    </c:PrivacyBar>
+      </PrivacyBar.Styles>
+    </PrivacyBar>
   </Button>
 </UserControl>

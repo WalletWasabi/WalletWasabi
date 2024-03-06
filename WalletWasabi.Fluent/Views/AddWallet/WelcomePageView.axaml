@@ -2,25 +2,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
-  <i:Interaction.Behaviors>
-    <behaviors:FocusOnAttachedBehavior />
-  </i:Interaction.Behaviors>
+  <Interaction.Behaviors>
+    <FocusOnAttachedBehavior />
+  </Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
+    <Style Selector="ContentArea /template/ StackPanel#PART_Header">
       <Setter Property="Height" Value="32" />
     </Style>
   </UserControl.Styles>
 
-  <controls:ContentArea EnableCancel="False"
+  <ContentArea EnableCancel="False"
                         EnableBack="{Binding CanGoBack^}"
                         EnableNext="True"
                         ClipToBounds="False"
@@ -66,12 +63,12 @@
       <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
-        <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding BackCommand}"
-                                                     IsEnabled="{Binding CanGoBack^}" Key="Left" />
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}"
-                                                     IsEnabled="{Binding EnableNextKey}" Key="Right" />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <ExecuteCommandOnKeyDownBehavior Command="{Binding BackCommand}"
+                                           IsEnabled="{Binding CanGoBack^}" Key="Left" />
+          <ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}"
+                                           IsEnabled="{Binding EnableNextKey}" Key="Right" />
+        </Interaction.Behaviors>
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
             <Setter Property="Opacity" Value="0.5" />
@@ -228,26 +225,26 @@
           <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" Text="Coinjoin Fees" Classes="title1" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="0" Grid.Row="1">
-            <TextBlock Name="CoinjoinFeeTextBlock" Text="Service Fee" Classes="title2" />
-            <TextBlock Text="You will pay a flat fee of 0.3% for every coin you receive." Classes="text" />
+            <TextBlock Name="CoinjoinFeeTextBlock" Text="Coordination Fee" Classes="title2" />
+            <TextBlock Text="You will pay a fee of 0.3% only for new coins you coinjoin." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="1">
-            <TextBlock Name="MiningFeeTextBlock" Text="Network Fee" Classes="title2" />
-            <TextBlock Text="The market standard in mining fee always applies." Classes="text" />
+            <TextBlock Name="MiningFeeTextBlock" Text="Transaction Fee" Classes="title2" />
+            <TextBlock Text="You will pay mining fees for every coinjoin." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="0" Grid.Row="2">
             <TextBlock Name="PlebsTextBlock" Text="Plebs Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay service fee for coins that are less than or equal to 0.01 BTC." Classes="text" />
+            <TextBlock Text="You won't pay the coordination fee for coins that are less than or equal to 0.01 BTC." Classes="text" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Grid.Row="2">
             <TextBlock Name="FriendsTextBlock" Text="Friends Don't Pay" Classes="title2" />
-            <TextBlock Text="You won't pay service fee for coins received from other Wasabi users." Classes="text" />
+            <TextBlock Text="You won't pay the coordination fee for coins received from other Wasabi coinjoins." Classes="text" />
           </StackPanel>
         </Grid>
       </Carousel>
     </DockPanel>
-  </controls:ContentArea>
+  </ContentArea>
 </UserControl>

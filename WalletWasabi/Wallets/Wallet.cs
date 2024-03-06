@@ -39,7 +39,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		IBlockProvider blockProvider)
+		TransactionProcessor transactionProcessor,
+		WalletFilterProcessor walletFilterProcessor)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -48,7 +49,6 @@ public class Wallet : BackgroundService, IWallet
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
-		BlockProvider = blockProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -59,9 +59,9 @@ public class Wallet : BackgroundService, IWallet
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
-		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
+		TransactionProcessor = transactionProcessor;
 		Coins = TransactionProcessor.Coins;
-		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockProvider);
+		WalletFilterProcessor = walletFilterProcessor;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 		WalletId = new WalletId(Guid.NewGuid());
@@ -108,7 +108,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
-	public IBlockProvider BlockProvider { get; }
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -272,9 +271,11 @@ public class Wallet : BackgroundService, IWallet
 
 		try
 		{
+			KeyManager.AssertNetworkOrClearBlockState(Network);
+			EnsureHeightsAreAtLeastSegWitActivation();
+
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
-			BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 
 			State = WalletState.Initialized;
 		}
@@ -375,7 +376,7 @@ public class Wallet : BackgroundService, IWallet
 					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 					WalletFilterProcessor.Dispose();
 
-					UnregisterNewFiltersEvent();
+					BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				}
@@ -450,15 +451,8 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	internal void UnregisterNewFiltersEvent()
-	{
-		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
-	}
-
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
-		KeyManager.AssertNetworkOrClearBlockState(Network);
-
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
@@ -468,6 +462,8 @@ public class Wallet : BackgroundService, IWallet
 		{
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 		}
+
+		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
 		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
@@ -550,13 +546,6 @@ public class Wallet : BackgroundService, IWallet
 		State = WalletState.WaitingForInit;
 	}
 
-	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
-	{
-		var wallet = new Wallet(dataDir, network, keyManager, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
-		wallet.Initialize();
-		return wallet;
-	}
-
 	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
 	{
 		if (!Coins.TryGetByOutPoint(outpoint, out var coin))
@@ -587,5 +576,19 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		KeyManager.ToFile();
+	}
+
+	private void EnsureHeightsAreAtLeastSegWitActivation()
+	{
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
+		{
+			KeyManager.SetBestHeight(startingSegwitHeight);
+		}
+
+		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Turbo))
+		{
+			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
+		}
 	}
 }

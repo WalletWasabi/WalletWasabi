@@ -1,8 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <ControlTheme x:Key="{x:Type c:ProgressRingArc}" TargetType="c:ProgressRingArc">
+  <ControlTheme x:Key="{x:Type ProgressRingArc}" TargetType="ProgressRingArc">
 
     <Setter Property="Template">
       <ControlTemplate>

@@ -17,20 +17,9 @@ public class ProcessStartInfoFactory
 	/// <returns><see cref="ProcessStartInfo"/> instance.</returns>
 	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false)
 	{
-		ProcessWindowStyle windowStyle;
-
-		if (openConsole)
+		if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-			}
-
-			windowStyle = ProcessWindowStyle.Normal;
-		}
-		else
-		{
-			windowStyle = ProcessWindowStyle.Hidden;
+			throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
 		}
 
 		var p = new ProcessStartInfo(fileName: processPath, arguments)
@@ -40,7 +29,7 @@ public class ProcessStartInfoFactory
 			RedirectStandardOutput = !openConsole,
 			UseShellExecute = openConsole,
 			CreateNoWindow = !openConsole,
-			WindowStyle = windowStyle
+			WindowStyle = ProcessWindowStyle.Normal
 		};
 
 		return p;

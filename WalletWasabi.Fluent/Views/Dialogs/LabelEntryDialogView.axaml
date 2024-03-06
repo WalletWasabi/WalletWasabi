@@ -2,22 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
              mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="270"
              x:DataType="dialogs:LabelEntryDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.LabelEntryDialogView">
-  <c:ContentArea Width="500" Height="300"
+  <ContentArea Width="500" Height="300"
                  Title="{Binding Title}"
                  Caption="Enter the name of the person or company who you are sending to"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <c:TagsBox x:Name="LabelTagBox"
+    <TagsBox x:Name="LabelTagBox"
                DataContext="{Binding SuggestionLabels}"
                VerticalAlignment="Top"
                Watermark="{StaticResource LabelsWatermarkText}"
@@ -30,9 +27,9 @@
                MaxTextLength="{StaticResource MaxLabelLength}"
                IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
                ForceAdd="{Binding ForceAdd, Mode=TwoWay}">
-      <i:Interaction.Behaviors>
-        <behaviors:FocusOnAttachedBehavior />
-      </i:Interaction.Behaviors>
-    </c:TagsBox>
-  </c:ContentArea>
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+      </Interaction.Behaviors>
+    </TagsBox>
+  </ContentArea>
 </UserControl>
