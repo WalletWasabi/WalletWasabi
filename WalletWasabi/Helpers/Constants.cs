@@ -78,7 +78,10 @@ public static class Constants
 
 	/// <summary>Executable file name of Wasabi Wallet UI application (without extension).</summary>
 	public const string ExecutableName = "wassabee";
-	public const string SilentExecutableName = "startsilent";
+
+	/// <summary>App name, only for MacOs. Starts Wasabi with -startsilent argument.</summary>
+	public const string SilentExecutableName = "Wasabi Wallet Startup";
+
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
