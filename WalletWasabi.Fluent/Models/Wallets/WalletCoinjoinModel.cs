@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,9 +12,10 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletCoinjoinModel : ReactiveObject
+public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
 {
 	private readonly Wallet _wallet;
+	private readonly CompositeDisposable _disposables = new();
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
@@ -42,7 +44,8 @@ public partial class WalletCoinjoinModel : ReactiveObject
 						await StopAsync();
 					}
 				})
-				.Subscribe();
+				.Subscribe()
+				.DisposeWith(_disposables);
 
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
@@ -62,7 +65,9 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
-		IsRunning.BindTo(this, x => x.IsCoinjoining);
+		IsRunning
+			.BindTo(this, x => x.IsCoinjoining)
+			.DisposeWith(_disposables);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
@@ -77,5 +82,10 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	public async Task StopAsync()
 	{
 		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }

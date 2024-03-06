@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -8,9 +9,10 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
-public class NavigationState : ReactiveObject, INavigate
+public class NavigationState : ReactiveObject, INavigate, IDisposable
 {
 	private readonly IWalletNavigation _walletNavigation;
+	private readonly CompositeDisposable _disposables = new();
 
 	public NavigationState(
 		UiContext uiContext,
@@ -35,7 +37,8 @@ public class NavigationState : ReactiveObject, INavigate
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(OnCurrentPageChanged)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		IsDialogOpen =
 			this.WhenAnyValue(
@@ -90,6 +93,8 @@ public class NavigationState : ReactiveObject, INavigate
 		target = NavigationExtensions.GetTarget(dialog, target);
 		return await Navigate(target).NavigateDialogAsync(dialog, navigationMode);
 	}
+
+	public void Dispose() => _disposables.Dispose();
 
 	private void OnCurrentPageChanged(RoutableViewModel page)
 	{

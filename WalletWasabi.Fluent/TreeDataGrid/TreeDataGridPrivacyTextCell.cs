@@ -1,9 +1,11 @@
 using System.Globalization;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -21,6 +23,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private string? _privacyText;
 	private Size? _availableSize;
 	private bool _haveText;
+	private readonly CompositeDisposable _disposables = new();
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
@@ -100,7 +103,8 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 				Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(SetContentVisible)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -157,4 +161,6 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			Trimming = TextTrimming.None
 		};
 	}
+
+	protected override void OnUnloaded(RoutedEventArgs e) => _disposables.Dispose();
 }

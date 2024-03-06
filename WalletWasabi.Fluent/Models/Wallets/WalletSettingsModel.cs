@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
@@ -9,7 +10,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletSettingsModel : ReactiveObject
+public partial class WalletSettingsModel : ReactiveObject, IDisposable
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
@@ -23,6 +24,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
+	private readonly CompositeDisposable _disposables = new();
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -53,14 +55,16 @@ public partial class WalletSettingsModel : ReactiveObject
 			x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// This should go to the previous WhenAnyValue, it's just that it's not working for some reason.
 		this.WhenAnyValue(
 			x => x.CoinjoinSkipFactors)
 			.Skip(1)
 			.Do(_ => SetValues())
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	public WalletType WalletType { get; }
@@ -88,6 +92,8 @@ public partial class WalletSettingsModel : ReactiveObject
 
 		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
+
+	public void Dispose() => _disposables.Dispose();
 
 	private void SetValues()
 	{

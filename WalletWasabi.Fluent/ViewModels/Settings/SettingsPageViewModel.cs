@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -23,10 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	NavBarPosition = NavBarPosition.Bottom,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarSelectionMode = NavBarSelectionMode.Button)]
-public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
+public partial class SettingsPageViewModel : DialogViewModelBase<Unit>, IDisposable
 {
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
+	private readonly CompositeDisposable _disposables = new();
 
 	public SettingsPageViewModel(UiContext uiContext)
 	{
@@ -44,17 +46,20 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		this.WhenAnyValue(x => x.UiContext.ApplicationSettings.DarkModeEnabled)
 			.Skip(1)
-			.Subscribe(ChangeTheme);
+			.Subscribe(ChangeTheme)
+			.DisposeWith(_disposables);
 
 		// Show restart message when needed
 		UiContext.ApplicationSettings.IsRestartNeeded
-									 .BindTo(this, x => x.IsModified);
+									 .BindTo(this, x => x.IsModified)
+									 .DisposeWith(_disposables);
 
 		// Show restart notification when needed only if this page is not active.
 		UiContext.ApplicationSettings.IsRestartNeeded
 				 .Where(x => x && !IsActive)
 				 .Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
-				 .Subscribe();
+				 .Subscribe()
+				 .DisposeWith(_disposables);
 	}
 
 	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;
@@ -69,6 +74,8 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	{
 		await NavigateDialogAsync(this);
 	}
+
+	public void Dispose() => _disposables.Dispose();
 
 	private void ChangeTheme(bool isDark)
 	{

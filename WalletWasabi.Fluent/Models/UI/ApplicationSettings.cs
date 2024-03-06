@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using System.Net;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using WalletWasabi.Bases;
@@ -26,6 +27,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private readonly PersistentConfig _startupConfig;
 	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
+	private readonly CompositeDisposable _disposables = new ();
 
 	// Advanced
 	[AutoNotify] private bool _enableGpu;
@@ -117,7 +119,8 @@ public partial class ApplicationSettings : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Save UiConfig on change
 		this.WhenAnyValue(
@@ -133,30 +136,31 @@ public partial class ApplicationSettings : ReactiveObject
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		// Save UiConfig on change without throttling
 		this.WhenAnyValue(
 				x => x.PrivacyMode)
 			.Skip(1)
 			.Do(_ => ApplyUiConfigPrivacyModeChange())
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		// Set Default BitcoinCoreDataDir if required
 		this.WhenAnyValue(x => x.StartLocalBitcoinCoreOnStartup)
 			.Skip(1)
 			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
-			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
+			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString())
+			.DisposeWith(_disposables);
 
 		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 	}
 
 	public bool IsOverridden => _config.IsOverridden;

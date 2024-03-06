@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
@@ -13,13 +14,14 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial interface IWalletModel : INotifyPropertyChanged;
 
 [AutoInterface]
-public partial class WalletModel : ReactiveObject
+public partial class WalletModel : ReactiveObject, IDisposable
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
 
 	[AutoNotify] private bool _isLoggedIn;
+	private readonly CompositeDisposable _disposables = new();
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -55,14 +57,18 @@ public partial class WalletModel : ReactiveObject
 			.Where(x => x)
 			.Take(1)
 			.Do(_ => Loader.Start())
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Stop the loader after load is completed
 		State.Where(x => x == WalletState.Started)
 			 .Do(_ => Loader.Stop())
-			 .Subscribe();
+			 .Subscribe()
+			 .DisposeWith(_disposables);
 
-		this.WhenAnyValue(x => x.Auth.IsLoggedIn).BindTo(this, x => x.IsLoggedIn);
+		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
+			.BindTo(this, x => x.IsLoggedIn)
+			.DisposeWith(_disposables);
 	}
 
 	public IAddressesModel Addresses { get; }
@@ -121,4 +127,6 @@ public partial class WalletModel : ReactiveObject
 		Services.WalletManager.RenameWallet(Wallet, newWalletName);
 		this.RaisePropertyChanged(nameof(Name));
 	}
+
+	public void Dispose() => _disposables.Dispose();
 }

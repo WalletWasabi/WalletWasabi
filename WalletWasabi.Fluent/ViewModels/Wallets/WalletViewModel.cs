@@ -23,8 +23,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
+public partial class WalletViewModel : RoutableViewModel, IWalletViewModel, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
@@ -46,27 +48,33 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-        BuyViewModel = new BuyViewModel(UiContext, this);
+        BuyViewModel = new BuyViewModel(UiContext, this)
+	        .DisposeWith(_disposables);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
 			.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(searchItems, shouldDisplay))
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		var sendSearchItem = CreateSendItem();
 		this.WhenAnyValue(x => x.IsSendButtonVisible, x => x.IsSelected, (x, y) => x && y)
 			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(sendSearchItem, shouldAdd))
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		walletModel.HasBalance
 				   .Select(x => !x)
-				   .BindTo(this, x => x.IsWalletBalanceZero);
+				   .BindTo(this, x => x.IsWalletBalanceZero)
+				   .DisposeWith(_disposables);
 
 		walletModel.Coinjoin.IsRunning
-			       .BindTo(this, x => x.IsCoinJoining);
+			       .BindTo(this, x => x.IsCoinJoining)
+			       .DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet))
+			.DisposeWith(_disposables);
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
@@ -117,10 +125,13 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Select(x => x > 0);
 
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
-			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
-			.Subscribe();
+			.Do(_ => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
+			.Subscribe()
+			.DisposeWith(_disposables);
 
-		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
+		this.WhenAnyValue(x => x.WalletModel.Name)
+			.BindTo(this, x => x.Title)
+			.DisposeWith(_disposables);
 	}
 
 	public ICommand BuyCommand { get; set; }
@@ -258,5 +269,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		}
 
 		return true;
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }

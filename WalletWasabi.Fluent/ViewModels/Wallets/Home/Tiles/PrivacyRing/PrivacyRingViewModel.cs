@@ -45,7 +45,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.Concat(this.WhenAnyValue(x => x.SelectedItem).Where(x => x is null).ToSignal())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => SelectedItem = PrivacyTile)
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

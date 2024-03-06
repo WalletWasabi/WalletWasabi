@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
@@ -10,11 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom,
 	NavBarSelectionMode = NavBarSelectionMode.Toggle)]
-public partial class PrivacyModeViewModel : RoutableViewModel
+public partial class PrivacyModeViewModel : RoutableViewModel, IDisposable
 {
 	[AutoNotify] private bool _privacyMode;
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
+	private readonly CompositeDisposable _disposables = new();
 
 	public PrivacyModeViewModel(IApplicationSettings applicationSettings)
 	{
@@ -25,7 +27,8 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
 			.Do(x => applicationSettings.PrivacyMode = x)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	public void Toggle()
@@ -37,5 +40,10 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 	public void SetIcon()
 	{
 		IconName = PrivacyMode ? "eye_hide_regular" : "eye_show_regular";
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }

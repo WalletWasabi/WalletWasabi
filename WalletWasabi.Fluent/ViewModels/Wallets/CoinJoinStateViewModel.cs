@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -12,7 +13,7 @@ using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class CoinJoinStateViewModel : ViewModelBase
+public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
@@ -61,6 +62,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
+	private readonly CompositeDisposable _disposables = new();
 
 	private CoinJoinStateViewModel(IWalletModel wallet)
 	{
@@ -68,7 +70,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		wallet.Coinjoin.StatusUpdated
 					   .Do(ProcessStatusChange)
-					   .Subscribe();
+					   .Subscribe()
+					   .DisposeWith(_disposables);
 
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -94,11 +97,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		wallet.Balances
 			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
-			  .Subscribe();
+			  .Subscribe().DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -128,7 +131,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Skip(1) // The first one is triggered at the creation.
 			.Where(x => !x)
 			.Do(_ => _stateMachine.Fire(Trigger.AutoCoinJoinOff))
-			.Subscribe();
+			.Subscribe().DisposeWith(_disposables);
 
 		wallet.Settings.WhenAnyValue(x => x.PlebStopThreshold)
 					   .SubscribeAsync(async _ =>
@@ -186,6 +189,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand PlayCommand { get; }
 
 	public ICommand StopPauseCommand { get; }
+
+	public void Dispose() => _disposables.Dispose();
 
 	private void ConfigureStateMachine()
 	{

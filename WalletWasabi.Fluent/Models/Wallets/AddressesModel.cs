@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using DynamicData;
@@ -16,6 +17,7 @@ public partial class AddressesModel
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
 	private readonly Wallet _wallet;
 	private readonly SourceList<HdPubKey> _source;
+	private readonly CompositeDisposable _disposables = new();
 
 	public AddressesModel(Wallet wallet)
 	{
@@ -27,16 +29,19 @@ public partial class AddressesModel
 				h => wallet.WalletRelevantTransactionProcessed += h,
 				h => wallet.WalletRelevantTransactionProcessed -= h)
 			.Do(_ => UpdateUnusedKeys())
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		_newAddressGenerated
 			.Do(address => _source.Add(address))
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		_source.Connect()
 			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
 			.Bind(out var unusedAddresses)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		Unused = unusedAddresses;
 	}

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +12,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
-public abstract partial class Workflow : ReactiveObject
+public abstract partial class Workflow : ReactiveObject, IDisposable
 {
 	[AutoNotify] private IWorkflowStep? _currentStep;
 	[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _isDeletedInSib;
+	private readonly CompositeDisposable _disposables = new();
 
 	protected Workflow(Conversation conversation)
 	{
@@ -32,7 +34,8 @@ public abstract partial class Workflow : ReactiveObject
 					step.Conversation = x;
 				}
 			})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	public event EventHandler<Exception>? OnStepError;
@@ -151,4 +154,6 @@ public abstract partial class Workflow : ReactiveObject
 			.BindTo(this, x => x.Conversation);
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 	}
+
+	public void Dispose() => _disposables.Dispose();
 }

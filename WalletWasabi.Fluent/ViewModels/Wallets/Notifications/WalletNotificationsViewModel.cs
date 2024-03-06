@@ -1,5 +1,6 @@
 using DynamicData;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -11,10 +12,11 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 
-public partial class WalletNotificationsViewModel : ViewModelBase
+public partial class WalletNotificationsViewModel : ViewModelBase, IDisposable
 {
 	private readonly IWalletSelector _walletSelector;
 	[AutoNotify] private bool _isBusy;
+	private readonly CompositeDisposable _disposables = new();
 
 	private WalletNotificationsViewModel(IWalletSelector walletSelector)
 	{
@@ -32,8 +34,11 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 			.Where(x => !UiContext.ApplicationSettings.PrivacyMode)
 			.Where(x => x.EventArgs.IsNews)
 			.DoAsync(x => OnNotificationReceivedAsync(x.Wallet, x.EventArgs))
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
+
+	public void Dispose() => _disposables.Dispose();
 
 	private async Task OnNotificationReceivedAsync(IWalletModel wallet, ProcessedResult e)
 	{

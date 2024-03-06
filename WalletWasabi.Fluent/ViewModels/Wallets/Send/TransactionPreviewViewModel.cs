@@ -29,7 +29,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(Title = "Transaction Preview")]
-public partial class TransactionPreviewViewModel : RoutableViewModel
+public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposable
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
@@ -42,6 +42,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
+	private readonly CompositeDisposable _disposables = new();
 
 	public TransactionPreviewViewModel(UiContext uiContext, WalletViewModel walletViewModel, TransactionInfo info)
 	{
@@ -65,47 +66,53 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.DoAsync(async x =>
-			{
-				if (x?.Transaction is { } transaction)
+			.DoAsync(
+				async x =>
 				{
-					UpdateTransaction(PreviewTransactionSummary, transaction);
-					await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
-				}
-				else
-				{
-					DisplayedTransactionSummary = CurrentTransactionSummary;
-					PrivacySuggestions.ClearPreviewWarnings();
-				}
-			})
-			.Subscribe();
+					if (x?.Transaction is { } transaction)
+					{
+						UpdateTransaction(PreviewTransactionSummary, transaction);
+						await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
+					}
+					else
+					{
+						DisplayedTransactionSummary = CurrentTransactionSummary;
+						PrivacySuggestions.ClearPreviewWarnings();
+					}
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.SubscribeAsync(async suggestion =>
-			{
-				PrivacySuggestions.SelectedSuggestion = null;
-
-				if (suggestion is { })
+			.SubscribeAsync(
+				async suggestion =>
 				{
-					await ApplyPrivacySuggestionAsync(suggestion);
-				}
-			});
+					PrivacySuggestions.SelectedSuggestion = null;
+
+					if (suggestion is { })
+					{
+						await ApplyPrivacySuggestionAsync(suggestion);
+					}
+				});
 
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(_ =>
-			{
-				_cancellationTokenSource.Cancel();
-				_cancellationTokenSource = new();
-			})
-			.DoAsync(async transaction =>
-			{
-				await CheckChangePocketAvailableAsync(transaction);
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
-			})
-			.Subscribe();
+			.Do(
+				_ =>
+				{
+					_cancellationTokenSource.Cancel();
+					_cancellationTokenSource = new();
+				})
+			.DoAsync(
+				async transaction =>
+				{
+					await CheckChangePocketAvailableAsync(transaction);
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -113,7 +120,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (PreferPsbtWorkflow)
 		{
 			SkipCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
-
 			NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
 
 			_nextButtonText = "Save PSBT file";
@@ -127,15 +133,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.Create(() =>
-		{
-			if (_undoHistory.TryPop(out var previous))
-			{
-				_info = previous.Item2;
-				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
-				CanUndo = _undoHistory.Count != 0;
-			}
-		});
+		UndoCommand = ReactiveCommand.Create(
+				() =>
+				{
+					if (_undoHistory.TryPop(out var previous))
+					{
+						_info = previous.Item2;
+						UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
+						CanUndo = _undoHistory.Count != 0;
+					}
+				})
+			.DisposeWith(_disposables);
 
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
 	}
@@ -533,5 +541,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, transaction);
 		}
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }

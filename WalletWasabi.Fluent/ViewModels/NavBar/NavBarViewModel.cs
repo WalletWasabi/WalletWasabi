@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -16,10 +17,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public partial class NavBarViewModel : ViewModelBase, IWalletSelector
+public partial class NavBarViewModel : ViewModelBase, IWalletSelector, IDisposable
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 	private IWalletModel? _selectedWalletModel;
+	private readonly CompositeDisposable _disposables = new();
 
 	public NavBarViewModel(UiContext uiContext)
 	{
@@ -34,7 +36,9 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 				 .AutoRefresh(x => x.IsLoggedIn)
 				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
 				 .Bind(out var wallets)
-				 .Subscribe();
+				 .DisposeMany()
+				 .Subscribe()
+				 .DisposeWith(_disposables);
 
 		Wallets = wallets;
 	}
@@ -71,10 +75,12 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 					UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
 				}
 			})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.SelectedWallet!.WalletModel)
-			.BindTo(this, x => x.SelectedWalletModel);
+			.BindTo(this, x => x.SelectedWalletModel)
+			.DisposeWith(_disposables);
 
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName) ?? Wallets.FirstOrDefault();
 	}
@@ -92,6 +98,11 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 				BottomItems.Add(new NavBarItemViewModel(navBarItem));
 			}
 		}
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 
 	IWalletViewModel? IWalletNavigation.To(IWalletModel wallet)
