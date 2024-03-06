@@ -119,31 +119,23 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-		.Where(tuple =>
-		{
-			if (IsBitcoinAddress(tuple.Item1.WalletModel, queryStr))
-			{
-				return ContainsDestinationAddress(tuple, queryStr);
-			}
-			else
-			{
-				return ContainsId(tuple.Item2, queryStr);
-			}
-		});
+		.Where(tuple => IsBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr) ?
+			ContainsDestinationAddress(tuple, queryStr) :
+			ContainsId(tuple.Item2, queryStr));
 	}
 
 	private static bool ContainsDestinationAddress((WalletViewModel, HistoryItemViewModelBase) tupleWalletHistoryItem, string queryStr)
 	{
 		var txid = tupleWalletHistoryItem.Item2.Transaction.Id;
 		return tupleWalletHistoryItem.Item1.WalletModel.Transactions.GetDestinationAddresses(txid)
-	   .Contains(BitcoinAddress.Create(queryStr, tupleWalletHistoryItem.Item1.WalletModel.Network));
+			   .Contains(BitcoinAddress.Create(queryStr, tupleWalletHistoryItem.Item1.WalletModel.Network));
 	}
 
-	private static bool IsBitcoinAddress(IWalletModel walletModel, string queryStr)
+	private static bool IsBitcoinAddress(Network network, string queryStr)
 	{
 		try
 		{
-			var address = BitcoinAddress.Create(queryStr, walletModel.Network);
+			BitcoinAddress.Create(queryStr, network);
 			return true;
 		}
 		catch (FormatException)
