@@ -37,12 +37,14 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			if (startInBg)
 			{
-				Dispatcher.UIThread.Post(async () =>
-				{
-					activatableLifetime.TryEnterBackground();
-					activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-					activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
-				}, DispatcherPriority.Background);
+				Dispatcher.UIThread.Post(
+					() =>
+					{
+						activatableLifetime.TryEnterBackground();
+						activatableLifetime.Activated += ActivatableLifetimeOnActivated;
+						activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+					},
+					DispatcherPriority.Background);
 			}
 			else
 			{
