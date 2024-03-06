@@ -16,6 +16,9 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
+using System.Threading.Tasks;
+using Avalonia.Threading;
+
 public class ApplicationStateManager : IMainWindowService
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -32,8 +35,20 @@ public class ApplicationStateManager : IMainWindowService
 
 		if (_lifetime is IActivatableApplicationLifetime activatableLifetime)
 		{
-			activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-			activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+			if (startInBg)
+			{
+				Dispatcher.UIThread.Post(async () =>
+				{
+					activatableLifetime.TryEnterBackground();
+					activatableLifetime.Activated += ActivatableLifetimeOnActivated;
+					activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+				}, DispatcherPriority.Background);
+			}
+			else
+			{
+				activatableLifetime.Activated += ActivatableLifetimeOnActivated;
+				activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
+			}
 		}
 
 		UiContext = uiContext;
