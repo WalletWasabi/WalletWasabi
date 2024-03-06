@@ -162,7 +162,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, specificNodeBlockProvider));
 		walletManager.Initialize();
 
 		nodes.Connect(); // Start connection service.
@@ -199,7 +199,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		Assert.Empty(unconfirmedChain.First().Children);
 		Assert.Single(unconfirmedChain);
 
-		var tx1 = await rpc.GetRawTransactionAsync(txId).ConfigureAwait(false);
+		var tx1 = await rpc.GetRawTransactionAsync(txId);
 
 		// Get the outpoints of TX1, so we can spend it.
 		var outpoints = tx1.Outputs.Select((txout, i) => new OutPoint(tx1, i));
@@ -222,9 +222,9 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
 
-		unconfirmedChain = await response2.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
+		unconfirmedChain = await response2.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>();
 
-		Assert.True(unconfirmedChain.Length == 2);
+		Assert.Equal(2, unconfirmedChain.Length);
 		Assert.Contains(txId2.ToString(), unconfirmedChain.Select(x => x.TxId));
 		Assert.Contains(txId.ToString(), unconfirmedChain.Select(x => x.TxId));
 		Assert.Contains(txId.ToString(), unconfirmedChain.First(tx => tx.TxId == txId2.ToString()).Parents);
