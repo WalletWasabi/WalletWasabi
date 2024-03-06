@@ -12,7 +12,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class AddressesModel
+public partial class AddressesModel : IDisposable
 {
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
 	private readonly Wallet _wallet;
@@ -22,7 +22,9 @@ public partial class AddressesModel
 	public AddressesModel(Wallet wallet)
 	{
 		_wallet = wallet;
-		_source = new SourceList<HdPubKey>();
+		_source = new SourceList<HdPubKey>()
+			.DisposeWith(_disposables);
+
 		_source.AddRange(GetUnusedKeys());
 
 		Observable.FromEventPattern<ProcessedResult>(
@@ -76,5 +78,10 @@ public partial class AddressesModel
 		{
 			_source.Remove(item);
 		}
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }
