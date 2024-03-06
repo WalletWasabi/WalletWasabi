@@ -136,14 +136,16 @@ public partial class ApplicationSettings : ReactiveObject
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Save UiConfig on change without throttling
 		this.WhenAnyValue(
 				x => x.PrivacyMode)
 			.Skip(1)
 			.Do(_ => ApplyUiConfigPrivacyModeChange())
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Set Default BitcoinCoreDataDir if required
 		this.WhenAnyValue(x => x.StartLocalBitcoinCoreOnStartup)
@@ -155,12 +157,14 @@ public partial class ApplicationSettings : ReactiveObject
 		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
