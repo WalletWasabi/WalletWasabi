@@ -440,12 +440,8 @@ public class BlockchainController : ControllerBase
 			cancellationToken.ThrowIfCancellationRequested();
 			var currentTx = toFetchFeeList.First();
 
-			var prevOutToFetchFromRPC = currentTx.Inputs
-			.Select(input => input.PrevOut)
-			.ToList();
-
 			// Fetch parent transactions
-			var parentTxs = await FetchParentTransactionsFromRPCAsync(prevOutToFetchFromRPC, cancellationToken);
+			var parentTxs = await FetchParentTransactionsFromRPCAsync(currentTx, cancellationToken);
 
 			var cacheKey = $"{nameof(UnconfirmedTransactionChainItem)}_{currentTx.GetHash()}";
 			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) };
@@ -458,7 +454,7 @@ public class BlockchainController : ControllerBase
 			cancellationToken);
 			*/
 
-			var currentTxChainItem = await CalculateSingleChainItemAsync(currentTx, mempool, parentTxs, cancellationToken);
+			var currentTxChainItem = CalculateSingleChainItem(currentTx, mempool, parentTxs, cancellationToken);
 
 			// Get unconfirmed parents and children
 			var mempoolHashes = Global.HostedServices.Get<MempoolMirror>().GetMempoolHashes();
@@ -479,7 +475,7 @@ public class BlockchainController : ControllerBase
 		return unconfirmedTxsChainById;
 	}
 
-	private async Task<UnconfirmedTransactionChainItem> CalculateSingleChainItemAsync(Transaction currentTx, MempoolMirror mempool, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
+	private UnconfirmedTransactionChainItem CalculateSingleChainItem(Transaction currentTx, MempoolMirror mempool, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -509,12 +505,16 @@ public class BlockchainController : ControllerBase
 				Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet());
 	}
 
-	private async Task<IEnumerable<Transaction>> FetchParentTransactionsFromRPCAsync(List<OutPoint> prevOutToFetch, CancellationToken cancellationToken)
+	private async Task<IEnumerable<Transaction>> FetchParentTransactionsFromRPCAsync(Transaction currentTx, CancellationToken cancellationToken)
 	{
-		if (prevOutToFetch.Count > 0)
+		var prevOutToFetchFromRPC = currentTx.Inputs
+			.Select(input => input.PrevOut)
+			.ToList();
+
+		if (prevOutToFetchFromRPC.Count > 0)
 		{
-			var parentTxs = await RpcClient.GetRawTransactionsAsync(prevOutToFetch.Select(x => x.Hash), cancellationToken);
-			if (parentTxs.Count() != prevOutToFetch.Count)
+			var parentTxs = await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken);
+			if (parentTxs.Count() != prevOutToFetchFromRPC.Count)
 			{
 				throw new Exception("Some parent transactions couldn't be fetched from RPC");
 			}
