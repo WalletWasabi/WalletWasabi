@@ -79,6 +79,10 @@
     {
       "path": "WalletWasabi/Affiliation/",
       "users": ["@onvej-sl"]
+    },
+    {
+      "path": ".github/notify-users-config.json",
+      "users": ["@molnard"]
     }
   ]
 }
