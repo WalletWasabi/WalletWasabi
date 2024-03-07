@@ -13,14 +13,14 @@
       <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
 
       <DataTemplate x:Key="DefaultChatInput">
-        <TextBox Text=""
+        <ChatTextBox Text=""
                  Watermark="{Binding Watermark}">
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
     </ContentControl.Resources>
     <ContentControl.Styles>
@@ -28,17 +28,11 @@
       <!--TextBox -->
       <Style Selector="TextBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+        <Setter Property="AcceptsReturn" Value="True"/>
         <Setter Property="MaxHeight" Value="105" />
         <Setter Property="MaxLength" Value="5000" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="(Interaction.Behaviors)">
-          <BehaviorCollectionTemplate>
-            <BehaviorCollection>
-              <TextBoxAddLineBreakBehavior />
-            </BehaviorCollection>
-          </BehaviorCollectionTemplate>
-        </Setter>
       </Style>
 
       <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
@@ -69,6 +63,10 @@
 
       <Style Selector="TagControl /template/ Panel#PART_TagPanel">
         <Setter Property="Margin" Value="0,0,0,-1" />
+      </Style>
+
+      <Style Selector="AutoCompleteBox /template/ TextBox">
+        <Setter Property="AcceptsReturn" Value="False"/>
       </Style>
 
       <!-- ComboBox -->
@@ -135,27 +133,26 @@
 
       <!-- RequestedItemStep -->
       <DataTemplate DataType="vm:RequestedItemStep">
-        <TextBox Text="{Binding Value}"
+        <ChatTextBox Text="{Binding Value}"
                  Watermark="{Binding Watermark}"
                  x:Name="RequestTextBox">
-          <TextBox.InnerRightContent>
+          <ChatTextBox.InnerRightContent>
             <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}"
                         Classes="limit">
               <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
               <TextBlock Classes="fade" Text="/" />
               <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
             </StackPanel>
-          </TextBox.InnerRightContent>
+          </ChatTextBox.InnerRightContent>
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
-            <TextBoxAddLineBreakBehavior />
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- PrivacyPolicyStep-->
@@ -182,16 +179,16 @@
 
       <!-- SupportChatStep -->
       <DataTemplate DataType="vm:SupportChatStep">
-        <TextBox Text="{Binding Value}"
+        <ChatTextBox Text="{Binding Value}"
                  Watermark="{Binding Watermark}"
                  x:Name="TextBox">
-          <TextBox.InnerRightContent>
+          <ChatTextBox.InnerRightContent>
             <StackPanel Classes="limit">
               <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
               <TextBlock Classes="fade" Text="/" />
               <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
             </StackPanel>
-          </TextBox.InnerRightContent>
+          </ChatTextBox.InnerRightContent>
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
             <TextBoxAddLineBreakBehavior />
@@ -199,27 +196,27 @@
               <FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- TextInputStep -->
       <DataTemplate DataType="vm:TextInputStep">
-        <TextBox Text="{Binding Value}"
+        <ChatTextBox Text="{Binding Value}"
                  Watermark="{Binding Watermark}">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- StateStep -->
