@@ -68,8 +68,13 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.Do(_ => EmptyOrder = NewEmptyOrder())
 			.Subscribe();
 
+		HasNonEmptyOrder = this.WhenAnyValue(x => x.Orders.Count)
+			.Select(_ => Orders.Any(x => x.ConversationId != ConversationId.Empty));
+
 		Activate();
 	}
+
+	public IObservable<bool> HasNonEmptyOrder { get; }
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
