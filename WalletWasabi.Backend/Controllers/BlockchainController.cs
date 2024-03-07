@@ -498,11 +498,11 @@ public class BlockchainController : ControllerBase
 		var unconfirmedChildrenTxs = mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
 
 		return new UnconfirmedTransactionChainItem(
-				TxId: currentTx.GetHash().ToString(),
+				TxId: currentTx.GetHash(),
 				Size: currentTx.GetVirtualSize(),
 				Fee: currentTx.GetFee(inputs.ToArray()),
-				Parents: unconfirmedParents.Select(x => x.GetHash().ToString()).ToHashSet(),
-				Children: unconfirmedChildrenTxs.Select(x => x.GetHash().ToString()).ToHashSet());
+				Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
+				Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet());
 	}
 
 	private async Task<IEnumerable<Transaction>> FetchParentTransactionsFromRPCAsync(Transaction currentTx, CancellationToken cancellationToken)
