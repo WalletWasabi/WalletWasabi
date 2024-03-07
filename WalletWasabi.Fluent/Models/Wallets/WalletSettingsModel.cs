@@ -1,16 +1,17 @@
-using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+[AppLifetime]
 [AutoInterface]
-public partial class WalletSettingsModel : ReactiveObject, IDisposable
+public partial class WalletSettingsModel : ReactiveObject
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
@@ -24,7 +25,6 @@ public partial class WalletSettingsModel : ReactiveObject, IDisposable
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
-	private readonly CompositeDisposable _disposables = new();
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -46,25 +46,22 @@ public partial class WalletSettingsModel : ReactiveObject, IDisposable
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
-			x => x.AutoCoinjoin,
-			x => x.IsCoinjoinProfileSelected,
-			x => x.PreferPsbtWorkflow,
-			x => x.PlebStopThreshold,
-			x => x.AnonScoreTarget,
-			x => x.RedCoinIsolation,
-			x => x.FeeRateMedianTimeFrameHours)
+				x => x.AutoCoinjoin,
+				x => x.IsCoinjoinProfileSelected,
+				x => x.PreferPsbtWorkflow,
+				x => x.PlebStopThreshold,
+				x => x.AnonScoreTarget,
+				x => x.RedCoinIsolation,
+				x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		// This should go to the previous WhenAnyValue, it's just that it's not working for some reason.
-		this.WhenAnyValue(
-			x => x.CoinjoinSkipFactors)
+		this.WhenAnyValue(x => x.CoinjoinSkipFactors)
 			.Skip(1)
 			.Do(_ => SetValues())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 	}
 
 	public WalletType WalletType { get; }
@@ -92,8 +89,6 @@ public partial class WalletSettingsModel : ReactiveObject, IDisposable
 
 		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
-
-	public void Dispose() => _disposables.Dispose();
 
 	private void SetValues()
 	{
