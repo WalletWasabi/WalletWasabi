@@ -25,7 +25,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	private readonly SourceList<MessageViewModel> _messagesList;
 	private readonly IWalletModel _wallet;
 	private readonly IOrderManager _orderManager;
-	private readonly BuyAnythingManager _buyAnythingManager;
 
 	[AutoNotify] private string _title;
 	[AutoNotify] private string? _sibId = "New Order";
@@ -40,7 +39,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	{
 		_orderManager = orderManager;
 		_title = workflow.Conversation.MetaData.Title;
-		_buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
 
 		_messagesList = new SourceList<MessageViewModel>()
 			.DisposeWith(_disposables);

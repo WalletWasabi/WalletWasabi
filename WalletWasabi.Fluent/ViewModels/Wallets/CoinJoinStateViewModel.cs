@@ -15,7 +15,7 @@ using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 [AppLifetime]
-public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
+public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
@@ -64,16 +64,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
-	private readonly CompositeDisposable _disposables = new();
 
 	private CoinJoinStateViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
 
 		wallet.Coinjoin.StatusUpdated
-					   .Do(ProcessStatusChange)
-					   .Subscribe()
-					   .DisposeWith(_disposables);
+			.Do(ProcessStatusChange)
+			.Subscribe();
 
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -98,12 +96,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
 		ConfigureStateMachine();
 
 		wallet.Balances
-			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
-			  .Subscribe().DisposeWith(_disposables);
+			.Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -133,7 +131,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
 			.Skip(1) // The first one is triggered at the creation.
 			.Where(x => !x)
 			.Do(_ => _stateMachine.Fire(Trigger.AutoCoinJoinOff))
-			.Subscribe().DisposeWith(_disposables);
+			.Subscribe();
 
 		wallet.Settings.WhenAnyValue(x => x.PlebStopThreshold)
 					   .SubscribeAsync(async _ =>
@@ -191,8 +189,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase, IDisposable
 	public ICommand PlayCommand { get; }
 
 	public ICommand StopPauseCommand { get; }
-
-	public void Dispose() => _disposables.Dispose();
 
 	private void ConfigureStateMachine()
 	{
