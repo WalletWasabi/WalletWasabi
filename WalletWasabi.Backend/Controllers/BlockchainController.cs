@@ -437,20 +437,10 @@ public class BlockchainController : ControllerBase
 			cancellationToken.ThrowIfCancellationRequested();
 
 			// TODO: Use Transaction cache.
-			// TODO: It's very important since I changed the factoring, otherwise we might refetch a transaction that we just discarded...
-			// TODO: This is a hack BTW, hacking around GetCachedResponseAsync.
 			var currentTxId = toFetchFeeList.First();
 			var currentTx = await RpcClient.GetRawTransactionAsync(currentTxId, true, cancellationToken);
 
-			// Check if we just computed the item.
-			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTx.GetHash()}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
-
-			var currentTxChainItem = await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTx, mempool, cancellationToken),
-				options: cacheOptions,
-				cancellationToken);
+			var currentTxChainItem = await ComputeUnconfirmedTransactionChainItemAsync(currentTx, mempool, cancellationToken);
 
 			toFetchFeeList.Remove(currentTxId);
 
