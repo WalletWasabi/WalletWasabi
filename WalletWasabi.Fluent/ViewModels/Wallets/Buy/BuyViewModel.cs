@@ -187,8 +187,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		}
 	}
 
-	public void Dispose() => _disposables.Dispose();
-
 	private OrderViewModel NewEmptyOrder()
 	{
 		var nextOrderNumber = Orders.Count > 0 ? Orders.Max(x => x.OrderNumber) + 1 : 1;
@@ -196,8 +194,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		var conversation = new Conversation(ConversationId.Empty, Chat.Empty, OrderStatus.Open, ConversationStatus.Started, new ConversationMetaData(title));
 
-		var workflow = Workflow.Create(_wallet, conversation)
-			.DisposeWith(_disposables);
+		var workflow = Workflow.Create(_wallet, conversation);
 
 		var order = new OrderViewModel(UiContext, WalletVm.WalletModel, workflow, this, nextOrderNumber, _cts.Token);
 

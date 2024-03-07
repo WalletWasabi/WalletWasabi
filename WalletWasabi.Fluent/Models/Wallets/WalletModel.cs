@@ -16,7 +16,7 @@ public partial interface IWalletModel : INotifyPropertyChanged;
 
 [AppLifetime]
 [AutoInterface]
-public partial class WalletModel : ReactiveObject, IDisposable
+public partial class WalletModel : ReactiveObject
 {
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
