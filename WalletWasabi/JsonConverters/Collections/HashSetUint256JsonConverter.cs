@@ -15,6 +15,11 @@ public class HashSetUint256JsonConverter : JsonConverter<HashSet<uint256>>
 		{
 			var value = new HashSet<uint256>();
 			var set = token.ToObject<HashSet<string>>();
+			if (set is null)
+			{
+				return [];
+			}
+
 			foreach (var item in set)
 			{
 				value.Add(new(item));
@@ -22,7 +27,7 @@ public class HashSetUint256JsonConverter : JsonConverter<HashSet<uint256>>
 			return value;
 		}
 
-		return new HashSet<uint256>();
+		return [];
 	}
 
 	public override void WriteJson(JsonWriter writer, HashSet<uint256>? value, JsonSerializer serializer)
