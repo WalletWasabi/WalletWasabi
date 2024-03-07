@@ -2,11 +2,13 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[AppLifetime]
 [NavigationMetaData(
 	Title = "Wallet Settings",
 	Caption = "Display wallet settings",

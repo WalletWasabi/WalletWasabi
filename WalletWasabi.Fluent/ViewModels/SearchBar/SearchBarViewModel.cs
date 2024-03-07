@@ -4,11 +4,13 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
+[AppLifetime]
 public partial class SearchBarViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
