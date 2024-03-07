@@ -1,13 +1,23 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using NBitcoin;
+using Newtonsoft.Json;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Collections;
 
 namespace WalletWasabi.Models;
 public record UnconfirmedTransactionChainItem(
-	[property: JsonPropertyName("txId")] uint256 TxId,
-	[property: JsonPropertyName("size")] int Size,
-	[property: JsonPropertyName("fee")]
-	[property: JsonConverter(typeof(MoneyBtcJsonConverter))] Money Fee,
-	[property: JsonPropertyName("parents")] HashSet<uint256> Parents,
-	[property: JsonPropertyName("children")] HashSet<uint256> Children);
+	[JsonProperty]
+	[JsonConverter(typeof(Uint256JsonConverter))]
+	uint256 TxId,
+	[JsonProperty]
+	int Size,
+	[JsonProperty]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	Money Fee,
+	[JsonProperty]
+	[JsonConverter(typeof(HashSetUint256JsonConverter))]
+	HashSet<uint256> Parents,
+	[JsonProperty]
+	[JsonConverter(typeof(HashSetUint256JsonConverter))]
+	HashSet<uint256> Children);
