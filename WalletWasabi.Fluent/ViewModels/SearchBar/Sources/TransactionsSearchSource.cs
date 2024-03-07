@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -119,23 +120,23 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-		.Where(tuple => IsBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr) ?
-			ContainsDestinationAddress(tuple, queryStr) :
+		.Where(tuple => TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
+			ContainsDestinationAddress(tuple.Item1, tuple.Item2, address) :
 			ContainsId(tuple.Item2, queryStr));
 	}
 
-	private static bool ContainsDestinationAddress((WalletViewModel, HistoryItemViewModelBase) tupleWalletHistoryItem, string queryStr)
+	private static bool ContainsDestinationAddress(WalletViewModel walletViewModel, HistoryItemViewModelBase historyItem, BitcoinAddress address)
 	{
-		var txid = tupleWalletHistoryItem.Item2.Transaction.Id;
-		return tupleWalletHistoryItem.Item1.WalletModel.Transactions.GetDestinationAddresses(txid)
-			   .Contains(BitcoinAddress.Create(queryStr, tupleWalletHistoryItem.Item1.WalletModel.Network));
+		var txid = historyItem.Transaction.Id;
+		return walletViewModel.WalletModel.Transactions.GetDestinationAddresses(txid).Contains(address);
 	}
 
-	private static bool IsBitcoinAddress(Network network, string queryStr)
+	private static bool TryParseBitcoinAddress(Network network, string queryStr, [NotNullWhen(true)] out BitcoinAddress? address)
 	{
+		address = null;
 		try
 		{
-			BitcoinAddress.Create(queryStr, network);
+			address = BitcoinAddress.Create(queryStr, network);
 			return true;
 		}
 		catch (FormatException)
