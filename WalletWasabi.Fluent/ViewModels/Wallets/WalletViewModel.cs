@@ -9,7 +9,6 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -48,7 +47,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-		BuyViewModel = new BuyViewModel(UiContext, this);
+        BuyViewModel = new BuyViewModel(UiContext, this);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -61,11 +60,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		walletModel.HasBalance
-			.Select(x => !x)
-			.BindTo(this, x => x.IsWalletBalanceZero);
+				   .Select(x => !x)
+				   .BindTo(this, x => x.IsWalletBalanceZero);
 
 		walletModel.Coinjoin.IsRunning
-			.BindTo(this, x => x.IsCoinJoining);
+			       .BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
@@ -119,11 +118,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Select(x => x > 0);
 
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
-			.Do(_ => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
+			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.WalletModel.Name)
-			.BindTo(this, x => x.Title);
+		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
 	public ICommand BuyCommand { get; set; }
