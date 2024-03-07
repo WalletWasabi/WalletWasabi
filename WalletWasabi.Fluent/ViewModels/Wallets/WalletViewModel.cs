@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -23,7 +24,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class WalletViewModel : RoutableViewModel, IWalletViewModel, IDisposable
+[AppLifetime]
+public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	private readonly CompositeDisposable _disposables = new();
 
