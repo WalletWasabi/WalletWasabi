@@ -19,11 +19,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
 [AppLifetime]
-public partial class NavBarViewModel : ViewModelBase, IWalletSelector, IDisposable
+public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 	private IWalletModel? _selectedWalletModel;
-	private readonly CompositeDisposable _disposables = new();
 
 	public NavBarViewModel(UiContext uiContext)
 	{
@@ -32,15 +31,14 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector, IDisposab
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		UiContext.WalletRepository
-				 .Wallets
-				 .Connect()
-				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-				 .AutoRefresh(x => x.IsLoggedIn)
-				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
-				 .Bind(out var wallets)
-				 .DisposeMany()
-				 .Subscribe()
-				 .DisposeWith(_disposables);
+			.Wallets
+			.Connect()
+			.Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
+			.AutoRefresh(x => x.IsLoggedIn)
+			.Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
+			.Bind(out var wallets)
+			.DisposeMany()
+			.Subscribe();
 
 		Wallets = wallets;
 	}
@@ -64,25 +62,24 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector, IDisposab
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(x =>
-			{
-				if (x.OldValue is { } a)
+			.Do(
+				x =>
 				{
-					a.IsSelected = false;
-				}
+					if (x.OldValue is { } a)
+					{
+						a.IsSelected = false;
+					}
 
-				if (x.NewValue is { } b)
-				{
-					b.IsSelected = true;
-					UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
-				}
-			})
-			.Subscribe()
-			.DisposeWith(_disposables);
+					if (x.NewValue is { } b)
+					{
+						b.IsSelected = true;
+						UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
+					}
+				})
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.SelectedWallet!.WalletModel)
-			.BindTo(this, x => x.SelectedWalletModel)
-			.DisposeWith(_disposables);
+			.BindTo(this, x => x.SelectedWalletModel);
 
 		SelectedWallet = Wallets.FirstOrDefault(x => x.WalletModel.Name == UiContext.WalletRepository.DefaultWalletName) ?? Wallets.FirstOrDefault();
 	}
@@ -101,12 +98,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector, IDisposab
 			}
 		}
 	}
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
-	}
-
+	
 	IWalletViewModel? IWalletNavigation.To(IWalletModel wallet)
 	{
 		SelectedWallet = Wallets.First(x => x.WalletModel.Name == wallet.Name);
