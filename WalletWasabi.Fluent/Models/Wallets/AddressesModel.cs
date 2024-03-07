@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using DynamicData;
@@ -24,7 +23,6 @@ public partial class AddressesModel
 	{
 		_wallet = wallet;
 		_source = new SourceList<HdPubKey>();
-
 		_source.AddRange(GetUnusedKeys());
 
 		Observable.FromEventPattern<ProcessedResult>(
