@@ -18,7 +18,7 @@ jobs:
             const fs = require('fs');
             
             // Read the configuration file
-            const configPath = '.github/notify-config.json';
+            const configPath = '.github/notify-users-config.json';
             const configFile = fs.readFileSync(configPath, 'utf8');
             const config = JSON.parse(configFile);
             
