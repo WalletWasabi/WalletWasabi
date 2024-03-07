@@ -7,23 +7,23 @@ using System.Reactive.Subjects;
 using DynamicData;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+[AppLifetime]
 [AutoInterface]
-public partial class AddressesModel : IDisposable
+public partial class AddressesModel
 {
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
 	private readonly Wallet _wallet;
 	private readonly SourceList<HdPubKey> _source;
-	private readonly CompositeDisposable _disposables = new();
 
 	public AddressesModel(Wallet wallet)
 	{
 		_wallet = wallet;
-		_source = new SourceList<HdPubKey>()
-			.DisposeWith(_disposables);
+		_source = new SourceList<HdPubKey>();
 
 		_source.AddRange(GetUnusedKeys());
 
@@ -31,19 +31,16 @@ public partial class AddressesModel : IDisposable
 				h => wallet.WalletRelevantTransactionProcessed += h,
 				h => wallet.WalletRelevantTransactionProcessed -= h)
 			.Do(_ => UpdateUnusedKeys())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		_newAddressGenerated
 			.Do(address => _source.Add(address))
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		_source.Connect()
 			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
 			.Bind(out var unusedAddresses)
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		Unused = unusedAddresses;
 	}
@@ -78,10 +75,5 @@ public partial class AddressesModel : IDisposable
 		{
 			_source.Remove(item);
 		}
-	}
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
 	}
 }
