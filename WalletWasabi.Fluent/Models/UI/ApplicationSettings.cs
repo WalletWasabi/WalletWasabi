@@ -120,7 +120,6 @@ public partial class ApplicationSettings : ReactiveObject
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
 			.Subscribe();
-			
 
 		// Save UiConfig on change
 		this.WhenAnyValue(
@@ -139,7 +138,8 @@ public partial class ApplicationSettings : ReactiveObject
 			.Subscribe();
 
 		// Save UiConfig on change without throttling
-		this.WhenAnyValue(x => x.PrivacyMode)
+		this.WhenAnyValue(
+				x => x.PrivacyMode)
 			.Skip(1)
 			.Do(_ => ApplyUiConfigPrivacyModeChange())
 			.Subscribe();
