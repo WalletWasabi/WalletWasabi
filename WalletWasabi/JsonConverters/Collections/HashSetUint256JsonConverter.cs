@@ -27,8 +27,18 @@ public class HashSetUint256JsonConverter : JsonConverter<HashSet<uint256>>
 
 	public override void WriteJson(JsonWriter writer, HashSet<uint256>? value, JsonSerializer serializer)
 	{
-		HashSet<uint256> hashSet = value ?? throw new JsonException();
-		JObject jo = new JObject(hashSet.Select(s => new JProperty(s.ToString(), s)));
-		jo.WriteTo(writer);
+		if (value == null)
+		{
+			writer.WriteNull();
+			return;
+		}
+
+		writer.WriteStartArray();
+		foreach (var item in value)
+		{
+			writer.WriteValue(item.ToString());
+		}
+
+		writer.WriteEndArray();
 	}
 }
