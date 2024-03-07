@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
+using ReactiveUI;
+using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -24,28 +28,35 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
+	public IEnumerable<SortableItem>? Sortables { get; private set; }
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet
-			.AddressesModel.UnusedAddressesCache
-			.Connect()
+		_wallet.Addresses.Unused
+			.ToObservableChangeSet()
 			.Transform(CreateAddressViewModel)
-			.Bind(out var addresses)
+			.Bind(out var unusedAddresses)
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var source = ReceiveAddressesDataGridSource.Create(addresses);
+		var source = ReceiveAddressesDataGridSource.Create(unusedAddresses);
 
 		Source = source;
 		Source.RowSelection!.SingleSelect = true;
 		Source.DisposeWith(disposables);
+
+		Sortables =
+		[
+			new SortableItem("Address") { SortByAscendingCommand = ReactiveCommand.Create(() => ((ITreeDataGridSource) Source).SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => ((ITreeDataGridSource) Source).SortBy(Source.Columns[0], ListSortDirection.Descending)) },
+			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => ((ITreeDataGridSource) Source).SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => ((ITreeDataGridSource) Source).SortBy(Source.Columns[1], ListSortDirection.Descending)) }
+		];
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	private AddressViewModel CreateAddressViewModel(IAddress address)
 	{
-		return new AddressViewModel(UiContext, OnEditAddressAsync, address1 => OnShowAddressAsync(address1), address);
+		return new AddressViewModel(UiContext, OnEditAddressAsync, OnShowAddressAsync, address);
 	}
 
 	private void OnShowAddressAsync(IAddress a)

@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- TextControlBoxBorderThemeThickness -->
   <Thickness x:Key="DualCurrencyEntryBoxBorderThemeThickness">0,0,0,2</Thickness>
@@ -9,7 +8,7 @@
   <!-- TextControlThemePadding -->
   <Thickness x:Key="DualCurrencyEntryBoxThemePadding">15,10,15,8</Thickness>
 
-  <ControlTheme x:Key="{x:Type c:DualCurrencyEntryBox}" TargetType="c:DualCurrencyEntryBox">
+  <ControlTheme x:Key="{x:Type DualCurrencyEntryBox}" TargetType="DualCurrencyEntryBox">
 
     <Setter Property="LeftColumn" Value="1" />
     <Setter Property="RightColumn" Value="3" />
@@ -40,7 +39,7 @@
             <Panel Margin="{TemplateBinding BorderThickness}">
               <Panel Margin="{TemplateBinding Padding}">
                 <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
-                  <c:CurrencyEntryBox x:Name="PART_LeftEntryBox"
+                  <CurrencyEntryBox x:Name="PART_LeftEntryBox"
                                       Text="{TemplateBinding Text, Mode=TwoWay}"
                                       IsReadOnly="{TemplateBinding IsReadOnly}"
                                       CurrencyCode="{TemplateBinding CurrencyCode}"
@@ -68,7 +67,7 @@
                     <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
                   </Button>
 
-                  <c:CurrencyEntryBox x:Name="PART_RightEntryBox"
+                  <CurrencyEntryBox x:Name="PART_RightEntryBox"
                                       Text="{TemplateBinding ConversionText, Mode=TwoWay}"
                                       IsReadOnly="{TemplateBinding IsReadOnly}"
                                       CurrencyCode="{TemplateBinding ConversionCurrencyCode}"
@@ -159,7 +158,7 @@
       <Setter Property="IsVisible" Value="False" />
     </Style>
 
-    <Style Selector="^:noexchangerate /template/ c|CurrencyEntryBox#PART_RightEntryBox">
+    <Style Selector="^:noexchangerate /template/ CurrencyEntryBox#PART_RightEntryBox">
       <Setter Property="IsVisible" Value="False" />
     </Style>
 
@@ -174,6 +173,10 @@
 
     <Style Selector="^:reversed /template/ Border#PART_LeftEntryBox">
       <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="^ /template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
     </Style>
 
     <!-- Disabled State -->

@@ -34,6 +34,9 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.BuyAnything;
+using WalletWasabi.WebClients.BuyAnything;
+using WalletWasabi.WebClients.ShopWare;
 
 namespace WalletWasabi.Daemon;
 
@@ -111,11 +114,13 @@ public class Global
 
 		// Block providers.
 		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
+		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled);
+
 		var blockProvider = new SmartBlockProvider(
 			BitcoinStore.BlockRepository,
 			BitcoinCoreNode?.RpcClient is null ? null : new RpcBlockProvider(BitcoinCoreNode.RpcClient),
 			SpecificNodeBlockProvider,
-			new P2PBlockProvider(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled),
+			new P2PBlockProvider(P2PNodesManager),
 			Cache);
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, wasabiSynchronizer, HostedServices.Get<HybridFeeProvider>(), blockProvider, config.ServiceConfiguration);
@@ -150,6 +155,7 @@ public class Global
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
+	private P2PNodesManager P2PNodesManager { get; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
@@ -173,7 +179,7 @@ public class Global
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter);
 
-	public async Task InitializeNoWalletAsync(TerminateService terminateService, CancellationToken cancellationToken)
+	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
@@ -202,17 +208,8 @@ public class Global
 				{
 					await bitcoinStoreInitTask.ConfigureAwait(false);
 
-					// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
-					if (AllTransactionStore.MempoolStore.NeedResync || AllTransactionStore.ConfirmedStore.NeedResync)
-					{
-						WalletManager.ResyncToBefore12137();
-					}
-
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();
-
-					// Make sure that the heights of all wallet are at least SegWit activation.
-					WalletManager.EnsureHeightsAreAtLeastSegWitActivation();
 
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
 					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
@@ -228,16 +225,22 @@ public class Global
 
 				RegisterCoinJoinComponents();
 
-				SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+				if (initializeSleepInhibitor)
+				{
+					await CreateSleepInhibitorAsync().ConfigureAwait(false);
+				}
 
-				if (sleepInhibitor is not null)
-				{
-					HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
-				}
-				else
-				{
-					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
-				}
+				bool useTestApi = Network != Network.Main;
+				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
+				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
+				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), apiKey);
+
+				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
+				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
+				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
+				await buyAnythingManager.EnsureCountriesAreLoadedAsync(cancel).ConfigureAwait(false);
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Start synchronizing filters...");
@@ -253,6 +256,20 @@ public class Global
 			{
 				Logger.LogTrace("Initialization finished.");
 			}
+		}
+	}
+
+	private async Task CreateSleepInhibitorAsync()
+	{
+		SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+		if (sleepInhibitor is not null)
+		{
+			HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
+		}
+		else
+		{
+			Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 		}
 	}
 

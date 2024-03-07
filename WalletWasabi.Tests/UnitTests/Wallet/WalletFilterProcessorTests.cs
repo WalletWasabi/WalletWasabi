@@ -76,9 +76,6 @@ public class WalletFilterProcessorTests
 		// The MinGapLimit will generate some keys for both the Turbo and NonTurbo set.
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet, 2000);
 
-		// Unregister the event because on Wallet this is how it works: initial filters are processed without the event subscribed.
-		realWallet.UnregisterNewFiltersEvent();
-
 		// Process all but the last 4 which will be processed through events during the synchronization.
 		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(allFilters.Take(allFilters.Count - 4).Where(x => x.Header.Height > 101));
 

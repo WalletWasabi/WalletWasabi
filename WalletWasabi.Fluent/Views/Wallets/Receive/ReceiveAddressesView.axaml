@@ -2,19 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
-  <c:ContentArea Title="{Binding Title}"
-                 Caption="You can choose to hide, modify, or display the addresses listed below."
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <ContentArea Title="{Binding Title}"
+               Caption="You can choose to hide, modify, or display the addresses listed below."
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.TopContent>
+      <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <sorting:SortControl Sortables="{Binding Sortables}" />
+          </Flyout>
+        </Button.Flyout>
+      </Button>
+    </ContentArea.TopContent>
     <TreeDataGrid Source="{Binding Source}"
                   VerticalAlignment="Stretch"
                   Margin="0 20 0 0">
@@ -24,5 +31,5 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

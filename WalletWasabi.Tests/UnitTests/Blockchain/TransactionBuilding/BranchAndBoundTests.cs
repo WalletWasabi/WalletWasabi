@@ -25,7 +25,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSelectionFound());
 	}
@@ -43,7 +43,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
@@ -70,7 +70,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Selection (35) costs us 35 + 1 = 36.
 		// Selection (17, 10) is actually more expensive: (17 + 10) + (10 + 1) = 38, but
@@ -109,7 +109,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -131,7 +131,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] result = strategy.GetBestSelectionFound()!;
 
@@ -157,7 +157,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
 		MoreSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] result = strategy.GetBestSelectionFound()!;
 		Assert.Null(result);
@@ -183,7 +183,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -203,7 +203,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
@@ -223,7 +223,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
@@ -247,7 +247,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
@@ -272,7 +272,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
 		LessSelectionStrategy strategy = new(parameters, minPaymentThreshold: 0.0);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 
@@ -298,7 +298,7 @@ public class BranchAndBoundTests
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
 		LessSelectionStrategy strategy = new(parameters);
-		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+		algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] result = strategy.GetBestSelectionFound()!;
 		Assert.Null(result);

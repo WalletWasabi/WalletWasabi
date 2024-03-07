@@ -1,9 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:WalletWasabi.Fluent.Controls"
                     xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
 
-  <ControlTheme x:Key="{x:Type controls:AmountControl}" TargetType="controls:AmountControl">
+  <ControlTheme x:Key="{x:Type AmountControl}" TargetType="AmountControl">
 
     <Setter Property="Template">
       <ControlTemplate>

@@ -2,57 +2,29 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
-             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
+             xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
-
-  <controls:ContentArea Title="{Binding Title}"
-                        EnableBack="{Binding EnableBack}"
-                        EnableNext="True"
-                        NextContent="Continue"
-                        EnableCancel="{Binding EnableCancel}"
-                        IsBusy="{Binding IsBusy}"
-                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
-
-    <controls:ContentArea.Styles>
-
-      <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
-        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-        <Setter Property="Opacity" Value="0.8" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Margin" Value="20 0" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-      </Style>
-
-      <Style Selector="TreeDataGridExpanderCell">
-        <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridExpanderCell}" />
-      </Style>
-
-      <Style Selector="TreeDataGridRow" x:DataType="core:CoinControlItemViewModelBase">
-        <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridRow}" />
-        <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />
-        <Setter Property="IsSelected" Value="{Binding IsSelectedProxy, Mode=OneWayToSource}" />
-      </Style>
-
-    </controls:ContentArea.Styles>
-
-    <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}">
-      <Interaction.Behaviors>
-        <behaviors:SetLastChildBehavior />
-      </Interaction.Behaviors>
-      <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PlainTextElementFactory />
-      </TreeDataGrid.ElementFactory>
-    </TreeDataGrid>
-
-  </controls:ContentArea>
+  <ContentArea Title="{Binding Title}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True"
+               NextContent="Continue"
+               EnableCancel="{Binding EnableCancel}"
+               IsBusy="{Binding IsBusy}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.TopContent>
+      <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
+          </Flyout>
+        </Button.Flyout>
+      </Button>
+    </ContentArea.TopContent>
+    <coins:CoinListView DataContext="{Binding CoinList}" />
+  </ContentArea>
 </UserControl>

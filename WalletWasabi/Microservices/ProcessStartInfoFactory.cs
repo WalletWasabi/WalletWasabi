@@ -14,8 +14,9 @@ public class ProcessStartInfoFactory
 	/// <param name="processPath">Path to process.</param>
 	/// <param name="arguments">Process arguments.</param>
 	/// <param name="openConsole">Open console window. Only for Windows platform.</param>
+	/// <param name="windowStyleNormal">Set WindowStyle to ProcessWindowStyle.Normal when <see cref="openConsole"/> is disabled.</param>
 	/// <returns><see cref="ProcessStartInfo"/> instance.</returns>
-	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false)
+	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false, bool windowStyleNormal = false)
 	{
 		ProcessWindowStyle windowStyle;
 
@@ -30,7 +31,7 @@ public class ProcessStartInfoFactory
 		}
 		else
 		{
-			windowStyle = ProcessWindowStyle.Hidden;
+			windowStyle = windowStyleNormal ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 		}
 
 		var p = new ProcessStartInfo(fileName: processPath, arguments)

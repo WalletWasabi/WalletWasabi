@@ -4,11 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletRenameView"
              x:DataType="wallets:WalletRenameViewModel" >
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="You can modify the name of your wallet"
                  EnableBack="{Binding EnableBack}"
                  EnableCancel="{Binding EnableCancel}"
@@ -20,5 +19,5 @@
         <behaviors:TextBoxSelectAllTextBehavior />
       </Interaction.Behaviors>
     </TextBox>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

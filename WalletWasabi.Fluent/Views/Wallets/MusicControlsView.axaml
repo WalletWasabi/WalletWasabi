@@ -5,11 +5,19 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <UserControl.Resources>
+    <converters:ReplaceWordsByContentConverter x:Key="ReplaceWordsByContentConverter">
+      <ResourceDictionary x:CompileBindings="False">
+        <StaticResource x:Key="Play" ResourceKey="play_regular" />
+      </ResourceDictionary>
+    </converters:ReplaceWordsByContentConverter>
+  </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
   </i:Interaction.Behaviors>
@@ -74,7 +82,7 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding LeftText}" DockPanel.Dock="Left" />
               <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>

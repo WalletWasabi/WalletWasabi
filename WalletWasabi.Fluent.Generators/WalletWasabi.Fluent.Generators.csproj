@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+		<Nullable>enable</Nullable>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\$(Configuration)\$(TargetFramework)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
@@ -50,15 +49,15 @@
       <Setter Property="Background" Value="Red" />
     </Style>
 
-    <Style Selector="Carousel#Carousel">
+    <Style Selector="ContentControl#SelectedItem">
       <Setter Property="Width" Value="250" />
     </Style>
 
-    <Style Selector="Carousel#Carousel.small">
+    <Style Selector="ContentControl#SelectedItem.small">
       <Setter Property="Width" Value="160" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="False"
                  EnableBack="False"
@@ -99,7 +98,7 @@
                                             Width="{Binding Width, Mode=TwoWay}"
                                             Height="{Binding Height, Mode=TwoWay}" />
           <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #Carousel}" />
+            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #SelectedItem}" />
           </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
 
@@ -132,33 +131,24 @@
                     Classes.private="{Binding IsPrivate}"
                     Classes.semiPrivate="{Binding IsSemiPrivate}"
                     Classes.nonPrivate="{Binding IsNonPrivate}"
-                    Classes.unconfirmed="{Binding Unconfirmed}">
-              </Path>
+                    Classes.unconfirmed="{Binding Unconfirmed}" />
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
 
-        <Carousel ItemsSource="{Binding PreviewItems}"
-                  SelectedItem="{Binding SelectedItem, Mode=OneWay}"
-                  VerticalAlignment="Center" HorizontalAlignment="Center"
-                  x:Name="Carousel">
-          <Carousel.PageTransition>
-            <CrossFade Duration="0.25" />
-          </Carousel.PageTransition>
-          <Carousel.DataTemplates>
+        <ContentControl Content="{Binding SelectedItem}"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                        x:Name="SelectedItem">
+          <ContentControl.DataTemplates>
             <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
-              <ringView:PrivacyRingDetailsView VerticalAlignment="Center">
-                <i:Interaction.Behaviors>
-                  <behaviors:FadeInBehavior InitialDelay="0:0:1" />
-                </i:Interaction.Behaviors>
-              </ringView:PrivacyRingDetailsView>
+              <ringView:PrivacyRingDetailsView VerticalAlignment="Center" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type ring:PrivacyRingItemViewModel}">
               <ringView:PrivacyRingItemDetailsView />
             </DataTemplate>
-          </Carousel.DataTemplates>
-        </Carousel>
+          </ContentControl.DataTemplates>
+        </ContentControl>
       </Panel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

@@ -40,13 +40,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
 		AboutCommand = ReactiveCommand.Create(AboutExecute, AboutCanExecute());
-
-		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
-		TrayIcon = new WindowIcon(bitmap);
 	}
 
 	public MainViewModel MainViewModel { get; }
-	public WindowIcon TrayIcon { get; }
 	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
 

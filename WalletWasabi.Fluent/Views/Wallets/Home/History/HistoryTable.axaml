@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -111,8 +111,15 @@
   </UserControl.Resources>
 
   <DockPanel>
-    <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top">
-      <TextBlock Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
+    <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+      <TextBlock VerticalAlignment="Center" Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
+      <Button IsVisible="{Binding !IsTransactionHistoryEmpty}" Theme="{StaticResource HistorySortButton}" ToolTip.Tip="Sorting">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedLeft">
+            <sorting:SortControl Sortables="{Binding Sortables}" />
+          </Flyout>
+        </Button.Flyout>
+      </Button>
     </StackPanel>
     <Panel>
       <TreeDataGrid Source="{Binding Source}"
@@ -137,6 +144,9 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
           </Style>
+          <Style Selector="TreeDataGridRow.PositiveAmount treeDataGrid|TreeDataGridAmountPrivacyTextCell">
+            <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
+          </Style>
           <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="FontSize" Value="13" />
@@ -150,7 +160,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
           </Style>
-          <Style Selector="TextBlock, c|PrivacyContentControl">
+          <Style Selector="TextBlock, PrivacyContentControl">
             <Setter Property="VerticalAlignment" Value="Center" />
           </Style>
           <Style Selector="TreeDataGridRow Button.historyDetails">
@@ -192,11 +202,15 @@
           </Style>
         </TreeDataGrid.Styles>
       </TreeDataGrid>
-      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}"
-                                 IsVisible="{Binding IsTransactionHistoryEmpty}"
-                                 Opacity="0.1" />
+      <DummyRowsControl Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                        RowHeight="{StaticResource TreeDataGridRowHeight}"
+                        IsVisible="{Binding IsTransactionHistoryEmpty}">
+        <DummyRowsControl.RowTemplate>
+          <ControlTemplate>
+            <Border CornerRadius="15" Background="{DynamicResource Layer1BackgroundBrush}" Margin="2" />
+          </ControlTemplate>
+        </DummyRowsControl.RowTemplate>
+      </DummyRowsControl>
     </Panel>
   </DockPanel>
-
 </UserControl>

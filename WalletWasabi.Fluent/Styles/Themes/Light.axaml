@@ -50,8 +50,22 @@
   <Color x:Key="ActionColorLight3">#FF6ACF9F</Color>
 
   <Color x:Key="RegionColor">#FFF8F9FB</Color>
+
   <Color x:Key="Layer1BackgroundBrush">#262626</Color>
+  <Color x:Key="Layer1BackgroundBrushLight1">#FF414141</Color>
+  <Color x:Key="Layer1BackgroundBrushLight2">#FF5D5D5D</Color>
+  <Color x:Key="Layer1BackgroundBrushLight3">#FF787878</Color>
+  <Color x:Key="Layer1BackgroundBrushDark1">#FF202020</Color>
+  <Color x:Key="Layer1BackgroundBrushDark2">#FF1B1B1B</Color>
+  <Color x:Key="Layer1BackgroundBrushDark3">#FF151515</Color>
+
   <Color x:Key="Layer2BackgroundBrush">#333333</Color>
+  <Color x:Key="Layer2BackgroundBrushLight1">#FF4D4D4D</Color>
+  <Color x:Key="Layer2BackgroundBrushLight2">#FF676767</Color>
+  <Color x:Key="Layer2BackgroundBrushLight3">#FF808080</Color>
+  <Color x:Key="Layer2BackgroundBrushDark1">#FF2C2C2C</Color>
+  <Color x:Key="Layer2BackgroundBrushDark2">#FF242424</Color>
+  <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
 
@@ -89,6 +103,17 @@
   <Color x:Key="LineChartAreaGradientEndStopColor">#005E96ED</Color>
   <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
   <Color x:Key="LineChartLineColor">#5E96ED</Color>
+
+  <Color x:Key="BuyAnythingConversationsBackground">White</Color>
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#F5F5F5" />
+  <SolidColorBrush x:Key="ChatInputBackground" Color="White" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#F5F5F5" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#F5F5F5" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#F5F5F5" Opacity="0.8" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#E0E0E0" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
+  <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
 
@@ -205,6 +230,8 @@
   <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
 
+  <SolidColorBrush x:Key="PositiveAmountColor" Color="#6E934A" />
+
   <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
 
@@ -232,9 +259,9 @@
     </LinearGradientBrush.GradientStops>
   </LinearGradientBrush>
 
-  <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
+  <system:Double x:Key="TreeDataGridRowHeight">38</system:Double>
   <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
-  <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
+  <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0</Thickness>
 
   <!-- TreeDataGrid -->
   <SolidColorBrush x:Key="TreeDataGridGridLinesBrush"

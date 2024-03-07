@@ -33,6 +33,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 	/// <summary>To stop the loop that keeps connecting to the specific Bitcoin node.</summary>
 	private CancellationTokenSource LoopCts { get; } = new();
+
 	private Task LoopTask { get; }
 	private Network Network { get; }
 	private EndPoint BitcoinCoreEndPoint { get; }
@@ -100,7 +101,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				reconnectDelay = MinReconnectDelay;
 				_specificBitcoinCoreNode = connectedNode;
 
-				_ = await connectedNode.WaitUntilDisconnectedAsync(shutdownToken).ConfigureAwait(false);
+				await connectedNode.WaitUntilDisconnectedAsync(shutdownToken).ConfigureAwait(false);
 
 				if (shutdownToken.IsCancellationRequested)
 				{
