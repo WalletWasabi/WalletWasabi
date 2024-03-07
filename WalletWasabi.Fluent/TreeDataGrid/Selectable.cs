@@ -1,6 +1,5 @@
 using ReactiveUI;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -8,11 +7,10 @@ using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
-public partial class Selectable<T> : ReactiveObject, IDisposable
+public partial class Selectable<T> : ReactiveObject
 {
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _canSelect;
-	private readonly CompositeDisposable _disposables = new();
 
 	public Selectable(T model, Action<T>? onSelected = null, IObservable<bool>? canSelect = null)
 	{
@@ -27,13 +25,10 @@ public partial class Selectable<T> : ReactiveObject, IDisposable
 				.CombineLatest(canSelect)
 				.Where(x => x.Second)
 				.Do(_ => action(Model))
-				.Subscribe()
-				.DisposeWith(_disposables);
+				.Subscribe();
 		}
 
-		canSelect
-			.BindTo(this, x => x.CanSelect)
-			.DisposeWith(_disposables);
+		canSelect.BindTo(this, x => x.CanSelect);
 	}
 
 	public Selectable(T model, Func<T, Task> onSelectedAsync, IObservable<bool>? canSelect = null)
@@ -47,17 +42,12 @@ public partial class Selectable<T> : ReactiveObject, IDisposable
 			.CombineLatest(canSelect)
 			.Where(x => x.Second)
 			.DoAsync(async _ => await onSelectedAsync(Model))
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
-		canSelect
-			.BindTo(this, x => x.CanSelect)
-			.DisposeWith(_disposables);
+		canSelect.BindTo(this, x => x.CanSelect);
 	}
 
 	public ICommand ToggleSelectionCommand { get; }
 
 	public T Model { get; }
-
-	public void Dispose() => _disposables.Dispose();
 }
