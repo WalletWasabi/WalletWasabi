@@ -3,7 +3,6 @@ using NBitcoin;
 using ReactiveUI;
 using System.Net;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using WalletWasabi.Bases;
@@ -11,12 +10,14 @@ using WalletWasabi.Daemon;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
+[AppLifetime]
 [AutoInterface]
 public partial class ApplicationSettings : ReactiveObject
 {
@@ -27,7 +28,6 @@ public partial class ApplicationSettings : ReactiveObject
 	private readonly PersistentConfig _startupConfig;
 	private readonly Config _config;
 	private readonly UiConfig _uiConfig;
-	private readonly CompositeDisposable _disposables = new ();
 
 	// Advanced
 	[AutoNotify] private bool _enableGpu;
@@ -105,66 +105,60 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Save on change
 		this.WhenAnyValue(
-			x => x.EnableGpu,
-			x => x.Network,
-			x => x.StartLocalBitcoinCoreOnStartup,
-			x => x.LocalBitcoinCoreDataDir,
-			x => x.StopLocalBitcoinCoreOnShutdown,
-			x => x.BitcoinP2PEndPoint,
-			x => x.DustThreshold,
-			x => x.UseTor,
-			x => x.TerminateTorOnExit,
-			x => x.DownloadNewVersion)
+				x => x.EnableGpu,
+				x => x.Network,
+				x => x.StartLocalBitcoinCoreOnStartup,
+				x => x.LocalBitcoinCoreDataDir,
+				x => x.StopLocalBitcoinCoreOnShutdown,
+				x => x.BitcoinP2PEndPoint,
+				x => x.DustThreshold,
+				x => x.UseTor,
+				x => x.TerminateTorOnExit,
+				x => x.DownloadNewVersion)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
+			
 
 		// Save UiConfig on change
 		this.WhenAnyValue(
-			x => x.DarkModeEnabled,
-			x => x.AutoCopy,
-			x => x.AutoPaste,
-			x => x.CustomChangeAddress,
-			x => x.SelectedFeeDisplayUnit,
-			x => x.RunOnSystemStartup,
-			x => x.HideOnClose,
-			x => x.Oobe,
-			x => x.WindowState)
+				x => x.DarkModeEnabled,
+				x => x.AutoCopy,
+				x => x.AutoPaste,
+				x => x.CustomChangeAddress,
+				x => x.SelectedFeeDisplayUnit,
+				x => x.RunOnSystemStartup,
+				x => x.HideOnClose,
+				x => x.Oobe,
+				x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		// Save UiConfig on change without throttling
-		this.WhenAnyValue(
-				x => x.PrivacyMode)
+		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
 			.Do(_ => ApplyUiConfigPrivacyModeChange())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		// Set Default BitcoinCoreDataDir if required
 		this.WhenAnyValue(x => x.StartLocalBitcoinCoreOnStartup)
 			.Skip(1)
 			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
-			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString())
-			.DisposeWith(_disposables);
+			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 
 		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
 			.DoAsync(async _ => await StartupHelper.ModifyStartupSettingAsync(RunOnSystemStartup))
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
