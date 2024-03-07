@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -120,7 +121,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-		.Where(tuple => TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
+		.Where(tuple => NBitcoinHelpers.TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
 			ContainsDestinationAddress(tuple.Item1, tuple.Item2, address) :
 			ContainsId(tuple.Item2, queryStr));
 	}
@@ -129,19 +130,5 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	{
 		var txid = historyItem.Transaction.Id;
 		return walletViewModel.WalletModel.Transactions.GetDestinationAddresses(txid).Contains(address);
-	}
-
-	private static bool TryParseBitcoinAddress(Network network, string queryStr, [NotNullWhen(true)] out BitcoinAddress? address)
-	{
-		address = null;
-		try
-		{
-			address = BitcoinAddress.Create(queryStr, network);
-			return true;
-		}
-		catch (FormatException)
-		{
-			return false;
-		}
 	}
 }
