@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
+	private readonly CompositeDisposable _disposables = new();
 	private IDisposable? _subscription;
 	private bool _isContentVisible = true;
 	private string? _text;
@@ -23,7 +24,6 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private string? _privacyText;
 	private Size? _availableSize;
 	private bool _haveText;
-	private readonly CompositeDisposable _disposables = new();
 
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{

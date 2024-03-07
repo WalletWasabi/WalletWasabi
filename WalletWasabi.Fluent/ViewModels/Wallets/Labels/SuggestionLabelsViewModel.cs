@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
 public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
 	private readonly IWalletModel _wallet;
 	private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
 	private readonly ObservableCollectionExtended<string> _topSuggestions;
@@ -20,7 +21,6 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 	private readonly ObservableCollectionExtended<string> _labels;
 	[AutoNotify] private bool _isCurrentTextValid;
 	[AutoNotify] private bool _forceAdd;
-	private readonly CompositeDisposable _disposables = new();
 
 	public SuggestionLabelsViewModel(IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{

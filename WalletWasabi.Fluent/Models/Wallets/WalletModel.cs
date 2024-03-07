@@ -21,9 +21,9 @@ public partial class WalletModel : ReactiveObject, IDisposable
 	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 	private readonly ISubject<IAddress> _newAddressGenerated = new Subject<IAddress>();
+	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private bool _isLoggedIn;
-	private readonly CompositeDisposable _disposables = new();
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{

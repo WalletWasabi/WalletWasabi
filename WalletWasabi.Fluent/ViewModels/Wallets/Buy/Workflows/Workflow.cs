@@ -14,11 +14,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
 public abstract partial class Workflow : ReactiveObject, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private IWorkflowStep? _currentStep;
 	[AutoNotify] private Conversation _conversation;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _isDeletedInSib;
-	private readonly CompositeDisposable _disposables = new();
 
 	protected Workflow(Conversation conversation)
 	{

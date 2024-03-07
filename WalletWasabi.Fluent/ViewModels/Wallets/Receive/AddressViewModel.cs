@@ -14,9 +14,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+
 	[AutoNotify] private string _addressText;
 	[AutoNotify] private LabelsArray _labels;
-	private readonly CompositeDisposable _disposables = new();
 
 	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{

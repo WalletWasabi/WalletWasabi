@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletPageViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isLoading;
@@ -18,7 +20,6 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private WalletViewModel? _walletViewModel;
 	[AutoNotify] private RoutableViewModel? _currentPage;
 	[AutoNotify] private string? _title;
-	private readonly CompositeDisposable _disposables = new();
 
 	private WalletPageViewModel(IWalletModel walletModel)
 	{
