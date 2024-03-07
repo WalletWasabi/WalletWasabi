@@ -105,16 +105,16 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Save on change
 		this.WhenAnyValue(
-				x => x.EnableGpu,
-				x => x.Network,
-				x => x.StartLocalBitcoinCoreOnStartup,
-				x => x.LocalBitcoinCoreDataDir,
-				x => x.StopLocalBitcoinCoreOnShutdown,
-				x => x.BitcoinP2PEndPoint,
-				x => x.DustThreshold,
-				x => x.UseTor,
-				x => x.TerminateTorOnExit,
-				x => x.DownloadNewVersion)
+			x => x.EnableGpu,
+			x => x.Network,
+			x => x.StartLocalBitcoinCoreOnStartup,
+			x => x.LocalBitcoinCoreDataDir,
+			x => x.StopLocalBitcoinCoreOnShutdown,
+			x => x.BitcoinP2PEndPoint,
+			x => x.DustThreshold,
+			x => x.UseTor,
+			x => x.TerminateTorOnExit,
+			x => x.DownloadNewVersion)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -123,15 +123,15 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Save UiConfig on change
 		this.WhenAnyValue(
-				x => x.DarkModeEnabled,
-				x => x.AutoCopy,
-				x => x.AutoPaste,
-				x => x.CustomChangeAddress,
-				x => x.SelectedFeeDisplayUnit,
-				x => x.RunOnSystemStartup,
-				x => x.HideOnClose,
-				x => x.Oobe,
-				x => x.WindowState)
+			x => x.DarkModeEnabled,
+			x => x.AutoCopy,
+			x => x.AutoPaste,
+			x => x.CustomChangeAddress,
+			x => x.SelectedFeeDisplayUnit,
+			x => x.RunOnSystemStartup,
+			x => x.HideOnClose,
+			x => x.Oobe,
+			x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())

@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -70,8 +69,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_wallet = wallet;
 
 		wallet.Coinjoin.StatusUpdated
-			.Do(ProcessStatusChange)
-			.Subscribe();
+					   .Do(ProcessStatusChange)
+					   .Subscribe();
 
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -96,8 +95,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ConfigureStateMachine();
 
 		wallet.Balances
-			.Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
-			.Subscribe();
+			  .Do(_ => _stateMachine.Fire(Trigger.BalanceChanged))
+			  .Subscribe();
 
 		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))

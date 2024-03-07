@@ -50,13 +50,13 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		// Show restart message when needed
 		UiContext.ApplicationSettings.IsRestartNeeded
-			.BindTo(this, x => x.IsModified);
+									 .BindTo(this, x => x.IsModified);
 
 		// Show restart notification when needed only if this page is not active.
 		UiContext.ApplicationSettings.IsRestartNeeded
-			.Where(x => x && !IsActive)
-			.Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
-			.Subscribe();
+				 .Where(x => x && !IsActive)
+				 .Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
+				 .Subscribe();
 	}
 
 	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;

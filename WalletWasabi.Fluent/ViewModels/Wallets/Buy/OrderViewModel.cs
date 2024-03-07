@@ -73,8 +73,7 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 				 .Select(id => id == ConversationId.Empty)
 				 .CombineLatest(hasUserMessages, (a, b) => a && b);
 
-		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs)
-			.DisposeWith(_disposables);
+		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
 
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs

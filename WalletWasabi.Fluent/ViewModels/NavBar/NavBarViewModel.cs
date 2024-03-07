@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -11,7 +10,6 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
 
@@ -31,14 +29,13 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		UiContext.WalletRepository
-			.Wallets
-			.Connect()
-			.Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-			.AutoRefresh(x => x.IsLoggedIn)
-			.Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
-			.Bind(out var wallets)
-			.DisposeMany()
-			.Subscribe();
+				 .Wallets
+				 .Connect()
+				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
+				 .AutoRefresh(x => x.IsLoggedIn)
+				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
+				 .Bind(out var wallets)
+				 .Subscribe();
 
 		Wallets = wallets;
 	}
@@ -62,20 +59,19 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(
-				x =>
+			.Do(x =>
+			{
+				if (x.OldValue is { } a)
 				{
-					if (x.OldValue is { } a)
-					{
-						a.IsSelected = false;
-					}
+					a.IsSelected = false;
+				}
 
-					if (x.NewValue is { } b)
-					{
-						b.IsSelected = true;
-						UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
-					}
-				})
+				if (x.NewValue is { } b)
+				{
+					b.IsSelected = true;
+					UiContext.WalletRepository.StoreLastSelectedWallet(b.WalletModel);
+				}
+			})
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.SelectedWallet!.WalletModel)
@@ -98,7 +94,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 			}
 		}
 	}
-	
+
 	IWalletViewModel? IWalletNavigation.To(IWalletModel wallet)
 	{
 		SelectedWallet = Wallets.First(x => x.WalletModel.Name == wallet.Name);

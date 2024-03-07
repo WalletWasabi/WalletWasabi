@@ -46,19 +46,20 @@ public partial class WalletSettingsModel : ReactiveObject
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
-				x => x.AutoCoinjoin,
-				x => x.IsCoinjoinProfileSelected,
-				x => x.PreferPsbtWorkflow,
-				x => x.PlebStopThreshold,
-				x => x.AnonScoreTarget,
-				x => x.RedCoinIsolation,
-				x => x.FeeRateMedianTimeFrameHours)
+			x => x.AutoCoinjoin,
+			x => x.IsCoinjoinProfileSelected,
+			x => x.PreferPsbtWorkflow,
+			x => x.PlebStopThreshold,
+			x => x.AnonScoreTarget,
+			x => x.RedCoinIsolation,
+			x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
 
 		// This should go to the previous WhenAnyValue, it's just that it's not working for some reason.
-		this.WhenAnyValue(x => x.CoinjoinSkipFactors)
+		this.WhenAnyValue(
+			x => x.CoinjoinSkipFactors)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();

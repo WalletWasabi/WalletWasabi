@@ -17,6 +17,7 @@ public partial class PrivacyModeViewModel : RoutableViewModel
 	[AutoNotify] private bool _privacyMode;
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
+
 	public PrivacyModeViewModel(IApplicationSettings applicationSettings)
 	{
 		_privacyMode = applicationSettings.PrivacyMode;

@@ -16,9 +16,8 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly CoinJoinManager _coinJoinManager;
+	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
-	
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
@@ -33,9 +32,8 @@ public partial class WalletCoinjoinModel : ReactiveObject
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
-			.Skip(1) // The first one is triggered at the creation.
-			.DoAsync(
-				async autoCoinJoin =>
+				.Skip(1) // The first one is triggered at the creation.
+				.DoAsync(async (autoCoinJoin) =>
 				{
 					if (autoCoinJoin)
 					{
@@ -46,7 +44,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 						await StopAsync();
 					}
 				})
-			.Subscribe();
+				.Subscribe();
 
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
@@ -66,8 +64,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
-		IsRunning
-			.BindTo(this, x => x.IsCoinjoining);
+		IsRunning.BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }

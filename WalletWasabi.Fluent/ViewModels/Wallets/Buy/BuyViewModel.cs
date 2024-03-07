@@ -158,8 +158,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			var currentConversations = await _buyAnythingManager.GetConversationsAsync(_wallet, _cts.Token);
 
 			var orders =
-				currentConversations.Select(
-						(conversation, index) =>
+				currentConversations.Select((conversation, index) =>
 						{
 							var workflow = Workflow.Create(_wallet, conversation);
 							var order = new OrderViewModel(UiContext, WalletVm.WalletModel, workflow, this, index, _cts.Token);
@@ -167,8 +166,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 						})
 					.ToArray();
 
-			_ordersCache
-				.AddOrUpdate(orders);
+			_ordersCache.AddOrUpdate(orders);
 
 			if (_orders.Count == 0 || _orders.All(x => x.ConversationId != ConversationId.Empty))
 			{
