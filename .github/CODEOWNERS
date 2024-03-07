@@ -1,0 +1,33 @@
+# Lines starting with '#' are comments.
+# Most of the users defined here are not the owners of the code but the consumers of the API. Their approval is required to make sure their system won't break. 
+
+WalletWasabi/Wallets/IWallet.cs @Kukks 
+
+WalletWasabi/Blockchain/Analysis/BlockchainAnalyzer.cs  @onvej-sl
+WalletWasabi/Blockchain/Keys/HdPubKey.cs  @onvej-sl
+WalletWasabi/Blockchain/TransactionOutputs/SmartCoin.cs  @onvej-sl
+WalletWasabi/Blockchain/TransactionOutputs/ISmartCoin.cs  @onvej-sl
+WalletWasabi/Blockchain/Transactions/SmartTransaction.cs  @onvej-sl
+WalletWasabi/Helpers/NBitcoinHelpers.cs  @onvej-sl
+WalletWasabi/WabiSabi/Backend/Rounds/UtxoSelectionParameters.cs  @onvej-sl
+WalletWasabi/WabiSabi/Client/AmountDecomposer.cs  @onvej-sl
+WalletWasabi/WabiSabi/Client/LiquidityClueProvider.cs  @onvej-sl
+WalletWasabi/WabiSabi/Client/CoinJoinCoinSelector.cs  @onvej-sl
+
+# get-outputs-amounts
+WalletWasabi/WabiSabi/Client/Decomposer.cs @onvej-sl
+WalletWasabi/WabiSabi/Client/AmountDecomposer.cs @onvej-sl
+WalletWasabi/WabiSabi/Client/Output.cs @onvej-sl
+
+# select-inputs-for-round
+WalletWasabi/WabiSabi/Backend/Rounds/UtxoSelectionParameters.cs @onvej-sl
+WalletWasabi/Blockchain/TransactionOutputs/ISmartCoin.cs @onvej-sl
+WalletWasabi/WabiSabi/Client/CoinJoinCoinSelector.cs @onvej-sl
+
+# get-anonymity-scores
+WalletWasabi/Blockchain/Analysis/BlockchainAnalyzer.cs @onvej-sl
+
+# init-liquidity-clue,update-liquidity-clue,get-liquidity-clue
+WalletWasabi/WabiSabi/Client/LiquidityClueProvider.cs @onvej-sl
+ 
+WalletWasabi/Affiliation/ @onvej-sl
