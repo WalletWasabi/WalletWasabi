@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -11,13 +12,14 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+[AppLifetime]
 [AutoInterface]
-public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
+public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly CompositeDisposable _disposables = new();
-	private CoinJoinManager _coinJoinManager;
+	private readonly CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
+
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
@@ -32,8 +34,9 @@ public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
-				.Skip(1) // The first one is triggered at the creation.
-				.DoAsync(async (autoCoinJoin) =>
+			.Skip(1) // The first one is triggered at the creation.
+			.DoAsync(
+				async autoCoinJoin =>
 				{
 					if (autoCoinJoin)
 					{
@@ -44,8 +47,7 @@ public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
 						await StopAsync();
 					}
 				})
-				.Subscribe()
-				.DisposeWith(_disposables);
+			.Subscribe();
 
 		var coinjoinStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
@@ -66,8 +68,7 @@ public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
 		IsRunning
-			.BindTo(this, x => x.IsCoinjoining)
-			.DisposeWith(_disposables);
+			.BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
@@ -82,10 +83,5 @@ public partial class WalletCoinjoinModel : ReactiveObject, IDisposable
 	public async Task StopAsync()
 	{
 		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-	}
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
 	}
 }
