@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
+// TODO: This class has non-disposed subscriptions. Please, refactor.
 public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 {
 	private CompositeDisposable? _disposables;
