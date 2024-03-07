@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
-public partial class BuyViewModel : RoutableViewModel, IOrderManager, IDisposable
+public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
 	private readonly BuyAnythingManager _buyAnythingManager;
 	private readonly CancellationTokenSource _cts;
@@ -37,7 +37,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager, IDisposabl
 
 	[AutoNotify] private OrderViewModel? _emptyOrder; // Used to track the "Empty" order (with empty ConversationId)
 	[AutoNotify] private OrderViewModel? _selectedOrder;
-	private readonly CompositeDisposable _disposables = new();
 
 	public BuyViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -52,26 +51,22 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager, IDisposabl
 
 		EnableBack = false;
 
-		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.OrderNumber)
-			.DisposeWith(_disposables);
+		_ordersCache = new SourceCache<OrderViewModel, int>(x => x.OrderNumber);
 
 		_ordersCache
 			.Connect()
 			.Sort(SortExpressionComparer<OrderViewModel>.Descending(x => x.OrderNumber))
 			.Bind(out _orders)
 			.DisposeMany()
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
-		_cts = new CancellationTokenSource()
-			.DisposeWith(_disposables);
+		_cts = new CancellationTokenSource();
 
 		// When the Empty Order stops being empty, create a new Empty Order
 		this.WhenAnyValue(x => x.EmptyOrder.Workflow.Conversation)
 			.Where(x => x.Id != ConversationId.Empty)
 			.Do(_ => EmptyOrder = NewEmptyOrder())
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 
 		HasNonEmptyOrder = this.WhenAnyValue(x => x.Orders.Count)
 			.Select(_ => Orders.Any(x => x.ConversationId != ConversationId.Empty));
@@ -153,8 +148,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager, IDisposabl
 			.Select(x => x.Messages.ToObservableChangeSet())
 			.Switch()
 			.OnItemAdded(x => x.IsUnread = false)
-			.Subscribe()
-			.DisposeWith(_disposables);
+			.Subscribe();
 	}
 
 	private async Task InitializeAsync()
@@ -167,9 +161,7 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager, IDisposabl
 				currentConversations.Select(
 						(conversation, index) =>
 						{
-							var workflow = Workflow.Create(_wallet, conversation)
-								.DisposeWith(_disposables);
-
+							var workflow = Workflow.Create(_wallet, conversation);
 							var order = new OrderViewModel(UiContext, WalletVm.WalletModel, workflow, this, index, _cts.Token);
 							return order;
 						})
