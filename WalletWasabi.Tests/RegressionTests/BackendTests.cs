@@ -214,7 +214,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		await broadcaster.SendTransactionAsync(buildTransactionResult.Transaction);
 
-		await Task.Delay(1000);
+		await Task.Delay(11000);
 
 		var txId2 = buildTransactionResult.Transaction.GetHash();
 
