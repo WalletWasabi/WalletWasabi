@@ -86,7 +86,7 @@ public class CoinJoinCoinSelector
 			var orderedPendingPaymentsAmount = pendingPaymentsAmount!.OrderBy(x => x.Satoshi).Take(10).ToList(); // TODO: Create Constant for max outputs.
 
 			// TODO: WE NEED TO TAKE FEE ESTIMATION INTO ACCOUNT IN THIS FUNCTION
-			if (orderedPendingPaymentsAmount.First() >= maxRegistreableAmountPrivateCoins)
+			if (maxRegistreableAmountPrivateCoins > orderedPendingPaymentsAmount.First())
 			{
 
 				var combinations = privateCoins.CombinationsWithoutRepetition(1, MaxInputsRegistrableByWallet);
@@ -122,7 +122,7 @@ public class CoinJoinCoinSelector
 						.ToImmutableList();
 				}
 			}
-			else if (!stopWhenAllMixed)
+			else if (!stopWhenAllMixed || orderedPendingPaymentsAmount.First() >= privateCoins.Sum(x => x.Amount))
 			{
 				// We shouldn't continue, because we cannot do any payment anyway.
 				return ImmutableList<TCoin>.Empty;
