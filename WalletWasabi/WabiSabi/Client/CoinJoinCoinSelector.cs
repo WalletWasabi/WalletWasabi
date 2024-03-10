@@ -85,44 +85,47 @@ public class CoinJoinCoinSelector
 			var maxRegistreableAmountPrivateCoins = privateCoins.OrderByDescending(x => x.Amount).Take(MaxInputsRegistrableByWallet).Sum(x => x.Amount);
 			var orderedPendingPaymentsAmount = pendingPaymentsAmount!.OrderBy(x => x.Satoshi).Take(10).ToList(); // TODO: Create Constant for max outputs.
 
-			// TODO: WE NEED TO TAKE FEE ESTIMATION INTO ACCOUNT HERE
-			if (orderedPendingPaymentsAmount.First() < maxRegistreableAmountPrivateCoins)
+			// TODO: WE NEED TO TAKE FEE ESTIMATION INTO ACCOUNT IN THIS FUNCTION
+			if (orderedPendingPaymentsAmount.First() >= maxRegistreableAmountPrivateCoins)
+			{
+
+				var combinations = privateCoins.CombinationsWithoutRepetition(1, MaxInputsRegistrableByWallet);
+				var combinationsWithSum = combinations.Select(x =>
+				{
+					var xList = x.ToList();
+					return new
+					{
+						Amount = xList.Sum(y => y.Amount),
+						NbInputs = xList.Count,
+						Combination = xList
+					};
+				}).ToList();
+
+				while (orderedPendingPaymentsAmount.Count > 0)
+				{
+					var sumPendingPaymentsAmount = orderedPendingPaymentsAmount.Sum(x => x.Satoshi);
+					var possibleCombinationsForAmount =
+						combinationsWithSum.Where(x => x.Amount > sumPendingPaymentsAmount).ToList();
+
+					if (!possibleCombinationsForAmount.Any())
+					{
+						orderedPendingPaymentsAmount.RemoveLast(); // TODO: Remove biggest, is it really correct??
+						continue;
+					}
+
+					var minInputsCount = possibleCombinationsForAmount.Min(x => x.NbInputs);
+					return possibleCombinationsForAmount
+						.Where(x => x.NbInputs == minInputsCount)
+						.OrderBy(x => x.Amount)
+						.BiasedRandomElement(80, Rnd)!
+						.Combination
+						.ToImmutableList();
+				}
+			}
+			else if (!stopWhenAllMixed)
 			{
 				// We shouldn't continue, because we cannot do any payment anyway.
 				return ImmutableList<TCoin>.Empty;
-			}
-
-			var combinations = privateCoins.CombinationsWithoutRepetition(1, MaxInputsRegistrableByWallet);
-			var combinationsWithSum = combinations.Select(x =>
-			{
-				var xList = x.ToList();
-				return new
-				{
-					Amount = xList.Sum(y => y.Amount),
-					NbInputs = xList.Count,
-					Combination = xList
-				};
-			}).ToList();
-
-			while (orderedPendingPaymentsAmount.Count > 0)
-			{
-				var sumPendingPaymentsAmount = orderedPendingPaymentsAmount.Sum(x => x.Satoshi);
-				var possibleCombinationsForAmount =
-					combinationsWithSum.Where(x => x.Amount > sumPendingPaymentsAmount).ToList();
-
-				if (!possibleCombinationsForAmount.Any())
-				{
-					orderedPendingPaymentsAmount.RemoveLast(); // TODO: Remove biggest, is it really correct??
-					continue;
-				}
-
-				var minInputsCount = possibleCombinationsForAmount.Min(x => x.NbInputs);
-				return possibleCombinationsForAmount
-					.Where(x => x.NbInputs == minInputsCount)
-					.OrderBy(x => x.Amount)
-					.BiasedRandomElement(80, Rnd)!
-					.Combination
-					.ToImmutableList();
 			}
 		}
 
