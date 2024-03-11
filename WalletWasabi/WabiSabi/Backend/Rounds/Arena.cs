@@ -555,7 +555,7 @@ public partial class Arena : PeriodicRunner
 	}
 
 	// Destroy the round when it reaches this input count and create 2 new ones instead.
-	private int CalculateLoadBalanceThreshold(int minInputCountByRound, int maxInputCountByRound) => (int)Math.Min(0.9 * maxInputCountByRound, minInputCountByRound * 2 + minInputCountByRound / 2);
+	private int CalculateLoadBalanceThreshold(int minInputCountByRound, int maxInputCountByRound) => (int)Math.Min(0.9375 * maxInputCountByRound, minInputCountByRound * 2 + minInputCountByRound / 2);
 
 	private Round? TryMineRound(RoundParameters parameters, Round[] rounds)
 	{
