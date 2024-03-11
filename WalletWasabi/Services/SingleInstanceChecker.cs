@@ -194,7 +194,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		}
 		finally
 		{
-			listener?.Dispose();
+			listener?.Stop();
 		}
 	}
 

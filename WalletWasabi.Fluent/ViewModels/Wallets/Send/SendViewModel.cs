@@ -49,7 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
-	[AutoNotify] private decimal _amountBtc;
+	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
@@ -119,7 +119,12 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
-				var amount = new Money(AmountBtc, MoneyUnit.BTC);
+				if (AmountBtc is not { } amountBtc)
+				{
+					return;
+				}
+
+				var amount = new Money(amountBtc, MoneyUnit.BTC);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
 					Amount = amount,
@@ -175,16 +180,13 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
-		{
-			var text = await clipboard.GetTextAsync();
+		var text = await ApplicationHelper.GetTextAsync();
 
-			lock (_parsingLock)
+		lock (_parsingLock)
+		{
+			if (!TryParseUrl(text) && pasteIfInvalid)
 			{
-				if (!TryParseUrl(text) && pasteIfInvalid)
-				{
-					To = text;
-				}
+				To = text;
 			}
 		}
 	}
@@ -195,7 +197,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (!Services.PersistentConfig.UseTor)
+			if (!Services.Config.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
@@ -219,6 +221,11 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateAmount(IValidationErrors errors)
 	{
+		if (AmountBtc is null)
+		{
+			return;
+		}
+
 		if (AmountBtc > Constants.MaximumNumberOfBitcoins)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");

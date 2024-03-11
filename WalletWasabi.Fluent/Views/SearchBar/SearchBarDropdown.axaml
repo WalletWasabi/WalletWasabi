@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              x:CompileBindings="True"
@@ -110,13 +108,13 @@
                      TextTrimming="CharacterEllipsis" />
         </DockPanel>
 
-        <i:Interaction.Behaviors>
+        <Interaction.Behaviors>
           <ButtonClickEventTriggerBehavior>
-            <behaviors:FocusControlAction TargetControl="{x:Static helpers:ApplicationHelper.MainWindow}" />
+            <FocusControlAction TargetControl="{x:Static helpers:ApplicationHelper.MainWindow}" />
             <InvokeCommandAction Command="{Binding Command}" />
             <InvokeCommandAction Command="{Binding $parent[searchBar:SearchBar].((sb:SearchBarViewModel)DataContext).ResetCommand}" />
           </ButtonClickEventTriggerBehavior>
-        </i:Interaction.Behaviors>
+        </Interaction.Behaviors>
       </Button>
     </DataTemplate>
   </UserControl.DataTemplates>

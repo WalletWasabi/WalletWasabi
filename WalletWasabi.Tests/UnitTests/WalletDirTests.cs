@@ -44,7 +44,7 @@ public class WalletDirTests
 	public async Task TestPathsAsync()
 	{
 		var baseDir = Common.GetWorkDir();
-		_ = await CleanupWalletDirectoriesAsync(baseDir);
+		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var mainWd = new WalletDirectories(Network.Main, baseDir);
 		Assert.Equal(Network.Main, mainWd.Network);

@@ -47,6 +47,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
+
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
 	private KeyManager KeyManager { get; }
@@ -193,7 +194,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				while (SynchronizationRequests.TryDequeue(out var request, out _))
 				{
-					_ = request.Tcs.TrySetCanceled(cancellationToken);
+					request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
 		}
@@ -261,7 +262,7 @@ public class WalletFilterProcessor : BackgroundService
 	/// </summary>
 	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(FullNodeSourceRequest.Instance, blockHash, priority, cancellationToken).ConfigureAwait(false);
+		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash, priority, cancellationToken).ConfigureAwait(false);
 
 		if (fullNodeResult is BlockDownloadService.SuccessResult successFullNodeResult)
 		{

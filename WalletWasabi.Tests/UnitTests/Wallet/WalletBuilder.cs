@@ -68,7 +68,8 @@ public class WalletBuilder : IAsyncDisposable
 
 		await BlockDownloadService.StartAsync(CancellationToken.None).ConfigureAwait(false);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, BlockDownloadService);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService);
+		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
 	public async ValueTask DisposeAsync()

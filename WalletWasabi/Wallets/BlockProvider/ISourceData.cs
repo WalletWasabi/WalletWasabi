@@ -5,7 +5,7 @@ namespace WalletWasabi.Wallets.BlockProvider;
 /// <summary>
 /// Source that provided a bitcoin block to us.
 /// </summary>
-public enum Source 
+public enum Source
 {
 	/// <summary>Wasabi Wallet file-system cache.</summary>
 	/// <remarks>The assumption is that the cache is tested always before real block sources.</remarks>
@@ -14,14 +14,14 @@ public enum Source
 	/// <summary>Trusted full node that can provide blocks and there is no concern over privacy.</summary>
 	TrustedFullNode = 1,
 
-	/// <summary>P2P node that provided a block to us.</summary>
+	/// <summary>Node from the P2P Network that provided a block to us.</summary>
 	P2P = 2,
 }
 
-public enum P2pSourceDataCode
+public enum P2pSourceDataStatusCode
 {
 	/// <summary>Block was successfully downloaded.</summary>
-	OK,
+	Success,
 
 	/// <summary>Operation was cancelled.</summary>
 	Cancelled,
@@ -34,7 +34,7 @@ public enum P2pSourceDataCode
 
 	/// <summary>Failed to get block.</summary>
 	/// <remarks>This covers for example networking errors.</remarks>
-	Failure,
+	Failure
 }
 
 public interface ISourceData
@@ -52,15 +52,15 @@ public record EmptySourceData(Source Source) : ISourceData
 }
 
 /// <summary>
-/// Source data for a bitcoin block downloaded over P2P.
+/// Source data for a bitcoin block downloaded over the P2P Network.
 /// </summary>
-/// <param name="Code">Description of the P2P operation result.</param>
+/// <param name="StatusCode">Description of the P2P operation result.</param>
 /// <param name="Node">Node from which we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
 /// <param name="ConnectedNodes">
 /// Number of connected peers at the moment when we downloaded the bitcoin block.
 /// The number of connected peers can change at any moment.
 /// </param>
-public record P2pSourceData(P2pSourceDataCode Code, Node? Node, uint ConnectedNodes) : ISourceData
+public record P2pSourceData(P2pSourceDataStatusCode StatusCode, Node? Node, uint ConnectedNodes) : ISourceData
 {
 	public Source Source => Source.P2P;
 }

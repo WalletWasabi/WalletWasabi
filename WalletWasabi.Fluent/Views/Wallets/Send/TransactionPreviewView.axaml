@@ -2,115 +2,110 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
-  <c:ContentArea Caption=""
+  <ContentArea Caption=""
                  MinWidth="550"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="{Binding NextButtonText}"
                  EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
                  IsBusy="{Binding IsBusy}"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 Title="Preview Transaction">
 
-    <i:Interaction.Behaviors>
-      <behaviors:HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
-    </i:Interaction.Behaviors>
+    <Interaction.Behaviors>
+      <HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
+    </Interaction.Behaviors>
 
-    <c:ContentArea.Title>
-      <DockPanel>
-        <TextBlock Text="Preview Transaction" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
-          <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with payjoin."
-                 IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
+    <ContentArea.TopContent>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
+        <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
+               ToolTip.Tip="Your privacy is being protected with payjoin."
+               IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <Button Command="{Binding UndoCommand}" Classes="plain" Padding="10 0 10 10"
-                  ToolTip.Tip="Undo last modification" IsVisible="{Binding CanUndo}">
-            <Viewbox Height="20">
-              <PathIcon Data="{StaticResource undo_icon_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-            </Viewbox>
-          </Button>
+        <Button Command="{Binding UndoCommand}" Classes="plain" Padding="10 0 10 10"
+                ToolTip.Tip="Undo last modification" IsVisible="{Binding CanUndo}">
+          <Viewbox Height="20">
+            <PathIcon Data="{StaticResource undo_icon_regular}" Foreground="{DynamicResource SystemAccentColor}" />
+          </Viewbox>
+        </Button>
 
-          <Border Padding="10 0 10 10">
-            <Border.Styles>
-              <Style Selector="FlyoutPresenter">
-                <Setter Property="MaxHeight" Value="1200" />
-                <Setter Property="MinWidth" Value="400" />
-                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-              </Style>
-              <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
-                <Setter Property="MaxHeight" Value="1200" />
-              </Style>
+        <Border Padding="10 0 10 10">
+          <Border.Styles>
+            <Style Selector="FlyoutPresenter">
+              <Setter Property="MaxHeight" Value="1200" />
+              <Setter Property="MinWidth" Value="400" />
+              <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            </Style>
+            <Style Selector="FlyoutPresenter /template/ Panel#RootPanel">
+              <Setter Property="MaxHeight" Value="1200" />
+            </Style>
 
-              <Style Selector="PathIcon.noPrivacy">
-                <Setter Property="Data" Value="{StaticResource warning_regular}" />
-                <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
-              </Style>
-              <Style Selector="PathIcon.badPrivacy">
-                <Setter Property="Data" Value="{StaticResource warning_regular}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-              </Style>
-              <Style Selector="PathIcon.goodPrivacy">
-                <Setter Property="Data" Value="{StaticResource shield_regular}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
-              </Style>
-              <Style Selector="PathIcon.maxPrivacy">
-                <Setter Property="Data" Value="{StaticResource shield_tick_regular}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
-              </Style>
-              <Style Selector="PathIcon.isBusy">
-                <Setter Property="Data" Value="{StaticResource shield_regular}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-                <Style.Animations>
-                  <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate" Easing="{StaticResource FluentEasing}">
-                    <KeyFrame Cue="0%">
-                      <Setter Property="Opacity" Value="0.2" />
-                    </KeyFrame>
-                    <KeyFrame Cue="100%">
-                      <Setter Property="Opacity" Value="1" />
-                    </KeyFrame>
-                  </Animation>
-                </Style.Animations>
-              </Style>
-            </Border.Styles>
-            <Interaction.Behaviors>
-              <behaviors:ShowFlyoutOnPointerOverBehavior />
-            </Interaction.Behaviors>
-            <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
-                  <!-- Warnings -->
-                  <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
+            <Style Selector="PathIcon.noPrivacy">
+              <Setter Property="Data" Value="{StaticResource warning_regular}" />
+              <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+            </Style>
+            <Style Selector="PathIcon.badPrivacy">
+              <Setter Property="Data" Value="{StaticResource warning_regular}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+            </Style>
+            <Style Selector="PathIcon.goodPrivacy">
+              <Setter Property="Data" Value="{StaticResource shield_regular}" />
+              <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+            </Style>
+            <Style Selector="PathIcon.maxPrivacy">
+              <Setter Property="Data" Value="{StaticResource shield_tick_regular}" />
+              <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+            </Style>
+            <Style Selector="PathIcon.isBusy">
+              <Setter Property="Data" Value="{StaticResource shield_regular}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+              <Style.Animations>
+                <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate" Easing="{StaticResource FluentEasing}">
+                  <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0.2" />
+                  </KeyFrame>
+                  <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+          </Border.Styles>
+          <Interaction.Behaviors>
+            <ShowFlyoutOnPointerOverBehavior />
+          </Interaction.Behaviors>
+          <FlyoutBase.AttachedFlyout>
+            <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+              <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
+                <!-- Warnings -->
+                <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />
 
-                  <!-- Full privacy message -->
-                  <DockPanel IsVisible="{Binding MaxPrivacy}">
-                    <TextBlock Text="This transaction is well optimized" DockPanel.Dock="Top" HorizontalAlignment="Center" />
-                    <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
-                  </DockPanel>
-                </Panel>
-              </Flyout>
-            </FlyoutBase.AttachedFlyout>
-            <Viewbox Height="20">
-              <Panel>
-                <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
-                          Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
-                          Classes.badPrivacy="{Binding PrivacySuggestions.BadPrivacy}"
-                          Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
-                          Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+                <!-- Full privacy message -->
+                <DockPanel IsVisible="{Binding MaxPrivacy}">
+                  <TextBlock Text="This transaction is well optimized" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                  <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
+                </DockPanel>
               </Panel>
-            </Viewbox>
-          </Border>
-        </StackPanel>
-      </DockPanel>
-    </c:ContentArea.Title>
+            </Flyout>
+          </FlyoutBase.AttachedFlyout>
+          <Viewbox Height="20">
+            <Panel>
+              <PathIcon Classes.isBusy="{Binding PrivacySuggestions.IsBusy}"
+                        Classes.noPrivacy="{Binding PrivacySuggestions.NoPrivacy}"
+                        Classes.badPrivacy="{Binding PrivacySuggestions.BadPrivacy}"
+                        Classes.goodPrivacy="{Binding PrivacySuggestions.GoodPrivacy}"
+                        Classes.maxPrivacy="{Binding PrivacySuggestions.MaxPrivacy}" />
+            </Panel>
+          </Viewbox>
+        </Border>
+      </StackPanel>
+    </ContentArea.TopContent>
     <Carousel ItemsSource="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
@@ -122,5 +117,5 @@
         </DataTemplate>
       </Carousel.ItemTemplate>
     </Carousel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

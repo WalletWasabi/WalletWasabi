@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -23,8 +23,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<VerticalAlignment> VerticalContentAlignmentProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, VerticalAlignment>(nameof(VerticalContentAlignment));
 
-	public static readonly DirectProperty<DualCurrencyEntryBox, decimal> AmountBtcProperty =
-		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal>(
+	public static readonly DirectProperty<DualCurrencyEntryBox, decimal?> AmountBtcProperty =
+		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal?>(
 			nameof(AmountBtc),
 			o => o.AmountBtc,
 			(o, v) => o.AmountBtc = v,
@@ -84,20 +84,22 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
-	private decimal _amountBtc;
-	private bool _canUpdateDisplay = true;
-	private bool _canUpdateFiat = true;
+	private decimal? _amountBtc;
+	private bool _isTextInputFocused;
+	private bool _isConversationTextFocused;
+	private bool _skipProcessing;
+	private bool _skipTextProcessing;
 
 	public DualCurrencyEntryBox()
 	{
-		this.GetObservable(TextProperty).Subscribe(InputText);
-		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
-		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
+		this.GetObservable(TextProperty).Where(_ => !_skipTextProcessing).Subscribe(InputText);
+		this.GetObservable(ConversionTextProperty).Where(_ => !_skipTextProcessing).Subscribe(InputConversionText);
+		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay());
+		this.GetObservable(AmountBtcProperty).Where(_ => !_skipProcessing).Subscribe(_ => UpdateDisplay(true));
 
-		UpdateDisplay(false);
+		UpdateDisplay();
 
 		PseudoClasses.Set(":noexchangerate", true);
 	}
@@ -114,7 +116,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set { SetValue(VerticalContentAlignmentProperty, value); }
 	}
 
-	public decimal AmountBtc
+	public decimal? AmountBtc
 	{
 		get => _amountBtc;
 		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
@@ -222,141 +224,110 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
 
-	protected override void OnLostFocus(RoutedEventArgs e)
-	{
-		base.OnLostFocus(e);
-
-		UpdateDisplay(true);
-	}
-
 	private void InputText(string? text)
 	{
-		if (!_canUpdateDisplay)
+		if (!_isTextInputFocused)
 		{
 			return;
 		}
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			InputBtcValue(0);
-			UpdateDisplay(false);
+			SetBtcAmount(null);
 		}
 		else
 		{
-			InputBtcString(text);
+			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
+			{
+				text = better;
+			}
+
+			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			{
+				SetBtcAmount(decimalValue);
+			}
 		}
+
+		UpdateDisplay();
 	}
 
 	private void InputConversionText(string? text)
 	{
-		if (!_canUpdateDisplay)
+		if (!_isConversationTextFocused)
 		{
 			return;
 		}
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			InputBtcValue(0);
-			UpdateDisplay(false);
+			SetBtcAmount(null);
 		}
 		else
 		{
-			InputFiatString(text);
+			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			{
+				SetBtcAmount(FiatToBitcoin(decimalValue));
+			}
 		}
+
+		UpdateDisplay();
 	}
 
-	private void InputBtcValue(decimal value)
+	private void UpdateDisplay(bool insertValue = false)
 	{
-		SetCurrentValue(AmountBtcProperty, value);
+		_skipTextProcessing = true;
+		UpdateTextDisplay(insertValue);
+		UpdateConversationTextDisplay(insertValue);
+		_skipTextProcessing = false;
 	}
 
-	private void InputBtcString(string value)
-	{
-		if (CurrencyInput.TryCorrectBitcoinAmount(value, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
-		{
-			value = better;
-		}
-
-		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
-		{
-			InputBtcValue(decimalValue);
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void InputFiatString(string value)
-	{
-		if (!_canUpdateFiat)
-		{
-			return;
-		}
-
-		if (decimal.TryParse(value, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
-		{
-			InputBtcValue(FiatToBitcoin(decimalValue));
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void UpdateDisplay(bool updateTextField)
+	private void UpdateTextDisplay(bool insertValue)
 	{
 		Watermark = FullFormatBtc(0);
 
-		if (updateTextField)
+		var text = LeftEntryBox?.Text ?? "";
+		if (_isTextInputFocused)
 		{
-			_canUpdateDisplay = false;
-
-			var oldText = LeftEntryBox?.Text;
-			var text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
-			SetCurrentValue(TextProperty, text);
-
-			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(LeftEntryBox, text, oldText);
-
-			_canUpdateDisplay = true;
+			text = insertValue ? AmountBtc?.ToString(CultureInfo.InvariantCulture) : RemoveFormat(text);
+		}
+		else
+		{
+			text = AmountBtc > 0 ? AmountBtc?.FormattedBtc() : string.Empty;
 		}
 
-		UpdateDisplayFiat(updateTextField);
+		SetCurrentValue(TextProperty, text);
 	}
 
-	private void UpdateDisplayFiat(bool updateTextField)
+	private void UpdateConversationTextDisplay(bool insertValue)
 	{
-		_canUpdateFiat = false;
-
 		if (ConversionRate == 0m)
 		{
 			return;
 		}
 
-		var conversion = BitcoinToFiat(AmountBtc);
-
 		SetCurrentValue(IsConversionApproximateProperty, AmountBtc > 0);
 		SetCurrentValue(ConversionWatermarkProperty, FullFormatFiat(0, ConversionCurrencyCode, true));
 
-		if (updateTextField)
-		{
-			var oldText = RightEntryBox?.Text;
-			var text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
-			SetCurrentValue(ConversionTextProperty, text);
+		var conversion = BitcoinToFiat(AmountBtc);
 
-			// TODO: Maintain CaretIndex properly.
-			SetCaretIndex(RightEntryBox, text, oldText);
+		var text = RightEntryBox?.Text ?? "";
+		if (_isConversationTextFocused)
+		{
+			text = insertValue ? RemoveFormat(conversion?.FormattedFiat() ?? "") : RemoveFormat(text);
+		}
+		else
+		{
+			text = AmountBtc > 0 ? conversion?.FormattedFiat() ?? string.Empty : string.Empty;
 		}
 
-		_canUpdateFiat = true;
+		SetCurrentValue(ConversionTextProperty, text);
 	}
 
-	private void SetCaretIndex(CurrencyEntryBox? entryBox, string newText, string? oldText)
+	private void SetBtcAmount(decimal? amount)
 	{
-		if (entryBox is not null)
-		{
-			var oldTextLength = oldText?.Length ?? 0;
-			var newTextLength = newText.Length;
-			var newCaretIndex = entryBox.CaretIndex + (newTextLength - oldTextLength);
-			Dispatcher.UIThread.Post(() => entryBox?.SetCurrentValue(TextBox.CaretIndexProperty, newCaretIndex + 1));
-		}
+		_skipProcessing = true;
+		SetCurrentValue(AmountBtcProperty, amount);
+		_skipProcessing = false;
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -364,7 +335,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		return fiatValue / ConversionRate;
 	}
 
-	private decimal BitcoinToFiat(decimal btcValue)
+	private decimal? BitcoinToFiat(decimal? btcValue)
 	{
 		return btcValue * ConversionRate;
 	}
@@ -396,6 +367,34 @@ public class DualCurrencyEntryBox : TemplatedControl
 		LeftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
 		RightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
 
+		LeftEntryBox?
+			.GetObservable(IsKeyboardFocusWithinProperty)
+			.Subscribe(x =>
+			{
+				if (LeftEntryBox.ContextFlyout is null || LeftEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
+				_isTextInputFocused = x;
+				UpdateDisplay();
+			})
+			.DisposeWith(_disposable);
+
+		RightEntryBox?
+			.GetObservable(IsKeyboardFocusWithinProperty)
+			.Subscribe(x =>
+			{
+				if (RightEntryBox.ContextFlyout is null || RightEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
+				_isConversationTextFocused = x;
+				UpdateDisplay();
+			})
+			.DisposeWith(_disposable);
+
 		if (_swapButton is { })
 		{
 			_swapButton.Click += SwapButtonOnClick;
@@ -422,6 +421,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 		focusOn?.Focus();
 	}
 
+	private string RemoveFormat(string text) => text.Replace(" ", "");
+
 	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == AmountBtcProperty)
@@ -446,7 +447,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		{
 			PseudoClasses.Set(":reversed", change.GetNewValue<bool>());
 			ReorganizeVisuals();
-			UpdateDisplay(false);
+			UpdateDisplay();
 		}
 	}
 

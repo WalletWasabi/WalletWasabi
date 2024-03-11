@@ -121,7 +121,7 @@ public class SpectrumControl : TemplatedControl
         }
 
         _customVisual.Size = new Vector2((float)Bounds.Size.Width, (float)Bounds.Size.Height);
-        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update));
+        _customVisual.SendHandlerMessage(new DrawPayload(HandlerCommand.Update, _spectrumDrawHandler, Bounds));
     }
 
     public void Start()

@@ -51,9 +51,9 @@ public class BlockDownloadService : BackgroundService
 	/// Guarded by <see cref="Lock"/>.
 	/// <para>Internal for testing purposes.</para>
 	/// </remarks>
-	internal PriorityQueue<Request, Priority> BlocksToDownload { get; } = new(Priority.Comparer);
+	internal PriorityQueue<Request, Priority> BlocksToDownloadRequests { get; } = new(Priority.Comparer);
 
-	/// <remarks>Guards <see cref="BlocksToDownload"/>.</remarks>
+	/// <remarks>Guards <see cref="BlocksToDownloadRequests"/>.</remarks>
 	private object Lock { get; } = new();
 
 	/// <summary>
@@ -90,8 +90,8 @@ public class BlockDownloadService : BackgroundService
 	{
 		lock (Lock)
 		{
-			int count = BlocksToDownload.Count;
-			BlocksToDownload.Enqueue(request, request.Priority);
+			int count = BlocksToDownloadRequests.Count;
+			BlocksToDownloadRequests.Enqueue(request, request.Priority);
 
 			if (count == 0 && RequestAvailableSemaphore.CurrentCount == 0)
 			{
@@ -115,7 +115,7 @@ public class BlockDownloadService : BackgroundService
 
 		lock (Lock)
 		{
-			List<(Request Element, Priority Priority)> items = BlocksToDownload.UnorderedItems.ToList();
+			List<(Request Element, Priority Priority)> items = BlocksToDownloadRequests.UnorderedItems.ToList();
 
 			foreach ((Request request, Priority priority) in items)
 			{
@@ -126,13 +126,13 @@ public class BlockDownloadService : BackgroundService
 				else
 				{
 					// The block might have been downloaded by now so just try to set the result.
-					_ = request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
+					request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
 					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
 
-			BlocksToDownload.Clear();
-			BlocksToDownload.EnqueueRange(tempQueue.UnorderedItems);
+			BlocksToDownloadRequests.Clear();
+			BlocksToDownloadRequests.EnqueueRange(tempQueue.UnorderedItems);
 		}
 
 		foreach (uint256 blockHash in toRemoveFromCache)
@@ -157,7 +157,7 @@ public class BlockDownloadService : BackgroundService
 				lock (Lock)
 				{
 					// Wait until at least one block-downloading request is here; otherwise, consume requests so that there is at most MAX parallel tasks.
-					wait = BlocksToDownload.Count == 0;
+					wait = BlocksToDownloadRequests.Count == 0;
 				}
 
 				if (wait)
@@ -167,12 +167,11 @@ public class BlockDownloadService : BackgroundService
 
 				lock (Lock)
 				{
-					int toStart = Math.Min(BlocksToDownload.Count, MaximumParallelTasks - activeTasks.Count);
+					int toStart = Math.Min(BlocksToDownloadRequests.Count, MaximumParallelTasks - activeTasks.Count);
 
 					for (int i = 0; i < toStart; i++)
 					{
-						// Dequeue does not provide priority value.
-						if (!BlocksToDownload.TryDequeue(out Request? queuedRequest, out Priority? _))
+						if (!BlocksToDownloadRequests.TryDequeue(out Request? queuedRequest, out _))
 						{
 							throw new UnreachableException("Failed to dequeue block from the queue.");
 						}
@@ -201,6 +200,7 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (Exception ex)
 		{
+			// This shouldn't happen.
 			Logger.LogError(ex);
 			throw;
 		}
@@ -209,9 +209,9 @@ public class BlockDownloadService : BackgroundService
 			// Mark everything as cancelled because the service is shutting down (either gracefully or forcibly).
 			lock (Lock)
 			{
-				while (BlocksToDownload.TryDequeue(out Request? request, out _))
+				while (BlocksToDownloadRequests.TryDequeue(out Request? request, out _))
 				{
-					_ = request.Tcs.TrySetResult(CanceledResult.Instance);
+					request.Tcs.TrySetResult(CanceledResult.Instance);
 				}
 			}
 		}
@@ -223,7 +223,7 @@ public class BlockDownloadService : BackgroundService
 
 		if (response.Result is SuccessResult)
 		{
-			_ = request.Tcs.TrySetResult(response.Result);
+			request.Tcs.TrySetResult(response.Result);
 		}
 		else
 		{
@@ -247,7 +247,7 @@ public class BlockDownloadService : BackgroundService
 
 		try
 		{
-			// Try get the block from the file-system storage.
+			// Try to get the block from the file-system storage.
 			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
@@ -257,8 +257,9 @@ public class BlockDownloadService : BackgroundService
 			SuccessResult? successResult = null;
 			ISourceData? failureSourceData = null;
 
-			if (request.SourceRequest is FullNodeSourceRequest)
+			if (request.SourceRequest is TrustedFullNodeSourceRequest)
 			{
+				// Try to get the block from a trusted node, whether it's integrated or distant.
 				if (TrustedFullNodeBlockProviders.Length == 0)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);
@@ -282,6 +283,7 @@ public class BlockDownloadService : BackgroundService
 			}
 			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
 			{
+				// Try to get the block from the P2P Network.
 				if (P2PBlockProvider is null)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);

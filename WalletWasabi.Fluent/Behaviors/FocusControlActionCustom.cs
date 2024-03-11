@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -7,16 +8,16 @@ namespace WalletWasabi.Fluent.Behaviors;
 /// <summary>
 /// Focuses the associated or target control when executed.
 /// </summary>
-public class FocusControlAction : AvaloniaObject, IAction
+public class FocusControlActionCustom : AvaloniaObject, IAction
 {
 	/// <summary>
-	/// Identifies the <seealso cref="TargetControl"/> avalonia property.
+	/// Identifies the <seealso cref="TargetControl"/> Avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Control?> TargetControlProperty =
-		AvaloniaProperty.Register<FocusControlAction, Control?>(nameof(TargetControl));
+		AvaloniaProperty.Register<FocusControlActionCustom, Control?>(nameof(TargetControl));
 
 	/// <summary>
-	/// Gets or sets the target control. This is a avalonia property.
+	/// Gets or sets the target control. This is an Avalonia property.
 	/// </summary>
 	[ResolveByName]
 	public Control? TargetControl
@@ -33,17 +34,8 @@ public class FocusControlAction : AvaloniaObject, IAction
 	/// <returns>Returns null after executed.</returns>
 	public virtual object? Execute(object? sender, object? parameter)
 	{
-		if (TargetControl is not null)
-		{
-			TargetControl.Focus();
-		}
-		else
-		{
-			if (sender is Control control)
-			{
-				control.Focus();
-			}
-		}
+		var control = TargetControl ?? sender as Control;
+		Dispatcher.UIThread.Post(() => control?.Focus());
 		return null;
 	}
 }

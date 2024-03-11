@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Fluent.Models.UI;
 

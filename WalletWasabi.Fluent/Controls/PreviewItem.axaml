@@ -1,16 +1,15 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:conv="using:WalletWasabi.Fluent.Converters">
 
   <Design.PreviewWith>
     <Border Width="200">
-      <c:PreviewItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
+      <PreviewItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
                      CopyableContent="Text to copy" />
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:PreviewItem}" TargetType="c:PreviewItem">
+  <ControlTheme x:Key="{x:Type PreviewItem}" TargetType="PreviewItem">
 
     <Setter Property="Template">
       <ControlTemplate>
@@ -26,7 +25,7 @@
                        Opacity="0.6"
                        IsVisible="{Binding !!$self.Text}"/>
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+              <ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
                                      ToolTip.Tip="Copy"
                                      DockPanel.Dock="Right" Width="30"
                                      Text="{Binding Path=CopyableContent, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:StringConverters.AsString}}"

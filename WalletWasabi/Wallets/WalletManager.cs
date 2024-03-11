@@ -5,9 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -16,10 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
 
@@ -32,11 +26,7 @@ public class WalletManager : IWalletProvider
 		Network network,
 		string workDir,
 		WalletDirectories walletDirectories,
-		BitcoinStore bitcoinStore,
-		WasabiSynchronizer synchronizer,
-		HybridFeeProvider feeProvider,
-		BlockDownloadService blockDownloadService,
-		ServiceConfiguration serviceConfiguration)
+		WalletFactory walletFactory)
 	{
 		using IDisposable _ = BenchmarkLogger.Measure();
 
@@ -44,14 +34,10 @@ public class WalletManager : IWalletProvider
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = walletDirectories;
-		BitcoinStore = bitcoinStore;
-		Synchronizer = synchronizer;
-		FeeProvider = feeProvider;
-		BlockDownloadService = blockDownloadService;
-		ServiceConfiguration = serviceConfiguration;
+		WalletFactory = walletFactory;
 		CancelAllTasksToken = CancelAllTasks.Token;
 
-		RefreshWalletList();
+		LoadWalletListFromFileSystem();
 	}
 
 	/// <summary>
@@ -82,18 +68,14 @@ public class WalletManager : IWalletProvider
 	private object Lock { get; } = new();
 	private AsyncLock StartStopWalletLock { get; } = new();
 
-	private BitcoinStore BitcoinStore { get; }
-	private WasabiSynchronizer Synchronizer { get; }
-	private ServiceConfiguration ServiceConfiguration { get; }
 	private bool IsInitialized { get; set; }
 
-	private HybridFeeProvider FeeProvider { get; }
+	private WalletFactory WalletFactory { get; }
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private BlockDownloadService BlockDownloadService { get; }
 	private string WorkDir { get; }
 
-	private void RefreshWalletList()
+	private void LoadWalletListFromFileSystem()
 	{
 		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
 
@@ -108,7 +90,7 @@ public class WalletManager : IWalletProvider
 			return;
 		}
 
-		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => GetWalletByName(walletName), CancelAllTasksToken)).ToList();
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), CancelAllTasksToken)).ToList();
 
 		while (walletLoadTasks.Count > 0)
 		{
@@ -186,15 +168,10 @@ public class WalletManager : IWalletProvider
 		return null;
 	}
 
-	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets());
 
-	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
+	public IEnumerable<Wallet> GetWallets()
 	{
-		if (refreshWalletList)
-		{
-			RefreshWalletList();
-		}
-
 		lock (Lock)
 		{
 			return Wallets.ToList();
@@ -267,18 +244,18 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = CreateWalletInstance(keyManager);
+		Wallet wallet = WalletFactory.Create(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
 
-	private Wallet GetWalletByName(string walletName)
+	private Wallet LoadWalletByNameFromDisk(string walletName)
 	{
 		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 		Wallet wallet;
 		try
 		{
-			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
+			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -305,7 +282,7 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = CreateWalletInstance(KeyManager.FromFile(walletFullPath));
+			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 
 		return wallet;
@@ -332,9 +309,6 @@ public class WalletManager : IWalletProvider
 
 		WalletAdded?.Invoke(this, wallet);
 	}
-
-	private Wallet CreateWalletInstance(KeyManager keyManager)
-		=> new(WorkDir, Network, keyManager, BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockDownloadService);
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
@@ -470,74 +444,24 @@ public class WalletManager : IWalletProvider
 		IsInitialized = true;
 	}
 
-	// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
-	public void ResyncToBefore12137()
-	{
-		if (Network == Network.RegTest)
-		{
-			// On this network, height resets to 0 anyway.
-			return;
-		}
-
-		// PR https://github.com/zkSNACKs/WalletWasabi/pull/12137 was created at 2023-12-23T21:43:40Z.
-		// * Mainnet block 822621 (https://mempool.space/block/00000000000000000001610628413ce8139e9fc042792c24d01d392afdd61ea4) was mined before the PR was created.
-		// * Testnet block 2542919 (https://mempool.space/testnet/block/0000000000000e396f89531b6e21128fbd2f6c76c8977fb0d0720313af350799) was mined before the PR was created.
-		var heightPriorTo12137 = Network == Network.Main ? 822621 : 2542919;
-
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
-		{
-			if (km.GetBestHeight(SyncType.Complete) > heightPriorTo12137)
-			{
-				km.SetBestHeight(heightPriorTo12137);
-			}
-
-			if (km.GetBestHeight(SyncType.Turbo) > heightPriorTo12137)
-			{
-				km.SetBestTurboSyncHeight(heightPriorTo12137);
-			}
-		}
-	}
-
 	public void EnsureTurboSyncHeightConsistency()
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.EnsureTurboSyncHeightConsistency();
 		}
 	}
 
-	public void EnsureHeightsAreAtLeastSegWitActivation()
-	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
-		{
-			var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
-			if (startingSegwitHeight > km.GetBestHeight(SyncType.Complete))
-			{
-				km.SetBestHeight(startingSegwitHeight);
-			}
-
-			if (startingSegwitHeight > km.GetBestHeight(SyncType.Turbo))
-			{
-				km.SetBestTurboSyncHeight(startingSegwitHeight);
-			}
-		}
-	}
-
 	public void SetMaxBestHeight(uint bestHeight)
 	{
-		foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
 			km.SetMaxBestHeight(new Height(bestHeight));
 		}
 	}
 
-	/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
-	public Wallet GetWalletByName(string walletName, bool refreshWalletList = true)
+	public Wallet GetWalletByName(string walletName)
 	{
-		if (refreshWalletList)
-		{
-			RefreshWalletList();
-		}
 		lock (Lock)
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);

@@ -1,5 +1,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData.Binding;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -41,9 +43,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 
-		AddressesModel = wallet.AddressesModel;
-
-		HasUnusedAddresses = _wallet.AddressesModel.HasUnusedAddresses.StartWith(false);
+		AddressesModel = wallet.Addresses;
 	}
 
 	public IAddressesModel AddressesModel { get; }
@@ -52,12 +52,12 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
-	public IObservable<bool> HasUnusedAddresses { get; }
+	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Count().Select(i => i > 0);
 
 	private void OnNext()
 	{
 		SuggestionLabels.ForceAdd = true;
-		var address = _wallet.GetNextReceiveAddress(SuggestionLabels.Labels);
+		var address = _wallet.Addresses.NextReceiveAddress(SuggestionLabels.Labels);
 		SuggestionLabels.Labels.Clear();
 
 		Navigate().To().ReceiveAddress(_wallet, address, Services.UiConfig.Autocopy);
