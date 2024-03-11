@@ -92,9 +92,19 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create(() =>
+		{
+			Settings.SelectedTab = 0;
+			Navigate(NavigationTarget.DialogScreen).To(Settings);
+		});
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
+
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() =>
+		{
+			Settings.SelectedTab = 1;
+			Navigate(NavigationTarget.DialogScreen).To(Settings);
+		}, Observable.Return(!WalletModel.IsWatchOnlyWallet));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
 
@@ -161,6 +171,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand WalletCoinsCommand { get; private set; }
 
+	public ICommand CoinJoinSettingsCommand { get; private set; }
+
 	public override string Title
 	{
 		get => _title;
@@ -218,6 +230,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return new ISearchItem[]
 		{
 			new ActionableItem("Receive", "Display wallet receive dialog", () => { ReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Coins", "Display wallet coins", () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 4 },
 			new ActionableItem("Wallet Stats", "Display wallet stats", () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 5 },
