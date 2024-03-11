@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             x:DataType="wallets:WalletSettingsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.WalletBackupView">
+
+  <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
+    <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
+    <InfoMessage>
+      <DockPanel>
+        <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+        <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
+      </DockPanel>
+    </InfoMessage>
+    <InfoMessage>
+      <DockPanel>
+        <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+      </DockPanel>
+    </InfoMessage>
+  </StackPanel>
+
+</UserControl>
