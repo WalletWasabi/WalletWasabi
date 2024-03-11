@@ -207,13 +207,12 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using Key randomKey = new();
 		var randomReceiveScript = randomKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
-		await Task.Delay(1000);
-
 		// Build a transaction on top of TX1.
 		var buildTransactionResult = wallet.BuildTransaction(password, new PaymentIntent(randomReceiveScript, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: true, allowedInputs: outpoints);
 
 		await broadcaster.SendTransactionAsync(buildTransactionResult.Transaction);
 
+		// Wait for more than 10 seconds, so the backend cache expires.
 		await Task.Delay(11000);
 
 		var txId2 = buildTransactionResult.Transaction.GetHash();
