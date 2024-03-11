@@ -46,4 +46,5 @@
   <!--TODO @SuperJMN: Convert this to control? Is it worth the effort?-->
   <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewMessageItem.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CopyablePasswordTextBox.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollBar.axaml" />
 </Styles>
