@@ -199,7 +199,6 @@
           </ChatTextBox.InnerRightContent>
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
-            <TextBoxAddLineBreakBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
               <FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
