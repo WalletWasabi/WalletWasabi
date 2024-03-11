@@ -135,10 +135,10 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		var task = TaskStartTcpListener
 			?? throw new InvalidOperationException("This should never happen!");
-		TcpListener? listener = null;
+		
 		try
 		{
-			listener = new(IPAddress.Loopback, Port)
+            using TcpListener listener = new(IPAddress.Loopback, Port)
 			{
 				ExclusiveAddressUse = true
 			};
@@ -187,10 +187,6 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 			// Indicate that there was an error.
 			task.TrySetException(ex);
 			return;
-		}
-		finally
-		{
-			listener?.Dispose();
 		}
 	}
 
