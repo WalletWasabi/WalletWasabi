@@ -439,15 +439,14 @@ public class BlockchainController : ControllerBase
 			// TODO: It's very important since I changed the factoring, otherwise we might refetch a transaction that we just discarded...
 			// TODO: This is a hack BTW, hacking around GetCachedResponseAsync.
 			var currentTxId = toFetchFeeList.First();
-			var currentTx = await RpcClient.GetRawTransactionAsync(currentTxId, true, cancellationToken);
 
 			// Check if we just computed the item.
-			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTx.GetHash()}";
+			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTxId}";
 			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTx, cancellationToken),
+				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, cancellationToken),
 				options: cacheOptions,
 				cancellationToken);
 
@@ -465,8 +464,10 @@ public class BlockchainController : ControllerBase
 		return unconfirmedTxsChainById;
 	}
 
-	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(Transaction currentTx, CancellationToken cancellationToken)
+	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, CancellationToken cancellationToken)
 	{
+		var currentTx = await RpcClient.GetRawTransactionAsync(currentTxId, true, cancellationToken);
+
 		// Fetch parent transactions
 		var cacheKey = $"{nameof(FetchParentTransactionsFromRPCAsync)}_{currentTx.GetHash()}";
 		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) };
