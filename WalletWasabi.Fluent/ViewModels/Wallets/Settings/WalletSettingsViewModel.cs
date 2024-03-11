@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(
 	Title = "Wallet Settings",
