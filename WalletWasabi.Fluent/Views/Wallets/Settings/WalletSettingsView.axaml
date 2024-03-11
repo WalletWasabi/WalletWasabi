@@ -14,7 +14,8 @@
                EnableBack="{Binding EnableBack}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <TabControl Classes="Settings">
+    <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}"
+                Classes="Settings">
 
       <TabItem Header="General">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">

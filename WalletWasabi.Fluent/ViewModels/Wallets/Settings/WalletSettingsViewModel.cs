@@ -23,6 +23,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private string _walletName;
+	[AutoNotify] private int _selectedTab;
 
 	public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -30,6 +31,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_wallet = walletModel;
 		_walletName = walletModel.Name;
 		_preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
+		_selectedTab = 0;
 		IsHardwareWallet = walletModel.IsHardwareWallet;
 		IsWatchOnly = walletModel.IsWatchOnlyWallet;
 
