@@ -26,7 +26,7 @@
           <DockPanel>
             <PathIcon Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
               <i:Interaction.Behaviors>
-                <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="{Binding ., RelativeSource={RelativeSource TemplatedParent}}" />
+                <behaviors:CheckMarkVisibilityBehavior/>
               </i:Interaction.Behaviors>
             </PathIcon>
             <!-- TODO: Fix System.ArgumentException: Unable to resolve namespace for type validation:CheckMarkStatus -->
