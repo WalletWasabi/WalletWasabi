@@ -88,11 +88,6 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				if (_lifetime is IActivatableApplicationLifetime activatable)
-				{
-					activatable.TryEnterBackground();
-				}
-
 				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
