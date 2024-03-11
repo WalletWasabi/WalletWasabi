@@ -43,6 +43,7 @@ public class BlockchainController : ControllerBase
 
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
+	private MempoolMirror Mempool => Global.MempoolMirror;
 
 	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
 	public static object TransactionHexCacheLock { get; } = new();
@@ -402,9 +403,7 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
-			var mempool = Global.HostedServices.Get<MempoolMirror>();
-
-			if (!mempool.GetMempoolHashes().Contains(txId))
+			if (!Mempool.GetMempoolHashes().Contains(txId))
 			{
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
@@ -413,7 +412,7 @@ public class BlockchainController : ControllerBase
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 			var linkedCancellationToken = linkedCts.Token;
 
-			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempool, linkedCancellationToken);
+			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, linkedCancellationToken);
 			return Ok(unconfirmedTxsChainById.Values.ToList());
 		}
 		catch (OperationCanceledException)
@@ -427,7 +426,7 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, MempoolMirror mempool, CancellationToken cancellationToken)
+	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, CancellationToken cancellationToken)
 	{
 		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
 		var toFetchFeeList = new List<uint256> { requestedTxId };
@@ -448,7 +447,7 @@ public class BlockchainController : ControllerBase
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTx, mempool, cancellationToken),
+				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTx, cancellationToken),
 				options: cacheOptions,
 				cancellationToken);
 
@@ -466,7 +465,7 @@ public class BlockchainController : ControllerBase
 		return unconfirmedTxsChainById;
 	}
 
-	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(Transaction currentTx, MempoolMirror mempool, CancellationToken cancellationToken)
+	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(Transaction currentTx, CancellationToken cancellationToken)
 	{
 		// Fetch parent transactions
 		var cacheKey = $"{nameof(FetchParentTransactionsFromRPCAsync)}_{currentTx.GetHash()}";
@@ -479,9 +478,9 @@ public class BlockchainController : ControllerBase
 			cancellationToken);
 
 		// Get unconfirmed parents and children
-		var mempoolHashes = mempool.GetMempoolHashes();
+		var mempoolHashes = Mempool.GetMempoolHashes();
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
-		var unconfirmedChildrenTxs = mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
+		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
 
 		// TODO: Add unconfirmedParents and unconfirmedChildrenTxs to transaction cache.
 		return new UnconfirmedTransactionChainItem(
