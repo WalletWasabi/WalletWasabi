@@ -73,7 +73,7 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					lifetime.Shutdown();
+					_lifetime.Shutdown();
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
@@ -88,6 +88,11 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
+				if (_lifetime is IActivatableApplicationLifetime activatable)
+				{
+					activatable.TryEnterBackground();
+				}
+
 				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
@@ -171,6 +176,11 @@ public class ApplicationStateManager : IMainWindowService
 		if (_lifetime.MainWindow is { })
 		{
 			return;
+		}
+
+		if (_lifetime is IActivatableApplicationLifetime activatable)
+		{
+			activatable.TryLeaveBackground();
 		}
 
 		var result = new MainWindow
