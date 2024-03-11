@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -77,10 +76,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// <returns>true if this is the only instance running; otherwise false.</returns>
 	private async Task<bool> CanRunAsSingleInstanceAsync()
 	{
-		if (DisposeCts.IsCancellationRequested)
-		{
-			throw new ObjectDisposedException(nameof(SingleInstanceChecker));
-		}
+        ObjectDisposedException.ThrowIf(DisposeCts.IsCancellationRequested, this);
 
 		try
 		{
