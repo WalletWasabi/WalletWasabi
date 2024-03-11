@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:WalletNamePageViewModel"
              x:CompileBindings="True"
@@ -16,10 +14,10 @@
                  EnableNext="True" NextContent="Continue">
     <StackPanel DockPanel.Dock="Top">
       <TextBox MaxLength="{StaticResource WalletNameMaxLength}" Text="{Binding WalletName}" Watermark="Type in a wallet name">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-          <behaviors:TextBoxSelectAllTextBehavior />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <FocusOnAttachedBehavior />
+          <TextBoxSelectAllTextBehavior />
+        </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
   </ContentArea>

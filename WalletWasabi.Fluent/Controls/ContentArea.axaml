@@ -1,7 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-                    xmlns:i="using:Avalonia.Xaml.Interactivity">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
       <ContentArea Width="500" Height="300"
@@ -34,10 +32,10 @@
                       IsVisible="{TemplateBinding EnableCancel}"
                       Content="{TemplateBinding CancelContent}"
                       HorizontalAlignment="Left" Command="{Binding CancelCommand}">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior
+                <Interaction.Behaviors>
+                  <FocusOnAttachedBehavior
                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
-                </i:Interaction.Behaviors>
+                </Interaction.Behaviors>
               </Button>
               <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Right">
@@ -52,10 +50,10 @@
                           Content="{TemplateBinding NextContent}"
                           Command="{Binding NextCommand}"
                           IsDefault="{Binding IsActive}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:FocusOnAttachedBehavior
+                    <Interaction.Behaviors>
+                      <FocusOnAttachedBehavior
                         IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-                    </i:Interaction.Behaviors>
+                    </Interaction.Behaviors>
                   </Button>
                 </StackPanel>
                 <ContentPresenter Content="{TemplateBinding BottomContent}"
@@ -72,10 +70,10 @@
                           Classes="plain"
                           Command="{Binding BackCommand}"
                           IsVisible="{TemplateBinding EnableBack}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back" />
-                      <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
-                    </i:Interaction.Behaviors>
+                    <Interaction.Behaviors>
+                      <ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back" />
+                      <ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
+                    </Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                   </Button>
                   <Panel>
