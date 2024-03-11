@@ -117,7 +117,7 @@ public class HwiKatas
 		// displayaddress request: confirm 1 time
 		// displayaddress request: confirm 1 time
 		// signtx request: refuse 1 time
-		// signtx request: Hold to confirm
+		// signtx request: confirm 1 time
 		//
 		// --- USER INTERACTIONS ---
 
