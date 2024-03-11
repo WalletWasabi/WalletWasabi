@@ -65,12 +65,12 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 
 		if (CompareArguments(arguments, "enumerate"))
 		{
-			[{ "type": "trezor", "path": "webusb:001:9", "label": "Test trezor", "model": "trezor_safe 3", "needs_pin_sent": false, "needs_passphrase_sent": false, "fingerprint": "e5dbc9cb"}]
+			
 
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}}]",
-				HardwareWalletModels.Trezor_Safe_3 => $"[{{\"type\": \"{model}\", \"label\": \"Test trezor\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"e5dbc9cb\"}}]",
+				HardwareWalletModels.Trezor_Safe_3 => $"[{{\"model\": \"{model}\", \"label\": \"Test trezor\", \"type\":\"trezor\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"e5dbc9cb\"}}]",
 				HardwareWalletModels.Trezor_1 => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": true, \"needs_passphrase_sent\": false, \"error\": \"Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.\", \"code\": -12}}]\r\n",
 				HardwareWalletModels.Coldcard => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_S => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
