@@ -521,7 +521,7 @@ public class BlockchainController : ControllerBase
 			var parentTxs = await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken);
 			if (parentTxs.Count() != prevOutToFetchFromRPC.Count)
 			{
-				throw new Exception("Some parent transactions couldn't be fetched from RPC");
+				throw new InvalidOperationException("Some parent transactions couldn't be fetched from RPC");
 			}
 
 			return parentTxs;
