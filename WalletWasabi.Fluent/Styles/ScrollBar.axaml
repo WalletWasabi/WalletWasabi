@@ -49,13 +49,7 @@
       <Setter Property="Margin" Value="0" />
     </Style>
 
-    <!--<Style Selector="^[AllowAutoHide=True] /template/ ScrollContentPresenter#PART_ContentPresenter">
-      <Setter Property="Grid.RowSpan" Value="1" />
-      <Setter Property="Grid.ColumnSpan" Value="1" />
-    </Style>-->
-
     <Style Selector="^ ScrollBar">
-      <Setter Property="ShowDelay" Value="0:0:0" />
       <Setter Property="Opacity" Value="{Binding $parent[ScrollViewer].IsPointerOver}" />
       <Setter Property="Transitions">
         <Transitions>
