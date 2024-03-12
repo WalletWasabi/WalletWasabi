@@ -120,7 +120,7 @@
       <Setter Property="Template">
         <ControlTemplate>
           <Panel ClipToBounds="False">
-            <Border x:Name="Hitbox" Margin="-8" Background="Transparent"/>
+            <Border x:Name="Hitbox" Margin="-4" Background="Transparent"/>
             <Grid x:Name="Root">
               <Border x:Name="VerticalRoot"
                       Background="{TemplateBinding Background}"
