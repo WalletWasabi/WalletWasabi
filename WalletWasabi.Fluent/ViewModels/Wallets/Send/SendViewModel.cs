@@ -107,14 +107,18 @@ public partial class SendViewModel : RoutableViewModel
 		});
 
 		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
+			this.WhenAnyValue(
+					x => x.AmountBtc,
+					x => x.To,
+					x => x.SuggestionLabels.Labels.Count,
+					x => x.SuggestionLabels.IsCurrentTextValid)
 				.Select(tup =>
 				{
-					var (amountBtc, to) = tup;
+					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
 					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
 					var hasError = Validations.Any;
 
-					return allFilled && !hasError;
+					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
 				});
 
 		NextCommand = ReactiveCommand.CreateFromTask(
