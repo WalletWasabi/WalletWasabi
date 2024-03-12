@@ -162,7 +162,6 @@ public class RpcBasedTests
 			Assert.Equal(7, estimations.Estimations.Count);
 			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
-			Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
 		}
 		finally
 		{

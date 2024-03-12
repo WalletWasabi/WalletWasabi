@@ -49,6 +49,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
+		// TODO: why are we using this here and turning it into a Signal, instead of an event like _wallet.TransactionProcessed?
 		_wallet.Coins.List
 			.Connect()
 			.ToSignal()

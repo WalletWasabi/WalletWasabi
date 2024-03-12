@@ -76,9 +76,16 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ToSignal();
 
+		var coinsList =
+			_wallet.Coins.List
+						 .Connect(suppressEmptyChangeSets: false)
+						 .OnItemAdded(c => c.SubscribeToCoinChanges()) // Subscribe to SmartCoin changes for dynamic updates
+						 .ToCollection()
+						 .Select(x => x.Distinct());
+
 		_wallet.Privacy.ProgressUpdated
 					   .Merge(sizeTrigger)
-					   .WithLatestFrom(_wallet.Coins.List.Connect(suppressEmptyChangeSets: false).ToCollection().Select(x => x.Distinct()))
+					   .WithLatestFrom(coinsList)
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Do(t => RenderRing(itemsSourceList, t.Second))
 					   .Subscribe()

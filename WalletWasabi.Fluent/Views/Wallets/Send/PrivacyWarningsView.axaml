@@ -1,7 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView"
@@ -72,6 +70,24 @@
       <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
       <Setter Property="Padding" Value="5" />
       <Setter Property="Margin" Value="5 0 5 5" />
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <PrivacyWarningFadeOutBehavior PreviewWarnings="{Binding PreviewWarnings^}" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.warning.fadeout">
+      <Setter Property="Opacity" Value=".4" />
+      <Setter Property="IsEnabled" Value="False" />
+      <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
     </Style>
 
     <Style Selector="Border.warning PathIcon">
@@ -208,9 +224,9 @@
                Margin="0 10 0 5"
                IsVisible="{Binding !!Suggestions.Count}" />
     <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
-      <i:Interaction.Behaviors>
-        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
+      </Interaction.Behaviors>
       <ListBox.DataTemplates>
 
         <!-- Label Management Suggestion -->
@@ -237,8 +253,9 @@
                 <TextBlock Text="Full Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to use only private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -254,8 +271,9 @@
                 <TextBlock Text="Better Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to avoid non-private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
@@ -283,8 +301,9 @@
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to remove change." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" IsVisible="{Binding !IsSameAmount}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
