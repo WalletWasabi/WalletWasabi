@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
-  <Color x:Key="SystemAccentColor">#B0B0B0</Color>
+  <Color x:Key="SystemAccentColor">#436113</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -32,12 +32,12 @@
   <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
   <Color x:Key="SystemRevealListLowColor">#262626</Color>
   <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
-  <Color x:Key="SystemAccentColorDark1">#FFBABABA</Color>
-  <Color x:Key="SystemAccentColorDark2">#FFC4C4C4</Color>
-  <Color x:Key="SystemAccentColorDark3">#FFCECECE</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF9C9C9C</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF888888</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF737373</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF5A752F</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF718A4B</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF889E66</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF37540F</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF2B470B</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF203B08</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
