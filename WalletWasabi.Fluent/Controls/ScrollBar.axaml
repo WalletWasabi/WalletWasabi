@@ -202,76 +202,81 @@
     <Style Selector="^:horizontal">
       <Setter Property="Template">
         <ControlTemplate>
-          <Grid x:Name="Root">
-            <Border x:Name="HorizontalRoot"
-								Background="{TemplateBinding Background}"
-								BorderBrush="{TemplateBinding BorderBrush}">
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <Rectangle x:Name="TrackRect"
-										   Fill="{DynamicResource ScrollBarTrackFill}"
-										   Stroke="{DynamicResource ScrollBarTrackStroke}"
-										   StrokeThickness="{DynamicResource ScrollBarTrackBorderThemeThickness}"
-										   Opacity="0"
-										   Grid.ColumnSpan="3">
-                  <Rectangle.Transitions>
-                    <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
-                    </Transitions>
-                  </Rectangle.Transitions>
-                </Rectangle>
+          <Panel>
+            <Border x:Name="Hitbox" Margin="-4" Background="Transparent"/>
+            <Grid x:Name="Root">
+              <Border x:Name="HorizontalRoot"
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <Rectangle x:Name="TrackRect"
+                             Fill="{DynamicResource ScrollBarTrackFill}"
+                             Stroke="{DynamicResource ScrollBarTrackStroke}"
+                             StrokeThickness="{DynamicResource ScrollBarTrackBorderThemeThickness}"
+                             Opacity="0"
+                             Grid.ColumnSpan="3">
+                    <Rectangle.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
+                      </Transitions>
+                    </Rectangle.Transitions>
+                  </Rectangle>
 
-                <RepeatButton Name="PART_LineUpButton"
-											  Theme="{StaticResource FluentScrollBarLineButton}"
-											  VerticalAlignment="Center"
-											  Grid.Column="0"
-											  Focusable="False"
-											  MinHeight="{DynamicResource ScrollBarSize}"
-											  Width="{DynamicResource ScrollBarSize}">
-                  <PathIcon Data="M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z"
-											  Width="{DynamicResource ScrollBarButtonArrowIconFontSize}"
-											  Height="{DynamicResource ScrollBarButtonArrowIconFontSize}"/>
-                </RepeatButton>
+                  <RepeatButton Name="PART_LineUpButton"
+                                Theme="{StaticResource FluentScrollBarLineButton}"
+                                VerticalAlignment="Center"
+                                Grid.Column="0"
+                                Focusable="False"
+                                MinHeight="{DynamicResource ScrollBarSize}"
+                                Width="{DynamicResource ScrollBarSize}">
+                    <PathIcon
+                      Data="M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z"
+                      Width="{DynamicResource ScrollBarButtonArrowIconFontSize}"
+                      Height="{DynamicResource ScrollBarButtonArrowIconFontSize}" />
+                  </RepeatButton>
 
-                <Track Grid.Column="1"
-									   Minimum="{TemplateBinding Minimum}"
-									   Maximum="{TemplateBinding Maximum}"
-									   Value="{TemplateBinding Value, Mode=TwoWay}"
-									   DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-									   ViewportSize="{TemplateBinding ViewportSize}"
-									   Orientation="{TemplateBinding Orientation}">
-                  <Track.DecreaseButton>
-                    <RepeatButton Name="PART_PageUpButton"
-													  Classes="largeIncrease"
-													  Theme="{StaticResource FluentScrollBarPageButton}"
-													  Focusable="False" />
-                  </Track.DecreaseButton>
-                  <Track.IncreaseButton>
-                    <RepeatButton Name="PART_PageDownButton"
-													  Classes="largeIncrease"
-													  Theme="{StaticResource FluentScrollBarPageButton}"
-													  Focusable="False" />
-                  </Track.IncreaseButton>
-                  <Thumb Theme="{StaticResource FluentScrollBarThumb}"
-										   Height="{DynamicResource ScrollBarHorizontalThumbHeight}"
-										   MinWidth="{DynamicResource ScrollBarHorizontalThumbMinWidth}"
-										   RenderTransform="{DynamicResource HorizontalSmallScrollThumbScaleTransform}"
-										   RenderTransformOrigin="50%,100%" />
-                </Track>
+                  <Track Grid.Column="1"
+                         Minimum="{TemplateBinding Minimum}"
+                         Maximum="{TemplateBinding Maximum}"
+                         Value="{TemplateBinding Value, Mode=TwoWay}"
+                         DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                         ViewportSize="{TemplateBinding ViewportSize}"
+                         Orientation="{TemplateBinding Orientation}">
+                    <Track.DecreaseButton>
+                      <RepeatButton Name="PART_PageUpButton"
+                                    Classes="largeIncrease"
+                                    Theme="{StaticResource FluentScrollBarPageButton}"
+                                    Focusable="False" />
+                    </Track.DecreaseButton>
+                    <Track.IncreaseButton>
+                      <RepeatButton Name="PART_PageDownButton"
+                                    Classes="largeIncrease"
+                                    Theme="{StaticResource FluentScrollBarPageButton}"
+                                    Focusable="False" />
+                    </Track.IncreaseButton>
+                    <Thumb Theme="{StaticResource FluentScrollBarThumb}"
+                           Height="{DynamicResource ScrollBarHorizontalThumbHeight}"
+                           MinWidth="{DynamicResource ScrollBarHorizontalThumbMinWidth}"
+                           RenderTransform="{DynamicResource HorizontalSmallScrollThumbScaleTransform}"
+                           RenderTransformOrigin="50%,100%" />
+                  </Track>
 
-                <RepeatButton Name="PART_LineDownButton"
-											  Theme="{StaticResource FluentScrollBarLineButton}"
-											  VerticalAlignment="Center"
-											  Grid.Column="2"
-											  Focusable="False"
-											  MinHeight="{DynamicResource ScrollBarSize}"
-											  Width="{DynamicResource ScrollBarSize}">
-                  <PathIcon Data="M 5.029297 19.091797 L 14.111328 10 L 5.029297 0.908203 L 5.908203 0.029297 L 15.888672 10 L 5.908203 19.970703 Z"
-											  Width="{DynamicResource ScrollBarButtonArrowIconFontSize}"
-											  Height="{DynamicResource ScrollBarButtonArrowIconFontSize}"/>
-                </RepeatButton>
-              </Grid>
-            </Border>
-          </Grid>
+                  <RepeatButton Name="PART_LineDownButton"
+                                Theme="{StaticResource FluentScrollBarLineButton}"
+                                VerticalAlignment="Center"
+                                Grid.Column="2"
+                                Focusable="False"
+                                MinHeight="{DynamicResource ScrollBarSize}"
+                                Width="{DynamicResource ScrollBarSize}">
+                    <PathIcon
+                      Data="M 5.029297 19.091797 L 14.111328 10 L 5.029297 0.908203 L 5.908203 0.029297 L 15.888672 10 L 5.908203 19.970703 Z"
+                      Width="{DynamicResource ScrollBarButtonArrowIconFontSize}"
+                      Height="{DynamicResource ScrollBarButtonArrowIconFontSize}" />
+                  </RepeatButton>
+                </Grid>
+              </Border>
+            </Grid>
+          </Panel>
         </ControlTemplate>
       </Setter>
     </Style>
