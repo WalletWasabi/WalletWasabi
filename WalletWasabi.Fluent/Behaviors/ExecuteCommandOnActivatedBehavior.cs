@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Xaml.Interactions.Custom;
 
 namespace WalletWasabi.Fluent.Behaviors;
 

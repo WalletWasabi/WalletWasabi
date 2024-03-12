@@ -123,12 +123,16 @@ public class CoinsRegistry : ICoinsView
 				hashSet = new();
 				CoinsByTransactionId.Add(txid, hashSet);
 
-				// Each prevOut of the transaction contributes to the existence of coins.
-				foreach (TxIn input in coin.Transaction.Transaction.Inputs)
+				if (!coin.Transaction.Transaction.IsCoinBase)
 				{
-					if (!TxidsByInputPrevOuts.TryAdd(input.PrevOut, txid))
+					// Each prevOut of the transaction contributes to the existence of coins.
+					foreach (TxIn input in coin.Transaction.Transaction.Inputs)
 					{
-						throw new UnreachableException($"Input prevOut '{input.PrevOut}' is already present in the cache.");
+						if (!TxidsByInputPrevOuts.TryAdd(input.PrevOut, txid))
+						{
+							throw new UnreachableException(
+								$"Input prevOut '{input.PrevOut}' is already present in the cache.");
+						}
 					}
 				}
 			}

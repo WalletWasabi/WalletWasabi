@@ -2,10 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -127,18 +125,18 @@
                     ShowColumnHeaders="False"
                     Margin="0 0 0 0"
                     IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
-        <i:Interaction.Behaviors>
-          <behaviors:ScrollToSelectedItemBehavior />
-          <behaviors:HistoryItemTypeClassBehavior />
-          <behaviors:SetLastChildBehavior />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <ScrollToSelectedItemBehavior />
+          <HistoryItemTypeClassBehavior />
+          <SetLastChildBehavior />
+        </Interaction.Behaviors>
         <TreeDataGrid.ElementFactory>
           <treeDataGrid:PrivacyElementFactory />
         </TreeDataGrid.ElementFactory>
         <TreeDataGrid.Styles>
           <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
             <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-            <Setter Property="Opacity" Value="0.8" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
@@ -148,7 +146,6 @@
             <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
           </Style>
           <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
-            <Setter Property="Opacity" Value="0.6" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
@@ -169,7 +166,6 @@
           <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
             <Setter Property="Opacity" Value="1" />
           </Style>
-
           <Style Selector="TreeDataGridRow" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="Theme" Value="{StaticResource HistoryTableTreeDataGridRow}" />
             <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Fluent.TreeDataGrid;
 

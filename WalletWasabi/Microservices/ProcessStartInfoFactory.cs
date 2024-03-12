@@ -14,24 +14,12 @@ public class ProcessStartInfoFactory
 	/// <param name="processPath">Path to process.</param>
 	/// <param name="arguments">Process arguments.</param>
 	/// <param name="openConsole">Open console window. Only for Windows platform.</param>
-	/// <param name="windowStyleNormal">Set WindowStyle to ProcessWindowStyle.Normal when <see cref="openConsole"/> is disabled.</param>
 	/// <returns><see cref="ProcessStartInfo"/> instance.</returns>
-	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false, bool windowStyleNormal = false)
+	public static ProcessStartInfo Make(string processPath, string arguments, bool openConsole = false)
 	{
-		ProcessWindowStyle windowStyle;
-
-		if (openConsole)
+		if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-			}
-
-			windowStyle = ProcessWindowStyle.Normal;
-		}
-		else
-		{
-			windowStyle = windowStyleNormal ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
+			throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
 		}
 
 		var p = new ProcessStartInfo(fileName: processPath, arguments)
@@ -41,7 +29,7 @@ public class ProcessStartInfoFactory
 			RedirectStandardOutput = !openConsole,
 			UseShellExecute = openConsole,
 			CreateNoWindow = !openConsole,
-			WindowStyle = windowStyle
+			WindowStyle = ProcessWindowStyle.Normal
 		};
 
 		return p;

@@ -18,7 +18,7 @@
         <Border CornerRadius="15" Background="{DynamicResource TileRegionColor}"
                 Margin="0 0 10 0" Padding="12">
           <DockPanel>
-            <TextBlock Text="{TemplateBinding Title}" Opacity="0.6" FontWeight="SemiBold" DockPanel.Dock="Top" Classes="h8" />
+            <TextBlock Text="{TemplateBinding Title}" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top" Classes="h8" />
             <ContentPresenter Content="{TemplateBinding BottomContent}" DockPanel.Dock="Bottom" IsVisible="{TemplateBinding IsBottomContentVisible}" />
             <ContentPresenter Name="PART_Content" Content="{TemplateBinding Content}" />
           </DockPanel>

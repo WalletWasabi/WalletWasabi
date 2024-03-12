@@ -183,16 +183,25 @@ public class StepInputRegistrationTests
 		{
 			BlameInputRegistrationTimeout = TimeSpan.Zero,
 			StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
-			MaxInputCountByRound = 4,
-			MinInputCountByRoundMultiplier = 0.5
+			MaxInputCountByRound = 10,
+			MinInputCountByRoundMultiplier = 0.5,
+			MinInputCountByBlameRoundMultiplier = 0.4
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice1 = WabiSabiFactory.CreateAlice(round);
 		var alice2 = WabiSabiFactory.CreateAlice(round);
+		var alice3 = WabiSabiFactory.CreateAlice(round);
+		var alice4 = WabiSabiFactory.CreateAlice(round);
+		var alice5 = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice1);
 		round.Alices.Add(alice2);
+		round.Alices.Add(alice3);
+		round.Alices.Add(alice4);
+		round.Alices.Add(alice5);
 		var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		blameRound.Alices.Add(alice1);
+		blameRound.Alices.Add(alice2);
+		blameRound.Alices.Add(alice3);
 
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

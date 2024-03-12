@@ -13,7 +13,7 @@
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type LabelsItemsPresenter}" TargetType="LabelsItemsPresenter">
-    
+
     <Setter Property="Margin" Value="0" />
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
@@ -48,11 +48,6 @@
                        TextWrapping="NoWrap"
                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
                        MaxWidth="{Binding MaxLabelWidth, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
-              <TextBlock.Styles>
-                <Style Selector="TextBlock">
-                  <Setter Property="Opacity" Value="0.6" />
-                </Style>
-              </TextBlock.Styles>
             </TextBlock>
           </Border>
         </Panel>
@@ -75,7 +70,6 @@
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."
-                           Opacity="0.6"
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}"
