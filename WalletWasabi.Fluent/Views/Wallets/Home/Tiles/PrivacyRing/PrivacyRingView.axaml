@@ -2,9 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
              xmlns:ringView="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing"
@@ -93,22 +90,22 @@
       </ItemsControl>
 
       <Panel x:Name="Panel">
-        <i:Interaction.Behaviors>
-          <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
+        <Interaction.Behaviors>
+          <BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
                                             Width="{Binding Width, Mode=TwoWay}"
                                             Height="{Binding Height, Mode=TwoWay}" />
-          <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #SelectedItem}" />
-          </ir:AdaptiveBehavior>
-        </i:Interaction.Behaviors>
+          <AdaptiveBehavior>
+            <AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #SelectedItem}" />
+          </AdaptiveBehavior>
+        </Interaction.Behaviors>
 
         <ListBox ItemsSource="{Binding Items}" ClipToBounds="False"
                  SelectedItem="{Binding SelectedItem}"
                  x:Name="Ring" Margin="{Binding Margin}">
-          <i:Interaction.Behaviors>
-            <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="250" />
-            <behaviors:ItemsControlAnimationBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="250" />
+            <ItemsControlAnimationBehavior />
+          </Interaction.Behaviors>
           <ListBox.Template>
             <ControlTemplate TargetType="ListBox">
               <Panel>

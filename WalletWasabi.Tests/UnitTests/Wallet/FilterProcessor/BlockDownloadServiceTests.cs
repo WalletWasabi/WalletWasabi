@@ -134,7 +134,7 @@ public class BlockDownloadServiceTests
 
 			// All tasks should provide data now.
 			Task<IResult>[] tasks = [task1, task2, task3, task4];
-			Task.WaitAll(tasks);
+			await Task.WhenAll(tasks);
 
 			// Second attempt to download block2 should succeed.
 			{
@@ -287,7 +287,7 @@ public class BlockDownloadServiceTests
 		// Start the service late.
 		await service.StartAsync(testCts.Token);
 
-		Task.WaitAll(tasks);
+		await Task.WhenAll(tasks);
 
 		foreach (Task<IResult> blockDownloadTask in tasks.SkipLast(1))
 		{

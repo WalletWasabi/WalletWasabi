@@ -54,6 +54,6 @@ public class BlockstreamInfoClient
 			myDic.Add(int.Parse(elem.Name), (int)Math.Ceiling(elem.Value.GetDouble()));
 		}
 
-		return new AllFeeEstimate(EstimateSmartFeeMode.Conservative, myDic, isAccurate: true);
+		return new AllFeeEstimate(myDic);
 	}
 }

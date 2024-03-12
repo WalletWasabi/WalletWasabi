@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="recoverWallet:RecoverWalletViewModel"
@@ -39,9 +37,9 @@
               <Setter Property="MinimumPrefixLength" Value="0" />
             </Style>
           </TagsBox.Styles>
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
         </TagsBox>
       </DockPanel>
       <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"

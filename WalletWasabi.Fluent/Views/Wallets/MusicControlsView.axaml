@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              Background="Transparent"
              x:DataType="wallets:WalletViewModel"
@@ -18,9 +16,9 @@
       </ResourceDictionary>
     </converters:ReplaceWordsByContentConverter>
   </UserControl.Resources>
-  <i:Interaction.Behaviors>
-    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-  </i:Interaction.Behaviors>
+  <Interaction.Behaviors>
+    <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+  </Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector=":is(TextBlock)">
       <Setter Property="VerticalAlignment" Value="Center" />
