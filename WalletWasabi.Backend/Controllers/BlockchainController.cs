@@ -197,14 +197,17 @@ public class BlockchainController : ControllerBase
 				}
 			}
 
-			Transaction[] result = new Transaction[requestCount];
+			string[] hexes = new string[requestCount];
 
 			// Add missing transactions to the result array.
 			for (int i = 0; i < requestCount; i++)
 			{
 				uint256 txId = parsedTxIds[i];
-				result[i] = await txsCompletionSources[i].Task.ConfigureAwait(false);
+				Transaction tx = await txsCompletionSources[i].Task.ConfigureAwait(false);
+				hexes[i] = tx.ToHex();
 			}
+
+			return Ok(hexes);
 		}
 		finally
 		{
@@ -218,15 +221,6 @@ public class BlockchainController : ControllerBase
 				}
 			}
 		}
-
-string[] hexes = new string[requestCount];
-
-for (int i = 0; i < requestCount; i++)
-{
-	hexes[i] = txsCompletionSources[i].Task.Result.ToHex();
-}
-
-return Ok(hexes);
 	}
 
 	/// <summary>
