@@ -410,7 +410,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			AssertCleanKeysIndexed();
-			var predicate = wherePredicate ?? ( _ => true);
+			var predicate = wherePredicate ?? (_ => true);
 			return HdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index);
 		}
 	}
@@ -430,6 +430,7 @@ public class KeyManager
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
 	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight);
+
 	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
@@ -481,7 +482,7 @@ public class KeyManager
 		{
 			if (passwordHash != storedPasswordHash)
 			{
-				throw new SecurityException("Invalid password.");
+				throw new SecurityException("Invalid passphrase.");
 			}
 
 			return masterKey;
@@ -502,7 +503,7 @@ public class KeyManager
 		}
 		catch (SecurityException ex)
 		{
-			throw new SecurityException("Invalid password.", ex);
+			throw new SecurityException("Invalid passphrase.", ex);
 		}
 	}
 

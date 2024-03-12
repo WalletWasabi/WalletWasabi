@@ -13,33 +13,49 @@
       <Thickness x:Key="TagsBoxBorderPadding">4,0,0,-2</Thickness>
 
       <DataTemplate x:Key="DefaultChatInput">
-        <TextBox  VerticalAlignment="Center"
-                 Text=""
-                 MaxLength="5000"
+        <ChatTextBox Text=""
                  Watermark="{Binding Watermark}">
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
     </ContentControl.Resources>
     <ContentControl.Styles>
 
-      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
-        <Setter Property="Margin" Value="0,0,0,-1" />
-      </Style>
-
+      <!--TextBox -->
       <Style Selector="TextBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="MaxHeight" Value="105" />
+        <Setter Property="MaxLength" Value="5000" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="Wrap" />
       </Style>
+
       <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
       <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <Style Selector="DockPanel.limit">
+        <Setter Property="Width" Value="80" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0 0 15 0" />
+        <Setter Property="LastChildFill" Value="False"/>
+      </Style>
+      
+      <Style Selector="DockPanel.limit StackPanel">
+        <Setter Property="DockPanel.Dock" Value="Right"/>
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="2" />
+      </Style>
+
+      <!-- TagsBox -->
       <Style Selector="TagsBox">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
@@ -49,6 +65,16 @@
       <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <Style Selector="TagControl /template/ Panel#PART_TagPanel">
+        <Setter Property="Margin" Value="0,0,0,-1" />
+      </Style>
+
+      <Style Selector="AutoCompleteBox /template/ TextBox">
+        <Setter Property="AcceptsReturn" Value="False"/>
+      </Style>
+
+      <!-- ComboBox -->
       <Style Selector="ComboBox">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -57,6 +83,8 @@
       <Style Selector="ComboBox:pointerover /template/ Border#Background">
         <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
+
+      <!-- TextBlock -->
       <Style Selector="TextBlock.minLimit">
         <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
         <Setter Property="Opacity" Value="1" />
@@ -110,27 +138,27 @@
 
       <!-- RequestedItemStep -->
       <DataTemplate DataType="vm:RequestedItemStep">
-        <TextBox Name="RequestTextBox"
-                 VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 MaxLength="5000"
-                 Watermark="{Binding Watermark}">
-          <TextBox.InnerRightContent>
-            <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}" VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
-              <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
-              <TextBlock Classes="fade" Text="/" />
-              <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
-            </StackPanel>
-          </TextBox.InnerRightContent>
+        <ChatTextBox Text="{Binding Value}"
+                 Watermark="{Binding Watermark}"
+                 x:Name="RequestTextBox">
+          <ChatTextBox.InnerRightContent>
+            <DockPanel Classes="limit">
+              <StackPanel ToolTip.Tip="{Binding MinCharLimit, StringFormat={}The minimum character limit is {0}.}">
+                <TextBlock Classes.fade="{Binding IsInputLengthValid}" Classes.minLimit="{Binding !IsInputLengthValid}" Text="{Binding #RequestTextBox.Text.Length, FallbackValue=0}" />
+                <TextBlock Classes="fade" Text="/" />
+                <TextBlock Classes="fade" Text="{Binding #RequestTextBox.MaxLength}" />
+              </StackPanel>
+            </DockPanel>
+          </ChatTextBox.InnerRightContent>
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- PrivacyPolicyStep-->
@@ -157,47 +185,45 @@
 
       <!-- SupportChatStep -->
       <DataTemplate DataType="vm:SupportChatStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 x:Name="TextBox"
-                 MaxLength="5000"
-                 Watermark="{Binding Watermark}">
-          <TextBox.InnerRightContent>
-            <StackPanel VerticalAlignment="Center" Margin="0 0 15 0" Orientation="Horizontal" Spacing="2">
-              <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
-              <TextBlock Classes="fade" Text="/" />
-              <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
-            </StackPanel>
-          </TextBox.InnerRightContent>
+        <ChatTextBox Text="{Binding Value}"
+                 Watermark="{Binding Watermark}"
+                 x:Name="TextBox">
+          <ChatTextBox.InnerRightContent>
+            <DockPanel Classes="limit">
+              <StackPanel>
+                <TextBlock Classes="fade" Text="{Binding #TextBox.Text.Length, FallbackValue=0}" />
+                <TextBlock Classes="fade" Text="/" />
+                <TextBlock Classes="fade" Text="{Binding #TextBox.MaxLength}" />
+              </StackPanel>
+            </DockPanel>
+          </ChatTextBox.InnerRightContent>
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
             <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
               <FocusControlActionCustom TargetControl="TextBox" />
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- TextInputStep -->
       <DataTemplate DataType="vm:TextInputStep">
-        <TextBox VerticalAlignment="Center"
-                 Text="{Binding Value}"
-                 MaxLength="5000"
+        <ChatTextBox Text="{Binding Value}"
                  Watermark="{Binding Watermark}">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
           </Interaction.Behaviors>
-          <TextBox.Styles>
+          <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
               <Setter Property="IsVisible" Value="False" />
             </Style>
-          </TextBox.Styles>
-        </TextBox>
+          </ChatTextBox.Styles>
+        </ChatTextBox>
       </DataTemplate>
 
       <!-- StateStep -->

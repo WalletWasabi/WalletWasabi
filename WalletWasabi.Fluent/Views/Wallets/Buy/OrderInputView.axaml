@@ -15,7 +15,6 @@
     <Button DockPanel.Dock="Right"
             Margin="10 0 0 0"
             Classes="action"
-            IsDefault="True"
             TabIndex="1"
             Command="{Binding Workflow.CurrentStep.SendCommand}"
             Content="{Binding Workflow.CurrentStep.Caption}">
@@ -25,7 +24,11 @@
     </Button>
 
     <Panel IsEnabled="{Binding !IsBusy}">
-      <buy:UserInputValidatorView DataContext="{Binding Workflow.CurrentStep}" />
+      <buy:UserInputValidatorView DataContext="{Binding Workflow.CurrentStep}">
+        <Interaction.Behaviors>
+          <ExecuteCommandOnKeyDownBehavior KeyGesture="Enter" Command="{Binding SendCommand}" />
+        </Interaction.Behaviors>
+      </buy:UserInputValidatorView>
     </Panel>
   </DockPanel>
 </UserControl>

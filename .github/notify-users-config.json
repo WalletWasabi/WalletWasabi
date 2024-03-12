@@ -1,0 +1,88 @@
+{
+  "files_to_watch": [
+    {
+      "path": "WalletWasabi/Wallets/IWallet.cs",
+      "users": ["@Kukks"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/Analysis/BlockchainAnalyzer.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/Keys/HdPubKey.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/TransactionOutputs/SmartCoin.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/TransactionOutputs/ISmartCoin.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/Transactions/SmartTransaction.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Helpers/NBitcoinHelpers.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Backend/Rounds/UtxoSelectionParameters.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/AmountDecomposer.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/LiquidityClueProvider.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/CoinJoinCoinSelector.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/Decomposer.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/AmountDecomposer.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/Output.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Backend/Rounds/UtxoSelectionParameters.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/TransactionOutputs/ISmartCoin.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/CoinJoinCoinSelector.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Blockchain/Analysis/BlockchainAnalyzer.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/WabiSabi/Client/LiquidityClueProvider.cs",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": "WalletWasabi/Affiliation/",
+      "users": ["@onvej-sl"]
+    },
+    {
+      "path": ".github/notify-users-config.json",
+      "users": ["@molnard"]
+    }
+  ]
+}
