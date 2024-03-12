@@ -33,10 +33,9 @@
                 Height="36" Width="36">
           <Image Source="{StaticResource privacy_indicator_good}" Opacity="0.6" />
         </Button>
-        <TextBlock
-          HorizontalAlignment="Center"
-          TextAlignment="Center"
-          Text="{Binding PercentText}" Classes="h2" />
+        <TextBlock HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   Text="{Binding PercentText}" Classes="h2 bold" />
       </StackPanel>
     </DockPanel>
 

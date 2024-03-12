@@ -137,7 +137,6 @@
           <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
             <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Opacity" Value="0.8" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
@@ -147,7 +146,6 @@
             <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
           </Style>
           <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
-            <Setter Property="Opacity" Value="0.6" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
