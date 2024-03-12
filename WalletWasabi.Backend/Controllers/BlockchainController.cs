@@ -219,7 +219,14 @@ public class BlockchainController : ControllerBase
 			}
 		}
 
-		return Ok(txsCompletionSources);
+string[] hexes = new string[requestCount];
+
+for (int i = 0; i < requestCount; i++)
+{
+	hexes[i] = txsCompletionSources[i].Task.Result.ToHex();
+}
+
+return Ok(hexes);
 	}
 
 	/// <summary>
