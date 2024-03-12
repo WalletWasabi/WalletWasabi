@@ -3,15 +3,17 @@
   <Design.PreviewWith>
     <Border Padding="20">
       <ScrollViewer Width="150" Height="150">
-        <Panel Background="Red" Width="200" Height="200" />
+        <Panel Background="Red" Width="200" Height="200"  />
       </ScrollViewer>
     </Border>
   </Design.PreviewWith>
 
   <Style Selector="ScrollViewer">
+
     <Style.Resources>
 
       <!--THUMB SIZES-->
+      <x:Double x:Key="ScrollBarSize">8</x:Double>
       <x:Double x:Key="ScrollBarVerticalThumbWidth">8</x:Double>
       <x:Double x:Key="ScrollBarVerticalThumbMinHeight">30</x:Double>
       <x:Double x:Key="ScrollBarHorizontalThumbHeight">8</x:Double>
@@ -23,6 +25,11 @@
       <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource ActionColorLight2}"></SolidColorBrush>
       <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource ActionColorLight1}"></SolidColorBrush>
       <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="{DynamicResource ActionColorDark3}"></SolidColorBrush>
+
+      <!--OVERRIDE TRANSFORMS-->
+      <!--This removes the translate transform in the default animation, since it applies a "padding" we don't want-->
+      <TransformOperations x:Key="VerticalSmallScrollThumbScaleTransform">scaleX(0.125)</TransformOperations>
+      <TransformOperations x:Key="HorizontalSmallScrollThumbScaleTransform">scaleY(0.125)</TransformOperations>
 
     </Style.Resources>
 
@@ -39,13 +46,13 @@
     </Style>
 
     <Style Selector="^ Grid#Root">
-      <Setter Property="Margin" Value="0 0 0 0" />
+      <Setter Property="Margin" Value="0" />
     </Style>
 
-    <Style Selector="^[AllowAutoHide=True] /template/ ScrollContentPresenter#PART_ContentPresenter">
+    <!--<Style Selector="^[AllowAutoHide=True] /template/ ScrollContentPresenter#PART_ContentPresenter">
       <Setter Property="Grid.RowSpan" Value="1" />
       <Setter Property="Grid.ColumnSpan" Value="1" />
-    </Style>
+    </Style>-->
 
     <Style Selector="^ ScrollBar">
       <Setter Property="ShowDelay" Value="0:0:0" />
