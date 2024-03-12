@@ -295,6 +295,7 @@ public partial class SendViewModel : RoutableViewModel
 			result = true;
 
 			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
+			// TODO: Set SuggestionLabels.Labels
 
 			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
@@ -318,6 +319,7 @@ public partial class SendViewModel : RoutableViewModel
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
 			_parsedLabel = LabelsArray.Empty;
+			// TODO: Set SuggestionLabels.Labels
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
