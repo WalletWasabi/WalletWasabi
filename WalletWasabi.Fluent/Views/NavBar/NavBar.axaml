@@ -5,7 +5,6 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
@@ -157,9 +156,9 @@
       <ListBox ItemsSource="{Binding Wallets}"
                SelectedItem="{Binding SelectedWallet}"
                Background="Transparent"
-               behaviors:SelectingItemsControlBehavior.EnableSelectionAnimation="True">
+               SelectingItemsControlBehavior.EnableSelectionAnimation="True">
         <Interaction.Behaviors>
-          <behaviors:ListBoxReselectingBehavior />
+          <ListBoxReselectingBehavior />
         </Interaction.Behaviors>
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>

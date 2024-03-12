@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
@@ -12,10 +10,9 @@
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-  <i:Interaction.Behaviors>
-    <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
-  </i:Interaction.Behaviors>
-
+  <Interaction.Behaviors>
+    <ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
+  </Interaction.Behaviors>
   <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" Classes="StretchTopContent">
     <ContentArea.Title>
       <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />

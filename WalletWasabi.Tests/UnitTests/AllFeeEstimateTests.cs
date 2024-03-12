@@ -27,7 +27,7 @@ public class AllFeeEstimateTests
 				{ 3, 20 },
 				{ 19, 1 }
 			};
-		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFee = new AllFeeEstimate(estimations);
 		var serialized = JsonConvert.SerializeObject(allFee);
 		var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
 
@@ -35,7 +35,6 @@ public class AllFeeEstimateTests
 		Assert.Equal(estimations[2], deserialized!.Estimations[2]);
 		Assert.Equal(estimations[3], deserialized!.Estimations[3]);
 		Assert.Equal(estimations[19], deserialized!.Estimations[36]);
-		Assert.Equal(EstimateSmartFeeMode.Conservative, deserialized!.Type);
 	}
 
 	[Fact]
@@ -49,7 +48,7 @@ public class AllFeeEstimateTests
 				{ 20, 1 }
 			};
 
-		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFee = new AllFeeEstimate(estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 		Assert.Equal(estimations[3], allFee.Estimations[3]);
 		Assert.Equal(estimations[19], allFee.Estimations[36]);
@@ -64,7 +63,7 @@ public class AllFeeEstimateTests
 				{ 3, 20 }
 			};
 
-		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFee = new AllFeeEstimate(estimations);
 		Assert.Single(allFee.Estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 	}
@@ -78,7 +77,7 @@ public class AllFeeEstimateTests
 				{ 1, 20 }
 			};
 
-		var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFees = new AllFeeEstimate(estimations);
 		Assert.Single(allFees.Estimations);
 		Assert.Equal(estimations[1], allFees.Estimations[2]);
 
@@ -89,7 +88,7 @@ public class AllFeeEstimateTests
 				{ 2, 21 }
 			};
 
-		allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		allFees = new AllFeeEstimate(estimations);
 		Assert.Single(allFees.Estimations);
 		Assert.Equal(estimations[2], allFees.Estimations[2]);
 	}
@@ -102,7 +101,7 @@ public class AllFeeEstimateTests
 				{ 1007, 20 }
 			};
 
-		var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFees = new AllFeeEstimate(estimations);
 		var est = Assert.Single(allFees.Estimations);
 		Assert.Equal(1008, est.Key);
 	}
@@ -116,7 +115,7 @@ public class AllFeeEstimateTests
 				{ 3, 21 }
 			};
 
-		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFee = new AllFeeEstimate(estimations);
 		Assert.Single(allFee.Estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 
@@ -129,7 +128,7 @@ public class AllFeeEstimateTests
 				{ 6, 4 },
 			};
 
-		allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		allFee = new AllFeeEstimate(estimations);
 		Assert.Equal(2, allFee.Estimations.Count);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 		Assert.Equal(estimations[6], allFee.Estimations[6]);
@@ -226,7 +225,6 @@ public class AllFeeEstimateTests
 			};
 
 		var allFee = await mockRpc.EstimateAllFeeAsync();
-		Assert.True(allFee.IsAccurate);
 		Assert.Equal(3, allFee.Estimations.Count);
 		Assert.Equal(99, allFee.Estimations[2]);
 		Assert.Equal(75, allFee.Estimations[6]);
@@ -375,7 +373,7 @@ public class AllFeeEstimateTests
 				{ 18, 1 } // 3h
 			};
 
-		var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+		var allFee = new AllFeeEstimate(estimations);
 
 		Assert.Equal(7, allFee.WildEstimations.Count());
 		Assert.Equal(new FeeRate(102m), allFee.WildEstimations.First().feeRate); // 20m

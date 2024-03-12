@@ -1,0 +1,88 @@
+name: Mention Users on Specific File Change in PR
+
+on:
+  pull_request:
+
+jobs:
+  mention-users:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Read configuration and mention users
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read the configuration file
+            const configPath = '.github/notify-users-config.json';
+            const configFile = fs.readFileSync(configPath, 'utf8');
+            const config = JSON.parse(configFile);
+            
+            // Extract PR number
+            const prNumber = context.issue.number;
+            
+            // Async function to handle API calls and logic
+            async function run() {
+              // Fetch list of files changed in the PR
+              const listFilesResponse = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+              const changedFiles = listFilesResponse.data.map(file => file.filename);
+              
+              // Fetch all comments from the PR
+              const commentsResponse = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+              });
+              const comments = commentsResponse.data.map(comment => comment.body);
+              
+              // Combine all comments into a single string to search for user mentions
+              const commentsText = comments.join(" ");
+              
+              let message = "Changes have been detected in:";
+              let hasMentionedFiles = false;
+              let mentionedUsers = new Set();
+              
+              // Check if the PR contains changes to the files or folders specified in the configuration
+              for (const item of config.files_to_watch) {
+                const isFolder = item.path.endsWith('/');
+                for (const changedFile of changedFiles) {
+                  if (isFolder ? changedFile.startsWith(item.path) : changedFile === item.path) {
+                    // Filter out users who have already been mentioned
+                    const usersToMention = item.users.filter(user => !commentsText.includes(user));
+                    
+                    if (usersToMention.length > 0) {
+                      // Add users to the set of mentioned users to avoid duplicates
+                      usersToMention.forEach(user => mentionedUsers.add(user));
+                      if (!hasMentionedFiles) {
+                        // First time adding to the message, change the flag
+                        hasMentionedFiles = true;
+                      }
+                      message += `\n- \`${item.path}\` (Pinging ${usersToMention.join(', ')} for review).`;
+                    }
+                  }
+                }
+              }
+              
+              // Post the comment on the PR if there are any files or folders to mention
+              if (hasMentionedFiles) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: message
+                });
+              } else {
+                console.log("No configured files or folders were changed in this PR, or users have already been mentioned.");
+              }
+            }
+            
+            // Execute the async function
+            run().catch(err => core.setFailed(`Unhandled error: ${err}`));

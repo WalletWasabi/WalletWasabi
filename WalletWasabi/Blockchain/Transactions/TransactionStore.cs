@@ -52,14 +52,15 @@ public class TransactionStore : IAsyncDisposable
 		if (File.Exists(oldPath))
 		{
 			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
+			var stopwatch = Stopwatch.StartNew();
 
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
 			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
 
 			SqliteStorage.BulkInsert(allTransactions);
 
-			Logger.LogInfo($"Removing old '{oldPath}' transaction storage.");
 			File.Delete(oldPath);
+			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed.TotalSeconds} seconds.");
 		}
 	}
 
