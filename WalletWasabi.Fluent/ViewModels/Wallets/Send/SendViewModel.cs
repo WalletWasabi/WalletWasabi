@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -8,6 +9,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Validation;
@@ -23,6 +25,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Userfacing.Bip21;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -71,6 +74,11 @@ public partial class SendViewModel : RoutableViewModel
 
 		Balance = walletVm.WalletModel.Balances;
 
+		SuggestionLabels = new SuggestionLabelsViewModel(walletVm.WalletModel, Intent.Send, 3)
+		{
+			Labels = { }
+		};
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
@@ -112,12 +120,7 @@ public partial class SendViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () =>
 			{
-				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
-				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-				if (result.Result is not { } label)
-				{
-					return;
-				}
+				var label = new LabelsArray(SuggestionLabels.Labels.ToArray());
 
 				if (AmountBtc is not { } amountBtc)
 				{
@@ -153,6 +156,8 @@ public partial class SendViewModel : RoutableViewModel
 	public IObservable<Amount> Balance { get; }
 
 	public WalletViewModel WalletVm { get; }
+
+	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
