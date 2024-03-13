@@ -432,6 +432,7 @@ public class BlockchainController : ControllerBase
 	{
 		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
 		var toFetchFeeList = new List<uint256> { requestedTxId };
+		var mempoolHashes = Mempool.GetMempoolHashes();
 
 		while (toFetchFeeList.Count > 0)
 		{
@@ -447,7 +448,7 @@ public class BlockchainController : ControllerBase
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, cancellationToken),
+				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, cancellationToken),
 				options: UnconfirmedTransactionChainItemCacheEntryOptions,
 				cancellationToken);
 
@@ -465,7 +466,7 @@ public class BlockchainController : ControllerBase
 		return unconfirmedTxsChainById;
 	}
 
-	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, CancellationToken cancellationToken)
+	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
 	{
 		var currentTx = (await GetTransactionsFromCacheOrRpcAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
 
@@ -474,7 +475,6 @@ public class BlockchainController : ControllerBase
 		var parentTxs = await GetTransactionsFromCacheOrRpcAsync(txHashesToFetchFromRPC, cancellationToken).ConfigureAwait(false);
 
 		// Get unconfirmed parents and children
-		var mempoolHashes = Mempool.GetMempoolHashes();
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
 		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
 
