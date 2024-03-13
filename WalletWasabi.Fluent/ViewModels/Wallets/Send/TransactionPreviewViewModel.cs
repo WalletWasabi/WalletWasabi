@@ -10,7 +10,6 @@ using NBitcoin;
 using NBitcoin.Policy;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
@@ -19,7 +18,6 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -29,7 +27,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(Title = "Transaction Preview")]
-public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposable
+public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
@@ -42,7 +40,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposabl
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
-	private readonly CompositeDisposable _disposables = new();
 
 	public TransactionPreviewViewModel(UiContext uiContext, WalletViewModel walletViewModel, TransactionInfo info)
 	{
@@ -64,56 +61,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposabl
 		};
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
-
-		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.DoAsync(
-				async x =>
-				{
-					if (x?.Transaction is { } transaction)
-					{
-						UpdateTransaction(PreviewTransactionSummary, transaction);
-						await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
-					}
-					else
-					{
-						DisplayedTransactionSummary = CurrentTransactionSummary;
-						PrivacySuggestions.ClearPreviewWarnings();
-					}
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
-
-		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.SubscribeAsync(
-				async suggestion =>
-				{
-					PrivacySuggestions.SelectedSuggestion = null;
-
-					if (suggestion is { })
-					{
-						await ApplyPrivacySuggestionAsync(suggestion);
-					}
-				});
-
-		this.WhenAnyValue(x => x.Transaction)
-			.WhereNotNull()
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(
-				_ =>
-				{
-					_cancellationTokenSource.Cancel();
-					_cancellationTokenSource = new();
-				})
-			.DoAsync(
-				async transaction =>
-				{
-					await CheckChangePocketAvailableAsync(transaction);
-					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
-
+		
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
@@ -142,8 +90,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposabl
 						UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
 						CanUndo = _undoHistory.Count != 0;
 					}
-				})
-			.DisposeWith(_disposables);
+				});
 
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
 	}
@@ -369,6 +316,55 @@ public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposabl
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
+		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
+			.DoAsync(
+				async x =>
+				{
+					if (x?.Transaction is { } transaction)
+					{
+						UpdateTransaction(PreviewTransactionSummary, transaction);
+						await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
+					}
+					else
+					{
+						DisplayedTransactionSummary = CurrentTransactionSummary;
+						PrivacySuggestions.ClearPreviewWarnings();
+					}
+				})
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
+			.SubscribeAsync(
+				async suggestion =>
+				{
+					PrivacySuggestions.SelectedSuggestion = null;
+
+					if (suggestion is { })
+					{
+						await ApplyPrivacySuggestionAsync(suggestion);
+					}
+				});
+
+		this.WhenAnyValue(x => x.Transaction)
+			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(
+				_ =>
+				{
+					_cancellationTokenSource.Cancel();
+					_cancellationTokenSource = new();
+				})
+			.DoAsync(
+				async transaction =>
+				{
+					await CheckChangePocketAvailableAsync(transaction);
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_info, transaction, _cancellationTokenSource.Token);
+				})
+			.Subscribe()
+			.DisposeWith(disposables);
+
 		if (!isInHistory)
 		{
 			RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
@@ -541,10 +537,5 @@ public partial class TransactionPreviewViewModel : RoutableViewModel, IDisposabl
 		{
 			UpdateTransaction(CurrentTransactionSummary, transaction);
 		}
-	}
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
 	}
 }
