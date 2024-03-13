@@ -28,8 +28,6 @@
       </DockPanel>
     </StackPanel>
 
-    <Separator IsVisible="{Binding IsHardwareWallet}" />
-
     <StackPanel Classes="settingsLayout">
       <DockPanel IsVisible="{Binding IsHardwareWallet}">
         <TextBlock Text="PSBT workflow" />
