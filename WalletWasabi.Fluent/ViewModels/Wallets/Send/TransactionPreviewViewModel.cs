@@ -344,7 +344,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					{
 						await ApplyPrivacySuggestionAsync(suggestion);
 					}
-				});
+				})
+			.DisposeWith(disposables);
 
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
