@@ -54,9 +54,6 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 				.Select(x => new SuggestionLabelViewModel(x.Label, x.Score)));
 	}
 
-	public void Dispose() => _disposables.Dispose();
-
-
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
