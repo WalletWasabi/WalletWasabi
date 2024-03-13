@@ -308,9 +308,15 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
+		// Ignore paste if there are invalid characters
+		if (!RegexDecimalCharsOnly().IsMatch(text))
+		{
+			return;
+		}
+
 		text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-		if (!TryParse(text, out text))
+		if (!TryParsePastedValue(text, out text))
 		{
 			return;
 		}
@@ -327,7 +333,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
+	private bool TryParsePastedValue(string text, [NotNullWhen(true)] out string? result)
 	{
 		if (!IsFiat)
 		{

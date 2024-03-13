@@ -104,12 +104,6 @@ public static class CurrencyInput
 			corrected = corrected[..(dotIndex + 1 + 8)];
 		}
 
-		// Make sure you don't send more bitcoins than how much there is in existence.
-		if (corrected.Length != 0 && corrected != "." && (!decimal.TryParse(corrected, out decimal btcDecimal) || btcDecimal > Constants.MaximumNumberOfBitcoins))
-		{
-			corrected = Constants.MaximumNumberOfBitcoins.ToString();
-		}
-
 		if (corrected != original)
 		{
 			best = corrected;
