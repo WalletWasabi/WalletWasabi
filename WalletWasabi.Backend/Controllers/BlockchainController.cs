@@ -489,6 +489,8 @@ public class BlockchainController : ControllerBase
 
 	private Money ComputeFee(Transaction currentTx, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
 	{
+		cancellationToken.ThrowIfCancellationRequested();
+
 		var inputs = new List<Coin>();
 
 		var prevOutsForCurrentTx = currentTx.Inputs
