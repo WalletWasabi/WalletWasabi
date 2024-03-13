@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:AddressLabelEditViewModel"
              x:CompileBindings="True"
@@ -26,9 +24,9 @@
                MaxWidth="320"
                IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
                MaxTextLength="{StaticResource MaxLabelLength}">
-      <i:Interaction.Behaviors>
-        <behaviors:FocusOnAttachedBehavior />
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+      </Interaction.Behaviors>
     </TagsBox>
   </ContentArea>
 </UserControl>

@@ -1,7 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-                    xmlns:i="using:Avalonia.Xaml.Interactivity">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
   <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
@@ -25,9 +23,9 @@
 
           <DockPanel>
             <PathIcon Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
-              <i:Interaction.Behaviors>
-                <behaviors:CheckMarkVisibilityBehavior/>
-              </i:Interaction.Behaviors>
+              <Interaction.Behaviors>
+                <CheckMarkVisibilityBehavior />
+              </Interaction.Behaviors>
             </PathIcon>
             <!-- TODO: Fix System.ArgumentException: Unable to resolve namespace for type validation:CheckMarkStatus -->
             <!-- TODO: Seems like CheckMarkStatus.IsEnabled is never actually set to True -->
@@ -84,6 +82,11 @@
                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       </Panel>
+                      <ScrollViewer.Styles>
+                        <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Cursor" Value="IBeam" />
+                        </Style>
+                      </ScrollViewer.Styles>
                     </ScrollViewer>
                   </DockPanel>
                   <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
@@ -142,6 +145,11 @@
                            CaretBrush="{TemplateBinding CaretBrush}"
                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            <ScrollViewer.Styles>
+              <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                <Setter Property="Cursor" Value="IBeam" />
+              </Style>
+            </ScrollViewer.Styles>
           </ScrollViewer>
         </ControlTemplate>
       </Setter>

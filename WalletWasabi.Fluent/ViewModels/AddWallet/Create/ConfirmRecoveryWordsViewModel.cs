@@ -134,8 +134,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
-		var dialogCaption = "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.";
-		var password = await Navigate().To().CreatePasswordDialog("Add Password", dialogCaption, enableEmpty: true).GetResultAsync();
+		var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
+			"It's needed to open and to recover your wallet.\n" +
+			"It's a recovery words extension for more security.";
+		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
 		if (password is { })
 		{

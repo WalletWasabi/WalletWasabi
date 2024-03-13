@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
              mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="270"
              x:DataType="dialogs:AddressEntryDialogViewModel"
@@ -39,10 +37,10 @@
              Watermark="Enter the destination bitcoin address"
              AcceptsReturn="False"
              VerticalAlignment="Top">
-      <i:Interaction.Behaviors>
-        <behaviors:FocusOnAttachedBehavior />
-        <behaviors:ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+        <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
+      </Interaction.Behaviors>
       <TextBox.InnerRightContent>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
           <AnimatedButton KeyboardNavigation.IsTabStop="False"
@@ -51,9 +49,9 @@
                             ToolTip.Tip="Paste"
                             NormalIcon="{StaticResource paste_regular}"
                             ClickIcon="{StaticResource copy_confirmed}">
-            <i:Interaction.Behaviors>
-              <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
-            </i:Interaction.Behaviors>
+            <Interaction.Behaviors>
+              <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
+            </Interaction.Behaviors>
           </AnimatedButton>
           <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                             KeyboardNavigation.IsTabStop="False"

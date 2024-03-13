@@ -16,9 +16,9 @@ public class TorBinaryHashesTests
 	{
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "855799b771d166ac09e95ce99e77a219c35f1db3ed66342a2f224735c01a54bf" },
-			{ OSPlatform.Linux, "79f1fe14e2c0d00cb604f21c0836ca58e5d5205d0a9a8acfb4a5df065492bf80" },
-			{ OSPlatform.OSX, "ba028d74610083102c1f9cb95e6e746e3c0d374d61e275d3049729260900cb8b" },
+			{ OSPlatform.Windows, "33049016dd8985e97e69d89cad74b59b06488310c0be86d0f83b10ee096b7875" },
+			{ OSPlatform.Linux, "8f5f89e8dec6f4fa095ee10a9b16904cdb8a3d3f109d3b2929ff960ca15846ba" },
+			{ OSPlatform.OSX, "0360821eeb291e290f09966af87e7a1ceaba6d0a4b60e11c15249aeef288d49b" },
 		};
 
 		using SHA256 sha256 = SHA256.Create();
