@@ -33,8 +33,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3)
-			.DisposeWith(_disposables);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
@@ -56,6 +55,12 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 	public ICommand ShowExistingAddressesCommand { get; }
 
 	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Count().Select(i => i > 0);
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+		SuggestionLabels.Activate(disposables);
+	}
 
 	private void OnNext()
 	{

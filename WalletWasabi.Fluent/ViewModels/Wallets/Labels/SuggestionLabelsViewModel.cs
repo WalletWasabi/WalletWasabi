@@ -11,10 +11,11 @@ using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
-public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
+public partial class SuggestionLabelsViewModel : ActivatableViewModel
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly IWalletModel _wallet;
+	private readonly int _topSuggestionsCount;
 	private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
 	private readonly ObservableCollectionExtended<string> _topSuggestions;
 	private readonly ObservableCollectionExtended<string> _suggestions;
@@ -25,6 +26,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 	public SuggestionLabelsViewModel(IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{
 		_wallet = wallet;
+		_topSuggestionsCount = topSuggestionsCount;
 		_sourceLabels = new SourceList<SuggestionLabelViewModel>()
 			.DisposeWith(_disposables);
 		_topSuggestions = new ObservableCollectionExtended<string>();
@@ -33,7 +35,6 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 		Intent = intent;
 
 		UpdateLabels();
-		CreateSuggestions(topSuggestionsCount);
 	}
 
 	public ObservableCollection<string> TopSuggestions => _topSuggestions;
@@ -57,7 +58,8 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 
 	public void Dispose() => _disposables.Dispose();
 
-	private void CreateSuggestions(int topSuggestionsCount)
+
+	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
 			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
@@ -67,12 +69,12 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 			.Connect()
 			.Filter(suggestionLabelsFilter)
 			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
-			.Top(topSuggestionsCount)
+			.Top(_topSuggestionsCount)
 			.Transform(x => x.Label)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_topSuggestions)
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposables);
 
 		_sourceLabels
 			.Connect()
@@ -82,7 +84,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase, IDisposable
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_suggestions)
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposables);
 
 		Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
 	}
