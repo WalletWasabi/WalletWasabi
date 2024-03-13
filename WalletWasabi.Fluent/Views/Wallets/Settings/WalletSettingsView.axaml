@@ -23,13 +23,13 @@
         </ScrollViewer>
       </TabItem>
 
-      <TabItem Header="Coinjoin">
+      <TabItem Header="Coinjoin" IsVisible="{Binding !IsWatchOnly}">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
           <v:CoinJoinSettingsView DataContext="{Binding CoinJoinSettings}" />
         </ScrollViewer>
       </TabItem>
 
-      <TabItem Header="Backup">
+      <TabItem Header="Backup" IsVisible="{Binding !IsWatchOnly}">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
           <v:WalletBackupView />
         </ScrollViewer>

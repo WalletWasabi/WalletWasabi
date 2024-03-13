@@ -8,7 +8,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletBackupView">
 
-  <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
+  <StackPanel Spacing="20">
     <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
     <InfoMessage>
       <DockPanel>
