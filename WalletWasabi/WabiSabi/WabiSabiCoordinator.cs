@@ -160,7 +160,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private bool IsWasabiCoinJoinLookingTx(Transaction tx) =>
 		tx.RBF == false
-		&& tx.Inputs.Count >= Config.MinInputCountByRound
+		&& tx.Inputs.Count >= Config.MinInputCountByBlameRound
 		&& tx.Inputs.Count <= Config.MaxInputCountByRound
 		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
 		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);

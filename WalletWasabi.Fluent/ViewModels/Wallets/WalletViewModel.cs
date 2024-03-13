@@ -9,6 +9,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -102,7 +103,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
-		CanBuy = walletModel.HasBalance.Select(hasBalance => GetIsBuyButtonVisible(hasBalance));
+		CanBuy =
+			walletModel.HasBalance
+				.CombineLatest(BuyViewModel.HasNonEmptyOrder)
+				.Select(x => GetIsBuyButtonVisible(x.First, x.Second));
 
 		HasUnreadConversations = BuyViewModel.Orders
 			.ToObservableChangeSet(x => x.OrderNumber)
@@ -202,21 +206,17 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 				   .DisposeWith(disposables);
 	}
 
-	private bool GetIsBuyButtonVisible(bool hasBalance)
+	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)
 	{
-		var network = UiContext.ApplicationSettings.Network;
-
-		if (network == Network.Main && hasBalance)
-		{
-			return true;
-		}
-
 #if DEBUG
-		if (hasBalance)
+		return true;
+#endif
+
+		if (hasBalance || hasNonEmptyOrder)
 		{
 			return true;
 		}
-#endif
+
 		return false;
 	}
 

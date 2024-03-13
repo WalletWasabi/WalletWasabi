@@ -153,7 +153,7 @@ public class TorControlClientTests
 		timeoutCts.Cancel();
 
 		// No more async events.
-		Assert.ThrowsAsync<OperationCanceledException>(async () => await eventsEnumerator.MoveNextAsync());
+		await Assert.ThrowsAsync<TaskCanceledException>(async () => await eventsEnumerator.MoveNextAsync());
 	}
 
 	/// <summary>Verifies behavior of the subscription API and its logical subscription model.</summary>

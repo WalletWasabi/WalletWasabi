@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -32,7 +31,6 @@ public partial class OrderViewModel : ViewModelBase
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _isCompleted;
 	[AutoNotify] private bool _hasUnreadMessages;
-	[AutoNotify] private bool _isSelected;
 
 	private CancellationTokenSource _cts;
 
@@ -78,12 +76,6 @@ public partial class OrderViewModel : ViewModelBase
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs.BindTo(this, x => x.HasUnreadMessages);
 
-		// Update file on disk
-		this.WhenAnyValue(x => x.HasUnreadMessages).Where(x => x == false).ToSignal()
-			.Merge(_messagesList.Connect().ToSignal())
-			.DoAsync(async _ => await UpdateConversationLocallyAsync(cancellationToken))
-			.Subscribe();
-
 		this.WhenAnyValue(x => x.Workflow.Conversation)
 			.Do(conversation =>
 			{
@@ -102,19 +94,10 @@ public partial class OrderViewModel : ViewModelBase
 		_cts = new CancellationTokenSource();
 
 		// Handle Workflow Step Execution Errors and show UI message
-		Observable.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
-				  .DoAsync(async e =>
-				  {
-					  if (e.EventArgs is OperationCanceledException)
-					  {
-						  // Ignore
-					  }
-					  else
-					  {
-						  await ShowErrorAsync("Error while processing order.");
-					  }
-				  })
-				  .Subscribe();
+		Observable
+			.FromEventPattern<Exception>(Workflow, nameof(Workflow.OnStepError))
+			.DoAsync(async e => await _orderManager.OnError(e.EventArgs))
+			.Subscribe();
 
 		StartWorkflow(_cts.Token);
 	}
@@ -196,16 +179,6 @@ public partial class OrderViewModel : ViewModelBase
 
 	private void ClearMessageList() => _messagesList.Edit(x => x.Clear());
 
-	private Task UpdateConversationLocallyAsync(CancellationToken cancellationToken)
-	{
-		if (ConversationId == ConversationId.Empty)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _buyAnythingManager.UpdateConversationOnlyLocallyAsync(Workflow.Conversation, cancellationToken);
-	}
-
 	private MessageViewModel CreateMessageViewModel(ChatMessage message)
 	{
 		if (message.IsMyMessage)
@@ -240,9 +213,9 @@ public partial class OrderViewModel : ViewModelBase
 			{
 				await Workflow.ExecuteAsync(token);
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				// Ignore.
+				Logger.LogDebug(ex.Message);
 			}
 			catch (Exception ex)
 			{

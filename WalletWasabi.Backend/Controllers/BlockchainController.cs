@@ -273,7 +273,6 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
-	/// <param name="indexType">Type of index. Valid values: segwittaproot, taproot.</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>

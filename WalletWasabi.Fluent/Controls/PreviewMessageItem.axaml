@@ -1,21 +1,20 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:conv="using:WalletWasabi.Fluent.Converters">
 
   <Design.PreviewWith>
     <Border Width="200">
-      <c:PreviewMessageItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
+      <PreviewMessageItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
                      CopyableContent="Text to copy" />
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="c|PreviewMessageItem">
+  <Style Selector="PreviewMessageItem">
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel Background="Transparent"
                    Margin="{TemplateBinding Margin}">
-          <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+          <ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
                                  ToolTip.Tip="Copy"
                                  DockPanel.Dock="{TemplateBinding CopyButtonPlacement}"
                                  Width="30"
@@ -65,39 +64,39 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.FontSize" Value="14" />
   </Style>
 
-  <Style Selector="c|PreviewMessageItem /template/ TextBlock#PART_Text">
+  <Style Selector="PreviewMessageItem /template/ TextBlock#PART_Text">
     <Setter Property="FontSize" Value="14" />
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
-  <Style Selector="c|PreviewMessageItem :is(Control) TextBlock, c|PreviewMessageItem :is(TextBlock)">
+  <Style Selector="PreviewMessageItem :is(Control) TextBlock, PreviewMessageItem :is(TextBlock)">
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
-  <Style Selector="c|PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock">
+  <Style Selector="PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock">
     <Setter Property="Text" Value="Sensitive Data" />
     <Setter Property="Foreground" Value="IndianRed" />
   </Style>
 
   <!-- Transitions -->
-  <Style Selector="c|PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter,
-                   c|PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock">
+  <Style Selector="PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter,
+                   PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock">
     <Setter Property="Transitions">
       <Transitions>
         <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
       </Transitions>
     </Setter>
   </Style>
-  <Style Selector="c|PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
-                   c|PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
+  <Style Selector="PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
+                   PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
     <Setter Property="Opacity" Value="1" />
   </Style>
-  <Style Selector="c|PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
-                   c|PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
+  <Style Selector="PreviewMessageItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
+                   PreviewMessageItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
     <Setter Property="Opacity" Value="0" />
   </Style>
 

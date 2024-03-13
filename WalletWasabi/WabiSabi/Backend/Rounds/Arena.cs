@@ -224,15 +224,8 @@ public partial class Arena : PeriodicRunner
 						if (offendingAliceCounter > 0)
 						{
 							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
-							if (round.InputCount - offendingAliceCounter >= round.Parameters.MinInputCountByRound)
-							{
-								EndRound(round, EndRoundState.NotAllAlicesSign);
-								await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
-							}
-							else
-							{
-								EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-							}
+
+							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
 						}
 					}
@@ -441,15 +434,7 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= round.Parameters.MinInputCountByRound)
-		{
-			EndRound(round, EndRoundState.NotAllAlicesSign);
-			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-		}
-		else
-		{
-			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
-		}
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
@@ -466,26 +451,32 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}");
 
-		if (round.InputCount >= round.Parameters.MinInputCountByRound)
-		{
-			EndRound(round, EndRoundState.NotAllAlicesSign);
-			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-		}
-		else
-		{
-			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
-		}
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
+	private async Task EndRoundAndTryCreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
+		if (round.InputCount < Config.MinInputCountByBlameRound)
+		{
+			// There are not enough inputs, makes no sense to create the blame round.
+			EndRound(round, EndRoundState.AbortedNotEnoughAlicesSigned);
+			return;
+		}
+
+		// This indicates to the client that there will be a blame round.
+		EndRound(round, EndRoundState.NotAllAlicesSign);
+
 		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x, Config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
-		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
+		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round) with
+		{
+			MinInputCountByRound = Config.MinInputCountByBlameRound
+		};
+
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		AddRound(blameRound);
 		blameRound.LogInfo($"Blame round created from round '{round.Id}'.");
@@ -499,14 +490,11 @@ public partial class Arena : PeriodicRunner
 		// Only do things if the load balancer compatibility is configured.
 		if (Config.WW200CompatibleLoadBalancing)
 		{
-			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
-
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= roundDestroyerInputCount).ToArray())
+				&& x.InputCount >= Config.RoundDestroyerThreshold).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -546,7 +534,7 @@ public partial class Arena : PeriodicRunner
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
-						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {Config.RoundDestroyerThreshold}");
 					}
 				}
 			}
