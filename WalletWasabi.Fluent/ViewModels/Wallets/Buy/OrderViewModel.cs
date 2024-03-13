@@ -236,6 +236,7 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 
 	public void Dispose()
 	{
+		Workflow.Dispose();
 		_disposables.Dispose();
 	}
 }

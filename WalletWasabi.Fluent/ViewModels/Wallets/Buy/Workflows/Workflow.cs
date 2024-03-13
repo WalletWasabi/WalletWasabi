@@ -156,7 +156,5 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 	}
 
-	// TODO: Workflow holds subscriptions to other objects it doesn't own, so it must be disposable.
-	// Please, review when to dispose it to avoid memory leaks.
 	public void Dispose() => _disposables.Dispose();
 }
