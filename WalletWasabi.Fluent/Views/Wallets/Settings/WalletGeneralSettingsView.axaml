@@ -8,7 +8,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletGeneralSettingsView">
 
-  <StackPanel Spacing="20" Margin="0 30">
+  <StackPanel Spacing="20">
 
     <StackPanel Classes="settingsLayout">
       <DockPanel>
