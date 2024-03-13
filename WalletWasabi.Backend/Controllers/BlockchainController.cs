@@ -34,6 +34,9 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedTrasanctionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedParentTransactionsCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
@@ -390,12 +393,11 @@ public class BlockchainController : ControllerBase
 		uint256 txId = new(transactionId);
 
 		var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
-			options: cacheOptions,
+			options: UnconfirmedTrasanctionChainCacheEntryOptions,
 			cancellationToken);
 	}
 
@@ -442,12 +444,11 @@ public class BlockchainController : ControllerBase
 
 			// Check if we just computed the item.
 			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTxId}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
 				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, cancellationToken),
-				options: cacheOptions,
+				options: UnconfirmedTransactionChainItemCacheEntryOptions,
 				cancellationToken);
 
 			toFetchFeeList.Remove(currentTxId);
@@ -470,12 +471,11 @@ public class BlockchainController : ControllerBase
 
 		// Fetch parent transactions
 		var cacheKey = $"{nameof(FetchParentTransactionsFromRPCAsync)}_{currentTx.GetHash()}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) };
 
 		var parentTxs = await Cache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken token) => FetchParentTransactionsFromRPCAsync(currentTx, cancellationToken),
-			options: cacheOptions,
+			options: UnconfirmedParentTransactionsCacheEntryOptions,
 			cancellationToken);
 
 		// Get unconfirmed parents and children
