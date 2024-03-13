@@ -21,6 +21,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
 		itemsObservable
+			.DisposeMany()
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
 			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
