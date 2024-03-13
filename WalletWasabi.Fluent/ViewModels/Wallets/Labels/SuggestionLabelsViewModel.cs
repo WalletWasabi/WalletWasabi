@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
 public partial class SuggestionLabelsViewModel : ActivatableViewModel
 {
-	private readonly CompositeDisposable _disposables = new();
 	private readonly IWalletModel _wallet;
 	private readonly int _topSuggestionsCount;
 	private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
@@ -27,8 +26,7 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 	{
 		_wallet = wallet;
 		_topSuggestionsCount = topSuggestionsCount;
-		_sourceLabels = new SourceList<SuggestionLabelViewModel>()
-			.DisposeWith(_disposables);
+		_sourceLabels = new SourceList<SuggestionLabelViewModel>();
 		_topSuggestions = new ObservableCollectionExtended<string>();
 		_suggestions = new ObservableCollectionExtended<string>();
 		_labels = new ObservableCollectionExtended<string>(labels ?? new List<string>());
