@@ -467,16 +467,11 @@ public class BlockchainController : ControllerBase
 
 	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, CancellationToken cancellationToken)
 	{
-		var currentTx = await RpcClient.GetRawTransactionAsync(currentTxId, true, cancellationToken);
+		var currentTx = (await GetTransactionsFromCacheOrRpcAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
 
-		// Fetch parent transactions
-		var cacheKey = $"{nameof(FetchParentTransactionsFromRPCAsync)}_{currentTx.GetHash()}";
+		var txHashesToFetchFromRPC = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToList();
 
-		var parentTxs = await Cache.GetCachedResponseAsync(
-			cacheKey,
-			action: (string request, CancellationToken token) => FetchParentTransactionsFromRPCAsync(currentTx, cancellationToken),
-			options: UnconfirmedParentTransactionsCacheEntryOptions,
-			cancellationToken);
+		var parentTxs = await GetTransactionsFromCacheOrRpcAsync(txHashesToFetchFromRPC, cancellationToken).ConfigureAwait(false);
 
 		// Get unconfirmed parents and children
 		var mempoolHashes = Mempool.GetMempoolHashes();
@@ -510,23 +505,17 @@ public class BlockchainController : ControllerBase
 		return currentTx.GetFee(inputs.ToArray());
 	}
 
-	private async Task<IEnumerable<Transaction>> FetchParentTransactionsFromRPCAsync(Transaction currentTx, CancellationToken cancellationToken)
+	private async Task<IEnumerable<Transaction>> GetTransactionsFromCacheOrRpcAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken)
 	{
-		var prevOutToFetchFromRPC = currentTx.Inputs
-			.Select(input => input.PrevOut)
-			.ToList();
-
-		if (prevOutToFetchFromRPC.Count > 0)
+		// Replace the body of this method with a code that is using the tx cache.
+		if (!txids.Any())
 		{
-			var parentTxs = await RpcClient.GetRawTransactionsAsync(prevOutToFetchFromRPC.Select(x => x.Hash), cancellationToken);
-			if (parentTxs.Count() != prevOutToFetchFromRPC.Count)
-			{
-				throw new InvalidOperationException("Some parent transactions couldn't be fetched from RPC");
-			}
-
-			return parentTxs;
+			return [];
 		}
 
-		return [];
+		var parentTxs = await RpcClient.GetRawTransactionsAsync(txids, cancellationToken);
+		return parentTxs.Count() != txids.Count()
+			? throw new InvalidOperationException("Some parent transactions couldn't be fetched from RPC")
+			: parentTxs;
 	}
 }
