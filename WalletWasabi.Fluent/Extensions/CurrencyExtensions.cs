@@ -38,6 +38,11 @@ public static class CurrencyExtensions
 		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
 	}
 
+	public static string FormattedBtcFixedFractional(this decimal amount)
+	{
+		return string.Format(FormatInfo, "{0:### ### ### ##0.0000 0000}", amount).Trim();
+	}
+
 	public static string FormattedFiat(this decimal amount, string format = "N2")
 	{
 		return amount.ToString(format, FormatInfo).Trim();
