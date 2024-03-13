@@ -438,9 +438,6 @@ public class BlockchainController : ControllerBase
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			// TODO: Use Transaction cache.
-			// TODO: It's very important since I changed the factoring, otherwise we might refetch a transaction that we just discarded...
-			// TODO: This is a hack BTW, hacking around GetCachedResponseAsync.
 			var currentTxId = toFetchFeeList.First();
 
 			// Check if we just computed the item.
@@ -478,7 +475,6 @@ public class BlockchainController : ControllerBase
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
 		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
 
-		// TODO: Add unconfirmedParents and unconfirmedChildrenTxs to transaction cache.
 		return new UnconfirmedTransactionChainItem(
 			TxId: currentTx.GetHash(),
 			Size: currentTx.GetVirtualSize(),
@@ -509,7 +505,7 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IEnumerable<Transaction>> GetTransactionsFromCacheOrRpcAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken)
 	{
-		// Replace the body of this method with a code that is using the tx cache.
+		// TODO: Replace the body of this method with a code that is using the tx cache.
 		if (!txids.Any())
 		{
 			return [];
