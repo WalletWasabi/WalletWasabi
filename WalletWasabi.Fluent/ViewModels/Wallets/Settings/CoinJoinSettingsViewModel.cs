@@ -81,6 +81,8 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 						_wallet.Settings.Save();
 					}
 				});
+
+		Update();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
@@ -90,23 +92,29 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+		Update();
+	}
+
+	private void Update()
+	{
 		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
 			(_wallet.Settings.IsCoinjoinProfileSelected,
-			CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
-			{
-				(true, CoinJoinProfileViewModelBase x) => x.Title,
-				(false, _) => "None",
-				_ => "Unknown"
-			};
+					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
+				{
+					(true, CoinJoinProfileViewModelBase x) => x.Title,
+					(false, _) => "None",
+					_ => "Unknown"
+				};
 	}
 
 	private async Task SelectCoinjoinProfileAsync()
 	{
 		await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
 		AutoCoinJoin = _wallet.Settings.AutoCoinjoin;
+		Update();
 	}
 }
