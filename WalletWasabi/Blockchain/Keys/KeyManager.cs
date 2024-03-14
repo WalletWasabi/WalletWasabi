@@ -430,7 +430,6 @@ public class KeyManager
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
 	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight, Height? FirstReceivingHeight);
-
 	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
