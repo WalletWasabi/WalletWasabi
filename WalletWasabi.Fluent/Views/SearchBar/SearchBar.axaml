@@ -123,7 +123,7 @@
       </Setter>
     </Style>
 
-    <Style Selector="ScrollViewer#DropdownScrollViewer">
+    <Style Selector="ContentControl#DropDownRoot">
       <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
       <Setter Property="MinWidth" Value="{DynamicResource FlyoutThemeMinWidth}" />
       <Setter Property="MaxWidth" Value="{DynamicResource FlyoutThemeMaxWidth}" />
@@ -160,8 +160,8 @@
           <Binding Path="#SearchBox.IsFocused" />
         </MultiBinding>
       </Popup.IsOpen>
-      <ContentControl Theme="{StaticResource AcrylicPanel}">
-        <ScrollViewer x:Name="DropdownScrollViewer">
+      <ContentControl x:Name="DropDownRoot" Theme="{StaticResource AcrylicPanel}">
+        <ScrollViewer>
           <s:SearchBarDropdown />
         </ScrollViewer>
       </ContentControl>
