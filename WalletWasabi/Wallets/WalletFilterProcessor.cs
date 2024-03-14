@@ -222,9 +222,28 @@ public class WalletFilterProcessor : BackgroundService
 			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
 		};
 
-		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
+		var listScriptPubKeyAccordingSyncType = scriptPubKeyAccordingSyncType.ToList();
+
+		if (listScriptPubKeyAccordingSyncType.Count == 0)
+		{
+			return Enumerable.Empty<byte[]>();
+		}
+
+		var lastUsedKey = Math.Max(0, listScriptPubKeyAccordingSyncType.FindLastIndex(x => x.FirstReceivingHeight is not null));
+		var lastCleanKeyToTestIndex = Math.Min(listScriptPubKeyAccordingSyncType.Count, lastUsedKey + KeyManager.MinGapLimit);
+
+		var result = listScriptPubKeyAccordingSyncType[..lastCleanKeyToTestIndex].Select(x => x.CompressedScriptPubKey);
+
+		counter++;
+		if (counter % 1000 == 0)
+		{
+			Logger.LogWarning($"{result.Count()}");
+		}
+
+		return result;
 	}
 
+	private static int counter = 0;
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
