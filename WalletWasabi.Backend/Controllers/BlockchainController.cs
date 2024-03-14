@@ -175,7 +175,7 @@ public class BlockchainController : ControllerBase
 			for (int i = 0; i < requestCount; i++)
 			{
 				uint256 txId = parsedTxIds[i];
-				string cacheKey = $"{nameof(BlockchainController)}#{txId}";
+				string cacheKey = $"{nameof(GetTransactionsAsync)}#{txId}";
 
 				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
 				{
@@ -193,7 +193,7 @@ public class BlockchainController : ControllerBase
 
 				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
 				{
-					_ = txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
 				}
 			}
 
@@ -217,7 +217,7 @@ public class BlockchainController : ControllerBase
 				Exception ex = new InvalidOperationException("Failed to get the transaction.");
 				foreach (TaskCompletionSource<Transaction> tcs in txIdsRetrieve.Values)
 				{
-					_ = tcs.TrySetException(ex);
+					tcs.TrySetException(ex);
 				}
 			}
 		}
