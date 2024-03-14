@@ -123,6 +123,16 @@ public class WabiSabiConfig : ConfigBase
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
+	[DefaultValue(0.4)]
+	[JsonProperty(PropertyName = "MinInputCountByBlameRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double MinInputCountByBlameRoundMultiplier { get; set; } = 0.4;
+
+	public int MinInputCountByBlameRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByBlameRoundMultiplier));
+
+	[DefaultValue(375)]
+	[JsonProperty(PropertyName = "RoundDestroyerThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int RoundDestroyerThreshold { get; set; } = 375;
+
 	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
 	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));

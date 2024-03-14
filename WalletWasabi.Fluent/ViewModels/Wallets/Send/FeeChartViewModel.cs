@@ -213,14 +213,18 @@ public partial class FeeChartViewModel : ViewModelBase
 		return 0;
 	}
 
-	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
+	public void UpdateFeeEstimates(IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> wildFeeEstimates, FeeRate? maxFee = null)
 	{
+		Dictionary<int, double> feeEstimates = wildFeeEstimates.ToDictionary(
+				x => (int)x.timeSpan.TotalMinutes / 10,
+				x => Math.Round((double)x.feeRate.SatoshiPerByte, 3));
+
 		var enableCursor = true;
 		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
 		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
 
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
-		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
+		var ys = correctedFeeEstimates.Select(x => x.Value).ToArray();
 
 		List<double>? xts;
 		List<double>? yts;
@@ -248,7 +252,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		_updatingCurrentValue = true;
 
-		if (satoshiPerByteValues.Any())
+		if (satoshiPerByteValues.Length != 0)
 		{
 			var maxY = satoshiPerByteValues.Max();
 			var minY = satoshiPerByteValues.Min();
@@ -353,13 +357,13 @@ public partial class FeeChartViewModel : ViewModelBase
 		return values;
 	}
 
-	private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+	private Dictionary<int, double> DistinctByValues(Dictionary<int, double> feeEstimates)
 	{
-		Dictionary<int, int> valuesToReturn = new();
+		Dictionary<int, double> valuesToReturn = new();
 
 		foreach (var estimate in feeEstimates)
 		{
-			var similarBlockTargets = feeEstimates.Where(x => x.Value == estimate.Value);
+			var similarBlockTargets = feeEstimates.Where(x => Math.Abs(x.Value - estimate.Value) == 0);
 			var fasterSimilarBlockTarget = similarBlockTargets.First();
 
 			if (fasterSimilarBlockTarget.Key == estimate.Key)
@@ -371,11 +375,11 @@ public partial class FeeChartViewModel : ViewModelBase
 		return valuesToReturn;
 	}
 
-	private bool AreEstimatedFeeRatesEqual(Dictionary<int, int> feeEstimates)
+	private bool AreEstimatedFeeRatesEqual(Dictionary<int, double> feeEstimates)
 	{
 		var first = feeEstimates.First();
 		var last = feeEstimates.Last();
 
-		return first.Value == last.Value;
+		return Math.Abs(first.Value - last.Value) == 0;
 	}
 }

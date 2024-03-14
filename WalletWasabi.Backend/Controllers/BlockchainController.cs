@@ -300,7 +300,6 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
-	/// <param name="indexType">Type of index. Valid values: segwittaproot, taproot.</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
@@ -312,7 +311,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
 	[ResponseCache(Duration = 60)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 	{
 		if (count <= 0)
 		{
@@ -321,12 +320,7 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		if (!TryGetIndexer(indexType, out var indexer))
-		{
-			return BadRequest("Not supported index type.");
-		}
-
-		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, count, out bool found);
+		var (bestHeight, filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{
@@ -345,30 +339,6 @@ public class BlockchainController : ControllerBase
 		};
 
 		return Ok(response);
-	}
-
-	internal bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
-	{
-		indexer = null;
-		if (indexType is null || indexType.Equals("segwittaproot", StringComparison.OrdinalIgnoreCase))
-		{
-			indexer = Global.SegwitTaprootIndexBuilderService;
-		}
-		else if (indexType.Equals("taproot", StringComparison.OrdinalIgnoreCase))
-		{
-			indexer = Global.TaprootIndexBuilderService;
-		}
-		else
-		{
-			return false;
-		}
-
-		if (indexer is null)
-		{
-			throw new NotSupportedException("This is impossible.");
-		}
-
-		return true;
 	}
 
 	[HttpGet("status")]
@@ -397,20 +367,11 @@ public class BlockchainController : ControllerBase
 	{
 		StatusResponse status = new();
 
-		// Select indexer that's behind the most.
-		var i1 = Global.SegwitTaprootIndexBuilderService;
-		var i2 = Global.TaprootIndexBuilderService;
-		if (i1 is null || i2 is null)
-		{
-			throw new NotSupportedException("This is impossible.");
-		}
-		var indexer = i1.LastFilterBuildTime > i2.LastFilterBuildTime ? i2 : i1;
-
 		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - indexer.LastFilterBuildTime > FilterTimeout)
+		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = indexer.GetLastFilter();
+			var lastFilter = Global.IndexBuilderService.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
 			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
 			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);

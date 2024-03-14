@@ -85,7 +85,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 					.Select(x => x.Identifier.ValueText)
 					.ToArray();
 
-				var hasConstructorArgs = constructorArgs.Any();
+				var hasConstructorArgs = constructorArgs.Length != 0;
 				var constructorArgsString = string.Join(",", constructorArgs);
 				var constructorString = hasConstructorArgs
 					? $": this({constructorArgsString})"

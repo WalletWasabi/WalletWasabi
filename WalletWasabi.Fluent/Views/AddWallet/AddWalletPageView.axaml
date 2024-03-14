@@ -3,20 +3,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
                  EnableNext="False">
     <Grid Width="530" MaxHeight="350" ColumnDefinitions="*,*,*" RowDefinitions="*,Auto,*">
       <Grid.Styles>
-        <Style Selector="c|TileButton">
+        <Style Selector="TileButton">
           <Setter Property="Cursor" Value="Hand" />
           <Setter Property="Width">
             <Setter.Value>
@@ -51,12 +50,12 @@
             </ControlTemplate>
           </Setter>
         </Style>
-        <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
+        <Style Selector="TileButton /template/ PathIcon#PART_Icon">
           <Setter Property="Margin" Value="0" />
         </Style>
       </Grid.Styles>
 
-      <c:TileButton Text="Create a new wallet"
+      <TileButton Text="Create a new wallet"
                     Grid.ColumnSpan="3"
                     Classes="action bottomtext"
                     Icon="{StaticResource add_regular}"
@@ -65,20 +64,20 @@
 
       <TextBlock Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" TextAlignment="Center" Text="or" />
 
-      <c:TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
+      <TileButton Grid.Row="2" Grid.Column="0" Text="Connect to hardware wallet"
                     Icon="{StaticResource calculator_regular}"
                     Classes="bottomtext"
                     Command="{Binding ConnectHardwareWalletCommand}" />
 
-      <c:TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"
+      <TileButton Grid.Row="2" Grid.Column="1" Text="Import a wallet"
                     Icon="{StaticResource import_regular}"
                     Classes="bottomtext"
                     Command="{Binding ImportWalletCommand}" />
 
-      <c:TileButton Grid.Row="2" Grid.Column="2" Text="Recover a wallet"
+      <TileButton Grid.Row="2" Grid.Column="2" Text="Recover a wallet"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Classes="bottomtext"
                     Command="{Binding RecoverWalletCommand}" />
     </Grid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

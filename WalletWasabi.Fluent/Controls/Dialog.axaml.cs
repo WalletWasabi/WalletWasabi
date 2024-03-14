@@ -316,7 +316,7 @@ public class Dialog : ContentControl
 
 		if (this.GetVisualRoot() is TopLevel topLevel)
 		{
-			topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel);
+			topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Bubble);
 			topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
 		}
 	}

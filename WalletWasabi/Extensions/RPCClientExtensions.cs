@@ -74,12 +74,7 @@ public static class RPCClientExtensions
 			? smartEstimations
 			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
-		var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
-
-		return new AllFeeEstimate(
-			EstimateMode,
-			finalEstimations,
-			rpcStatus.Synchronized);
+		return new AllFeeEstimate(finalEstimations);
 	}
 
 	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
@@ -139,15 +134,15 @@ public static class RPCClientExtensions
 
 		// EstimateSmartFeeAsync returns the block number where estimate was found - not always what the requested one.
 		return rpcFeeEstimationTasks
-			.Zip(Constants.ConfirmationTargets, (task, target) => (task, target))
-			.Where(x => x.task.IsCompletedSuccessfully)
-			.Select(x => (x.target, feeRate: x.task.Result.FeeRate))
+			.Where(x => x.IsCompletedSuccessfully)
+			.Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
+			.DistinctBy(x => x.target)
 			.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 	}
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
 	{
-		if (mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any())
+		if (mempoolInfo.Histogram is null || mempoolInfo.Histogram.Length == 0)
 		{
 			return new FeeRateByConfirmationTarget(0);
 		}

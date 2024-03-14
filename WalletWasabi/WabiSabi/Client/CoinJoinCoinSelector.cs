@@ -62,7 +62,7 @@ public class CoinJoinCoinSelector
 			.ToArray();
 
 		// Sanity check.
-		if (!filteredCoins.Any())
+		if (filteredCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
 			return ImmutableList<TCoin>.Empty;
@@ -131,22 +131,19 @@ public class CoinJoinCoinSelector
 		// If the command is given to not stop when everything is coinjoined and the allowed private coins are empty, then we shortcircuit the selection.
 		if (!stopWhenAllMixed && allowedNonPrivateCoins.Count == 0)
 		{
-			var largestAllowedCoin = orderedAllowedCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
-			if (largestAllowedCoin is null)
+			if (orderedAllowedCoins.Length == 0)
 			{
 				Logger.LogDebug($"Couldn't select any coins, ending.");
 				return ImmutableList<TCoin>.Empty;
 			}
-			else
-			{
-				// orderedAllowedCoins at this point is going to have inputCount - 1 coins, so add another coin to it.
-				var selectedPrivateCoins = orderedAllowedCoins
-					.Concat(smallerPrivateCoins.Concat(largerPrivateCoins).Except(orderedAllowedCoins).Take(1))
-					.Take(inputCount) // This is just sanity check, it should never have an effect, unless someone touches computations above.
-					.ToList();
-				selectedPrivateCoins.Shuffle(Rnd);
-				return selectedPrivateCoins.ToImmutableList();
-			}
+
+			// orderedAllowedCoins at this point is going to have inputCount - 1 coins, so add another coin to it.
+			var selectedPrivateCoins = orderedAllowedCoins
+				.Concat(smallerPrivateCoins.Concat(largerPrivateCoins).Except(orderedAllowedCoins).Take(1))
+				.Take(inputCount) // This is just sanity check, it should never have an effect, unless someone touches computations above.
+				.ToList();
+			selectedPrivateCoins.Shuffle(Rnd);
+			return selectedPrivateCoins.ToImmutableList();
 		}
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.

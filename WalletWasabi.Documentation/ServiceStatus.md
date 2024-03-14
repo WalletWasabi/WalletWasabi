@@ -2,7 +2,7 @@
 
 Here are your statuses. Feel free to dig into the data. 
 
-### CoinJoin Rounds
+### Coinjoin Rounds
 https://wasabiwallet.io/WabiSabi/human-monitor
 
 https://wasabiwallet.io/api/v4/btc/ChaumianCoinJoin/states

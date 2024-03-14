@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:model="using:WalletWasabi.Fluent.Models.Transactions"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView">
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyWarningsView"
+             x:DataType="send:PrivacySuggestionsFlyoutViewModel"
+             x:CompileBindings="True">
   <UserControl.Styles>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="Transparent" />
@@ -56,7 +56,7 @@
       <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|SuggestionItem > DockPanel > PathIcon">
+    <Style Selector="SuggestionItem > DockPanel > PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Margin" Value="0 0 10 0" />
       <Setter Property="DockPanel.Dock" Value="Left" />
@@ -70,6 +70,24 @@
       <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
       <Setter Property="Padding" Value="5" />
       <Setter Property="Margin" Value="5 0 5 5" />
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+            <PrivacyWarningFadeOutBehavior PreviewWarnings="{Binding PreviewWarnings^}" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.warning.fadeout">
+      <Setter Property="Opacity" Value=".4" />
+      <Setter Property="IsEnabled" Value="False" />
+      <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
     </Style>
 
     <Style Selector="Border.warning PathIcon">
@@ -118,7 +136,7 @@
               <PathIcon />
               <TextBlock Text="Transaction interlinks labels:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -130,7 +148,7 @@
               <PathIcon />
               <TextBlock Text="Transaction known as yours by:" Margin="0 0 5 0"
                          ToolTip.Tip="Those entities know this is your transaction. Coinjoin more or use the label management tool to carefully select who would know that this transaction is yours." />
-              <c:LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
         </DataTemplate>
@@ -206,14 +224,14 @@
                Margin="0 10 0 5"
                IsVisible="{Binding !!Suggestions.Count}" />
     <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
-      <i:Interaction.Behaviors>
-        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
+      </Interaction.Behaviors>
       <ListBox.DataTemplates>
 
         <!-- Label Management Suggestion -->
         <DataTemplate DataType="{x:Type model:LabelManagementSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource entities_edit_regular}" />
               <StackPanel Classes="suggestion">
@@ -223,46 +241,48 @@
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Full Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:FullPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_tick_regular}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Full Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to use only private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Better Privacy Suggestion-->
         <DataTemplate DataType="{x:Type model:BetterPrivacySuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <PathIcon Data="{StaticResource shield_regular}" />
               <StackPanel Classes="suggestion">
                 <TextBlock Text="Better Privacy" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to avoid non-private coins." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
 
         <!-- Change Avoidance Suggestion -->
         <DataTemplate DataType="{x:Type model:ChangeAvoidanceSuggestion}">
-          <c:SuggestionItem>
+          <SuggestionItem>
             <DockPanel>
               <DockPanel.Styles>
                 <Style Selector="PathIcon">
@@ -281,18 +301,19 @@
                 <TextBlock Text="Change Avoidance" Classes="title" />
                 <StackPanel Orientation="Horizontal" Classes="description">
                   <TextBlock Text="Send" />
-                  <TextBlock Text="{Binding DifferenceFiatText}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
-                  <TextBlock Text="to remove change." />
+                  <TextBlock Text="{Binding DifferenceText}"
+                             Foreground="{DynamicResource SystemAccentColor}" />
+                  <TextBlock Text="{Binding DifferenceAmountText, StringFormat='by {0}'}" IsVisible="{Binding !IsSameAmount}" />
                 </StackPanel>
               </StackPanel>
             </DockPanel>
-          </c:SuggestionItem>
+          </SuggestionItem>
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>
 
     <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
-      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
+      <ProgressRing Height="100" Width="100" IsIndeterminate="True" />
     </Viewbox>
   </StackPanel>
 </UserControl>

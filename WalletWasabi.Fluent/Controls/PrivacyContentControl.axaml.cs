@@ -1,9 +1,9 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
+using Avalonia.Interactivity;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -28,6 +28,10 @@ public class PrivacyContentControl : ContentControl
 	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MaxPrivacyChars), int.MaxValue);
 
+	private readonly CompositeDisposable _disposables = new();
+
+	private readonly UiConfig _uiConfig = Services.UiConfig;
+
 	public PrivacyContentControl()
 	{
 		if (Design.IsDesignMode)
@@ -35,16 +39,17 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
-			this.WhenAnyValue(x => x.ForceShow));
+		var isContentRevealed = PrivacyModeHelper.DelayedRevealAndHide(
+				this.WhenAnyValue(x => x.IsPointerOver),
+				this.WhenAnyValue(x => x._uiConfig.PrivacyMode),
+				this.WhenAnyValue(x => x.ForceShow))
+			.Replay();
 
-		IsContentRevealed = displayContent
-			.ReplayLastActive();
+		IsContentRevealed = isContentRevealed;
+		isContentRevealed.Connect().DisposeWith(_disposables);
 	}
 
-	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
+	public IObservable<bool> IsContentRevealed { get; }
 
 	public ReplacementMode PrivacyReplacementMode
 	{
@@ -69,4 +74,6 @@ public class PrivacyContentControl : ContentControl
 		get => GetValue(MaxPrivacyCharsProperty);
 		set => SetValue(MaxPrivacyCharsProperty, value);
 	}
+
+	protected override void OnUnloaded(RoutedEventArgs e) => _disposables.Dispose();
 }

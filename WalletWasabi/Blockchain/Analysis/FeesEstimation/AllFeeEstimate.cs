@@ -16,12 +16,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 {
 	[JsonConstructor]
-	public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+	public AllFeeEstimate(IDictionary<int, int> estimations)
 	{
 		Guard.NotNullOrEmpty(nameof(estimations), estimations);
-
-		Type = type;
-		IsAccurate = isAccurate;
 
 		var targets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 		var targetRanges = targets.Skip(1).Zip(targets.Skip(1).Prepend(0), (x, y) => (Start: y, End: x));
@@ -47,19 +44,10 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 	}
 
-	public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-		: this(other.Type, other.Estimations, isAccurate)
+	public AllFeeEstimate(AllFeeEstimate other)
+		: this(other.Estimations)
 	{
 	}
-
-	[JsonProperty]
-	public EstimateSmartFeeMode Type { get; }
-
-	/// <summary>
-	/// Gets a value indicating whether the fee has been fetched from a fully synced node.
-	/// </summary>
-	[JsonProperty]
-	public bool IsAccurate { get; set; }
 
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
@@ -206,12 +194,11 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 
 	public override int GetHashCode()
 	{
-		int hash = Type.GetHashCode();
+		int hash = 13;
 		foreach (KeyValuePair<int, int> est in Estimations)
 		{
 			hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
 		}
-		hash ^= IsAccurate.GetHashCode();
 
 		return hash;
 	}
@@ -224,16 +211,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 
 		if (x is null || y is null)
-		{
-			return false;
-		}
-
-		if (x.Type != y.Type)
-		{
-			return false;
-		}
-
-		if (x.IsAccurate != y.IsAccurate)
 		{
 			return false;
 		}

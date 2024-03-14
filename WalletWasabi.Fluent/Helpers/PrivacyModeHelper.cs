@@ -18,7 +18,7 @@ public static class PrivacyModeHelper
 			.Select(Visibility)
 			.Switch();
 
-		var finalVisibility = isPrivacyModeEnabled
+		IObservable<bool> finalVisibility = isPrivacyModeEnabled
 			.CombineLatest(
 				shouldBeVisible,
 				isVisibilityForced,

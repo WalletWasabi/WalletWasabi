@@ -2,13 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="dialog:ShowQrCameraDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShowQrCameraDialogView">
-  <c:ContentArea EnableNext="False"
+  <ContentArea EnableNext="False"
                  EnableCancel="{Binding EnableCancel}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
@@ -23,12 +22,12 @@
                    IsVisible="{Binding QrContent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
       </Grid>
       <Panel>
-        <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
+        <ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
         <Image Name="qrImage" Source="{Binding QrImage}"
                IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
       </Panel>
     </DockPanel>
 
-  </c:ContentArea>
+  </ContentArea>
 
 </UserControl>

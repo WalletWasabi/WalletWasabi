@@ -22,34 +22,19 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
-	private const long StateNotStarted = 0;
-
-	private const long StateRunning = 1;
-
-	private const long StateStopping = 2;
-
-	private const long StateStopped = 3;
-
 	private decimal _usdExchangeRate;
 
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
 
-	/// <summary>
-	/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
-	/// </summary>
-	private long _running;
-
-	public WasabiSynchronizer(TimeSpan requestInterval, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory)
+	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
-		RequestInterval = requestInterval;
 		MaxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
-		_running = StateNotStarted;
 		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
 		FilterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClientFactory = httpClientFactory;
@@ -58,7 +43,7 @@ public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider
 
 	#region EventsPropertiesMembers
 
-	public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
+	public event EventHandler<bool>? SynchronizeRequestFinished;
 
 	public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
@@ -100,15 +85,9 @@ public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider
 
 	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
-	private TimeSpan RequestInterval { get; }
 	private int MaxFiltersToSync { get; }
 	private SmartHeaderChain SmartHeaderChain { get; }
 	private FilterProcessor FilterProcessor { get; }
-
-	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
-
-	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
-	private CancellationTokenSource StopCts { get; } = new();
 
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
@@ -116,221 +95,101 @@ public class WasabiSynchronizer : INotifyPropertyChanged, IThirdPartyFeeProvider
 
 	#endregion EventsPropertiesMembers
 
-	#region Initializers
-
-	public void Start()
+	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		if (Interlocked.CompareExchange(ref _running, StateRunning, StateNotStarted) != StateNotStarted)
+		try
 		{
-			return;
-		}
+			SynchronizeResponse response;
 
-		Task.Run(async () =>
-		{
+			ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 			try
 			{
-				bool ignoreRequestInterval = false;
-
-				while (IsRunning)
+				if (SmartHeaderChain.TipHash is null)
 				{
-					try
-					{
-						SynchronizeResponse response;
+					return;
+				}
 
-						ushort lastUsedApiVersion = WasabiClient.ApiVersion;
-						try
-						{
-							response = await WasabiClient
-								.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, StopCts.Token)
-								.ConfigureAwait(false);
+				response = await WasabiClient
+					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+					.ConfigureAwait(false);
 
-							// NOT GenSocksServErr
-							BackendStatus = BackendStatus.Connected;
-							TorStatus = TorStatus.Running;
-							DoNotGenSocksServFail();
-						}
-						catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
-						{
-							TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(innerEx);
-							throw;
-						}
-						catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
-						{
-							TorStatus = TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							try
-							{
-								// Backend API version might be updated meanwhile. Trying to update the versions.
-								var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
+				// NOT GenSocksServErr
+				BackendStatus = BackendStatus.Connected;
+				TorStatus = TorStatus.Running;
+				OnSynchronizeRequestFinished();
+			}
+			catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
+			{
+				TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
+				BackendStatus = BackendStatus.NotConnected;
+				OnSynchronizeRequestFinished();
+				throw;
+			}
+			catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
+			{
+				TorStatus = TorStatus.Running;
+				BackendStatus = BackendStatus.NotConnected;
 
-								// If the backend is compatible and the Api version updated then we just used the wrong API.
-								if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-								{
-									// Next request will be fine, do not throw exception.
-									ignoreRequestInterval = true;
-									continue;
-								}
-								else
-								{
-									throw;
-								}
-							}
-							catch (Exception x)
-							{
-								HandleIfGenSocksServFail(x);
-								throw;
-							}
-						}
-						catch (Exception ex)
-						{
-							TorStatus = TorStatus.Running;
-							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(ex);
-							throw;
-						}
+				// Backend API version might be updated meanwhile. Trying to update the versions.
+				var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 
-						// If it's not fully synced or reorg happened.
-						if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-						{
-							ignoreRequestInterval = true;
-						}
-						else
-						{
-							ignoreRequestInterval = false;
-						}
-						ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-						if (exchangeRate is { Rate: > 0 })
-						{
-							UsdExchangeRate = exchangeRate.Rate;
-						}
-
-						await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
-
-						LastResponse = response;
-						ResponseArrived?.Invoke(this, response);
-						if (response.AllFeeEstimate is { } allFeeEstimate)
-						{
-							AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
-						}
-					}
-					catch (OperationCanceledException)
-					{
-						Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
-					}
-					catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
-					{
-						// When stopping, we do not want to wait.
-						if (!IsRunning)
-						{
-							Logger.LogTrace(ex);
-							return;
-						}
-
-						Logger.LogError(ex);
-						try
-						{
-							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
-						}
-						catch (TaskCanceledException ex2)
-						{
-							Logger.LogTrace(ex2);
-						}
-					}
-					catch (TimeoutException ex)
-					{
-						Logger.LogTrace(ex);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-					finally
-					{
-						if (IsRunning && !ignoreRequestInterval)
-						{
-							try
-							{
-								await Task.Delay(RequestInterval, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
-							}
-							catch (TaskCanceledException ex)
-							{
-								Logger.LogTrace(ex);
-							}
-						}
-					}
+				// If the backend is compatible and the Api version updated then we just used the wrong API.
+				if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+				{
+					// Next request will be fine, do not throw exception.
+					TriggerRound();
+					return;
+				}
+				else
+				{
+					throw;
 				}
 			}
-			finally
+			catch (Exception)
 			{
-				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				Logger.LogDebug("Synchronizer is fully stopped now.");
+				TorStatus = TorStatus.Running;
+				BackendStatus = BackendStatus.NotConnected;
+				OnSynchronizeRequestFinished();
+				throw;
 			}
-		});
+
+			// If it's not fully synced or reorg happened.
+			if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+			{
+				TriggerRound();
+			}
+
+			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
+			if (exchangeRate is { Rate: > 0 })
+			{
+				UsdExchangeRate = exchangeRate.Rate;
+			}
+
+			await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+
+			LastResponse = response;
+			ResponseArrived?.Invoke(this, response);
+			if (response.AllFeeEstimate is { } allFeeEstimate)
+			{
+				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+			}
+		}
+		catch (HttpRequestException)
+		{
+			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
+			TriggerRound();
+			throw;
+		}
 	}
 
-	#endregion Initializers
-
-	#region Methods
-
-	private void HandleIfGenSocksServFail(Exception ex)
+	private void OnSynchronizeRequestFinished()
 	{
-		bool isFail = false;
+		var isBackendConnected = BackendStatus is BackendStatus.Connected;
 
-		if (ex is HttpRequestException httpRequestException && httpRequestException.InnerException is not null)
-		{
-			ex = httpRequestException.InnerException;
-		}
+		// One time trigger for the UI about the first request.
+		InitialRequestTcs.TrySetResult(isBackendConnected);
 
-		if (ex is TorConnectCommandFailedException torEx)
-		{
-			isFail = torEx.RepField == RepField.GeneralSocksServerFailure || torEx.RepField == RepField.OnionServiceIntroFailed;
-		}
-
-		if (isFail)
-		{
-			DoGenSocksServFail();
-		}
-		else
-		{
-			DoNotGenSocksServFail();
-		}
-	}
-
-	private void DoGenSocksServFail()
-	{
-		InitialRequestTcs.TrySetResult(false);
-		ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
-	}
-
-	private void DoNotGenSocksServFail()
-	{
-		InitialRequestTcs.TrySetResult(true);
-		ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
-	}
-
-	#endregion Methods
-
-	/// <summary>
-	/// Stops <see cref="WasabiSynchronizer"/>.
-	/// </summary>
-	/// <remarks>The method is supposed to be called just once.</remarks>
-	public async Task StopAsync()
-	{
-		Logger.LogTrace(">");
-
-		Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
-		StopCts.Cancel();
-
-		while (Interlocked.CompareExchange(ref _running, StateStopped, StateNotStarted) == StateStopping)
-		{
-			await Task.Delay(50).ConfigureAwait(false);
-		}
-
-		StopCts.Dispose();
-
-		Logger.LogTrace("<");
+		SynchronizeRequestFinished?.Invoke(this, isBackendConnected);
 	}
 
 	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

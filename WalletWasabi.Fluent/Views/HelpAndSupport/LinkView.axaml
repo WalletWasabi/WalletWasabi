@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
-             xmlns:controls="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:LinkViewModel"
              x:CompileBindings="True"
@@ -16,7 +15,7 @@
             Content="{Binding Description}"
             IsEnabled="{Binding IsClickable}" />
 
-    <controls:AnimatedButton ToolTip.Tip="Copy link"
+    <AnimatedButton ToolTip.Tip="Copy link"
                              Command="{Binding CopyLinkCommand}"
                              CommandParameter="{Binding Link}"
                              NormalIcon="{StaticResource copy_regular}"

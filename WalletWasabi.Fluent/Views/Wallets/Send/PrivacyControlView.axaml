@@ -2,21 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
-  <c:ContentArea Title="Send - Control your privacy"
+  <ContentArea Title="Send - Control your privacy"
                  Caption="Choose who can and can't see this transaction"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <c:ContentArea.Styles>
+    <ContentArea.Styles>
       <Style Selector="Button.faded">
         <Style.Animations>
           <Animation Duration="0:0:0.1" FillMode="Both">
@@ -36,13 +33,13 @@
         </Style.Animations>
       </Style>
 
-      <Style Selector="c|TagControl:disabled">
+      <Style Selector="TagControl:disabled">
         <Setter Property="Opacity" Value="0.5" />
       </Style>
       <Style Selector="Button.faded">
         <Setter Property="Opacity" Value="0.5" />
       </Style>
-    </c:ContentArea.Styles>
+    </ContentArea.Styles>
     <Grid RowDefinitions="*, 40, *" Margin="0 20" VerticalAlignment="Stretch"
           DataContext="{Binding LabelSelection}">
       <Border Background="{DynamicResource PrivacyControlWhiteListBackground}" CornerRadius="10">
@@ -57,11 +54,11 @@
 
           <ScrollViewer Margin="15,10,15,10">
             <ScrollViewer.Styles>
-              <Style Selector="c|TagControl.highlighted">
+              <Style Selector="TagControl.highlighted">
                 <Setter Property="Foreground" Value="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
               </Style>
-              <Style Selector="c|TagControl.highlighted.dangerous">
+              <Style Selector="TagControl.highlighted.dangerous">
                 <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
               </Style>
@@ -75,10 +72,10 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                    </i:Interaction.Behaviors>
-                    <c:TagControl Classes.highlighted="{Binding IsHighlighted}"
+                    <Interaction.Behaviors>
+                      <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                    </Interaction.Behaviors>
+                    <TagControl Classes.highlighted="{Binding IsHighlighted}"
                                   Classes.dangerous="{Binding IsDangerous}"
                                   Content="{Binding Value}"
                                   IsHitTestVisible="False"
@@ -106,11 +103,11 @@
 
           <ScrollViewer Margin="15,10,15,10">
             <ScrollViewer.Styles>
-              <Style Selector="c|TagControl.highlighted">
+              <Style Selector="TagControl.highlighted">
                 <Setter Property="Foreground" Value="{DynamicResource PrivacyControlItemBlackListHighlight}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource PrivacyControlItemBlackListHighlight}" />
               </Style>
-              <Style Selector="c|TagControl.highlighted.dangerous">
+              <Style Selector="TagControl.highlighted.dangerous">
                 <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
               </Style>
@@ -124,10 +121,10 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
-                    <i:Interaction.Behaviors>
-                      <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                    </i:Interaction.Behaviors>
-                    <c:TagControl
+                    <Interaction.Behaviors>
+                      <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                    </Interaction.Behaviors>
+                    <TagControl
                       Classes.highlighted="{Binding IsHighlighted}"
                       Classes.dangerous="{Binding IsDangerous}"
                       Content="{Binding Value}"
@@ -142,5 +139,5 @@
         </DockPanel>
       </Border>
     </Grid>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

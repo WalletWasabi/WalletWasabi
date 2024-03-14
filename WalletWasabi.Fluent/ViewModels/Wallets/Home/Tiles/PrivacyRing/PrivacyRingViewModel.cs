@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
@@ -22,7 +23,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private readonly CompositeDisposable _disposables = new();
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
+	[AutoNotify] private IPrivacyRingPreviewItem? _selectedItem;
 	[AutoNotify] private double _height;
 	[AutoNotify] private double _width;
 	[AutoNotify] private Thickness _margin;
@@ -37,7 +38,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		PrivacyTile = new PrivacyControlTileViewModel(UiContext, wallet);
 		PrivacyTile.Activate(_disposables);
 
-		PreviewItems.Add(PrivacyTile);
+		// Show PrivacyTile info when SelectedItem is null
+		Observable
+			.Return(Unit.Default)
+			.Delay(TimeSpan.FromMilliseconds(0)) // Wait for Ring animation to render TODO: Calculate delay based on the number of segments
+			.Concat(this.WhenAnyValue(x => x.SelectedItem).Where(x => x is null).ToSignal())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ => SelectedItem = PrivacyTile)
+			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
@@ -46,7 +54,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> References { get; } = new();
-	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -69,9 +76,16 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ToSignal();
 
+		var coinsList =
+			_wallet.Coins.List
+						 .Connect(suppressEmptyChangeSets: false)
+						 .OnItemAdded(c => c.SubscribeToCoinChanges()) // Subscribe to SmartCoin changes for dynamic updates
+						 .ToCollection()
+						 .Select(x => x.Distinct());
+
 		_wallet.Privacy.ProgressUpdated
 					   .Merge(sizeTrigger)
-					   .WithLatestFrom(_wallet.Coins.List.Connect(suppressEmptyChangeSets: false).ToCollection().Select(x => x.Distinct()))
+					   .WithLatestFrom(coinsList)
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Do(t => RenderRing(itemsSourceList, t.Second))
 					   .Subscribe()
@@ -88,9 +102,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		SetMargins();
 
 		list.Edit(list => CreateSegments(list, coins));
-
-		PreviewItems.RemoveMany(PreviewItems.OfType<PrivacyRingItemViewModel>());
-		PreviewItems.AddRange(list.Items);
 
 		SetReferences(list);
 	}
@@ -155,7 +166,15 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 			var end = start + (Math.Abs(groupAmount) / total);
 
-			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end);
+			var maxAnonScore = group.Max(x => x.AnonScore);
+			var minAnonScore = group.Min(x => x.AnonScore);
+
+			var anonScoreText =
+				maxAnonScore == minAnonScore
+				? $"{minAnonScore}"
+				: $"{minAnonScore}-{maxAnonScore}";
+
+			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end, anonScoreText);
 
 			yield return item;
 

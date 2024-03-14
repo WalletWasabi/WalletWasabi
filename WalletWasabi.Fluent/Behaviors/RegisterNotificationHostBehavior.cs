@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using Avalonia;
+using Avalonia.Xaml.Interactions.Custom;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;

@@ -54,6 +54,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coinChanges =
 			_wallet.Coins.List
 				.Connect()
+				.OnItemAdded(c => c.SubscribeToCoinChanges()) // Subscribe to SmartCoin changes for dynamic updates
 				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x), (_, _) => { })
 				.Replay(1)
 				.RefCount();

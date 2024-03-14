@@ -25,7 +25,8 @@ public static class TransactionBuilderWalletExtensions
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
 		bool allowDoubleSpend = false,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		bool overrideFeeOverpaymentProtection = false)
 	{
 		FeeRate? feeRate;
 
@@ -39,13 +40,14 @@ public static class TransactionBuilderWalletExtensions
 			throw new NotSupportedException(feeStrategy.Type.ToString());
 		}
 
-		TransactionParameters parameters = new(
+		TransactionParameters parameters = new (
 			payments,
 			FeeRate: feeRate,
 			AllowUnconfirmed: allowUnconfirmed,
 			AllowDoubleSpend: allowDoubleSpend,
 			AllowedInputs: allowedInputs,
-			TryToSign: tryToSign);
+			TryToSign: tryToSign,
+			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 
 		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
 		return factory.BuildTransaction(
@@ -122,6 +124,59 @@ public static class TransactionBuilderWalletExtensions
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
 			allowedInputs: coins.Select(coin => coin.Outpoint),
+			payjoinClient: payJoinClient,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
+
+	public static BuildTransactionResult BuildTransactionWithoutOverpaymentProtection(
+		this Wallet wallet,
+		string password,
+		PaymentIntent payments,
+		FeeStrategy feeStrategy,
+		bool allowUnconfirmed = false,
+		IEnumerable<OutPoint>? allowedInputs = null,
+		IPayjoinClient? payjoinClient = null,
+		bool allowDoubleSpend = false)
+		=> BuildTransaction(
+			wallet,
+			password,
+			payments,
+			feeStrategy,
+			allowUnconfirmed,
+			allowedInputs,
+			payjoinClient,
+			allowDoubleSpend,
+			tryToSign: true,
+			overrideFeeOverpaymentProtection: true);
+
+	public static BuildTransactionResult BuildTransactionForSIB(
+		this Wallet wallet,
+		IDestination destination,
+		Money amount,
+		LabelsArray label,
+		bool subtractFee,
+		IPayjoinClient? payJoinClient = null,
+		bool tryToSign = true)
+	{
+		if (payJoinClient is { } && subtractFee)
+		{
+			throw new InvalidOperationException("Not possible to subtract the fee.");
+		}
+
+		var intent = new PaymentIntent(
+			destination: destination,
+			amount: amount,
+			subtractFee: subtractFee,
+			label: label);
+
+		var txRes = wallet.BuildTransaction(
+			password: wallet.Kitchen.SaltSoup(),
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromConfirmationTarget(2),
+			allowUnconfirmed: true,
+			allowedInputs: null,
 			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 

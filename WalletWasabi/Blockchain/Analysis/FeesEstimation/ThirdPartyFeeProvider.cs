@@ -74,7 +74,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		var current = LastAllFeeEstimate;
 		if (fees is null
 			|| fees == current
-			|| (current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count)))
+			|| (current is not null && fees.Estimations.Count <= current.Estimations.Count))
 		{
 			return false;
 		}

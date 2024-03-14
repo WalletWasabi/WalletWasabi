@@ -22,6 +22,7 @@ public class P2PNodesManager
 	private NodesGroup Nodes { get; }
 	private bool IsTorEnabled { get; }
 	private int NodeTimeouts { get; set; }
+	public uint ConnectedNodesCount => (uint)Nodes.ConnectedNodes.Count;
 
 	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
 	{
@@ -34,13 +35,18 @@ public class P2PNodesManager
 		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
 	}
 
-	public void DisconnectNodeIfEnoughPeers(Node node, string logIfDisconnect, bool force = false)
+	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (Nodes.ConnectedNodes.Count > 3 || force)
+		if (Nodes.ConnectedNodes.Count > 3)
 		{
-			Logger.LogInfo(logIfDisconnect);
-			node.DisconnectAsync(logIfDisconnect);
+			DisconnectNode(node, reason);
 		}
+	}
+
+	public void DisconnectNode(Node node, string reason)
+	{
+		Logger.LogInfo(reason);
+		node.DisconnectAsync(reason);
 	}
 
 	public double GetCurrentTimeout()

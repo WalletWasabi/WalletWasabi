@@ -2,14 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
              xmlns:dv="clr-namespace:WalletWasabi.Fluent.Views.Dialogs"
              mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="470"
              x:DataType="dialogs:NewWalletAdvancedOptionsDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.NewWalletAdvancedOptionsDialogView">
-  <c:ContentArea
+  <ContentArea
     Title="{Binding Title}"
     CancelContent="Cancel"
     EnableCancel="{Binding EnableCancel}"
@@ -25,5 +24,5 @@
       <dv:AdvancedCoinjoinOptionsView DataContext="{Binding CoinjoinAdvancedSettings}" />
 
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>
