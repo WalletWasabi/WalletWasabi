@@ -38,6 +38,7 @@
   <Color x:Key="SystemAccentColorLight1">#FF4F82D0</Color>
   <Color x:Key="SystemAccentColorLight2">#FF6794DA</Color>
   <Color x:Key="SystemAccentColorLight3">#FF7EA7E3</Color>
+  <Color x:Key="SystemAccentCustomShadeColor">#FF889E66</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">White</Color>
@@ -111,7 +112,7 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#F5F5F5" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="#F5F5F5" Opacity="0.8" />
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#E0E0E0" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomShadeColor" />
   <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 

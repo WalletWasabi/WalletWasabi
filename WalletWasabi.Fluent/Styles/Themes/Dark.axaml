@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
-  <Color x:Key="SystemAccentColor">#436113</Color>
+  <Color x:Key="SystemAccentColor">#77C400</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -32,12 +32,13 @@
   <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
   <Color x:Key="SystemRevealListLowColor">#262626</Color>
   <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF5A752F</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF718A4B</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF889E66</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF37540F</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF2B470B</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF203B08</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF63AF00</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF4F9A00</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF3C8600</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF87CC1E</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF98D43C</Color>
+  <Color x:Key="SystemAccentColorLight3">#FFA8DB5A</Color>
+  <Color x:Key="SystemAccentCustomShadeColor">#FF889E66</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
@@ -111,7 +112,7 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333333" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333333" Opacity="0.8" />
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#262626" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomShadeColor" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#262626</SolidColorBrush>
