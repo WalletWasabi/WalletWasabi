@@ -78,6 +78,6 @@ internal class ClipboardObserver
 		}
 
 		var money = ParseToMoney(text).Ensure(m => m <= balance);
-		return money?.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+		return money?.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);
 	}
 }

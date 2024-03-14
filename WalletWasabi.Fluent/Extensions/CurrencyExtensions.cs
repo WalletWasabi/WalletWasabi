@@ -57,6 +57,16 @@ public static class CurrencyExtensions
 		return string.Format(FormatInfo, fullFormat, amount).Trim();
 	}
 
+	public static string FormattedBtcExactFractional(this decimal amount, string originalText)
+	{
+		var fractionalCount =
+			originalText.Contains('.')
+			? originalText.Skip(originalText.LastIndexOf('.')).Where(char.IsDigit).Count()
+			: 0;
+
+		return FormattedBtcExactFractional(amount, fractionalCount);
+	}
+
 	public static string FormattedFiat(this decimal amount, string format = "N2")
 	{
 		return amount.ToString(format, FormatInfo).Trim();
