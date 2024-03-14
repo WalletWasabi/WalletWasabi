@@ -2,10 +2,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(
 	Title = "Wallet Settings",
@@ -22,31 +23,36 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private string _walletName;
+	[AutoNotify] private int _selectedTab;
 
-	private WalletSettingsViewModel(IWalletModel wallet)
+	public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
-		_wallet = wallet;
-		_walletName = wallet.Name;
-		_preferPsbtWorkflow = wallet.Settings.PreferPsbtWorkflow;
-		IsHardwareWallet = wallet.IsHardwareWallet;
-		IsWatchOnly = wallet.IsWatchOnlyWallet;
+		UiContext = uiContext;
+		_wallet = walletModel;
+		_walletName = walletModel.Name;
+		_preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
+		_selectedTab = 0;
+		IsHardwareWallet = walletModel.IsHardwareWallet;
+		IsWatchOnly = walletModel.IsWatchOnlyWallet;
+
+		WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(wallet));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
 			.Subscribe(value =>
 			{
-				wallet.Settings.PreferPsbtWorkflow = value;
-				wallet.Settings.Save();
+				walletModel.Settings.PreferPsbtWorkflow = value;
+				walletModel.Settings.Save();
 			});
 
 		this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
-		
+
 		RenameCommand = ReactiveCommand.CreateFromTask(OnRenameWalletAsync);
 	}
 
@@ -56,8 +62,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool IsWatchOnly { get; }
 
+	public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
+
 	public ICommand VerifyRecoveryWordsCommand { get; }
-	
+
 	private async Task OnRenameWalletAsync()
 	{
 		await Navigate().To().WalletRename(_wallet).GetResultAsync();

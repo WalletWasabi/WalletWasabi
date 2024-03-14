@@ -14,15 +14,15 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(Title = "Verify Recovery Words")]
-public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
+public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 
-	private VerifyRecoveryWordsViewModel(IWalletModel wallet)
+	private WalletVerifyRecoveryWordsViewModel(IWalletModel wallet)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 

@@ -1,17 +1,13 @@
-using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(
 	Title = "Coinjoin Settings",
@@ -23,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
-public partial class CoinJoinSettingsViewModel : RoutableViewModel
+public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
@@ -32,7 +28,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
-	private CoinJoinSettingsViewModel(IWalletModel walletModel)
+	private WalletCoinJoinSettingsViewModel(IWalletModel walletModel)
 	{
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
@@ -81,32 +77,34 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 						_wallet.Settings.Save();
 					}
 				});
+
+		Update();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private void Update()
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
 			(_wallet.Settings.IsCoinjoinProfileSelected,
-			CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
-			{
-				(true, CoinJoinProfileViewModelBase x) => x.Title,
-				(false, _) => "None",
-				_ => "Unknown"
-			};
+					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
+				{
+					(true, CoinJoinProfileViewModelBase x) => x.Title,
+					(false, _) => "None",
+					_ => "Unknown"
+				};
 	}
 
 	private async Task SelectCoinjoinProfileAsync()
 	{
 		await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
 		AutoCoinJoin = _wallet.Settings.AutoCoinjoin;
+		Update();
 	}
 }
