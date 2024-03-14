@@ -1,6 +1,6 @@
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
-namespace WalletWasabi.Exceptions;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class CoinJoinClientException : Exception
 {

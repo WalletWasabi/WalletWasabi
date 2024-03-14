@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.JsonPatch.Internal;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
 using WalletWasabi.Wallets;
 using Xunit;
 

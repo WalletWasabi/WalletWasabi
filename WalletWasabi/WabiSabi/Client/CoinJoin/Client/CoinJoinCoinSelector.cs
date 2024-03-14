@@ -12,7 +12,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class CoinJoinCoinSelector
 {
@@ -292,7 +292,7 @@ public class CoinJoinCoinSelector
 		double winnerAnonLoss = GetAnonLoss(winner);
 
 		// Only stay in the while if we are above the liquidityClue (we are a whale) AND the weightedAnonLoss is not tolerable.
-		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerAnonLoss > MaxWeightedAnonLoss))
+		while (winner.Sum(x => x.Amount) > liquidityClue && winnerAnonLoss > MaxWeightedAnonLoss)
 		{
 			List<TCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;

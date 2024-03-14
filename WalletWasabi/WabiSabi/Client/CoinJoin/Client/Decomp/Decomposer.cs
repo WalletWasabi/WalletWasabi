@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Extensions;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
 
 /// <summary>
 /// Notebook: https://github.com/lontivero/DecompositionsPlayground/blob/master/Notebook.ipynb
@@ -37,7 +37,7 @@ public static class Decomposer
 			long sum,
 			int k)
 		{
-			accumulator = (accumulator << 8) | ((ulong)currentDenominationIdx & 0xff);
+			accumulator = accumulator << 8 | (ulong)currentDenominationIdx & 0xff;
 			var currentDenomination = denoms[currentDenominationIdx];
 			sum += currentDenomination;
 			var remaining = target - sum;
@@ -69,7 +69,7 @@ public static class Decomposer
 		var list = new long[count];
 		for (var i = 0; i < count; i++)
 		{
-			var index = (decomposition >> (i * 8)) & 0xff;
+			var index = decomposition >> i * 8 & 0xff;
 			list[count - i - 1] = denoms[index];
 		}
 		return list;

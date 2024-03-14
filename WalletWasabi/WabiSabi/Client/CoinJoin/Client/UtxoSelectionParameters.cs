@@ -6,6 +6,7 @@ using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -29,7 +30,7 @@ public record UtxoSelectionParameters(
 			.Min(x => x.EffectiveCost);
 		var smallestReasonableEffectiveDenomination =
 			smallestEffectiveDenom
-		    ?? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.");
+			?? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.");
 
 		return new(
 			roundParameters.AllowedInputAmounts,

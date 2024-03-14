@@ -1,4 +1,4 @@
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public enum CoinJoinClientState
 {

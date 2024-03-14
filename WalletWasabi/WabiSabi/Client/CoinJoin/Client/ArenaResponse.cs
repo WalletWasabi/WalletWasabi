@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class ArenaResponse
 {

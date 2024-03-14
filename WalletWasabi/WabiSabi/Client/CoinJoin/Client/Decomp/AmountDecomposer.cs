@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
