@@ -28,8 +28,7 @@ internal class ClipboardObserver
 	public IObservable<string?> ClipboardBtcContentChanged(IScheduler scheduler)
 	{
 		return ApplicationHelper.ClipboardTextChanged(scheduler)
-			.CombineLatest(_balances.Select(x => x.Btc), ParseToMoney)
-			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
+			.CombineLatest(_balances.Select(x => x.Btc), ParseToMoney);
 	}
 
 	public static decimal? ParseToUsd(string? text)
@@ -70,8 +69,15 @@ internal class ClipboardObserver
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 
-	public static Money? ParseToMoney(string? text, Money balance)
+	public static string? ParseToMoney(string? text, Money balance)
 	{
-		return ParseToMoney(text).Ensure(m => m <= balance);
+		// Ignore paste if there are invalid characters
+		if (text is null || !CurrencyInput.RegexDecimalCharsOnly().IsMatch(text))
+		{
+			return null;
+		}
+
+		var money = ParseToMoney(text).Ensure(m => m <= balance);
+		return money?.ToDecimal(MoneyUnit.BTC).FormattedBtc();
 	}
 }

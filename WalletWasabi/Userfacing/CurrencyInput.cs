@@ -6,7 +6,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Userfacing;
 
-public static class CurrencyInput
+public static partial class CurrencyInput
 {
 	public const string DecimalSeparator = ".";
 	public const string GroupSeparator = " ";
@@ -18,6 +18,9 @@ public static class CurrencyInput
 		NumberGroupSeparator = GroupSeparator,
 		NumberDecimalSeparator = DecimalSeparator
 	};
+
+	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
+	public static partial Regex RegexDecimalCharsOnly();
 
 	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
 	{

@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -208,8 +209,7 @@ public partial class CurrencyEntryBox : TextBox
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
 	private static partial Regex RegexBtcFormat();
 
-	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
-	private static partial Regex RegexDecimalCharsOnly();
+	
 
 	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
 	private static partial Regex RegexConsecutiveSpaces();
@@ -238,7 +238,7 @@ public partial class CurrencyEntryBox : TextBox
 		var rule2 = whole >= 8 && (preComposedText.EndsWith(GroupSeparator) || wholeStr.EndsWith(GroupSeparator));
 
 		// Check for non-numeric chars.
-		var rule3 = !RegexDecimalCharsOnly().IsMatch(preComposedText);
+		var rule3 = !CurrencyInput.RegexDecimalCharsOnly().IsMatch(preComposedText);
 		if (rule1 || rule2 || rule3)
 		{
 			return false;
@@ -309,7 +309,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 
 		// Ignore paste if there are invalid characters
-		if (!RegexDecimalCharsOnly().IsMatch(text))
+		if (!CurrencyInput.RegexDecimalCharsOnly().IsMatch(text))
 		{
 			return;
 		}
