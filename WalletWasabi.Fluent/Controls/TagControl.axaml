@@ -1,14 +1,13 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
-      <c:TagControl Content="Label 1, Label 2, Label 3" />
+      <TagControl Content="Label 1, Label 2, Label 3" />
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type c:TagControl}" TargetType="c:TagControl">
+  <ControlTheme x:Key="{x:Type TagControl}" TargetType="TagControl">
 
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
@@ -22,7 +21,7 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel Name="PART_TagPanel" Margin="0,3,2,3">
+        <Panel Name="PART_TagPanel">
           <Border Name="PART_TagItemBorder"
                   Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
@@ -84,6 +83,10 @@
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+    </Style>
+
+    <Style Selector="^/template/ Panel#PART_TagPanel">
+      <Setter Property="Margin" Value="0,3,2,3" />
     </Style>
 
     <Style Selector="^/template/ Panel#PART_TagPanel Button#PART_DeleteButton">

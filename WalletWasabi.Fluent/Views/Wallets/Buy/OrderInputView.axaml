@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Buy"
+             xmlns:buy="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Buy"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Buy.OrderInputView"
+             x:DataType="vm:OrderViewModel"
+             x:CompileBindings="True">
+
+  <DockPanel DockPanel.Dock="Bottom" Margin="10 0 10 10"
+             IsVisible="{Binding !Workflow.IsDeletedInSib}">
+
+    <Button DockPanel.Dock="Right"
+            Margin="10 0 0 0"
+            Classes="action"
+            TabIndex="1"
+            Command="{Binding Workflow.CurrentStep.SendCommand}"
+            Content="{Binding Workflow.CurrentStep.Caption}">
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+      </Interaction.Behaviors>
+    </Button>
+
+    <Panel IsEnabled="{Binding !IsBusy}">
+      <buy:UserInputValidatorView DataContext="{Binding Workflow.CurrentStep}">
+        <Interaction.Behaviors>
+          <ExecuteCommandOnKeyDownBehavior KeyGesture="Enter" Command="{Binding SendCommand}" />
+        </Interaction.Behaviors>
+      </buy:UserInputValidatorView>
+    </Panel>
+  </DockPanel>
+</UserControl>

@@ -110,7 +110,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			})
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.Estimations, _transactionInfo.MaximumPossibleFeeRate))
+			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -129,7 +129,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 				return;
 			}
 
-			FeeChart.UpdateFeeEstimates(feeEstimates.Estimations, _transactionInfo.MaximumPossibleFeeRate);
+			FeeChart.UpdateFeeEstimates(feeEstimates.WildEstimations, _transactionInfo.MaximumPossibleFeeRate);
 
 			if (_transactionInfo.FeeRate != FeeRate.Zero)
 			{

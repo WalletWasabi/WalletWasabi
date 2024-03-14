@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Xaml.Interactions.Custom;
 using DynamicData.Binding;
 using ReactiveUI;
 

@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:AddressViewModel"
@@ -18,7 +17,7 @@
         <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
       </Button>
 
-      <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
+      <AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
                         Margin="0"
                         ToolTip.Tip="Copy"
                         Command="{Binding CopyAddressCommand}"

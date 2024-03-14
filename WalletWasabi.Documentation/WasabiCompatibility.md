@@ -6,7 +6,7 @@ This document lists all the officially supported software and devices by Wasabi 
 
 - Windows 10 1607+
 - Windows 11 22000+
-- macOS 10.15+
+- macOS 12.0+
 - Ubuntu 20.04+
 - Fedora 37+
 - Debian 11+
@@ -36,7 +36,7 @@ This document lists all the officially supported software and devices by Wasabi 
 ## What are the bottlenecks of officially supporting Operating Systems?
 
 Wasabi dependencies are:
-- .NET 8.0 [reqs](https://github.com/dotnet/core/blob/main/release-notes/7.0/supported-os.md).
+- .NET 8.0 [reqs](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md).
 - Avalonia [reqs](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements).
 - NBitcoin dependencies and requirements are the same as .NET 8.0.
 - Bitcoin Knots (same requirements as Bitcoin Core) [reqs](https://bitcoin.org/en/bitcoin-core/features/requirements#system-requirements).
