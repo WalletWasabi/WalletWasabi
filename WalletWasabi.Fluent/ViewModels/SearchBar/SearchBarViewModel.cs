@@ -5,6 +5,8 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
@@ -48,5 +50,6 @@ public partial class SearchBarViewModel : ReactiveObject
 	private void ClearAndHideSearchList()
 	{
 		SearchText = "";
+		ApplicationHelper.MainWindow?.Focus();
 	}
 }
