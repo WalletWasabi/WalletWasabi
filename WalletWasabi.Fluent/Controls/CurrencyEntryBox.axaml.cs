@@ -336,7 +336,12 @@ public partial class CurrencyEntryBox : TextBox
 				: ClipboardObserver.ParseToMoney(text);
 			if (money is not null)
 			{
-				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
+				var fractionalCount =
+					text.Contains('.')
+					? text.Skip(text.LastIndexOf('.')).Where(char.IsDigit).Count()
+					: 0;
+
+				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(fractionalCount);
 				return true;
 			}
 		}
