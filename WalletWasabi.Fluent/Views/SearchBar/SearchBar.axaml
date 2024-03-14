@@ -123,9 +123,14 @@
       </Setter>
     </Style>
 
-    <Style Selector="FlyoutPresenter">
-      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Style Selector="ScrollViewer#DropdownScrollViewer">
+      <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
+      <Setter Property="MinWidth" Value="{DynamicResource FlyoutThemeMinWidth}" />
+      <Setter Property="MaxWidth" Value="{DynamicResource FlyoutThemeMaxWidth}" />
+      <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
+      <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
     </Style>
+
   </UserControl.Styles>
 
   <Panel>
@@ -156,7 +161,9 @@
         </MultiBinding>
       </Popup.IsOpen>
       <ContentControl Theme="{StaticResource AcrylicPanel}">
-        <s:SearchBarDropdown />
+        <ScrollViewer x:Name="DropdownScrollViewer">
+          <s:SearchBarDropdown />
+        </ScrollViewer>
       </ContentControl>
     </Popup>
   </Panel>

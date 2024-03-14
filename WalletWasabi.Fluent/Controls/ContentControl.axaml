@@ -12,11 +12,7 @@
   <ControlTheme TargetType="ContentControl" x:Key="AcrylicPanel">
     <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
     <Setter Property="BorderThickness" Value="1 1 1 1" />
-    <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
-    <Setter Property="MinWidth" Value="{DynamicResource FlyoutThemeMinWidth}" />
-    <Setter Property="MaxWidth" Value="{DynamicResource FlyoutThemeMaxWidth}" />
-    <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
-    <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
+   
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
