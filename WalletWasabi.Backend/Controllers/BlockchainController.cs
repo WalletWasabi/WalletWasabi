@@ -215,9 +215,14 @@ public class BlockchainController : ControllerBase
 			{
 				// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
 				Exception ex = new InvalidOperationException("Failed to get the transaction.");
-				foreach (TaskCompletionSource<Transaction> tcs in txIdsRetrieve.Values)
+				foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
 				{
-					tcs.TrySetException(ex);
+					if (!tcs.Task.IsCompleted)
+					{
+						// Prefer new cache requests to try again rather than getting the exception. The window is small though.
+						Cache.Remove(txid);
+						tcs.SetException(ex);
+					}
 				}
 			}
 		}
