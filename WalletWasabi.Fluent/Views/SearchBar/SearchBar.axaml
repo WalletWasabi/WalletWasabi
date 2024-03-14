@@ -17,6 +17,7 @@
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
+
   <UserControl.Styles>
 
     <Style Selector="TextBox#SearchBox">
@@ -127,33 +128,38 @@
     </Style>
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100" HorizontalAlignment="Stretch"
-           Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
+  <Panel>
+    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100"
+             HorizontalAlignment="Stretch"
+             Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
-    <Interaction.Behaviors>
-      <TextBoxAutoSelectTextBehavior />
-      <DataTriggerBehavior Binding="{Binding IsSearchListVisible}" Value="False">
-        <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
-      </DataTriggerBehavior>
-      <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
-        <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
-      </KeyDownTrigger>
-      <ShowFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
-    </Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <TextBoxAutoSelectTextBehavior />
+        <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
+          <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
+        </KeyDownTrigger>
+      </Interaction.Behaviors>
 
-    <TextBox.InnerLeftContent>
-      <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
-    </TextBox.InnerLeftContent>
-    <TextBox.InnerRightContent>
-      <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
-    </TextBox.InnerRightContent>
+      <TextBox.InnerLeftContent>
+        <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
+      </TextBox.InnerLeftContent>
+      <TextBox.InnerRightContent>
+        <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
+      </TextBox.InnerRightContent>
 
-    <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Bottom" ShowMode="Transient">
-        <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
-      </Flyout>
-    </FlyoutBase.AttachedFlyout>
-  </TextBox>
+    </TextBox>
+    <Popup x:Name="Popup" PlacementTarget="SearchBox">
+      <Popup.IsOpen>
+        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+          <Binding Path="#Popup.IsPointerOver" />
+          <Binding Path="#SearchBox.IsFocused" />
+        </MultiBinding>
+      </Popup.IsOpen>
+      <ContentControl Theme="{StaticResource AcrylicPanel}">
+        <s:SearchBarDropdown />
+      </ContentControl>
+    </Popup>
+  </Panel>
 
   <Interaction.Behaviors>
     <KeyDownTrigger EventRoutingStrategy="Tunnel" Key="Escape">
