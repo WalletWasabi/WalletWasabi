@@ -209,8 +209,6 @@ public partial class CurrencyEntryBox : TextBox
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
 	private static partial Regex RegexBtcFormat();
 
-	
-
 	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
 	private static partial Regex RegexConsecutiveSpaces();
 
