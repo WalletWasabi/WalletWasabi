@@ -21,8 +21,8 @@
   <Color x:Key="SystemChromeDisabledHighColor">#FF262626</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
   <Color x:Key="SystemChromeGrayColor">#FF787878</Color>
-  <Color x:Key="SystemChromeHighColor">#FF787878</Color>
-  <Color x:Key="SystemChromeLowColor">#FF101010</Color>
+  <Color x:Key="SystemChromeHighColor">#323232</Color>
+  <Color x:Key="SystemChromeLowColor">#3F3F3F</Color>
   <Color x:Key="SystemChromeMediumColor">#262626</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FF202020</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
@@ -79,13 +79,14 @@
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource  SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource  SystemChromeMediumColor}" />
 
-  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{StaticResource  SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource  SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#66757575</Color>
@@ -152,6 +153,7 @@
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
   <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
+  <Thickness x:Key="ComboBoxDropdownBorderPadding">5</Thickness>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

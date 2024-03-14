@@ -86,6 +86,7 @@
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#14000000</Color>
@@ -153,6 +154,7 @@
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
   <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
+  <Thickness x:Key="ComboBoxDropdownBorderPadding">5</Thickness>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />
