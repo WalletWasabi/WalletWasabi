@@ -165,6 +165,18 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Invalid transaction Ids.");
 		}
 
+		Transaction[] txs = await FetchTransactionsAsync(parsedTxIds, cancellationToken).ConfigureAwait(false);
+		string[] hexes = txs.Select(x => x.ToHex()).ToArray();
+
+		return Ok(hexes);
+	}
+
+	/// <summary>
+	/// Fetches transactions from cache if possible and missing transactions are fetched using RPC.
+	/// </summary>
+	private async Task<Transaction[]> FetchTransactionsAsync(uint256[] txIds, CancellationToken cancellationToken)
+	{
+		int requestCount = txIds.Length;
 		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
 		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
 
@@ -174,7 +186,7 @@ public class BlockchainController : ControllerBase
 			// and then some other caller needs the same transaction so we can use the existing task completion source.
 			for (int i = 0; i < requestCount; i++)
 			{
-				uint256 txId = parsedTxIds[i];
+				uint256 txId = txIds[i];
 				string cacheKey = $"{nameof(GetTransactionsAsync)}#{txId}";
 
 				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
@@ -197,17 +209,17 @@ public class BlockchainController : ControllerBase
 				}
 			}
 
-			string[] hexes = new string[requestCount];
+			Transaction[] result = new Transaction[requestCount];
 
 			// Add missing transactions to the result array.
 			for (int i = 0; i < requestCount; i++)
 			{
-				uint256 txId = parsedTxIds[i];
+				uint256 txId = txIds[i];
 				Transaction tx = await txsCompletionSources[i].Task.ConfigureAwait(false);
-				hexes[i] = tx.ToHex();
+				result[i] = tx;
 			}
 
-			return Ok(hexes);
+			return result;
 		}
 		finally
 		{
