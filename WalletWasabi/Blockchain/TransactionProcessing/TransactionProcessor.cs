@@ -213,6 +213,12 @@ public class TransactionProcessor
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
 				KeyManager.SetKeyState(KeyState.Used, foundKey);
+
+				if (tx.Confirmed && foundKey.FirstReceivingHeight == null)
+				{
+					foundKey.FirstReceivingHeight = tx.Height;
+				}
+
 				if (couldBeDustAttack)
 				{
 					result.ReceivedDusts.Add(output);

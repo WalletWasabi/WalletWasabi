@@ -429,13 +429,13 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight);
+	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight, Height? FirstReceivingHeight);
 
 	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			return HdPubKeyCache.Select(x => new ScriptPubKeySpendingInfo(x.CompressedScriptPubKey, x.HdPubKey.LatestSpendingHeight));
+			return HdPubKeyCache.Select(x => new ScriptPubKeySpendingInfo(x.CompressedScriptPubKey, x.HdPubKey.LatestSpendingHeight, x.HdPubKey.FirstReceivingHeight));
 		}
 	}
 
