@@ -38,7 +38,8 @@
   <Color x:Key="SystemAccentColorLight1">#FF87CC1E</Color>
   <Color x:Key="SystemAccentColorLight2">#FF98D43C</Color>
   <Color x:Key="SystemAccentColorLight3">#FFA8DB5A</Color>
-  <Color x:Key="SystemAccentCustomShadeColor">#FF889E66</Color>
+  <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
+  <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
@@ -100,11 +101,10 @@
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
-  <!-- TODO: Fix this -->
-  <Color x:Key="LineChartAreaGradientStartStopColor">#FF889E66</Color>
-  <Color x:Key="LineChartAreaGradientEndStopColor">#1F1F1F</Color>
-  <Color x:Key="LineChartAreaGradientCursorStrokeColor">#FF889E66</Color>
-  <Color x:Key="LineChartLineColor">#889E66</Color>
+  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientEndStopColor" ResourceKey="RegionColor" />
+  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
   <Color x:Key="BuyAnythingConversationsBackground">#262626</Color>
   <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333333" />
@@ -113,7 +113,7 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333333" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333333" Opacity="0.8" />
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#262626" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomShadeColor" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#262626</SolidColorBrush>
