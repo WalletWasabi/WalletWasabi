@@ -100,10 +100,11 @@
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
-  <Color x:Key="LineChartAreaGradientStartStopColor">#FF5E96ED</Color>
-  <Color x:Key="LineChartAreaGradientEndStopColor">#005E96ED</Color>
-  <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
-  <Color x:Key="LineChartLineColor">#5E96ED</Color>
+  <!-- TODO: Fix this -->
+  <Color x:Key="LineChartAreaGradientStartStopColor">#FF889E66</Color>
+  <Color x:Key="LineChartAreaGradientEndStopColor">#1F1F1F</Color>
+  <Color x:Key="LineChartAreaGradientCursorStrokeColor">#FF889E66</Color>
+  <Color x:Key="LineChartLineColor">#889E66</Color>
 
   <Color x:Key="BuyAnythingConversationsBackground">#262626</Color>
   <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333333" />
