@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              x:DataType="vm:WalletSettingsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletBackupView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletToolsView">
 
   <StackPanel Spacing="20">
     <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />

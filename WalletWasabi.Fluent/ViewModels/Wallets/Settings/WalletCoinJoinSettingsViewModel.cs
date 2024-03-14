@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
-public partial class CoinJoinSettingsViewModel : RoutableViewModel
+public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
@@ -28,7 +28,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 
-	private CoinJoinSettingsViewModel(IWalletModel walletModel)
+	private WalletCoinJoinSettingsViewModel(IWalletModel walletModel)
 	{
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;

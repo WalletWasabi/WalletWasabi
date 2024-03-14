@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              x:CompileBindings="True"
-             x:DataType="vm:VerifyRecoveryWordsViewModel"
+             x:DataType="vm:WalletVerifyRecoveryWordsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.VerifyRecoveryWordsView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletVerifyRecoveryWordsView">
   <ContentArea Title="{Binding Title}"
                NextContent="Verify" EnableNext="True" EnableBack="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">

@@ -35,13 +35,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		IsHardwareWallet = walletModel.IsHardwareWallet;
 		IsWatchOnly = walletModel.IsWatchOnlyWallet;
 
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, walletModel);
+		WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().VerifyRecoveryWords(walletModel));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
@@ -62,7 +62,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool IsWatchOnly { get; }
 
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
+	public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 
