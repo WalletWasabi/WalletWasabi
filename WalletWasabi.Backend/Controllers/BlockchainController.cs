@@ -214,7 +214,6 @@ public class BlockchainController : ControllerBase
 			// Add missing transactions to the result array.
 			for (int i = 0; i < requestCount; i++)
 			{
-				uint256 txId = txIds[i];
 				Transaction tx = await txsCompletionSources[i].Task.ConfigureAwait(false);
 				result[i] = tx;
 			}
