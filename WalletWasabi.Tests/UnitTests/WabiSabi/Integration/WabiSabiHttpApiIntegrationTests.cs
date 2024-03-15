@@ -25,6 +25,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 

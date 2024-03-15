@@ -4,7 +4,7 @@ using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 public static class DenominationBuilder
 {

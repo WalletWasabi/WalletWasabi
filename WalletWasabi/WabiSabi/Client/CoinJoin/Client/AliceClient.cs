@@ -15,7 +15,7 @@ using System.Net.Http;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class AliceClient
 {

@@ -12,7 +12,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class ArenaClient
 {

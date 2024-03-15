@@ -19,6 +19,7 @@ using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;

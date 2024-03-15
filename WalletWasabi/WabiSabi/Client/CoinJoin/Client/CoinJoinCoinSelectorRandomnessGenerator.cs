@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 /// <summary>
 /// Generator of randomness for <see cref="CoinJoinCoinSelector"/>.

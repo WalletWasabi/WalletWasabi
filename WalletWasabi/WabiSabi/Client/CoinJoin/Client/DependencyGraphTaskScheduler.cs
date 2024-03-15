@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class DependencyGraphTaskScheduler
 {
@@ -19,7 +19,7 @@ public class DependencyGraphTaskScheduler
 	{
 		Graph = graph;
 		var allInEdges = Enum.GetValues<CredentialType>()
-			.SelectMany(type => Enumerable.Concat<RequestNode>(Graph.Reissuances, Graph.Outputs)
+			.SelectMany(type => Graph.Reissuances.Concat<RequestNode>(Graph.Outputs)
 			.SelectMany(node => Graph.EdgeSets[type].InEdges(node)));
 		DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
 	}
@@ -205,6 +205,6 @@ public class DependencyGraphTaskScheduler
 			throw new InvalidOperationException("Graph vs Alice inputs mismatch");
 		}
 
-		return Enumerable.Zip(aliceClients, inputNodes);
+		return aliceClients.Zip(inputNodes);
 	}
 }
