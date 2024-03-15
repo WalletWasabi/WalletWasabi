@@ -75,7 +75,7 @@
     <settings:SettingSelector>
       <settings:SettingSelector.DataTemplates>
         <DataTemplate DataType="x:Boolean">
-          <ToggleSwitch x:CompileBindings="False" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
+          <ToggleSwitch Focusable="False" x:CompileBindings="False" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
         </DataTemplate>
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
