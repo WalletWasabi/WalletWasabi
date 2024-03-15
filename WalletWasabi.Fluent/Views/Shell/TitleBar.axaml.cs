@@ -21,7 +21,6 @@ public class TitleBar : UserControl
 	/// Since Avalonia doesn't have a mechanism for binding to named descendants out of a given XAML file,
 	/// we use the Visual Tree to find the Search Results Popup. We need to bind IsOpen to enable hit-test so the Title Bar
 	/// is hittable while the Popup is shown. This way, the use can focus away, thus hiding the Results Popup.
-	/// 
 	/// </summary>
 	public Popup SearchResultsPopup
 	{
