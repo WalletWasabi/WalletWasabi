@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.IO;
@@ -25,7 +26,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory, CoinVerifier? coinVerifier = null)
 	{
 		Parameters = parameters;
-
+		RpcClient = rpc;
 		Warden = new(parameters.PrisonFilePath, coinJoinIdStore, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
@@ -69,6 +70,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
 	public AffiliationManager AffiliationManager { get; }
+	private IRPCClient RpcClient { get; }
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
@@ -119,7 +121,7 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
-	public void BanDoubleSpenders(object? sender, Transaction tx)
+	public async void BanDoubleSpenders(object? sender, Transaction tx)
 	{
 		var txId = tx.GetHash();
 		if (IsWasabiCoinJoin(txId, tx))
@@ -139,14 +141,43 @@ public class WabiSabiCoordinator : BackgroundService
 		// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
 		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
 		{
-			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds);
+			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds.Select(x => x.RoundId));
 		}
 
-		// Abort disrupted rounds
-		foreach (var roundId in disruptedRounds)
+		// Abort disrupted rounds (only those that pay less than the attacking transaction)
+		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+		var spentCoins = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
+		var feeRate = tx.GetFeeRate(spentCoins);
+		var underPayingRounds = disruptedRounds
+			.Where(round => round.MiningFeeRate < feeRate)
+			.Select(x => x.RoundId);
+
+		foreach (var roundId in underPayingRounds)
 		{
 			Arena.AbortRound(roundId);
 		}
+	}
+
+	private async Task<Coin[]> GetSpendingCoinsAsync(
+		IEnumerable<OutPoint> spendingOutPoints,
+		CancellationToken cancellationToken)
+	{
+		var batch = RpcClient.PrepareBatch();
+		var getTxOutRequests = spendingOutPoints
+			.Select(x => RpcClient.GetTxOutAsync(x.Hash, (int) x.N, true, cancellationToken))
+			.ToList();
+		await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+		var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);
+		if (txOutResponses.Any(x => x is null))
+		{
+			throw new InvalidOperationException("Failed to fetch all spending utxos.");
+		}
+
+		var txOuts = txOutResponses.Select(x => x.TxOut);
+		return txOuts
+			.Zip(spendingOutPoints, (txOut, outPoint) => (txOut, outPoint))
+			.Select(x => new Coin(x.outPoint, x.txOut))
+			.ToArray();
 	}
 
 	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>
