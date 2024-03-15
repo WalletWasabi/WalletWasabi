@@ -152,10 +152,10 @@
       </TextBox.InnerRightContent>
 
     </TextBox>
-    <Popup x:Name="Popup" PlacementTarget="SearchBox">
+    <Popup x:Name="SearchResultsPopup" PlacementTarget="SearchBox">
       <Popup.IsOpen>
         <MultiBinding Converter="{x:Static BoolConverters.Or}">
-          <Binding Path="#Popup.IsPointerOver" />
+          <Binding Path="#SearchResultsPopup.IsPointerOver" />
           <Binding Path="#SearchBox.IsFocused" />
         </MultiBinding>
       </Popup.IsOpen>
