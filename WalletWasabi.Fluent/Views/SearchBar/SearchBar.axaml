@@ -124,7 +124,6 @@
     </Style>
 
     <Style Selector="ContentControl#DropDownRoot">
-      <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
       <Setter Property="Width" Value="{DynamicResource FlyoutThemeMaxWidth}" />
       <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
       <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
