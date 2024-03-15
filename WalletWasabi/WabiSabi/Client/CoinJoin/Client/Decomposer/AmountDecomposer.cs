@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 /// <summary>
 /// Pull requests to this file must be up to date with this simulation to ensure correctness: https://github.com/nopara73/Sake
@@ -220,7 +219,7 @@ public class AmountDecomposer
 					continue;
 				}
 
-				var deficit = (myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost)) + CalculateCost(finalDenoms);
+				var deficit = myInputSum - (ulong)finalDenoms.Sum(d => d.EffectiveCost) + CalculateCost(finalDenoms);
 
 				setCandidates.TryAdd(CalculateHash(finalDenoms), (finalDenoms, deficit));
 			}
@@ -240,14 +239,14 @@ public class AmountDecomposer
 			List<Output> currentSet = new();
 			while (true)
 			{
-				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= (remaining / 3)).RandomElement(Random)
+				var denom = denoms.Where(x => x.EffectiveCost <= remaining && x.EffectiveCost >= remaining / 3).RandomElement(Random)
 					?? denoms.FirstOrDefault(x => x.EffectiveCost <= remaining);
 
 				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
 				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
 				if (denom is null ||
-					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
-					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
+					remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() ||
+					remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
 				{
 					break;
 				}
@@ -296,8 +295,8 @@ public class AmountDecomposer
 			{
 				// Continue only if there is enough remaining amount and size to create one output + change (if change will potentially be created).
 				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
-				if ((remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
-					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
+				if (remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() ||
+					remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
 				{
 					end = true;
 					break;

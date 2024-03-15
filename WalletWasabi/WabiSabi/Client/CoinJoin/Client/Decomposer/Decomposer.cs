@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Extensions;
 
-namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomp;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 /// <summary>
 /// Notebook: https://github.com/lontivero/DecompositionsPlayground/blob/master/Notebook.ipynb
