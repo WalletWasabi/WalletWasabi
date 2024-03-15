@@ -245,8 +245,8 @@ public class AmountDecomposer
 				// Continue only if there is enough remaining amount and size to create one output (+ change if change could potentially be created).
 				// There can be change only if the remaining is at least the current denom effective cost + the minimum change effective cost.
 				if (denom is null ||
-					remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() ||
-					remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize())
+					(remaining < denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize()) ||
+					(remaining >= denom.EffectiveCost + MinAllowedOutputAmount + ChangeFee && remainingVsize < denom.ScriptType.EstimateOutputVsize() + ChangeScriptType.EstimateOutputVsize()))
 				{
 					break;
 				}
