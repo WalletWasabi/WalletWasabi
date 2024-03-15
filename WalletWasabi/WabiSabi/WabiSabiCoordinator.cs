@@ -146,19 +146,19 @@ public class WabiSabiCoordinator : BackgroundService
 
 		// Abort disrupted rounds (only those that pay less than the attacking transaction)
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-		var spentCoins = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
-		var feeRate = tx.GetFeeRate(spentCoins);
-		var underPayingRounds = disruptedRounds
+		var (succeed, spentCoins) = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
+		var feeRate = succeed ? tx.GetFeeRate(spentCoins) : Constants.AbsurdlyHighFeeRate;
+		var roundsToAbort = disruptedRounds
 			.Where(round => round.MiningFeeRate < feeRate)
 			.Select(x => x.RoundId);
 
-		foreach (var roundId in underPayingRounds)
+		foreach (var roundId in roundsToAbort)
 		{
 			Arena.AbortRound(roundId);
 		}
 	}
 
-	private async Task<Coin[]> GetSpendingCoinsAsync(
+	private async Task<(bool, Coin[])> GetSpendingCoinsAsync(
 		IEnumerable<OutPoint> spendingOutPoints,
 		CancellationToken cancellationToken)
 	{
@@ -170,14 +170,15 @@ public class WabiSabiCoordinator : BackgroundService
 		var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);
 		if (txOutResponses.Any(x => x is null))
 		{
-			throw new InvalidOperationException("Failed to fetch all spending utxos.");
+			return (false, Array.Empty<Coin>());
 		}
 
 		var txOuts = txOutResponses.Select(x => x.TxOut);
-		return txOuts
+		var spendingCoins = txOuts
 			.Zip(spendingOutPoints, (txOut, outPoint) => (txOut, outPoint))
 			.Select(x => new Coin(x.outPoint, x.txOut))
 			.ToArray();
+		return (true, spendingCoins);
 	}
 
 	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>
