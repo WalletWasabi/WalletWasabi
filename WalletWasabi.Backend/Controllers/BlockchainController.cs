@@ -36,7 +36,7 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
-	private static MemoryCacheEntryOptions TransactionCacheOptions { get; } = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) };
+	private static MemoryCacheEntryOptions TransactionCacheOptions { get; } = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
@@ -143,10 +143,10 @@ public class BlockchainController : ControllerBase
 	[HttpGet("transaction-hexes")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] List<string> transactionIds, CancellationToken cancellationToken)
+	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
 	{
 		const int MaxTxToRequest = 10;
-		int requestCount = transactionIds.Count;
+		int requestCount = transactionIds.Count();
 
 		if (requestCount > MaxTxToRequest)
 		{
@@ -165,10 +165,18 @@ public class BlockchainController : ControllerBase
 			return BadRequest("Invalid transaction Ids.");
 		}
 
-		Transaction[] txs = await FetchTransactionsAsync(parsedTxIds, cancellationToken).ConfigureAwait(false);
-		string[] hexes = txs.Select(x => x.ToHex()).ToArray();
+		try
+		{
+			Transaction[] txs = await FetchTransactionsAsync(parsedTxIds, cancellationToken).ConfigureAwait(false);
+			string[] hexes = txs.Select(x => x.ToHex()).ToArray();
 
-		return Ok(hexes);
+			return Ok(hexes);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+			return BadRequest(ex.Message);
+		}
 	}
 
 	/// <summary>
