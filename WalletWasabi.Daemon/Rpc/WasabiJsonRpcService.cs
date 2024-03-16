@@ -16,7 +16,10 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -138,7 +141,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isRedCoinIsolation"] = activeWallet.KeyManager.RedCoinIsolation,
-			["accounts"] = new [] { segwit }
+			["accounts"] = new[] { segwit }
 		};
 
 		if (km.TaprootExtPubKey is { } taprootExtPubKey)
@@ -157,11 +160,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		if (activeWallet.State == WalletState.Started)
 		{
-				// The following elements are valid only after the wallet is fully synchronized
-				info["balance"] = activeWallet.Coins
-					.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
-					.Sum(c => c.Amount.Satoshi);
-				info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
+			// The following elements are valid only after the wallet is fully synchronized
+			info["balance"] = activeWallet.Coins
+				.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
+				.Sum(c => c.Amount.Satoshi);
+			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
 		}
 
 		return info;
@@ -189,7 +192,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
-		var sync = Global.Synchronizer;
+		var sync = Global.HostedServices.Get<WasabiSynchronizer>();
 		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new JsonRpcResult
@@ -226,19 +229,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(coins), coins);
 		password = Guard.Correct(password);
 
-		static bool InRange<T>(IComparable<T> val, T min, T max) =>
-			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
-		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
-
-		var feeStrategy = (feeRate, feeTarget) switch
-		{
-			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
-				FeeStrategy.CreateFromFeeRate(satsPerByte),
-			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
-				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
-			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
-		};
 		AssertWalletIsLoaded();
 		var payment = new PaymentIntent(
 			payments.Select(
@@ -255,12 +247,109 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return smartTx.Transaction.ToHex();
 	}
 
+	/// <summary>
+	/// Unsafe, because no matter how big fee the user chooses, Wasabi will build the transaction.
+	/// Potentially, the user can burn his money using this method, so be careful!
+	/// </summary>
+	[JsonRpcMethod("buildunsafetransaction")]
+	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	{
+		Guard.NotNull(nameof(payments), payments);
+		Guard.NotNull(nameof(coins), coins);
+		password = Guard.Correct(password);
+
+		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
+
+		AssertWalletIsLoaded();
+		var payment = new PaymentIntent(
+			payments.Select(
+				p =>
+				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+		var result = ActiveWallet!.BuildTransactionWithoutOverpaymentProtection(
+			password,
+			payment,
+			feeStrategy,
+			allowUnconfirmed: true,
+			allowedInputs: coins);
+		var smartTx = result.Transaction;
+
+		return smartTx.Transaction.ToHex();
+	}
+
 	[JsonRpcMethod("payincoinjoin")]
 	public string PayInCoinJoin(BitcoinAddress address, Money amount)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
 		return activeWallet.AddCoinJoinPayment(address, amount);
+	}
+
+	[JsonRpcMethod("listpaymentsincoinjoin")]
+	public JsonRpcResultList ListPaymentsInCoinJoin()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		var payments = activeWallet.BatchedPayments.GetPayments();
+		return payments.Select(x =>
+		{
+			var paymentResult = new JsonRpcResult
+			{
+				["id"] = x.Id,
+				["amount"] = x.Amount.Satoshi,
+				["destination"] = x.Destination.ScriptPubKey.ToHex()
+			};
+
+			var state = x.State;
+			var stateHistory = new List<JsonRpcResult>();
+			while (state != null)
+			{
+				switch (state)
+				{
+					case PendingPayment pending:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Pending"
+						});
+						break;
+
+					case InProgressPayment inProgress:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "In progress",
+							["round"] = inProgress.RoundId.ToString()
+						});
+						break;
+
+					case FinishedPayment finished:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Finished",
+							["txid"] = finished.TransactionId.ToString()
+						});
+						break;
+
+					default:
+						throw new NotSupportedException($"Unrecognized state: {state.GetType().Name}.");
+				}
+
+				state = state.PreviousState;
+			}
+
+			paymentResult["state"] = stateHistory;
+
+			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
+			{
+				paymentResult["address"] = address;
+			}
+			return paymentResult;
+		}).ToImmutableArray();
+	}
+
+	[JsonRpcMethod("cancelpaymentincoinjoin")]
+	public void CancelPayment(Guid paymentId)
+	{
+		AssertWalletIsLoaded();
+		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
 	}
 
 	[JsonRpcMethod("send")]
@@ -432,7 +521,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
-		if (Global.Synchronizer.LastAllFeeEstimate is { } nonNullFeeRates)
+		if (Global.HostedServices.Get<WasabiSynchronizer>().LastAllFeeEstimate is { } nonNullFeeRates)
 		{
 			return nonNullFeeRates.Estimations;
 		}
@@ -462,7 +551,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	private string GetCoinjoinStatus(Wallet wallet)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
-		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletName);
+		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletId);
 		return walletCoinjoinClientState switch
 		{
 			CoinJoinClientState.Idle => "Idle",
@@ -508,7 +597,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
 		{
-			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the passphrase to start coinjoining.");
 		}
 	}
 
@@ -539,5 +628,22 @@ public class WasabiJsonRpcService : IJsonRpcService
 			mnemonic = null;
 			return false;
 		}
+	}
+
+	private FeeStrategy GetFeeStrategy(int? feeTarget = null, decimal? feeRate = null)
+	{
+		static bool InRange<T>(IComparable<T> val, T min, T max) =>
+			val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
+
+		var satsPerByte = feeRate is { } nonNullSatsPerByte ? new FeeRate(nonNullSatsPerByte) : FeeRate.Zero;
+
+		return (feeRate, feeTarget) switch
+		{
+			(not null, null) when InRange(satsPerByte, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) =>
+				FeeStrategy.CreateFromFeeRate(satsPerByte),
+			(null, { } argFeeTarget) when InRange(argFeeTarget, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget) =>
+				FeeStrategy.CreateFromConfirmationTarget(argFeeTarget),
+			_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+		};
 	}
 }

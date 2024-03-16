@@ -98,13 +98,13 @@ public class MultipartyTransactionStateTests
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
 
-			if (!histogram.ContainsKey(maxSuggested))
+			if (!histogram.TryGetValue(maxSuggested, out int value))
 			{
 				histogram.Add(maxSuggested, 1);
 			}
 			else
 			{
-				histogram[maxSuggested]++;
+				histogram[maxSuggested] = value + 1;
 			}
 		}
 
@@ -130,7 +130,11 @@ public class MultipartyTransactionStateTests
 		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 		Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
-		RoundParameters blameParameters = roundParameterFactory.CreateBlameRoundParameter(new FeeRate(12m), roundLargest);
+		RoundParameters blameParameters = roundParameterFactory.CreateBlameRoundParameter(new FeeRate(12m), roundLargest) with
+		{
+			MinInputCountByRound = config.MinInputCountByBlameRound
+		};
+
 		BlameRound blameRound = new(blameParameters, roundLargest, new HashSet<OutPoint>(), SecureRandom.Instance);
 
 		// Blame rounds never change the MaxSuggestedAmount.

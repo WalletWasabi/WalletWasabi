@@ -48,7 +48,7 @@ public class TransactionProcessorTests
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 		// A payment to a key under our control but using P2PKH script (legacy)
-		var tx = CreateCreditingTransaction(keys.First().P2pkhScript, Money.Coins(1.0m));
+		var tx = CreateCreditingTransaction(keys.First().PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
 		var relevant = transactionProcessor.Process(tx);
 
 		Assert.False(relevant.IsNews);
@@ -247,27 +247,27 @@ public class TransactionProcessorTests
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 		// An unconfirmed segwit transaction for us
-		var tx0 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
+		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey());
 
 		// Spend the same coin again
-		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey());
 		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 
-		Assert.False(relevant.IsNews);
+		Assert.True(relevant.IsNews);
 		Assert.Single(transactionProcessor.Coins, coin => !coin.IsSpent());
 		Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => coin.IsSpent());
 
 		// Transaction store assertions
 		Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 		Assert.Equal(tx0, mempool.First());
-		Assert.Equal(tx1, mempool.Last());
+		Assert.Equal(tx2, mempool.Last());
 	}
 
 	[Fact]
@@ -282,7 +282,7 @@ public class TransactionProcessorTests
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
 			var doubleSpentCoins = e.SuccessfullyDoubleSpentCoins;
-			if (doubleSpentCoins.Any())
+			if (doubleSpentCoins.Count != 0)
 			{
 				var coin = Assert.Single(doubleSpentCoins);
 
@@ -358,9 +358,9 @@ public class TransactionProcessorTests
 		int replaceTransactionReceivedCalled = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
+			if (e.ReplacedCoins.Count != 0 || e.RestoredCoins.Count != 0)
 			{
-				if (e.RestoredCoins.Any())
+				if (e.RestoredCoins.Count != 0)
 				{
 					// Move the original coin from spent to unspent - so add.
 					var originalCoin = Assert.Single(e.RestoredCoins);
@@ -393,8 +393,8 @@ public class TransactionProcessorTests
 
 		var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
 		var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
-		Assert.True(unconfirmedCoin1.IsReplaceable());
-		Assert.True(unconfirmedCoin2.IsReplaceable());
+		Assert.True(unconfirmedCoin1.Transaction.IsRBF);
+		Assert.True(unconfirmedCoin2.Transaction.IsRBF);
 
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
@@ -411,7 +411,7 @@ public class TransactionProcessorTests
 		Assert.True(relevant3.IsNews);
 		Assert.Equal(1, replaceTransactionReceivedCalled);
 		var finalCoin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(finalCoin.IsReplaceable());
+		Assert.True(finalCoin.Transaction.IsRBF);
 		Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
 		Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
@@ -514,9 +514,9 @@ public class TransactionProcessorTests
 
 		var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.True(coinB.IsReplaceable());
-		Assert.True(coinC.IsReplaceable());
-		Assert.True(coinD.IsReplaceable());
+		Assert.True(coinB.Transaction.IsRBF);
+		Assert.True(coinC.Transaction.IsRBF);
+		Assert.True(coinD.Transaction.IsRBF);
 
 		// Now it is confirmed
 		var blockHeight = new Height(77551);
@@ -526,8 +526,8 @@ public class TransactionProcessorTests
 		coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
 		coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.False(coinC.IsReplaceable());
-		Assert.False(coinD.IsReplaceable());
+		Assert.False(coinC.Transaction.IsRBF);
+		Assert.False(coinD.Transaction.IsRBF);
 	}
 
 	[Fact]
@@ -540,11 +540,11 @@ public class TransactionProcessorTests
 		int confirmed = 0;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				throw new InvalidOperationException("We are not spending the coin.");
 			}
-			else if (e.NewlyConfirmedSpentCoins.Any())
+			else if (e.NewlyConfirmedSpentCoins.Count != 0)
 			{
 				confirmed++;
 			}
@@ -654,7 +654,7 @@ public class TransactionProcessorTests
 
 		Assert.True(relevant2.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(coin.IsReplaceable());
+		Assert.True(coin.Transaction.IsRBF);
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -708,10 +708,10 @@ public class TransactionProcessorTests
 		relevant = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant.IsNews);
-		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable());
+		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.Transaction.IsRBF);
 		Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
-		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.IsReplaceable());
+		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.Transaction.IsRBF);
 		Assert.Equal(tx1.Transaction.GetHash(), nonReplaceableCoin.TransactionId);
 
 		// Transaction store assertions
@@ -760,7 +760,7 @@ public class TransactionProcessorTests
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				spentCoin = e.NewlySpentCoins.Single();
 			}
@@ -784,7 +784,7 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 		Assert.Empty(matureTxs);
@@ -798,7 +798,7 @@ public class TransactionProcessorTests
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-			if (e.NewlySpentCoins.Any())
+			if (e.NewlySpentCoins.Count != 0)
 			{
 				spentCoin = e.NewlySpentCoins.Single();
 			}
@@ -826,7 +826,7 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count());
+		Assert.Equal(2, mempool.Count);
 		Assert.Contains(tx0, mempool);
 		Assert.Contains(tx1, mempool);
 		Assert.Contains(tx2, mempool);

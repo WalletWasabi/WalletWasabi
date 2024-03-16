@@ -14,7 +14,7 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// File-system block repository is a blocks repository that keeps the blocks in the file system.
 /// </summary>
-public class FileSystemBlockRepository : IRepository<uint256, Block>
+public class FileSystemBlockRepository : IFileSystemBlockRepository
 {
 	private const double MegaByte = 1024 * 1024;
 
@@ -147,12 +147,8 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 		}
 	}
 
-	/// <summary>
-	/// Deletes a bitcoin block from the file system.
-	/// </summary>
-	/// <param name="hash">The block's hash that identifies the requested block.</param>
-	/// <param name="cancellationToken">The cancellation token.</param>
-	public async Task RemoveAsync(uint256 hash, CancellationToken cancellationToken)
+	/// <inheritdoc/>
+	public async Task RemoveAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -162,9 +158,9 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 				var fileNames = filePaths.Select(Path.GetFileName);
 				var hashes = fileNames.Select(x => new uint256(x));
 
-				if (hashes.Contains(hash))
+				if (hashes.Contains(blockHash))
 				{
-					File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+					File.Delete(Path.Combine(BlocksFolderPath, blockHash.ToString()));
 				}
 			}
 		}

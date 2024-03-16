@@ -30,8 +30,6 @@ public static class Services
 
 	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
-	public static WasabiSynchronizer Synchronizer { get; private set; } = null!;
-
 	public static WalletManager WalletManager { get; private set; } = null!;
 
 	public static TransactionBroadcaster TransactionBroadcaster { get; private set; } = null!;
@@ -77,7 +75,6 @@ public static class Services
 		LegalChecker = global.LegalChecker;
 		PersistentConfigFilePath = global.ConfigFilePath;
 		PersistentConfig = global.Config.PersistentConfig;
-		Synchronizer = global.Synchronizer;
 		WalletManager = global.WalletManager;
 		TransactionBroadcaster = global.TransactionBroadcaster;
 		HostedServices = global.HostedServices;

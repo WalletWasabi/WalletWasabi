@@ -18,7 +18,7 @@ internal abstract class CombinedGenerator : ISourceGenerator
 			StaticFileGenerators.SelectMany(x => x.Generate())
 								.ToArray();
 
-		if (files.Any())
+		if (files.Length != 0)
 		{
 			context.RegisterForPostInitialization(ctx =>
 			{
@@ -29,7 +29,7 @@ internal abstract class CombinedGenerator : ISourceGenerator
 			});
 		}
 
-		if (StepFactories.Any())
+		if (StepFactories.Count != 0)
 		{
 			context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
 		}

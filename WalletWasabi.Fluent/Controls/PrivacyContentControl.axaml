@@ -1,19 +1,18 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:WalletWasabi.Fluent.Controls"
                     xmlns:conv="using:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
-    <controls:PrivacyContentControl />
+    <PrivacyContentControl />
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type controls:PrivacyContentControl}" TargetType="controls:PrivacyContentControl">
+  <ControlTheme x:Key="{x:Type PrivacyContentControl}" TargetType="PrivacyContentControl">
 
     <Setter Property="VerticalContentAlignment" Value="Center" />
 
     <Setter Property="Template">
-      <ControlTemplate TargetType="controls:PrivacyContentControl">
+      <ControlTemplate TargetType="PrivacyContentControl">
         <Panel>
-          <ContentPresenter Name="PART_Content"
+          <ContentPresenter Name="PART_ContentPresenter"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -27,7 +26,7 @@
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
-            <controls:PrivacyTextPresenter Name="PART_PrivacyText"
+            <PrivacyTextPresenter Name="PART_PrivacyText"
                                            MaxPrivacyChars="{TemplateBinding MaxPrivacyChars}"/>
           </Panel>
         </Panel>
@@ -40,7 +39,7 @@
     </Style>
 
     <!-- Icon privacy mode -->
-    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
+    <Style Selector="^[PrivacyReplacementMode=Icon] /template/ PrivacyTextPresenter#PART_PrivacyText">
       <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="^[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
@@ -48,7 +47,7 @@
     </Style>
 
     <!-- Text privacy mode -->
-    <Style Selector="^[PrivacyReplacementMode=Text] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
+    <Style Selector="^[PrivacyReplacementMode=Text] /template/ PrivacyTextPresenter#PART_PrivacyText">
       <Setter Property="IsVisible" Value="True" />
     </Style>
     <Style Selector="^[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
@@ -56,14 +55,14 @@
     </Style>
 
     <!-- UseOpacity = true -->
-    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_Content">
+    <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
       <Setter Property="IsEnabled" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
       <Setter Property="IsHitTestVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}}" />
     </Style>
 
     <!-- UseOpacity = false -->
-    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_Content">
+    <Style Selector="^[UseOpacity=False] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="IsVisible" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
     </Style>
 

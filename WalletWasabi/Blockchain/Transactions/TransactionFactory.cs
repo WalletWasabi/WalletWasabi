@@ -201,7 +201,7 @@ public class TransactionFactory
 			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
 			feePercentage = 100 * (feeDecimal / totalOutgoingAmountNoFeeDecimalDivisor);
 		}
-		if (feePercentage > 100)
+		if (feePercentage > 100 && !parameters.OverrideFeeOverpaymentProtection)
 		{
 			throw new TransactionFeeOverpaymentException(feePercentage);
 		}

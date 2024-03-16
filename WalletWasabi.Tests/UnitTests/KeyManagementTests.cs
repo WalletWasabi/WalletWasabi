@@ -13,6 +13,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using Xunit;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -167,7 +168,7 @@ public class KeyManagementTests
 		manager.ToFile();
 
 		var sameManager = KeyManager.FromFile(filePath);
-		Assert.Equal(new Height(9_899), sameManager.GetBestHeight());
+		Assert.Equal(new Height(9_899), sameManager.GetBestHeight(SyncType.Complete));
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
@@ -194,6 +195,20 @@ public class KeyManagementTests
 			Assert.Equal(keyState, generatedKey.KeyState);
 			Assert.StartsWith(KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).ToString(), generatedKey.FullKeyPath.ToString());
 		}
+	}
+
+	[Fact]
+	public void CanGenerateRealKeys()
+	{
+		string password = "password";
+		var network = Network.Main;
+		var manager = KeyManager.CreateNew(out _, password, network);
+
+		var labels = new LabelsArray("who-knows");
+		var segwitKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.Segwit);
+		var taprootKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+		Assert.Equal("84'/0'/0'/0/0", segwitKey.FullKeyPath.ToString());
+		Assert.Equal("86'/0'/0'/0/0", taprootKey.FullKeyPath.ToString());
 	}
 
 	[Fact]

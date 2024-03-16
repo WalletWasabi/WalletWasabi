@@ -3,35 +3,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:v="using:WalletWasabi.Fluent.Views.Settings"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:SettingsPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
-  <UserControl.Styles>
-    <Style Selector="TabItem">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="MinHeight" Value="50" />
-      <Setter Property="Padding" Value="0" />
-    </Style>
-    <Style Selector="TabItem /template/ Border#PART_LayoutRoot">
-      <Setter Property="Margin" Value="0 0 24 24" />
-    </Style>
-    <Style Selector="TabControl">
-      <Setter Property="Padding" Value="0" />
-    </Style>
-  </UserControl.Styles>
 
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"
                  NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
-      <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+      <InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
                      Margin="0,16,0,0"
                      HorizontalAlignment="Center"
                      Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
@@ -40,16 +26,17 @@
           <TextBlock Text="Changes will be applied after restarting the application." />
           <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}" />
         </StackPanel>
-      </c:InfoMessage>
-      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+      </InfoMessage>
+      <InfoMessage Foreground="{StaticResource WarningMessageForeground}"
                      Margin="0,16,0,0"
                      HorizontalAlignment="Center"
                      IsVisible="{Binding IsReadOnly}"
                      DockPanel.Dock="Bottom">
         <TextBlock Text="Modifying settings is not possible, as certain parameters have been overridden during startup." />
-      </c:InfoMessage>
+      </InfoMessage>
 
-      <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
+      <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}"
+                  Classes="Settings">
         <TabItem Header="General">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
@@ -70,5 +57,5 @@
 
       </TabControl>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

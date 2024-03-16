@@ -8,7 +8,8 @@
 - Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
 - Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
 - For backend, the [Relevance Realization Buffet](https://github.com/orgs/zkSNACKs/projects/18/views/48) view is a list of tasks that has to be investigated or tackled. You can assign yourself to an issue or just make the pull request.
-- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors.
+- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors. 
+- [Status calls](meet.zksnacks.com/research) are held on Mondays at 15:00 UTC to discuss what we did, and [peer programming calls](https://meet.zksnacks.com/code) on Thursdays at 13:30 UTC for coding together.
 
 ## Automatic code clean up
 
@@ -32,13 +33,23 @@ And also enable `Enable EditorConfig support` in `Settings -> Editor -> Code Sty
 
 Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
 
-If you are using Visual Studio Code make sure to add the following settings to your settings file:
+If you are using Visual Studio Code make sure to install "C# Dev Kit" extension and add the following settings to your settings file:
 
 ```json
-    "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableRoslynAnalyzers": true,
-    "editor.formatOnSave": true,
+"editor.formatOnSave": true
 ```
+
+## Technologies and scope
+
+- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: [WalletWasabi/global.json](https://github.com/zkSNACKs/WalletWasabi/blob/master/global.json).
+- [C#](https://dotnet.microsoft.com/en-us/languages/csharp): open-source programming language.
+- Model-View-ViewModel architecture (MVVM).
+- [Avalonia UI](https://www.avaloniaui.net/): framework to create cross-platform UI.
+- [xUnit](https://xunit.net/): create unit tests.
+- Dependencies path: [WalletWasabi/Directory.Packages.props](https://github.com/zkSNACKs/WalletWasabi/blob/master/Directory.Packages.props).
+- Developer's documentation path: [WalletWasabi/WalletWasabi.Documentation/](https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Documentation).
+
+# Code conventions
 
 ## Refactoring
 
@@ -90,7 +101,10 @@ using (AsyncLock.Lock())
 **DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
-if (foo is null) return;
+if (foo is null)
+{
+	return;
+}
 ```
 
 ## Empty quotes
@@ -164,6 +178,21 @@ myUiControl.Text = result;
 ## Never throw AggregateException and Exception in a mixed way
 It causes confusion and awkward catch clauses.
 [Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files)
+
+## Unused return value
+
+- Good: `using IDisposable _ = BenchmarkLogger.Measure();`
+- Bad: `_ = PrevOutsIndex.Remove(txInput.PrevOut);`
+- Bad: `_ = Directory.CreateDirectory(dir);`
+- Good: `_ = WaitAsync();` - disables warning message. Remark: you should always `await` or store the reference of the task.
+- Good: `_ = new HwiClient(network);`
+
+In general
+- If the return value is not used, write nothing.
+- In cases when the object needs to be disposed, but you do not need the object, `_ =` should be used.
+- In case you want to create an object but do not need the reference, `_ =` should be used.
+- If it generates a compiler warning, investigate, and if you are sure you can suppress the warning with `_ =` but elaborate on it with a comment.
+- In special cases `_ =` can be used but a reasonable elaboration is required by adding a comment above. 
 
 ---
 
@@ -358,7 +387,3 @@ If you absolutely must reference `UiContext` in the constructor, you can create 
 ```
 
 In this case, no additional constructors will be generated, and the analyzer will be satisfied.
-
-
-
-

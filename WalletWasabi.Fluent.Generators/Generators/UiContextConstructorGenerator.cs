@@ -63,7 +63,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 
 		foreach (var constructor in constructors)
 		{
-			if (!classDeclaration.GetUiContextReferences(semanticModel).Any())
+			if (classDeclaration.GetUiContextReferences(semanticModel).Count == 0)
 			{
 				if (!classDeclaration.IsAbstractClass(semanticModel) && constructor.IsPublic())
 				{
@@ -85,7 +85,7 @@ internal class UiContextConstructorGenerator : GeneratorStep<ClassDeclarationSyn
 					.Select(x => x.Identifier.ValueText)
 					.ToArray();
 
-				var hasConstructorArgs = constructorArgs.Any();
+				var hasConstructorArgs = constructorArgs.Length != 0;
 				var constructorArgsString = string.Join(",", constructorArgs);
 				var constructorString = hasConstructorArgs
 					? $": this({constructorArgsString})"

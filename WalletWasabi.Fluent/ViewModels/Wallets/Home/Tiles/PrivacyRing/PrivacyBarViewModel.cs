@@ -37,9 +37,9 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		Wallet.Coins.List
-			.Connect(suppressEmptyChangeSets: false)
-			.ToCollection()
+		Wallet.Coins.List                                 // Wallet.Coins.List here is not subscribed to SmartCoin changes.
+			.Connect(suppressEmptyChangeSets: false)      // Dynamic updates to SmartCoin properties won't be reflected in the UI.
+			.ToCollection()                               // See CoinModel.SubscribeToCoinChanges().
 			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
 			.DisposeWith(disposables);
 	}

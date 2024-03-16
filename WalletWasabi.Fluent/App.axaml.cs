@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
@@ -23,12 +24,6 @@ public class App : Application
 	private readonly bool _startInBg;
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
-
-	static App()
-	{
-		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
-		EnableFeatureHide = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-	}
 
 	public App()
 	{
@@ -40,8 +35,6 @@ public class App : Application
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
-
-	public static bool EnableFeatureHide { get; private set; }
 
 	public override void Initialize()
 	{
@@ -92,7 +85,7 @@ public class App : Application
 		var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
 		if (trayIcon is not null)
 		{
-			if (this.TryFindResource(EnableFeatureHide ? "DefaultNativeMenu" : "MacOsNativeMenu", out var nativeMenu))
+			if (this.TryFindResource("DefaultNativeMenu", out var nativeMenu))
 			{
 				trayIcon.Menu = nativeMenu as NativeMenu;
 			}
@@ -132,7 +125,7 @@ public class App : Application
 
 	private static IAmountProvider CreateAmountProvider()
 	{
-		return new AmountProvider(Services.Synchronizer);
+		return new AmountProvider(Services.HostedServices.Get<WasabiSynchronizer>());
 	}
 
 	private UiContext CreateUiContext()

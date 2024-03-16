@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.Helpers;
 public static class TransactionFeeHelper
 {
 	private static readonly AllFeeEstimate TestNetFeeEstimates = new(
-		EstimateSmartFeeMode.Conservative,
 		new Dictionary<int, int>
 		{
 			[1] = 17,
@@ -28,8 +27,7 @@ public static class TransactionFeeHelper
 			[144] = 2,
 			[432] = 1,
 			[1008] = 1
-		},
-		false);
+		});
 
 	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
@@ -160,7 +158,7 @@ public static class TransactionFeeHelper
 		}
 
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates.Estimations);
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates.WildEstimations);
 
 		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
 		{

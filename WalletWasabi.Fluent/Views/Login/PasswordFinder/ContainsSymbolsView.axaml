@@ -3,21 +3,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:ContainsSymbolsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.ContainsSymbolsView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableNext="False"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:QuestionControl Content="Does your password contain special characters?"
+    <QuestionControl Content="Does your password contain special characters?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}">
-      <c:QuestionControl.IconContent>
+      <QuestionControl.IconContent>
         <Viewbox Height="150">
           <StackPanel Orientation="Horizontal" Opacity="0.6">
             <TextBlock Text="&lt;&gt;" />
@@ -27,7 +26,7 @@
             <TextBlock Text="$" />
           </StackPanel>
         </Viewbox>
-      </c:QuestionControl.IconContent>
-    </c:QuestionControl>
-  </c:ContentArea>
+      </QuestionControl.IconContent>
+    </QuestionControl>
+  </ContentArea>
 </UserControl>

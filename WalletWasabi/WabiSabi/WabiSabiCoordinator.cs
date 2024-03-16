@@ -110,7 +110,7 @@ public class WabiSabiCoordinator : BackgroundService
 		var outpointsToBan = block.Transactions
 			.Where(tx => !CoinJoinIdStore.Contains(tx.GetHash()))  // We don't ban coinjoin outputs
 			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
-			.Where(x => x.BannedInputs.Any())
+			.Where(x => x.BannedInputs.Length != 0)
 			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
 
 		foreach (var (outpoint, ancestors) in outpointsToBan)
@@ -160,7 +160,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private bool IsWasabiCoinJoinLookingTx(Transaction tx) =>
 		tx.RBF == false
-		&& tx.Inputs.Count >= Config.MinInputCountByRound
+		&& tx.Inputs.Count >= Config.MinInputCountByBlameRound
 		&& tx.Inputs.Count <= Config.MaxInputCountByRound
 		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
 		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);

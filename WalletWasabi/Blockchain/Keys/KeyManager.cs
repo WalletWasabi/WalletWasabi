@@ -113,7 +113,7 @@ public class KeyManager
 	private void OnSerializingMethod(StreamingContext context)
 	{
 		HdPubKeys.Clear();
-		HdPubKeys.AddRange(HdPubKeyCache);
+		HdPubKeys.AddRange(HdPubKeyCache.HdPubKeys);
 		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
 	}
 
@@ -160,7 +160,7 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
-	
+
 	[JsonProperty(PropertyName = "UseTurboSync")]
 	public bool UseTurboSync { get; private set; } = true;
 
@@ -337,32 +337,59 @@ public class KeyManager
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(LabelsArray labels)
+	public HdPubKey GetNextReceiveKey(LabelsArray labels, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		if (labels.IsEmpty)
-		{
-			throw new InvalidOperationException("Label is required.");
-		}
-
 		lock (CriticalStateLock)
 		{
-			// Find the next clean external key with empty label.
-			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-			if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is not { } newKey)
+			var newKey = scriptPubKeyType switch
 			{
-				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
-				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
-				HdPubKeyCache.AddRangeKeys(newHdPubKeys);
+				ScriptPubKeyType.Segwit => GetNextReceiveSegwitKey(),
+				ScriptPubKeyType.TaprootBIP86 => GetNextReceiveTaprootKey(),
+				_ => throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.")
+			};
 
-				newKey = newHdPubKeys.First();
-			}
 			newKey.SetLabel(labels);
-
 			SkipSynchronization = false;
 
 			ToFile();
 			return newKey;
 		}
+	}
+
+	private HdPubKey GetNextReceiveSegwitKey()
+	{
+		var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(SegwitExternalKeyGenerator);
+		SegwitExternalKeyGenerator = newHdPubKeyGenerator;
+		HdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
+		return newKey;
+	}
+
+	private HdPubKey GetNextReceiveTaprootKey()
+	{
+		if (TaprootExternalKeyGenerator is not { } nonNullTaprootExternalKeyGenerator)
+		{
+			throw new NotSupportedException("Taproot is not supported in this wallet.");
+		}
+		var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(nonNullTaprootExternalKeyGenerator);
+		TaprootExternalKeyGenerator = newHdPubKeyGenerator;
+		HdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
+		return newKey;
+	}
+
+	private (HdPubKey, HdPubKey[], HdPubKeyGenerator) GetNextReceiveKey(HdPubKeyGenerator hdPubKeyGenerator)
+	{
+		// Find the next clean external key with empty label.
+		var externalView = HdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+		if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is { } cachedKey)
+		{
+			return (cachedKey, Array.Empty<HdPubKey>(), hdPubKeyGenerator);
+		}
+
+		var newHdPubKeyGenerator = hdPubKeyGenerator with { MinGapLimit = hdPubKeyGenerator.MinGapLimit + 1 };
+		var newHdPubKeys = newHdPubKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToArray();
+
+		var newKey = newHdPubKeys.First();
+		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
 	public HdPubKey GetNextChangeKey() =>
@@ -383,11 +410,8 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			AssertCleanKeysIndexed();
-			return wherePredicate switch
-			{
-				null => HdPubKeyCache.ToList(),
-				_ => HdPubKeyCache.Where(wherePredicate).ToList()
-			};
+			var predicate = wherePredicate ?? (_ => true);
+			return HdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index);
 		}
 	}
 
@@ -405,11 +429,13 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<HdPubKeyCache.SynchronizationInfos> UnsafeGetSynchronizationInfos()
+	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight);
+
+	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos()
 	{
 		lock (CriticalStateLock)
 		{
-			return HdPubKeyCache.GetSynchronizationInfos();
+			return HdPubKeyCache.Select(x => new ScriptPubKeySpendingInfo(x.CompressedScriptPubKey, x.HdPubKey.LatestSpendingHeight));
 		}
 	}
 
@@ -423,31 +449,17 @@ public class KeyManager
 
 	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 	{
-		return GetSecretsAndPubKeyPairs(password, scripts).Select(x => x.secret);
-	}
-
-	public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
-	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
+		var extKeysAndPubs = new List<ExtKey>();
 
 		lock (CriticalStateLock)
 		{
 			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
-				|| scripts.Contains(x.P2shOverP2wpkhScript)
-				|| scripts.Contains(x.P2pkhScript)
-				|| scripts.Contains(x.P2pkScript)
 				|| scripts.Contains(x.P2Taproot)))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add((ek, key));
-
-				if (ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != key.P2wpkhScript
-					&& ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) != key.P2Taproot)
-				{
-					throw new InvalidOperationException("Wtf");
-				}
+				extKeysAndPubs.Add(ek);
 			}
 		}
 		return extKeysAndPubs;
@@ -470,7 +482,7 @@ public class KeyManager
 		{
 			if (passwordHash != storedPasswordHash)
 			{
-				throw new SecurityException("Invalid password.");
+				throw new SecurityException("Invalid passphrase.");
 			}
 
 			return masterKey;
@@ -491,7 +503,7 @@ public class KeyManager
 		}
 		catch (SecurityException ex)
 		{
-			throw new SecurityException("Invalid password.", ex);
+			throw new SecurityException("Invalid passphrase.", ex);
 		}
 	}
 
@@ -619,25 +631,31 @@ public class KeyManager
 
 	#region BlockchainState
 
-	public Height GetBestHeight()
+	public Height GetBestHeight(SyncType syncType)
 	{
 		lock (CriticalStateLock)
 		{
-			return BlockchainState.Height;
-		}
-	}
-
-	public Height GetBestTurboSyncHeight()
-	{
-		lock (CriticalStateLock)
-		{
-			return BlockchainState.TurboSyncHeight;
+			return syncType == SyncType.Turbo ? BlockchainState.TurboSyncHeight : BlockchainState.Height;
 		}
 	}
 
 	public Network GetNetwork()
 	{
 		return BlockchainState.Network;
+	}
+
+	public void SetBestHeight(SyncType syncType, Height height, bool toFile = true)
+	{
+		if (syncType == SyncType.Turbo)
+		{
+			// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight.
+			SetBestTurboSyncHeight(height, toFile);
+		}
+		else
+		{
+			// All keys were tested at this height, update the Height.
+			SetBestHeight(height, toFile);
+		}
 	}
 
 	public void SetBestHeight(Height height, bool toFile = true)

@@ -59,11 +59,7 @@ public partial class CurrencyEntryBox : TextBox
 
 		this.GetObservable(IsRightSideProperty)
 			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
-
-		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
-
-	public ICommand ModifiedPaste { get; }
 
 	public decimal ConversionRate
 	{
@@ -305,47 +301,60 @@ public partial class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		if (ApplicationHelper.Clipboard is { } clipboard)
+		var text = await ApplicationHelper.GetTextAsync();
+
+		if (string.IsNullOrEmpty(text))
 		{
-			var text = await clipboard.GetTextAsync();
+			return;
+		}
 
-			if (string.IsNullOrEmpty(text))
+		text = text.Replace("\r", "").Replace("\n", "").Trim();
+
+		if (!TryParse(text, out text))
+		{
+			return;
+		}
+
+		if (ValidateEntryText(text))
+		{
+			OnTextInput(new TextInputEventArgs { Text = text });
+
+			Dispatcher.UIThread.Post(() =>
 			{
-				return;
-			}
-
-			text = text.Replace("\r", "").Replace("\n", "").Trim();
-
-			if (!TryParse(text, out text))
-			{
-				return;
-			}
-
-			if (ValidateEntryText(text))
-			{
-				OnTextInput(new TextInputEventArgs { Text = text });
-			}
+				ClearSelection();
+				CaretIndex = Text?.Length ?? 0;
+			});
 		}
 	}
 
 	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
 	{
-		var money = ValidatePasteBalance
-			? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-			: ClipboardObserver.ParseToMoney(text);
-		if (money is not null)
+		if (!IsFiat)
 		{
-			result = money.ToDecimal(MoneyUnit.BTC).FormattedBtc();
-			return true;
-		}
+			var money = ValidatePasteBalance
+				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
+				: ClipboardObserver.ParseToMoney(text);
+			if (money is not null)
+			{
+				var fractionalCount =
+					text.Contains('.')
+					? text.Skip(text.LastIndexOf('.')).Where(char.IsDigit).Count()
+					: 0;
 
-		var usd = ValidatePasteBalance
-			? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-			: ClipboardObserver.ParseToUsd(text);
-		if (usd is not null)
+				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(fractionalCount);
+				return true;
+			}
+		}
+		else
 		{
-			result = usd.Value.ToString("0.00");
-			return true;
+			var usd = ValidatePasteBalance
+				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
+				: ClipboardObserver.ParseToUsd(text);
+			if (usd is not null)
+			{
+				result = usd.Value.ToString("0.00");
+				return true;
+			}
 		}
 
 		result = null;

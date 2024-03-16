@@ -4,12 +4,14 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -51,8 +53,17 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private static Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
 	{
-		MainViewModel.Instance.NavBar.SelectedWallet = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
-		wallet.NavigateAndHighlight(item.Transaction.Id);
+		var walletPageViewModel = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
+		if (walletPageViewModel == MainViewModel.Instance.NavBar.SelectedWallet)
+		{
+			wallet.SelectTransaction(item.Transaction.Id);
+		}
+		else
+		{
+			MainViewModel.Instance.NavBar.SelectedWallet = walletPageViewModel;
+			wallet.NavigateAndHighlight(item.Transaction.Id);
+		}
+
 		return Task.CompletedTask;
 	}
 
@@ -76,7 +87,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	{
 		return new ActionableItem(
 			item.Transaction.Id.ToString(),
-			@$"Found in ""{wallet.WalletName}""",
+			@$"Found in ""{wallet.WalletModel.Name}""",
 			() => NavigateTo(wallet, item),
 			"Transactions",
 			new List<string>())
@@ -108,6 +119,14 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-			.Where(tuple => ContainsId(tuple.Item2, queryStr));
+		.Where(tuple => NBitcoinHelpers.TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
+			ContainsDestinationAddress(tuple.Item1, tuple.Item2, address) :
+			ContainsId(tuple.Item2, queryStr));
+	}
+
+	private static bool ContainsDestinationAddress(WalletViewModel walletViewModel, HistoryItemViewModelBase historyItem, BitcoinAddress address)
+	{
+		var txid = historyItem.Transaction.Id;
+		return walletViewModel.WalletModel.Transactions.GetDestinationAddresses(txid).Contains(address);
 	}
 }

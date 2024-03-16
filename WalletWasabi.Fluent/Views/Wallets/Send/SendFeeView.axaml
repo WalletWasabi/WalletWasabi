@@ -2,10 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
@@ -41,7 +37,7 @@
       <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
     </Style>
     <!-- LineChart Labels -->
-    <Style Selector="c|LineChart.xAxisLabels">
+    <Style Selector="LineChart.xAxisLabels">
       <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="XAxisLabelOpacity" Value="0.5" />
       <Setter Property="XAxisLabelAngle" Value="0" />
@@ -53,7 +49,7 @@
       <Setter Property="XAxisLabelFontSize" Value="12" />
     </Style>
     <!-- LineChart YAxis Labels -->
-    <Style Selector="c|LineChart.yAxisLabels">
+    <Style Selector="LineChart.yAxisLabels">
       <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisLabelAngle" Value="0" />
       <Setter Property="YAxisLabelOffset" Value="-40,0" />
@@ -62,14 +58,14 @@
       <Setter Property="YAxisLabelOpacity" Value="0.8" />
     </Style>
     <!-- LineChart Cursor -->
-    <Style Selector="c|LineChart.cursor">
+    <Style Selector="LineChart.cursor">
       <Setter Property="CursorStroke" Value="{DynamicResource SliderThumbBackground}" />
       <Setter Property="CursorStrokeThickness" Value="2" />
       <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
       <Setter Property="CursorStrokeLineCap" Value="Round" />
     </Style>
     <!-- LineChart XAxis -->
-    <Style Selector="c|LineChart.xAxis">
+    <Style Selector="LineChart.xAxis">
       <Setter Property="XAxisOffset" Value="180,10" />
       <Setter Property="XAxisOpacity" Value="0.5" />
       <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
@@ -79,7 +75,7 @@
       <Setter Property="XAxisMinViableHeight" Value="0" />
     </Style>
     <!-- LineChart YAxis -->
-    <Style Selector="c|LineChart.yAxis">
+    <Style Selector="LineChart.yAxis">
       <Setter Property="YAxisOffset" Value="-10,-150" />
       <Setter Property="YAxisOpacity" Value="0.5" />
       <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
@@ -89,7 +85,7 @@
       <Setter Property="YAxisMinViableHeight" Value="120" />
     </Style>
     <!-- LineChart YAxis Title -->
-    <Style Selector="c|LineChart.yAxisTitle">
+    <Style Selector="LineChart.yAxisTitle">
       <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisTitleOpacity" Value="0.5" />
       <Setter Property="YAxisTitleAngle" Value="-90" />
@@ -102,7 +98,7 @@
       <Setter Property="YAxisTitleFontSize" Value="12" />
     </Style>
     <!-- LineChart XAxis Title -->
-    <Style Selector="c|LineChart.xAxisTitle">
+    <Style Selector="LineChart.xAxisTitle">
       <Setter Property="XAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="XAxisTitleOpacity" Value="0.5" />
       <Setter Property="XAxisTitleAngle" Value="0" />
@@ -115,14 +111,14 @@
       <Setter Property="XAxisTitleFontSize" Value="12" />
     </Style>
     <!-- LineChart Border -->
-    <Style Selector="c|LineChart.border">
+    <Style Selector="LineChart.border">
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderRadiusX" Value="4" />
       <Setter Property="BorderRadiusY" Value="4" />
     </Style>
     <!-- LineChart Area -->
-    <Style Selector="c|LineChart.area">
+    <Style Selector="LineChart.area">
       <Setter Property="AreaFill">
         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
           <LinearGradientBrush.GradientStops>
@@ -134,7 +130,7 @@
       <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  Caption="Set your preference for how fast the transaction should be confirmed"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
@@ -144,7 +140,7 @@
     <DockPanel>
 
       <!-- Advanced -->
-      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+      <Button Classes="h8 plain activeHyperLink" Margin="0 15 0 0"
               Command="{Binding AdvancedOptionsCommand}"
               DockPanel.Dock="Bottom"
               HorizontalAlignment="Center"
@@ -156,17 +152,6 @@
           <GridLength x:Key="SliderPreContentMargin">0</GridLength>
           <GridLength x:Key="SliderPostContentMargin">0</GridLength>
         </DockPanel.Resources>
-        <StackPanel Spacing="10"
-                    HorizontalAlignment="Center"
-                    IsVisible="{Binding !EnableCursor}"
-                    DockPanel.Dock="Bottom">
-          <TextBlock Opacity="0.6"
-                     HorizontalAlignment="Center"
-                     Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
-          <TextBlock Opacity="0.6"
-                     HorizontalAlignment="Center"
-                     Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}" />
-        </StackPanel>
         <Slider x:Name="CursorValue2"
                 Margin="38,0,18,0"
                 KeyboardNavigation.IsTabStop="False"
@@ -179,70 +164,67 @@
                 Maximum="{Binding SliderMaximum}"
                 Value="{Binding SliderValue}"
                 IsVisible="{Binding EnableCursor}">
-          <Slider.Styles>
-            <Style Selector="Slider /template/ Thumb">
-              <Setter Property="ToolTip.Tip">
-                <Template>
-                  <ToolTip>
-                    <StackPanel Spacing="10" x:CompileBindings="False">
-                      <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
-                      <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}" />
-                    </StackPanel>
-                  </ToolTip>
-                </Template>
-              </Setter>
-              <Setter Property="ToolTip.Placement" Value="Bottom" />
-              <Setter Property="ToolTip.VerticalOffset" Value="10" />
-              <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
-            </Style>
-          </Slider.Styles>
-          <i:Interaction.Behaviors>
-            <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
-            <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
-          </i:Interaction.Behaviors>
+          <Interaction.Behaviors>
+            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
+            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
+          </Interaction.Behaviors>
         </Slider>
-        <c:LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
-                     XAxisLabels="{Binding ConfirmationTargetLabels}"
-                     XAxisValues="{Binding ConfirmationTargetValues}"
-                     XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
-                     YAxisLabels="{Binding SatoshiPerByteLabels}"
-                     YAxisValues="{Binding SatoshiPerByteValues}"
-                     EnableCursor="{Binding EnableCursor}">
-          <c:LineChart.Styles>
-            <Style Selector="c|LineChart">
-              <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />
-              <Setter Property="Margin" Value="18,10,18,0" />
-              <Setter Property="MinHeight" Value="150" />
-              <Setter Property="YAxisLogarithmicScale" Value="False" />
-              <Setter Property="AreaMargin" Value="30,0,10,32" />
-              <Setter Property="AreaStrokeThickness" Value="2" />
-              <Setter Property="AreaStrokeLineCap" Value="Round" />
-              <Setter Property="AreaMinViableWidth" Value="40" />
-              <Setter Property="AreaMinViableHeight" Value="20" />
-              <Setter Property="Focusable" Value="True" />
-              <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)" />
-              <Setter Property="XAxisTitle" Value="Estimated Confirmation Time" />
-            </Style>
-            <Style Selector="c|LineChart.narrow">
-              <Setter Property="AreaMargin" Value="30,0,10,45" />
-              <Setter Property="MinHeight" Value="170" />
-              <Setter Property="XAxisLabelAngle" Value="45" />
-              <Setter Property="XAxisLabelOffset" Value="-18,54" />
-              <Setter Property="XAxisTitleOffset" Value="0,-40" />
-              <Setter Property="XAxisOffset" Value="180,10" />
-            </Style>
-          </c:LineChart.Styles>
-          <i:Interaction.Behaviors>
-            <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
+        <Panel>
 
-            <!-- Disabled it as we have enough space all the time. -->
-            <!-- I leave the code here for easy re enabling if needed. -->
-            <!-- <ir:AdaptiveBehavior> -->
-            <!--   <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" /> -->
-            <!-- </ir:AdaptiveBehavior> -->
-          </i:Interaction.Behaviors>
-        </c:LineChart>
+          <LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
+                       XAxisLabels="{Binding ConfirmationTargetLabels}"
+                       XAxisValues="{Binding ConfirmationTargetValues}"
+                       XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
+                       YAxisLabels="{Binding SatoshiPerByteLabels}"
+                       YAxisValues="{Binding SatoshiPerByteValues}"
+                       EnableCursor="{Binding EnableCursor}">
+            <LineChart.Styles>
+              <Style Selector="LineChart">
+                <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />
+                <Setter Property="Margin" Value="18,10,18,0" />
+                <Setter Property="MinHeight" Value="150" />
+                <Setter Property="YAxisLogarithmicScale" Value="False" />
+                <Setter Property="AreaMargin" Value="30,0,10,32" />
+                <Setter Property="AreaStrokeThickness" Value="2" />
+                <Setter Property="AreaStrokeLineCap" Value="Round" />
+                <Setter Property="AreaMinViableWidth" Value="40" />
+                <Setter Property="AreaMinViableHeight" Value="20" />
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)" />
+                <Setter Property="XAxisTitle" Value="Estimated Confirmation Time" />
+              </Style>
+              <Style Selector="LineChart.narrow">
+                <Setter Property="AreaMargin" Value="30,0,10,45" />
+                <Setter Property="MinHeight" Value="170" />
+                <Setter Property="XAxisLabelAngle" Value="45" />
+                <Setter Property="XAxisLabelOffset" Value="-18,54" />
+                <Setter Property="XAxisTitleOffset" Value="0,-40" />
+                <Setter Property="XAxisOffset" Value="180,10" />
+              </Style>
+            </LineChart.Styles>
+            <Interaction.Behaviors>
+              <ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
+
+              <!-- Disabled it as we have enough space all the time. -->
+              <!-- I leave the code here for easy re enabling if needed. -->
+              <!-- <ir:AdaptiveBehavior> -->
+              <!--   <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" /> -->
+              <!-- </ir:AdaptiveBehavior> -->
+            </Interaction.Behaviors>
+          </LineChart>
+          <StackPanel Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,35,35">
+            <StackPanel.Styles>
+              <Style Selector="TextBlock">
+                <Setter Property="TextAlignment" Value="Right" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
+              </Style>
+            </StackPanel.Styles>
+            <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
+            <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: \{0\}'}" />
+          </StackPanel>
+        </Panel>
       </DockPanel>
     </DockPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

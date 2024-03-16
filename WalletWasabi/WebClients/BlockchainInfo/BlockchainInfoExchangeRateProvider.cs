@@ -37,6 +37,6 @@ public class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 
 	private class BlockchainInfoExchangeRates
 	{
-		public BlockchainInfoExchangeRate USD { get; set; }
+		public required BlockchainInfoExchangeRate USD { get; init; }
 	}
 }

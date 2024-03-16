@@ -65,17 +65,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
+			.DoAsync(async x =>
 			{
 				if (x?.Transaction is { } transaction)
 				{
 					UpdateTransaction(PreviewTransactionSummary, transaction);
+					await PrivacySuggestions.UpdatePreviewWarningsAsync(_info, transaction, _cancellationTokenSource.Token);
 				}
 				else
 				{
 					DisplayedTransactionSummary = CurrentTransactionSummary;
+					PrivacySuggestions.ClearPreviewWarnings();
 				}
-			});
+			})
+			.Subscribe();
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
 			.SubscribeAsync(async suggestion =>
@@ -130,7 +133,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				_info = previous.Item2;
 				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
-				CanUndo = _undoHistory.Any();
+				CanUndo = _undoHistory.Count != 0;
 			}
 		});
 
@@ -170,7 +173,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To().Success("The PSBT has been successfully created.");
+				Navigate().To().Success();
 			}
 		}
 	}
@@ -470,7 +473,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletName].ToList());
+		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}

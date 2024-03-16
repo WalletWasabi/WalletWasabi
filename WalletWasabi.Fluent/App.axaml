@@ -23,9 +23,6 @@
       <NativeMenuItemSeparator />
       <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
     </NativeMenu>
-    <NativeMenu x:Key="MacOsNativeMenu">
-      <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
-    </NativeMenu>
   </Application.Resources>
 
   <Application.Styles>
@@ -44,7 +41,7 @@
   </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
+      <TrayIcon Icon="/Assets/WasabiLogo.ico" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
         <!-- TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed. -->
         <!--<NativeMenu.Menu>
           <NativeMenu>

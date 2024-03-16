@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
-             xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
              x:Class="WalletWasabi.Fluent.Views.Shell.MainScreen"
              x:DataType="viewModels:MainViewModel"
@@ -24,36 +22,36 @@
                   IsHitTestVisible="False" />
           <Panel VerticalAlignment="Bottom"
                  Height="100">
-            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+            <SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
                                       Classes.fireEffect="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
-              <spectrum:SpectrumControl.IsDockEffectVisible>
+              <SpectrumControl.IsDockEffectVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="CurrentWallet^.IsMusicBoxVisible^" FallbackValue="False" />
                   <Binding Path="CurrentWallet^.CoinJoinStateViewModel.AreAllCoinsPrivate" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
                 </MultiBinding>
-              </spectrum:SpectrumControl.IsDockEffectVisible>
-              <spectrum:SpectrumControl.Styles>
-                <Style Selector="spectrum|SpectrumControl.fireEffect">
+              </SpectrumControl.IsDockEffectVisible>
+              <SpectrumControl.Styles>
+                <Style Selector="SpectrumControl.fireEffect">
                   <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
                 </Style>
-                <Style Selector="spectrum|SpectrumControl">
+                <Style Selector="SpectrumControl">
                   <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
                 </Style>
-              </spectrum:SpectrumControl.Styles>
-              <spectrum:SpectrumControl.Transitions>
+              </SpectrumControl.Styles>
+              <SpectrumControl.Transitions>
                 <Transitions>
                   <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}" />
                 </Transitions>
-              </spectrum:SpectrumControl.Transitions>
-            </spectrum:SpectrumControl>
+              </SpectrumControl.Transitions>
+            </SpectrumControl>
           </Panel>
           <DockPanel>
             <DockPanel.Styles>
-              <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
+              <Style Selector="ContentControl ContentArea /template/ Panel#PART_ButtonArea">
                 <Setter Property="IsVisible" Value="False" />
               </Style>
 
-              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+              <Style Selector="ContentArea /template/ StackPanel#PART_Header">
                 <Setter Property="Margin" Value="31 26 31 0" />
               </Style>
             </DockPanel.Styles>

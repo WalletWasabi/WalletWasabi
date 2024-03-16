@@ -83,6 +83,17 @@
   <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
   <Color x:Key="LineChartLineColor">#5E96ED</Color>
 
+  <Color x:Key="BuyAnythingConversationsBackground">#21252D</Color>
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333A47" />
+  <SolidColorBrush x:Key="ChatInputBackground" Color="#232932" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#333A47" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333A47" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333A47" Opacity="0.8" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#21252D" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
+  <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
+
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
 
   <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
@@ -235,6 +246,12 @@
   <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#ff8d95a3" />
   <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99ffffff" />
   <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
+
+  <!--COMMON FOR LIGHT AND DARK THEMES. -->
+  <!--TODO: MOVE TO COMMON FILE-->
+  <SolidColorBrush x:Key="SoftAccentBrush" Opacity="0.8" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="HardAccentBrush" Opacity="0.9" Color="{DynamicResource SystemAccentColor}" />
+  <system:Int32 x:Key="WalletNameMaxLength">50</system:Int32>
 
 </ResourceDictionary>
 

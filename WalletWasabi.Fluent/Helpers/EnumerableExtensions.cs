@@ -19,12 +19,16 @@ public static class EnumerableExtensions
 	/// <returns>A new IEnumerable if the Selected data at each sample point.</returns>
 	public static IEnumerable<(DateTimeOffset timestamp, TResult result)> SelectTimeSampleBackwards<TSource, TResult>(
 		this IEnumerable<TSource> sourceData,
-		Func<TSource, DateTimeOffset> timeSampler, Func<TSource, TResult> sampler,
-		TimeSpan interval, DateTimeOffset endTime, TResult defaultValue, DateTimeOffset? startFrom = default)
+		Func<TSource, DateTimeOffset> timeSampler,
+		Func<TSource, TResult> sampler,
+		TimeSpan interval,
+		DateTimeOffset endTime,
+		TResult defaultValue,
+		DateTimeOffset? startFrom = default)
 	{
 		var source = sourceData.ToArray();
 
-		if (!source.Any())
+		if (source.Length == 0)
 		{
 			yield break;
 		}
@@ -79,4 +83,27 @@ public static class EnumerableExtensions
 	}
 
 	public static bool IsEmpty<T>(this IEnumerable<T> source) => !source.Any();
+
+	/// <summary>
+	/// Splits the collection into two collections, containing the elements for which the given predicate returns True and False respectively. Element order is preserved in both of the created lists.
+	/// </summary>
+	public static (IEnumerable<T>, IEnumerable<T>) Partition<T>(this IEnumerable<T> me, Predicate<T> predicate)
+	{
+		var trueList = new List<T>();
+		var falseList = new List<T>();
+
+		foreach (var item in me)
+		{
+			if (predicate(item))
+			{
+				trueList.Add(item);
+			}
+			else
+			{
+				falseList.Add(item);
+			}
+		}
+
+		return (trueList, falseList);
+	}
 }

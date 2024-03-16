@@ -125,7 +125,7 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 
 ### WSL
 
-You can disable WSL sudo password promt with this oneliner: 
+You can disable WSL sudo password prompt with this oneliner: 
 
 ```
 echo "`whoami` ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/`whoami` && sudo chmod 0440 /etc/sudoers.d/`whoami`

@@ -43,10 +43,10 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		WasabiSynchronizer synchronizer = new(requestInterval: TimeSpan.FromSeconds(1), 1000, bitcoinStore, httpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(1), 1000, bitcoinStore, httpClientFactory);
 		try
 		{
-			synchronizer.Start();
+			await synchronizer.StartAsync(CancellationToken.None);
 
 			var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 																 // Test initial synchronization.
@@ -94,7 +94,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			await synchronizer.StopAsync();
+			await synchronizer.StopAsync(CancellationToken.None);
 		}
 	}
 }

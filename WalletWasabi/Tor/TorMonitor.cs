@@ -137,7 +137,7 @@ public class TorMonitor : PeriodicRunner
 
 					if (statusEvent.Action == StatusEvent.ActionCircuitNotEstablished)
 					{
-						_ = statusEvent.Arguments.TryGetValue("REASON", out string? reason);
+						statusEvent.Arguments.TryGetValue("REASON", out string? reason);
 						Logger.LogError($"Tor circuit failed to be established: {(reason ?? "unknown reason")}.");
 					}
 				}

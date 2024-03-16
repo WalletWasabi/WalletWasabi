@@ -1,27 +1,26 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- Standalone style: pointerover border -->
-  <Style Selector="c|CurrencyEntryBox.standalone:pointerover /template/ Border#PART_BorderElement">
+  <Style Selector="CurrencyEntryBox.standalone:pointerover /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
     <Setter Property="BorderThickness" Value="{DynamicResource CurrencyEntryBoxBorderThemeThicknessFocused}" />
   </Style>
 
   <!-- Standalone style: error border -->
-  <Style Selector="c|CurrencyEntryBox.standalone:error /template/ Border#PART_BorderElement">
+  <Style Selector="CurrencyEntryBox.standalone:error /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
   </Style>
 
   <!-- Standalone style: focus border -->
-  <Style Selector="c|CurrencyEntryBox.standalone:focus-within /template/ Border#PART_BorderElement">
+  <Style Selector="CurrencyEntryBox.standalone:focus-within /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
     <Setter Property="BorderThickness" Value="{DynamicResource CurrencyEntryBoxBorderThemeThicknessFocused}" />
   </Style>
 
   <!-- Show DataValidationErrors for standalone -->
-  <Style Selector="c|CurrencyEntryBox.standalone /template/ DataValidationErrors#PART_DataValidationErrors">
+  <Style Selector="CurrencyEntryBox.standalone /template/ DataValidationErrors#PART_DataValidationErrors">
     <Setter Property="IsVisible" Value="True" />
   </Style>
 

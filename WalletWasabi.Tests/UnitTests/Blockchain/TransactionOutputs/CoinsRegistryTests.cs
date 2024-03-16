@@ -153,8 +153,8 @@ public class CoinsRegistryTests
 
 			SmartCoin unconfirmedCoin1 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
 			SmartCoin unconfirmedCoin2 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "C");
-			Assert.True(unconfirmedCoin1.IsReplaceable());
-			Assert.True(unconfirmedCoin2.IsReplaceable());
+			Assert.True(unconfirmedCoin1.Transaction.IsRBF);
+			Assert.True(unconfirmedCoin2.Transaction.IsRBF);
 
 			Assert.True(Coins.IsKnown(tx0.GetHash()));
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
@@ -378,7 +378,7 @@ public class CoinsRegistryTests
 		Assert.False(Coins.TryGetTxAmount(tx0.GetHash(), out _));
 
 		// Now process tx0 twice.
-		_ = ProcessTransaction(tx0);
+		ProcessTransaction(tx0);
 		Assert.Empty(ProcessTransaction(tx0));
 
 		// There is only a single coin.

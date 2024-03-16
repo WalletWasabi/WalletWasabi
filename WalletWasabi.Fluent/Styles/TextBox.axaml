@@ -1,6 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Style Selector="TextBox">
     <Setter Property="Theme" Value="{DynamicResource TextBoxTheme}" />
@@ -43,7 +42,7 @@
   </Style>
 
   <!-- TODO: Move to PrivacyContentControl.axaml file -->
-  <Style Selector="c|PrivacyContentControl.monoSpaced">
+  <Style Selector="PrivacyContentControl.monoSpaced">
     <Setter Property="(TextElement.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 
