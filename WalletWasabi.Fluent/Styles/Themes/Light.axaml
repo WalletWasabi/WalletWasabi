@@ -38,6 +38,8 @@
   <Color x:Key="SystemAccentColorLight1">#FF4F82D0</Color>
   <Color x:Key="SystemAccentColorLight2">#FF6794DA</Color>
   <Color x:Key="SystemAccentColorLight3">#FF7EA7E3</Color>
+  <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
+  <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">White</Color>
@@ -84,6 +86,7 @@
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#14000000</Color>
@@ -99,10 +102,10 @@
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#FFFFFF" />
 
-  <Color x:Key="LineChartAreaGradientStartStopColor">#FF5E96ED</Color>
-  <Color x:Key="LineChartAreaGradientEndStopColor">#005E96ED</Color>
-  <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
-  <Color x:Key="LineChartLineColor">#5E96ED</Color>
+  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientEndStopColor" ResourceKey="RegionColor" />
+  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
   <Color x:Key="BuyAnythingConversationsBackground">White</Color>
   <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#F5F5F5" />
@@ -111,7 +114,7 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#F5F5F5" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="#F5F5F5" Opacity="0.8" />
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#E0E0E0" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
   <SolidColorBrush x:Key="ErrorMessageColor" Color="Red" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
@@ -151,6 +154,7 @@
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
   <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
+  <Thickness x:Key="ComboBoxDropdownBorderPadding">5</Thickness>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

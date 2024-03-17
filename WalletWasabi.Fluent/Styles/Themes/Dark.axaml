@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
-  <Color x:Key="SystemAccentColor">#436113</Color>
+  <Color x:Key="SystemAccentColor">#77C400</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -21,8 +21,8 @@
   <Color x:Key="SystemChromeDisabledHighColor">#FF262626</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
   <Color x:Key="SystemChromeGrayColor">#FF787878</Color>
-  <Color x:Key="SystemChromeHighColor">#FF787878</Color>
-  <Color x:Key="SystemChromeLowColor">#FF101010</Color>
+  <Color x:Key="SystemChromeHighColor">#323232</Color>
+  <Color x:Key="SystemChromeLowColor">#3F3F3F</Color>
   <Color x:Key="SystemChromeMediumColor">#262626</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FF202020</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
@@ -32,12 +32,14 @@
   <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
   <Color x:Key="SystemRevealListLowColor">#262626</Color>
   <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF5A752F</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF718A4B</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF889E66</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF37540F</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF2B470B</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF203B08</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF63AF00</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF4F9A00</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF3C8600</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF87CC1E</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF98D43C</Color>
+  <Color x:Key="SystemAccentColorLight3">#FFA8DB5A</Color>
+  <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
+  <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
   <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
@@ -77,13 +79,14 @@
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource  SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource  SystemChromeMediumColor}" />
 
-  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{StaticResource  SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource  SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource TileBorderColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="TileBorderColor">#66757575</Color>
@@ -99,10 +102,10 @@
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
-  <Color x:Key="LineChartAreaGradientStartStopColor">#FF5E96ED</Color>
-  <Color x:Key="LineChartAreaGradientEndStopColor">#005E96ED</Color>
-  <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
-  <Color x:Key="LineChartLineColor">#5E96ED</Color>
+  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientEndStopColor" ResourceKey="RegionColor" />
+  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
   <Color x:Key="BuyAnythingConversationsBackground">#262626</Color>
   <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333333" />
@@ -111,7 +114,7 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333333" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333333" Opacity="0.8" />
   <SolidColorBrush x:Key="AssistantMessageBackground" Color="#262626" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#262626</SolidColorBrush>
@@ -150,6 +153,7 @@
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
   <CornerRadius x:Key="ControlCornerRadius">5</CornerRadius>
   <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
+  <Thickness x:Key="ComboBoxDropdownBorderPadding">5</Thickness>
 
   <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />

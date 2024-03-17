@@ -136,10 +136,7 @@
     <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
   </Style>
   <Style Selector="Button.transparentFunction:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
-  </Style>
-  <Style Selector="Button.transparentFunction:disabled PathIcon">
-    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <!-- Plain -->
