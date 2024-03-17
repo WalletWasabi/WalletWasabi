@@ -23,8 +23,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<VerticalAlignment> VerticalContentAlignmentProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, VerticalAlignment>(nameof(VerticalContentAlignment));
 
-	public static readonly DirectProperty<DualCurrencyEntryBox, decimal> AmountBtcProperty =
-		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal>(
+	public static readonly DirectProperty<DualCurrencyEntryBox, decimal?> AmountBtcProperty =
+		AvaloniaProperty.RegisterDirect<DualCurrencyEntryBox, decimal?>(
 			nameof(AmountBtc),
 			o => o.AmountBtc,
 			(o, v) => o.AmountBtc = v,
@@ -84,7 +84,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
-	private decimal _amountBtc;
+	private decimal? _amountBtc;
 	private bool _isTextInputFocused;
 	private bool _isConversationTextFocused;
 	private bool _skipProcessing;
@@ -116,7 +116,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set { SetValue(VerticalContentAlignmentProperty, value); }
 	}
 
-	public decimal AmountBtc
+	public decimal? AmountBtc
 	{
 		get => _amountBtc;
 		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
@@ -233,7 +233,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			SetBtcAmount(0);
+			SetBtcAmount(null);
 		}
 		else
 		{
@@ -260,7 +260,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
-			SetBtcAmount(0);
+			SetBtcAmount(null);
 		}
 		else
 		{
@@ -288,11 +288,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 		var text = LeftEntryBox?.Text ?? "";
 		if (_isTextInputFocused)
 		{
-			text = insertValue ? AmountBtc.ToString(CultureInfo.InvariantCulture) : RemoveFormat(text);
+			text = insertValue ? AmountBtc?.ToString(CultureInfo.InvariantCulture) : RemoveFormat(text);
 		}
 		else
 		{
-			text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+			text = AmountBtc > 0 ? AmountBtc?.FormattedBtcFixedFractional() : string.Empty;
 		}
 
 		SetCurrentValue(TextProperty, text);
@@ -313,17 +313,17 @@ public class DualCurrencyEntryBox : TemplatedControl
 		var text = RightEntryBox?.Text ?? "";
 		if (_isConversationTextFocused)
 		{
-			text = insertValue ? RemoveFormat(conversion.FormattedFiat()) : RemoveFormat(text);
+			text = insertValue ? RemoveFormat(conversion?.FormattedFiat() ?? "") : RemoveFormat(text);
 		}
 		else
 		{
-			text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
+			text = AmountBtc > 0 ? conversion?.FormattedFiat() ?? string.Empty : string.Empty;
 		}
 
 		SetCurrentValue(ConversionTextProperty, text);
 	}
 
-	private void SetBtcAmount(decimal amount)
+	private void SetBtcAmount(decimal? amount)
 	{
 		_skipProcessing = true;
 		SetCurrentValue(AmountBtcProperty, amount);
@@ -335,7 +335,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		return fiatValue / ConversionRate;
 	}
 
-	private decimal BitcoinToFiat(decimal btcValue)
+	private decimal? BitcoinToFiat(decimal? btcValue)
 	{
 		return btcValue * ConversionRate;
 	}
@@ -371,6 +371,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
+				if (LeftEntryBox.ContextFlyout is null || LeftEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
 				_isTextInputFocused = x;
 				UpdateDisplay();
 			})
@@ -380,6 +385,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 			.GetObservable(IsKeyboardFocusWithinProperty)
 			.Subscribe(x =>
 			{
+				if (RightEntryBox.ContextFlyout is null || RightEntryBox.ContextFlyout.IsOpen)
+				{
+					return;
+				}
+
 				_isConversationTextFocused = x;
 				UpdateDisplay();
 			})

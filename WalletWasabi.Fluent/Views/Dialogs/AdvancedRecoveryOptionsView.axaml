@@ -2,9 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AdvancedRecoveryOptionsView"
              x:DataType="dialogs:AdvancedRecoveryOptionsViewModel"
@@ -15,7 +12,7 @@
       <Setter Property="MinHeight" Value="25" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -27,10 +24,10 @@
                DockPanel.Dock="Top"
                Width="350"
                Classes="hasCheckMark">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
+        <Interaction.Behaviors>
+          <FocusOnAttachedBehavior />
+        </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

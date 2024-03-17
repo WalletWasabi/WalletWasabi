@@ -27,7 +27,7 @@ public partial class WalletCoinsModel : IDisposable
 		_wallet = wallet;
 		_walletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
-		var anonScoreTargetChanged = walletModel.WhenAnyValue(x => x.Settings.AnonScoreTarget).Skip(1).ToSignal();
+		var anonScoreTargetChanged = this.WhenAnyValue(x => x._walletModel.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
 
 		var signals =
@@ -44,7 +44,8 @@ public partial class WalletCoinsModel : IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		signals.Connect();
+		signals.Connect()
+			.DisposeWith(_disposables);
 	}
 
 	public IObservableCache<ICoinModel, int> List { get; }

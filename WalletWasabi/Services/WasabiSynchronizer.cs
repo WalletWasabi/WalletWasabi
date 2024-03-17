@@ -43,7 +43,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	#region EventsPropertiesMembers
 
-	public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
+	public event EventHandler<bool>? SynchronizeRequestFinished;
 
 	public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
@@ -116,47 +116,40 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				// NOT GenSocksServErr
 				BackendStatus = BackendStatus.Connected;
 				TorStatus = TorStatus.Running;
-				DoNotGenSocksServFail();
+				OnSynchronizeRequestFinished();
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
 			{
 				TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
 				BackendStatus = BackendStatus.NotConnected;
-				HandleIfGenSocksServFail(innerEx);
+				OnSynchronizeRequestFinished();
 				throw;
 			}
 			catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
 			{
 				TorStatus = TorStatus.Running;
 				BackendStatus = BackendStatus.NotConnected;
-				try
-				{
-					// Backend API version might be updated meanwhile. Trying to update the versions.
-					var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 
-					// If the backend is compatible and the Api version updated then we just used the wrong API.
-					if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-					{
-						// Next request will be fine, do not throw exception.
-						TriggerRound();
-						return;
-					}
-					else
-					{
-						throw;
-					}
-				}
-				catch (Exception x)
+				// Backend API version might be updated meanwhile. Trying to update the versions.
+				var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+
+				// If the backend is compatible and the Api version updated then we just used the wrong API.
+				if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 				{
-					HandleIfGenSocksServFail(x);
+					// Next request will be fine, do not throw exception.
+					TriggerRound();
+					return;
+				}
+				else
+				{
 					throw;
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				TorStatus = TorStatus.Running;
 				BackendStatus = BackendStatus.NotConnected;
-				HandleIfGenSocksServFail(ex);
+				OnSynchronizeRequestFinished();
 				throw;
 			}
 
@@ -189,45 +182,15 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		}
 	}
 
-	#region Methods
-
-	private void HandleIfGenSocksServFail(Exception ex)
+	private void OnSynchronizeRequestFinished()
 	{
-		bool isFail = false;
+		var isBackendConnected = BackendStatus is BackendStatus.Connected;
 
-		if (ex is HttpRequestException httpRequestException && httpRequestException.InnerException is not null)
-		{
-			ex = httpRequestException.InnerException;
-		}
+		// One time trigger for the UI about the first request.
+		InitialRequestTcs.TrySetResult(isBackendConnected);
 
-		if (ex is TorConnectCommandFailedException torEx)
-		{
-			isFail = torEx.RepField == RepField.GeneralSocksServerFailure || torEx.RepField == RepField.OnionServiceIntroFailed;
-		}
-
-		if (isFail)
-		{
-			DoGenSocksServFail();
-		}
-		else
-		{
-			DoNotGenSocksServFail();
-		}
+		SynchronizeRequestFinished?.Invoke(this, isBackendConnected);
 	}
-
-	private void DoGenSocksServFail()
-	{
-		InitialRequestTcs.TrySetResult(false);
-		ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
-	}
-
-	private void DoNotGenSocksServFail()
-	{
-		InitialRequestTcs.TrySetResult(true);
-		ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
-	}
-
-	#endregion Methods
 
 	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{

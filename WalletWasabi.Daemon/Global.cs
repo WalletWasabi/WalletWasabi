@@ -126,7 +126,8 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), BitcoinStore, wasabiSynchronizer, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, config.ServiceConfiguration);
+		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService);
+		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
@@ -211,12 +212,6 @@ public class Global
 				try
 				{
 					await bitcoinStoreInitTask.ConfigureAwait(false);
-
-					// ToDo: Temporary to fix https://github.com/zkSNACKs/WalletWasabi/pull/12137#issuecomment-1879798750
-					if (AllTransactionStore.MempoolStore.NeedResync || AllTransactionStore.ConfirmedStore.NeedResync)
-					{
-						WalletManager.ResyncToBefore12137();
-					}
 
 					// Make sure that TurboSyncHeight is not higher than BestHeight
 					WalletManager.EnsureTurboSyncHeightConsistency();

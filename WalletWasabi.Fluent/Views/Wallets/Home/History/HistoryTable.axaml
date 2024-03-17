@@ -2,11 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
@@ -123,21 +120,21 @@
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0"
                   IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
-      <i:Interaction.Behaviors>
-        <behaviors:ScrollToSelectedItemBehavior />
-        <behaviors:HistoryItemTypeClassBehavior />
-      </i:Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <ScrollToSelectedItemBehavior />
+        <HistoryItemTypeClassBehavior />
+      </Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PrivacyElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:PendingHistoryItemSeparatorBehavior />
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
+          <Setter Property="(Interaction.Behaviors)">
+            <BehaviorCollectionTemplate>
+              <BehaviorCollection>
+                <PendingHistoryItemSeparatorBehavior />
+              </BehaviorCollection>
+            </BehaviorCollectionTemplate>
           </Setter>
         </Style>
         <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
@@ -158,7 +155,7 @@
           <Setter Property="VerticalAlignment" Value="Center" />
           <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
-        <Style Selector="TextBlock, c|PrivacyContentControl">
+        <Style Selector="TextBlock, PrivacyContentControl">
           <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="TreeDataGridRow Button.historyDetails">
@@ -198,7 +195,7 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+    <HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                RowHeight="{StaticResource HistoryTableRowHeight}"
                                IsVisible="{Binding IsTransactionHistoryEmpty}"
                                Opacity="0.1" />

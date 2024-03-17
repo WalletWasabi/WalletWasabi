@@ -9,7 +9,6 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -19,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -44,7 +44,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Wallet = wallet;
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
         BuyViewModel = new BuyViewModel(UiContext, this);
 
@@ -93,11 +92,22 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 0;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			});
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!WalletModel.IsWatchOnlyWallet));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 1;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			},
+			Observable.Return(!WalletModel.IsWatchOnlyWallet));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
 
@@ -133,8 +143,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
-
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -212,8 +220,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return true;
 #endif
 
-		var network = UiContext.ApplicationSettings.Network;
-		if (network == Network.Main && (hasBalance || hasNonEmptyOrder))
+		if (hasBalance || hasNonEmptyOrder)
 		{
 			return true;
 		}

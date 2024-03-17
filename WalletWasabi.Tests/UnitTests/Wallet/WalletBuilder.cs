@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -66,7 +67,8 @@ public class WalletBuilder : IAsyncDisposable
 
 		HybridFeeProvider feeProvider = new(Synchronizer, null);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, BlockDownloadService);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService);
+		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
 	public async ValueTask DisposeAsync()

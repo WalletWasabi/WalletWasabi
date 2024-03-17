@@ -114,6 +114,7 @@ public static class ObservableExtensions
 	{
 		return signal.Select(_ => source())
 					 .EditDiff(keySelector)
+					 .DisposeMany()
 					 .AsObservableCache();
 	}
 }

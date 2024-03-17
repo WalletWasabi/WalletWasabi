@@ -40,7 +40,8 @@ public class Wallet : BackgroundService, IWallet
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
-		BlockDownloadService blockDownloadService)
+		TransactionProcessor transactionProcessor,
+		WalletFilterProcessor walletFilterProcessor)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -49,7 +50,6 @@ public class Wallet : BackgroundService, IWallet
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
-		BlockDownloadService = blockDownloadService;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -60,9 +60,9 @@ public class Wallet : BackgroundService, IWallet
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
-		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, KeyManager, ServiceConfiguration.DustThreshold);
+		TransactionProcessor = transactionProcessor;
 		Coins = TransactionProcessor.Coins;
-		WalletFilterProcessor = new WalletFilterProcessor(KeyManager, BitcoinStore, TransactionProcessor, BlockDownloadService);
+		WalletFilterProcessor = walletFilterProcessor;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 		WalletId = new WalletId(Guid.NewGuid());
@@ -109,7 +109,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
-	public BlockDownloadService BlockDownloadService { get; }
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -235,7 +234,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		var currentPrivacyScore = Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, x.IsPrivate(AnonScoreTarget) ? AnonScoreTarget - 1 : AnonScoreTarget - 2));
 		var maxPrivacyScore = Coins.TotalAmount().Satoshi * (AnonScoreTarget - 1);
-		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
+		int pcPrivate = maxPrivacyScore == 0M ? 0 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
 
 		return pcPrivate;
 	}
@@ -273,6 +272,7 @@ public class Wallet : BackgroundService, IWallet
 
 		try
 		{
+			KeyManager.AssertNetworkOrClearBlockState(Network);
 			EnsureHeightsAreAtLeastSegWitActivation();
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -454,8 +454,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
-		KeyManager.AssertNetworkOrClearBlockState(Network);
-
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
@@ -547,13 +545,6 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		State = WalletState.WaitingForInit;
-	}
-
-	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, BlockDownloadService blockDownloadService)
-	{
-		var wallet = new Wallet(dataDir, network, keyManager, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
-		wallet.Initialize();
-		return wallet;
 	}
 
 	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
