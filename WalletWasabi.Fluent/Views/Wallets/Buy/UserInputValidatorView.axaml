@@ -214,9 +214,13 @@
       <!-- TextInputStep -->
       <DataTemplate DataType="vm:TextInputStep">
         <ChatTextBox Text="{Binding Value}"
+                     x:Name="TextBox"
                  Watermark="{Binding Watermark}">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
+            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+              <FocusControlActionCustom TargetControl="TextBox" />
+            </DataTriggerBehavior>
           </Interaction.Behaviors>
           <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
