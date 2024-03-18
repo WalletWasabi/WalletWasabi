@@ -17,4 +17,4 @@ Run vscode and click on "Watch":
 
 ## Important
 
-Coverlet cannot instrument the binaries correctly because of the `PathMap` entries in the project files (*.csproj) and for this reason the easiest way to to fix it is by removing the entries.
+Coverlet cannot instrument the binaries correctly because of the `PathMap` entries in the project files (*.csproj) and for this reason the easiest way to fix it is by removing the entries.
