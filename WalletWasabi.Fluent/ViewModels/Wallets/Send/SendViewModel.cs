@@ -48,7 +48,6 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
-	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
@@ -292,7 +291,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			result = true;
 
-			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
+			var parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
 
 			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
@@ -310,19 +309,18 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				IsFixedAmount = false;
 			}
+
+			SuggestionLabels = new SuggestionLabelsViewModel(
+				WalletVm.WalletModel,
+				Intent.Send,
+				3,
+				parsedLabel.AsEnumerable());
 		}
 		else
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
-			_parsedLabel = LabelsArray.Empty;
 		}
-
-		SuggestionLabels = new SuggestionLabelsViewModel(
-			WalletVm.WalletModel,
-			Intent.Send,
-			3,
-			_parsedLabel.AsEnumerable());
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
