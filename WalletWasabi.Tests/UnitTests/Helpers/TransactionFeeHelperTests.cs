@@ -21,7 +21,7 @@ public class TransactionFeeHelperTests
 		Assert.Throws<InvalidOperationException>(() => TransactionFeeHelper.CalculateConfirmationTime(blockTarget));
 	}
 
-		[Fact]
+	[Fact]
 	public void ShouldReturnErrorWhenReceiveZeroBlockTarget()
 	{
 		var blockTarget = 0.0;

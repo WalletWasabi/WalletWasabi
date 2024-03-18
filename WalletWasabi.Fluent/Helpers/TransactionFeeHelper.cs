@@ -90,7 +90,8 @@ public static class TransactionFeeHelper
 
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
 	{
-		if (targetBlock <= 0.0) { 
+		if (targetBlock <= 0.0)
+		{
 			throw new InvalidOperationException("Cannot calculate a confirmation time for zero or negative target block");
 		}
 
