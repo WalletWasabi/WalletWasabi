@@ -45,9 +45,9 @@ if ($IsWindows) {
   $sevenZip = '7zz'
 }
 
-$windowsInstaller = "torbrowser-install-win64-${version}_ALL.exe"
-$macDmg = "TorBrowser-${version}-macos_ALL.dmg"
-$linuxTarball = "tor-browser-linux64-${version}_ALL.tar"
+$windowsInstaller = "tor-browser-windows-x86_64-portable-${version}.exe"
+$macDmg = "tor-browser-macos-${version}.dmg"
+$linuxTarball = "tor-browser-linux-x86_64-${version}.tar"
 $linuxCompressedTarball = "$linuxTarball.xz"
 
 $packages = @(
