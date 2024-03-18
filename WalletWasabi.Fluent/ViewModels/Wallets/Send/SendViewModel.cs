@@ -58,6 +58,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 
 	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -74,7 +75,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		Balance = walletVm.WalletModel.Balances;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(walletVm.WalletModel, Intent.Send, 3)
+		_suggestionLabels = new SuggestionLabelsViewModel(WalletVm.WalletModel, Intent.Send, 3)
 		{
 			Labels = { }
 		};
@@ -160,8 +161,6 @@ public partial class SendViewModel : RoutableViewModel
 	public IObservable<Amount> Balance { get; }
 
 	public WalletViewModel WalletVm { get; }
-
-	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
