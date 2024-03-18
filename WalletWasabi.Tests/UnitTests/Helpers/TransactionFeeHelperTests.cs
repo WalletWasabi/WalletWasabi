@@ -9,7 +9,7 @@ public class TransactionFeeHelperTests
 	[Fact]
 	public void GivenValidBlockTargetShouldReturnConfirmationTime()
 	{
-		var blockTarget = 1.0;
+		var blockTarget = 1;
 		var result = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
 		Assert.Equal(10, result.Minutes);
 	}
@@ -17,14 +17,14 @@ public class TransactionFeeHelperTests
 	[Fact]
 	public void GivenNegativeBlockTargetShouldReturnError()
 	{
-		var blockTarget = -1.0;
+		var blockTarget = -1;
 		Assert.Throws<InvalidOperationException>(() => TransactionFeeHelper.CalculateConfirmationTime(blockTarget));
 	}
 
 	[Fact]
 	public void GivenZeroBlockTargetShouldReturnError()
 	{
-		var blockTarget = 0.0;
+		var blockTarget = 0;
 		Assert.Throws<InvalidOperationException>(() => TransactionFeeHelper.CalculateConfirmationTime(blockTarget));
 	}
 }
