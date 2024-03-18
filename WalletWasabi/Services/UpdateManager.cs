@@ -91,6 +91,10 @@ public class UpdateManager : IDisposable
 					Cleanup();
 					break;
 				}
+				catch (InvalidDataException ex)
+				{
+					Logger.LogWarning(ex);
+				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Getting new update failed with error.", ex);
