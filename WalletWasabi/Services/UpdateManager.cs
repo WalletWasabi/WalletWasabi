@@ -194,7 +194,7 @@ public class UpdateManager : IDisposable
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
-		// Make sure there are no alphabetic characters (besides '.') in the version string.
+		// Make sure there are no non-numeric characters (besides '.') in the version string.
 		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
 
 		Version githubVersion = new(softwareVersion);
