@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -10,7 +9,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Validation;
