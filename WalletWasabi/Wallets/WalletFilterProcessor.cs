@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets.FilterProcessor;
 
@@ -185,6 +186,7 @@ public class WalletFilterProcessor : BackgroundService
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
+			TerminateService.Instance?.SignalGracefulCrash(ex);
 			throw;
 		}
 		finally

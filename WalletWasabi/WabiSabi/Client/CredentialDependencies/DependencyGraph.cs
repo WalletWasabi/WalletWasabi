@@ -241,7 +241,7 @@ public record DependencyGraph
 				// leave an edge unused for the remaining amount.
 				// The corresponding condition can't actually happen for fan-in
 				// because the negative balance of the last loop iteration can't
-				// exceed the the remaining positive elements, their total sum
+				// exceed the remaining positive elements, their total sum
 				// must be positive as checked in the constructor.
 				if (maxCount > 1)
 				{

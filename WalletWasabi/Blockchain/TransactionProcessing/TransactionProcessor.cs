@@ -146,9 +146,9 @@ public class TransactionProcessor
 			if (tx.Height == Height.Mempool)
 			{
 				// if the received transaction is spending at least one input already
-				// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+				// spent by a previous unconfirmed transaction then it is not considered a double
 				// spending transaction but a replacement transaction.
-				var isReplacementTx = doubleSpentSpenders.Any(x => x.Transaction.IsRBF);
+				var isReplacementTx = doubleSpentSpenders.Any();
 				if (isReplacementTx)
 				{
 					// Undo the replaced transaction by removing the coins it created (if other coin
@@ -159,10 +159,6 @@ public class TransactionProcessor
 
 					result.ReplacedCoins.AddRange(replaced);
 					result.RestoredCoins.AddRange(restored);
-				}
-				else if (doubleSpentSpenders.Count > 0)
-				{
-					return result;
 				}
 			}
 			else // new confirmation always enjoys priority
