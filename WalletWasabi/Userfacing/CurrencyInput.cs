@@ -22,6 +22,9 @@ public static partial class CurrencyInput
 	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
 	public static partial Regex RegexDecimalCharsOnly();
 
+	[GeneratedRegex(@"[\d.,٫٬⎖·\']")]
+	public static partial Regex RegexValidCharsOnly();
+
 	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
 	{
 		var corrected = original;

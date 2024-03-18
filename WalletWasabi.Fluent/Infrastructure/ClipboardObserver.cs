@@ -72,10 +72,15 @@ internal class ClipboardObserver
 	public static string? ParseToMoney(string? text, Money balance)
 	{
 		// Ignore paste if there are invalid characters
-		if (text is null || !CurrencyInput.RegexDecimalCharsOnly().IsMatch(text))
+		if (text is null || !CurrencyInput.RegexValidCharsOnly().IsMatch(text))
 		{
 			return null;
 		}
+
+		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
+		{
+			text = corrected;
+		}	
 
 		var money = ParseToMoney(text).Ensure(m => m <= balance);
 		return money?.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);
