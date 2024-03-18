@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests.Helpers;
 public class TransactionFeeHelperTests
 {
 	[Fact]
-	public void ShouldReturnConfirmationTimeWhenReceiveAValidBlockTarget()
+	public void GivenValidBlockTargetShouldReturnConfirmationTime()
 	{
 		var blockTarget = 1.0;
 		var result = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
@@ -15,14 +15,14 @@ public class TransactionFeeHelperTests
 	}
 
 	[Fact]
-	public void ShouldReturnErrorWhenReceiveANegativeBlockTarget()
+	public void GivenNegativeBlockTargetShouldReturnError()
 	{
 		var blockTarget = -1.0;
 		Assert.Throws<InvalidOperationException>(() => TransactionFeeHelper.CalculateConfirmationTime(blockTarget));
 	}
 
 	[Fact]
-	public void ShouldReturnErrorWhenReceiveZeroBlockTarget()
+	public void GivenZeroBlockTargetShouldReturnError()
 	{
 		var blockTarget = 0.0;
 		Assert.Throws<InvalidOperationException>(() => TransactionFeeHelper.CalculateConfirmationTime(blockTarget));
