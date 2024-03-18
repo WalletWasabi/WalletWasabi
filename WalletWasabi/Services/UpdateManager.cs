@@ -196,7 +196,7 @@ public class UpdateManager : IDisposable
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
 
-		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
+		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException($"Endpoint gave back wrong json data or it's changed.\n{jsonResponse}");
 
 		// "tag_name" will have a 'v' at the beginning, needs to be removed.
 		Version githubVersion = new(softwareVersion[1..]);
