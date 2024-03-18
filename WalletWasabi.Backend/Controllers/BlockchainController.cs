@@ -498,11 +498,11 @@ public class BlockchainController : ControllerBase
 
 	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
 	{
-		var currentTx = (await GetTransactionsFromCacheOrRpcAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
+		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
 
-		var txHashesToFetchFromRPC = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToList();
+		var txHashesToFetchFromRPC = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToArray();
 
-		var parentTxs = await GetTransactionsFromCacheOrRpcAsync(txHashesToFetchFromRPC, cancellationToken).ConfigureAwait(false);
+		var parentTxs = await FetchTransactionsAsync(txHashesToFetchFromRPC, cancellationToken).ConfigureAwait(false);
 
 		// Get unconfirmed parents and children
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
@@ -534,19 +534,5 @@ public class BlockchainController : ControllerBase
 		}
 
 		return currentTx.GetFee(inputs.ToArray());
-	}
-
-	private async Task<IEnumerable<Transaction>> GetTransactionsFromCacheOrRpcAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken)
-	{
-		// TODO: Replace the body of this method with a code that is using the tx cache.
-		if (!txids.Any())
-		{
-			return [];
-		}
-
-		var parentTxs = await RpcClient.GetRawTransactionsAsync(txids, cancellationToken);
-		return parentTxs.Count() != txids.Count()
-			? throw new InvalidOperationException("Some parent transactions couldn't be fetched from RPC")
-			: parentTxs;
 	}
 }
