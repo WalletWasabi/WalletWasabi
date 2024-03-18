@@ -12,6 +12,7 @@
              x:Name="UserControl">
   <UserControl.Resources>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+    <x:Double x:Key="SearchResultsMaxHeight">512</x:Double>
   </UserControl.Resources>
 
   <Design.DataContext>
@@ -127,7 +128,7 @@
     <Style Selector="ContentControl#DropDownRoot">
       <Setter Property="Width" Value="{DynamicResource FlyoutThemeMaxWidth}" />
       <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
-      <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
+      <Setter Property="MaxHeight" Value="{StaticResource SearchResultsMaxHeight}" />
     </Style>
 
   </UserControl.Styles>
