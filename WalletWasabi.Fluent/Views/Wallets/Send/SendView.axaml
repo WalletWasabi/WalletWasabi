@@ -154,18 +154,17 @@
         <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
                Margin="0,10,0,10"/>
         <TagsBox x:Name="LabelTagBox"
-                 DataContext="{Binding SuggestionLabels}"
                  VerticalAlignment="Top"
                  Watermark="{StaticResource LabelsWatermarkText}"
                  TagSeparator=","
                  SuggestionsAreCaseSensitive="True"
                  RestrictInputToSuggestions="False"
-                 Items="{Binding Labels}"
-                 TopItems="{Binding TopSuggestions}"
-                 Suggestions="{Binding Suggestions}"
+                 Items="{Binding SuggestionLabels.Labels}"
+                 TopItems="{Binding SuggestionLabels.TopSuggestions}"
+                 Suggestions="{Binding SuggestionLabels.Suggestions}"
                  MaxTextLength="{StaticResource MaxLabelLength}"
-                 IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
-                 ForceAdd="{Binding ForceAdd, Mode=TwoWay}">
+                 IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
+                 ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}">
         </TagsBox>
       </DockPanel>
     </DockPanel>
