@@ -125,7 +125,11 @@ public static class HwiParser
 		try
 		{
 			var typeString = token.Value<string>();
-			if (Enum.TryParse(typeString, ignoreCase: true, out HardwareWalletModels t))
+
+			// Preprocess the input string: replace spaces with underscores example: "trezor_safe 3" -> "trezor_safe_3".
+			var normalizedTypeString = typeString?.Replace(" ", "_");
+
+			if (Enum.TryParse(normalizedTypeString, ignoreCase: true, out HardwareWalletModels t))
 			{
 				vendor = t;
 				return true;
