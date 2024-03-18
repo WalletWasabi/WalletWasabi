@@ -90,6 +90,10 @@ public static class TransactionFeeHelper
 
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
 	{
+		if (targetBlock <= 0.0) { 
+			throw new InvalidOperationException("Cannot calculate a confirmation time for zero or negative target block");
+		}
+
 		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 		var time = TimeSpan.FromMinutes(timeInMinutes);
 
