@@ -2,11 +2,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Cache;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -32,6 +36,7 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+	private static MemoryCacheEntryOptions TransactionCacheOptions { get; } = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
@@ -42,8 +47,6 @@ public class BlockchainController : ControllerBase
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 
-	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
-	public static object TransactionHexCacheLock { get; } = new();
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
@@ -142,23 +145,20 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
 	{
-		var maxTxToRequest = 10;
-		if (transactionIds.Count() > maxTxToRequest)
+		const int MaxTxToRequest = 10;
+		int requestCount = transactionIds.Count();
+
+		if (requestCount > MaxTxToRequest)
 		{
-			return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
+			return BadRequest($"Maximum {MaxTxToRequest} transactions can be requested.");
 		}
 
-		var parsedIds = new List<uint256>();
+		uint256[] parsedTxIds;
+
+		// Make sure TXIDs are not malformed.
 		try
 		{
-			// Remove duplicates, do not use Distinct(), order is not guaranteed.
-			foreach (var txid in transactionIds.Select(x => new uint256(x)))
-			{
-				if (!parsedIds.Contains(txid))
-				{
-					parsedIds.Add(txid);
-				}
-			}
+			parsedTxIds = transactionIds.Select(x => new uint256(x)).ToArray();
 		}
 		catch
 		{
@@ -167,48 +167,83 @@ public class BlockchainController : ControllerBase
 
 		try
 		{
-			var hexes = new Dictionary<uint256, string>();
-			List<uint256> missingTxs = new();
-			lock (TransactionHexCacheLock)
-			{
-				foreach (var txid in parsedIds)
-				{
-					if (TransactionHexCache.TryGetValue(txid, out string? hex))
-					{
-						hexes.Add(txid, hex);
-					}
-					else
-					{
-						missingTxs.Add(txid);
-					}
-				}
-			}
+			Transaction[] txs = await FetchTransactionsAsync(parsedTxIds, cancellationToken).ConfigureAwait(false);
+			string[] hexes = txs.Select(x => x.ToHex()).ToArray();
 
-			if (missingTxs.Count != 0)
-			{
-				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
-				{
-					string hex = tx.ToHex();
-					hexes.Add(tx.GetHash(), hex);
-
-					lock (TransactionHexCacheLock)
-					{
-						if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
-						{
-							TransactionHexCache.Remove(TransactionHexCache.Keys.First());
-						}
-					}
-				}
-			}
-
-			// Order hexes according to the order of the query.
-			var orderedResult = parsedIds.Where(x => hexes.ContainsKey(x)).Select(x => hexes[x]);
-			return Ok(orderedResult);
+			return Ok(hexes);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogDebug(ex);
 			return BadRequest(ex.Message);
+		}
+	}
+
+	/// <summary>
+	/// Fetches transactions from cache if possible and missing transactions are fetched using RPC.
+	/// </summary>
+	private async Task<Transaction[]> FetchTransactionsAsync(uint256[] txIds, CancellationToken cancellationToken)
+	{
+		int requestCount = txIds.Length;
+		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
+		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
+
+		try
+		{
+			// Get task completion sources for transactions. They are either new (no one else is getting that transaction right now) or existing
+			// and then some other caller needs the same transaction so we can use the existing task completion source.
+			for (int i = 0; i < requestCount; i++)
+			{
+				uint256 txId = txIds[i];
+				string cacheKey = $"{nameof(GetTransactionsAsync)}#{txId}";
+
+				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
+				{
+					txIdsRetrieve.Add(txId, tcs);
+				}
+
+				txsCompletionSources[i] = tcs;
+			}
+
+			if (txIdsRetrieve.Count > 0)
+			{
+				// Ask to get missing transactions over RPC.
+				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+				Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
+
+				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
+				{
+					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+				}
+			}
+
+			Transaction[] result = new Transaction[requestCount];
+
+			// Add missing transactions to the result array.
+			for (int i = 0; i < requestCount; i++)
+			{
+				Transaction tx = await txsCompletionSources[i].Task.ConfigureAwait(false);
+				result[i] = tx;
+			}
+
+			return result;
+		}
+		finally
+		{
+			if (txIdsRetrieve.Count > 0)
+			{
+				// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
+				Exception ex = new InvalidOperationException("Failed to get the transaction.");
+				foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
+				{
+					if (!tcs.Task.IsCompleted)
+					{
+						// Prefer new cache requests to try again rather than getting the exception. The window is small though.
+						Cache.Remove(txid);
+						tcs.SetException(ex);
+					}
+				}
+			}
 		}
 	}
 
