@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -294,7 +295,6 @@ public partial class SendViewModel : RoutableViewModel
 			result = true;
 
 			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
-			// TODO: Set SuggestionLabels.Labels
 
 			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
@@ -318,8 +318,13 @@ public partial class SendViewModel : RoutableViewModel
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
 			_parsedLabel = LabelsArray.Empty;
-			// TODO: Set SuggestionLabels.Labels
 		}
+
+		SuggestionLabels = new SuggestionLabelsViewModel(
+			WalletVm.WalletModel,
+			Intent.Send,
+			3,
+			_parsedLabel.AsEnumerable());
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
