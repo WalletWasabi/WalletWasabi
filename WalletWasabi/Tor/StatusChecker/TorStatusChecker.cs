@@ -41,6 +41,10 @@ public class TorStatusChecker : PeriodicRunner
 			// Fire event.
 			StatusEvent?.Invoke(this, issues.ToArray());
 		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogDebug("The service is stopping.");
+		}
 		catch (Exception ex)
 		{
 			Logger.LogDebug("Failed to get/parse Tor status page.", ex);
