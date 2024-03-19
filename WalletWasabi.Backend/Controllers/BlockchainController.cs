@@ -438,7 +438,8 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
-			if (!Mempool.GetMempoolHashes().Contains(txId))
+			var mempoolHashes = Mempool.GetMempoolHashes();
+			if (!mempoolHashes.Contains(txId))
 			{
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
@@ -447,7 +448,7 @@ public class BlockchainController : ControllerBase
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 			var linkedCancellationToken = linkedCts.Token;
 
-			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, linkedCancellationToken);
+			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
 			return Ok(unconfirmedTxsChainById.Values.ToList());
 		}
 		catch (OperationCanceledException)
@@ -461,11 +462,10 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, CancellationToken cancellationToken)
+	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
 	{
 		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
 		var toFetchFeeList = new List<uint256> { requestedTxId };
-		var mempoolHashes = Mempool.GetMempoolHashes();
 
 		while (toFetchFeeList.Count > 0)
 		{
