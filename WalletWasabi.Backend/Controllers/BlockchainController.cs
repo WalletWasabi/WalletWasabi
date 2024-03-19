@@ -500,9 +500,9 @@ public class BlockchainController : ControllerBase
 	{
 		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
 
-		var txHashesToFetchFromRPC = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToArray();
+		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToArray();
 
-		var parentTxs = await FetchTransactionsAsync(txHashesToFetchFromRPC, cancellationToken).ConfigureAwait(false);
+		var parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
 
 		// Get unconfirmed parents and children
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
