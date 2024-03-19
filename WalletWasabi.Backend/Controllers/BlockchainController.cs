@@ -443,7 +443,7 @@ public class BlockchainController : ControllerBase
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(7000));
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 			var linkedCancellationToken = linkedCts.Token;
 
@@ -485,7 +485,7 @@ public class BlockchainController : ControllerBase
 
 			var discoveredTxsToFetchFee = currentTxChainItem.Parents
 				.Union(currentTxChainItem.Children)
-				.Where(x => !unconfirmedTxsChainById.ContainsKey(x));
+				.Where(x => !unconfirmedTxsChainById.ContainsKey(x) && !toFetchFeeList.Contains(x));
 
 			toFetchFeeList.AddRange(discoveredTxsToFetchFee);
 
