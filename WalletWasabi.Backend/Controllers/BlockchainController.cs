@@ -509,7 +509,7 @@ public class BlockchainController : ControllerBase
 		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
 
 		return new UnconfirmedTransactionChainItem(
-			TxId: currentTx.GetHash(),
+			TxId: currentTxId,
 			Size: currentTx.GetVirtualSize(),
 			Fee: ComputeFee(currentTx, parentTxs, cancellationToken),
 			Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
