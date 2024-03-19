@@ -299,7 +299,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Starting;
 
-			using (BenchmarkLogger.Measure())
+			using (BenchmarkLogger.Measure(operationName: $"Starting of wallet '{WalletName}'"))
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
