@@ -162,23 +162,33 @@ public class WabiSabiCoordinator : BackgroundService
 		IEnumerable<OutPoint> spendingOutPoints,
 		CancellationToken cancellationToken)
 	{
-		var batch = RpcClient.PrepareBatch();
-		var getTxOutRequests = spendingOutPoints
-			.Select(x => RpcClient.GetTxOutAsync(x.Hash, (int) x.N, true, cancellationToken))
-			.ToList();
-		await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-		var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);
-		if (txOutResponses.Any(x => x is null))
+		try
 		{
+			var batch = RpcClient.PrepareBatch();
+			var getTxOutRequests = spendingOutPoints
+				.Select(x => RpcClient.GetTxOutAsync(x.Hash, (int) x.N, includeMempool: true, cancellationToken))
+				.ToList();
+			await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+			var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);
+
+			// If not all txout are found then we cannot calculate the fee rate
+			if (txOutResponses.Any(x => x is null))
+			{
+				return (false, Array.Empty<Coin>());
+			}
+
+			var txOuts = txOutResponses.Select(x => x.TxOut);
+			var spendingCoins = txOuts
+				.Zip(spendingOutPoints, (txOut, outPoint) => (txOut, outPoint))
+				.Select(x => new Coin(x.outPoint, x.txOut))
+				.ToArray();
+			return (true, spendingCoins);
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
 			return (false, Array.Empty<Coin>());
 		}
-
-		var txOuts = txOutResponses.Select(x => x.TxOut);
-		var spendingCoins = txOuts
-			.Zip(spendingOutPoints, (txOut, outPoint) => (txOut, outPoint))
-			.Select(x => new Coin(x.outPoint, x.txOut))
-			.ToArray();
-		return (true, spendingCoins);
 	}
 
 	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>

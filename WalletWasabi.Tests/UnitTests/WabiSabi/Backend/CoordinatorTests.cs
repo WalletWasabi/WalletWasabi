@@ -110,7 +110,7 @@ public class CoordinatorTests
 			Assert.DoesNotContain(round.Id, coordinator.Arena.DisruptedRounds);
 
 			// .. spend it also in another transaction (tx2).
-			tx2.Outputs[0].Value = Money.Coins(0.1m); // spends almost the full bitcoin.
+			tx2.Outputs[0].Value = Money.Coins(0.1m);
 			mockRpcClient.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { TxOut = alice.Coin.TxOut };
 			coordinator.BanDoubleSpenders(this, tx2);
 			isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
