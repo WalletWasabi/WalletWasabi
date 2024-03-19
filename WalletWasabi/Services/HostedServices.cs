@@ -82,26 +82,18 @@ public class HostedServices : IDisposable
 	/// <remarks>This method does not throw exceptions.</remarks>
 	public async Task StopAllAsync(CancellationToken token = default)
 	{
-		var tasks = CloneServices().Select(async x =>
+		var tasks = CloneServices().Select(x => x.Service.StopAsync(token).ContinueWith(y =>
 		{
-			Logger.LogDebug($"Stopping service '{x.FriendlyName}'");
-			Task task = x.Service.StopAsync(token);
-
-			await task.ConfigureAwait(false);
-
-			return task.ContinueWith(y =>
-					{
-						if (y.Exception is null)
-						{
-							Logger.LogInfo($"Stopped {x.FriendlyName}.");
-						}
-						else
-						{
-							Logger.LogError($"Error stopping {x.FriendlyName}.");
-							Logger.LogError(y.Exception);
-						}
-					});
-		});
+			if (y.Exception is null)
+			{
+				Logger.LogInfo($"Stopped {x.FriendlyName}.");
+			}
+			else
+			{
+				Logger.LogError($"Error stopping {x.FriendlyName}.");
+				Logger.LogError(y.Exception);
+			}
+		}));
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}

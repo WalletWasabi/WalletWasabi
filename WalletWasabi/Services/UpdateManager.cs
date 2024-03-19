@@ -194,8 +194,10 @@ public class UpdateManager : IDisposable
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
-		// "tag_name" will have a 'v' at the beginning, needs to be removed.
-		Version githubVersion = new(softwareVersion[1..]);
+		// Make sure there are no non-numeric characters (besides '.') in the version string.
+		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
+
+		Version githubVersion = new(softwareVersion);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
 		{
