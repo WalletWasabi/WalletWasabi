@@ -9,7 +9,7 @@
 		<key>CFBundleExecutable</key>
 		<string>applet</string>
 		<key>CFBundleIconFile</key>
-		<string>applet</string>
+		<string>WasabiLogo.icns</string>
 		<key>CFBundleIdentifier</key>
 		<string>com.apple.ScriptEditor.id.startsilent</string>
 		<key>CFBundleInfoDictionaryVersion</key>
