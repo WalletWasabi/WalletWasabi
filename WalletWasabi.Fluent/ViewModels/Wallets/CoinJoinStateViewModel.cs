@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -149,7 +150,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 
 		_stateMachine.Start();
+
+		var coinjoinSettingsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().WalletCoinJoinSettings(wallet), Observable.Return(!wallet.IsWatchOnlyWallet));
+		CanNavigateToCoinjoinSettings = coinjoinSettingsCommand.CanExecute;
+		CoinjoinSettingsCommand = coinjoinSettingsCommand;
 	}
+
+	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
+
+	public ICommand CoinjoinSettingsCommand { get; }
 
 	private enum State
 	{
