@@ -123,38 +123,48 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public async void BanDoubleSpenders(object? sender, Transaction tx)
 	{
-		var txId = tx.GetHash();
-		if (IsWasabiCoinJoin(txId, tx))
+		try
 		{
-			return;
+			var txId = tx.GetHash();
+			if (IsWasabiCoinJoin(txId, tx))
+			{
+				return;
+			}
+
+			var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
+			var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
+
+			// No round was disrupted by the received transaction. Nothing to do here.
+			if (disruptedRounds.Length == 0)
+			{
+				return;
+			}
+
+			// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
+			foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
+			{
+				Warden.Prison.DoubleSpent(
+					new OutPoint(tx, indexedOutput.N),
+					indexedOutput.TxOut.Value,
+					disruptedRounds.Select(x => x.RoundId));
+			}
+
+			// Abort disrupted rounds (only those that pay less than the attacking transaction)
+			using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+			var (succeed, spentCoins) = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
+			var feeRate = succeed ? tx.GetFeeRate(spentCoins) : Constants.AbsurdlyHighFeeRate;
+			var roundsToAbort = disruptedRounds
+				.Where(round => round.MiningFeeRate < feeRate)
+				.Select(x => x.RoundId);
+
+			foreach (var roundId in roundsToAbort)
+			{
+				Arena.AbortRound(roundId);
+			}
 		}
-
-		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
-		var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
-
-		// No round was disrupted by the received transaction. Nothing to do here.
-		if (disruptedRounds.Length == 0)
+		catch (Exception e)
 		{
-			return;
-		}
-
-		// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
-		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
-		{
-			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds.Select(x => x.RoundId));
-		}
-
-		// Abort disrupted rounds (only those that pay less than the attacking transaction)
-		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-		var (succeed, spentCoins) = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
-		var feeRate = succeed ? tx.GetFeeRate(spentCoins) : Constants.AbsurdlyHighFeeRate;
-		var roundsToAbort = disruptedRounds
-			.Where(round => round.MiningFeeRate < feeRate)
-			.Select(x => x.RoundId);
-
-		foreach (var roundId in roundsToAbort)
-		{
-			Arena.AbortRound(roundId);
+			Logger.LogError(e);
 		}
 	}
 
