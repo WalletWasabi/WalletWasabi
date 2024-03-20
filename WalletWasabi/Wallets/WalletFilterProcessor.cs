@@ -268,12 +268,11 @@ public class WalletFilterProcessor : BackgroundService
 
 			using (await ReorgLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
-				Height newBestHeight = new(invalidFilter.Header.Height - 1);
-				KeyManager.SetMaxBestHeight(newBestHeight);
+				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 
-				await BlockDownloadService.RemoveBlocksAsync((uint)newBestHeight.Value).ConfigureAwait(false);
+				await BlockDownloadService.RemoveBlocksAsync(invalidFilter.Header.Height).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex)
