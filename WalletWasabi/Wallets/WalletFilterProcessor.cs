@@ -180,7 +180,7 @@ public class WalletFilterProcessor : BackgroundService
 				}
 			}
 		}
-		catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
+		catch (OperationCanceledException)
 		{
 			Logger.LogDebug("Filter processor's execution was stopped.");
 		}
@@ -295,11 +295,6 @@ public class WalletFilterProcessor : BackgroundService
 			return successFullNodeResult.Block;
 		}
 
-		if (fullNodeResult is BlockDownloadService.CanceledResult)
-		{
-			throw new OperationCanceledException();
-		}
-
 		while (true)
 		{
 			BlockDownloadService.IResult p2pNodeResult = await BlockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, priority, cancellationToken)
@@ -308,11 +303,6 @@ public class WalletFilterProcessor : BackgroundService
 			if (p2pNodeResult is BlockDownloadService.SuccessResult successP2pResult)
 			{
 				return successP2pResult.Block;
-			}
-
-			if (p2pNodeResult is BlockDownloadService.CanceledResult)
-			{
-				throw new OperationCanceledException();
 			}
 		}
 	}
