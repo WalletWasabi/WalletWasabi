@@ -152,7 +152,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 
 		_stateMachine.Start();
-
 		
 		CanNavigateToCoinjoinSettings = navigateToCoinjoinSettingsCommand.CanExecute;
 		NavigateToCoinjoinSettingsCommand = navigateToCoinjoinSettingsCommand;
