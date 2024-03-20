@@ -422,33 +422,17 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	public async Task<IActionResult> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
-		uint256 txId = new(transactionId);
-
-		var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-
-		return await Cache.GetCachedResponseAsync(
-			cacheKey,
-			action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
-			options: UnconfirmedTrasanctionChainCacheEntryOptions,
-			cancellationToken);
-	}
-
-	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
-	{
 		try
 		{
-			var mempoolHashes = Mempool.GetMempoolHashes();
-			if (!mempoolHashes.Contains(txId))
-			{
-				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
-			}
+			uint256 txId = new(transactionId);
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
-			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-			var linkedCancellationToken = linkedCts.Token;
+			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
 
-			var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
-			return Ok(unconfirmedTxsChainById.Values.ToList());
+			return await Cache.GetCachedResponseAsync(
+				cacheKey,
+				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
+				options: UnconfirmedTrasanctionChainCacheEntryOptions,
+				cancellationToken);
 		}
 		catch (OperationCanceledException)
 		{
@@ -456,9 +440,25 @@ public class BlockchainController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Failed to compute unconfirmed chain for {txId}. {ex}");
-			return BadRequest($"Failed to compute unconfirmed chain for {txId}");
+			Logger.LogError($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
+			return BadRequest($"Failed to compute unconfirmed chain for {transactionId}");
 		}
+	}
+
+	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
+	{
+		var mempoolHashes = Mempool.GetMempoolHashes();
+		if (!mempoolHashes.Contains(txId))
+		{
+			return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
+		}
+
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+		var linkedCancellationToken = linkedCts.Token;
+
+		var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
+		return Ok(unconfirmedTxsChainById.Values.ToList());
 	}
 
 	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
