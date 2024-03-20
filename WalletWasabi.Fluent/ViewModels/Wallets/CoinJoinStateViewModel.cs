@@ -156,10 +156,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		CoinjoinSettingsCommand = coinjoinSettingsCommand;
 	}
 
-	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
-
-	public ICommand CoinjoinSettingsCommand { get; }
-
 	private enum State
 	{
 		Invalid = 0,
@@ -183,6 +179,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoCoinJoinOff,
 		AreAllCoinsPrivateChanged
 	}
+
+	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
+
+	public ICommand CoinjoinSettingsCommand { get; }
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
