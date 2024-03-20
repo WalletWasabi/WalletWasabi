@@ -314,13 +314,8 @@ public class Wallet : BackgroundService, IWallet
 
 			State = WalletState.Started;
 		}
-		catch (Exception e)
+		catch
 		{
-			if (e is not OperationCanceledException)
-			{
-				Logger.LogTrace(e);
-			}
-
 			State = WalletState.Initialized;
 			throw;
 		}
