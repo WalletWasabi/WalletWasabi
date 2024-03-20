@@ -13,7 +13,7 @@ public record UnconfirmedTransactionChainItem(
 	[JsonProperty]
 	int Size,
 	[JsonProperty]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	[JsonConverter(typeof(MoneySatoshiJsonConverter))]
 	Money Fee,
 	[JsonProperty]
 	[JsonConverter(typeof(HashSetUint256JsonConverter))]
