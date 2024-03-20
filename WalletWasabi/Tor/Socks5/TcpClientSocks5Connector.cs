@@ -8,6 +8,8 @@ namespace WalletWasabi.Tor.Socks5;
 
 public static class TcpClientSocks5Connector
 {
+	static int I = 0;
+
 	/// <summary>
 	/// Establishes TCP connection with Tor SOCKS5 endpoint.
 	/// </summary>
@@ -17,9 +19,15 @@ public static class TcpClientSocks5Connector
 	{
 		try
 		{
+			I++;
+			if (I == 1)
+			{
+				throw new SocketException(104);
+			}
+
 			return await TcpClientConnector.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
 		}
-		catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 104 or 61)
+		catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
 		{
 			// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
 			// 111   ~ "Connection refused" on Linux.
