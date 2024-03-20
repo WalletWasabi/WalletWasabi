@@ -41,7 +41,7 @@
       <Setter Property="IsVisible" Value="False" />
     </Style>
 
-    <Style Selector="^ Rectangle">
+    <Style Selector="^ Rectangle#TrackRect">
       <Setter Property="IsVisible" Value="False" />
     </Style>
 
