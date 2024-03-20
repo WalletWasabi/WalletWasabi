@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -63,8 +64,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	private CoinJoinStateViewModel(IWalletModel wallet)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, ReactiveCommand<Unit, Unit> navigateToCoinjoinSettingsCommand)
 	{
+		UiContext = uiContext;
 		_wallet = wallet;
 
 		wallet.Coinjoin.StatusUpdated
@@ -151,9 +153,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine.Start();
 
-		var coinjoinSettingsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().WalletCoinJoinSettings(wallet), Observable.Return(!wallet.IsWatchOnlyWallet));
-		CanNavigateToCoinjoinSettings = coinjoinSettingsCommand.CanExecute;
-		CoinjoinSettingsCommand = coinjoinSettingsCommand;
+		
+		CanNavigateToCoinjoinSettings = navigateToCoinjoinSettingsCommand.CanExecute;
+		NavigateToCoinjoinSettingsCommand = navigateToCoinjoinSettingsCommand;
 	}
 
 	private enum State
@@ -182,7 +184,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 
-	public ICommand CoinjoinSettingsCommand { get; }
+	public ICommand NavigateToCoinjoinSettingsCommand { get; }
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
