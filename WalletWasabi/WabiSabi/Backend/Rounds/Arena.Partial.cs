@@ -399,12 +399,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
 	}
 
-	public uint256[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
+	public (uint256 RoundId, FeeRate MiningFeeRate)[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
 		Rounds
 		.Where(r => r.Phase != Phase.Ended)
-		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, MiningFeeRate: r.Parameters.MiningFeeRate, Coin: a)))
 		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-		.Select(x => x.RoundId)
+		.Select(x => (x.RoundId, x.MiningFeeRate))
 		.Distinct()
 		.ToArray();
 
