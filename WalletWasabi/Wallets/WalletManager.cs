@@ -198,7 +198,7 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllTasksToken.IsCancellationRequested)
+			if (CancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
@@ -212,7 +212,7 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllTasksToken).ConfigureAwait(false);
+			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
@@ -220,7 +220,7 @@ public class WalletManager : IWalletProvider
 			wallet.Initialize();
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllTasksToken).ConfigureAwait(false))
+		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
@@ -230,13 +230,8 @@ public class WalletManager : IWalletProvider
 				CancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
-			catch (Exception e)
+			catch
 			{
-				if (e is not OperationCanceledException)
-				{
-					Logger.LogDebug(e);
-				}
-
 				await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
 				throw;
 			}
