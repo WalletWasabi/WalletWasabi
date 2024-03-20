@@ -65,7 +65,7 @@ public class WalletFilterProcessor : BackgroundService
 				return _lastProcessedFilter;
 			}
 		}
-		private set
+		set
 		{
 			lock (Lock)
 			{
