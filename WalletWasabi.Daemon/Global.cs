@@ -228,6 +228,8 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
+                await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+
 				RegisterCoinJoinComponents();
 
 				if (initializeSleepInhibitor)
