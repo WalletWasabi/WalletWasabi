@@ -443,7 +443,7 @@ public class BlockchainController : ControllerBase
 				return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
 			}
 
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(7000));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 			var linkedCancellationToken = linkedCts.Token;
 
