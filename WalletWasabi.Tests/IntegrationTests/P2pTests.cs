@@ -150,7 +150,7 @@ public class P2pTests
 
 			var i = 0;
 			var hashArray = blocksToDownload.ToArray();
-			foreach (var result in await Task.WhenAll(downloadTasks))
+			foreach (var block in await Task.WhenAll(downloadTasks))
 			{
 				Assert.True(File.Exists(Path.Combine(blocks.BlocksFolderPath, hashArray[i].ToString())));
 				i++;
