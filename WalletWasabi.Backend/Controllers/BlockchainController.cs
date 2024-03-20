@@ -440,7 +440,7 @@ public class BlockchainController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
+			Logger.LogDebug($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
 			return BadRequest($"Failed to compute unconfirmed chain for {transactionId}");
 		}
 	}
