@@ -303,39 +303,31 @@ public class Global
 	{
 		if (Config.UseTor && Network != Network.RegTest)
 		{
-			try
+			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
-				using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-				{
-					TorManager = new TorProcessManager(TorSettings);
-					await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+				TorManager = new TorProcessManager(TorSettings);
+				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
+				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
-					var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
-					if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+				if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+				{
+					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
+					if (!anonymousAccessAllowed)
 					{
-						var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
-						if (!anonymousAccessAllowed)
-						{
-							var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
-							OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
-							Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
-						}
-						else
-						{
-							Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
-						}
+						var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
+						OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
+						Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
+					}
+					else
+					{
+						Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 					}
 				}
+			}
 
-				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
-				HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
-			}
-			catch (Exception ex) when (ex is not OperationCanceledException)
-			{
-				Logger.LogDebug(ex);
-				throw new InvalidOperationException("Failed to start and initialize Tor.");
-			}
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
 
