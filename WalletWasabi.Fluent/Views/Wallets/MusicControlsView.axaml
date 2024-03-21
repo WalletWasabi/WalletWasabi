@@ -3,16 +3,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              Background="Transparent"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
-  <i:Interaction.Behaviors>
-    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-  </i:Interaction.Behaviors>
+  <UserControl.Resources>
+    <converters:ReplaceWordsByContentConverter x:Key="ReplaceWordsByContentConverter">
+      <ResourceDictionary x:CompileBindings="False">
+        <StaticResource x:Key="Play" ResourceKey="play_regular" />
+      </ResourceDictionary>
+    </converters:ReplaceWordsByContentConverter>
+  </UserControl.Resources>
+  <Interaction.Behaviors>
+    <BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+  </Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector=":is(TextBlock)">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -74,7 +80,7 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding LeftText}" />
+              <TextBlock Text="{Binding LeftText}" DockPanel.Dock="Left" />
               <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>

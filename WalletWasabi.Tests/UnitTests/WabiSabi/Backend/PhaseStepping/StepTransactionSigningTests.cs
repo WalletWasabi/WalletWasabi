@@ -12,6 +12,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -141,6 +142,7 @@ public class StepTransactionSigningTests
 
 		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
+		cfg.MinInputCountByBlameRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 

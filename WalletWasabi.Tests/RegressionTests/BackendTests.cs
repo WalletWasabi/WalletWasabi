@@ -162,9 +162,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
 			cache);
 
-		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
-
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), bitcoinStore, synchronizer, feeProvider, blockProvider, serviceConfiguration, unconfirmedChainProvider);
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, specificNodeBlockProvider));
 		walletManager.Initialize();
 
 		nodes.Connect(); // Start connection service.
@@ -194,14 +192,14 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-		var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
+		var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>();
 
-		Assert.Equal(txId.ToString(), unconfirmedChain.First().TxId);
+		Assert.Equal(txId, unconfirmedChain.First().TxId);
 		Assert.Empty(unconfirmedChain.First().Parents);
 		Assert.Empty(unconfirmedChain.First().Children);
 		Assert.Single(unconfirmedChain);
 
-		var tx1 = await rpc.GetRawTransactionAsync(txId).ConfigureAwait(false);
+		var tx1 = await rpc.GetRawTransactionAsync(txId);
 
 		// Get the outpoints of TX1, so we can spend it.
 		var outpoints = tx1.Outputs.Select((txout, i) => new OutPoint(tx1, i));
@@ -209,14 +207,13 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using Key randomKey = new();
 		var randomReceiveScript = randomKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
-		await Task.Delay(1000);
-
 		// Build a transaction on top of TX1.
 		var buildTransactionResult = wallet.BuildTransaction(password, new PaymentIntent(randomReceiveScript, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: true, allowedInputs: outpoints);
 
 		await broadcaster.SendTransactionAsync(buildTransactionResult.Transaction);
 
-		await Task.Delay(1000);
+		// Wait for more than 10 seconds, so the backend cache expires.
+		await Task.Delay(11000);
 
 		var txId2 = buildTransactionResult.Transaction.GetHash();
 
@@ -224,13 +221,13 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
 
-		unconfirmedChain = await response2.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
+		unconfirmedChain = await response2.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>();
 
-		Assert.True(unconfirmedChain.Length == 2);
-		Assert.Contains(txId2.ToString(), unconfirmedChain.Select(x => x.TxId));
-		Assert.Contains(txId.ToString(), unconfirmedChain.Select(x => x.TxId));
-		Assert.Contains(txId.ToString(), unconfirmedChain.First().Parents);
-		Assert.Contains(txId2.ToString(), unconfirmedChain.First(tx => tx.TxId == txId.ToString()).Children);
+		Assert.Equal(2, unconfirmedChain.Length);
+		Assert.Contains(txId2, unconfirmedChain.Select(x => x.TxId));
+		Assert.Contains(txId, unconfirmedChain.Select(x => x.TxId));
+		Assert.Contains(txId, unconfirmedChain.First(tx => tx.TxId == txId2).Parents);
+		Assert.Contains(txId2, unconfirmedChain.First(tx => tx.TxId == txId).Children);
 
 		bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 		await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
@@ -319,32 +316,14 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		var requestUri = "btc/Blockchain/status";
 
-		var segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
-		var taprootIndexBuilderService = global.TaprootIndexBuilderService;
-		if (segwitTaprootIndexBuilderService is null || taprootIndexBuilderService is null)
-		{
-			throw new InvalidOperationException("Index builders can't be null.");
-		}
-
 		try
 		{
-			segwitTaprootIndexBuilderService.Synchronize();
-			taprootIndexBuilderService.Synchronize();
+			global.IndexBuilderService.Synchronize();
 
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (segwitTaprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
-			{
-				if (times > 500) // 30 sec
-				{
-					throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
-				}
-				await Task.Delay(100);
-				times++;
-			}
-
-			while (taprootIndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while (global.IndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -363,13 +342,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 				Assert.True(resp.FilterCreationActive);
 
 				// Simulate an unintended stop
-				await segwitTaprootIndexBuilderService.StopAsync();
-				segwitTaprootIndexBuilderService = null;
-
-				// Simulate an unintended stop
-				await taprootIndexBuilderService.StopAsync();
-				taprootIndexBuilderService = null;
-
+				await global.IndexBuilderService.StopAsync();
 				await rpc.GenerateAsync(1);
 			}
 
@@ -386,16 +359,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 				var blockchainController = RegTestFixture.BackendHost.Services.GetRequiredService<BlockchainController>();
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
-				segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
-				taprootIndexBuilderService = global.TaprootIndexBuilderService;
-				if (segwitTaprootIndexBuilderService is null || taprootIndexBuilderService is null)
-				{
-					throw new InvalidOperationException("Index builders can't be null.");
-				}
-
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
-				segwitTaprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
-				taprootIndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
+				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 			}
 
 			// Third request.
@@ -409,14 +374,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			if (segwitTaprootIndexBuilderService is { })
-			{
-				await segwitTaprootIndexBuilderService.StopAsync();
-			}
-			if (taprootIndexBuilderService is { })
-			{
-				await taprootIndexBuilderService.StopAsync();
-			}
+			await global.IndexBuilderService.StopAsync();
 		}
 	}
 

@@ -1,8 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Style Selector="c|NavBarItem.selected /template/ Border#PART_SelectedPipe">
+  <Style Selector="NavBarItem.selected /template/ Border#PART_SelectedPipe">
     <Setter Property="IsVisible" Value="True" />
   </Style>
 

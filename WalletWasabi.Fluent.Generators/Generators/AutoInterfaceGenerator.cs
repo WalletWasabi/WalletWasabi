@@ -41,11 +41,10 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 		var interfaceNamespace = namedTypeSymbol.ContainingNamespace.ToDisplayString();
 		var interfaceName = $"I{namedTypeSymbol.Name}";
 
-		var members =
-			namedTypeSymbol.GetMembers()
-						   .Where(x => x.DeclaredAccessibility == Accessibility.Public)
-						   .Where(x => !x.IsStatic)
-						   .ToList();
+		var members = namedTypeSymbol.GetMembers()
+			.Where(x => x.DeclaredAccessibility == Accessibility.Public)
+			.Where(x => !x.IsStatic)
+			.ToList();
 
 		var namespaces = new List<string>();
 		var properties = new List<string>();
@@ -58,8 +57,8 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					property.SetMethod switch
 					{
 						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
-						IMethodSymbol s                   => "{ get; set; }",
-						_                                 => "{ get; }"
+						IMethodSymbol s => "{ get; set; }",
+						_ => "{ get; }"
 					};
 
 				var type = property.Type.SimplifyType(namespaces);
@@ -68,27 +67,17 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			else if (member is IMethodSymbol method && method.MethodKind == MethodKind.Ordinary)
 			{
 				var returnType = method.ReturnType.SimplifyType(namespaces);
+				string genericTypeOrEmpty = "";
 
-				var signature = "\t";
-
-				signature += returnType;
-
-				signature += $" {method.Name}";
 				if (method.IsGenericMethod)
 				{
-					signature += "<";
-
 					var typeArgs =
 						from argument in method.TypeArguments
 						let typeName = argument.SimplifyType(namespaces)
 						select typeName;
 
-					signature += string.Join(", ", typeArgs);
-
-					signature += ">";
+					genericTypeOrEmpty = $"<{string.Join(", ", typeArgs)}>";
 				}
-
-				signature += "(";
 
 				var parameters =
 					from parameter in method.Parameters
@@ -102,20 +91,26 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 					let defaultValueString = defaultValue != null ? " = " + defaultValue : null
 					select $"{attributeList?.ToFullString()}{refKind}{type} {name}{defaultValueString}";
 
-				signature += string.Join(", ", parameters);
+				string methodSignature;
 
-				signature += ");";
+				if (!IsInterfaceMethodImplementation(method))
+				{
+					methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+				}
+				else
+				{
+					methodSignature = $"\t /* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
+				}
 
-				methods.Add(signature);
+				methods.Add(methodSignature);
 			}
 		}
 
-		namespaces =
-			namespaces.Distinct()
-					  .OrderBy(x => x)
-					  .Where(x => x != interfaceNamespace)
-					  .Select(x => $"using {x};")
-					  .ToList();
+		namespaces = namespaces.Distinct()
+			.OrderBy(x => x)
+			.Where(x => x != interfaceNamespace)
+			.Select(x => $"using {x};")
+			.ToList();
 
 		var source =
 			$$"""
@@ -139,5 +134,23 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			""";
 
 		AddSource($"{className}.AutoInterface.g.cs", source);
+	}
+
+	private static bool IsInterfaceMethodImplementation(IMethodSymbol method)
+	{
+		foreach (INamedTypeSymbol implementedInterfaceSymbol in method.ContainingType.AllInterfaces)
+		{
+			foreach (ISymbol interfaceMember in implementedInterfaceSymbol.GetMembers())
+			{
+				ISymbol? foundMember = method.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
+
+				if (SymbolEqualityComparer.IncludeNullability.Equals(method, foundMember))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

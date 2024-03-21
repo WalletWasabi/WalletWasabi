@@ -79,7 +79,7 @@ public class Mempool
 			// Remove all UTXOs of the removed transaction from our helper index.
 			foreach (TxIn txInput in transaction.Inputs)
 			{
-				_ = PrevOutsIndex.Remove(txInput.PrevOut);
+				PrevOutsIndex.Remove(txInput.PrevOut);
 			}
 
 			return true;

@@ -2,75 +2,74 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
              x:DataType="advanced:WalletStatsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletStatsView">
-  <c:ContentArea Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
-      <c:PreviewItem Label="Number of coins (UTXOs)"
+      <PreviewItem Label="Number of coins (UTXOs)"
                      CopyableContent="{Binding Model.CoinCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
+        <PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding Model.CoinCount}" />
-      </c:PreviewItem>
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Unconfirmed balance"
+      <PreviewItem Label="Unconfirmed balance"
                      CopyableContent="{Binding Model.UnconfirmedBalance.FormattedBtc}">
-        <c:AmountControl Amount="{Binding Model.UnconfirmedBalance}" />
-      </c:PreviewItem>
+        <AmountControl Amount="{Binding Model.UnconfirmedBalance}" />
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Confirmed balance"
+      <PreviewItem Label="Confirmed balance"
                      CopyableContent="{Binding Model.ConfirmedBalance.FormattedBtc}">
-        <c:AmountControl Amount="{Binding Model.ConfirmedBalance}" />
-      </c:PreviewItem>
+        <AmountControl Amount="{Binding Model.ConfirmedBalance}" />
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Total balance"
+      <PreviewItem Label="Total balance"
                      CopyableContent="{Binding Model.Balance.FormattedBtc}">
-        <c:AmountControl Amount="{Binding Model.Balance}" />
-      </c:PreviewItem>
+        <AmountControl Amount="{Binding Model.Balance}" />
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Total number of transactions"
+      <PreviewItem Label="Total number of transactions"
                      CopyableContent="{Binding Model.TotalTransactionCount}">
-        <c:PrivacyContentControl Content="{Binding Model.TotalTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
-      </c:PreviewItem>
+        <PrivacyContentControl Content="{Binding Model.TotalTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of non-coinjoin transactions"
+      <PreviewItem Label="Number of non-coinjoin transactions"
                      CopyableContent="{Binding Model.NonCoinjointransactionCount}">
-        <c:PrivacyContentControl Content="{Binding Model.NonCoinjointransactionCount, Mode=OneWay}" Classes="monoSpaced" />
-      </c:PreviewItem>
+        <PrivacyContentControl Content="{Binding Model.NonCoinjointransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of coinjoin transactions"
+      <PreviewItem Label="Number of coinjoin transactions"
                      CopyableContent="{Binding Model.CoinjoinTransactionCount}">
-        <c:PrivacyContentControl Content="{Binding Model.CoinjoinTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
-      </c:PreviewItem>
+        <PrivacyContentControl Content="{Binding Model.CoinjoinTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </PreviewItem>
       <Separator />
 
-      <c:PreviewItem Label="Number of addresses"
+      <PreviewItem Label="Number of addresses"
                      CopyableContent="{Binding Model.GeneratedKeyCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
+        <PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding Model.GeneratedKeyCount}" />
-      </c:PreviewItem>
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of clean addresses"
+      <PreviewItem Label="Number of clean addresses"
                      CopyableContent="{Binding Model.GeneratedCleanKeyCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
+        <PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding Model.GeneratedCleanKeyCount}" />
-      </c:PreviewItem>
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of locked addresses"
+      <PreviewItem Label="Number of locked addresses"
                      CopyableContent="{Binding Model.GeneratedLockedKeyCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
+        <PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding Model.GeneratedLockedKeyCount}" />
-      </c:PreviewItem>
+      </PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of used addresses"
+      <PreviewItem Label="Number of used addresses"
                      CopyableContent="{Binding Model.GeneratedUsedKeyCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
+        <PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding Model.GeneratedUsedKeyCount}" />
-      </c:PreviewItem>
+      </PreviewItem>
     </StackPanel>
-  </c:ContentArea>
+  </ContentArea>
 </UserControl>

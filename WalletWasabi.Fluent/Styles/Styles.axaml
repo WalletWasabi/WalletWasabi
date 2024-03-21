@@ -42,4 +42,8 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TileButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PreviewItem.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TagsBox.axaml" />
+  <!--TODO @SuperJMN: Convert this to control? Is it worth the effort?-->
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewMessageItem.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CopyablePasswordTextBox.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TabControl.axaml" />
 </Styles>

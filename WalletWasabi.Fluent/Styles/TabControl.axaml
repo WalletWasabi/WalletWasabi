@@ -1,0 +1,18 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Style Selector="TabControl.Settings">
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.Settings TabItem">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="MinHeight" Value="50" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.Settings TabItem /template/ Border#PART_LayoutRoot">
+    <Setter Property="Margin" Value="0 0 24 24" />
+  </Style>
+
+</Styles>

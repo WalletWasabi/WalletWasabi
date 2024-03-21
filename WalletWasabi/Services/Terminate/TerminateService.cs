@@ -23,8 +23,11 @@ public class TerminateService
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
-		CancellationToken = TerminationCts.Token; 
+		CancellationToken = TerminationCts.Token;
+		Instance = this;
 	}
+
+	public static TerminateService? Instance { get; private set; }
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
@@ -41,6 +44,9 @@ public class TerminateService
 	public CancellationToken CancellationToken { get; }
 
 	private bool IsSystemEventsSubscribed { get; set; }
+
+	/// <summary>In case of an unrecoverable exception, SignalGracefulCrash will store here the exception to pass down to the CrashReporter.</summary>
+	public Exception? GracefulCrashException { get; private set; }
 
 	public void Activate()
 	{
@@ -100,6 +106,12 @@ public class TerminateService
 		e.Cancel = true;
 
 		// ... instead signal back that the app should terminate.
+		SignalForceTerminate();
+	}
+
+	public void SignalGracefulCrash(Exception ex)
+	{
+		GracefulCrashException = ex;
 		SignalForceTerminate();
 	}
 

@@ -8,5 +8,6 @@ public enum WalletType
 	Trezor,
 	Ledger,
 	Jade,
+	BitBox,
 	Unknown
 }

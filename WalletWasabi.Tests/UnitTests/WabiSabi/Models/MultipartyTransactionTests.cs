@@ -455,13 +455,12 @@ public class MultipartyTransactionTests
 		}
 		while (coinjoin.Balance > tenPercent);
 
-		var blameScript = BitcoinFactory.CreateScript();
+		var coordinatorScript = BitcoinFactory.CreateScript();
 		var round = WabiSabiFactory.CreateRound(parameters);
 
-		// Make sure the the highest fee rate is low, so blame script will be added.
-		var highestFeeRateTask = () => Task.FromResult(new FeeRate(1m));
-		var coinjoinWithBlame = await Arena.TryAddBlameScriptAsync(round, coinjoin, false, blameScript, highestFeeRateTask);
-		coinjoinWithBlame.Finalize();
-		Assert.NotSame(coinjoinWithBlame, coinjoin);
+		// Make sure the highest fee rate is low, so coordinator script will be added.
+		var coinjoinWithCoordinatorScript = Arena.AddCoordinationFee(round, coinjoin, coordinatorScript);
+		coinjoinWithCoordinatorScript.Finalize();
+		Assert.NotSame(coinjoinWithCoordinatorScript, coinjoin);
 	}
 }

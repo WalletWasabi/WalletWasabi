@@ -1,5 +1,10 @@
+using DynamicData;
+using ReactiveUI;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -11,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 {
 	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
+	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
 	[AutoNotify] private PrivacySuggestion? _selectedSuggestion;
@@ -28,6 +34,27 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();
 	public ObservableCollection<PrivacySuggestion> Suggestions { get; } = new();
+	public IObservable<IEnumerable<PrivacyWarning>> PreviewWarnings => _previewWarnings;
+
+	public async Task UpdatePreviewWarningsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
+	{
+		var previewWarningList = new List<PrivacyWarning>();
+
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: false))
+		{
+			if (item is PrivacyWarning warning)
+			{
+				previewWarningList.Add(warning);
+			}
+		}
+
+		_previewWarnings.OnNext(previewWarningList);
+	}
+
+	public void ClearPreviewWarnings()
+	{
+		_previewWarnings.OnNext(Warnings);
+	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
@@ -42,7 +69,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken))
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: true))
 		{
 			if (item is PrivacyWarning warning)
 			{

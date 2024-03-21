@@ -2,16 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions.Responsive"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
-             xmlns:controls="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AboutViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
   <Panel>
-    <controls:ContentArea EnableNext="{Binding !EnableBack}"
+    <ContentArea EnableNext="{Binding !EnableBack}"
                           NextContent="Close"
                           EnableBack="{Binding EnableBack}">
       <DockPanel LastChildFill="True">
@@ -31,11 +28,11 @@
             <ItemsControl ItemsSource="{Binding Links}"
                           Margin="0 0 0 25"
                           HorizontalAlignment="Stretch">
-              <i:Interaction.Behaviors>
-                <ir:AdaptiveBehavior>
-                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow" />
-                </ir:AdaptiveBehavior>
-              </i:Interaction.Behaviors>
+              <Interaction.Behaviors>
+                <AdaptiveBehavior>
+                  <AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow" />
+                </AdaptiveBehavior>
+              </Interaction.Behaviors>
               <ItemsControl.Styles>
                 <Style Selector="ItemsControl">
                   <Setter Property="ItemsPanel">
@@ -88,6 +85,6 @@
           </Button>
         </DockPanel>
       </DockPanel>
-    </controls:ContentArea>
+    </ContentArea>
   </Panel>
 </UserControl>

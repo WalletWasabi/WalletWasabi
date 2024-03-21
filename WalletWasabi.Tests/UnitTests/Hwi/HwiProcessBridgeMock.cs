@@ -36,6 +36,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Ledger_Nano_S => "ledger_nano_s",
 			HardwareWalletModels.Ledger_Nano_X => "ledger_nano_x",
 			HardwareWalletModels.Jade => "jade",
+			HardwareWalletModels.BitBox02_BTCOnly => "bitbox02_btconly",
 			_ => throw new NotImplementedException("Mock missing.")
 		};
 
@@ -48,6 +49,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Ledger_Nano_S => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Ledger_Nano_X => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Jade => "COM3",
+			HardwareWalletModels.BitBox02_BTCOnly => "\\\\\\\\?\\\\hid#vid_03eb&pid_2403#6&229ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			_ => throw new NotImplementedException("Mock missing.")
 		};
 
@@ -69,6 +71,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_X => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
 				HardwareWalletModels.Jade => $"[{{\"type\": \"{model}\", \"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"9bdca818\"}}]",
+				HardwareWalletModels.BitBox02_BTCOnly => $"[{{\"type\": \"{model}\", \"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"2ebf60e1\"}}]",
 				_ => throw new NotImplementedException($"Mock missing for {model}")
 			};
 		}
@@ -81,6 +84,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support wiping via software\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => SuccessTrueResponse,
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -93,6 +97,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"setup requires interactive mode\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => "{\"error\": \"setup requires interactive mode\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -105,6 +110,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support software setup\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => SuccessTrueResponse,
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -117,6 +123,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support restoring via software\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => SuccessTrueResponse,
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -129,6 +136,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => "{\"error\": \"The BitBox02 does not need a PIN sent from the host\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -141,6 +149,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
+				HardwareWalletModels.BitBox02_BTCOnly => "{\"error\": \"The BitBox02 does not need a PIN sent from the host\", \"code\": -9}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
@@ -154,6 +163,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
+				case HardwareWalletModels.BitBox02_BTCOnly:
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 					break;
 			}
@@ -168,6 +178,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
+				case HardwareWalletModels.BitBox02_BTCOnly:
 					response = t1
 						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
 						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
@@ -184,6 +195,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
+				case HardwareWalletModels.BitBox02_BTCOnly:
 					response = t2
 						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
 						: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
@@ -200,6 +212,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
+				case HardwareWalletModels.BitBox02_BTCOnly:
 					response = "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n";
 					break;
 			}
@@ -214,6 +227,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
+				case HardwareWalletModels.BitBox02_BTCOnly:
 					response = "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n";
 					break;
 			}

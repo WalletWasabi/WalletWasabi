@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -30,7 +31,7 @@ public class OutputProvider
 			roundParameters.CalculateMinReasonableOutputAmount(DestinationProvider.SupportedScriptTypes),
 			roundParameters.AllowedOutputAmounts.Max,
 			availableVsize,
-			roundParameters.AllowedOutputTypes,
+			DestinationProvider.SupportedScriptTypes,
 			Random);
 
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();

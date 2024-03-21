@@ -38,9 +38,9 @@ public class TorHttpPoolTests
 		using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
 
 		TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
@@ -100,7 +100,7 @@ public class TorHttpPoolTests
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 
-		_ = mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>()))
+		mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() => throw new TorConnectionException("Could not connect to Tor SOCKSPort."))
 			.ReturnsAsync(() => throw new OperationCanceledException("Deadline reached."));
 
@@ -277,10 +277,10 @@ public class TorHttpPoolTests
 				X-XSS-Protection: 0
 				Referrer-Policy: no-referrer-when-downgrade
 				Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; child-src github.com/assets-cdn/worker/ gist.github.com/assets-cdn/worker/; connect-src 'self' uploads.github.com objects-origin.githubusercontent.com www.githubstatus.com collector.github.com raw.githubusercontent.com api.github.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com cdn.optimizely.com logx.optimizely.com/v1/events *.actions.githubusercontent.com wss://*.actions.githubusercontent.com online.visualstudio.com/api/v1/locations github-production-repository-image-32fea6.s3.amazonaws.com github-production-release-asset-2e65be.s3.amazonaws.com insights.github.com wss://alive.github.com; font-src github.githubassets.com; form-action 'self' github.com gist.github.com objects-origin.githubusercontent.com; frame-ancestors 'none'; frame-src viewscreen.githubusercontent.com notebooks.githubusercontent.com; img-src 'self' data: github.githubassets.com media.githubusercontent.com camo.githubusercontent.com identicons.github.com avatars.githubusercontent.com github-cloud.s3.amazonaws.com objects.githubusercontent.com objects-origin.githubusercontent.com secured-user-images.githubusercontent.com/ opengraph.githubassets.com github-production-user-asset-6210df.s3.amazonaws.com customer-stories-feed.github.com spotlights-feed.github.com *.githubusercontent.com; manifest-src 'self'; media-src github.com user-images.githubusercontent.com/ secured-user-images.githubusercontent.com/; script-src github.githubassets.com; style-src 'unsafe-inline' github.githubassets.com; worker-src github.com/assets-cdn/worker/ gist.github.com/assets-cdn/worker/
-				Content-Length: 0
+				Content-Length: 15
 				X-GitHub-Request-Id: AFCA:0EE6:208343C:21F2436:6395A726
 
-
+				Resource found.
 				""".ReplaceLineEndings("\r\n");
 
 			await serverWriter1.WriteAsync(serverResponse1.AsMemory(), timeoutCts.Token);
@@ -371,7 +371,7 @@ public class TorHttpPoolTests
 		using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
 
 		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, mockTcpConnectionFactory.Object) { CallBase = true };
 		mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
@@ -397,7 +397,7 @@ public class TorHttpPoolTests
 
 		// Alice circuit is already disposed and thus it cannot be used.
 		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
-		_ = Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
+		Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
 
 		mockTcpConnectionFactory.VerifyAll();
 	}

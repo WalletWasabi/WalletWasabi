@@ -262,7 +262,7 @@ public class TorControlClient : IAsyncDisposable
 			lock (AsyncChannelsLock)
 			{
 				newList = new(AsyncChannels);
-				_ = newList.Remove(channel);
+				newList.Remove(channel);
 
 				AsyncChannels = newList;
 			}

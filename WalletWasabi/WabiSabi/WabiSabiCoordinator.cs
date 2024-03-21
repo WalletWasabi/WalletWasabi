@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.IO;
@@ -25,7 +26,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory, CoinVerifier? coinVerifier = null)
 	{
 		Parameters = parameters;
-
+		RpcClient = rpc;
 		Warden = new(parameters.PrisonFilePath, coinJoinIdStore, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
@@ -69,6 +70,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
 	public AffiliationManager AffiliationManager { get; }
+	private IRPCClient RpcClient { get; }
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
@@ -119,33 +121,83 @@ public class WabiSabiCoordinator : BackgroundService
 		}
 	}
 
-	public void BanDoubleSpenders(object? sender, Transaction tx)
+	public async void BanDoubleSpenders(object? sender, Transaction tx)
 	{
-		var txId = tx.GetHash();
-		if (IsWasabiCoinJoin(txId, tx))
+		try
 		{
-			return;
+			var txId = tx.GetHash();
+			if (IsWasabiCoinJoin(txId, tx))
+			{
+				return;
+			}
+
+			var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
+			var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
+
+			// No round was disrupted by the received transaction. Nothing to do here.
+			if (disruptedRounds.Length == 0)
+			{
+				return;
+			}
+
+			// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
+			foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
+			{
+				Warden.Prison.DoubleSpent(
+					new OutPoint(tx, indexedOutput.N),
+					indexedOutput.TxOut.Value,
+					disruptedRounds.Select(x => x.RoundId));
+			}
+
+			// Abort disrupted rounds (only those that pay less than the attacking transaction)
+			using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+			var (succeed, spentCoins) = await GetSpendingCoinsAsync(inputOutPoints, cts.Token).ConfigureAwait(false);
+			var feeRate = succeed ? tx.GetFeeRate(spentCoins) : Constants.AbsurdlyHighFeeRate;
+			var roundsToAbort = disruptedRounds
+				.Where(round => round.MiningFeeRate < feeRate)
+				.Select(x => x.RoundId);
+
+			foreach (var roundId in roundsToAbort)
+			{
+				Arena.AbortRound(roundId);
+			}
 		}
-
-		var inputOutPoints = tx.Inputs.Select(x => x.PrevOut);
-		var disruptedRounds = Arena.GetRoundsContainingOutpoints(inputOutPoints);
-
-		// No round was disrupted by the received transaction. Nothing to do here.
-		if (disruptedRounds.Length == 0)
+		catch (Exception e)
 		{
-			return;
+			Logger.LogError(e);
 		}
+	}
 
-		// Ban all outputs created by the received transaction because it has spent coins participating in coinjoin rounds.
-		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
+	private async Task<(bool, Coin[])> GetSpendingCoinsAsync(
+		IEnumerable<OutPoint> spendingOutPoints,
+		CancellationToken cancellationToken)
+	{
+		try
 		{
-			Warden.Prison.DoubleSpent(new OutPoint(tx, indexedOutput.N), indexedOutput.TxOut.Value, disruptedRounds);
+			var batch = RpcClient.PrepareBatch();
+			var getTxOutRequests = spendingOutPoints
+				.Select(x => RpcClient.GetTxOutAsync(x.Hash, (int) x.N, includeMempool: true, cancellationToken))
+				.ToList();
+			await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+			var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);
+
+			// If not all txout are found then we cannot calculate the fee rate
+			if (txOutResponses.Any(x => x is null))
+			{
+				return (false, Array.Empty<Coin>());
+			}
+
+			var txOuts = txOutResponses.Select(x => x.TxOut);
+			var spendingCoins = txOuts
+				.Zip(spendingOutPoints, (txOut, outPoint) => (txOut, outPoint))
+				.Select(x => new Coin(x.outPoint, x.txOut))
+				.ToArray();
+			return (true, spendingCoins);
 		}
-
-		// Abort disrupted rounds
-		foreach (var roundId in disruptedRounds)
+		catch (Exception e)
 		{
-			Arena.AbortRound(roundId);
+			Logger.LogError(e);
+			return (false, Array.Empty<Coin>());
 		}
 	}
 
@@ -160,7 +212,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private bool IsWasabiCoinJoinLookingTx(Transaction tx) =>
 		tx.RBF == false
-		&& tx.Inputs.Count >= Config.MinInputCountByRound
+		&& tx.Inputs.Count >= Config.MinInputCountByBlameRound
 		&& tx.Inputs.Count <= Config.MaxInputCountByRound
 		&& tx.Outputs.All(x => Config.AllowedOutputTypes.Any(y => x.ScriptPubKey.IsScriptType(y)))
 		&& tx.Outputs.Zip(tx.Outputs.Skip(1), (a, b) => (First: a.Value, Second: b.Value)).All(p => p.First >= p.Second);

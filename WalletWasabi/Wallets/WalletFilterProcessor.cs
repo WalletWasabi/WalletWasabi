@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets.FilterProcessor;
 
@@ -46,6 +47,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
 	private object Lock { get; } = new();
+
 	private SemaphoreSlim SynchronizationRequestsSemaphore { get; } = new(initialCount: 0);
 
 	private KeyManager KeyManager { get; }
@@ -184,6 +186,7 @@ public class WalletFilterProcessor : BackgroundService
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
+			TerminateService.Instance?.SignalGracefulCrash(ex);
 			throw;
 		}
 		finally
@@ -192,7 +195,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				while (SynchronizationRequests.TryDequeue(out var request, out _))
 				{
-					_ = request.Tcs.TrySetCanceled(cancellationToken);
+					request.Tcs.TrySetCanceled(cancellationToken);
 				}
 			}
 		}

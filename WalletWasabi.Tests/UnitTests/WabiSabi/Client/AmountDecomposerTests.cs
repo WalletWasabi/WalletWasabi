@@ -6,7 +6,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 

@@ -42,13 +42,9 @@ public class Global : IDisposable
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 
 		// Initialize index building
-		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var segwitTaprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-		var taprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat");
-
-		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
-		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		IndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 
 		MempoolMirror = new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode);
 		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, MempoolMirror);
@@ -62,8 +58,7 @@ public class Global : IDisposable
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
-	public IndexBuilderService TaprootIndexBuilderService { get; }
+	public IndexBuilderService IndexBuilderService { get; }
 
 	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
@@ -78,7 +73,7 @@ public class Global : IDisposable
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	private Whitelist? WhiteList { get; set; }
-	private MempoolMirror MempoolMirror { get; }
+	public MempoolMirror MempoolMirror { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
 	public async Task InitializeAsync(CancellationToken cancel)
@@ -137,10 +132,8 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		SegwitTaprootIndexBuilderService.Synchronize();
-		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is successfully initialized and started synchronization.");
-		TaprootIndexBuilderService.Synchronize();
-		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is successfully initialized and started synchronization.");
+		IndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
@@ -221,11 +214,8 @@ public class Global : IDisposable
 
 	private async Task DisposeAsync()
 	{
-		await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
-
-		await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
+		await IndexBuilderService.StopAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(IndexBuilderService)} is stopped.");
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 		await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);

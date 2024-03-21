@@ -7,10 +7,11 @@ public class BenchmarkLogger : IDisposable
 {
 	private bool _disposedValue = false; // To detect redundant calls
 
-	private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName] string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+	private BenchmarkLogger(LogLevel logLevel, string operationName, string callerMemberName, string callerFilePath, int callerLineNumber)
 	{
 		LogLevel = logLevel;
 		OperationName = operationName;
+		CallerMemberName = callerMemberName;
 		CallerFilePath = callerFilePath;
 		CallerLineNumber = callerLineNumber;
 
@@ -21,6 +22,7 @@ public class BenchmarkLogger : IDisposable
 	public Stopwatch Stopwatch { get; }
 
 	public string OperationName { get; }
+	public string CallerMemberName { get; }
 	public string CallerFilePath { get; }
 	public int CallerLineNumber { get; }
 
@@ -29,9 +31,14 @@ public class BenchmarkLogger : IDisposable
 	/// Example usage: using (BenchmarkLogger.Measure()) { /* Your code here */ }
 	/// </summary>
 	/// <param name="operationName">Which operation to measure. Default is the caller function name.</param>
-	public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, [CallerMemberName] string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, string operationName = "", [CallerMemberName] string callerMemberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-		return new BenchmarkLogger(logLevel, operationName, callerFilePath, callerLineNumber);
+		if (operationName == "")
+		{
+			operationName = callerMemberName;
+		}
+
+		return new BenchmarkLogger(logLevel, operationName, callerMemberName, callerFilePath, callerLineNumber);
 	}
 
 	#region IDisposable Support
@@ -60,7 +67,7 @@ public class BenchmarkLogger : IDisposable
 					message = $"{OperationName} finished in {Stopwatch.ElapsedMilliseconds} milliseconds.";
 				}
 
-				Logger.Log(LogLevel, message, callerFilePath: CallerFilePath, callerLineNumber: CallerLineNumber);
+				Logger.Log(LogLevel, message, callerFilePath: CallerFilePath, callerMemberName: CallerMemberName, callerLineNumber: CallerLineNumber);
 			}
 
 			_disposedValue = true;

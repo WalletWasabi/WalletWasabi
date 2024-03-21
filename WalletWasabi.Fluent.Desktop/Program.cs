@@ -62,7 +62,12 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
-			if (exitCode == ExitCode.Ok && (Services.UpdateManager?.DoUpdateOnClose ?? false))
+			if (Services.TerminateService.GracefulCrashException is not null)
+			{
+				throw Services.TerminateService.GracefulCrashException;
+			}
+
+			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)
 			{
 				Services.UpdateManager.StartInstallingNewVersion();
 			}
@@ -171,7 +176,7 @@ public static class WasabiAppExtensions
 						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+							await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
 
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);

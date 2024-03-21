@@ -64,7 +64,8 @@ public class WalletBuilder : IAsyncDisposable
 		HybridFeeProvider feeProvider = new(Synchronizer, null);
 		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
 
-		return WalletWasabi.Wallets.Wallet.CreateAndRegisterServices(Network.RegTest, BitcoinStore, keyManager, Synchronizer, DataDir, serviceConfiguration, feeProvider, blockProvider);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
 	public async ValueTask DisposeAsync()

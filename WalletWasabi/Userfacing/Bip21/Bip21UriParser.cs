@@ -128,6 +128,10 @@ public class Bip21UriParser
 				error = ErrorUnsupportedReqParameter with { Details = parameterName };
 				return false;
 			}
+			else
+			{
+				unknownParameters.Add(parameterName, value);
+			}
 		}
 
 		result = new(Uri: parsedUri, network, address, amount, Label: label, Message: message, unknownParameters);
