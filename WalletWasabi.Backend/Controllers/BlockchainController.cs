@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using System;
@@ -36,6 +37,8 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedTrasanctionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static MemoryCacheEntryOptions TransactionCacheOptions { get; } = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
@@ -46,6 +49,7 @@ public class BlockchainController : ControllerBase
 
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
+	private MempoolMirror Mempool => Global.MempoolMirror;
 
 	public IdempotencyRequestCache Cache { get; }
 
@@ -411,5 +415,123 @@ public class BlockchainController : ControllerBase
 		}
 
 		return status;
+	}
+
+	[HttpGet("unconfirmed-transaction-chain")]
+	[ProducesResponseType(200)]
+	[ProducesResponseType(400)]
+	public async Task<IActionResult> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	{
+		try
+		{
+			uint256 txId = new(transactionId);
+
+			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
+
+			return await Cache.GetCachedResponseAsync(
+				cacheKey,
+				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
+				options: UnconfirmedTrasanctionChainCacheEntryOptions,
+				cancellationToken);
+		}
+		catch (OperationCanceledException)
+		{
+			return BadRequest("Operation took more than 10 seconds. Aborting.");
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
+			return BadRequest($"Failed to compute unconfirmed chain for {transactionId}");
+		}
+	}
+
+	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
+	{
+		var mempoolHashes = Mempool.GetMempoolHashes();
+		if (!mempoolHashes.Contains(txId))
+		{
+			return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
+		}
+
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+		var linkedCancellationToken = linkedCts.Token;
+
+		var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
+		return Ok(unconfirmedTxsChainById.Values.ToList());
+	}
+
+	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
+	{
+		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
+		var toFetchFeeList = new List<uint256> { requestedTxId };
+
+		while (toFetchFeeList.Count > 0)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			var currentTxId = toFetchFeeList.First();
+
+			// Check if we just computed the item.
+			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTxId}";
+
+			var currentTxChainItem = await Cache.GetCachedResponseAsync(
+				cacheKey,
+				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, cancellationToken),
+				options: UnconfirmedTransactionChainItemCacheEntryOptions,
+				cancellationToken);
+
+			toFetchFeeList.Remove(currentTxId);
+
+			var discoveredTxsToFetchFee = currentTxChainItem.Parents
+				.Union(currentTxChainItem.Children)
+				.Where(x => !unconfirmedTxsChainById.ContainsKey(x) && !toFetchFeeList.Contains(x));
+
+			toFetchFeeList.AddRange(discoveredTxsToFetchFee);
+
+			unconfirmedTxsChainById.Add(currentTxId, currentTxChainItem);
+		}
+
+		return unconfirmedTxsChainById;
+	}
+
+	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
+	{
+		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
+
+		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToArray();
+
+		var parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
+
+		// Get unconfirmed parents and children
+		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
+		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
+
+		return new UnconfirmedTransactionChainItem(
+			TxId: currentTxId,
+			Size: currentTx.GetVirtualSize(),
+			Fee: ComputeFee(currentTx, parentTxs, cancellationToken),
+			Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
+			Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet());
+	}
+
+	private Money ComputeFee(Transaction currentTx, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var inputs = new List<Coin>();
+
+		var prevOutsForCurrentTx = currentTx.Inputs
+			.Select(input => input.PrevOut)
+			.ToList();
+
+		foreach (var parentTx in parentTxs)
+		{
+			var prevOut = prevOutsForCurrentTx.First(x => x.Hash == parentTx.GetHash());
+			var txOut = parentTx.Outputs[prevOut.N];
+			inputs.Add(new Coin(prevOut, txOut));
+		}
+
+		return currentTx.GetFee(inputs.ToArray());
 	}
 }

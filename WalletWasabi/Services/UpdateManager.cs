@@ -91,6 +91,10 @@ public class UpdateManager : IDisposable
 					Cleanup();
 					break;
 				}
+				catch (InvalidDataException ex)
+				{
+					Logger.LogWarning(ex);
+				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Getting new update failed with error.", ex);
@@ -192,7 +196,7 @@ public class UpdateManager : IDisposable
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
 
-		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
+		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException($"Endpoint gave back wrong json data or it's changed.\n{jsonResponse}");
 
 		// Make sure there are no non-numeric characters (besides '.') in the version string.
 		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
