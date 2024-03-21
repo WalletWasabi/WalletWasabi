@@ -16,7 +16,7 @@ public class UnconfirmedChainFeeRateTests
 
 		var unconfirmedChain = new List<UnconfirmedTransactionChainItem>
 		{
-			new("txid1", Size: 20750, Fee: new Money((long) 631051), Parents: new(), Children: new())
+			new(uint256.One, Size: 20750, Fee: new Money((long) 631051), Parents: new(), Children: new())
 		};
 
 		var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
@@ -32,8 +32,8 @@ public class UnconfirmedChainFeeRateTests
 
 		var unconfirmedChain = new List<UnconfirmedTransactionChainItem>
 		{
-			new("txid1", size, Fee: new Money((long)1000), Parents: new(), Children: new() { "txid2" }),
-			new("txid2", size, Fee: new Money((long)2000), Parents: new() { "txid1" }, Children: new())
+			new(uint256.Zero, size, Fee: new Money((long)1000), Parents: new(), Children: new() { uint256.One }),
+			new(uint256.One, size, Fee: new Money((long)2000), Parents: new() { uint256.Zero }, Children: new())
 		};
 
 		var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
@@ -49,9 +49,9 @@ public class UnconfirmedChainFeeRateTests
 
 		var unconfirmedChain = new List<UnconfirmedTransactionChainItem>
 		{
-			new("txid1", Size: 1064, Fee: new Money((long) 150215), Parents: new(), Children: new() { "txid2" }),
-			new("txid2", Size: 272, Fee: new Money((long) 43680), Parents: new() { "txid1" }, Children: new() { "txid3" }),
-			new("txid3", Size: 110, Fee: new Money((long) 19800), Parents: new() { "txid2" }, Children: new())
+			new(uint256.Zero, Size: 1064, Fee: new Money((long) 150215), Parents: new(), Children: new() { uint256.One }),
+			new(uint256.One, Size: 272, Fee: new Money((long) 43680), Parents: new() { uint256.Zero }, Children: new() { new uint256(2) }),
+			new(new uint256(2), Size: 110, Fee: new Money((long) 19800), Parents: new() { uint256.One }, Children: new())
 		};
 
 		var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
