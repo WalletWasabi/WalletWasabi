@@ -306,12 +306,6 @@ public class WalletManager : IWalletProvider
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
-	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
-	{
-		WalletRelevantTransactionProcessed?.Invoke(sender, e);
-		UnconfirmedTransactionChainProvider.BeginRequestUnconfirmedChain(e.Transaction);
-	}
-
 	private void Wallet_StateChanged(object? sender, WalletState e)
 	{
 		WalletStateChanged?.Invoke(sender, e);
