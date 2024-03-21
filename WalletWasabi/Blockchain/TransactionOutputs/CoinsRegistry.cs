@@ -382,7 +382,7 @@ public class CoinsRegistry : ICoinsView
 		}
 	}
 
-	private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
+	private CoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
 
 	public ICoinsView Available() => AsCoinsView().Available();
 
