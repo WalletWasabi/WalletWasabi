@@ -1,12 +1,12 @@
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
@@ -28,28 +28,26 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		ActivateFirstItemCommand = ReactiveCommand.Create(
+		var activateFirstItemCommand = ReactiveCommand.Create(
 			() =>
 			{
 				if (_groups is [{ Items: [IActionableItem item] }])
 				{
 					item.Activate();
-					ClearAndHideSearchList();
+					SearchText = "";
 				}
 			});
-
-		ResetCommand = ReactiveCommand.Create(ClearAndHideSearchList);
+		
+		ActivateFirstItemCommand = activateFirstItemCommand;
+		CommandActivated = activateFirstItemCommand.ToSignal();
+		ResetCommand = ReactiveCommand.Create(() => SearchText = "");
 	}
+
+	public IObservable<Unit> CommandActivated { get; }
 
 	public ICommand ResetCommand { get; }
 
 	public ICommand ActivateFirstItemCommand { get; set; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
-
-	private void ClearAndHideSearchList()
-	{
-		SearchText = "";
-		ApplicationHelper.MainWindow?.Focus();
-	}
 }

@@ -6,6 +6,7 @@
              mc:Ignorable="d"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
+             xmlns:reactive="clr-namespace:System.Reactive;assembly=System.Reactive"
              x:CompileBindings="True"
              x:DataType="searchBar:SearchBarViewModel"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
@@ -143,6 +144,9 @@
         <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
           <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
         </KeyDownTrigger>
+        <OnSignalTriggerBehavior Trigger="{Binding CommandActivated}">
+          <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
+        </OnSignalTriggerBehavior>
       </Interaction.Behaviors>
 
       <TextBox.InnerLeftContent>
