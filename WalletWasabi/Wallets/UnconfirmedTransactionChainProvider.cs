@@ -86,7 +86,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public void BeginRequestUnconfirmedChain(SmartTransaction tx)
 	{
-		if (!tx.Confirmed && tx.ForeignInputs.Count != 0)
+		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !Queue.Any(x => x == tx.GetHash()) && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
 		{
 			Queue.Enqueue(tx.GetHash());
 			Semaphore.Release(1);
