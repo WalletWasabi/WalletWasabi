@@ -5,12 +5,12 @@
     <key>CFBundleExecutable</key>
     <string>wassabee_startsilent</string>
     <key>CFBundleIdentifier</key>
-    <string>com.example.wassabee_startsilent</string>
+	<string>zksnacks.wasabiwallet</string>
     <key>CFBundleName</key>
-    <string>Wasabi Wallet</string>
-    <key>CFBundleVersion</key>
-    <string>1.0.0</string>
+    <string>Wasabi Wallet Silent</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+	<key>CFBundleIconFile</key>
+	<string>WasabiLogo.icns</string>
 </dict>
 </plist>
