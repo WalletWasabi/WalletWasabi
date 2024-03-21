@@ -98,8 +98,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			{
 				Settings.SelectedTab = 0;
 				Navigate(NavigationTarget.DialogScreen).To(Settings);
-			},
-			Observable.Return(!WalletModel.IsWatchOnlyWallet));
+			});
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
