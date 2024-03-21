@@ -1,4 +1,3 @@
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -8,6 +7,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
+using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -64,7 +64,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, ReactiveCommand<Unit, Unit> navigateToCoinjoinSettingsCommand)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, WalletSettingsViewModel settings)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
@@ -152,9 +152,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer.Tick += (_, _) => _stateMachine.Fire(Trigger.Tick);
 
 		_stateMachine.Start();
-		
-		CanNavigateToCoinjoinSettings = navigateToCoinjoinSettingsCommand.CanExecute;
-		NavigateToCoinjoinSettingsCommand = navigateToCoinjoinSettingsCommand;
+
+		var coinJoinSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				settings.SelectedTab = 1;
+				UiContext.Navigate(NavigationTarget.DialogScreen).To(settings);
+			},
+			Observable.Return(!_wallet.IsWatchOnlyWallet));
+
+		NavigateToSettingsCommand = coinJoinSettingsCommand;
+		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 	}
 
 	private enum State
@@ -183,7 +191,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 
-	public ICommand NavigateToCoinjoinSettingsCommand { get; }
+	public ICommand NavigateToSettingsCommand { get; }
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
