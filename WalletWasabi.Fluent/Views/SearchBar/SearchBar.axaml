@@ -20,7 +20,6 @@
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
-
   <UserControl.Styles>
 
     <Style Selector="TextBox#SearchBox">
@@ -131,7 +130,6 @@
       <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
       <Setter Property="MaxHeight" Value="{StaticResource SearchResultsMaxHeight}" />
     </Style>
-
   </UserControl.Styles>
 
   <Panel>
@@ -155,7 +153,6 @@
       <TextBox.InnerRightContent>
         <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
       </TextBox.InnerRightContent>
-
     </TextBox>
     <Popup x:Name="SearchResultsPopup" PlacementTarget="SearchBox">
       <Popup.IsOpen>
@@ -180,5 +177,4 @@
       <CallMethodAction MethodName="Unfocus" />
     </KeyDownTrigger>
   </Interaction.Behaviors>
-
 </UserControl>
