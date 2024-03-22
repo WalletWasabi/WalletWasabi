@@ -116,7 +116,7 @@
         </TextBox>
       </DockPanel>
       <!-- Amount -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,15">
         <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
