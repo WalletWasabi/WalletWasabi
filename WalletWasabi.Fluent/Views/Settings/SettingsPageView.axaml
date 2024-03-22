@@ -9,19 +9,6 @@
              x:DataType="settings:SettingsPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
-  <UserControl.Styles>
-    <Style Selector="TabItem">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="MinHeight" Value="50" />
-      <Setter Property="Padding" Value="0" />
-    </Style>
-    <Style Selector="TabItem /template/ Border#PART_LayoutRoot">
-      <Setter Property="Margin" Value="0 0 24 24" />
-    </Style>
-    <Style Selector="TabControl">
-      <Setter Property="Padding" Value="0" />
-    </Style>
-  </UserControl.Styles>
 
   <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
@@ -48,7 +35,8 @@
         <TextBlock Text="Modifying settings is not possible, as certain parameters have been overridden during startup." />
       </InfoMessage>
 
-      <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
+      <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}"
+                  Classes="Settings">
         <TabItem Header="General">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />

@@ -292,7 +292,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			text = AmountBtc > 0 ? AmountBtc?.FormattedBtc() : string.Empty;
+			text = AmountBtc > 0 ? AmountBtc?.FormattedBtcFixedFractional() : string.Empty;
 		}
 
 		SetCurrentValue(TextProperty, text);

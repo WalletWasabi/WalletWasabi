@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -132,5 +133,19 @@ public static class NBitcoinHelpers
 		var addrman = new AddressManager();
 		addrman.ReadWrite(stream);
 		return addrman;
+	}
+
+	public static bool TryParseBitcoinAddress(Network network, string queryStr, [NotNullWhen(true)] out BitcoinAddress? address)
+	{
+		address = null;
+		try
+		{
+			address = BitcoinAddress.Create(queryStr, network);
+			return true;
+		}
+		catch (FormatException)
+		{
+			return false;
+		}
 	}
 }

@@ -95,7 +95,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 ## Visual Studio Tips (Windows)
 
 - Visual Studio 2019 errors:
-  - If you get an error about Visual Studio does not support `WalletWasabi.WindowsInstaller` then you can fix this by installing `WiX Toolset Visual Studio 2019 Extension`. After the the installation reload the `WalletWasabi.WindowsInstaller` project by right click (on it) -> `Reload project`.
+  - If you get an error about Visual Studio does not support `WalletWasabi.WindowsInstaller` then you can fix this by installing `WiX Toolset Visual Studio 2019 Extension`. After the installation reload the `WalletWasabi.WindowsInstaller` project by right click (on it) -> `Reload project`.
 
 ### Clever Shortcut settings
 

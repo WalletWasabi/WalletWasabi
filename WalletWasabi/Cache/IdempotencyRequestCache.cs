@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Cache;
 
@@ -28,6 +27,29 @@ public class IdempotencyRequestCache
 	/// <remarks>Guarded by <see cref="ResponseCacheLock"/>.</remarks>
 	private IMemoryCache ResponseCache { get; }
 
+	/// <summary>
+	/// Tries to add the cache key to cache to avoid other callers to add such a key in parallel.
+	/// </summary>
+	/// <returns><c>true</c> if the key was added to the cache, <c>false</c> otherwise.</returns>
+	/// <remarks>Caller is responsible to ALWAYS set a result to <paramref name="responseTcs"/> even if an exception is thrown.</remarks>
+	public bool TryAddKey<TRequest, TResponse>(TRequest cacheKey, MemoryCacheEntryOptions options, out TaskCompletionSource<TResponse> responseTcs)
+		where TRequest : notnull
+	{
+		lock (ResponseCacheLock)
+		{
+			if (!ResponseCache.TryGetValue(cacheKey, out TaskCompletionSource<TResponse>? tcs))
+			{
+				responseTcs = new();
+				ResponseCache.Set(cacheKey, responseTcs, options);
+
+				return true;
+			}
+
+			responseTcs = tcs!;
+			return false;
+		}
+	}
+
 	/// <typeparam name="TRequest">
 	/// <see langword="record"/>s are preferred as <see cref="object.GetHashCode"/>
 	/// and <see cref="object.Equals(object?)"/> are generated for <see langword="record"/> types automatically.
@@ -47,18 +69,7 @@ public class IdempotencyRequestCache
 	public async Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, MemoryCacheEntryOptions options, CancellationToken cancellationToken)
 		where TRequest : notnull
 	{
-		bool callAction = false;
-		TaskCompletionSource<TResponse>? responseTcs;
-
-		lock (ResponseCacheLock)
-		{
-			if (!ResponseCache.TryGetValue(request, out responseTcs))
-			{
-				callAction = true;
-				responseTcs = new();
-				ResponseCache.Set(request, responseTcs, options);
-			}
-		}
+		bool callAction = TryAddKey(request, options, out TaskCompletionSource<TResponse>? responseTcs);
 
 		if (callAction)
 		{
@@ -85,10 +96,11 @@ public class IdempotencyRequestCache
 	}
 
 	/// <remarks>
-	/// For testing purposes only.
+	/// Use after <see cref="TryAddKey{TRequest, TResponse}(TRequest, MemoryCacheEntryOptions, out TaskCompletionSource{TResponse})"/> if that request
+	/// failed with an exception.
 	/// <para>Note that if there is a simultaneous request for the cache key, it is not stopped and its result is discarded.</para>
 	/// </remarks>
-	internal void Remove<TRequest>(TRequest cacheKey)
+	public void Remove<TRequest>(TRequest cacheKey)
 		where TRequest : notnull
 	{
 		lock (ResponseCacheLock)
