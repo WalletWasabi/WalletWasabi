@@ -73,10 +73,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		Balance = walletVm.WalletModel.Balances;
 
-		_suggestionLabels = new SuggestionLabelsViewModel(WalletVm.WalletModel, Intent.Send, 3)
-		{
-			Labels = { }
-		};
+		_suggestionLabels = new SuggestionLabelsViewModel(WalletVm.WalletModel, Intent.Send, 3);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
