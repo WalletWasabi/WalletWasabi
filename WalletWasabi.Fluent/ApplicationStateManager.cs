@@ -13,11 +13,9 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent;
-
-using System.Threading.Tasks;
-using Avalonia.Threading;
 
 public class ApplicationStateManager : IMainWindowService
 {
@@ -27,6 +25,7 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
+	private IActivatableApplicationLifetime? _activatable;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
@@ -40,6 +39,7 @@ public class ApplicationStateManager : IMainWindowService
 				Dispatcher.UIThread.Post(
 					() =>
 					{
+						_activatable = activatableLifetime;
 						activatableLifetime.TryEnterBackground();
 						activatableLifetime.Activated += ActivatableLifetimeOnActivated;
 						activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
@@ -48,6 +48,7 @@ public class ApplicationStateManager : IMainWindowService
 			}
 			else
 			{
+				_activatable = activatableLifetime;
 				activatableLifetime.Activated += ActivatableLifetimeOnActivated;
 				activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
 			}
@@ -88,9 +89,14 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
+
 				_lifetime.MainWindow?.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
+				if (_activatable is { })
+				{
+					_activatable.TryEnterBackground();
+				}
 			})
 			.Permit(Trigger.Show, State.Open)
 			.Permit(Trigger.ShutdownPrevented, State.Open);
