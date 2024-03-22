@@ -154,6 +154,10 @@
       </Setter>
     </Style>
 
+    <Style Selector="^/template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+2
     <Style Selector="^:noexchangerate /template/ Button#PART_SwapButton">
       <Setter Property="IsVisible" Value="False" />
     </Style>
