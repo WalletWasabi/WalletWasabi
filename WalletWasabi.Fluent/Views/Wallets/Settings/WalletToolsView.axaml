@@ -18,9 +18,8 @@
     </InfoMessage>
     <InfoMessage>
       <DockPanel>
-        <TextBlock Text="Your password is also required to restore your wallet, do not forget it." />
+        <TextBlock Text="Your passphrase is also required to restore your wallet, do not forget it." />
       </DockPanel>
     </InfoMessage>
   </StackPanel>
-
 </UserControl>
