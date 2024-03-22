@@ -1,22 +1,29 @@
-using System;
+using NBitcoin;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.CoinJoinManager;
 
 internal class MockWallet : IWallet
 {
-	public MockWallet(bool isUnderPlebStop)
+	public MockWallet(bool isUnderPlebStop, bool isWalletPrivate = false, bool addBatchedPayment = false)
 	{
 		IsUnderPlebStop = isUnderPlebStop;
+		IsWalletPrivate = isWalletPrivate;
+		BatchedPayments = new PaymentBatch();
+		if (addBatchedPayment)
+		{
+			BatchedPayments.AddPayment(GetNewSegwitAddress(), Money.Coins(1));
+		}
 	}
+
+	private bool IsWalletPrivate { get; set; }
 
 	public string WalletName => throw new NotImplementedException();
 
@@ -52,6 +59,14 @@ internal class MockWallet : IWallet
 
 	public Task<bool> IsWalletPrivateAsync()
 	{
-		throw new NotImplementedException();
+		return Task.FromResult(IsWalletPrivate);
+	}
+
+	public PaymentBatch BatchedPayments { get; }
+
+	private static BitcoinAddress GetNewSegwitAddress()
+	{
+		using Key key = new();
+		return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
 	}
 }

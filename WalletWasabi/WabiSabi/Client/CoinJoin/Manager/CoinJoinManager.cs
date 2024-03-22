@@ -183,31 +183,24 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				var synchronizerResponse = CoinJoinLogic.AssertStartCoinJoin(
-					walletBlockedByUi: WalletsBlockedByUi.ContainsKey(walletToStart.WalletId),
+				if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
+				{
+					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
+				}
+
+				await CoinJoinLogic.CheckWalletStartCoinJoinAsync(
 					wallet: walletToStart,
-					overridePlebStop: startCommand.OverridePlebStop,
-					wasabiBackendStatusProvider: WasabiBackendStatusProvide);
+					walletBlockedByUi: WalletsBlockedByUi.ContainsKey(walletToStart.WalletId),
+					overridePlebStop: startCommand.OverridePlebStop).ConfigureAwait(false);
 
 				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
-				// If there are pending payments, ignore already achieved privacy.
-				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
+				// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
+				if (coinCandidates.All(x => !x.Confirmed || x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
 				{
-					// If all coins are already private, then don't mix.
-					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
-					{
-						walletToStart.LogTrace("All mixed!");
-						throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
-					}
-
-					// If coin candidates are already private and the user doesn't override the StopWhenAllMixed, then don't mix.
-					if (coinCandidates.All(x => !x.Confirmed || x.IsPrivate(walletToStart.AnonScoreTarget)) && startCommand.StopWhenAllMixed)
-					{
-						throw new CoinJoinClientException(
-							CoinjoinError.NoCoinsEligibleToMix,
-							$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
-					}
+					throw new CoinJoinClientException(
+						CoinjoinError.NoCoinsEligibleToMix,
+						$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 
 				NotifyWalletStartedCoinJoin(walletToStart);

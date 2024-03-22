@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
@@ -12,23 +7,32 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager.Logic;
 
 public static class CoinJoinLogic
 {
-	public static SynchronizeResponse AssertStartCoinJoin(bool walletBlockedByUi, IWallet wallet, bool overridePlebStop, IWasabiBackendStatusProvider wasabiBackendStatusProvider)
+	public static async Task<CoinjoinError> CheckWalletStartCoinJoinAsync(IWallet wallet, bool walletBlockedByUi, bool overridePlebStop)
 	{
+		// CoinJoin blocked by the UI. User is in action.
 		if (walletBlockedByUi)
 		{
-			throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
+			return CoinjoinError.UserInSendWorkflow;
 		}
 
+		// If payments are batched we always mix.
+		if (wallet.BatchedPayments.AreTherePendingPayments)
+		{
+			return CoinjoinError.None;
+		}
+
+		// The wallet is already private.
+		if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false))
+		{
+			return CoinjoinError.AllCoinsPrivate;
+		}
+
+		// Wallet total balance is lower then the PlebStop threshold. If the user not overrides that, we won't mix.
 		if (!overridePlebStop && wallet.IsUnderPlebStop)
 		{
-			throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
+			return CoinjoinError.NotEnoughUnprivateBalance;
 		}
 
-		if (wasabiBackendStatusProvider.LastResponse is not { } synchronizerResponse)
-		{
-			throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
-		}
-
-		return synchronizerResponse;
+		return CoinjoinError.None;
 	}
 }
