@@ -22,7 +22,7 @@
         <Binding Path="Transaction.IsChild" />
       </MultiBinding>
     </Classes.transparent>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="15 0">
+    <InvalidatingStackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="15 0">
 
       <!-- SpeedUp -->
       <Button Classes="plain" ToolTip.Tip="Speed Up Transaction"
@@ -44,6 +44,6 @@
         <PathIcon Data="{StaticResource details_regular}" Height="16" />
       </Button>
 
-    </StackPanel>
+    </InvalidatingStackPanel>
   </Border>
 </UserControl>
