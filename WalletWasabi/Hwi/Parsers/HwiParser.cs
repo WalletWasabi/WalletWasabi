@@ -126,7 +126,6 @@ public static class HwiParser
 		{
 			var typeString = token.Value<string>();
 
-
 			// In trezor case: "trezor_safe 3" -> "trezor_safe_3".
 			var normalizedTypeString = typeString?.Replace(" ", "_");
 
