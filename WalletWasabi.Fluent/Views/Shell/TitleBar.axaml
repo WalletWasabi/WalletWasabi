@@ -129,5 +129,9 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <ContentControl ContentTemplate="{OnPlatform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, macOS={StaticResource MacOSLayout}}" />
+  <Panel>
+    <Border x:Name="Hitbox" Background="Transparent" IsVisible="{Binding #UserControl.SearchResultsPopup.IsOpen}" />
+    <ContentControl
+      ContentTemplate="{OnPlatform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, macOS={StaticResource MacOSLayout}}" />
+  </Panel>
 </UserControl>

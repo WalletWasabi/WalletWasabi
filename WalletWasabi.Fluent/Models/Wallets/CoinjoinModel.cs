@@ -1,11 +1,12 @@
 using ReactiveUI;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class CoinjoinModel: ReactiveObject
+public partial class CoinjoinModel : ReactiveObject
 {
 	private CoinJoinManager? _coinJoinManager;
 
