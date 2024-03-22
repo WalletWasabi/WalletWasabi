@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -101,15 +102,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(
-			() =>
-			{
-				Settings.SelectedTab = 1;
-				Navigate(NavigationTarget.DialogScreen).To(Settings);
-			},
-			Observable.Return(!WalletModel.IsWatchOnlyWallet));
-
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel, Settings);
 
 		Tiles = GetTiles().ToList();
 
