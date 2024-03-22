@@ -69,7 +69,7 @@ public partial class Arena : PeriodicRunner
 
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
-	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
+	internal ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }

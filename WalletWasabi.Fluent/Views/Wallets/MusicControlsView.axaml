@@ -105,25 +105,18 @@
             <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
 
-          <Ellipse Height="12" Width="12"
-                   Classes.disabled="{Binding !AutoCoinJoinObservable^}"
-                   Classes.waiting="{Binding IsAutoWaiting}">
-            <Ellipse.Styles>
-              <Style Selector="Ellipse">
-                <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
-              </Style>
-              <Style Selector="Ellipse.waiting">
-                <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
-                <Setter Property="ToolTip.Tip"
-                        Value="Auto-start coinjoin enabled. Press Play to start immediately." />
-              </Style>
-              <Style Selector="Ellipse.disabled">
-                <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
-              </Style>
-            </Ellipse.Styles>
-          </Ellipse>
+          <Button Classes="plain" IsVisible="{Binding CanNavigateToCoinjoinSettings^}">
+            <Button.Flyout>
+              <MenuFlyout Placement="Top">
+                <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource settings_general_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+            <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
+          </Button>
         </StackPanel>
       </Panel>
     </Border>

@@ -29,7 +29,7 @@ public partial class WalletAuthModel : ReactiveObject
 		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
 		if (!isPasswordCorrect)
 		{
-			throw new InvalidOperationException($"Incorrect password.");
+			throw new InvalidOperationException("Incorrect passphrase.");
 		}
 
 		CompleteLogin();
