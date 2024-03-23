@@ -67,7 +67,6 @@ public class HwiEnumerateEntry
 			HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T_Simulator or HardwareWalletModels.Coldcard_Simulator => false,
 			HardwareWalletModels.Jade => false,
 			HardwareWalletModels.BitBox02_BTCOnly => false,
-
 			_ => false
 		};
 	}

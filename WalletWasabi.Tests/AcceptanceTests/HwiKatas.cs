@@ -106,7 +106,7 @@ public class HwiKatas
 	}
 
 	[Fact]
-	public async Task TrezorS3KataAsync()
+	public async Task TrezorSafe3KataAsync()
 	{
 		// --- USER INTERACTIONS ---
 		//
@@ -138,7 +138,6 @@ public class HwiKatas
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
-
 		
 		await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));

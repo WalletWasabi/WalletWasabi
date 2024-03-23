@@ -111,7 +111,7 @@ public class MockedDeviceTests
 
 	[Theory]
 	[MemberData(nameof(GetDifferentNetworkValues))]
-	public async Task TrezorS3MockTestsAsync(Network network)
+	public async Task TrezorSafe3MockTestsAsync(Network network)
 	{
 		var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Trezor_Safe_3));
 
@@ -135,7 +135,7 @@ public class MockedDeviceTests
 		await client.SetupAsync(deviceType, devicePath, false, cts.Token);
 		await client.RestoreAsync(deviceType, devicePath, false, cts.Token);
 
-		// Trezor T doesn't support it.
+		// Trezor Safe 3 doesn't support it.
 		var promptpin = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 		Assert.Equal("The PIN has already been sent to this device", promptpin.Message);
 		Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, promptpin.ErrorCode);
