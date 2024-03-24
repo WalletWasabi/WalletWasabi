@@ -255,6 +255,9 @@ dotnet_diagnostic.IDE0130.severity = warning
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
 
+# IDE0305: Simplify collection initialization
+dotnet_diagnostic.IDE0305.severity = none
+
 # CA1304: Specify CultureInfo
 dotnet_diagnostic.CA1304.severity = warning
 
