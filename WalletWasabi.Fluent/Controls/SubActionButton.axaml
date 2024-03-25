@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections">
+                    xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
   <Design.PreviewWith>
     <Border Padding="0">
@@ -9,7 +10,7 @@
 
           <SubActionButton>
             <SubActionButton.ItemsSource>
-              <generic:List x:TypeArguments="x:String">
+              <generic:List x:TypeArguments="system:String">
                 <x:String>Item 0</x:String>
                 <x:String>Item 1</x:String>
                 <x:String>Item 2</x:String>
@@ -18,8 +19,11 @@
             <SubActionButton.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}">
                 <MenuFlyout.ItemTemplate>
-                  <DataTemplate DataType="x:String">
-                    <MenuItem Header="{Binding .}" />
+                  <DataTemplate DataType="system:String">
+                    <Border Width="300" Background="Red">
+                      <TextBlock Text="{Binding .}" Margin="12" />
+                    </Border>
+                    <!-- <MenuItem Header="{Binding .}" /> -->
                   </DataTemplate>
                 </MenuFlyout.ItemTemplate>
               </MenuFlyout>
@@ -32,7 +36,7 @@
 
           <SubActionButton CornerRadius="16" Content="Rounded">
             <!-- <SubActionButton.ItemsSource> -->
-            <!--   <generic:List x:TypeArguments="x:String"> -->
+            <!--   <generic:List x:TypeArguments="system:String"> -->
             <!--     <x:String>Item 0</x:String> -->
             <!--     <x:String>Item 1</x:String> -->
             <!--     <x:String>Item 2</x:String> -->
@@ -49,7 +53,7 @@
             <!-- </SubActionButton.Flyout> -->
 
             <SubActionButton.Flyout>
-              <MenuFlyout>
+              <MenuFlyout Placement="BottomEdgeAlignedLeft">
                 <MenuItem Header="Item 0" />
                 <MenuItem Header="Item 1" />
                 <MenuItem Header="Item 2" />
