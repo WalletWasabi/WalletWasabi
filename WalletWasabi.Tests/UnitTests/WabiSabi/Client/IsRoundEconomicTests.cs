@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NBitcoin;
 using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;

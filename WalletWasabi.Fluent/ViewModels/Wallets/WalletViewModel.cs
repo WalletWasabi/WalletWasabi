@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -19,6 +20,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -45,7 +47,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Wallet = wallet;
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
         BuyViewModel = new BuyViewModel(UiContext, this);
 
@@ -94,13 +95,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 0;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			});
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!WalletModel.IsWatchOnlyWallet));
-
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel, Settings);
 
 		Tiles = GetTiles().ToList();
 
@@ -134,8 +138,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
-
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 

@@ -52,7 +52,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		
 		var availableValues = orderedValues.Skip(usedValues.Length);
 		
-		// in case we over consumed money we reintroduce a virtual coin for the the difference.
+		// in case we over consumed money we reintroduce a virtual coin for the difference.
 		var totalValueUsedForPayment = availableAmount - availableValues.Sum();
 		if (totalValueUsedForPayment > 0L)
 		{

@@ -203,7 +203,7 @@ public partial class MainViewModel : ViewModelBase
 			new TransactionsSearchSource(querySubject),
 			UiContext.EditableSearchSource);
 
-		var searchBar = new SearchBarViewModel(source.Changes);
+		var searchBar = new SearchBarViewModel(source);
 
 		var queries = searchBar
 			.WhenAnyValue(a => a.SearchText)

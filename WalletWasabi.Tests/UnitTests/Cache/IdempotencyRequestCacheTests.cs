@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using NBitcoin.RPC;
+using System.Diagnostics;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Cache;
@@ -13,6 +16,9 @@ namespace WalletWasabi.Tests.UnitTests.Cache;
 /// </summary>
 public class IdempotencyRequestCacheTests
 {
+	/// <summary>A bitcoin transaction in HEX format.</summary>
+	private const string TransactionHex = "0200000001268171371edff285e937adeea4b37b78000c0566cbb3ad64641713ca42171bf6000000006a473044022070b2245123e6bf474d60c5b50c043d4c691a5d2435f09a34a7662a9dc251790a022001329ca9dacf280bdf30740ec0390422422c81cb45839457aeb76fc12edd95b3012102657d118d3357b8e0f4c2cd46db7b39f6d9c38d9a70abcb9b2de5dc8dbfe4ce31feffffff02d3dff505000000001976a914d0c59903c5bac2868760e90fd521a4665aa7652088ac00e1f5050000000017a9143545e6e33b832c47050f24d3eeb93c9c03948bc787b32e1300";
+
 	/// <summary>
 	/// Very basic test that a correct response is returned.
 	/// </summary>
@@ -31,6 +37,46 @@ public class IdempotencyRequestCacheTests
 		Assert.NotNull(response);
 		Assert.IsType<SimpleResponseType>(response);
 		Assert.Same(preparedResponse, response); // Compare by reference.
+	}
+
+	/// <summary>
+	/// Tests <see cref="IdempotencyRequestCache.TryAddKey{TRequest, TResponse}(TRequest, MemoryCacheEntryOptions, out TaskCompletionSource{TResponse})"/>.
+	/// </summary>
+	[Fact]
+	public async Task TryAddAsync()
+	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
+
+		MemoryCacheEntryOptions memoryCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30) };
+		using MemoryCache memoryCache = new(new MemoryCacheOptions());
+		IdempotencyRequestCache cache = new(memoryCache);
+
+		string txid = "f461a0c37b41d0fdb64dd02969330fefd6f0a6c64428788be012c989c9795e56";
+		Assert.True(cache.TryAddKey(txid, memoryCacheEntryOptions, out TaskCompletionSource<Transaction> responseTcs));
+
+		Task<Transaction> cacheTask = cache.GetCachedResponseAsync<string, Transaction>(
+			request: txid,
+			action: (string txid, CancellationToken cancellationToken) => throw new UnreachableException(),
+			testDeadlineCts.Token);
+
+		Assert.False(cacheTask.IsCompleted);
+
+		// The order of the following two lines is important. Failing to do the operations in this order can lead to errors.
+		cache.Remove(txid);
+		responseTcs.TrySetException(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Not connected", null!));
+
+		// RPCException is supposed to be thrown by the task and not UnreachableException because we registered using TryAddKey first.
+		await Assert.ThrowsAsync<RPCException>(async () => await cacheTask.ConfigureAwait(false));
+
+		// Repeat the cache request. Now without TryAddKey.
+		Transaction expectedTransaction = Transaction.Parse(TransactionHex, Network.Main);
+
+		Transaction actualTransaction = await cache.GetCachedResponseAsync(
+			request: txid,
+			action: (string txid, CancellationToken cancellationToken) => Task.FromResult(expectedTransaction),
+			testDeadlineCts.Token);
+
+		Assert.Same(expectedTransaction, actualTransaction);
 	}
 
 	/// <summary>
