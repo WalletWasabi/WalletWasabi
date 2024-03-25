@@ -15,11 +15,4 @@ public abstract class TextInputStep : WorkflowStep<string>
 	protected override bool ValidateInitialValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
 
 	protected override bool ValidateUserValue(string? value) => !string.IsNullOrWhiteSpace(value?.Trim());
-
-	public override async Task ExecuteAsync()
-	{
-		IsBusy = true;
-		await base.ExecuteAsync();
-		IsBusy = false;
-	}
 }

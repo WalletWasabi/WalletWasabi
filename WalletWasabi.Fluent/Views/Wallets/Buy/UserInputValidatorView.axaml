@@ -218,9 +218,9 @@
                  Watermark="{Binding Watermark}">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
-            <DataTriggerBehavior Binding="{Binding IsBusy}" Value="False">
+            <OnSignalTriggerBehavior Trigger="{Binding Sent}">
               <FocusControlActionCustom TargetControl="TextBox" />
-            </DataTriggerBehavior>
+            </OnSignalTriggerBehavior>
           </Interaction.Behaviors>
           <ChatTextBox.Styles>
             <Style Selector="TextBox /template/ DataValidationErrors">
