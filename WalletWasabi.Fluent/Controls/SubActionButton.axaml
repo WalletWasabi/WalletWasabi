@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections">
 
   <Design.PreviewWith>
     <Border Padding="0">
@@ -7,9 +8,22 @@
         <StackPanel Spacing="20">
 
           <SubActionButton>
-            <SplitButton.Flyout>
-              <Flyout>Hello</Flyout>
-            </SplitButton.Flyout>
+            <SubActionButton.ItemsSource>
+              <generic:List x:TypeArguments="x:String">
+                <x:String>Item 0</x:String>
+                <x:String>Item 1</x:String>
+                <x:String>Item 2</x:String>
+              </generic:List>
+            </SubActionButton.ItemsSource>
+            <SubActionButton.Flyout>
+              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}">
+                <MenuFlyout.ItemTemplate>
+                  <DataTemplate DataType="x:String">
+                    <MenuItem Header="{Binding .}" />
+                  </DataTemplate>
+                </MenuFlyout.ItemTemplate>
+              </MenuFlyout>
+            </SubActionButton.Flyout>
             <StackPanel Orientation="Horizontal" Spacing="15">
               <PathIcon Data="{StaticResource wallet_action_send}" />
               <TextBlock Text="Send" />
@@ -17,9 +31,30 @@
           </SubActionButton>
 
           <SubActionButton CornerRadius="16" Content="Rounded">
-            <SplitButton.Flyout>
-              <Flyout>Hello</Flyout>
-            </SplitButton.Flyout>
+            <!-- <SubActionButton.ItemsSource> -->
+            <!--   <generic:List x:TypeArguments="x:String"> -->
+            <!--     <x:String>Item 0</x:String> -->
+            <!--     <x:String>Item 1</x:String> -->
+            <!--     <x:String>Item 2</x:String> -->
+            <!--   </generic:List> -->
+            <!-- </SubActionButton.ItemsSource> -->
+            <!-- <SubActionButton.Flyout> -->
+            <!--   <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}"> -->
+            <!--     <MenuFlyout.ItemTemplate> -->
+            <!--       <DataTemplate DataType="x:String"> -->
+            <!--         <MenuItem Header="{Binding .}" /> -->
+            <!--       </DataTemplate> -->
+            <!--     </MenuFlyout.ItemTemplate> -->
+            <!--   </MenuFlyout> -->
+            <!-- </SubActionButton.Flyout> -->
+
+            <SubActionButton.Flyout>
+              <MenuFlyout>
+                <MenuItem Header="Item 0" />
+                <MenuItem Header="Item 1" />
+                <MenuItem Header="Item 2" />
+              </MenuFlyout>
+            </SubActionButton.Flyout>
           </SubActionButton>
 
           <SplitButton IsEnabled="False">Disabled</SplitButton>
@@ -38,6 +73,12 @@
     <!-- TODO: Add Icon property support in the template or add InnerRight/InnerLeft content -->
 
     <!-- TODO: Add custom style for Wasabi -->
+
+    <!-- <Setter Property="Flyout"> -->
+    <!--     <MenuFlyout ItemsSource="{TemplateBinding ItemsSource}"> -->
+    <!-- -->
+    <!--     </MenuFlyout> -->
+    <!-- </Setter> -->
 
     <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Cursor" Value="Hand" />
