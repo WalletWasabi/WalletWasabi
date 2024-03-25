@@ -199,6 +199,14 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
+	private Dictionary<(ScriptPubKeyType, bool), int> knownIndexLastUsedKeyByTypeAndIsInternal = new Dictionary<(ScriptPubKeyType, bool), int>()
+	{
+		{ (ScriptPubKeyType.Segwit, true), 0 },
+		{ (ScriptPubKeyType.Segwit, false), 0 },
+		{ (ScriptPubKeyType.TaprootBIP86, true), 0 },
+		{ (ScriptPubKeyType.TaprootBIP86, false), 0 },
+	};
+
 	/// <summary>
 	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
 	/// </summary>
@@ -222,17 +230,27 @@ public class WalletFilterProcessor : BackgroundService
 			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
 		};
 
-		var listScriptPubKeyAccordingSyncType = scriptPubKeyAccordingSyncType.ToList();
+		var listScriptPubKeyAccordingSyncType = scriptPubKeyAccordingSyncType.GroupBy(x => (x.Type, x.IsInternal));
 
-		if (listScriptPubKeyAccordingSyncType.Count == 0)
+		if (listScriptPubKeyAccordingSyncType.Sum(x => x.Count()) == 0)
 		{
 			return Enumerable.Empty<byte[]>();
 		}
 
-		var lastUsedKey = Math.Max(0, listScriptPubKeyAccordingSyncType.FindLastIndex(x => x.FirstReceivingHeight is not null));
-		var lastCleanKeyToTestIndex = Math.Min(listScriptPubKeyAccordingSyncType.Count, lastUsedKey + KeyManager.MinGapLimit);
+		var result = Enumerable.Empty<byte[]>();
+		foreach (var group in listScriptPubKeyAccordingSyncType)
+		{
+			var list = group.ToList();
+			if (KeyManager.InvalidateFirstReceivingHeight)
+			{
+				knownIndexLastUsedKeyByTypeAndIsInternal[group.Key] = Math.Max(0, list.FindLastIndex(x => x.FirstReceivingHeight is not null));
+			}
+			var lastCleanKeyToTestIndex = Math.Min(list.Count, knownIndexLastUsedKeyByTypeAndIsInternal[group.Key] + KeyManager.MinGapLimit);
+			result = result.Union(list[..lastCleanKeyToTestIndex].Select(x => x.CompressedScriptPubKey));
+		}
+		KeyManager.InvalidateFirstReceivingHeight = false;
 
-		return listScriptPubKeyAccordingSyncType[..lastCleanKeyToTestIndex].Select(x => x.CompressedScriptPubKey);
+		return result;
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
