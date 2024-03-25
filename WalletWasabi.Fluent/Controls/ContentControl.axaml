@@ -1,0 +1,58 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Design.PreviewWith>
+    <Border Width="200" Height="200">
+      <ContentControl Width="150" Height="150" Theme="{StaticResource AcrylicPanel}">
+        <TextBox VerticalAlignment="Center">hi</TextBox>
+      </ContentControl>
+    </Border>
+  </Design.PreviewWith>
+
+  <ControlTheme TargetType="ContentControl" x:Key="AcrylicPanel">
+    <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
+    <Setter Property="BorderThickness" Value="1 1 1 1" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    <Setter Property="CornerRadius" Value="8 8 8 8" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Border Name="LayoutRoot" Margin="3 20 3 0"
+                  Classes.IsActive="{Binding IsActive, FallbackValue=false}"
+                  BoxShadow="0 0 5 0 #7F000000"
+                  Background="Transparent"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}" ClipToBounds="True">
+            <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
+              <Panel >
+                <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                  <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                                 TintColor="{DynamicResource AcrylicTrimBackground}"
+                                                 TintOpacity="1"
+                                                 FallbackColor="{DynamicResource AcrylicTrimBackground}"
+                                                 MaterialOpacity="0.9" />
+                  </ExperimentalAcrylicBorder.Material>
+                </ExperimentalAcrylicBorder>
+                <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
+
+                <ContentPresenter Content="{TemplateBinding Content}"
+                                  Padding="{TemplateBinding Padding}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  HorizontalContentAlignment="Stretch"
+                                  VerticalContentAlignment="Stretch" />
+              </Panel>
+            </Border>
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+  </ControlTheme>
+</ResourceDictionary>

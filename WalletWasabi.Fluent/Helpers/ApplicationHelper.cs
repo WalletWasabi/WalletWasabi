@@ -12,9 +12,11 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public static class ApplicationHelper
+public class ApplicationHelper
 {
 	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
+
+	public static ApplicationHelper Instance { get; } = new();
 
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
