@@ -17,7 +17,6 @@
   <Style Selector="FlyoutPresenter">
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
     <Setter Property="BorderThickness" Value="1 1 1 1" />
     <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
     <Setter Property="MinWidth" Value="{DynamicResource FlyoutThemeMinWidth}" />
