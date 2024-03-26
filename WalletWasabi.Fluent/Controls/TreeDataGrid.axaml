@@ -58,7 +58,7 @@
 
     <!-- Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isChild">
-      <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+      <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrushLight1}" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="CornerRadius" Value="0" />
     </Style>

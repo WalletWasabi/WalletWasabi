@@ -10,6 +10,7 @@
     <Setter Property="MinWidth" Value="38" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Background" Value="{DynamicResource TagsBoxItemBackground}" />
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type LabelsItemsPresenter}" TargetType="LabelsItemsPresenter">
