@@ -18,6 +18,7 @@
           <Style Selector="ProgressBar">
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Height" Value="8" />
           </Style>
         </Panel.Styles>
 
@@ -40,7 +41,7 @@
     </DockPanel>
 
     <TileControl.BottomContent>
-      <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+      <StackPanel Margin="0 12 0 0" Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
         <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
                 BorderBrush="{DynamicResource ButtonForeground}">
           <TextBlock
