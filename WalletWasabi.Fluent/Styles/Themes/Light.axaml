@@ -93,10 +93,6 @@
   <Color x:Key="AcrylicTrimForeground">#FCFCFC</Color>
   <Color x:Key="AcrylicTrimBackground">#90134074</Color>
 
-  <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
-  <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
-  <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
-
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#394A1B" />
   <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#F5F8EE" Opacity="0.5" />
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
@@ -122,8 +118,8 @@
   <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
 
   <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
-  <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #FF3870C7</BoxShadows>
-  <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 1 #FF3870C7</BoxShadows>
+  <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #DDA73E</BoxShadows>
+  <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 1 #DDA73E</BoxShadows>
   <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
   <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
   <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
@@ -238,16 +234,6 @@
 
   <SolidColorBrush x:Key="LogoBaseColor" Color="#000000" />
   <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
-
-  <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
-    <LinearGradientBrush.GradientStops>
-      <GradientStop Color="#FFFFFF" Offset="0" />
-      <GradientStop Color="#EFEFEF" Offset="0.1591" />
-      <GradientStop Color="#D4D4D4" Offset="0.4862" />
-      <GradientStop Color="#C3C3C3" Offset="0.775" />
-      <GradientStop Color="#BDBDBD" Offset="0.993" />
-    </LinearGradientBrush.GradientStops>
-  </LinearGradientBrush>
 
   <system:Double x:Key="TreeDataGridRowHeight">38</system:Double>
   <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
