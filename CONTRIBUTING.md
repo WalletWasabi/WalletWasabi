@@ -466,9 +466,9 @@ pull request to pull request.
 
 There are different ways to merge commits on GitHub. By default, the "Create merge commit" should be used. If there are several commits addressing the same change, the author can be asked to squash commits. For example:
 
-- Fix CF
-- Fix CF again
-- More CF fix
+- Fix code format
+- Fix code format again
+- More code format fix
 
-Do not squash more than that. The goal is not to have a short commit history but a step-by-step one. One commit should contain one logical code change that is described by the commit message. 
+Avoid squashing excessively. The objective is not to achieve a brief commit history but rather a sequential one, where each commit encapsulates a single logical change in the code, as detailed by its commit message.
 
