@@ -128,6 +128,7 @@ public class HwiKatas
 		Assert.Single(enumerate);
 		HwiEnumerateEntry entry = enumerate.Single();
 		Assert.NotNull(entry.Path);
+		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, entry.Path));
 		Assert.Equal(HardwareWalletModels.Trezor_Safe_3, entry.Model);
 		Assert.NotNull(entry.Fingerprint);
 
@@ -138,10 +139,10 @@ public class HwiKatas
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
-		
+
 		await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
-		
+
 		KeyPath keyPath1 = new("m/84h/0h/0h/0/0");
 		KeyPath keyPath2 = new("m/84h/0h/0h/0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
@@ -617,7 +618,6 @@ public class HwiKatas
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
 	}
 
-
 	[Fact]
 	public async Task BitBox02BtcOnlyKataAsync()
 	{
@@ -664,7 +664,6 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		
 		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/0");
 		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).Derive("0/1");
 		// USER: CONFIRM
