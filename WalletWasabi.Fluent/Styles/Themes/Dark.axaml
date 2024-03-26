@@ -98,7 +98,7 @@
   <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#1A2337</Color>
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
-  <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#293C30" />
+  <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="{StaticResource SystemAccentCustomColorDark}" Opacity="0.5" />
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
@@ -202,8 +202,8 @@
   <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 
-  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
-  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
+  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource ActionColorLight3}" />
+  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource ActionColorLight3}" />
 
   <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />
