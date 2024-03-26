@@ -143,11 +143,7 @@
                    Opacity="0.25"
                    Color="{StaticResource SystemBaseMediumLowColor}" />
 
-  <!-- ScrollBar -->
-  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#66FFFFFF" />
-  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#ff8d95a3" />
-  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#99ffffff" />
-
+  <!--TODO: MOVE TO COMMON FILE-->
   <!-- Base -->
   <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">15 7</Thickness>
   <Thickness x:Key="MenuFlyoutScrollerMargin">5</Thickness>
@@ -276,10 +272,14 @@
 
   <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="Transparent" />
 
-  <!--COMMON FOR LIGHT AND DARK THEMES. -->
-  <!--TODO: MOVE TO COMMON FILE-->
-  <SolidColorBrush x:Key="SoftAccentBrush" Opacity="0.8" Color="{DynamicResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="HardAccentBrush" Opacity="0.9" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="LowOpacityAccentBrush" Opacity="0.8" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="HighOpacityAccentBrush" Opacity="0.9" Color="{DynamicResource SystemAccentColor}" />
   <system:Int32 x:Key="WalletNameMaxLength">50</system:Int32>
+
+  <!-- ScrollBar -->
+  <SolidColorBrush x:Key="ScrollBarThumbBackgroundColor" Color="{DynamicResource ActionColor}" />
+  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{DynamicResource ActionColor}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource ActionColorLight2}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource ActionColorLight1}" />
 
 </ResourceDictionary>
