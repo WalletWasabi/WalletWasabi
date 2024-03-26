@@ -52,7 +52,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 
 			if (node is null || !node.IsConnected)
 			{
-				return await NotifyNodeManagerAndCreateResponse(
+				return await NotifyNodeManagerAndCreateResponseAsync(
 					block: null,
 					statusCode: P2pSourceDataStatusCode.NoPeerAvailable,
 					duration: duration.Elapsed,
@@ -79,7 +79,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 			// Validate block
 			if (!block.Check())
 			{
-				return await NotifyNodeManagerAndCreateResponse(
+				return await NotifyNodeManagerAndCreateResponseAsync(
 					block: null,
 					statusCode: P2pSourceDataStatusCode.InvalidBlockProvided,
 					duration: duration.Elapsed,
@@ -87,7 +87,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 					connectedNodes: connectedNodes).ConfigureAwait(false);
 			}
 
-			return await NotifyNodeManagerAndCreateResponse(
+			return await NotifyNodeManagerAndCreateResponseAsync(
 				block: block,
 				statusCode: P2pSourceDataStatusCode.InvalidBlockProvided,
 				duration: duration.Elapsed,
@@ -98,7 +98,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 		{
 			if (ex is OperationCanceledException or TimeoutException)
 			{
-				return await NotifyNodeManagerAndCreateResponse(
+				return await NotifyNodeManagerAndCreateResponseAsync(
 					block: null,
 					statusCode: P2pSourceDataStatusCode.Cancelled,
 					duration: duration.Elapsed,
@@ -107,7 +107,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 			}
 
 			Logger.LogDebug(ex);
-			return await NotifyNodeManagerAndCreateResponse(
+			return await NotifyNodeManagerAndCreateResponseAsync(
 				block: null,
 				statusCode: P2pSourceDataStatusCode.Failure,
 				duration: duration.Elapsed,
@@ -116,7 +116,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 		}
 	}
 
-	private async Task<P2pBlockResponse> NotifyNodeManagerAndCreateResponse(Block? block, P2pSourceDataStatusCode statusCode, TimeSpan duration, Node? node, uint connectedNodes)
+	private async Task<P2pBlockResponse> NotifyNodeManagerAndCreateResponseAsync(Block? block, P2pSourceDataStatusCode statusCode, TimeSpan duration, Node? node, uint connectedNodes)
 	{
 		var p2pSourceData = new P2pSourceData(statusCode, duration, node, connectedNodes);
 		await P2PNodesManager.NotifyDownloadFinishedAsync(p2pSourceData).ConfigureAwait(false);
