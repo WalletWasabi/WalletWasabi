@@ -236,16 +236,7 @@
 
   <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
-  <LinearGradientBrush x:Key="LogoBaseColor" StartPoint="616.03,205.77002" EndPoint="371.41003,625.12">
-    <LinearGradientBrush.GradientStops>
-      <GradientStop Offset="0" Color="#FFFFFFFF" />
-      <GradientStop Offset="0.25" Color="#FFE1E1E1" />
-      <GradientStop Offset="0.54" Color="#FFC6C6C6" />
-      <GradientStop Offset="0.79999995" Color="#FFB5B5B5" />
-      <GradientStop Offset="0.99" Color="#FFAFAFAF" />
-    </LinearGradientBrush.GradientStops>
-  </LinearGradientBrush>
-
+  <SolidColorBrush x:Key="LogoBaseColor" Color="#FFFFFF" />
   <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
 
   <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
