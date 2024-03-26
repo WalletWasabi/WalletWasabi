@@ -206,8 +206,8 @@
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />
   <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
 
-  <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="{StaticResource SystemAccentColor}" Opacity="0.6" />
-  <SolidColorBrush x:Key="DataGridRowIndicatorFadedBrush" Color="{StaticResource SystemAccentColor}" Opacity="0.2" />
+  <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="{StaticResource SystemBaseHighColor}" Opacity="0.6" />
+  <SolidColorBrush x:Key="DataGridRowIndicatorFadedBrush" Color="{StaticResource SystemBaseHighColor}" Opacity="0.2" />
   <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
   <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent" />
   <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
