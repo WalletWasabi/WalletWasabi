@@ -35,10 +35,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
 
-		if (!UiContext.WalletRepository.HasWallet && NextCommand.CanExecute(default))
-		{
-			NextCommand.Execute(default);
-		}
 	}
 
 	private async Task OnNextAsync()
@@ -105,6 +101,10 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		if (isInHistory && !UiContext.WalletRepository.HasWallet)
 		{
 			Navigate().Back();
+		}
+		else if (!UiContext.WalletRepository.HasWallet && NextCommand.CanExecute(default))
+		{
+			NextCommand.Execute(default);
 		}
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
