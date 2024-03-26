@@ -35,9 +35,9 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 			.DisposeWith(Disposables);
 	}
 
-	protected CompositeDisposable Disposables { get; } = new();
-
 	public event EventHandler<Exception>? OnStepError;
+	
+	protected CompositeDisposable Disposables { get; } = new();
 
 	public abstract IMessageEditor MessageEditor { get; }
 

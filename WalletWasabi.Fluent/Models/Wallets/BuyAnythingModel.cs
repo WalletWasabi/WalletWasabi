@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
@@ -12,7 +11,6 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class BuyAnythingModel(Wallet wallet)
 {
 	private const string NewOrderTitle = "New Order";
-	private readonly Wallet _wallet = wallet;
 	private readonly Lazy<BuyAnythingManager> _buyAnythingManager = new Lazy<BuyAnythingManager>(() => Services.HostedServices.Get<BuyAnythingManager>());
 
 	private BuyAnythingManager BuyAnythingManager => _buyAnythingManager.Value;
@@ -20,7 +18,7 @@ public partial class BuyAnythingModel(Wallet wallet)
 	public Workflow CreateWorkflow(Conversation conversation)
 	{
 		// If another type of workflow is required in the future this is the place where it should be defined
-		var workflow = new ShopinBitWorkflow(_wallet, conversation);
+		var workflow = new ShopinBitWorkflow(wallet, conversation);
 
 		return workflow;
 	}
@@ -32,12 +30,12 @@ public partial class BuyAnythingModel(Wallet wallet)
 
 	public async Task<Conversation[]> GetConversationsAsync(CancellationToken cancellationToken)
 	{
-		return await BuyAnythingManager.GetConversationsAsync(_wallet, cancellationToken);
+		return await BuyAnythingManager.GetConversationsAsync(wallet, cancellationToken);
 	}
 
 	public async Task<Conversation> StartConversationAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
-		return await BuyAnythingManager.StartNewConversationAsync(_wallet, conversation, cancellationToken);
+		return await BuyAnythingManager.StartNewConversationAsync(wallet, conversation, cancellationToken);
 	}
 
 	public async Task RemoveConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
@@ -45,4 +43,3 @@ public partial class BuyAnythingModel(Wallet wallet)
 		await BuyAnythingManager.RemoveConversationsByIdsAsync([conversationId], cancellationToken);
 	}
 }
-
