@@ -34,7 +34,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
-
 	}
 
 	private async Task OnNextAsync()
@@ -102,9 +101,9 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		{
 			Navigate().Back();
 		}
-		else if (!UiContext.WalletRepository.HasWallet && NextCommand.CanExecute(default))
+		else if (!UiContext.WalletRepository.HasWallet && NextCommand is { } cmd && cmd.CanExecute(default))
 		{
-			NextCommand.Execute(default);
+			cmd.Execute(default);
 		}
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
