@@ -83,6 +83,7 @@ public class ConfigManagerTests
 			  "MaxInputCountByRound": 100,
 			  "MinInputCountByRoundMultiplier": 0.5,
 			  "MinInputCountByBlameRoundMultiplier": 0.4,
+			  "RoundDestroyerThreshold": 375,
 			  "CoordinationFeeRate": {
 			    "Rate": {{coordinationFeeRate}},
 			    "PlebsDontPayThreshold": 1000000

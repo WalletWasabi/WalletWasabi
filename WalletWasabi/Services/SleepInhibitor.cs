@@ -6,6 +6,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Helpers.PowerSaving;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
 
 namespace WalletWasabi.Services;

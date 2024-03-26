@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -9,6 +10,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using Xunit;
@@ -74,9 +76,10 @@ public class CoordinatorTests
 		var workDir = Common.GetWorkDir();
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		WabiSabiConfig cfg = coordinatorParameters.RuntimeCoordinatorConfig;
-		DoSConfiguration dosConfig = cfg.GetDoSConfiguration();
+		DoSConfiguration dosConfig = cfg.GetDoSConfiguration() with { MinTimeInPrison = TimeSpan.Zero };
 		var coinJoinIdStore = new InMemoryCoinJoinIdStore();
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient(), coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
+		var mockRpcClient = new MockRpcClient { Network = Network.Main };
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
 
 		// Receive a tx that is not spending coins registered in any round.
 		{
@@ -98,11 +101,21 @@ public class CoordinatorTests
 			round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 			coordinator.Arena.Rounds.Add(round);
 
-			// .. spend it also in another transaction (tx2).
-			tx2 = CreateTransaction(Money.Coins(0.1m), alice.Coin.Outpoint);
+			// .. spend it also in another transaction paying less fee rate than the coinjoin
+			tx2 = CreateTransaction(Money.Coins(0.999999m), alice.Coin.Outpoint); // spends almost the full bitcoin.
+			mockRpcClient.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { TxOut = alice.Coin.TxOut };
 			coordinator.BanDoubleSpenders(this, tx2);
 			var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
 			Assert.True(isOutputBanned); // Banned.
+			Assert.DoesNotContain(round.Id, coordinator.Arena.DisruptedRounds);
+
+			// .. spend it also in another transaction (tx2).
+			tx2.Outputs[0].Value = Money.Coins(0.1m);
+			mockRpcClient.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { TxOut = alice.Coin.TxOut };
+			coordinator.BanDoubleSpenders(this, tx2);
+			isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
+			Assert.True(isOutputBanned); // Banned.
+			Assert.Contains(round.Id, coordinator.Arena.DisruptedRounds);
 		}
 
 		// Receive a tx that is spending coins registered in a round but the tx is a Wasabi coinjoin

@@ -12,7 +12,7 @@
                Caption="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee + the mining fees. Select a coinjoin strategy that fits you best!"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
-               NextContent="Continue" EnableNext="True"
+               NextContent="Done" EnableNext="True"
                ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
 
     <ContentArea.Styles>
