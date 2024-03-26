@@ -28,8 +28,6 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
-	public event EventHandler<RequestedUnconfirmedChainEventArgs>? RequestedUnconfirmedChainArrived;
-
 	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
@@ -63,9 +61,6 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 				{
 					throw new InvalidOperationException($"Failed to cache unconfirmed tx chain for {txid}");
 				}
-
-				RequestedUnconfirmedChainArrived?.Invoke(this, new(txid));
-				return;
 			}
 			catch (Exception ex)
 			{
@@ -77,11 +72,6 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 				Logger.LogWarning($"Attempt: {i}. Failed to fetch transaction fee. {ex}");
 			}
 		}
-	}
-
-	public bool TryGetUnconfirmedChainFromCache(uint256 txid, [NotNullWhen(true)] out List<UnconfirmedTransactionChainItem>? chain)
-	{
-		return UnconfirmedChainCache.TryGetValue(txid, out chain);
 	}
 
 	public void BeginRequestUnconfirmedChain(SmartTransaction tx)
@@ -134,15 +124,5 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 	{
 		Semaphore.Dispose();
 		base.Dispose();
-	}
-
-	public class RequestedUnconfirmedChainEventArgs : EventArgs
-	{
-		public RequestedUnconfirmedChainEventArgs(uint256 txId)
-		{
-			TxId = txId;
-		}
-
-		public uint256 TxId { get; }
 	}
 }
