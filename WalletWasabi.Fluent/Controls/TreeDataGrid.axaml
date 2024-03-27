@@ -63,9 +63,15 @@
       <Setter Property="Margin" Value="0" />
       <Setter Property="CornerRadius" Value="0" />
     </Style>
+    <Style Selector="^/template/ Border#BackgroundRectangle.isChild">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
 
     <!-- Last Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isLastChild">
+      <Setter Property="CornerRadius" Value="0 0 15 15" />
+    </Style>
+    <Style Selector="^/template/ Border#BackgroundRectangle.isLastChild">
       <Setter Property="CornerRadius" Value="0 0 15 15" />
     </Style>
 
@@ -156,13 +162,16 @@
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
           <Panel>
-            <Border Name="BackgroundRectangle"
-                       Classes.selectAnimation="{Binding IsFlashing}" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
                                         Rows="{TemplateBinding Rows}"
                                         Margin="0 0 -2 0" />
+            <Border Name="BackgroundRectangle"
+                    Classes.selectAnimation="{Binding IsFlashing}"
+                    Classes.isChild="{Binding IsChild}"
+                    Classes.isLastChild="{Binding IsLastChild}"
+                    IsHitTestVisible="False" />
           </Panel>
         </Border>
       </ControlTemplate>
@@ -177,22 +186,22 @@
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="40%">
-            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="Opacity" Value="0.5" />
           </KeyFrame>
           <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="Opacity" Value="0.5" />
           </KeyFrame>
           <KeyFrame Cue="60%">
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="70%">
-            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
           <KeyFrame Cue="80%">
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="90%">
-            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="0" />
