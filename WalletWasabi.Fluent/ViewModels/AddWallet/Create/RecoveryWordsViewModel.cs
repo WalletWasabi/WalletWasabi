@@ -83,6 +83,8 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
+		IsConfirmed = false;
+
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
