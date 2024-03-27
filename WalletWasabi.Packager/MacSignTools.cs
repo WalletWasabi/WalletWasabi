@@ -305,7 +305,7 @@ public static class MacSignTools
 			File.Move(dmgFilePath, desktopDmgFilePath);
 			DeleteWithChmod(workingDir);
 
-			Console.WriteLine("Phase: finish.");
+			Console.WriteLine($"Phase: finished for {dmgFileName}.");
 
 			var toRemovableFilePath = Path.Combine(removableDriveFolder, Path.GetFileName(desktopDmgFilePath));
 			File.Move(desktopDmgFilePath, toRemovableFilePath, true);
@@ -315,6 +315,7 @@ public static class MacSignTools
 				File.Delete(zipPath);
 			}
 		}
+		Console.WriteLine("Phase: finished successfully.");
 	}
 
 	private static Process WaitProcessToFinish(Process? process, string processName)
@@ -340,6 +341,8 @@ public static class MacSignTools
 
 		var nonNullProcess = WaitProcessToFinish(process, "xcrum");
 		string result = nonNullProcess.StandardOutput.ReadToEnd();
+
+		Console.WriteLine(result);
 	}
 
 	private static void Staple(string filePath)
