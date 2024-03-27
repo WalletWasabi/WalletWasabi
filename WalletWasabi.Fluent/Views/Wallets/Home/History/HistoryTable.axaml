@@ -6,6 +6,8 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -106,6 +108,9 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
+    <converters:BooleanConverter x:Key="BooleanConverter" FalseValue="{DynamicResource PositiveAmountColor}"
+                                 TrueValue="{DynamicResource AcrylicTrimForeground}">
+    </converters:BooleanConverter>
   </UserControl.Resources>
 
   <DockPanel>
@@ -143,7 +148,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
           </Style>
           <Style Selector="TreeDataGridRow.PositiveAmount treeDataGrid|TreeDataGridAmountPrivacyTextCell">
-            <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
+            <Setter Property="Foreground" Value="{Binding Source={x:Static fluent:Services.UiConfig}, Path=PrivacyMode, Converter={StaticResource BooleanConverter}}"  />
           </Style>
           <Style Selector="treeDataGrid|TreeDataGridDatePrivacyTextCell" x:DataType="historyItems:HistoryItemViewModelBase">
             <Setter Property="FontSize" Value="13" />
