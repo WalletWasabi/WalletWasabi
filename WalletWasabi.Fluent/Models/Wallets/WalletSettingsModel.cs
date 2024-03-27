@@ -23,6 +23,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
+	[AutoNotify] private Wallet _outputWallet;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -40,6 +41,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_redCoinIsolation = _keyManager.RedCoinIsolation;
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
+		_outputWallet = _keyManager.OutputWallet;
 
 		WalletType = WalletHelpers.GetType(_keyManager);
 
