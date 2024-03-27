@@ -41,15 +41,7 @@
   <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
   <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
-  <!-- Action Colors -->
   <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
-  <Color x:Key="ActionColor">#77C400</Color>
-  <Color x:Key="ActionColorLight1">#FF87CC1E</Color>
-  <Color x:Key="ActionColorLight2">#FF98D43C</Color>
-  <Color x:Key="ActionColorLight3">#FFA8DB5A</Color>
-  <Color x:Key="ActionColorDark1">#FF63AF00</Color>
-  <Color x:Key="ActionColorDark2">#FF4F9A00</Color>
-  <Color x:Key="ActionColorDark3">#FF3C8600</Color>
 
   <Color x:Key="RegionColor">#1F1F1F</Color>
 
@@ -104,17 +96,17 @@
   <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
   <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
-  <Color x:Key="BuyAnythingConversationsBackground">#262626</Color>
-  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="#333333" />
-  <SolidColorBrush x:Key="ChatInputBackground" Color="#262626" />
-  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="#333333" />
-  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="#333333" Opacity="0.5" />
-  <SolidColorBrush x:Key="ConversationPressedBackground" Color="#333333" Opacity="0.8" />
-  <SolidColorBrush x:Key="AssistantMessageBackground" Color="#262626" />
+  <SolidColorBrush x:Key="BuyAnythingConversationsBackground" Color="{StaticResource Layer1BackgroundBrush}" />
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="{StaticResource Layer2BackgroundBrush}" />
+  <SolidColorBrush x:Key="ChatInputBackground" Color="{StaticResource Layer1BackgroundBrush}" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="{StaticResource Layer2BackgroundBrush}" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.8" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="{StaticResource Layer1BackgroundBrush}" />
   <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
-  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#262626</SolidColorBrush>
+  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor" Color="{StaticResource Layer1BackgroundBrush}" />
 
   <SolidColorBrush x:Key="DialogOverlayColor">#80333333</SolidColorBrush>
 
@@ -131,15 +123,6 @@
   <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
 
-  <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush"
-                   Opacity="0.25"
-                   Color="{StaticResource SystemBaseMediumLowColor}" />
-
-  <!-- TODO: Fix DataGridRowSelectedUnfocusedBackgroundColor as StaticResource will not work -->
-  <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
-                   Opacity="0.25"
-                   Color="{StaticResource SystemBaseMediumLowColor}" />
-
   <!--TODO: MOVE TO COMMON FILE-->
   <!-- Base -->
   <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">15 7</Thickness>
@@ -152,13 +135,11 @@
   <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{StaticResource SystemChromeMediumLowColor}" />
   <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource SystemBaseLowColor}" />
 
-
   <Color x:Key="OrangeCoinColor">#F2994A</Color>
   <Color x:Key="CoinjoinActiveColor">Orange</Color>
   <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
   <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{StaticResource SystemBaseHighColor}" />
-
 
   <Color x:Key="StatusForegroundColor">White</Color>
 
@@ -170,11 +151,10 @@
   <SolidColorBrush x:Key="TagsBoxItemBackground" Color="#323232" />
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
-
   <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />
-  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource ActionColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource ActionColorDark1}" />
-  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource ActionColorLight1}" />
+  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
 
   <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}" />
@@ -199,8 +179,8 @@
   <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 
-  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource ActionColorLight3}" />
-  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource ActionColorLight3}" />
+  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
+  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
 
   <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />
@@ -221,7 +201,6 @@
   <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
   <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
-
   <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{StaticResource SystemAccentColor}" />
   <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
@@ -229,7 +208,6 @@
   <SolidColorBrush x:Key="PositiveAmountColor" Color="{StaticResource SystemAccentCustomColorLight}" />
 
   <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
-
 
   <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
@@ -255,9 +233,9 @@
   <system:Int32 x:Key="WalletNameMaxLength">50</system:Int32>
 
   <!-- ScrollBar -->
-  <SolidColorBrush x:Key="ScrollBarThumbBackgroundColor" Color="{DynamicResource ActionColor}" />
-  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{DynamicResource ActionColor}" />
-  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource ActionColorLight2}" />
-  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource ActionColorLight1}" />
+  <SolidColorBrush x:Key="ScrollBarThumbBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{DynamicResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource SystemAccentColorLight1}" />
 
 </ResourceDictionary>
