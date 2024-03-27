@@ -7,6 +7,14 @@
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.RecoveryWord">
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
+      <Setter Property="Height" Value="42" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                CancelContent="Cancel"
@@ -44,12 +52,6 @@
           </ContextMenu>
         </Panel.ContextMenu>
         <ItemsControl ItemsSource="{Binding MnemonicWords}">
-          <ItemsControl.Styles>
-            <Style Selector="TextBlock">
-              <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
-              <Setter Property="Height" Value="42" />
-            </Style>
-          </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
@@ -58,8 +60,12 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
-                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
+                           Opacity="0.5"
+                           Classes="RecoveryWord" />
+                <TextBlock Text="{Binding Word}" FontWeight="SemiBold"
+                           Margin="5 0 0 0"
+                           Classes="RecoveryWord" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -73,6 +79,7 @@
 
       <TextBlock HorizontalAlignment="Center"
                  IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 Classes="RecoveryWord"
                  Grid.Row="6">
         <Run>Passphrase: </Run>
         <Run Text="{Binding Passphrase}"
