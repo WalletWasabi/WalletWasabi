@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
-             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="600"
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
@@ -19,11 +19,20 @@
         <RowDefinition MinHeight="70" Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+      <InfoMessage HorizontalAlignment="Center"
+                   Margin="0,0,0,20"
+                   Grid.Row="2">
+        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
+      </InfoMessage>
+
+      <Panel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
         <Panel.ContextMenu>
           <ContextMenu>
             <MenuItem Header="Copy recovery words"
@@ -62,11 +71,19 @@
         </Grid>
       </Panel>
 
-      <InfoMessage Opacity="0.5"
-                     HorizontalAlignment="Center"
-                     Grid.Row="4">
-        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
-      </InfoMessage>
+      <TextBlock HorizontalAlignment="Center"
+                 IsVisible="{Binding Passphrase, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 Grid.Row="6">
+        <Run>Passphrase: </Run>
+        <Run Text="{Binding Passphrase}"
+             FontWeight="SemiBold" />
+      </TextBlock>
+
+      <CheckBox Content="I have written down the 12 words and the passphrase"
+                HorizontalAlignment="Center"
+                IsChecked="{Binding IsConfirmed}"
+                Grid.Row="7" />
+
     </Grid>
   </ContentArea>
 </UserControl>
