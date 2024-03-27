@@ -56,7 +56,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 				if (password is { })
 				{
-					var addOptions = add with { Password = password };
+					var addOptions = add with { Passphrase = password };
 
 					Navigate().To().RecoveryWords(addOptions);
 				}

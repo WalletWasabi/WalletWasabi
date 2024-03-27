@@ -3,10 +3,10 @@ using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Fluent.Models;
 
-public abstract record WalletCreationOptions(string? WalletName = null, string? Password = null)
+public abstract record WalletCreationOptions(string? WalletName = null, string? Passphrase = null)
 {
-	public record AddNewWallet(string? WalletName = null, string? Password = null, Mnemonic? Mnemonic = null)
-		: WalletCreationOptions(WalletName, Password)
+	public record AddNewWallet(string? WalletName = null, string? Passphrase = null, Mnemonic? Mnemonic = null)
+		: WalletCreationOptions(WalletName, Passphrase)
 	{
 		public AddNewWallet WithNewMnemonic()
 		{
@@ -20,6 +20,6 @@ public abstract record WalletCreationOptions(string? WalletName = null, string? 
 	public record ImportWallet(string? WalletName = null, string? FilePath = null)
 		: WalletCreationOptions(WalletName);
 
-	public record RecoverWallet(string? WalletName = null, string? Password = null, Mnemonic? Mnemonic = null, int? MinGapLimit = null)
-		: WalletCreationOptions(WalletName, Password);
+	public record RecoverWallet(string? WalletName = null, string? Passphrase = null, Mnemonic? Mnemonic = null, int? MinGapLimit = null)
+		: WalletCreationOptions(WalletName, Passphrase);
 }
