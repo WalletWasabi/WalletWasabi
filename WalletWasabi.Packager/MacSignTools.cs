@@ -329,83 +329,17 @@ public static class MacSignTools
 
 	private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
 	{
-		string? uploadId = null;
-
 		Console.WriteLine("Start notarizing, uploading file.");
 
-		using (var process = Process.Start(new ProcessStartInfo
+		using var process = Process.Start(new ProcessStartInfo
 		{
 			FileName = "xcrun",
 			Arguments = $"notarytool submit --wait --apple-id \"{appleId}\" -p \"WasabiNotarize\" \"{filePath}\" ",
 			RedirectStandardOutput = true,
-		}))
-		{
-			var nonNullProcess = WaitProcessToFinish(process, "xcrum");
-			string result = nonNullProcess.StandardOutput.ReadToEnd();
+		});
 
-			if (result.Contains("The software asset has already been uploaded. The upload ID is"))
-			{
-				// Example: The software asset has already been uploaded. The upload ID is 7689dc08-d6c8-4783-8d28-33e575f5c967
-				uploadId = result.Split('"').First(line => line.Contains("The software asset has already been uploaded.")).Split("The upload ID is")[^1].Trim();
-			}
-			else if (result.Contains("No errors uploading"))
-			{
-				// Example: <key>RequestUUID</key>\n\t\t<string>2a2a164f-2ae7-4293-8357-5d5a5cdd580a</string>
-
-				var lines = result.Split('\n');
-
-				for (int i = 0; i < lines.Length; i++)
-				{
-					string line = lines[i].Trim();
-					if (!line.TrimStart().StartsWith("<key>", StringComparison.InvariantCultureIgnoreCase))
-					{
-						continue;
-					}
-
-					if (line.Contains("<key>RequestUUID</key>", StringComparison.InvariantCulture))
-					{
-						uploadId = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
-					}
-				}
-			}
-		}
-
-		if (uploadId is null)
-		{
-			throw new InvalidOperationException("Cannot get uploadId. Notarization failed.");
-		}
-
-		Stopwatch sw = new();
-		sw.Start();
-		while (true) // Wait for the notarization.
-		{
-			Console.WriteLine($"Checking notarization status. Elapsed time: {sw.Elapsed}");
-			using var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "xcrun",
-				Arguments = $"altool --notarization-info \"{uploadId}\" -u \"{appleId}\" -p \"{password}\"",
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-			});
-			var nonNullProcess = WaitProcessToFinish(process, "xcrum");
-			string result = $"{nonNullProcess.StandardError.ReadToEnd()} {nonNullProcess.StandardOutput.ReadToEnd()}";
-			if (result.Contains("Status Message: Package Approved"))
-			{
-				break;
-			}
-			if (result.Contains("Status: in progress"))
-			{
-				Thread.Sleep(4000);
-				continue;
-			}
-			if (result.Contains("Could not find the RequestUUID"))
-			{
-				Thread.Sleep(4000);
-				continue;
-			}
-
-			throw new InvalidOperationException(result);
-		}
+		var nonNullProcess = WaitProcessToFinish(process, "xcrum");
+		string result = nonNullProcess.StandardOutput.ReadToEnd();
 	}
 
 	private static void Staple(string filePath)
