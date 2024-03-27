@@ -336,7 +336,7 @@ public static class MacSignTools
 		using (var process = Process.Start(new ProcessStartInfo
 		{
 			FileName = "xcrun",
-			Arguments = $"altool --notarize-app -t osx -f \"{filePath}\" --primary-bundle-id \"{bundleIdentifier}\" -u \"{appleId}\" -p \"{password}\" --output-format xml",
+			Arguments = $"notarytool submit --wait --apple-id \"{appleId}\" -p \"WasabiNotarize\" \"{filePath}\" ",
 			RedirectStandardOutput = true,
 		}))
 		{
