@@ -525,9 +525,9 @@ public class BlockchainController : ControllerBase
 			.Select(input => input.PrevOut)
 			.ToList();
 
-		foreach (var parentTx in parentTxs)
+		foreach (var prevOut in prevOutsForCurrentTx)
 		{
-			var prevOut = prevOutsForCurrentTx.First(x => x.Hash == parentTx.GetHash());
+			var parentTx = parentTxs.First(x => x.GetHash() == prevOut.Hash);
 			var txOut = parentTx.Outputs[prevOut.N];
 			inputs.Add(new Coin(prevOut, txOut));
 		}
