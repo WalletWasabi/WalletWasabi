@@ -31,6 +31,7 @@
     </ControlTheme>
 
     <ControlTheme x:Key="HistorySortButton" TargetType="Button" BasedOn="{StaticResource SortButtonBase}">
+      <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}" />
       <Setter Property="Width" Value="36" />
       <Setter Property="Height" Value="20" />
       <Setter Property="CornerRadius" Value="10" />
