@@ -13,6 +13,9 @@
       <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
       <Setter Property="Height" Value="42" />
     </Style>
+    <Style Selector="TextBlock.Passphrase">
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
+    </Style>
   </UserControl.Styles>
 
   <ContentArea Title="{Binding Title}"
@@ -79,7 +82,7 @@
 
       <TextBlock HorizontalAlignment="Center"
                  IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                 Classes="RecoveryWord"
+                 Classes="Passphrase"
                  Grid.Row="6">
         <Run>Passphrase: </Run>
         <Run Text="{Binding Passphrase}"
