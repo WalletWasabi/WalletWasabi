@@ -51,7 +51,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		{
 			case WalletCreationOptions.AddNewWallet add:
 				var dialogCaption = "This is needed to open and to recover your wallet.\n" +
-				                    "be used as the 13th seed word, it can never be changed. ";
+				                    "It will be used as the 13th seed word, it can never be changed.";
 				var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
 				if (password is { })
