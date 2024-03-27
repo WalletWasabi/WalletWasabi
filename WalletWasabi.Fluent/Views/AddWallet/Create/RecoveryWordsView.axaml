@@ -72,7 +72,7 @@
       </Panel>
 
       <TextBlock HorizontalAlignment="Center"
-                 IsVisible="{Binding Passphrase, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                  Grid.Row="6">
         <Run>Passphrase: </Run>
         <Run Text="{Binding Passphrase}"
