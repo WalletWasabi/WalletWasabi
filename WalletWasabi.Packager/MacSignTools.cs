@@ -332,6 +332,7 @@ public static class MacSignTools
 	{
 		Console.WriteLine("Start notarizing, uploading file.");
 
+		// -p WasabiNotarize = Saved the credentials in the keychain profile which keeps the password safe on the local machine. Name of the profile is "WasabiNotarize".
 		using var process = Process.Start(new ProcessStartInfo
 		{
 			FileName = "xcrun",
