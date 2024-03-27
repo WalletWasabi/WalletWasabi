@@ -79,10 +79,17 @@
              FontWeight="SemiBold" />
       </TextBlock>
 
-      <CheckBox Content="I have written down the 12 words and the passphrase"
-                HorizontalAlignment="Center"
+      <CheckBox HorizontalAlignment="Center"
                 IsChecked="{Binding IsConfirmed}"
-                Grid.Row="7" />
+                Grid.Row="7">
+        <CheckBox.Content>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="I have written down the 12 words" />
+            <TextBlock Text=" and the passphrase"
+                       IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+        </CheckBox.Content>
+      </CheckBox>
 
     </Grid>
   </ContentArea>
