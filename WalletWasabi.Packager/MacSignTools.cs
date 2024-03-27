@@ -185,7 +185,7 @@ public static class MacSignTools
 				WaitProcessToFinish(process, "ditto");
 			}
 
-			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
+			Notarize(appleId, appNotarizeFilePath);
 			Staple(appPath);
 
 			using (var process = Process.Start(new ProcessStartInfo
@@ -281,7 +281,7 @@ public static class MacSignTools
 			Verify(dmgFilePath);
 
 			Console.WriteLine("Phase: notarize dmg");
-			Notarize(appleId, password, dmgFilePath, bundleIdentifier);
+			Notarize(appleId, dmgFilePath);
 
 			Console.WriteLine("Phase: staple dmp");
 			Staple(dmgFilePath);
@@ -328,7 +328,7 @@ public static class MacSignTools
 		return process;
 	}
 
-	private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
+	private static void Notarize(string appleId, string filePath)
 	{
 		Console.WriteLine("Start notarizing, uploading file.");
 
