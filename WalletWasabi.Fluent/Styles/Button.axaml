@@ -8,9 +8,9 @@
 
     <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="CornerRadius" Value="6" />
       <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Padding" Value="9 7" />
       <Style Selector="^:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
@@ -21,6 +21,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       </Style>
     </ControlTheme>
+
     <ControlTheme x:Key="SortButtonBase" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
       <Setter Property="Foreground">
