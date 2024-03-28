@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -28,6 +29,7 @@ public static class Program
 
 	public const string DaemonExecutableName = Constants.DaemonExecutableName;
 	public const string ExecutableName = Constants.ExecutableName;
+	public const string SilentExecutableName = Constants.SilentExecutableName;
 
 	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
 	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
@@ -36,8 +38,8 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"win-x64",
-		"linux-x64",
+		//"win-x64",
+		//"linux-x64",
 		"osx-x64",
 		"osx-arm64"
 	};
@@ -50,6 +52,7 @@ public static class Program
 	public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 	public static string SolutionDirectory { get; } = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
 	public static string DesktopProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
+	public static string StartsilentProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.OSXStartsilent"));
 	public static string LibraryProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
 	public static string WixProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
 	public static string BinDistDirectory { get; } = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
@@ -334,6 +337,12 @@ public static class Program
 			// Delete unused executables.
 			File.Delete(Path.Combine(currentBinDistDirectory, $"WalletWasabi.Fluent{executableExtension}"));
 
+			if (target.StartsWith("osx"))
+			{
+				// Deliver WalletWasabi.OSXStartsilent as well.
+				ReleaseOSXStartsilent(target);
+			}
+
 			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 			if (OnlyBinaries)
 			{
@@ -372,18 +381,18 @@ public static class Program
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"# Deleted {currentBinDistDirectory}");
 
-				string drive = Tools.GetSingleUsbDrive();
-				string targetFilePath = Path.Combine(drive, zipFileName);
+				//string drive = Tools.GetSingleUsbDrive();
+				//string targetFilePath = Path.Combine(drive, zipFileName);
 
-				try
-				{
-					File.Move(zipFilePath, targetFilePath, overwrite: true);
-					Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
-				}
+				//try
+				//{
+				//	File.Move(zipFilePath, targetFilePath, overwrite: true);
+				//	Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
+				//}
+				//catch (Exception ex)
+				//{
+				//	Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
+				//}
 			}
 			else if (target.StartsWith("linux"))
 			{
@@ -495,7 +504,7 @@ public static class Program
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
 				var wasabiDaemonStarterScriptContent = Shebang +
-				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
+					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 				File.WriteAllText(wasabiDaemonStarterScriptPath, wasabiDaemonStarterScriptContent, Encoding.ASCII);
@@ -523,6 +532,10 @@ public static class Program
 				Console.WriteLine($"# Deleted {publishedFolder}");
 			}
 		}
+	}
+
+	private static void ReleaseOSXStartsilent(string target)
+	{
 	}
 
 	/// <summary>Checks whether there are uncommitted changes.</summary>
