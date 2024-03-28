@@ -7,7 +7,7 @@ public class ThemeImage: Image
 {
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		ActualThemeVariantChanged += OnThemeVariantChanged
+		ActualThemeVariantChanged += OnThemeVariantChanged;
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
