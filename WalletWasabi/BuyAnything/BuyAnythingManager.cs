@@ -338,7 +338,7 @@ public class BuyAnythingManager : PeriodicRunner
 		var walletId = GetWalletId(wallet);
 
 		var (orderId, orderNumber) =
-			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
+			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, fullChat.ToText(), cancellationToken)
 						.ConfigureAwait(false);
 
 		conversation =

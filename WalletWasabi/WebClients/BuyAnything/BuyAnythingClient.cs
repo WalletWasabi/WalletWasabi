@@ -89,13 +89,11 @@ public class BuyAnythingClient
 	// 2. Create a shopping cart for the customer
 	// 3. Add an item to the shopping cart (The service to request)
 	// 4. Generate an order by checking out the shopping cart and adding a customer comment to it.
-	public async Task<(string OrderId, string OrderNumber)> CreateNewConversationAsync(string emailAddress, string password, string countryId, Product product, string comment, CancellationToken cancellationToken)
+	public async Task<(string OrderId, string OrderNumber)> CreateNewConversationAsync(string emailAddress, string password, string countryId, string comment, CancellationToken cancellationToken)
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
 			SalutationId, FirstName, LastName, emailAddress, password, countryId, comment, StorefrontUrl);
-		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
-		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
 
 		// Create the conversation
@@ -109,9 +107,6 @@ public class BuyAnythingClient
 		// Note: When we create a shopping cart, we receive a new context token but it is identical to the one that was
 		// used to create it so, I don't know whether it makes any sense to use it or not. Here we use the same context
 		// token.
-
-		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
-		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 
 		return (orderGenerationResponse.Id, orderGenerationResponse.OrderNumber);
