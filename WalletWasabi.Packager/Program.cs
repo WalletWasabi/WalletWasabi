@@ -536,6 +536,57 @@ public static class Program
 
 	private static void ReleaseOSXStartsilent(string target)
 	{
+		Console.WriteLine($"# Run dotnet restore");
+		StartProcessAndWaitForExit("dotnet", StartsilentProjectDirectory, arguments: "restore --locked-mode");
+
+		Console.WriteLine($"# Run dotnet clean");
+		StartProcessAndWaitForExit("dotnet", StartsilentProjectDirectory, arguments: "clean --configuration Release");
+
+		string currentBinDistDirectory = Path.Combine(BinDistDirectory, target, "startsilent"); ;
+
+		if (!Directory.Exists(currentBinDistDirectory))
+		{
+			Directory.CreateDirectory(currentBinDistDirectory);
+			Console.WriteLine($"# Created {currentBinDistDirectory}");
+		}
+
+		string dotnetProcessArgs = string.Join(
+				" ",
+				$"publish",
+				$"--configuration Release",
+				$"--force",
+				$"--output \"{currentBinDistDirectory}\"",
+				$"--self-contained true",
+				$"--runtime \"{target}\"",
+				$"--disable-parallel",
+				$"--no-cache",
+				$"--no-restore",
+				$"/p:VersionPrefix={VersionPrefix}",
+				$"/p:DebugType=none",
+				$"/p:DebugSymbols=false",
+				$"/p:ErrorReport=none",
+				$"/p:DocumentationFile=\"\"",
+				$"/p:Deterministic=true");
+
+		StartProcessAndWaitForExit(
+			"dotnet",
+			StartsilentProjectDirectory,
+			arguments: dotnetProcessArgs,
+			redirectStandardOutput: true);
+
+		string oldExecutablePath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.OSXStartsilent");
+		string newExecutablePath = Path.Combine(currentBinDistDirectory, "..", $"{SilentExecutableName}");
+		File.Move(oldExecutablePath, newExecutablePath);
+
+		string oldDllPath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.OSXStartsilent.dll");
+		string newDllPath = Path.Combine(currentBinDistDirectory, "..", $"WalletWasabi.OSXStartsilent.dll");
+		File.Move(oldDllPath, newDllPath);
+
+		string oldDepsJsonPath = Path.Combine(currentBinDistDirectory, $"WalletWasabi.OSXStartsilent.deps.json");
+		string newDepsJsonPath = Path.Combine(currentBinDistDirectory, "..", $"WalletWasabi.OSXStartsilent.deps.json");
+		File.Move(oldDepsJsonPath, newDepsJsonPath);
+
+		Directory.Delete(currentBinDistDirectory, true);
 	}
 
 	/// <summary>Checks whether there are uncommitted changes.</summary>
