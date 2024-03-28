@@ -7,7 +7,10 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
@@ -20,6 +23,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _passphrase;
+	[AutoNotify] private string? _confirmPassphrase;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _passphraseConfirmed;
 
 	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
 	{
@@ -27,6 +34,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();
 		_currentWord = words.First();
+
+		this.ValidateProperty(x => x.ConfirmPassphrase, ValidateConfirmPassphrase);
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -53,11 +62,30 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 
-		var nextCommandCanExecute =
-			confirmationWordsSourceList
+		confirmationWordsSourceList
 			.Connect()
 			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+			.Subscribe(_ => AllWordsConfirmed = confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
+			.DisposeWith(disposables);
+
+		if (string.IsNullOrEmpty(_options.Passphrase))
+		{
+			PassphraseConfirmed = true;
+		}
+		else
+		{
+			this.WhenAnyValue(x => x.ConfirmPassphrase)
+				.Subscribe(confirmPassphrase =>
+				{
+					PassphraseConfirmed = confirmPassphrase == _options.Passphrase;
+				})
+				.DisposeWith(disposables);
+		}
+
+		var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.AllWordsConfirmed,
+				x => x.PassphraseConfirmed)
+			.Select(x => x.Item1 && x.Item2);
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
@@ -82,8 +110,18 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		SetNextWord();
 
+		Passphrase = _options.Passphrase;
+
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+	}
+
+	private void ValidateConfirmPassphrase(IValidationErrors errors)
+	{
+		if (!string.IsNullOrEmpty(ConfirmPassphrase) && Passphrase != ConfirmPassphrase)
+		{
+			errors.Add(ErrorSeverity.Error, PasswordHelper.MatchingMessage);
+		}
 	}
 
 	private void SetNextWord()
