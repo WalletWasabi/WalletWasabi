@@ -1,11 +1,22 @@
+using Avalonia;
 using Avalonia.Controls;
 
 namespace WalletWasabi.Fluent.Controls;
 
 public class ThemeImage: Image
 {
-	public ThemeImage()
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		ActualThemeVariantChanged += (s, e) => InvalidateVisual();	
+		ActualThemeVariantChanged += OnThemeVariantChanged
 	}
+
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		ActualThemeVariantChanged -= OnThemeVariantChanged;	
+	}
+
+	private void OnThemeVariantChanged(object? sender, EventArgs e)
+	{
+		InvalidateVisual();
+	}	
 }
