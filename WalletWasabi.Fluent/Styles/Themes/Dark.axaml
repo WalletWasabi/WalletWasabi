@@ -64,8 +64,8 @@
   <Color x:Key="Layer2BackgroundBrushDark2">#FF242424</Color>
   <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
-  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource TileBorderColor}" />
-  <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource TileBorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
@@ -80,7 +80,7 @@
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
-  <Color x:Key="TileBorderColor">#66757575</Color>
+  <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">White</Color>
   <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
 
