@@ -15,9 +15,5 @@ public class Program
 		{
 			Console.WriteLine(ex);
 		}
-		finally
-		{
-			Console.ReadKey();
-		}
 	}
 }
