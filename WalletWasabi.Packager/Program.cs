@@ -38,8 +38,8 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		//"win-x64",
-		//"linux-x64",
+		"win-x64",
+		"linux-x64",
 		"osx-x64",
 		"osx-arm64"
 	};
@@ -381,18 +381,18 @@ public static class Program
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"# Deleted {currentBinDistDirectory}");
 
-				//string drive = Tools.GetSingleUsbDrive();
-				//string targetFilePath = Path.Combine(drive, zipFileName);
+				string drive = Tools.GetSingleUsbDrive();
+				string targetFilePath = Path.Combine(drive, zipFileName);
 
-				//try
-				//{
-				//	File.Move(zipFilePath, targetFilePath, overwrite: true);
-				//	Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
-				//}
-				//catch (Exception ex)
-				//{
-				//	Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
-				//}
+				try
+				{
+					File.Move(zipFilePath, targetFilePath, overwrite: true);
+					Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
+				}
 			}
 			else if (target.StartsWith("linux"))
 			{
