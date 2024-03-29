@@ -4,23 +4,11 @@ using Avalonia.Data.Converters;
 
 namespace WalletWasabi.Fluent.Converters;
 
-public class BooleanConverter : AvaloniaObject, IValueConverter
+public class BooleanConverter : IValueConverter
 {
-	public static readonly StyledProperty<object> FalseValueProperty = AvaloniaProperty.Register<BooleanConverter, object>(nameof(FalseValue));
+	public object? TrueValue { get; set; }
 
-	public static readonly StyledProperty<object> TrueValueProperty = AvaloniaProperty.Register<BooleanConverter, object>(nameof(TrueValue));
-
-	public object FalseValue
-	{
-		get => GetValue(FalseValueProperty);
-		set => SetValue(FalseValueProperty, value);
-	}
-
-	public object TrueValue
-	{
-		get => GetValue(TrueValueProperty);
-		set => SetValue(TrueValueProperty, value);
-	}
+	public object? FalseValue { get; set; }
 
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
@@ -37,5 +25,8 @@ public class BooleanConverter : AvaloniaObject, IValueConverter
 		return AvaloniaProperty.UnsetValue;
 	}
 
-	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		throw new NotSupportedException();
+	}
 }
