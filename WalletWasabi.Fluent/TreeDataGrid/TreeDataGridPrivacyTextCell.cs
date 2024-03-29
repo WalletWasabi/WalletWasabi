@@ -22,6 +22,14 @@ public class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private Size? _availableSize;
 	private bool _haveText;
 
+	public static readonly StyledProperty<IBrush?> PrivacyForegroundProperty = AvaloniaProperty.Register<TreeDataGridPrivacyTextCell, IBrush?>(nameof(PrivacyForeground));
+
+	public IBrush? PrivacyForeground
+	{
+		get => GetValue(PrivacyForegroundProperty);
+		set => SetValue(PrivacyForegroundProperty, value);
+	}
+
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
@@ -85,7 +93,7 @@ public class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		var r = Bounds.CenterRect(new Rect(new Point(0, 0), new Size(formattedText.Width, formattedText.Height)));
 		if (Foreground is { })
 		{
-			formattedText.SetForegroundBrush(Foreground);
+			formattedText.SetForegroundBrush(_isContentVisible ? Foreground : PrivacyForeground ?? Foreground);
 		}
 
 		context.DrawText(formattedText, new Point(0, r.Position.Y));
