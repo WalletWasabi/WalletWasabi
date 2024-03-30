@@ -35,4 +35,6 @@ public interface IWallet
 	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
+
+	bool IsAutoCoinJoin { get; }
 }

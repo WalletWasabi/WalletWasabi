@@ -17,6 +17,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -58,6 +59,8 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private ConcurrentDictionary<WalletId, UiBlockedStateHolder> WalletsBlockedByUi { get; } = new();
 
+	private ConcurrentDictionary<WalletId, WalletCoinJoinState> WalletCoinJoinStates { get; } = new();
+
 	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
@@ -96,8 +99,67 @@ public class CoinJoinManager : BackgroundService
 
 	#endregion Public API (Start | Stop | TryGetWalletStatus)
 
+	private async Task TryRefreshAndAddNewWalletsAsync()
+	{
+		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
+
+		foreach (var wallet in wallets.Where(wallet => !WalletCoinJoinStates.ContainsKey(wallet.WalletId)))
+		{
+			WalletCoinJoinStates.TryAdd(wallet.WalletId, new WalletCoinJoinState(wallet));
+		}
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		while (!stoppingToken.IsCancellationRequested)
+		{
+			try
+			{
+				// Get all the rounds.
+				var roundStates = RoundStatusUpdater.GetRoundStates();
+
+				// Rounds where users can join.
+				var roundCandidates = CoinJoinManagerHelper.GetRoundsForCoinJoin(roundStates);
+
+				// Get all the wallets.
+				var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
+
+				// All the wallets can coinjoin.
+				var walletCandidates = await CoinJoinManagerHelper.GetWalletsForCoinJoinAsync(wallets).ConfigureAwait(false);
+
+				// CoinJoin state holders for every wallet.
+				await TryRefreshAndAddNewWalletsAsync().ConfigureAwait(false);
+
+				foreach (var wallet in walletCandidates)
+				{
+					if (!WalletCoinJoinStates.TryGetValue(wallet.WalletId, out var walletCoinJoinState))
+					{
+						// Wallet coinjoin states not yet added. Strange, will try next time.
+						continue;
+					}
+
+					if (walletCoinJoinState.IsCoinJoining)
+					{
+						// Wallet already coinjoins.
+						continue;
+					}
+
+					// Get rounds for wallet.
+					var roundsForWallet = CoinJoinManagerHelper.GetRoundsForWallet(wallet, roundCandidates, RoundStatusUpdater.CoinJoinFeeRateMedians);
+
+					if (!roundsForWallet.Any())
+					{
+						// No suitable round for the wallet.
+						continue;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
@@ -684,11 +746,6 @@ public class CoinJoinManager : BackgroundService
 			this,
 			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
 
-	private async Task<ImmutableDictionary<WalletId, IWallet>> GetMixableWalletsAsync() =>
-		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
-			.Where(x => x.IsMixable)
-			.ToImmutableDictionary(x => x.WalletId, x => x);
-
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
 		foreach (var task in tasks)
@@ -790,9 +847,11 @@ public class CoinJoinManager : BackgroundService
 		NotifyCoinJoinStatusChanged(wallet, e);
 	}
 
-	private record CoinJoinCommand(IWallet Wallet);
-	private record StartCoinJoinCommand(IWallet Wallet, IWallet OutputWallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
-	private record StopCoinJoinCommand(IWallet Wallet) : CoinJoinCommand(Wallet);
+	public record CoinJoinCommand(IWallet Wallet);
+	public record StartCoinJoinCommand(IWallet Wallet, IWallet OutputWallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
+	public record StopCoinJoinCommand(IWallet Wallet) : CoinJoinCommand(Wallet);
+	public record OverridePlebStop(IWallet Wallet) : CoinJoinCommand(Wallet);
+	public record OverrideAllMixed(IWallet Wallet) : CoinJoinCommand(Wallet);
 
 	private record TrackedAutoStart(Task Task, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet, CancellationTokenSource CancellationTokenSource);
 	private record CoinJoinClientStateHolder(CoinJoinClientState CoinJoinClientState, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);

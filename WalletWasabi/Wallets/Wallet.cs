@@ -591,4 +591,6 @@ public class Wallet : BackgroundService, IWallet
 			KeyManager.SetBestTurboSyncHeight(startingSegwitHeight);
 		}
 	}
+
+	public bool IsAutoCoinJoin => KeyManager.AutoCoinJoin;
 }

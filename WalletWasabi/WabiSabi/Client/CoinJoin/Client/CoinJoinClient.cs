@@ -162,14 +162,6 @@ public class CoinJoinClient
 
 			coins = CoinJoinCoinSelector.SelectCoinsForRound(coinCandidates, stopWhenAllMixed, utxoSelectionParameters, liquidityClue);
 
-			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
-			{
-				excludeRound = currentRoundState.Id;
-				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
-
-				continue;
-			}
-
 			if (roundParameters.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
@@ -707,25 +699,6 @@ public class CoinJoinClient
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
-	}
-
-	internal static bool IsRoundEconomic(FeeRate roundFeeRate, Dictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians, TimeSpan feeRateMedianTimeFrame)
-	{
-		if (feeRateMedianTimeFrame == default)
-		{
-			return true;
-		}
-
-		if (coinJoinFeeRateMedians.ContainsKey(feeRateMedianTimeFrame))
-		{
-			// Round is not economic if any TimeFrame lower than FeeRateMedianTimeFrame has a FeeRate lower than current round's FeeRate.
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return coinJoinFeeRateMedians
-				.Where(x => x.Key <= feeRateMedianTimeFrame)
-				.All(lowerTimeFrame => roundFeeRate.SatoshiPerByte <= lowerTimeFrame.Value.SatoshiPerByte + 0.5m);
-		}
-
-		throw new InvalidOperationException($"Could not find median fee rate for time frame: {feeRateMedianTimeFrame}.");
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
