@@ -6,7 +6,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Userfacing;
 
-public static class CurrencyInput
+public static partial class CurrencyInput
 {
 	public const string DecimalSeparator = ".";
 	public const string GroupSeparator = " ";
@@ -18,6 +18,12 @@ public static class CurrencyInput
 		NumberGroupSeparator = GroupSeparator,
 		NumberDecimalSeparator = DecimalSeparator
 	};
+
+	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
+	public static partial Regex RegexDecimalCharsOnly();
+
+	[GeneratedRegex(@"[\d.,٫٬⎖·\']")]
+	public static partial Regex RegexValidCharsOnly();
 
 	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
 	{
@@ -102,12 +108,6 @@ public static class CurrencyInput
 		if (dotIndex != -1 && corrected.Length - (dotIndex + 1) > 8)
 		{
 			corrected = corrected[..(dotIndex + 1 + 8)];
-		}
-
-		// Make sure you don't send more bitcoins than how much there is in existence.
-		if (corrected.Length != 0 && corrected != "." && (!decimal.TryParse(corrected, out decimal btcDecimal) || btcDecimal > Constants.MaximumNumberOfBitcoins))
-		{
-			corrected = Constants.MaximumNumberOfBitcoins.ToString();
 		}
 
 		if (corrected != original)
