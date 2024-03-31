@@ -29,11 +29,11 @@
   <Color x:Key="SystemChromeMediumColor">#F7F7F7</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemListLowColor">#FFFBFBFB</Color>
+  <Color x:Key="SystemListLowColor">#F7F7F7</Color>
   <Color x:Key="SystemListMediumColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeAltMediumHighColor">#CCFFFFFF</Color>
   <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemRevealListLowColor">#FFFBFBFB</Color>
+  <Color x:Key="SystemRevealListLowColor">#F7F7F7</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
   <Color x:Key="SystemAccentColorLight1">#FFB5D07F</Color>
   <Color x:Key="SystemAccentColorLight2">#FFBFD78F</Color>
@@ -75,7 +75,7 @@
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
 
-  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{StaticResource SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
