@@ -113,16 +113,6 @@
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
-    <!-- Selected PointerOver State -->
-    <Style Selector="NavBarItem.selected:pointerover /template/ Border">
-      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
-    </Style>
-
-    <!-- Selected Pressed State -->
-    <Style Selector="NavBarItem.selected:pressed /template/ Border">
-      <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
-    </Style>
-
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">

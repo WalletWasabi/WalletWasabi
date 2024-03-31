@@ -57,7 +57,8 @@
               <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
             </Style>
           </StackPanel.Styles>
-          <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
+          <ThemeImage Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center"
+                      Source="{DynamicResource wasabi_logo_dynamic}" />
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
               <TransitioningContentControl.PageTransition>
