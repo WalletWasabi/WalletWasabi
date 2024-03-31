@@ -57,6 +57,8 @@ public class Global
 			Config.TerminateTorOnExit,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
+			torFolder: config.TorFolder,
+			bridges: config.TorBridges,
 			owningProcessId: Environment.ProcessId);
 
 		HostedServices = new HostedServices();
