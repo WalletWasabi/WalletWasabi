@@ -83,6 +83,7 @@
   <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">#FFFFFFFF</Color>
   <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
+  <!-- <StaticResource x:Key="AcrylicTrimBackground" ResourceKey="{StaticResource SystemControlBackgroundChromeMediumLowBrush}" /> -->
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
   <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="{StaticResource SystemAccentCustomColorDark}" Opacity="0.5" />
@@ -96,4 +97,6 @@
   <BoxShadows x:Key="OptionButtonShadow">0 2 2 #121212</BoxShadows>
 
   <SolidColorBrush x:Key="LogoBaseColor" Color="#FFFFFF" />
+
+  <SolidColorBrush x:Key="TagsBoxItemBackground" Color="#323232" />
 </ResourceDictionary>

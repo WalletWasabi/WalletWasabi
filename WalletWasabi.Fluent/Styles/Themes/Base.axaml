@@ -25,7 +25,6 @@
   <SolidColorBrush x:Key="OptionButtonBorderBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="SeparatorBackgroundBrush" Opacity="0.5" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.1" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="TagsBoxItemBackground" Color="#323232" />
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
   <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />

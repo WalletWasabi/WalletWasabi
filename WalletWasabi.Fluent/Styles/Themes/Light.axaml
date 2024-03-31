@@ -96,4 +96,6 @@
   <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
 
   <SolidColorBrush x:Key="LogoBaseColor" Color="#000000" />
+
+  <SolidColorBrush x:Key="TagsBoxItemBackground" Color="#FCFCFC" />
 </ResourceDictionary>
