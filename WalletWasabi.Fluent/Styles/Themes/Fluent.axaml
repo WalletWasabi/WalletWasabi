@@ -19,6 +19,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewMessageItem.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBar.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyBarSegment.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
