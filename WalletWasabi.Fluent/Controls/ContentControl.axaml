@@ -32,13 +32,13 @@
                 <ExperimentalAcrylicBorder IsHitTestVisible="False">
                   <ExperimentalAcrylicBorder.Material>
                     <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                                 TintColor="{DynamicResource AcrylicTrimBackground}"
+                                                 TintColor="{DynamicResource SystemChromeMediumLowColor}"
                                                  TintOpacity="1"
-                                                 FallbackColor="{DynamicResource AcrylicTrimBackground}"
+                                                 FallbackColor="{DynamicResource SystemChromeMediumLowColor}"
                                                  MaterialOpacity="0.9" />
                   </ExperimentalAcrylicBorder.Material>
                 </ExperimentalAcrylicBorder>
-                <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
+                <Panel Background="{DynamicResource SystemChromeMediumLowColor}" Opacity="0.5" />
 
                 <ContentPresenter Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"

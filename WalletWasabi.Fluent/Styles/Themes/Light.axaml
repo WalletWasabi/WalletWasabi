@@ -26,7 +26,7 @@
   <Color x:Key="SystemChromeGrayColor">#FF919191</Color>
   <Color x:Key="SystemChromeHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeLowColor">#FFFCFCFC</Color>
-  <Color x:Key="SystemChromeMediumColor">#FFFBFBFB</Color>
+  <Color x:Key="SystemChromeMediumColor">#F7F7F7</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
   <Color x:Key="SystemListLowColor">#FFFBFBFB</Color>
@@ -72,7 +72,7 @@
   <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource  SystemAccentColor}" />
 
   <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource  SystemChromeMediumColor}" />
-  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeWhiteColor}" />
+  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
 
   <SolidColorBrush x:Key="ComboBoxItemBackground" Color="{StaticResource SystemChromeMediumColor}" />
@@ -82,7 +82,6 @@
   <SolidColorBrush x:Key="TileRegionColor" Color="{StaticResource Layer1BackgroundBrush}" />
   <Color x:Key="BorderColor">#14000000</Color>
   <Color x:Key="AcrylicTrimForeground">#FF000000</Color>
-  <Color x:Key="AcrylicTrimBackground">#90134074</Color>
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#394A1B" />
   <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#F5F8EE" Opacity="0.5" />

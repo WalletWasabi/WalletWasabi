@@ -82,8 +82,6 @@
   <SolidColorBrush x:Key="TileRegionColor" Color="{StaticResource Layer1BackgroundBrush}" />
   <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">#FFFFFFFF</Color>
-  <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
-  <!-- <StaticResource x:Key="AcrylicTrimBackground" ResourceKey="{StaticResource SystemControlBackgroundChromeMediumLowBrush}" /> -->
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
   <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="{StaticResource SystemAccentCustomColorDark}" Opacity="0.5" />
