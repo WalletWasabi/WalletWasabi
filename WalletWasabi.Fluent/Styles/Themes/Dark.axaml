@@ -79,9 +79,9 @@
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
-  <Color x:Key="TileRegionColor">#262626</Color>
+  <SolidColorBrush x:Key="TileRegionColor" Color="{StaticResource Layer1BackgroundBrush}" />
   <Color x:Key="BorderColor">#66757575</Color>
-  <Color x:Key="AcrylicTrimForeground">White</Color>
+  <Color x:Key="AcrylicTrimForeground">#FFFFFFFF</Color>
   <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
@@ -94,4 +94,6 @@
   <SolidColorBrush x:Key="DialogOverlayColor">#80333333</SolidColorBrush>
 
   <BoxShadows x:Key="OptionButtonShadow">0 2 2 #121212</BoxShadows>
+
+  <SolidColorBrush x:Key="LogoBaseColor" Color="#FFFFFF" />
 </ResourceDictionary>

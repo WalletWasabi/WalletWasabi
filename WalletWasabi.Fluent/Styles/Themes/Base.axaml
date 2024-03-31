@@ -34,22 +34,10 @@
   <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
 
-  <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemPointerOverBackgroundBrush">#19FFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemPressedBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemSelectedBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemSelectedUnfocusedBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemSelectedPointerOverBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemSelectedPressedBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarItemForegroundBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="NavBarSeparatorBrush">#FFFFFFFF</SolidColorBrush>
-  <SolidColorBrush x:Key="PrivacyIndicatorWalletNotchBrush">#FF99A3B5</SolidColorBrush>
+  <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
-  <Color x:Key="LogoFixedAccentColor">#97D234</Color>
+  <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
+  <Color x:Key="LogoFixedAccentColor">#FF77C600</Color>
   <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
   <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
@@ -87,9 +75,6 @@
   <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
   <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
-
-  <SolidColorBrush x:Key="LogoBaseColor" Color="#FFFFFF" />
-  <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
 
   <system:Double x:Key="TreeDataGridRowHeight">38</system:Double>
   <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
