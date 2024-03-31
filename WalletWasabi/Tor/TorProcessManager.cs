@@ -169,6 +169,8 @@ public class TorProcessManager : IAsyncDisposable
 				else
 				{
 					string arguments = Settings.GetCmdArguments();
+					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
+
 					process = StartProcess(arguments);
 
 					bool isRunning = await EnsureRunningAsync(process, cancellationToken).ConfigureAwait(false);
@@ -357,7 +359,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo("Starting Tor process…");
+		Logger.LogInfo(Settings.IsCustomTorFolder ? $"Starting Tor process in folder '{Settings.TorBinaryDir}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
