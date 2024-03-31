@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -139,6 +140,30 @@ public class TorProcessManager : IAsyncDisposable
 					catch (Exception ex)
 					{
 						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+					}
+
+					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
+					if (!clientTransportPluginReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
+					}
+
+					// Check if the bridges in the running Tor instance are the same as user requested.
+					TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
+					if (!bridgeReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report active bridges.");
+					}
+
+					// Compare as two unordered sets.
+					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
+					bool areBridgesAsRequired = currentBridges.SequenceEqual(Settings.Bridges.Order());
+				
+					if (!areBridgesAsRequired)
+					{
+						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
+						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
+						continue;
 					}
 				}
 				else
