@@ -101,14 +101,17 @@
   <!-- DropShadowEffects -->
   <DropShadowEffect x:Key="TileDropShadowEffect"
                     Color="Transparent"
-                    OffsetX="0"
-                    OffsetY="0"
+                    OffsetX="0" OffsetY="0"
                     BlurRadius="0"
                     Opacity="0" />
   <DropShadowEffect x:Key="MainAreaDropShadowEffect"
                     Color="Transparent"
-                    OffsetX="0"
-                    OffsetY="0"
+                    OffsetX="0" OffsetY="0"
                     BlurRadius="0"
                     Opacity="0" />
+
+  <!-- Privacy colors -->
+  <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
+  <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
+  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 </ResourceDictionary>

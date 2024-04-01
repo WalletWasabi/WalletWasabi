@@ -106,8 +106,12 @@
                     Opacity="0.15" />
   <DropShadowEffect x:Key="MainAreaDropShadowEffect"
                     Color="Black"
-                    OffsetX="-1"
-                    OffsetY="-1"
+                    OffsetX="-1" OffsetY="-1"
                     BlurRadius="10"
                     Opacity="0.15" />
+
+  <!-- Privacy colors -->
+  <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#7BA170" />
+  <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#B0C7A8" />
+  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#E6E6E6" />
 </ResourceDictionary>

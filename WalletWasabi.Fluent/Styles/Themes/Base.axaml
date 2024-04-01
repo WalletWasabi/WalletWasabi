@@ -39,10 +39,6 @@
   <Color x:Key="LogoFixedAccentColor">#FF77C600</Color>
   <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
-  <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
-  <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
-  <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
-
   <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
   <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
 
