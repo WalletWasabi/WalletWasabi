@@ -94,7 +94,7 @@
       </StackPanel>
     </ContentArea.TopContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-      <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" />
+      <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" Margin="-6 -6 0 0" />
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

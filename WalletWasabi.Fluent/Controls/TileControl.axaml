@@ -16,7 +16,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border CornerRadius="15" Background="{DynamicResource TileRegionColor}"
-                Margin="6 0 6 10" Padding="12">
+                Margin="6 6 6 10" Padding="12">
           <Border.Effect>
             <DynamicResource ResourceKey="TileDropShadowEffect" />
           </Border.Effect>
