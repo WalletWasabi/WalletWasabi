@@ -97,4 +97,17 @@
   <SolidColorBrush x:Key="LogoBaseColor" Color="#000000" />
 
   <SolidColorBrush x:Key="TagsBoxItemBackground" Color="#FCFCFC" />
+
+  <!-- DropShadowEffects -->
+  <DropShadowEffect x:Key="TileDropShadowEffect"
+                    Color="#000000"
+                    OffsetX="0" OffsetY="1"
+                    BlurRadius="10"
+                    Opacity="0.15" />
+  <DropShadowEffect x:Key="MainAreaDropShadowEffect"
+                    Color="Black"
+                    OffsetX="-1"
+                    OffsetY="-1"
+                    BlurRadius="10"
+                    Opacity="0.15" />
 </ResourceDictionary>
