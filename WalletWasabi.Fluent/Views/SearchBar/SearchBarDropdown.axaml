@@ -31,10 +31,9 @@
     </Style>
 
     <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
-      <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Background">
         <Setter.Value>
-          <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
+          <SolidColorBrush Opacity="0.1" Color="{DynamicResource AcrylicTrimForeground}" />
         </Setter.Value>
       </Setter>
     </Style>
@@ -75,7 +74,7 @@
     <settings:SettingSelector>
       <settings:SettingSelector.DataTemplates>
         <DataTemplate DataType="x:Boolean">
-          <ToggleSwitch x:CompileBindings="False" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
+          <ToggleSwitch Focusable="False" x:CompileBindings="False" HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
         </DataTemplate>
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
@@ -95,7 +94,7 @@
 
     <DataTemplate DataType="searchItems:ActionableItem">
 
-      <Button ClickMode="Press" Classes="searchItem" Background="Transparent"
+      <Button ClickMode="Press" Focusable="False" Classes="searchItem" Background="Transparent"
               Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
         <DockPanel Background="Transparent" Margin="10">
@@ -120,8 +119,8 @@
   </UserControl.DataTemplates>
 
   <Panel VerticalAlignment="Center">
-    <TextBlock IsVisible="{Binding !HasResults, FallbackValue=False}" Margin="10">No results</TextBlock>
-    <ItemsControl IsVisible="{Binding HasResults}" ItemsSource="{Binding Groups}">
+    <TextBlock IsVisible="{Binding !#Items.IsVisible, FallbackValue=False}" Margin="10">No results</TextBlock>
+    <ItemsControl x:Name="Items" IsVisible="{Binding !!Groups.Count}" ItemsSource="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="0 0 0 10">

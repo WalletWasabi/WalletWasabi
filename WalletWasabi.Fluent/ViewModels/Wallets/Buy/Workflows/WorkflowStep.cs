@@ -1,11 +1,13 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -80,8 +82,12 @@ public abstract partial class WorkflowStep<TValue> : ReactiveObject, IWorkflowSt
 			this.WhenAnyValue(x => x.IsValid, x => x.IsBusy, x => x.IsInputLengthValid)
 				.Select(t => t.Item1 && !t.Item2 && t.Item3);
 
-		SendCommand = ReactiveCommand.Create(Send, canExecuteSendCommand);
+		var sendCommand = ReactiveCommand.Create(Send, canExecuteSendCommand);
+		Sent = sendCommand.ToSignal();
+		SendCommand = sendCommand;
 	}
+
+	public IObservable<Unit> Sent { get; }
 
 	public virtual int MinCharLimit => 0;
 

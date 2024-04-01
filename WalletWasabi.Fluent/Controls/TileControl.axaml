@@ -16,7 +16,10 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border CornerRadius="15" Background="{DynamicResource TileRegionColor}"
-                Margin="0 0 10 0" Padding="12">
+                Margin="6 6 6 10" Padding="12">
+          <Border.Effect>
+            <DynamicResource ResourceKey="TileDropShadowEffect" />
+          </Border.Effect>
           <DockPanel>
             <TextBlock Text="{TemplateBinding Title}" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top" Classes="h8" />
             <ContentPresenter Content="{TemplateBinding BottomContent}" DockPanel.Dock="Bottom" IsVisible="{TemplateBinding IsBottomContentVisible}" />

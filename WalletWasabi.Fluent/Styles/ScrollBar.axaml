@@ -19,13 +19,6 @@
       <x:Double x:Key="ScrollBarHorizontalThumbHeight">8</x:Double>
       <x:Double x:Key="ScrollBarHorizontalThumbMinWidth">30</x:Double>
 
-      <!--THUMB COLORS-->
-      <SolidColorBrush x:Key="ScrollBarThumbBackgroundColor" Color="{DynamicResource ActionColor}" />
-      <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{DynamicResource ActionColor}" />
-      <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource ActionColorLight2}"></SolidColorBrush>
-      <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource ActionColorLight1}"></SolidColorBrush>
-      <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="{DynamicResource ActionColorDark3}"></SolidColorBrush>
-
       <!--OVERRIDE TRANSFORMS-->
       <!--This removes the translate transform in the default animation, since it applies a "padding" we don't want-->
       <TransformOperations x:Key="VerticalSmallScrollThumbScaleTransform">scaleX(0.125)</TransformOperations>

@@ -32,7 +32,7 @@
       <ControlTemplate>
         <Border x:Name="PART_SelectionIndicator">
           <Panel>
-            <Rectangle Name="BackgroundRectangle" />
+            <Border Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
@@ -43,8 +43,9 @@
       </ControlTemplate>
     </Setter>
 
-    <Style Selector="^/template/ Rectangle#BackgroundRectangle">
-      <Setter Property="Fill" Value="{DynamicResource SystemControlTransparentBrush}" />
+    <Style Selector="^/template/ Border#BackgroundRectangle">
+      <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+      <Setter Property="CornerRadius" Value="30" />
     </Style>
 
     <Style Selector="^/template/ Border#PART_SelectionIndicator">
@@ -58,13 +59,19 @@
 
     <!-- Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isChild">
-      <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}" />
+      <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrushLight1}" />
       <Setter Property="Margin" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="^/template/ Border#BackgroundRectangle.isChild">
       <Setter Property="CornerRadius" Value="0" />
     </Style>
 
     <!-- Last Child item style -->
     <Style Selector="^/template/ Border#PART_SelectionIndicator.isLastChild">
+      <Setter Property="CornerRadius" Value="0 0 15 15" />
+    </Style>
+    <Style Selector="^/template/ Border#BackgroundRectangle.isLastChild">
       <Setter Property="CornerRadius" Value="0 0 15 15" />
     </Style>
 
@@ -155,20 +162,23 @@
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
           <Panel>
-            <Rectangle Name="BackgroundRectangle"
-                       Classes.selectAnimation="{Binding IsFlashing}" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
                                         Rows="{TemplateBinding Rows}"
                                         Margin="0 0 -2 0" />
+            <Border Name="BackgroundRectangle"
+                    Classes.selectAnimation="{Binding IsFlashing}"
+                    Classes.isChild="{Binding IsChild}"
+                    Classes.isLastChild="{Binding IsLastChild}"
+                    IsHitTestVisible="False" />
           </Panel>
         </Border>
       </ControlTemplate>
     </Setter>
 
-    <Style Selector="^/template/ Rectangle#BackgroundRectangle.selectAnimation">
-      <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+    <Style Selector="^/template/ Border#BackgroundRectangle.selectAnimation">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Opacity" Value="0" />
       <Style.Animations>
         <Animation Duration="1.8" Easing="{StaticResource FluentEasing}">
@@ -176,22 +186,22 @@
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="40%">
-            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="Opacity" Value="0.5" />
           </KeyFrame>
           <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="Opacity" Value="0.5" />
           </KeyFrame>
           <KeyFrame Cue="60%">
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="70%">
-            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
           <KeyFrame Cue="80%">
             <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="90%">
-            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="0" />
@@ -280,7 +290,7 @@
             </MultiBinding>
           </Classes.lastChildIsParentSelected>
           <Panel>
-            <Rectangle Name="BackgroundRectangle" />
+            <Border Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
@@ -306,7 +316,7 @@
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding NavigateCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
           <Panel>
-            <Rectangle Name="BackgroundRectangle" />
+            <Border Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"

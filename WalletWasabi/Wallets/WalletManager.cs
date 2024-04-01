@@ -41,11 +41,6 @@ public class WalletManager : IWalletProvider
 	}
 
 	/// <summary>
-	/// Triggered if any of the Wallets processes a transaction. The sender of the event will be the Wallet.
-	/// </summary>
-	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
-
-	/// <summary>
 	/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
 	/// </summary>
 	public event EventHandler<WalletState>? WalletStateChanged;
@@ -304,18 +299,12 @@ public class WalletManager : IWalletProvider
 			wallet.KeyManager.ToFile();
 		}
 
-		wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 		wallet.StateChanged += Wallet_StateChanged;
 
 		WalletAdded?.Invoke(this, wallet);
 	}
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
-
-	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
-	{
-		WalletRelevantTransactionProcessed?.Invoke(sender, e);
-	}
 
 	private void Wallet_StateChanged(object? sender, WalletState e)
 	{
@@ -343,7 +332,6 @@ public class WalletManager : IWalletProvider
 			{
 				cancel.ThrowIfCancellationRequested();
 
-				wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				wallet.StateChanged -= Wallet_StateChanged;
 
 				lock (Lock)

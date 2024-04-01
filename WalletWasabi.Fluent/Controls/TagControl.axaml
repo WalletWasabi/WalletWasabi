@@ -13,7 +13,7 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="{DynamicResource TagsBoxItemBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
-    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="(ToolTip.Tip)" Value="{Binding .}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
     <Setter Property="VerticalAlignment" Value="Center" />

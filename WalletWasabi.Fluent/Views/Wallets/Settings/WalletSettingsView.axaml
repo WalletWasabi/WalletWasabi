@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             xmlns:v="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Settings"
+             x:DataType="vm:WalletSettingsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletSettingsView">
+  <ContentArea Title="{Binding Title}"
+               EnableNext="True" NextContent="Done"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
+    <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}"
+                Classes="Settings">
+
+      <TabItem Header="General">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <v:WalletGeneralSettingsView />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Coinjoin" IsVisible="{Binding !IsWatchOnly}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <v:WalletCoinJoinSettingsView DataContext="{Binding WalletCoinJoinSettings}" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Tools" IsVisible="{Binding !IsWatchOnly}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <v:WalletToolsView />
+        </ScrollViewer>
+      </TabItem>
+
+    </TabControl>
+
+  </ContentArea>
+</UserControl>

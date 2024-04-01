@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client;
 

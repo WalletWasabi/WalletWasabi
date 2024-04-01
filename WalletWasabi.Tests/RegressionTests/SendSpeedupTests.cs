@@ -25,6 +25,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -76,14 +77,12 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
 
-		var blockProvider = new SmartBlockProvider(
+		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			rpcBlockProvider: null,
-			specificNodeBlockProvider,
-			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
-			cache);
+			[specificNodeBlockProvider],
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 
@@ -469,7 +468,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			#region MarnixFoundBug
 
 			// https://github.com/zkSNACKs/WalletWasabi/pull/10976#pullrequestreview-1542077218
-			// I speed up a tx which has change, but the the additional fee was deducted from the original send amount not from the change utxo?
+			// I speed up a tx which has change, but the additional fee was deducted from the original send amount not from the change utxo?
 			// https://mempool.space/testnet/tx/b0de46a002e6487dac3a3a98841380d4ced7e4e8482217b2758dd53df0760af8
 			// I sent the 0.0004
 
