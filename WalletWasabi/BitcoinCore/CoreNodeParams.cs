@@ -19,7 +19,7 @@ public class CoreNodeParams
 		int? txIndex,
 		int? prune,
 		int? disableWallet,
-		string mempoolReplacement,
+		string? mempoolReplacement,
 		string userAgent,
 		Money? fallbackFee,
 		IMemoryCache cache)

@@ -354,10 +354,10 @@ public class Global
 					txIndex: null,
 					prune: null,
 					disableWallet: 1,
-					mempoolReplacement: "fee,optin",
+                    mempoolReplacement: null,
 					userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 					fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
-					Cache);
+					cache: Cache);
 
 				CoreNode coreNode = await CoreNode.CreateAsync(coreNodeParams, cancel).ConfigureAwait(false);
 

@@ -47,10 +47,10 @@ public static class TestNodeBuilder
 				txIndex: 1,
 				prune: 0,
 				disableWallet: 0,
-				mempoolReplacement: "fee,optin",
+                mempoolReplacement: null,
 				userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 				fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524
-				new MemoryCache(new MemoryCacheOptions()));
+				cache: new MemoryCache(new MemoryCacheOptions()));
 		nodeParameters.ListenOnion = 0;
 		nodeParameters.Discover = 0;
 		nodeParameters.DnsSeed = 0;
