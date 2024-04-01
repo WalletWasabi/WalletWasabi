@@ -18,7 +18,6 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager : IDisposable
 {
-	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
@@ -37,6 +36,8 @@ public class UpdateManager : IDisposable
 	}
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
+
+	private string InstallerPath { get; set; } = "";
 
 	public string InstallerDir { get; }
 	private IHttpClient HttpClient { get; }
