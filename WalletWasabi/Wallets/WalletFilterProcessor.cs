@@ -286,32 +286,28 @@ public class WalletFilterProcessor : BackgroundService
 	/// </summary>
 	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash, priority, cancellationToken)
-			.ConfigureAwait(false);
-
-		if (fullNodeResult is BlockDownloadService.SuccessResult successFullNodeResult)
-		{
-			return successFullNodeResult.Block;
-		}
-
-		if (fullNodeResult is BlockDownloadService.CanceledResult)
-		{
-			throw new OperationCanceledException();
-		}
-
 		while (true)
 		{
+			BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash, priority, cancellationToken)
+				.ConfigureAwait(false);
+
+			switch (fullNodeResult)
+			{
+				case BlockDownloadService.SuccessResult successFullNodeResult:
+					return successFullNodeResult.Block;
+				case BlockDownloadService.CanceledResult:
+					throw new OperationCanceledException();
+			}
+
 			BlockDownloadService.IResult p2pNodeResult = await BlockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, priority, cancellationToken)
 				.ConfigureAwait(false);
 
-			if (p2pNodeResult is BlockDownloadService.SuccessResult successP2pResult)
+			switch (p2pNodeResult)
 			{
-				return successP2pResult.Block;
-			}
-
-			if (p2pNodeResult is BlockDownloadService.CanceledResult)
-			{
-				throw new OperationCanceledException();
+				case BlockDownloadService.SuccessResult successP2pResult:
+					return successP2pResult.Block;
+				case BlockDownloadService.CanceledResult:
+					throw new OperationCanceledException();
 			}
 		}
 	}
