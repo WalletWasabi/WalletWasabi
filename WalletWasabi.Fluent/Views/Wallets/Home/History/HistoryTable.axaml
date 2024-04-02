@@ -141,6 +141,7 @@
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="PrivacyForeground" Value="{DynamicResource TextForegroundColor}" />
           </Style>
           <Style Selector="TreeDataGridRow.PositiveAmount treeDataGrid|TreeDataGridAmountPrivacyTextCell">
             <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
