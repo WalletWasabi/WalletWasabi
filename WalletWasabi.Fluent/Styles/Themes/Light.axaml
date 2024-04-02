@@ -119,4 +119,7 @@
 
   <!-- Accent button -->
   <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
+
+  <!-- Network badge -->
+  <Color x:Key="NetworkBadgeColor">#FFA500</Color>
 </ResourceDictionary>
