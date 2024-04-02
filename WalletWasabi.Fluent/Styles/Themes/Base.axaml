@@ -129,4 +129,5 @@
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
   <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
 
+  <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="{DynamicResource SystemBaseLowColor}" />
 </ResourceDictionary>

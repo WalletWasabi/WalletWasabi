@@ -11,7 +11,7 @@
   <Color x:Key="SystemAltMediumHighColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumLowColor">#FF000000</Color>
   <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemBaseLowColor">#FF262626</Color>
+  <Color x:Key="SystemBaseLowColor">#FF414141</Color>
   <Color x:Key="SystemBaseMediumColor">#FF949494</Color>
   <Color x:Key="SystemBaseMediumHighColor">#FFAFAFAF</Color>
   <Color x:Key="SystemBaseMediumLowColor">#FF5D5D5D</Color>
