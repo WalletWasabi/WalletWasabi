@@ -64,6 +64,7 @@
   <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+  <Color x:Key="MenuFlyoutPresenterBackground">#2B2B2B</Color>
   <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
