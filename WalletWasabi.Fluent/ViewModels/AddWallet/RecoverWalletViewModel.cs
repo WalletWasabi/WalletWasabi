@@ -84,6 +84,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		var currentIndex = _words.IndexOf(_currentWord);
 		if (currentIndex >= _words.Count - 1)
 		{
+			_currentWord.IsSelected = false;
 			FocusConfirmPassphrase = true;
 			FocusConfirmPassphrase = false;
 		}
