@@ -27,6 +27,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 	[AutoNotify] private string? _confirmPassphrase;
+	[AutoNotify] private bool _focusConfirmPassphrase;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _passphraseConfirmed;
 
@@ -60,7 +61,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
+
+		NextWordCommand = ReactiveCommand.Create(NextWord);
+
+		PreviousWordCommand = ReactiveCommand.Create(PreviousWord);
 	}
+
+	public ICommand NextWordCommand { get; }
+
+	public ICommand PreviousWordCommand { get; }
 
 	public ObservableCollectionExtended<RecoverWordViewModel> ConfirmationWords { get; } = new();
 
@@ -69,6 +78,39 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private int MinGapLimit { get; set; } = 114;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
+
+	private void NextWord()
+	{
+		var currentIndex = _words.IndexOf(_currentWord);
+		if (currentIndex >= _words.Count - 1)
+		{
+			FocusConfirmPassphrase = true;
+			FocusConfirmPassphrase = false;
+		}
+		else
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[currentIndex + 1];
+			_currentWord.IsSelected = true;
+		}
+	}
+
+	private void PreviousWord()
+	{
+		var currentIndex = _words.IndexOf(_currentWord);
+		if (currentIndex <= 0)
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[^1];
+			_currentWord.IsSelected = true;
+		}
+		else
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[currentIndex - 1];
+			_currentWord.IsSelected = true;
+		}
+	}
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{

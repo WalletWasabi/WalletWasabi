@@ -7,8 +7,7 @@
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
-  <ContentArea x:Name="RecoveryPageRoot"
-               Title="{Binding Title}"
+  <ContentArea Title="{Binding Title}"
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
@@ -35,7 +34,19 @@
         </Grid.RowDefinitions>
 
         <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-          <ItemsControl ItemsSource="{Binding ConfirmationWords}">
+          <ItemsControl ItemsSource="{Binding ConfirmationWords}"
+                        Name="ItemsControl">
+            <Interaction.Behaviors>
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
+                                               KeyGesture="Tab"
+                                               EventRoutingStrategy="Bubble, Tunnel" />
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
+                                               KeyGesture="Enter"
+                                               EventRoutingStrategy="Bubble, Tunnel" />
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
+                                               KeyGesture="Shift+Tab"
+                                               EventRoutingStrategy="Bubble, Tunnel" />
+            </Interaction.Behaviors>
             <ItemsControl.Styles>
               <Style Selector="TextBlock.error">
                 <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
@@ -104,6 +115,7 @@
                       </TagsBox.Styles>
                       <Interaction.Behaviors>
                         <FocusOnAttachedBehavior />
+                        <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
                       </Interaction.Behaviors>
                     </TagsBox>
                   </DockPanel>
@@ -125,7 +137,12 @@
                                  PasswordChar="•"
                                  Classes="revealPasswordButton copyablePasswordTextBox"
                                  MaxWidth="400"
-                                 VerticalAlignment="Top"/>
+                                 VerticalAlignment="Top"
+                                 Margin="0,30,0,0">
+          <Interaction.Behaviors>
+            <FocusBehavior IsFocused="{Binding FocusConfirmPassphrase, Mode=OneWay}" />
+          </Interaction.Behaviors>
+        </CopyablePasswordTextBox>
 
       </Grid>
 
