@@ -98,6 +98,8 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 
 	public bool CanBeSelected { get; protected set; }
 
+	public bool IgnorePrivacyMode { get; protected set; }
+
 	public bool? IsSelected
 	{
 		get => _isSelected;

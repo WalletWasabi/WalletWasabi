@@ -15,12 +15,13 @@ public class PocketViewModel : CoinListItem, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public PocketViewModel(IWalletModel wallet, Pocket pocket)
+	public PocketViewModel(IWalletModel wallet, Pocket pocket, bool ignorePrivacyMode = false)
 	{
 		var pocketCoins = pocket.Coins.ToList();
 
 		var unconfirmedCount = pocketCoins.Count(x => !x.Confirmed);
 		IsConfirmed = unconfirmedCount == 0;
+		IgnorePrivacyMode = ignorePrivacyMode;
 		ConfirmationStatus = IsConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
 		IsBanned = pocketCoins.Any(x => x.IsBanned);
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
@@ -31,7 +32,7 @@ public class PocketViewModel : CoinListItem, IDisposable
 		Children =
 			pocketCoins.Select(wallet.Coins.GetCoinModel)
 					   .OrderByDescending(x => x.AnonScore)
-					   .Select(coin => new CoinViewModel("", coin) { IsChild = true })
+					   .Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
 					   .ToList();
 
 		CanBeSelected = true;

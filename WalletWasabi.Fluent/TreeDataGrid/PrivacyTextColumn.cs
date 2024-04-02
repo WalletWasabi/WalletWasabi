@@ -11,6 +11,7 @@ internal class PrivacyTextColumn<T> : ColumnBase<T>
 	private readonly Comparison<T?>? _sortAscending;
 	private readonly Comparison<T?>? _sortDescending;
 	private readonly int _numberOfPrivacyChars;
+	private readonly bool _ignorePrivacyMode;
 
 	public PrivacyTextColumn(
 		object? header,
@@ -18,7 +19,8 @@ internal class PrivacyTextColumn<T> : ColumnBase<T>
 		GridLength? width,
 		ColumnOptions<T>? options,
 		PrivacyCellType type,
-		int numberOfPrivacyChars = 0)
+		int numberOfPrivacyChars = 0,
+		bool ignorePrivacyMode = false)
 		: base(header, width, options)
 	{
 		_sortAscending = options?.CompareAscending;
@@ -26,11 +28,12 @@ internal class PrivacyTextColumn<T> : ColumnBase<T>
 		_getter = getter;
 		_type = type;
 		_numberOfPrivacyChars = numberOfPrivacyChars;
+		_ignorePrivacyMode = ignorePrivacyMode;
 	}
 
 	public override ICell CreateCell(IRow<T> row)
 	{
-		return new PrivacyTextCell(_getter(row.Model), _type, _numberOfPrivacyChars);
+		return new PrivacyTextCell(_getter(row.Model), _type, _numberOfPrivacyChars, _ignorePrivacyMode);
 	}
 
 	public override Comparison<T?>? GetComparison(ListSortDirection direction)

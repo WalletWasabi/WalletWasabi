@@ -13,7 +13,7 @@
   <Panel>
     <TreeDataGrid x:Name="TreeDataGrid" Source="{Binding TreeDataGridSource}" IsVisible="{Binding !!CoinItems.Count}">
       <TreeDataGrid.Styles>
-        <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
+        <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontWeight" Value="Bold" />
           <Setter Property="Opacity" Value="1" />
@@ -35,7 +35,7 @@
         <behaviors:SetLastChildBehavior />
       </Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PlainTextElementFactory />
+        <treeDataGrid:PrivacyElementFactory />
       </TreeDataGrid.ElementFactory>
     </TreeDataGrid>
     <DummyRowsControl Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"

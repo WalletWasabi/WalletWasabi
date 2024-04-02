@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class CoinViewModel : CoinListItem
 {
-	public CoinViewModel(LabelsArray labels, ICoinModel coin)
+	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -22,6 +22,7 @@ public class CoinViewModel : CoinListItem
 		BannedUntilUtc = coin.BannedUntilUtc;
 		IsSelected = false;
 		ScriptType = coin.ScriptType;
+		IgnorePrivacyMode = ignorePrivacyMode;
 	}
 
 	public ICoinModel Coin { get; }

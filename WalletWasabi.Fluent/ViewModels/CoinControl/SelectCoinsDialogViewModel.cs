@@ -23,12 +23,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	public SelectCoinsDialogViewModel(IWalletModel wallet, IList<ICoinModel> selectedCoins, TransactionInfo transactionInfo)
 	{
-		CoinList = new CoinListViewModel(wallet, selectedCoins);
+		CoinList = new CoinListViewModel(wallet, selectedCoins, true);
 
 		EnoughSelected = CoinList.Selection.ToObservableChangeSet()
 			.ToCollection()
 			.Select(coinSelection => wallet.Coins.AreEnoughToCreateTransaction(transactionInfo, coinSelection));
-		
+
 		EnableBack = true;
 		NextCommand = ReactiveCommand.Create(OnNext, EnoughSelected);
 
