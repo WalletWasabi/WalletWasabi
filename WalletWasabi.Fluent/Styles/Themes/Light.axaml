@@ -127,4 +127,13 @@
   <!-- MusicBox -->
   <Color x:Key="CoinjoinWaveDefaultColor">#77C400</Color>
   <Color x:Key="CoinjoinWaveCriticalColor">#FF5E2B</Color>
+
+  <!-- BuyAnything -->
+  <SolidColorBrush x:Key="BuyAnythingConversationsBackground" Color="{StaticResource Layer1BackgroundBrushDark2}" />
+  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" />
+  <SolidColorBrush x:Key="AssistantMessageBackground" Color="{StaticResource Layer1BackgroundBrushDark2}" />
+  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" />
+  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" Opacity="0.5" />
+  <SolidColorBrush x:Key="ConversationPressedBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" Opacity="0.8" />
+  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
 </ResourceDictionary>
