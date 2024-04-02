@@ -15,6 +15,7 @@
       <TreeDataGrid.Styles>
         <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+          <Setter Property="FontWeight" Value="Bold" />
           <Setter Property="Opacity" Value="1" />
           <Setter Property="FontSize" Value="14" />
           <Setter Property="Margin" Value="20 0" />
