@@ -103,7 +103,6 @@
     </Style>
 
     <Style Selector="TextBox:pointerover">
-      <Setter Property="Foreground" Value="White" />
       <Setter Property="Cursor" Value="Hand" />
     </Style>
 
