@@ -24,7 +24,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
-	[AutoNotify] private Wallet _outputWallet;
+	[AutoNotify] private Wallet? _outputWallet;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{

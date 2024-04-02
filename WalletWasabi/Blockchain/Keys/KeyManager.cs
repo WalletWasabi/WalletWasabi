@@ -183,7 +183,7 @@ public class KeyManager
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	[JsonProperty(PropertyName = "OutputWallet")]
-	public string OutputWalletName { get; set; }
+	public string? OutputWalletName { get; set; }
 
 	/// <summary>
 	/// Won't coinjoin automatically if the wallet balance is less than this.
