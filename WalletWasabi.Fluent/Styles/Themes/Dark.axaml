@@ -79,7 +79,7 @@
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
 
-  <SolidColorBrush x:Key="TileRegionColor" Color="{StaticResource Layer1BackgroundBrush}" />
+  <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">#FFFFFFFF</Color>
 
@@ -114,4 +114,7 @@
   <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#5A8F4B" />
   <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#536A4B" />
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
+
+  <!-- TreeDataGrid -->
+  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource  Layer1BackgroundBrushLight1}" />
 </ResourceDictionary>
