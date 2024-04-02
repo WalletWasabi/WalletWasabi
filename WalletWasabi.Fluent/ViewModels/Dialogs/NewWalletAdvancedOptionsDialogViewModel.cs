@@ -21,10 +21,11 @@ public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBa
 			{
 				var isolateRed = CoinjoinAdvancedSettings.RedCoinIsolation;
 				var target = CoinjoinAdvancedSettings.AnonScoreTarget;
-				var hours = (int) Math.Floor(CoinjoinAdvancedSettings.SelectedTimeFrame.TimeFrame.TotalHours);
+				var hours = (int)Math.Floor(CoinjoinAdvancedSettings.SelectedTimeFrame.TimeFrame.TotalHours);
 				var skipFactors = CoinjoinAdvancedSettings.SkipFactors;
+				var outputWallet = currentProfile.OutputWallet;
 
-				Close(DialogResultKind.Normal, new Result(new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors)), IsAutoCoinjoinEnabled));
+				Close(DialogResultKind.Normal, new Result(new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors, outputWallet)), IsAutoCoinjoinEnabled));
 			});
 	}
 

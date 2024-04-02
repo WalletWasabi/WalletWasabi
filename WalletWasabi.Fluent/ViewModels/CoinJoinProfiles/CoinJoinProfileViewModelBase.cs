@@ -1,4 +1,5 @@
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
@@ -15,6 +16,8 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 	public virtual CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.SpeedMaximizing;
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
+
+	public virtual Wallet OutputWallet { get; }
 
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
@@ -48,7 +51,8 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 		return profile.AnonScoreTarget == AnonScoreTarget
 			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
 			&& profile.RedCoinIsolation == RedCoinIsolation
-			&& profile.SkipFactors == SkipFactors;
+			&& profile.SkipFactors == SkipFactors
+			&& profile.OutputWallet == OutputWallet;
 	}
 
 	public override int GetHashCode()

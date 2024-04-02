@@ -98,6 +98,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		walletSettings.CoinjoinSkipFactors = selected.SkipFactors;
 		walletSettings.AnonScoreTarget = selected.AnonScoreTarget;
 		walletSettings.FeeRateMedianTimeFrameHours = selected.FeeRateMedianTimeFrameHours;
+		walletSettings.OutputWallet = selected.OutputWallet;
 		walletSettings.IsCoinjoinProfileSelected = true;
 
 		if (isNewWallet)
