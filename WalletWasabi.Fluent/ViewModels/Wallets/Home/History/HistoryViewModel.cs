@@ -146,7 +146,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
-				cjGroup.Children.FirstOrDefault(x => x.Transaction.Id == txid) is { } child)
+			    cjGroup.Children.FirstOrDefault(x => x.Transaction.Id == txid) is { } child)
 			{
 				txnItem.IsExpanded = true;
 				child.IsFlashing = true;

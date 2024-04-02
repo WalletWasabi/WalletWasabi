@@ -65,7 +65,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 		set => IsControlSelected = value;
 	}
 
-
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
 
 	public bool IsSemiPrivate => Labels == CoinPocketHelper.SemiPrivateFundsText;
