@@ -5,7 +5,7 @@
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
 
-  <Color x:Key="SystemAccentColor">#FFABC96F</Color>
+  <Color x:Key="SystemAccentColor">#FF98DD2E</Color>
   <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
@@ -35,14 +35,14 @@
   <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemRevealListLowColor">#F7F7F7</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemAccentColorLight1">#FFB5D07F</Color>
-  <Color x:Key="SystemAccentColorLight2">#FFBFD78F</Color>
-  <Color x:Key="SystemAccentColorLight3">#FFC9DFA0</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF95B459</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF7F9F43</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF69892C</Color>
-  <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
-  <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
+  <Color x:Key="SystemAccentColorLight1">#FFA4E246</Color>
+  <Color x:Key="SystemAccentColorLight2">#FFB0E65F</Color>
+  <Color x:Key="SystemAccentColorLight3">#FFBDEB77</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF82C625</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF6CB01C</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF569912</Color>
+  <Color x:Key="SystemAccentCustomColorLight">#789758</Color>
+  <Color x:Key="SystemAccentCustomColorDark">#B2C69C</Color>
 
   <Color x:Key="ActionForegroundColor">#FF000000</Color>
 
