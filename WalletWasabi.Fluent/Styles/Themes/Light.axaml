@@ -123,4 +123,8 @@
 
   <!-- Network badge -->
   <Color x:Key="NetworkBadgeColor">#FFA500</Color>
+
+  <!-- MusicBox -->
+  <Color x:Key="CoinjoinWaveDefaultColor">#77C400</Color>
+  <Color x:Key="CoinjoinWaveCriticalColor">#FF5E2B</Color>
 </ResourceDictionary>

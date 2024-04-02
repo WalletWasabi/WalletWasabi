@@ -31,10 +31,10 @@
               </SpectrumControl.IsDockEffectVisible>
               <SpectrumControl.Styles>
                 <Style Selector="SpectrumControl.fireEffect">
-                  <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
+                  <Setter Property="Foreground" Value="{DynamicResource CoinjoinWaveCriticalColor}" />
                 </Style>
                 <Style Selector="SpectrumControl">
-                  <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+                  <Setter Property="Foreground" Value="{DynamicResource CoinjoinWaveDefaultColor}" />
                 </Style>
               </SpectrumControl.Styles>
               <SpectrumControl.Transitions>
