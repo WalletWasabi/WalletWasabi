@@ -69,7 +69,7 @@
                     <Interaction.Behaviors>
                       <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}"
                                                   RoutingStrategies="Bubble">
-                        <InvokeCommandAction Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).SelectWord}"
+                        <InvokeCommandAction Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).SelectWordCommand}"
                                              CommandParameter="{Binding .}"/>
                       </RoutedEventTriggerBehavior>
                     </Interaction.Behaviors>
