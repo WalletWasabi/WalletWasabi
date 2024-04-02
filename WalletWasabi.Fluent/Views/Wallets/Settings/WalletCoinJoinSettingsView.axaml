@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             xmlns:wallets="clr-namespace:WalletWasabi.Wallets;assembly=WalletWasabi"
              x:DataType="vm:WalletCoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
@@ -28,7 +29,17 @@
         <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
         <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
       </DockPanel>
+
+      <DockPanel>
+        <TextBlock Text="Output Wallet" />
+        <ComboBox ItemsSource="{Binding Wallets}"  SelectedItem="{Binding SelectedOutputWallet}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="wallets:Wallet">
+              <TextBlock Text="{Binding WalletName}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </DockPanel>
     </StackPanel>
   </StackPanel>
-
 </UserControl>

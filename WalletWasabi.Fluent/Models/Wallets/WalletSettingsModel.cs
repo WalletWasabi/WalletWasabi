@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
@@ -41,7 +42,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_redCoinIsolation = _keyManager.RedCoinIsolation;
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
-		_outputWallet = _keyManager.OutputWallet;
+		_outputWallet = Services.WalletManager.GetWallets().ToList()
+			.FirstOrDefault(x => x.WalletName == keyManager.OutputWalletName) ?? null;
 
 		WalletType = WalletHelpers.GetType(_keyManager);
 
@@ -52,8 +54,15 @@ public partial class WalletSettingsModel : ReactiveObject
 			x => x.PlebStopThreshold,
 			x => x.AnonScoreTarget,
 			x => x.RedCoinIsolation,
-			x => x.FeeRateMedianTimeFrameHours)
+			x => x.FeeRateMedianTimeFrameHours
+			)
 			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		this.WhenAnyValue(
+				x => x.OutputWallet
+			)
 			.Do(_ => SetValues())
 			.Subscribe();
 
@@ -101,6 +110,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.CoinjoinSkipFactors = CoinjoinSkipFactors;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
+		_keyManager.OutputWalletName = OutputWallet?.WalletName ?? null;
 
 		_isDirty = true;
 	}
