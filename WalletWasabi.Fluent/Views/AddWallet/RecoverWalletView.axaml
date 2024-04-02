@@ -8,46 +8,128 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
   <ContentArea x:Name="RecoveryPageRoot"
-                 Title="{Binding Title}"
-                 CancelContent="Cancel"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue"
-                 IsBusy="{Binding IsBusy}">
-    <DockPanel>
-      <DockPanel DockPanel.Dock="Top">
-        <PathIcon Name="IconCheckmark"
-                  Margin="15 0 0 0"
-                  Classes="checkMark"
-                  VerticalAlignment="Center"
-                  DockPanel.Dock="Right"
-                  Opacity="{Binding IsMnemonicsValid}" />
-        <TagsBox DockPanel.Dock="Left"
-                   ItemCountLimit="24"
-                   SuggestionsAreCaseSensitive="False"
-                   RestrictInputToSuggestions="True"
-                   Items="{Binding Mnemonics}"
-                   Suggestions="{Binding Suggestions}"
-                   Watermark="Type in your recovery words in the correct order"
-                   AllowDuplication="True"
-                   EnableCounter="True"
-                   EnableDelete="False">
-          <TagsBox.Styles>
-            <Style Selector="TagsBox AutoCompleteBox">
-              <Setter Property="MinimumPrefixLength" Value="0" />
-            </Style>
-          </TagsBox.Styles>
-          <Interaction.Behaviors>
-            <FocusOnAttachedBehavior />
-          </Interaction.Behaviors>
-        </TagsBox>
-      </DockPanel>
+               Title="{Binding Title}"
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue"
+               IsBusy="{Binding IsBusy}">
+
+    <DockPanel HorizontalAlignment="Stretch">
+
       <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
               HorizontalAlignment="Center"
               VerticalAlignment="Bottom"
               Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
               Content="Advanced Recovery Options" />
+
+      <Grid x:Name="Layout" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+          <RowDefinition MinHeight="70" Height="*" />
+          <RowDefinition Height="16" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="20" />
+        </Grid.RowDefinitions>
+
+        <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+          <ItemsControl ItemsSource="{Binding ConfirmationWords}">
+            <ItemsControl.Styles>
+              <Style Selector="TextBlock.error">
+                <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+              </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Panel Margin="0,0,0,5">
+
+                  <StackPanel IsVisible="{Binding !IsSelected}"
+                              Margin="15 0 0 0"
+                              Width="200"
+                              Orientation="Horizontal" >
+                    <Panel Height="45"
+                           VerticalAlignment="Stretch">
+                      <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
+                                 Opacity="0.5"
+                                 FontSize="{DynamicResource FontSizeH6}"
+                                 VerticalAlignment="Center" />
+                    </Panel>
+                    <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold"
+                               Margin="5 0 0 0"
+                               Classes.error="{Binding !IsConfirmed}"
+                               FontSize="{DynamicResource FontSizeH6}"
+                               Height="45"
+                               Width="100"/>
+                  </StackPanel>
+
+                  <DockPanel IsVisible="{Binding IsSelected}"
+                             Margin="15 0 0 0"
+                             Width="200">
+                    <Panel DockPanel.Dock="Left"
+                           Height="45"
+                           VerticalAlignment="Stretch">
+                      <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
+                                 Opacity="0.5"
+                                 FontSize="{DynamicResource FontSizeH6}"
+                                 VerticalAlignment="Center"/>
+                    </Panel>
+                    <PathIcon Name="IconCheckmark"
+                              Margin="15 0 0 0"
+                              Classes="checkMark"
+                              VerticalAlignment="Center"
+                              DockPanel.Dock="Right"
+                              Opacity="{Binding IsMnemonicsValid}" />
+                    <TagsBox ItemCountLimit="1"
+                             SuggestionsAreCaseSensitive="False"
+                             RestrictInputToSuggestions="True"
+                             Items="{Binding Mnemonics}"
+                             Suggestions="{Binding Suggestions}"
+                             Watermark=""
+                             AllowDuplication="True"
+                             EnableCounter="False"
+                             EnableDelete="False"
+                             Width="150"
+                             Margin="5 0 0 0">
+                      <TagsBox.Styles>
+                        <Style Selector="TagsBox AutoCompleteBox">
+                          <Setter Property="MinimumPrefixLength" Value="0" />
+                        </Style>
+                      </TagsBox.Styles>
+                      <Interaction.Behaviors>
+                        <FocusOnAttachedBehavior />
+                      </Interaction.Behaviors>
+                    </TagsBox>
+                  </DockPanel>
+
+                </Panel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Grid ColumnDefinitions="*,1,*,1,*">
+            <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
+            <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
+          </Grid>
+        </Panel>
+
+        <CopyablePasswordTextBox Grid.Row="3"
+                                 Watermark="Type the passphrase (13th word)"
+                                 Text="{Binding ConfirmPassphrase}"
+                                 PasswordChar="•"
+                                 Classes="revealPasswordButton copyablePasswordTextBox"
+                                 MaxWidth="400"
+                                 VerticalAlignment="Top"/>
+
+      </Grid>
+
     </DockPanel>
+
   </ContentArea>
 </UserControl>

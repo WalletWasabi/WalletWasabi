@@ -21,12 +21,25 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
+	private readonly List<RecoverWordViewModel> _words;
+	[AutoNotify] private RecoverWordViewModel _currentWord;
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
+	[AutoNotify] private string? _confirmPassphrase;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _passphraseConfirmed;
 
 	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
+		var words = Enumerable
+			.Range(1, 12)
+			.Select(x => new RecoverWordViewModel(x, ""));
+
+		_words = words.OrderBy(x => x.Index).ToList();
+		_currentWord = _words.First();
+		_currentWord.IsSelected = true;
+
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
@@ -48,6 +61,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
 	}
+
+	public ObservableCollectionExtended<RecoverWordViewModel> ConfirmationWords { get; } = new();
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
@@ -118,9 +133,31 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		return string.Join(' ', Mnemonics);
 	}
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		ConfirmationWords.Clear();
+
+		var confirmationWordsSourceList = new SourceList<RecoverWordViewModel>();
+
+		confirmationWordsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(ConfirmationWords)
+			//.OnItemAdded(x => x.Reset())
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		confirmationWordsSourceList
+			.Connect()
+			.WhenValueChanged(x => x.IsConfirmed)
+			.Subscribe(_ => AllWordsConfirmed = confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
+			.DisposeWith(disposables);
+
+		confirmationWordsSourceList.AddRange(_words);
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
