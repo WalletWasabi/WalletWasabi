@@ -37,7 +37,7 @@ public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
-	private static readonly MemoryCacheEntryOptions UnconfirmedTrasanctionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
+	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
@@ -432,7 +432,7 @@ public class BlockchainController : ControllerBase
 			return await Cache.GetCachedResponseAsync(
 				cacheKey,
 				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
-				options: UnconfirmedTrasanctionChainCacheEntryOptions,
+				options: UnconfirmedTransactionChainCacheEntryOptions,
 				cancellationToken);
 		}
 		catch (OperationCanceledException)

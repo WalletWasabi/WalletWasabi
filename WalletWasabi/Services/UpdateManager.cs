@@ -42,10 +42,10 @@ public class UpdateManager : IDisposable
 	public string InstallerDir { get; }
 	private IHttpClient HttpClient { get; }
 
-	///<summary>Whether to download the new installer in the background or not.</summary>
+	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
 
-	///<summary>Install new version on shutdown or not.</summary>
+	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker UpdateChecker { get; }
