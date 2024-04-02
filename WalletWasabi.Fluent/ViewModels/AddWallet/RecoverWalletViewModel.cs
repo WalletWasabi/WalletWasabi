@@ -65,11 +65,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		NextWordCommand = ReactiveCommand.Create(NextWord);
 
 		PreviousWordCommand = ReactiveCommand.Create(PreviousWord);
+
+		SelectWordCommand = ReactiveCommand.Create<RecoverWordViewModel>(SelectWord);
 	}
 
 	public ICommand NextWordCommand { get; }
 
 	public ICommand PreviousWordCommand { get; }
+
+	public ICommand SelectWordCommand { get; }
 
 	public ObservableCollectionExtended<RecoverWordViewModel> ConfirmationWords { get; } = new();
 
@@ -99,7 +103,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private void PreviousWord()
 	{
 		var currentIndex = _words.IndexOf(_currentWord);
-		if (currentIndex <= 0)
+		if (currentIndex <= 0 || !_currentWord.IsSelected)
 		{
 			_currentWord.IsSelected = false;
 			_currentWord = _words[^1];
@@ -111,6 +115,13 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			_currentWord = _words[currentIndex - 1];
 			_currentWord.IsSelected = true;
 		}
+	}
+
+	private void SelectWord(RecoverWordViewModel word)
+	{
+		_currentWord.IsSelected = false;
+		_currentWord = word;
+		_currentWord.IsSelected = true;
 	}
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)

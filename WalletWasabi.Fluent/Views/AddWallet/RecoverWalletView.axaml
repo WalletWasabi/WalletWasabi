@@ -64,7 +64,15 @@
                   <StackPanel IsVisible="{Binding !IsSelected}"
                               Margin="15 0 0 0"
                               Width="200"
-                              Orientation="Horizontal" >
+                              Orientation="Horizontal"
+                              Background="Transparent">
+                    <Interaction.Behaviors>
+                      <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}"
+                                                  RoutingStrategies="Bubble">
+                        <InvokeCommandAction Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).SelectWord}"
+                                             CommandParameter="{Binding .}"/>
+                      </RoutedEventTriggerBehavior>
+                    </Interaction.Behaviors>
                     <Panel Height="45"
                            VerticalAlignment="Stretch">
                       <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
