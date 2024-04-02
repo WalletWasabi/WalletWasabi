@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ResourceDictionary.MergedDictionaries>
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
@@ -67,24 +66,25 @@
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
   <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
-  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource  SystemAccentColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}" />
 
-  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource  SystemChromeMediumColor}" />
-  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource  SystemChromeMediumColor}" />
-  <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource  SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
 
   <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource  SystemChromeHighColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource  SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">#FFFFFFFF</Color>
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
-  <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="{StaticResource SystemAccentCustomColorDark}" Opacity="0.5" />
+  <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="{StaticResource SystemAccentCustomColorDark}"
+                   Opacity="0.5" />
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
@@ -116,5 +116,8 @@
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#383838" />
 
   <!-- TreeDataGrid -->
-  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource  Layer1BackgroundBrushLight1}" />
+  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer1BackgroundBrushLight1}" />
+
+  <!-- Accent button -->
+  <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
 </ResourceDictionary>

@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ResourceDictionary.MergedDictionaries>
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
@@ -26,14 +25,14 @@
   <Color x:Key="SystemChromeGrayColor">#FF919191</Color>
   <Color x:Key="SystemChromeHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeLowColor">#FFFCFCFC</Color>
-  <Color x:Key="SystemChromeMediumColor">#F7F7F7</Color>
+  <Color x:Key="SystemChromeMediumColor">#F3F3F3</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemListLowColor">#F7F7F7</Color>
+  <Color x:Key="SystemListLowColor">#F3F3F3</Color>
   <Color x:Key="SystemListMediumColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeAltMediumHighColor">#CCFFFFFF</Color>
   <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemRevealListLowColor">#F7F7F7</Color>
+  <Color x:Key="SystemRevealListLowColor">#F3F3F3</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
   <Color x:Key="SystemAccentColorLight1">#FFA4E246</Color>
   <Color x:Key="SystemAccentColorLight2">#FFB0E65F</Color>
@@ -48,30 +47,30 @@
 
   <Color x:Key="RegionColor">#FFFFFFFF</Color>
 
-  <Color x:Key="Layer1BackgroundBrush">#F7F7F7</Color>
-  <Color x:Key="Layer1BackgroundBrushLight1">#FFDEDEDE</Color>
-  <Color x:Key="Layer1BackgroundBrushLight2">#FFC4C4C4</Color>
-  <Color x:Key="Layer1BackgroundBrushLight3">#FFABABAB</Color>
-  <Color x:Key="Layer1BackgroundBrushDark1">#FFF8F8F8</Color>
-  <Color x:Key="Layer1BackgroundBrushDark2">#FFF9F9F9</Color>
-  <Color x:Key="Layer1BackgroundBrushDark3">#FFFAFAFA</Color>
+  <Color x:Key="Layer1BackgroundBrush">#F3F3F3</Color>
+  <Color x:Key="Layer1BackgroundBrushLight1">#FFDADADA</Color>
+  <Color x:Key="Layer1BackgroundBrushLight2">#FFC1C1C1</Color>
+  <Color x:Key="Layer1BackgroundBrushLight3">#FFA8A8A8</Color>
+  <Color x:Key="Layer1BackgroundBrushDark1">#FFF5F5F5</Color>
+  <Color x:Key="Layer1BackgroundBrushDark2">#FFF6F6F6</Color>
+  <Color x:Key="Layer1BackgroundBrushDark3">#FFF8F8F8</Color>
 
-  <Color x:Key="Layer2BackgroundBrush">#EFEFEF</Color>
-  <Color x:Key="Layer2BackgroundBrushLight1">#FFD6D6D6</Color>
-  <Color x:Key="Layer2BackgroundBrushLight2">#FFBDBDBD</Color>
-  <Color x:Key="Layer2BackgroundBrushLight3">#FFA5A5A5</Color>
-  <Color x:Key="Layer2BackgroundBrushDark1">#FFF1F1F1</Color>
-  <Color x:Key="Layer2BackgroundBrushDark2">#FFF3F3F3</Color>
-  <Color x:Key="Layer2BackgroundBrushDark3">#FFF5F5F5</Color>
+  <Color x:Key="Layer2BackgroundBrush">#E9E9E9</Color>
+  <Color x:Key="Layer2BackgroundBrushLight1">#FFD1D1D1</Color>
+  <Color x:Key="Layer2BackgroundBrushLight2">#FFB9B9B9</Color>
+  <Color x:Key="Layer2BackgroundBrushLight3">#FFA0A0A0</Color>
+  <Color x:Key="Layer2BackgroundBrushDark1">#FFECECEC</Color>
+  <Color x:Key="Layer2BackgroundBrushDark2">#FFEFEFEF</Color>
+  <Color x:Key="Layer2BackgroundBrushDark3">#FFF1F1F1</Color>
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
   <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
-  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource  SystemBaseLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource  SystemBaseMediumLowColor}" />
-  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource  SystemAccentColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
+  <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}" />
 
-  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource  SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
 
@@ -79,7 +78,7 @@
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
-  <Color x:Key="TileRegionColor">#F7F7F7</Color>
+  <Color x:Key="TileRegionColor">#EFEFEF</Color>
   <Color x:Key="BorderColor">#14000000</Color>
   <Color x:Key="AcrylicTrimForeground">#FF000000</Color>
 
@@ -103,12 +102,12 @@
                     Color="#000000"
                     OffsetX="0" OffsetY="1"
                     BlurRadius="10"
-                    Opacity="0.15" />
+                    Opacity="0.25" />
   <DropShadowEffect x:Key="MainAreaDropShadowEffect"
                     Color="Black"
                     OffsetX="-1" OffsetY="-1"
                     BlurRadius="10"
-                    Opacity="0.15" />
+                    Opacity="0.25" />
 
   <!-- Privacy colors -->
   <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#7BA170" />
@@ -116,5 +115,8 @@
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#E6E6E6" />
 
   <!-- TreeDataGrid -->
-  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource  Layer2BackgroundBrush}" />
+  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer2BackgroundBrush}" />
+
+  <!-- Accent button -->
+  <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
 </ResourceDictionary>
