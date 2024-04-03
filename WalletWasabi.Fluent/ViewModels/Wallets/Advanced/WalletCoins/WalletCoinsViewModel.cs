@@ -52,7 +52,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coinChanges =
 			_wallet.Coins.List
 				.Connect()
-				.TransformWithInlineUpdate(model =>
+				.TransformWithInlineUpdate(
+					model =>
 					{
 						model.SubscribeToCoinChanges();
 						return new WalletCoinViewModel(model);
