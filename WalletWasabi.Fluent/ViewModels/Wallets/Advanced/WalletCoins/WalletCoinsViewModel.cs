@@ -8,10 +8,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -54,8 +52,16 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coinChanges =
 			_wallet.Coins.List
 				.Connect()
-				.OnItemAdded(c => c.SubscribeToCoinChanges()) // Subscribe to SmartCoin changes for dynamic updates
-				.TransformWithInlineUpdate(x => new WalletCoinViewModel(x), (_, _) => { })
+				.TransformWithInlineUpdate(model =>
+					{
+						model.SubscribeToCoinChanges();
+						return new WalletCoinViewModel(model);
+					},
+					(vm, model) =>
+					{
+						model.SubscribeToCoinChanges();
+						vm.Model = model;
+					})
 				.Replay(1)
 				.RefCount();
 
