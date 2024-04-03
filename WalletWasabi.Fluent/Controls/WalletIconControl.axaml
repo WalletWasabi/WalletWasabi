@@ -60,6 +60,13 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+            <DataTriggerBehavior Binding="{Binding WalletType}" Value="Hardware">
+              <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
+                <ChangeAvaloniaPropertyAction.Value>
+                  <StaticResource ResourceKey="GenericWalletIcon" />
+                </ChangeAvaloniaPropertyAction.Value>
+              </ChangeAvaloniaPropertyAction>
+            </DataTriggerBehavior>
           </Interaction.Behaviors>
         </Image>
       </ControlTemplate>
