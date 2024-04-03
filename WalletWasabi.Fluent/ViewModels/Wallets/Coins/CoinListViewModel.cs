@@ -51,6 +51,10 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				})
 			.AddKey(model => model.Coin.Key);
 
+		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges())
+			.Subscribe()
+			.DisposeWith(_disposables);
+
 		changes
 			.Sort(SortExpressionComparer<CoinListItem>.Descending(x => x.AnonymityScore ?? x.Children.Min(c => c.AnonymityScore) ?? 0))
 			.DisposeMany()
