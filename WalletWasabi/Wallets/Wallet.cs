@@ -132,6 +132,8 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
+	public bool IsAutoCoinJoin => KeyManager.AutoCoinJoin;
+
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());

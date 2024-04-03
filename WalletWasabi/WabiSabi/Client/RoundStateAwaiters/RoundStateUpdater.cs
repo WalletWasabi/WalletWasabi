@@ -137,4 +137,9 @@ public class RoundStateUpdater : PeriodicRunner
 		}
 		return base.StopAsync(cancellationToken);
 	}
+
+	public IEnumerable<RoundState> GetRoundStates()
+	{
+		return RoundStates.Values.ToArray();
+	}
 }
