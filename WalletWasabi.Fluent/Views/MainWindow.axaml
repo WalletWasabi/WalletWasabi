@@ -38,6 +38,7 @@
     Do not remove as the OpacityMask is needed for RenderOptions.TextRenderingMode="SubpixelAntialias"
     to work without artifacts until the https://github.com/AvaloniaUI/Avalonia/issues/13265 issue is fixed in Avalonia
     -->
+    <!-- NOTE: Disable OpacityMask for making screenshots -->
     <Panel.OpacityMask>
       <LinearGradientBrush StartPoint="0%,0%"
                            EndPoint="100%,0%">

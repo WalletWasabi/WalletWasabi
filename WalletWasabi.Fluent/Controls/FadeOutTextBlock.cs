@@ -42,11 +42,13 @@ public class FadeOutTextBlock : TextBlock
 			var hasCollapsed = TrimmedTextBlock.TextLayout.TextLines[0].HasCollapsed;
 			if (hasCollapsed)
 			{
+				// NOTE: Disable OpacityMask for making screenshots
 				using var _ = context.PushOpacityMask(FadeoutOpacityMask, Bounds);
 				TextLayout.Draw(context, origin + new Point(TextLayout.OverhangLeading, 0));
 			}
 			else
 			{
+				// NOTE: Disable OpacityMask for making screenshots
 				using var _ = context.PushOpacityMask(OpacityMask, Bounds);
 				TextLayout.Draw(context, origin + new Point(TextLayout.OverhangLeading, 0));
 			}
