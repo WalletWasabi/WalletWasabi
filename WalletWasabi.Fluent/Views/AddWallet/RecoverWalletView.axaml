@@ -105,6 +105,28 @@
                               VerticalAlignment="Center"
                               DockPanel.Dock="Right"
                               Opacity="{Binding IsMnemonicsValid}" />
+                    <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
+                                            FilterMode="StartsWith"
+                                            MinimumPrefixLength="0"
+                                            Width="150"
+                                            Margin="5 0 0 0"
+                                            Theme="{StaticResource TagsBoxAutoCompleteBox}">
+                      <TagsBoxAutoCompleteBox.Styles>
+                        <Style Selector="AutoCompleteBox">
+                          <Setter Property="VerticalAlignment" Value="Center" />
+                          <Setter Property="Focusable" Value="True" />
+                          <Setter Property="MinimumPrefixLength" Value="0" />
+                        </Style>
+                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                          <Setter Property="Theme" Value="{StaticResource RecoveryAutoCompleteBoxTextBox}" />
+                        </Style>
+                      </TagsBoxAutoCompleteBox.Styles>
+                      <Interaction.Behaviors>
+                        <FocusOnAttachedBehavior />
+                        <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
+                      </Interaction.Behaviors>
+                    </TagsBoxAutoCompleteBox>
+                    <!--
                     <TagsBox ItemCountLimit="1"
                              SuggestionsAreCaseSensitive="False"
                              RestrictInputToSuggestions="True"
@@ -126,6 +148,7 @@
                         <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
                       </Interaction.Behaviors>
                     </TagsBox>
+                    -->
                   </DockPanel>
 
                 </Panel>

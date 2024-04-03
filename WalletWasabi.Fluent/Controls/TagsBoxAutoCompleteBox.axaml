@@ -29,6 +29,27 @@
       </Style>
     </ControlTheme>
 
+  <ControlTheme TargetType="TextBox" x:Key="RecoveryAutoCompleteBoxTextBox" BasedOn="{StaticResource TextBoxTheme}">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+    <Setter Property="MaxLength" Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type TagsBox}}}" />
+    <Setter Property="ContextMenu">
+      <ContextMenu>
+        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
+                  IsEnabled="{Binding $parent[TextBox].CanPaste}"
+                  InputGesture="{x:Static TextBox.PasteGesture}" />
+      </ContextMenu>
+    </Setter>
+    <Style Selector="^ /template/ DataValidationErrors">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^ /template/ Border#PART_BorderElement">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ControlTheme>
+
     <ControlTheme x:Key="TagsBoxAutoCompleteBox" TargetType="AutoCompleteBox">
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="Background" Value="{x:Null}" />
