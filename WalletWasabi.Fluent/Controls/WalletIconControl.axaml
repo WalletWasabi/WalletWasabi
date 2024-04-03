@@ -11,6 +11,7 @@
       <ControlTemplate>
         <Image x:Name="Image">
           <Interaction.Behaviors>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Normal">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -18,6 +19,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="BitBox">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -25,6 +27,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Trezor">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -32,6 +35,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Coldcard">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -39,6 +43,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Generic">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -46,6 +51,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Ledger">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -53,6 +59,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Jade">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -60,6 +67,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
             <DataTriggerBehavior Binding="{Binding WalletType}" Value="Hardware">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>
@@ -67,6 +75,7 @@
                 </ChangeAvaloniaPropertyAction.Value>
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
+
           </Interaction.Behaviors>
         </Image>
       </ControlTemplate>
