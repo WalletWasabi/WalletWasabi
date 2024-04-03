@@ -112,6 +112,7 @@
                               DockPanel.Dock="Right"
                               Opacity="{Binding IsMnemonicsValid}" />
                     <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
+                                            Text="{Binding Word}"
                                             FilterMode="StartsWith"
                                             MinimumPrefixLength="0"
                                             Width="150"
