@@ -10,7 +10,8 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		int anonScoreTarget,
 		int feeRateMedianTimeFrameHours,
 		bool redCoinIsolation,
-		CoinjoinSkipFactors skipFactors, Wallet outputWallet)
+		CoinjoinSkipFactors skipFactors,
+		Wallet outputWallet)
 	{
 		AnonScoreTarget = anonScoreTarget;
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
@@ -24,7 +25,8 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 			  walletSettings.AnonScoreTarget,
 			  walletSettings.FeeRateMedianTimeFrameHours,
 			  walletSettings.RedCoinIsolation,
-			  walletSettings.CoinjoinSkipFactors, walletSettings.OutputWallet)
+			  walletSettings.CoinjoinSkipFactors,
+			  walletSettings.OutputWallet)
 	{
 	}
 
