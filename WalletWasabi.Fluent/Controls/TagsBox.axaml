@@ -34,6 +34,7 @@
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Focusable" Value="True" />
+    <Setter Property="IsTabStop" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>

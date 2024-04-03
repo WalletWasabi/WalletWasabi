@@ -14,7 +14,7 @@
   <UserControl.DataTemplates>
 
     <DataTemplate DataType="models:Suggestion">
-      <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
+      <Button Classes="invisible" HorizontalAlignment="Center" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
         <DockPanel HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
           <TextBlock Margin="4 0 0 0" Text="{Binding Text}" VerticalAlignment="Center" />
@@ -26,7 +26,7 @@
   <UserControl.Styles>
 
     <Style Selector="FlyoutPresenter">
-      <Setter Property="Padding" Value="0" />
+      <Setter Property="Padding" Value="4" />
       <Setter Property="MinWidth" Value="0" />
     </Style>
 
@@ -116,7 +116,7 @@
         </TextBox>
       </DockPanel>
       <!-- Amount -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,15">
         <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
@@ -131,7 +131,7 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                                   BalanceBtc="{Binding Balance^.Btc}"
                                   BalanceUsd="{Binding Balance^.Usd^}"
-                                  ValidatePasteBalance="True">
+                                  ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
@@ -148,6 +148,24 @@
             </Interaction.Behaviors>
           </DualCurrencyEntryBox>
         </DockPanel>
+      </DockPanel>
+      <!-- Recipient -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
+               Margin="0,10,0,10"/>
+        <TagsBox x:Name="LabelTagBox"
+                 VerticalAlignment="Top"
+                 Watermark="{StaticResource LabelsWatermarkText}"
+                 TagSeparator=","
+                 SuggestionsAreCaseSensitive="True"
+                 RestrictInputToSuggestions="False"
+                 Items="{Binding SuggestionLabels.Labels}"
+                 TopItems="{Binding SuggestionLabels.TopSuggestions}"
+                 Suggestions="{Binding SuggestionLabels.Suggestions}"
+                 MaxTextLength="{StaticResource MaxLabelLength}"
+                 IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
+                 ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}">
+        </TagsBox>
       </DockPanel>
     </DockPanel>
   </ContentArea>

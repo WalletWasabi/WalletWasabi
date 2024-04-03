@@ -48,4 +48,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CopyablePasswordTextBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollBar.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ComboBoxItem.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TabControl.axaml" />
 </Styles>

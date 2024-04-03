@@ -5,12 +5,15 @@
              xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              mc:Ignorable="d"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
+             xmlns:reactive="clr-namespace:System.Reactive;assembly=System.Reactive"
              x:CompileBindings="True"
              x:DataType="searchBar:SearchBarViewModel"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
              x:Name="UserControl">
   <UserControl.Resources>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+    <x:Double x:Key="SearchResultsMaxHeight">512</x:Double>
   </UserControl.Resources>
 
   <Design.DataContext>
@@ -126,43 +129,56 @@
       </Setter>
     </Style>
 
-    <Style Selector="FlyoutPresenter">
-      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Style Selector="ContentControl#DropDownRoot">
+      <Setter Property="Width" Value="{DynamicResource FlyoutThemeMaxWidth}" />
+      <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
+      <Setter Property="MaxHeight" Value="{StaticResource SearchResultsMaxHeight}" />
     </Style>
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100" HorizontalAlignment="Stretch"
-           Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
+  <Panel>
+    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100"
+             HorizontalAlignment="Stretch"
+             Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
-    <Interaction.Behaviors>
-      <TextBoxAutoSelectTextBehavior />
-      <DataTriggerBehavior Binding="{Binding IsSearchListVisible}" Value="False">
-        <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
-      </DataTriggerBehavior>
-      <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
-        <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
-      </KeyDownTrigger>
-      <ShowFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
-    </Interaction.Behaviors>
+      <Interaction.Behaviors>
+        <TextBoxAutoSelectTextBehavior />
+        <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="True">
+          <InvokeCommandAction Command="{Binding ActivateFirstItemCommand}" />
+        </KeyDownTrigger>
+        <OnSignalTriggerBehavior Trigger="{Binding CommandActivated}">
+          <CallMethodAction TargetObject="UserControl" MethodName="Unfocus" />
+        </OnSignalTriggerBehavior>
+      </Interaction.Behaviors>
 
-    <TextBox.InnerLeftContent>
-      <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
-    </TextBox.InnerLeftContent>
-    <TextBox.InnerRightContent>
-      <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
-    </TextBox.InnerRightContent>
-
-    <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Bottom" ShowMode="Transient">
-        <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
-      </Flyout>
-    </FlyoutBase.AttachedFlyout>
-  </TextBox>
+      <TextBox.InnerLeftContent>
+        <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
+      </TextBox.InnerLeftContent>
+      <TextBox.InnerRightContent>
+        <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
+      </TextBox.InnerRightContent>
+    </TextBox>
+    <Popup x:Name="SearchResultsPopup" PlacementTarget="SearchBox">
+      <Popup.IsOpen>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <MultiBinding Converter="{x:Static BoolConverters.Or}">
+            <Binding Path="#SearchResultsPopup.IsPointerOver" />
+            <Binding Path="#SearchBox.IsFocused" />
+          </MultiBinding>
+          <Binding Source="{x:Static helpers:ApplicationHelper.Instance}" Path="MainWindowActivated^" />
+        </MultiBinding>
+      </Popup.IsOpen>
+      <ContentControl x:Name="DropDownRoot" Theme="{StaticResource AcrylicPanel}">
+        <ScrollViewer>
+          <s:SearchBarDropdown />
+        </ScrollViewer>
+      </ContentControl>
+    </Popup>
+  </Panel>
 
   <Interaction.Behaviors>
     <KeyDownTrigger EventRoutingStrategy="Tunnel" Key="Escape">
       <CallMethodAction MethodName="Unfocus" />
     </KeyDownTrigger>
   </Interaction.Behaviors>
-
 </UserControl>

@@ -24,7 +24,7 @@ Todo:
     ```
     Linux: 
     ```
-     ~/bitcoin-[version number]/bin/bitcoin-qt -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
+     ~/bitcoin-[version number]/bin/bitcoin-qt -regtest -blockfilterindex -txindex -datadir=$HOME/.bitcoin/
     ```
 4. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
     

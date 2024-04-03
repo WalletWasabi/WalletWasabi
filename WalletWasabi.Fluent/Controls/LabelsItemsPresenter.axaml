@@ -8,8 +8,10 @@
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="38" />
-    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource TagsBoxItemBackground}" />
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type LabelsItemsPresenter}" TargetType="LabelsItemsPresenter">
@@ -65,8 +67,8 @@
                 <ToolTip.Tip>
                   <Panel>
                     <TagsBox IsReadOnly="True"
-                               Margin="4,6,0,0"
-                               Items="{Binding}" />
+                             Margin="4,6,0,0"
+                             Items="{Binding}" />
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."
