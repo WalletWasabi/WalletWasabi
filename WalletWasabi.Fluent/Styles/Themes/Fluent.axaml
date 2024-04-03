@@ -37,6 +37,7 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ToggleRadioButton.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ScrollBar.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ContentControl.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/WalletIconControl.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Styles.Resources>

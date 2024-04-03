@@ -87,7 +87,8 @@
 
       <!-- Icon -->
       <Viewbox MaxHeight="200">
-        <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
+        <WalletIconControl WalletType="{Binding WalletType}" />
+        <!--<Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />-->
       </Viewbox>
     </DockPanel>
   </ContentArea>
