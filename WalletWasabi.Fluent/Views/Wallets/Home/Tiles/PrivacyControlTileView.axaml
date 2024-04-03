@@ -41,7 +41,7 @@
     </DockPanel>
 
     <TileControl.BottomContent>
-      <StackPanel Margin="0 12 0 0" Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+      <StackPanel Margin="0 8 0 0" Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
         <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
                 BorderBrush="{DynamicResource ButtonForeground}">
           <TextBlock
