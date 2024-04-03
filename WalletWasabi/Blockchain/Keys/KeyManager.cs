@@ -182,7 +182,7 @@ public class KeyManager
 	[JsonProperty(PropertyName = "AutoCoinJoin")]
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
-	[JsonProperty(PropertyName = "OutputWallet")]
+	[JsonProperty(PropertyName = "OutputWalletName")]
 	public string? OutputWalletName { get; set; }
 
 	/// <summary>
