@@ -282,36 +282,25 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 	/// <summary>
-	/// Attempt to get the bitcoin block from a full node or use P2P as a fallback.
+	/// Attempt to get the bitcoin block from a full node as a primary source of data, or use P2P as a fallback.
 	/// </summary>
 	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		BlockDownloadService.IResult fullNodeResult = await BlockDownloadService.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash, priority, cancellationToken)
-			.ConfigureAwait(false);
-
-		if (fullNodeResult is BlockDownloadService.SuccessResult successFullNodeResult)
-		{
-			return successFullNodeResult.Block;
-		}
-
-		if (fullNodeResult is BlockDownloadService.CanceledResult)
-		{
-			throw new OperationCanceledException();
-		}
-
+		ISourceRequest[] sourceRequests = [TrustedFullNodeSourceRequest.Instance, P2pSourceRequest.Automatic];
 		while (true)
 		{
-			BlockDownloadService.IResult p2pNodeResult = await BlockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, priority, cancellationToken)
-				.ConfigureAwait(false);
-
-			if (p2pNodeResult is BlockDownloadService.SuccessResult successP2pResult)
+			foreach (ISourceRequest sourceRequest in sourceRequests)
 			{
-				return successP2pResult.Block;
-			}
+				BlockDownloadService.IResult result = await BlockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority, cancellationToken)
+					.ConfigureAwait(false);
 
-			if (p2pNodeResult is BlockDownloadService.CanceledResult)
-			{
-				throw new OperationCanceledException();
+				switch (result)
+				{
+					case BlockDownloadService.SuccessResult successFullNodeResult:
+						return successFullNodeResult.Block;
+					case BlockDownloadService.CanceledResult:
+						throw new OperationCanceledException();
+				}
 			}
 		}
 	}
