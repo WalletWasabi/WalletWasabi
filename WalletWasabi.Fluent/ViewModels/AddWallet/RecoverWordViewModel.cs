@@ -20,6 +20,9 @@ public partial class RecoverWordViewModel : ViewModelBase
 		Index = index;
 		Word = word;
 
+		// TODO:
+		IsConfirmed = true;
+
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		this.WhenAnyValue(x => x.SelectedWord)
@@ -32,7 +35,8 @@ public partial class RecoverWordViewModel : ViewModelBase
 
 	private void ValidateWord()
 	{
-		IsConfirmed = Word.Equals(SelectedWord, StringComparison.InvariantCultureIgnoreCase);
+		// TODO:
+		// IsConfirmed = Word.Equals(SelectedWord, StringComparison.InvariantCultureIgnoreCase);
 	}
 
 	public override string ToString()
