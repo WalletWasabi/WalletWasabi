@@ -615,8 +615,7 @@
         </DrawingGroup>
       </DrawingImage>
 
-      <Image x:Key="TrezorWalletIcon">
-        <DrawingImage>
+      <DrawingImage x:Key="TrezorWalletIcon">
           <DrawingGroup>
             <DrawingGroup>
               <DrawingGroup.Transform>
@@ -656,7 +655,6 @@
             </DrawingGroup>
           </DrawingGroup>
         </DrawingImage>
-      </Image>
 
       <DrawingImage x:Key="NormalWalletIcon">
         <DrawingGroup>
