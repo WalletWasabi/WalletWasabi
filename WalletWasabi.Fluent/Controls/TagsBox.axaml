@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
@@ -19,12 +19,10 @@
     </Panel>
   </Design.PreviewWith>
 
-  <Styles.Resources>
-    <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
-    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
-  </Styles.Resources>
+  <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
 
-  <Style Selector="TagsBox">
+  <ControlTheme x:Key="{x:Type TagsBox}" TargetType="TagsBox">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
@@ -82,7 +80,7 @@
                         <ConcatenatingWrapPanel.ConcatenatedChildren>
                           <TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                     ItemsSource="{Binding $parent[TagsBox].Suggestions}"
-                                                    FilterMode="StartsWith" />
+                                                    FilterMode="StartsWith" Theme="{StaticResource TagsBoxAutoCompleteBox}" />
                         </ConcatenatingWrapPanel.ConcatenatedChildren>
                       </ConcatenatingWrapPanel>
                     </ItemsPanelTemplate>
@@ -102,88 +100,7 @@
       </ControlTemplate>
     </Setter>
     <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
-  </Style>
 
-  <Style Selector="TagsBox:readonly">
-    <Setter Property="Cursor" Value="Arrow" />
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DataValidationErrors>
-          <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
-                  BorderBrush="{TemplateBinding BorderBrush}"
-                  BorderThickness="{TemplateBinding BorderThickness}"
-                  Padding="{TemplateBinding Padding}">
-            <Panel>
-              <TextBlock Name="PART_Watermark"
-                         Opacity="0.5"
-                         Padding="15 0"
-                         VerticalAlignment="Center"
-                         Text="{TemplateBinding Watermark}" />
-              <ItemsControl Name="PART_ItemsPresenter"
-                            ItemsSource="{TemplateBinding Items}"
-                            Focusable="False"
-                            ClipToBounds="False">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <TagControl Content="{Binding .}"
-                                  EnableCounter="{Binding $parent[TagsBox].EnableCounter}" />
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </Panel>
-          </Border>
-        </DataValidationErrors>
-      </ControlTemplate>
-    </Setter>
-    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
-  </Style>
+  </ControlTheme>
 
-  <Style Selector="TagsBox">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-  </Style>
-
-  <Style Selector="TagsBox /template/ Border#PART_Border">
-    <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
-  </Style>
-
-  <Style Selector="TagsBox:pointerover /template/ Border#PART_Border">
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-  </Style>
-
-  <Style Selector="TagsBox:focus-within">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
-  </Style>
-
-  <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
-
-  <Style Selector="TagsBox:error /template/ Border#PART_Border">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-  </Style>
-
-  <Style Selector="TagsBox:readonly /template/ Border#PART_Border">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-  </Style>
-
-  <Style Selector="TagsBox:readonly WrapPanel TagControl">
-    <Setter Property="Margin" Value="0,0,4,4" />
-  </Style>
-
-  <Style Selector="TagsBox:readonly WrapPanel">
-    <Setter Property="Margin" Value="0 4 0 0" />
-  </Style>
-
-</Styles>
+</ResourceDictionary>
