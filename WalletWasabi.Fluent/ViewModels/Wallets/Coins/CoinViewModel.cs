@@ -1,3 +1,5 @@
+using System.Reactive.Disposables;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -5,8 +7,10 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class CoinViewModel : CoinListItem
+public class CoinViewModel : CoinListItem, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+
 	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
 	{
 		Labels = labels;
@@ -14,7 +18,6 @@ public class CoinViewModel : CoinListItem
 		Amount = coin.Amount;
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
-		IsCoinjoining = coin.IsCoinJoinInProgress;
 		var confirmationCount = coin.Confirmations;
 		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
 		BannedUntilUtcToolTip = coin.BannedUntilUtcToolTip;
@@ -23,7 +26,10 @@ public class CoinViewModel : CoinListItem
 		IsSelected = false;
 		ScriptType = coin.ScriptType;
 		IgnorePrivacyMode = ignorePrivacyMode;
+		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress).BindTo(this, x => x.IsCoinjoining).DisposeWith(_disposables);
 	}
 
 	public ICoinModel Coin { get; }
+
+	public void Dispose() => _disposables.Dispose();
 }
