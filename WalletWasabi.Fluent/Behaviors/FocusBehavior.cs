@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Reactive;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactions.Custom;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -38,7 +39,7 @@ internal class FocusBehavior : DisposingBehavior<Control>
 					{
 						if (focused)
 						{
-							AssociatedObject.Focus();
+							Dispatcher.UIThread.Post(() => AssociatedObject?.Focus());
 						}
 					})));
 		}
