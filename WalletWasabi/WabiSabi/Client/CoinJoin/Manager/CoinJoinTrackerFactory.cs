@@ -43,7 +43,7 @@ public class CoinJoinTrackerFactory
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,
-			outputWallet.OutputProvider,
+			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
 			coinSelector,
