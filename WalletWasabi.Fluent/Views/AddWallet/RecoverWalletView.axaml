@@ -80,12 +80,18 @@
                                  FontSize="{DynamicResource FontSizeH6}"
                                  VerticalAlignment="Center" />
                     </Panel>
-                    <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold"
+                    <Panel VerticalAlignment="Stretch"
+                           HorizontalAlignment="Stretch"
+                           Width="100"
+                           Height="45">
+                    <TextBlock Text="{Binding Word}"
+                               FontWeight="SemiBold"
                                Margin="5 0 0 0"
                                Classes.error="{Binding !IsConfirmed}"
                                FontSize="{DynamicResource FontSizeH6}"
-                               Height="45"
-                               Width="100"/>
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch" />
+                    </Panel>
                   </StackPanel>
 
                   <DockPanel IsVisible="{Binding IsSelected}"
