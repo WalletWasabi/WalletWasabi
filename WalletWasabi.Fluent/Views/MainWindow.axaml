@@ -25,11 +25,9 @@
         RenderOptions.RequiresFullOpacityHandling="True">
   <Window.Styles>
     <!-- NOTE: Uncomment ClipToBounds for making screenshots -->
-    <!--
-    <Style Selector=":is(Control):not(:is(ScrollViewer))">
-      <Setter Property="ClipToBounds" Value="False" />
-    </Style>
-    -->
+    <!-- <Style Selector=":is(Control):not(:is(ScrollViewer))"> -->
+    <!--   <Setter Property="ClipToBounds" Value="False" /> -->
+    <!-- </Style> -->
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
