@@ -136,4 +136,14 @@
   <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" Opacity="0.5" />
   <SolidColorBrush x:Key="ConversationPressedBackground" Color="{StaticResource Layer2BackgroundBrushLight1}" Opacity="0.8" />
   <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
+
+  <!-- WalletIcon -->
+  <Color x:Key="WalletIconBackgroundStartColor">#FF989898</Color>
+  <Color x:Key="WalletIconBackgroundEndColor">#FF4D4D4D</Color>
+  <Color x:Key="WalletIconAccentStartColor">#FF77C400</Color>
+  <Color x:Key="WalletIconAccentEndColor">#FF8BC53F</Color>
+  <Color x:Key="WalletIconForegroundColor">#FFF1F1F1</Color>
+  <Color x:Key="WalletIconShadeColor1">#0077C400</Color>
+  <Color x:Key="WalletIconShadeColor2">#03355700</Color>
+  <Color x:Key="WalletIconShadeColor3">#33000000</Color>
 </ResourceDictionary>
