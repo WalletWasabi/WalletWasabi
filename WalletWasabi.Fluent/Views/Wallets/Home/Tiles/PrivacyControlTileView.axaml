@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vms="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:privacyBar="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="140"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
@@ -22,7 +21,7 @@
           </Style>
         </Panel.Styles>
 
-        <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" />
+        <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
         <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
                      Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"  Foreground="#5769954A" />
         <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
