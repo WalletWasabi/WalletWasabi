@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -23,6 +24,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Userfacing.Bip21;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -46,7 +48,6 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
-	private LabelsArray _parsedLabel = LabelsArray.Empty;
 
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
@@ -55,6 +56,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 
 	public SendViewModel(UiContext uiContext, WalletViewModel walletVm)
 	{
@@ -70,6 +72,8 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		Balance = walletVm.WalletModel.Balances;
+
+		_suggestionLabels = new SuggestionLabelsViewModel(WalletVm.WalletModel, Intent.Send, 3);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -99,25 +103,24 @@ public partial class SendViewModel : RoutableViewModel
 		});
 
 		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
+			this.WhenAnyValue(
+					x => x.AmountBtc,
+					x => x.To,
+					x => x.SuggestionLabels.Labels.Count,
+					x => x.SuggestionLabels.IsCurrentTextValid)
 				.Select(tup =>
 				{
-					var (amountBtc, to) = tup;
+					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
 					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
 					var hasError = Validations.Any;
 
-					return allFilled && !hasError;
+					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
 				});
 
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () =>
 			{
-				var labelDialog = new LabelEntryDialogViewModel(WalletVm.WalletModel, _parsedLabel);
-				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-				if (result.Result is not { } label)
-				{
-					return;
-				}
+				var label = new LabelsArray(SuggestionLabels.Labels.ToArray());
 
 				if (AmountBtc is not { } amountBtc)
 				{
@@ -285,8 +288,6 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			result = true;
 
-			_parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
-
 			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
 			if (parserResult.Address is { })
@@ -303,12 +304,20 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				IsFixedAmount = false;
 			}
+
+			if (parserResult.Label is { } parsedLabel)
+			{
+				SuggestionLabels = new SuggestionLabelsViewModel(
+				WalletVm.WalletModel,
+				Intent.Send,
+				3,
+				[parsedLabel]);
+			}
 		}
 		else
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
-			_parsedLabel = LabelsArray.Empty;
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);

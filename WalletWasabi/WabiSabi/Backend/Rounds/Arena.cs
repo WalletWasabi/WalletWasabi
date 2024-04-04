@@ -69,7 +69,7 @@ public partial class Arena : PeriodicRunner
 
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
-	private ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
+	internal ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
@@ -490,14 +490,11 @@ public partial class Arena : PeriodicRunner
 		// Only do things if the load balancer compatibility is configured.
 		if (Config.WW200CompatibleLoadBalancing)
 		{
-			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
-
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-				&& x.InputCount >= Math.Min(0.9 * x.Parameters.MaxInputCountByRound, roundDestroyerInputCount)).ToArray())
+				&& x.InputCount >= Config.RoundDestroyerThreshold).ToArray())
 			{
 				feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -537,7 +534,7 @@ public partial class Arena : PeriodicRunner
 
 						// If it can't create the large round, then don't abort.
 						EndRound(round, EndRoundState.AbortedLoadBalancing);
-						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {Config.RoundDestroyerThreshold}");
 					}
 				}
 			}

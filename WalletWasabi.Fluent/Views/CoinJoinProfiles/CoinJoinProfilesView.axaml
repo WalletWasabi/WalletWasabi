@@ -11,7 +11,7 @@
   <ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 NextContent="Continue" EnableNext="True"
+                 NextContent="Done" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
 
     <ContentArea.Styles>

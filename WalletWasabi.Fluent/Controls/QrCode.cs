@@ -82,7 +82,7 @@ public class QrCode : Control
 			return;
 		}
 
-		var path = file.Path.AbsolutePath;
+		var path = file.Path.LocalPath;
 
 		if (!string.IsNullOrWhiteSpace(path))
 		{

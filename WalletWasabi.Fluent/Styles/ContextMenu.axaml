@@ -1,18 +1,16 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
+<Styles xmlns="https://github.com/avaloniaui">
 
   <Style Selector="ContextMenu MenuItem">
     <Setter Property="Padding" Value="10" />
   </Style>
 
   <Style Selector="ContextMenu MenuItem /template/ Viewbox#PART_IconPresenter">
-    <Setter Property="(i:Interaction.Behaviors)">
-      <i:BehaviorCollectionTemplate>
-        <i:BehaviorCollection>
-          <behaviors:MenuItemIconSizeBehavior />
-        </i:BehaviorCollection>
-      </i:BehaviorCollectionTemplate>
+    <Setter Property="(Interaction.Behaviors)">
+      <BehaviorCollectionTemplate>
+        <BehaviorCollection>
+          <MenuItemIconSizeBehavior />
+        </BehaviorCollection>
+      </BehaviorCollectionTemplate>
     </Setter>
   </Style>
 

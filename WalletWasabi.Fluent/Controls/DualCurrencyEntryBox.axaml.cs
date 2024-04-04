@@ -237,7 +237,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better) && better != Constants.MaximumNumberOfBitcoins.ToString())
+			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better))
 			{
 				text = better;
 			}
@@ -292,7 +292,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			text = AmountBtc > 0 ? AmountBtc?.FormattedBtc() : string.Empty;
+			text = AmountBtc > 0 ? AmountBtc?.FormattedBtcFixedFractional() : string.Empty;
 		}
 
 		SetCurrentValue(TextProperty, text);
