@@ -113,12 +113,16 @@ public class PreviewMessageItem : ContentControl
 	{
 		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
 
-		var isCopyButtonVisible =
-			button.CopyCommand.IsExecuting
-			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
-			.Select(x => x.First || x.Second);
+		if (button is { })
+		{
+			var isCopyButtonVisible =
+				button.CopyCommand
+				      .IsExecuting
+				      .CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
+				      .Select(x => x.First || x.Second);
 
-		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+			Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+		}
 
 		base.OnApplyTemplate(e);
 	}
