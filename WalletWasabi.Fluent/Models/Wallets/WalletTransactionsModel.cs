@@ -98,7 +98,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		}
 
 		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
 				? estimate
 				: null;
 	}
