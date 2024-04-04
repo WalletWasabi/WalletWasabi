@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vms="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:privacyBar="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="140"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
@@ -12,22 +11,24 @@
   <TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}" DockPanel.Dock="Bottom" Height="6">
+      <Button Command="{Binding ShowDetailsCommand}"  Classes="plain" DockPanel.Dock="Bottom" Height="6">
+        <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}">
+          <Panel.Styles>
+            <Style Selector="ProgressBar">
+              <Setter Property="VerticalAlignment" Value="Stretch" />
+              <Setter Property="CornerRadius" Value="10" />
+              <Setter Property="Height" Value="8" />
+            </Style>
+          </Panel.Styles>
 
-        <Panel.Styles>
-          <Style Selector="ProgressBar">
-            <Setter Property="VerticalAlignment" Value="Stretch" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Height" Value="8" />
-          </Style>
-        </Panel.Styles>
-
-        <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" />
-        <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                     Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"  Foreground="#5769954A" />
-        <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                     Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="#A169954A" />
-      </Panel>
+          <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" />
+          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                       Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"
+                       Foreground="#5769954A" />
+          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                       Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="#A169954A" />
+        </Panel>
+      </Button>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
