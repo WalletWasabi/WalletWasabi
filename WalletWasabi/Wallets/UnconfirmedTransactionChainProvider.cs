@@ -124,6 +124,11 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
+	public List<UnconfirmedTransactionChainItem> GetUnconfirmedTransactionChain(uint256 txId)
+	{
+		return UnconfirmedChainCache.TryGet(txId);
+	}
+
 	public override void Dispose()
 	{
 		Semaphore.Dispose();
