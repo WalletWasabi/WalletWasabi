@@ -29,7 +29,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private CoinListViewModel _coinList = null!;	// We need this due to the OnNavigated(to/from) initialization.
+	[AutoNotify] private CoinListViewModel _coinList;
 
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 
@@ -39,13 +39,13 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
+		_coinList = new CoinListViewModel(_wallet, new List<ICoinModel>());
+		IsAnySelected = CoinList.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_coinList = new CoinListViewModel(_wallet, new List<ICoinModel>()).DisposeWith(disposables);
 		CoinList.ExpandAllCommand.Execute().Subscribe().DisposeWith(disposables);
-		IsAnySelected = CoinList.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
