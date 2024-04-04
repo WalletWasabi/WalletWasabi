@@ -119,7 +119,7 @@
   <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer2BackgroundBrush}" />
 
   <!-- Accent button -->
-  <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
+  <Color x:Key="AccentButtonForegroundColor">#FF000000</Color>
 
   <!-- Network badge -->
   <Color x:Key="NetworkBadgeColor">#FFA500</Color>
