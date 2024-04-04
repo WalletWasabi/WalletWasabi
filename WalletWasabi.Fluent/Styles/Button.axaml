@@ -43,6 +43,10 @@
           </DataTemplate>
         </Setter.Value>
       </Setter>
+
+      <Style Selector="^:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}" />
+      </Style>
     </ControlTheme>
 
     <ControlTheme x:Key="DialogSortButton" TargetType="Button" BasedOn="{StaticResource SortButtonBase}">
