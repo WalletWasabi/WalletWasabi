@@ -11,7 +11,7 @@
   <TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <Button Command="{Binding ShowDetailsCommand}"  Classes="plain" DockPanel.Dock="Bottom" Height="6">
+      <Button Command="{Binding ShowDetailsCommand}" Classes="plain" DockPanel.Dock="Bottom">
         <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}">
           <Panel.Styles>
             <Style Selector="ProgressBar">
@@ -21,14 +21,14 @@
             </Style>
           </Panel.Styles>
 
-          <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" />
+          <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
           <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                       Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"
-                       Foreground="#5769954A" />
+                       Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds" Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
           <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                       Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="#A169954A" />
+                       Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
         </Panel>
       </Button>
+
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -50,8 +50,8 @@
         </Border>
         <CopyableItem ContentToCopy="{Binding BalancePrivate}">
           <PrivacyContentControl Classes="bold"
-                                   VerticalAlignment="Center"
-                                   Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+                                 VerticalAlignment="Center"
+                                 Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
         </CopyableItem>
       </StackPanel>
     </TileControl.BottomContent>
