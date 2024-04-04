@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Styles.Resources>
-    <Thickness x:Key="ActionButtonPadding">15,8</Thickness>
-    <Thickness x:Key="InvisibleButtonPadding">15,8</Thickness>
-    <Thickness x:Key="FunctionButtonPadding">15,8</Thickness>
+    <Thickness x:Key="ActionButtonPadding">13,7</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">13,7</Thickness>
+    <Thickness x:Key="FunctionButtonPadding">13,7</Thickness>
 
     <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />

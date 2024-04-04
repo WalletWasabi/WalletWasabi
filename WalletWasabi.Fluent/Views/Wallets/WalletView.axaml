@@ -55,7 +55,7 @@
               <Button Classes="function"
                       IsVisible="{Binding CanBuy^}"
                       Command="{Binding BuyCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="15">
+                <StackPanel Orientation="Horizontal">
                   <PathIcon Data="{StaticResource wallet_action_buy}" />
                   <TextBlock Text="Buy Anything" />
                 </StackPanel>
