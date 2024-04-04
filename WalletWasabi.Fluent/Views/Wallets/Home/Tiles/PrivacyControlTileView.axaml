@@ -11,22 +11,24 @@
   <TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
 
     <DockPanel>
-      <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}" DockPanel.Dock="Bottom" Height="6">
+      <Button Command="{Binding ShowDetailsCommand}" Classes="plain" DockPanel.Dock="Bottom">
+        <Panel IsVisible="{Binding IsPrivacyProgressDisplayed^}">
+          <Panel.Styles>
+            <Style Selector="ProgressBar">
+              <Setter Property="VerticalAlignment" Value="Stretch" />
+              <Setter Property="CornerRadius" Value="10" />
+              <Setter Property="Height" Value="8" />
+            </Style>
+          </Panel.Styles>
 
-        <Panel.Styles>
-          <Style Selector="ProgressBar">
-            <Setter Property="VerticalAlignment" Value="Stretch" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Height" Value="8" />
-          </Style>
-        </Panel.Styles>
+          <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
+          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                       Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds" Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
+          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                       Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+        </Panel>
+      </Button>
 
-        <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
-        <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                     Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds"  Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
-        <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                     Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
-      </Panel>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -48,8 +50,8 @@
         </Border>
         <CopyableItem ContentToCopy="{Binding BalancePrivate}">
           <PrivacyContentControl Classes="bold"
-                                   VerticalAlignment="Center"
-                                   Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+                                 VerticalAlignment="Center"
+                                 Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
         </CopyableItem>
       </StackPanel>
     </TileControl.BottomContent>
