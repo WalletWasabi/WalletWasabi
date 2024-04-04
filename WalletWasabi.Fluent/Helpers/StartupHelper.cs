@@ -9,8 +9,6 @@ public static class StartupHelper
 
 	public static async Task ModifyStartupSettingAsync(bool runOnSystemStartup)
 	{
-		await MacOsStartupHelper.AddOrRemoveLoginItemAsync(runOnSystemStartup).ConfigureAwait(false);
-
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			WindowsStartupHelper.AddOrRemoveRegistryKey(runOnSystemStartup);
