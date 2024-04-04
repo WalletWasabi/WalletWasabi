@@ -109,6 +109,11 @@ public static class FeeHelpers
 	// TODO: Replace this implementation with the correct Effective FeeRate calculation.
 	public static FeeRate CalculateEffectiveFeeRateOfUnconfirmedChain(List<UnconfirmedTransactionChainItem> unconfirmedTransactionChain)
 	{
+		if (unconfirmedTransactionChain.Count == 0)
+		{
+			return FeeRate.Zero;
+		}
+
 		return new(unconfirmedTransactionChain.Sum(x => x.Fee), unconfirmedTransactionChain.Sum(x => x.Size));
 	}
 }
