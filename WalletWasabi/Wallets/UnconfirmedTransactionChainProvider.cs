@@ -28,7 +28,11 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
 	public ConcurrentQueue<uint256> Queue { get; } = new();
+
+	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
+
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
+
 	private IHttpClient HttpClient { get; }
 
 	private async Task FetchUnconfirmedTransactionChainAsync(uint256 txid, CancellationToken cancellationToken)
@@ -59,6 +63,8 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 				{
 					throw new InvalidOperationException($"Failed to cache unconfirmed tx chain for {txid}");
 				}
+
+				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
 			}
 			catch (Exception ex)
 			{
