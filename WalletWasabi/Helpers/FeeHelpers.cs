@@ -106,6 +106,7 @@ public static class FeeHelpers
 		return foundClosestSolution ? lastCorrectFeeRate : null;
 	}
 
+	// TODO: Replace this implementation with the correct Effective FeeRate calculation.
 	public static FeeRate CalculateEffectiveFeeRateOfUnconfirmedChain(List<UnconfirmedTransactionChainItem> unconfirmedTransactionChain)
 	{
 		return new(unconfirmedTransactionChain.Sum(x => x.Fee), unconfirmedTransactionChain.Sum(x => x.Size));
