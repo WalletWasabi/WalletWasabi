@@ -45,7 +45,10 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		CoinList.ExpandAllCommand.Execute().Subscribe().DisposeWith(disposables);
+		if (!isInHistory)
+		{
+			CoinList.ExpandAllCommand.Execute().Subscribe().DisposeWith(disposables);
+		}
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
