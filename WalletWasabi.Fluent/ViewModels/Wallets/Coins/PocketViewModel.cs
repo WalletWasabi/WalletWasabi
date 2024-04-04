@@ -35,6 +35,13 @@ public class PocketViewModel : CoinListItem, IDisposable
 					   .Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
 					   .ToList();
 
+		Children
+			.AsObservableChangeSet()
+			.AutoRefresh(x => IsCoinjoining)
+			.Select(_ => Children.Any(x => x.IsCoinjoining))
+			.BindTo(this, x => x.IsCoinjoining)
+			.DisposeWith(_disposables);
+
 		CanBeSelected = true;
 		ScriptType = null;
 

@@ -20,6 +20,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
+	[AutoNotify] private bool _isCoinjoining;
 
 	protected CoinListItem()
 	{
@@ -74,8 +75,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public IReadOnlyCollection<CoinViewModel> Children { get; protected set; } = new List<CoinViewModel>();
 
 	public bool IsConfirmed { get; protected set; }
-
-	public bool IsCoinjoining { get; protected set; }
 
 	public bool IsBanned { get; protected set; }
 
