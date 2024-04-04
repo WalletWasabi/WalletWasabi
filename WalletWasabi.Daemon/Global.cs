@@ -78,7 +78,7 @@ public class Global
 		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromSeconds(5), wasabiSynchronizer), "Software Update Checker");
+		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
 		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
 
 		LegalChecker = new(DataDir, updateChecker);
