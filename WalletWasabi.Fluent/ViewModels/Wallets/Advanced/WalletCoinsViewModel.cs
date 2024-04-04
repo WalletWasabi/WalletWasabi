@@ -50,7 +50,10 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		CoinList.Dispose();
+		if (!isInHistory)
+		{
+			CoinList.Dispose();
+		}
 	}
 
 	private async Task OnSendCoinsAsync()
