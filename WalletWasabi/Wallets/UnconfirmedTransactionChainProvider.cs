@@ -26,11 +26,10 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
-	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
-	public ConcurrentQueue<uint256> Queue { get; } = new();
-
 	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
 
+	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
+	public ConcurrentQueue<uint256> Queue { get; } = new();
 	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
 
 	private IHttpClient HttpClient { get; }
