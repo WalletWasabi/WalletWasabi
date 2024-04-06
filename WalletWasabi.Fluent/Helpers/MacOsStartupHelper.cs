@@ -25,7 +25,7 @@ public static class MacOsStartupHelper
 			<key>RunAtLoad</key>
 			<true/>
 		</dict>
-		</plist>";
+		</plist>
 		""";
 
 	public static async Task AddOrRemoveStartupItemAsync(bool runOnSystemStartup)
