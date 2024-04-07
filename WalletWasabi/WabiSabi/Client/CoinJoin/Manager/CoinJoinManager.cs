@@ -16,6 +16,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -200,6 +201,16 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
+
+				var result = await walletToStart.GetCoinjoinCoinCandidatesAsync();
+				var coins = result.Where(x => x.IsPrivate(walletToStart.AnonScoreTarget)).ToArray();
+
+				var batchedPayments = new PaymentBatch();
+
+				foreach (SmartCoin smartCoin in coins)
+				{
+					batchedPayments.AddPayment(startCommand.OutputWallet.DestinationProvider.GetNextDestinations(1, false).FirstOrDefault(), smartCoin.Amount);
+				}
 
 				// If there are pending payments, ignore already achieved privacy.
 				if (!walletToStart.BatchedPayments.AreTherePendingPayments)

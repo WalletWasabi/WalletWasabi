@@ -22,7 +22,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	{
 		_wallet = wallet;
 		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
-		_outputWallet = settings.OutputWallet;
+		_outputWallet = settings.OutputWallet ?? wallet;
 		StatusUpdated =
 			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 					  .Where(x => x.EventArgs.Wallet == wallet)
