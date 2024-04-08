@@ -2,7 +2,7 @@ using System.IO;
 using WalletWasabi.Extensions;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
-namespace WalletWasabi.Synchronizarion;
+namespace WalletWasabi.Synchronization;
 
 public record MiningFeeRatesMessage(AllFeeEstimate allFeeEstimate)
 {

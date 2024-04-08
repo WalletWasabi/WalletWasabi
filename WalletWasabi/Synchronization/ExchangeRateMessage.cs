@@ -1,7 +1,7 @@
 using System.IO;
 using WalletWasabi.Backend.Models;
 
-namespace WalletWasabi.Synchronizarion;
+namespace WalletWasabi.Synchronization;
 
 public record ExchangeRateMessage(ExchangeRate exchangeRate)
 {

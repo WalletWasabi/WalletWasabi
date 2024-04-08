@@ -11,7 +11,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services.Events;
 using WalletWasabi.Stores;
-using WalletWasabi.Synchronizarion;
+using WalletWasabi.Synchronization;
 
 namespace WalletWasabi.Services;
 
