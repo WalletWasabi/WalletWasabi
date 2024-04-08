@@ -18,7 +18,8 @@ public partial class RecoverWordViewModel : ViewModelBase
 	public RecoverWordViewModel(int index, string word, IReadOnlyCollection<string>? suggestions)
 	{
 		Index = index;
-		Word = word;
+
+		_word = word;
 
 		// TODO:
 		IsConfirmed = true;
