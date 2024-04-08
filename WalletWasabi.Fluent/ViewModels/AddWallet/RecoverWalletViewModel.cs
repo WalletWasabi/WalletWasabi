@@ -181,11 +181,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		// if (!Mnemonics.Any())
-		// {
-		// 	return;
-		// }
-
 		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
 	}
 
@@ -208,7 +203,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(ConfirmationWords)
-			//.OnItemAdded(x => x.Reset())
 			.Subscribe()
 			.DisposeWith(disposables);
 
