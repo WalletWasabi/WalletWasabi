@@ -41,6 +41,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		_currentWord = _words.First();
 		_currentWord.IsSelected = true;
 
+		_confirmPassphrase = "";
+
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
