@@ -1,43 +1,26 @@
-using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
-public partial class Setting<TTarget, TProperty> : ReactiveObject
+public class Setting<TOwner, TProperty> : ReactiveObject, IDisposable where TOwner : class, INotifyPropertyChanged
 {
-	[AutoNotify] private TProperty? _value;
+	private TProperty _value;
+	private readonly IDisposable _subscription;
 
-	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector)
+	public Setting(TOwner owner, Expression<Func<TOwner, TProperty?>> propertySelector)
 	{
-		if (target == null)
-		{
-			throw new ArgumentNullException(nameof(target));
-		}
-
-		if (selector == null)
-		{
-			throw new ArgumentNullException(nameof(selector));
-		}
-
-		if (PropertyHelper<TTarget>.GetProperty(selector) is not { } pr)
-		{
-			throw new InvalidOperationException($"The expression {selector} is not a valid property selector");
-		}
-
-		Value = (TProperty?)pr.GetValue(target);
-
-		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
-
-		this.WhenAnyValue(x => x.Value)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Skip(1)
-			.ToSignal()
-			.InvokeCommand(SetValueCommand);
+		_subscription = owner.WhenAnyValue(propertySelector).BindTo(this, value => value.Value);
+		_subscription = this.WhenAnyValue(x => x.Value).Skip(1).BindTo(owner, propertySelector);
 	}
 
-	public ICommand SetValueCommand { get; }
+	public TProperty Value
+	{
+		get => _value;
+		set => this.RaiseAndSetIfChanged(ref _value, value);
+	}
+
+	public void Dispose() => _subscription.Dispose();
 }
