@@ -13,9 +13,9 @@ public partial class RecoverWordViewModel : ViewModelBase
 	[AutoNotify] private string? _selectedWord;
 	[AutoNotify] private string _word;
 	[AutoNotify] private bool _isMnemonicsValid;
-	[AutoNotify] private IEnumerable<string>? _suggestions;
+	[AutoNotify] private IReadOnlyCollection<string>? _suggestions;
 
-	public RecoverWordViewModel(int index, string word)
+	public RecoverWordViewModel(int index, string word, IReadOnlyCollection<string>? suggestions)
 	{
 		Index = index;
 		Word = word;
@@ -23,7 +23,7 @@ public partial class RecoverWordViewModel : ViewModelBase
 		// TODO:
 		IsConfirmed = true;
 
-		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+		Suggestions = suggestions;
 
 		this.WhenAnyValue(x => x.SelectedWord)
 			.Subscribe(_ => ValidateWord());

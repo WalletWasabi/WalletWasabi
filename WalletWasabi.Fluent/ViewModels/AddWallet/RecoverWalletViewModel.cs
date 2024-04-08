@@ -33,9 +33,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
+		var suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+
 		var words = Enumerable
 			.Range(1, 12)
-			.Select(x => new RecoverWordViewModel(x, ""));
+			.Select(x => new RecoverWordViewModel(x, "", suggestions));
 
 		_words = words.OrderBy(x => x.Index).ToList();
 		_currentWord = _words.First();
