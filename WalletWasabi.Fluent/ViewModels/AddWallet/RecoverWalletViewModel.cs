@@ -91,8 +91,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private int MinGapLimit { get; set; } = 114;
 
-	public ObservableCollection<string> Mnemonics { get; } = new();
-
 	private void NextWord()
 	{
 		var currentIndex = _words.IndexOf(_currentWord);
