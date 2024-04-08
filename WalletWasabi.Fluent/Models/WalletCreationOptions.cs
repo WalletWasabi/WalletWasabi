@@ -20,6 +20,6 @@ public abstract record WalletCreationOptions(string? WalletName = null, string? 
 	public record ImportWallet(string? WalletName = null, string? FilePath = null)
 		: WalletCreationOptions(WalletName);
 
-	public record RecoverWallet(string? WalletName = null, string? Passphrase = null, Mnemonic? Mnemonic = null, int? MinGapLimit = null)
+	public record RecoverWallet(string? WalletName = null, string? Passphrase = null, Mnemonic? Mnemonic = null, int? MinGapLimit = null, string? AccountKeyPath = null)
 		: WalletCreationOptions(WalletName, Passphrase);
 }

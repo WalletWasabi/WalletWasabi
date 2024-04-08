@@ -134,7 +134,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, _, _, _) = options;
+		var (walletName, _, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		var passphrase = Passphrase;
