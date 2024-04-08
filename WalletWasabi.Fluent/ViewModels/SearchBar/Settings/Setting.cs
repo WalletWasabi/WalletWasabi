@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 
@@ -7,13 +8,13 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class Setting<TOwner, TProperty> : ReactiveObject, IDisposable where TOwner : class, INotifyPropertyChanged
 {
-	private TProperty _value;
-	private readonly IDisposable _subscription;
+	private TProperty _value = default!;
+	private readonly CompositeDisposable _disposable = new();
 
 	public Setting(TOwner owner, Expression<Func<TOwner, TProperty?>> propertySelector)
 	{
-		_subscription = owner.WhenAnyValue(propertySelector).BindTo(this, value => value.Value);
-		_subscription = this.WhenAnyValue(x => x.Value).Skip(1).BindTo(owner, propertySelector);
+		owner.WhenAnyValue(propertySelector).BindTo(this, value => value.Value).DisposeWith(_disposable);
+		this.WhenAnyValue(x => x.Value).Skip(1).BindTo(owner, propertySelector).DisposeWith(_disposable);
 	}
 
 	public TProperty Value
@@ -22,5 +23,5 @@ public class Setting<TOwner, TProperty> : ReactiveObject, IDisposable where TOwn
 		set => this.RaiseAndSetIfChanged(ref _value, value);
 	}
 
-	public void Dispose() => _subscription.Dispose();
+	public void Dispose() => _disposable.Dispose();
 }
