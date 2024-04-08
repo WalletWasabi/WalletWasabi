@@ -56,9 +56,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		EnableBack = true;
 
+		var nextCanExecute = this.WhenAnyValue(x => x.IsMnemonicsValid);
+
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnNextAsync(options),
-			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
+			canExecute: nextCanExecute);
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
 
