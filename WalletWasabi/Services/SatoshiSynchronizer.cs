@@ -160,7 +160,7 @@ public class SatoshiSynchronizer : BackgroundService
 		async Task RewindAsync(int count)
 		{
 			var rewindCount = Math.Min(count, localChain.HashCount);
-			var rewindTipHeight = localChain.TipHeight - rewindCount;
+			var rewindTipHeight = Math.Max(0, localChain.TipHeight - rewindCount);
 			await _bitcoinStore.IndexStore.RemoveAllNewerThanAsync((uint) rewindTipHeight).ConfigureAwait(false);
 		}
 
