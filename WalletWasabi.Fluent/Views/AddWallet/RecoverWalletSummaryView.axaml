@@ -7,20 +7,45 @@
              x:DataType="recoverWallet:RecoverWalletSummaryViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletSummaryView">
-  <ContentArea Title="{Binding Title}"
-               CancelContent="Cancel"
-               EnableCancel="{Binding EnableCancel}"
-               EnableBack="{Binding EnableBack}"
-               EnableNext="True" NextContent="Continue"
-               IsBusy="{Binding IsBusy}">
-
-    <!-- TODO: Mnemonics -->
-
-    <!-- TODO: Passphrase -->
-
-    <!-- TODO: Minimum Gap Limit -->
-
-    <!-- TODO: Derivation Path -->
-
+  <!-- TODO: Mnemonics -->
+  <!-- TODO: Passphrase -->
+  <!-- TODO: Minimum Gap Limit -->
+  <!-- TODO: Derivation Path -->
+  <ContentArea x:Name="RecoveryPageRoot"
+                 Title="{Binding Title}"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}">
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Top">
+        <PathIcon Name="IconCheckmark"
+                  Margin="15 0 0 0"
+                  Classes="checkMark"
+                  VerticalAlignment="Center"
+                  DockPanel.Dock="Right"
+                  Opacity="{Binding IsMnemonicsValid}" />
+        <TagsBox DockPanel.Dock="Left"
+                   ItemCountLimit="24"
+                   SuggestionsAreCaseSensitive="False"
+                   RestrictInputToSuggestions="True"
+                   Items="{Binding Mnemonics}"
+                   Suggestions="{Binding Suggestions}"
+                   Watermark="Type in your recovery words in the correct order"
+                   AllowDuplication="True"
+                   EnableCounter="True"
+                   EnableDelete="False">
+          <TagsBox.Styles>
+            <Style Selector="TagsBox AutoCompleteBox">
+              <Setter Property="MinimumPrefixLength" Value="0" />
+            </Style>
+          </TagsBox.Styles>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
+        </TagsBox>
+      </DockPanel>
+    </DockPanel>
   </ContentArea>
 </UserControl>
