@@ -113,7 +113,14 @@ public static class FeeHelpers
 		{
 			return FeeRate.Zero;
 		}
-
-		return new(unconfirmedTransactionChain.Sum(x => x.Fee), unconfirmedTransactionChain.Sum(x => x.Size));
+		try
+		{
+			return new(unconfirmedTransactionChain.Sum(x => x.Fee), unconfirmedTransactionChain.Sum(x => x.Size));
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning(e);
+			return FeeRate.Zero;
+		}
 	}
 }
