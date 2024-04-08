@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison : IDisposable
 {
-	// Coins with banning time longer than this will be reduced to a 15 days.
+	// Banning time will be reduced to 15 days for coins banned longer than this.
 	private static readonly int MaxDaysToTrustLocalPrison = 15;
 
 	public CoinPrison(string filePath)
