@@ -13,6 +13,14 @@
                EnableBack="{Binding EnableBack}"
                EnableNext="True" NextContent="Continue"
                IsBusy="{Binding IsBusy}">
-    <!-- TODO: -->
+
+    <!-- TODO: Mnemonics -->
+
+    <!-- TODO: Passphrase -->
+
+    <!-- TODO: Minimum Gap Limit -->
+
+    <!-- TODO: Derivation Path -->
+
   </ContentArea>
 </UserControl>
