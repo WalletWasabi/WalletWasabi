@@ -58,7 +58,7 @@
 
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="82" />
-          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="70" />
           <ColumnDefinition Width="1*" />
           <ColumnDefinition Width="3*" MaxWidth="400" />
           <ColumnDefinition Width="1*" />
