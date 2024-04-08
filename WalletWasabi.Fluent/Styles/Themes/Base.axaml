@@ -117,9 +117,9 @@
   <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
   <!-- ComboBox -->
-  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemBaseLowColor}" />
-  <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
-  <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="{DynamicResource SystemBaseLowColor}" />
