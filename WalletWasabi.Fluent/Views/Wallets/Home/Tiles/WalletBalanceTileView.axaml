@@ -15,7 +15,7 @@
     </CopyableItem>
     <TileControl.BottomContent>
       <CopyableItem ContentToCopy="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
-        <PrivacyContentControl Classes="monoSpaced" Margin="4" VerticalAlignment="Center"
+        <PrivacyContentControl Classes="monoSpaced" VerticalAlignment="Center"
                                Opacity="0.6"
                                Content="{Binding Amounts^.Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}}" />
       </CopyableItem>

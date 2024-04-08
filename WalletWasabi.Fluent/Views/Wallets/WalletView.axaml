@@ -15,7 +15,7 @@
   </Interaction.Behaviors>
   <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" Classes="StretchTopContent">
     <ContentArea.Title>
-      <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
+      <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding $self.Text}" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
     </ContentArea.Title>
     <ContentArea.TopContent>
       <StackPanel>
@@ -55,7 +55,7 @@
               <Button Classes="function"
                       IsVisible="{Binding CanBuy^}"
                       Command="{Binding BuyCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="15">
+                <StackPanel Orientation="Horizontal">
                   <PathIcon Data="{StaticResource wallet_action_buy}" />
                   <TextBlock Text="Buy Anything" />
                 </StackPanel>

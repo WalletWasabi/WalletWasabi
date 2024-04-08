@@ -38,7 +38,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel x:Name="RootPanel">
-          <ContentControl Theme="{StaticResource AcrylicPanel}"
+          <ContentControl Theme="{StaticResource PopupPanel}"
                           Padding="{TemplateBinding Padding}">
             <ContentPresenter Content="{TemplateBinding Content}"
                               ContentTemplate="{TemplateBinding ContentTemplate}"

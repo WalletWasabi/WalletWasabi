@@ -2,23 +2,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Styles.Resources>
-    <Thickness x:Key="ActionButtonPadding">15,8</Thickness>
-    <Thickness x:Key="InvisibleButtonPadding">15,8</Thickness>
-    <Thickness x:Key="FunctionButtonPadding">15,8</Thickness>
+    <Thickness x:Key="ActionButtonPadding">13,7</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">13,7</Thickness>
+    <Thickness x:Key="FunctionButtonPadding">13,7</Thickness>
 
     <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
       <Setter Property="CornerRadius" Value="6" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Padding" Value="9 7" />
       <Style Selector="^:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
       </Style>
       <Style Selector="^:pressed /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
       </Style>
     </ControlTheme>
 
@@ -43,6 +43,10 @@
           </DataTemplate>
         </Setter.Value>
       </Setter>
+
+      <Style Selector="^:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}" />
+      </Style>
     </ControlTheme>
 
     <ControlTheme x:Key="DialogSortButton" TargetType="Button" BasedOn="{StaticResource SortButtonBase}">

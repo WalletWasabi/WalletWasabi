@@ -20,6 +20,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
+	[AutoNotify] private bool _isCoinjoining;
 
 	protected CoinListItem()
 	{
@@ -65,7 +66,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 		set => IsControlSelected = value;
 	}
 
-
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
 
 	public bool IsSemiPrivate => Labels == CoinPocketHelper.SemiPrivateFundsText;
@@ -75,8 +75,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public IReadOnlyCollection<CoinViewModel> Children { get; protected set; } = new List<CoinViewModel>();
 
 	public bool IsConfirmed { get; protected set; }
-
-	public bool IsCoinjoining { get; protected set; }
 
 	public bool IsBanned { get; protected set; }
 
@@ -97,6 +95,8 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public bool IsLastChild { get; set; }
 
 	public bool CanBeSelected { get; protected set; }
+
+	public bool IgnorePrivacyMode { get; protected set; }
 
 	public bool? IsSelected
 	{

@@ -41,6 +41,13 @@
                 ToolTip.Tip="Not coinjoining" />
     </Panel>
 
+    <!-- Banned -->
+    <PathIcon IsVisible="{Binding IsBanned}"
+              Data="{StaticResource warning_filled}"
+              Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+              Height="14"
+              ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
+
     <Border BorderThickness="1"
             VerticalAlignment="Center"
             IsVisible="{Binding ScriptType.ShortName, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue='False'}"
@@ -48,13 +55,6 @@
       <TextBlock Classes="h10" Text="{Binding ScriptType.ShortName, FallbackValue=''}"
                  ToolTip.Tip="{Binding ScriptType.Name, FallbackValue=''}" />
     </Border>
-
-    <!-- Banned -->
-    <PathIcon IsVisible="{Binding IsBanned}"
-              Data="{StaticResource warning_filled}"
-              Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
-              Height="14"
-              ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
 
   </StackPanel>
 </UserControl>

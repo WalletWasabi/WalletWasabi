@@ -103,7 +103,6 @@
     </Style>
 
     <Style Selector="TextBox:pointerover">
-      <Setter Property="Foreground" Value="White" />
       <Setter Property="Cursor" Value="Hand" />
     </Style>
 
@@ -168,7 +167,7 @@
           <Binding Source="{x:Static helpers:ApplicationHelper.Instance}" Path="MainWindowActivated^" />
         </MultiBinding>
       </Popup.IsOpen>
-      <ContentControl x:Name="DropDownRoot" Theme="{StaticResource AcrylicPanel}">
+      <ContentControl x:Name="DropDownRoot" Theme="{StaticResource PopupPanel}">
         <ScrollViewer>
           <s:SearchBarDropdown />
         </ScrollViewer>

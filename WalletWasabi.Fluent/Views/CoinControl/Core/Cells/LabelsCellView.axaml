@@ -34,11 +34,17 @@
     </Style>
   </UserControl.Styles>
 
-  <LabelsItemsPresenter
-    Classes.NonPrivate="{Binding IsNonPrivate}"
-    Classes.SemiPrivate="{Binding IsSemiPrivate}"
-    Classes.Private="{Binding IsPrivate}"
-    ItemsSource="{Binding Labels}"
-    InfiniteWidthMeasure="True"
-    Margin="20 0" />
+  <PrivacyContentControl PrivacyReplacementMode="Text"
+                         VerticalAlignment="Center"
+                         UseOpacity="True"
+                         MaxPrivacyChars="11"
+                         ForceShow="{Binding IgnorePrivacyMode}">
+    <LabelsItemsPresenter
+      Classes.NonPrivate="{Binding IsNonPrivate}"
+      Classes.SemiPrivate="{Binding IsSemiPrivate}"
+      Classes.Private="{Binding IsPrivate}"
+      ItemsSource="{Binding Labels}"
+      InfiniteWidthMeasure="True"
+      Margin="20 0" />
+  </PrivacyContentControl>
 </UserControl>

@@ -96,22 +96,15 @@
   <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource SystemAccentColorLight1}" />
 
   <!-- BuyAnything -->
-  <SolidColorBrush x:Key="BuyAnythingConversationsBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="{StaticResource Layer2BackgroundBrush}" />
   <SolidColorBrush x:Key="ChatInputBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="{StaticResource Layer2BackgroundBrush}" />
-  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.5" />
-  <SolidColorBrush x:Key="ConversationPressedBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.8" />
-  <SolidColorBrush x:Key="AssistantMessageBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
   <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
 
   <!-- BoxShadows -->
   <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #DDA73E</BoxShadows>
   <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 1 #DDA73E</BoxShadows>
   <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
-  <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
-  <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
+  <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 2 6 0 #22000000</BoxShadows>
+  <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 4 10 0 #4A000000</BoxShadows>
 
   <!-- Invisible function button -->
   <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
@@ -124,9 +117,10 @@
   <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
 
   <!-- ComboBox -->
-  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemChromeMediumColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SystemBaseLowColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
   <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
   <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
 
+  <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="{DynamicResource SystemBaseLowColor}" />
 </ResourceDictionary>

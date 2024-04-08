@@ -24,12 +24,14 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinListItem> _itemsCollection;
 	private readonly IWalletModel _wallet;
+	private readonly bool _ignorePrivacyMode;
 	private IReadOnlyCollection<ICoinModel> _selectedCoins = ImmutableList<ICoinModel>.Empty;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection)
+	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
 	{
 		_wallet = wallet;
+		_ignorePrivacyMode = ignorePrivacyMode;
 
 		var sourceItems = new SourceList<CoinListItem>().DisposeWith(_disposables);
 
@@ -48,6 +50,10 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 					return item.Children;
 				})
 			.AddKey(model => model.Coin.Key);
+
+		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges())
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		changes
 			.Sort(SortExpressionComparer<CoinListItem>.Descending(x => x.AnonymityScore ?? x.Children.Min(c => c.AnonymityScore) ?? 0))
@@ -90,7 +96,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection);
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
@@ -169,10 +175,10 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 					var coin = pocket.Coins.First();
 					var coinModel = _wallet.Coins.GetCoinModel(coin);
 
-					return (CoinListItem)new CoinViewModel(pocket.Labels, coinModel);
+					return (CoinListItem)new CoinViewModel(pocket.Labels, coinModel, _ignorePrivacyMode);
 				}
 
-				return new PocketViewModel(_wallet, pocket);
+				return new PocketViewModel(_wallet, pocket, _ignorePrivacyMode);
 			});
 
 		source.Edit(
