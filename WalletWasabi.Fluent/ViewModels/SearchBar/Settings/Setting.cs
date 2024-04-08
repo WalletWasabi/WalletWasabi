@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class Setting<TOwner, TProperty> : ReactiveObject, IDisposable where TOwner : class, INotifyPropertyChanged
 {
-	private TProperty _value = default!;
 	private readonly CompositeDisposable _disposable = new();
+	private TProperty _value = default!;
 
 	public Setting(TOwner owner, Expression<Func<TOwner, TProperty?>> propertySelector)
 	{
