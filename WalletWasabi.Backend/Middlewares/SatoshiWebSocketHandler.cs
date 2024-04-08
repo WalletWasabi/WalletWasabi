@@ -11,7 +11,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.Synchronizarion;
+using WalletWasabi.Synchronization;
 
 namespace WalletWasabi.Backend.Middlewares;
 
@@ -146,8 +146,8 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 	private Task SendBlockHeightAsync(WebSocket webSocket, CancellationToken cancellationToken)
 	{
 		var lastFilter = _indexBuilderService.GetLastFilter();
-		var bestBlockHight = lastFilter.Header.Height;
-		var message = new BlockHeightMessage(bestBlockHight);
+		var bestBlockHeight = lastFilter.Header.Height;
+		var message = new BlockHeightMessage(bestBlockHeight);
 		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
 	}
 

@@ -2,7 +2,7 @@ using System.IO;
 using NBitcoin;
 using WalletWasabi.Extensions;
 
-namespace WalletWasabi.Synchronizarion;
+namespace WalletWasabi.Synchronization;
 
 public record HandshakeMessage(uint256 bestKnownBlockHash)
 {

@@ -2,7 +2,7 @@ using System.IO;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Extensions;
 
-namespace WalletWasabi.Synchronizarion;
+namespace WalletWasabi.Synchronization;
 
 public enum RequestMessage
 {

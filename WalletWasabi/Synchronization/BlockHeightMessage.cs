@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace WalletWasabi.Synchronizarion;
+namespace WalletWasabi.Synchronization;
 
 public record BlockHeightMessage(uint height)
 {
