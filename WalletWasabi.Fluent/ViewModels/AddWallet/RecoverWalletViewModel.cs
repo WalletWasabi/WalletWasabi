@@ -58,15 +58,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 				});
 		}
 
-		// Mnemonics.ToObservableChangeSet().ToCollection()
-		// 	.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
-		// 	.Subscribe(x =>
-		// 	{
-		// 		CurrentMnemonics = x;
-		// 		IsMnemonicsValid = x is { IsValidChecksum: true };
-		// 		this.RaisePropertyChanged(nameof(Mnemonics));
-		// 	});
-
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
 		EnableBack = true;
