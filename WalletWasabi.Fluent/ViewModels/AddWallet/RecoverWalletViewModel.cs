@@ -54,11 +54,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					var mnemonic = count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null;
 					CurrentMnemonics = mnemonic;
 					IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
-					this.RaisePropertyChanged(nameof(Mnemonics));
+					this.RaisePropertyChanged(nameof(CurrentMnemonics));
 				});
 		}
 
-		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
+		this.ValidateProperty(x => x.CurrentMnemonics, ValidateCurrentMnemonics);
 
 		EnableBack = true;
 
@@ -168,7 +168,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		}
 	}
 
-	private void ValidateMnemonics(IValidationErrors errors)
+	private void ValidateCurrentMnemonics(IValidationErrors errors)
 	{
 		if (CurrentMnemonics is null)
 		{
