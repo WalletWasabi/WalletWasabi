@@ -26,8 +26,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
-	[AutoNotify] private string? _confirmPassphrase;
-	[AutoNotify] private bool _focusConfirmPassphrase;
+	[AutoNotify] private string? _passphrase;
+	[AutoNotify] private bool _focusPassphrase;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _passphraseConfirmed;
 
@@ -43,7 +43,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		_currentWord = _words.First();
 		_currentWord.IsSelected = true;
 
-		_confirmPassphrase = "";
+		_passphrase = "";
 
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -97,8 +97,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		if (currentIndex >= _words.Count - 1)
 		{
 			_currentWord.IsSelected = false;
-			FocusConfirmPassphrase = true;
-			FocusConfirmPassphrase = false;
+			FocusPassphrase = true;
+			FocusPassphrase = false;
 		}
 		else
 		{
@@ -137,8 +137,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		var (walletName, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
-		var password = ConfirmPassphrase;
-		if (password is not { } || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
+		var passphrase = Passphrase;
+		if (passphrase is not { } || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
 		{
 			return;
 		}
@@ -147,7 +147,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			options = options with { Passphrase = password, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
+			options = options with { Passphrase = passphrase, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
 			Navigate().To().RecoverWalletSummary(options);
 		}
 		catch (Exception ex)

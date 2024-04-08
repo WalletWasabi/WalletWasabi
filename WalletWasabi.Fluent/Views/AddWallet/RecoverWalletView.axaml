@@ -171,14 +171,14 @@
 
         <CopyablePasswordTextBox Grid.Row="3"
                                  Watermark="Type the passphrase (13th word)"
-                                 Text="{Binding ConfirmPassphrase}"
+                                 Text="{Binding Passphrase}"
                                  PasswordChar="•"
                                  Classes="revealPasswordButton copyablePasswordTextBox"
                                  MaxWidth="400"
                                  VerticalAlignment="Top"
                                  Margin="0,30,0,0">
           <Interaction.Behaviors>
-            <FocusBehavior IsFocused="{Binding FocusConfirmPassphrase, Mode=OneWay}" />
+            <FocusBehavior IsFocused="{Binding FocusPassphrase, Mode=OneWay}" />
           </Interaction.Behaviors>
         </CopyablePasswordTextBox>
 
