@@ -4,7 +4,7 @@
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
 
-  <Color x:Key="SystemAccentColor">#FF98DD2E</Color>
+  <Color x:Key="SystemAccentColor">#FF63A300</Color>
   <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
@@ -34,12 +34,12 @@
   <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemRevealListLowColor">#F3F3F3</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemAccentColorLight1">#FFA4E246</Color>
-  <Color x:Key="SystemAccentColorLight2">#FFB0E65F</Color>
-  <Color x:Key="SystemAccentColorLight3">#FFBDEB77</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF82C625</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF6CB01C</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF569912</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF76AF1E</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF89BB3C</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF9BC75B</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF539000</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF427D00</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF326B00</Color>
   <Color x:Key="SystemAccentCustomColorLight">#789758</Color>
   <Color x:Key="SystemAccentCustomColorDark">#B2C69C</Color>
 
@@ -47,13 +47,13 @@
 
   <Color x:Key="RegionColor">#FFFFFFFF</Color>
 
-  <Color x:Key="Layer1BackgroundBrush">#F3F3F3</Color>
-  <Color x:Key="Layer1BackgroundBrushLight1">#FFDADADA</Color>
-  <Color x:Key="Layer1BackgroundBrushLight2">#FFC1C1C1</Color>
-  <Color x:Key="Layer1BackgroundBrushLight3">#FFA8A8A8</Color>
-  <Color x:Key="Layer1BackgroundBrushDark1">#FFF5F5F5</Color>
-  <Color x:Key="Layer1BackgroundBrushDark2">#FFF6F6F6</Color>
-  <Color x:Key="Layer1BackgroundBrushDark3">#FFF8F8F8</Color>
+  <Color x:Key="Layer1BackgroundBrush">#F5F5F5</Color>
+  <Color x:Key="Layer1BackgroundBrushLight1">#FFDCDCDC</Color>
+  <Color x:Key="Layer1BackgroundBrushLight2">#FFC3C3C3</Color>
+  <Color x:Key="Layer1BackgroundBrushLight3">#FFA9A9A9</Color>
+  <Color x:Key="Layer1BackgroundBrushDark1">#FFF6F6F6</Color>
+  <Color x:Key="Layer1BackgroundBrushDark2">#FFF7F7F7</Color>
+  <Color x:Key="Layer1BackgroundBrushDark3">#FFF9F9F9</Color>
 
   <Color x:Key="Layer2BackgroundBrush">#E9E9E9</Color>
   <Color x:Key="Layer2BackgroundBrushLight1">#FFD1D1D1</Color>
@@ -80,7 +80,7 @@
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
   <Color x:Key="TileRegionColor">#EFEFEF</Color>
-  <Color x:Key="BorderColor">#14000000</Color>
+  <Color x:Key="BorderColor">#66757575</Color>
   <Color x:Key="AcrylicTrimForeground">#FF000000</Color>
 
   <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#394A1B" />
@@ -119,13 +119,13 @@
   <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer2BackgroundBrush}" />
 
   <!-- Accent button -->
-  <Color x:Key="AccentButtonForegroundColor">#FF000000</Color>
+  <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
 
   <!-- Network badge -->
-  <Color x:Key="NetworkBadgeColor">#FFA500</Color>
+  <Color x:Key="NetworkBadgeColor">#0066FF</Color>
 
   <!-- MusicBox -->
-  <Color x:Key="CoinjoinWaveDefaultColor">#77C400</Color>
+  <Color x:Key="CoinjoinWaveDefaultColor">#FF63A300</Color>
   <Color x:Key="CoinjoinWaveCriticalColor">#FF5E2B</Color>
 
   <!-- BuyAnything -->
@@ -140,8 +140,8 @@
   <!-- WalletIcon -->
   <Color x:Key="WalletIconBackgroundStartColor">#FF989898</Color>
   <Color x:Key="WalletIconBackgroundEndColor">#FF4D4D4D</Color>
-  <Color x:Key="WalletIconAccentStartColor">#FF77C400</Color>
-  <Color x:Key="WalletIconAccentEndColor">#FF8BC53F</Color>
+  <Color x:Key="WalletIconAccentStartColor">#63A300</Color>
+  <Color x:Key="WalletIconAccentEndColor">#7EB230</Color>
   <Color x:Key="WalletIconForegroundColor">#FFF1F1F1</Color>
   <Color x:Key="WalletIconShadeColor1">#0077C400</Color>
   <Color x:Key="WalletIconShadeColor2">#03355700</Color>
