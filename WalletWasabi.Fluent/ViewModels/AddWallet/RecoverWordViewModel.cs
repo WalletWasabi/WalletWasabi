@@ -31,8 +31,6 @@ public partial class RecoverWordViewModel : ViewModelBase
 
 	public int Index { get; }
 
-	public ObservableCollection<string> Mnemonics { get; } = new();
-
 	private void ValidateWord()
 	{
 		// TODO:
