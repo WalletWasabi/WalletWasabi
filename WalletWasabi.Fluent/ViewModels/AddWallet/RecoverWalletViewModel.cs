@@ -45,14 +45,27 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
-		Mnemonics.ToObservableChangeSet().ToCollection()
-			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
-			.Subscribe(x =>
-			{
-				CurrentMnemonics = x;
-				IsMnemonicsValid = x is { IsValidChecksum: true };
-				this.RaisePropertyChanged(nameof(Mnemonics));
-			});
+		foreach (var word in _words)
+		{
+			word.WhenAnyValue(x => x.Word)
+				.Subscribe(_ =>
+				{
+					var count = _words.Count(x => !string.IsNullOrEmpty(x.Word));
+					var mnemonic = count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null;
+					CurrentMnemonics = mnemonic;
+					IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
+					this.RaisePropertyChanged(nameof(Mnemonics));
+				});
+		}
+
+		// Mnemonics.ToObservableChangeSet().ToCollection()
+		// 	.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
+		// 	.Subscribe(x =>
+		// 	{
+		// 		CurrentMnemonics = x;
+		// 		IsMnemonicsValid = x is { IsValidChecksum: true };
+		// 		this.RaisePropertyChanged(nameof(Mnemonics));
+		// 	});
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
@@ -177,17 +190,17 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		if (!Mnemonics.Any())
-		{
-			return;
-		}
+		// if (!Mnemonics.Any())
+		// {
+		// 	return;
+		// }
 
 		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
 	}
 
 	private string GetTagsAsConcatString()
 	{
-		return string.Join(' ', Mnemonics);
+		return string.Join(' ', _words.Select(x => x.Word));
 	}
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
