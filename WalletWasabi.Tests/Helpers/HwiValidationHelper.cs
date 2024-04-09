@@ -17,7 +17,7 @@ public static class HwiValidationHelper
 	{
 		string? pattern = null;
 
-		if (OSPlatform.Windows.IsCurrentlyRunningOsPlatform() || (osPlatform != null && osPlatform == OSPlatform.Windows))
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || (osPlatform != null && osPlatform == OSPlatform.Windows))
 		{
 			pattern = model switch
 			{
@@ -30,7 +30,7 @@ public static class HwiValidationHelper
 				_ => "",
 			};
 		}
-		else if (OSPlatform.Linux.IsCurrentlyRunningOsPlatform() || (osPlatform != null && osPlatform == OSPlatform.Linux))
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || (osPlatform != null && osPlatform == OSPlatform.Linux))
 		{
 			pattern = model switch
 			{
@@ -43,7 +43,7 @@ public static class HwiValidationHelper
 				_ => "",
 			};
 		}
-		else if (OSPlatform.OSX.IsCurrentlyRunningOsPlatform() || (osPlatform != null && osPlatform == OSPlatform.OSX))
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || (osPlatform != null && osPlatform == OSPlatform.OSX))
 		{
 			pattern = model switch
 			{
