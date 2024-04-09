@@ -27,19 +27,11 @@
 
       <!--TextBox -->
       <Style Selector="TextBox">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
         <Setter Property="AcceptsReturn" Value="True"/>
         <Setter Property="MaxHeight" Value="105" />
         <Setter Property="MaxLength" Value="5000" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
-      </Style>
-
-      <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-      </Style>
-      <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
 
       <Style Selector="DockPanel.limit">
@@ -48,22 +40,11 @@
         <Setter Property="Margin" Value="0 0 15 0" />
         <Setter Property="LastChildFill" Value="False"/>
       </Style>
-      
+
       <Style Selector="DockPanel.limit StackPanel">
         <Setter Property="DockPanel.Dock" Value="Right"/>
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="2" />
-      </Style>
-
-      <!-- TagsBox -->
-      <Style Selector="TagsBox">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-      </Style>
-      <Style Selector="TagsBox:pointerover /template/ Border#PART_Border">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
-      </Style>
-      <Style Selector="TagsBox:focus-within /template/ Border#PART_Border">
-        <Setter Property="Background" Value="{DynamicResource ChatInputBackground}" />
       </Style>
 
       <Style Selector="TagControl /template/ Panel#PART_TagPanel">
