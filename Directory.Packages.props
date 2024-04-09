@@ -20,6 +20,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
     <PackageVersion Include="NBitcoin" Version="7.0.27" />
