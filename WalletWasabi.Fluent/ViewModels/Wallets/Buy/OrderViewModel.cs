@@ -38,8 +38,7 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Conversation conversation, IOrderManager orderManager, int orderNumber)
 	{
 		UiContext = uiContext;
-		// TODO: Dispose of the workflow when the view model is disposed
-		Workflow = wallet.BuyAnything.CreateWorkflow(conversation);
+		Workflow = wallet.BuyAnything.CreateWorkflow(conversation).DisposeWith(_disposables);
 
 		_wallet = wallet;
 		_orderManager = orderManager;
