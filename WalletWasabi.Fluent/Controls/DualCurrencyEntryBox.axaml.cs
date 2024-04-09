@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -9,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -102,6 +104,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 		UpdateDisplay();
 
 		PseudoClasses.Set(":noexchangerate", true);
+
+		FocusCommand = ReactiveCommand.Create(FocusOnLeftEntryBox);
 	}
 
 	public HorizontalAlignment HorizontalContentAlignment
@@ -223,6 +227,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 		get => GetValue(ValidatePasteBalanceProperty);
 		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
+
+	public ICommand FocusCommand { get; }
 
 	private void InputText(string? text)
 	{

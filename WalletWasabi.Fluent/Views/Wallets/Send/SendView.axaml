@@ -47,6 +47,11 @@
                  IsBusy="{Binding IsBusy}"
                  Title="Send"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <Interaction.Behaviors>
+      <KeyDownTrigger Key="Enter" EventRoutingStrategy="Bubble" MarkAsHandled="False">
+        <InvokeCommandAction Command="{Binding NextCommand}"/>
+      </KeyDownTrigger>
+    </Interaction.Behaviors>
     <ContentArea.TopContent>
       <!-- Balance -->
       <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
@@ -92,6 +97,9 @@
             <FocusOnAttachedBehavior />
             <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
             <FocusNextWhenValidBehavior />
+            <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
+              <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
+            </KeyDownTrigger>
           </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
@@ -145,6 +153,9 @@
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+              <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
+                <FocusControlActionCustom TargetControl="LabelTagBox"/>
+              </KeyDownTrigger>
             </Interaction.Behaviors>
           </DualCurrencyEntryBox>
         </DockPanel>
