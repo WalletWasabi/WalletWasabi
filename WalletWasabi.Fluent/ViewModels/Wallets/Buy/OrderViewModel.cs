@@ -33,7 +33,7 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _hasUnreadMessages;
 
 	private CancellationTokenSource _cts;
-	private CompositeDisposable _disposables = new();
+	private readonly CompositeDisposable _disposables = new();
 
 	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Conversation conversation, IOrderManager orderManager, int orderNumber)
 	{
