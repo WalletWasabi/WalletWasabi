@@ -9,7 +9,7 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class RuntimeExtension
 {
-	public static bool Running(this OSPlatform val)
+	public static bool IsCurrentlyRunningOsPlatform(this OSPlatform val)
 	{
 		return RuntimeInformation.IsOSPlatform(val);
 	}
