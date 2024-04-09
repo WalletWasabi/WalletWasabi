@@ -45,9 +45,13 @@
           <DockPanel DockPanel.Dock="Top"
                      VerticalAlignment="Bottom"
                      IsVisible="{Binding IsPasswordNeeded}">
-            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Passphrase" PasswordChar="•" Classes="revealPasswordButton copyablePasswordTextBox">
+            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Passphrase" PasswordChar="•" Classes="revealPasswordButton copyablePasswordTextBox"
+                                     x:Name="Password">
               <Interaction.Behaviors>
                 <FocusOnAttachedBehavior />
+                <DataTriggerBehavior Binding="{Binding Password}" Value="">
+                  <FocusControlActionCustom TargetControl="Password"/>
+                </DataTriggerBehavior>
               </Interaction.Behaviors>
             </CopyablePasswordTextBox>
             <Panel Margin="0 -20 0 0 ">
