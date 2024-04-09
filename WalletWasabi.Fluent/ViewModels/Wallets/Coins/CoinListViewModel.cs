@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -11,7 +10,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -25,7 +23,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly ReadOnlyObservableCollection<CoinListItem> _itemsCollection;
 	private readonly IWalletModel _wallet;
 	private readonly bool _ignorePrivacyMode;
-	private IReadOnlyCollection<ICoinModel> _selectedCoins = ImmutableList<ICoinModel>.Empty;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
@@ -92,7 +89,8 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
 			.Bind(out var selection)
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		Selection = selection;
 
@@ -111,7 +109,9 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 					UpdateSelection(coinItemsCollection, initialCoinSelection);
 					ExpandSelectedItems();
 				})
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
+		
 		_wallet = wallet;
 
 		ExpandAllCommand = ReactiveCommand.Create(
