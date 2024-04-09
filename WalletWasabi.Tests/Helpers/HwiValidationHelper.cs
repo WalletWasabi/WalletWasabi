@@ -11,29 +11,31 @@ public static class HwiValidationHelper
 	/// </summary>
 	/// <param name="path">The wallet path which come from HWI enumerate command.</param>
 	/// <param name="model">The hardware wallet model.</param>
+	/// <param name="osPlatform">Mock test specific platform</param>
 	/// <returns><c>true</c> if the path matches the model's regex, <c>false</c> otherwise.</returns>
-	public static bool ValidatePathString(HardwareWalletModels model, string path)
+	public static bool ValidatePathString(HardwareWalletModels model, string path, OSPlatform? osPlatform = null)
 	{
-		string pattern = null;
-		if (OSPlatform.Linux.Running())
+		string? pattern = null;
+
+		if (OSPlatform.Windows.Running() || (osPlatform != null && osPlatform == OSPlatform.Windows))
 		{
 			pattern = model switch
 			{
 				HardwareWalletModels.Trezor_T => "^webusb:",
-				HardwareWalletModels.Trezor_1 => @"^\\\\\?\\HID#VID_534C&PID_0001",
-				HardwareWalletModels.Coldcard => @"^\\\\\?\\HID#VID_D13E&PID_CC10",
-				HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => @"^\\\\\?\\HID#VID_2C97&PID_0001",
+				HardwareWalletModels.Trezor_1 => @"(?i)^\\\\\?\\HID#VID_534C&PID_0001",
+				HardwareWalletModels.Coldcard => @"(?i)^\\\\\?\\HID#VID_D13E&PID_CC10",
+				HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => @"(?i)^\\\\\?\\HID#VID_2C97&PID_0001",
 				HardwareWalletModels.Jade => @"^COM\d+",
-				HardwareWalletModels.BitBox02_BTCOnly => @"^\\\\\?\\HID#VID_03EB&PID_2403",
+				HardwareWalletModels.BitBox02_BTCOnly => @"(?i)^\\\\\?\\HID#VID_03EB&PID_2403",
 				_ => "",
 			};
 		}
-		else if (OSPlatform.Windows.Running())
+		else if (OSPlatform.Linux.Running() || (osPlatform != null && osPlatform == OSPlatform.Linux))
 		{
 			pattern = model switch
 			{
 				HardwareWalletModels.Trezor_T => "^webusb:",
-				HardwareWalletModels.Trezor_1 => @"(\d+(-\d+\.\d+)+:\d+\.\d+",
+				HardwareWalletModels.Trezor_1 => @"\d+(-\d+\.\d+)+:\d+\.\d+",
 				HardwareWalletModels.Coldcard => @"\d+(-\d+\.\d+)+:\d+\.\d+",
 				HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => @"\d+(-\d+\.\d+)+:\d+\.\d+",
 				HardwareWalletModels.Jade => @"/dev/ttyACM\d+",
@@ -41,7 +43,7 @@ public static class HwiValidationHelper
 				_ => "",
 			};
 		}
-		else if (OSPlatform.OSX.Running())
+		else if (OSPlatform.OSX.Running() || (osPlatform != null && osPlatform == OSPlatform.OSX))
 		{
 			pattern = model switch
 			{
