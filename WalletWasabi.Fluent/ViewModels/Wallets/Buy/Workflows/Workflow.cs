@@ -143,7 +143,7 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 		// Dereference of a possibly null reference.
 		// Reason: this warning is dubious here.
 		// The parameter of WhenAnyValue() is an Expression (from System.Linq.Expressions).
-		// It's not directly executable code and therefore it cannot raise a NullReferenceException
+		// It's not directly executable code, therefore it cannot raise a NullReferenceException
 		// Also, null propagation isn't allowed by the compiler inside such an Expression,
 		// so the only way to remove this warning is to make CurrentStep non-nullable, which doesn't make sense by design.
 		this.WhenAnyValue(x => x.CurrentStep.Conversation)

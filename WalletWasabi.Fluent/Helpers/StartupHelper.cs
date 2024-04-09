@@ -19,7 +19,7 @@ public static class StartupHelper
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			await MacOsStartupHelper.AddOrRemoveLoginItemAsync(runOnSystemStartup).ConfigureAwait(false);
+			await MacOsStartupHelper.AddOrRemoveStartupItemAsync(runOnSystemStartup).ConfigureAwait(false);
 		}
 	}
 }

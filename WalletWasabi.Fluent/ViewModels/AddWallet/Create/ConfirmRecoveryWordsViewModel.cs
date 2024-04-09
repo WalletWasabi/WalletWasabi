@@ -98,13 +98,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.OrderBy(x => x.Word)
 			.ToList();
 
-		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
+		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>()
+			.DisposeWith(disposables);
 
 		availableWordsSourceList
-			.DisposeWith(disposables)
 			.Connect()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.Subscribe(x => OnWordSelectionChanged(x.Sender));
+			.Subscribe(x => OnWordSelectionChanged(x.Sender))
+			.DisposeWith(disposables);
 
 		availableWordsSourceList.AddRange(AvailableWords);
 
