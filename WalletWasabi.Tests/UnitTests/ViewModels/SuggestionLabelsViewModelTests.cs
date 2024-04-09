@@ -157,6 +157,13 @@ public class SuggestionLabelsViewModelTests
 		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
 	}
 
+	private static SuggestionLabelsViewModel CreateSut(TestWallet wallet, Intent intent, int maxSuggestions)
+	{
+		var sut = new SuggestionLabelsViewModel(wallet, intent, maxSuggestions);
+		sut.Activate(new CompositeDisposable());
+		return sut;
+	}
+
 	private class TestWallet : IWalletModel
 	{
 		private readonly List<(string Label, int Score)> _mostUsedLabels;
@@ -220,12 +227,5 @@ public class SuggestionLabelsViewModelTests
 		{
 			throw new NotImplementedException();
 		}
-	}
-
-	private static SuggestionLabelsViewModel CreateSut(TestWallet wallet, Intent intent, int maxSuggestions)
-	{
-		var sut = new SuggestionLabelsViewModel(wallet, intent, maxSuggestions);
-		sut.Activate(new CompositeDisposable());
-		return sut;
 	}
 }
