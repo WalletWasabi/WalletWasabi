@@ -152,6 +152,4 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 			.DisposeWith(Disposables);
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 	}
-
-	public void Dispose() => _disposables.Dispose();
 }
