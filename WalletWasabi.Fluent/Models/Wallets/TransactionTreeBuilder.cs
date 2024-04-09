@@ -227,10 +227,19 @@ public class TransactionTreeBuilder
 
 		coinjoinGroup.DateString = lastDate.ToUserFacingFriendlyString();
 
-		coinjoinGroup.DateToolTipString =
-			firstDate.Day == lastDate.Day
-			? $"{firstDate.ToUserFacingString(withTime: false)}"
-			: $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
+		if (firstDate.Day == lastDate.Day)
+		{
+			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: false)}";
+
+			foreach (var child in coinjoinGroup.Children)
+			{
+				child.DateString = child.Date.ToLocalTime().ToOnlyTimeString();
+			}
+		}
+		else
+		{
+			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
+		}
 	}
 
 	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary)
