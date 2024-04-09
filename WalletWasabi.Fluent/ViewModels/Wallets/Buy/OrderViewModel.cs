@@ -35,10 +35,15 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	private CancellationTokenSource _cts;
 	private CompositeDisposable _disposables = new();
 
-	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Workflow workflow, IOrderManager orderManager, int orderNumber, CancellationToken cancellationToken)
+	public OrderViewModel(UiContext uiContext, IWalletModel wallet, Conversation conversation, IOrderManager orderManager, int orderNumber)
 	{
+		UiContext = uiContext;
+		// TODO: Dispose of the workflow when the view model is disposed
+		Workflow = wallet.BuyAnything.CreateWorkflow(conversation);
+
+		_wallet = wallet;
 		_orderManager = orderManager;
-		_title = workflow.Conversation.MetaData.Title;
+		_title = Workflow.Conversation.MetaData.Title;
 
 		_messagesList = new SourceList<MessageViewModel>()
 			.DisposeWith(_disposables);
@@ -49,9 +54,7 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		UiContext = uiContext;
-		_wallet = wallet;
-		Workflow = workflow;
+		
 		OrderNumber = orderNumber;
 
 		HasUnreadMessagesObs = _messagesList.Connect()

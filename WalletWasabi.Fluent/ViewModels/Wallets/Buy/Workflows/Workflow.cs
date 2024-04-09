@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows.ShopinBit;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 
@@ -35,14 +33,59 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 				}
 			})
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(Disposables);
 	}
 
 	public event EventHandler<Exception>? OnStepError;
+	
+	protected CompositeDisposable Disposables { get; } = new();
 
 	public abstract IMessageEditor MessageEditor { get; }
 
 	public abstract Task ExecuteAsync(CancellationToken token);
+
+	/// <summary>
+	/// Marks the conversation messages as read and Saves to disk.
+	/// </summary>
+	/// <param name="cancellationToken">The cancellation token</param>
+	public async Task MarkConversationAsReadAsync(CancellationToken cancellationToken)
+	{
+		if (CurrentStep is { })
+		{
+			CurrentStep.IsBusy = true;
+		}
+
+		try
+		{
+			if (!Conversation.ChatMessages.Any(x => x.IsUnread))
+			{
+				return;
+			}
+
+			Conversation = Conversation.MarkAsRead();
+
+			if (Conversation.Id == ConversationId.Empty)
+			{
+				return;
+			}
+
+			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
+
+			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
+		}
+		finally
+		{
+			if (CurrentStep is { })
+			{
+				CurrentStep.IsBusy = false;
+			}
+		}
+	}
+
+	public void Dispose()
+	{
+		Disposables.Dispose();
+	}
 
 	protected async Task ExecuteStepAsync(IWorkflowStep step, CancellationToken token)
 	{
@@ -95,52 +138,6 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 		IsDeletedInSib = true;
 	}
 
-	/// <summary>
-	/// Marks the conversation messages as read and Saves to disk.
-	/// </summary>
-	/// <param name="cancellationToken">The cancellation token</param>
-	public async Task MarkConversationAsReadAsync(CancellationToken cancellationToken)
-	{
-		if (CurrentStep is { })
-		{
-			CurrentStep.IsBusy = true;
-		}
-
-		try
-		{
-			if (!Conversation.ChatMessages.Any(x => x.IsUnread))
-			{
-				return;
-			}
-			
-			Conversation = Conversation.MarkAsRead();
-
-			if (Conversation.Id == ConversationId.Empty)
-			{
-				return;
-			}
-
-			var buyAnythingManager = Services.HostedServices.Get<BuyAnythingManager>();
-
-			await Task.Run(() => buyAnythingManager.UpdateConversationOnlyLocallyAsync(Conversation, cancellationToken));
-		}
-		finally
-		{
-			if (CurrentStep is { })
-			{
-				CurrentStep.IsBusy = false;
-			}
-		}
-	}
-
-	public static Workflow Create(Wallet wallet, Conversation conversation)
-	{
-		// If another type of workflow is required in the future this is the place where it should be defined
-		var workflow = new ShopinBitWorkflow(wallet, conversation);
-
-		return workflow;
-	}
-
 	private void BindCurrentStepConversation()
 	{
 #pragma warning disable CS8602
@@ -152,7 +149,7 @@ public abstract partial class Workflow : ReactiveObject, IDisposable
 		// so the only way to remove this warning is to make CurrentStep non-nullable, which doesn't make sense by design.
 		this.WhenAnyValue(x => x.CurrentStep.Conversation)
 			.BindTo(this, x => x.Conversation)
-			.DisposeWith(_disposables);
+			.DisposeWith(Disposables);
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 	}
 

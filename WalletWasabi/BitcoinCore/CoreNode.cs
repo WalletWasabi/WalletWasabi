@@ -233,7 +233,8 @@ public class CoreNode
 			desiredConfigLines.Insert(0, sectionComment);
 		}
 
-		if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines))
+		if (coreNode.Config.RemoveAll("mempoolreplacement") != 0 // We remove the line, so it will use the default - that is full-RBF.
+			|| coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines))
 			|| !File.Exists(configPath))
 		{
 			IoHelpers.EnsureContainingDirectoryExists(configPath);
