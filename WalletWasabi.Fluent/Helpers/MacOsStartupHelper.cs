@@ -36,7 +36,7 @@ public static class MacOsStartupHelper
 		var fileExists = File.Exists(plistPath);
 		if (runOnSystemStartup)
 		{
-			await File.WriteAllTextAsync(plistPath, PlistContent);
+			await File.WriteAllTextAsync(plistPath, PlistContent).ConfigureAwait(false);
 		}
 		else if (fileExists && !runOnSystemStartup)
 		{
