@@ -46,7 +46,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-        BuyViewModel = new BuyViewModel(UiContext, WalletModel);
+		BuyViewModel = new BuyViewModel(UiContext, WalletModel);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -59,11 +59,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		walletModel.HasBalance
-				   .Select(x => !x)
-				   .BindTo(this, x => x.IsWalletBalanceZero);
+			.Select(x => !x)
+			.BindTo(this, x => x.IsWalletBalanceZero);
 
 		walletModel.Coinjoin.IsRunning
-			       .BindTo(this, x => x.IsCoinJoining);
+			.BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
@@ -97,6 +97,13 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			() =>
 			{
 				Settings.SelectedTab = 0;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			});
+
+		CoinJoinSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 1;
 				Navigate(NavigationTarget.DialogScreen).To(Settings);
 			});
 
@@ -203,8 +210,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		}
 
 		WalletModel.State
-				   .BindTo(this, x => x.WalletState)
-				   .DisposeWith(disposables);
+			.BindTo(this, x => x.WalletState)
+			.DisposeWith(disposables);
 	}
 
 	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)
