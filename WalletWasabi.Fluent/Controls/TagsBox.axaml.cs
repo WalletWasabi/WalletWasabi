@@ -293,6 +293,14 @@ public class TagsBox : TemplatedControl
 				CheckIsCurrentTextValid();
 			})
 			.DisposeWith(_compositeDisposable);
+
+		this.WhenAnyValue(x => x.Items)
+			.Subscribe(_ =>
+			{
+				InvalidateWatermark();
+				CheckIsCurrentTextValid();
+			})
+			.DisposeWith(_compositeDisposable);
 	}
 
 	private void CheckIsCurrentTextValid()

@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 using static WalletWasabi.Userfacing.CurrencyInput;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -208,9 +209,6 @@ public partial class CurrencyEntryBox : TextBox
 	[GeneratedRegex($"^(?<Whole>[0-9{GroupSeparator}]*)(\\{DecimalSeparator}?(?<Frac>[0-9{GroupSeparator}]*))$")]
 	private static partial Regex RegexBtcFormat();
 
-	[GeneratedRegex($"^[0-9{GroupSeparator}{DecimalSeparator}]*$")]
-	private static partial Regex RegexDecimalCharsOnly();
-
 	[GeneratedRegex($"{GroupSeparator}{{2,}}")]
 	private static partial Regex RegexConsecutiveSpaces();
 
@@ -238,7 +236,7 @@ public partial class CurrencyEntryBox : TextBox
 		var rule2 = whole >= 8 && (preComposedText.EndsWith(GroupSeparator) || wholeStr.EndsWith(GroupSeparator));
 
 		// Check for non-numeric chars.
-		var rule3 = !RegexDecimalCharsOnly().IsMatch(preComposedText);
+		var rule3 = !CurrencyInput.RegexDecimalCharsOnly().IsMatch(preComposedText);
 		if (rule1 || rule2 || rule3)
 		{
 			return false;
@@ -308,9 +306,15 @@ public partial class CurrencyEntryBox : TextBox
 			return;
 		}
 
+		// Ignore paste if there are invalid characters
+		if (!CurrencyInput.RegexValidCharsOnly().IsMatch(text))
+		{
+			return;
+		}
+
 		text = text.Replace("\r", "").Replace("\n", "").Trim();
 
-		if (!TryParse(text, out text))
+		if (!TryParsePastedValue(text, out text))
 		{
 			return;
 		}
@@ -327,26 +331,31 @@ public partial class CurrencyEntryBox : TextBox
 		}
 	}
 
-	private bool TryParse(string text, [NotNullWhen(true)] out string? result)
+	private bool TryParsePastedValue(string text, [NotNullWhen(true)] out string? result)
 	{
 		if (!IsFiat)
 		{
+			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
+			{
+				text = corrected;
+			}
+
 			var money = ValidatePasteBalance
 				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
 				: ClipboardObserver.ParseToMoney(text);
 			if (money is not null)
 			{
-				var fractionalCount =
-					text.Contains('.')
-					? text.Skip(text.LastIndexOf('.')).Where(char.IsDigit).Count()
-					: 0;
-
-				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(fractionalCount);
+				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);
 				return true;
 			}
 		}
 		else
 		{
+			if (CurrencyInput.TryCorrectAmount(text, out var corrected))
+			{
+				text = corrected;
+			}
+
 			var usd = ValidatePasteBalance
 				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
 				: ClipboardObserver.ParseToUsd(text);

@@ -64,6 +64,7 @@ public class ReceiveAddressViewModelTests
 		public Network Network => throw new NotSupportedException();
 		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
+		public IBuyAnythingModel BuyAnything => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
@@ -73,6 +74,9 @@ public class ReceiveAddressViewModelTests
 		}
 
 		public void Rename(string newWalletName) => throw new NotSupportedException();
+		public void Dispose()
+		{
+		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{

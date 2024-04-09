@@ -190,6 +190,7 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
+		public IBuyAnythingModel BuyAnything => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
@@ -199,6 +200,10 @@ public class SuggestionLabelsViewModelTests
 		}
 
 		public void Rename(string newWalletName) => throw new NotSupportedException();
+
+		public void Dispose()
+		{
+		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{

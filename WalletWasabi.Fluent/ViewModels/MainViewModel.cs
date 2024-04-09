@@ -7,6 +7,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -20,6 +21,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
+[AppLifetime]
 public partial class MainViewModel : ViewModelBase
 {
 	[AutoNotify] private string _title = "Wasabi Wallet";
@@ -201,7 +203,7 @@ public partial class MainViewModel : ViewModelBase
 			new TransactionsSearchSource(querySubject),
 			UiContext.EditableSearchSource);
 
-		var searchBar = new SearchBarViewModel(source.Changes);
+		var searchBar = new SearchBarViewModel(source);
 
 		var queries = searchBar
 			.WhenAnyValue(a => a.SearchText)

@@ -154,6 +154,10 @@
       </Setter>
     </Style>
 
+    <Style Selector="^/template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
     <Style Selector="^:noexchangerate /template/ Button#PART_SwapButton">
       <Setter Property="IsVisible" Value="False" />
     </Style>
@@ -173,6 +177,10 @@
 
     <Style Selector="^:reversed /template/ Border#PART_LeftEntryBox">
       <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="^ /template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
     </Style>
 
     <!-- Disabled State -->

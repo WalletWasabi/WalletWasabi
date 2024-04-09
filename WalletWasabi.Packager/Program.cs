@@ -495,7 +495,7 @@ public static class Program
 					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 				var wasabiDaemonStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{DaemonExecutableName}");
 				var wasabiDaemonStarterScriptContent = Shebang +
-				    $"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
+					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{DaemonExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 				File.WriteAllText(wasabiDaemonStarterScriptPath, wasabiDaemonStarterScriptContent, Encoding.ASCII);
