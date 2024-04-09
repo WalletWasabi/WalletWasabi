@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactions.Custom;
 using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors;
