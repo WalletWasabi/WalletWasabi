@@ -446,10 +446,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					});
 				}));
 
-			using HttpClient httpClient = new();
-			using HttpRequestMessage message = new();
-			_ = await httpClient.SendAsync(message);
-
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new ClearnetHttpClient(app.CreateClient()),
