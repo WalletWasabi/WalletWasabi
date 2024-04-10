@@ -65,13 +65,12 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
 			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace("Request was cancelled by exiting the app.");
+			}
 			catch (Exception ex)
 			{
-				if (cancellationToken.IsCancellationRequested)
-				{
-					return;
-				}
-
 				Logger.LogWarning($"Attempt: {i}. Failed to fetch transaction fee. {ex}");
 			}
 		}
