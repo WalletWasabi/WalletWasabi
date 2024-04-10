@@ -201,9 +201,12 @@ public partial class Arena : PeriodicRunner
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
 					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
-					foreach (var alice in alicesDidNotConfirm)
+					if (alicesDidNotConfirm.Length < round.Alices.Count * 0.7)
 					{
-						Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+						foreach (var alice in alicesDidNotConfirm)
+						{
+							Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+						}
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -214,6 +217,11 @@ public partial class Arena : PeriodicRunner
 						var offendingAliceCounter = 0;
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
+							if (cancel.IsCancellationRequested)
+							{
+								break;
+							}
+
 							foreach (var offender in offendingAlices)
 							{
 								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
@@ -425,9 +433,12 @@ public partial class Arena : PeriodicRunner
 			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
-		foreach (var alice in alicesWhoDidNotSign)
+		if (alicesWhoDidNotSign.Count < round.Alices.Count * 0.7)
 		{
-			Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			foreach (var alice in alicesWhoDidNotSign)
+			{
+				Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			}
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
@@ -441,10 +452,13 @@ public partial class Arena : PeriodicRunner
 	{
 		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
 
-		foreach (var alice in alicesToRemove)
+		if (alicesToRemove.Count < round.Alices.Count * 0.7)
 		{
-			// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
-			Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			foreach (var alice in alicesToRemove)
+			{
+				// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
+				Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			}
 		}
 
 		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
