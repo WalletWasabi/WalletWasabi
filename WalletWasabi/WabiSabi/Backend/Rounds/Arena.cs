@@ -23,6 +23,7 @@ using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Events;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Helpers;
+using System.Threading.Channels;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -51,7 +52,7 @@ public partial class Arena : PeriodicRunner
 
 		if (CoinVerifier is not null)
 		{
-			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklistedAsync;
 		}
 	}
 
@@ -660,14 +661,18 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
+	private async void CoinVerifier_CoinBlacklistedAsync(object? _, Coin coin)
 	{
-		// For logging reason Prison needs the roundId.
-		var round = Rounds.FirstOrDefault(round => round.Alices.Select(alice => alice.Coin.Outpoint).Contains(coin.Outpoint));
+		using CancellationTokenSource cts = new(TimeSpan.FromMinutes(1));
+		using (await AsyncLock.LockAsync(cts.Token).ConfigureAwait(false))
+		{
+			// For logging reason Prison needs the roundId.
+			var round = Rounds.FirstOrDefault(round => round.Alices.Select(alice => alice.Coin.Outpoint).Contains(coin.Outpoint));
 
-		// Could be a coin from WW1.
-		uint256 roundId = round?.Id ?? uint256.Zero;
-		Prison.FailedVerification(coin.Outpoint, roundId);
+			// Could be a coin from WW1.
+			uint256 roundId = round?.Id ?? uint256.Zero;
+			Prison.FailedVerification(coin.Outpoint, roundId);
+		}
 	}
 
 	private void AddRound(Round round)
@@ -736,7 +741,7 @@ public partial class Arena : PeriodicRunner
 	{
 		if (CoinVerifier is not null)
 		{
-			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
+			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklistedAsync;
 		}
 		base.Dispose();
 	}
