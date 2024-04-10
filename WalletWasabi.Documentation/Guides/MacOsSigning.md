@@ -45,6 +45,10 @@
 
 ## Changing the icon
 
+- Wild spec for the icon:
+  - 1024x1024 size
+  - 98px padding
+  - x:0, y:5, Blur:25, Speard:0, Color:000000, Transparency:50%
 - https://github.com/zkSNACKs/WalletWasabi/issues/2951
 
 ## Changing the background of dmg installer
@@ -58,5 +62,6 @@
 7. Set the version number in the following command and run it
 9. `create-dmg --volname "Wasabi Wallet" --volicon "WasabiLogo.icns" --background "Logo_with_text_small.png" --window-pos 200 120 --window-size 600 440 --icon "Wasabi Wallet.app" 110 150 --app-drop-link 500 150 --hdiutil-verbose "Wasabi.dmg" "Wasabi Wallet.app/"`
 11. Dmg file is created under wasabidmg
-12. Copy the dmg to windows computer, extract(7zip) DS_Store file and copy it to `WalletWasabi\WalletWasabi.Packager\Content\Osx\Dmg\DS_Store.dat` - add the extension .dat to prevent macOs overwriting the file. 
-13. Now you can run the packager procedure
+12. Copy the dmg to windows computer, extract(7zip) DS_Store file and copy it to `WalletWasabi\WalletWasabi.Packager\Content\Osx\Dmg\DS_Store.dat` - add the extension .dat to prevent macOs overwriting the file.
+13. Copt the new background PNG to `WalletWasabi\WalletWasabi.Packager\Content\Osx\Dmg\.background`
+14. Now you can run the packager procedure
