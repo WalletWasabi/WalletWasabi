@@ -86,7 +86,8 @@ public class CoinPrison : IDisposable
 	/// <summary>
 	///	Reduces local banning time, which we save to disk, if it's longer than the <see cref="MaxDaysToTrustLocalPrison"/>.
 	///	This is to avoid saving absurd long banning times like 1-2 years.
-	///	With this, the coin will retry to participate in a CJ in every 15 days and see if the coin is still banned or not according to the backend.
+	///	With this, the coin will retry to participate in a CJ in every 2-4 days and see if the coin is still banned or not according to the backend.
+	///	Random values are used for the new banning period so we don't leak information to the coordinator when the coins get released from the local prison.
 	/// </summary>
 	/// <param name="bannedUntil">Banning time according to the backend.</param>
 	/// <returns>New banning period we want to save to file on client side.</returns>
