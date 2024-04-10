@@ -29,7 +29,7 @@
                   CornerRadius="{StaticResource ControlCornerRadius}" />
           <DockPanel Name="PART_DummyPanel"
                      VerticalAlignment="Top" LastChildFill="True">
-            <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
+            <DockPanel Margin="12,5,12,5" DockPanel.Dock="Left" MaxWidth="260">
               <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0"
                          Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}"
                          IsVisible="{TemplateBinding EnableCounter}"
