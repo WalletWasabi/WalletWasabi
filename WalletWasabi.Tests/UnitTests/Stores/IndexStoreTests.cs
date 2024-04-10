@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
@@ -19,14 +20,22 @@ public class IndexStoreTests
 	[Fact]
 	public async Task IndexStoreTestsAsync()
 	{
-		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
 		string directory = GetWorkDirectory();
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
 		await using var indexStore = new IndexStore(directory, Network.Main, new SmartHeaderChain());
-		await indexStore.InitializeAsync(testDeadlineCts.Token);
+		await indexStore.InitializeAsync(testCts.Token);
+
+		// Remove starting filter.
+		FilterModel? filterModel = await indexStore.TryRemoveLastFilterAsync();
+		Assert.NotNull(filterModel);
+
+		// No filter to remove.
+		filterModel = await indexStore.TryRemoveLastFilterAsync();
+		Assert.Null(filterModel);
 	}
 
 	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
