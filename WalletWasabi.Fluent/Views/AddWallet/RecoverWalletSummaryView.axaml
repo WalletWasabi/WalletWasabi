@@ -3,14 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="371"
              x:DataType="recoverWallet:RecoverWalletSummaryViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletSummaryView">
-  <!-- TODO: Mnemonics -->
-  <!-- TODO: Passphrase -->
-  <!-- TODO: Minimum Gap Limit -->
-  <!-- TODO: Derivation Path -->
+
   <ContentArea x:Name="RecoveryPageRoot"
                  Title="{Binding Title}"
                  CancelContent="Cancel"
@@ -19,6 +16,8 @@
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
+
+      <!-- Mnemonics -->
       <DockPanel DockPanel.Dock="Top">
         <PathIcon Name="IconCheckmark"
                   Margin="15 0 0 0"
@@ -46,6 +45,52 @@
           </Interaction.Behaviors>
         </TagsBox>
       </DockPanel>
+
+      <Grid DockPanel.Dock="Top"
+            ColumnDefinitions="Auto,Auto"
+            RowDefinitions="Auto,Auto">
+
+        <!-- Passphrase -->
+        <CopyablePasswordTextBox Watermark="Type the passphrase (13th word)"
+                                 Text="{Binding Passphrase}"
+                                 PasswordChar="•"
+                                 Classes="revealPasswordButton copyablePasswordTextBox"
+                                 MaxWidth="400"
+                                 VerticalAlignment="Top"
+                                 Margin="0,30,0,0"
+                                 Grid.Row="0"
+                                 Grid.Column="0">
+        </CopyablePasswordTextBox>
+
+        <!-- MinGapLimit -->
+        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380"
+                    Grid.Row="1"
+                    Grid.Column="0">
+          <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
+          <TextBox Name="TbGapLimit" Watermark="e.g., 63"
+                   Text="{Binding MinGapLimit}"
+                   DockPanel.Dock="Top"
+                   Width="350"
+                   Classes="hasCheckMark">
+          </TextBox>
+        </StackPanel>
+
+        <!-- DerivationPath -->
+        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380"
+                    Grid.Row="1"
+                    Grid.Column="1">
+          <Label Content="Derivation _Path:" Target="TbDerivationPath" />
+          <TextBox Name="TbDerivationPath" Watermark="e.g., 10/0/2'/3"
+                   Text="{Binding DerivationPath}"
+                   DockPanel.Dock="Top"
+                   Width="350"
+                   Classes="hasCheckMark">
+          </TextBox>
+        </StackPanel>
+
+      </Grid>
+
     </DockPanel>
   </ContentArea>
+
 </UserControl>
