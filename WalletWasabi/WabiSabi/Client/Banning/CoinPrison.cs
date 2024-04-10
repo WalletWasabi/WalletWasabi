@@ -12,8 +12,8 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoinPrison : IDisposable
 {
-	// Coins with banning time longer than this will be reduced to a 15 days.
-	private static readonly int MaxDaysToTrustLocalPrison = 15;
+	// Coins with banning time longer than this will be reduced to a random value between 2 and 4 days.
+	private static readonly int MaxDaysToTrustLocalPrison = 4;
 
 	public CoinPrison(string filePath)
 	{
@@ -93,10 +93,20 @@ public class CoinPrison : IDisposable
 	/// <returns>New banning period we want to save to file on client side.</returns>
 	private static DateTimeOffset ReduceBanningTimeIfNeeded(DateTimeOffset bannedUntil)
 	{
-		var maxDateLocalPrisonCanBeTrusted = DateTimeOffset.UtcNow.AddDays(MaxDaysToTrustLocalPrison);
-		return bannedUntil > maxDateLocalPrisonCanBeTrusted ?
-			maxDateLocalPrisonCanBeTrusted :
-			bannedUntil;
+		var currentDate = DateTimeOffset.UtcNow;
+		if (bannedUntil > currentDate.AddDays(MaxDaysToTrustLocalPrison))
+		{
+			Random random = new();
+			int minHours = (MaxDaysToTrustLocalPrison * 24 - 1) / 2;
+			int maxHours = MaxDaysToTrustLocalPrison * 24 - 1;
+			int randomHours = random.Next(minHours, maxHours);
+			int randomMinutes = random.Next(0, 60);
+			int randomSeconds = random.Next(0, 60);
+
+			return currentDate.AddHours(randomHours).AddMinutes(randomMinutes).AddSeconds(randomSeconds);
+		}
+
+		return bannedUntil;
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
