@@ -663,10 +663,10 @@ public partial class Arena : PeriodicRunner
 	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
 	{
 		// For logging reason Prison needs the roundId.
-		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
+		var round = Rounds.FirstOrDefault(round => round.Alices.Select(alice => alice.Coin.Outpoint).Contains(coin.Outpoint));
 
 		// Could be a coin from WW1.
-		var roundId = roundState?.Id ?? uint256.Zero;
+		uint256 roundId = round?.Id ?? uint256.Zero;
 		Prison.FailedVerification(coin.Outpoint, roundId);
 	}
 
