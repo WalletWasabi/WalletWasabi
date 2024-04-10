@@ -339,6 +339,8 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		}
 
+		_suggestionLabels.Activate(disposables);
+
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => ExchangeRate = x)
