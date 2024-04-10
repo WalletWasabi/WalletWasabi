@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
@@ -29,10 +30,10 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
 
 	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
-	public ConcurrentQueue<uint256> Queue { get; } = new();
-	private SemaphoreSlim Semaphore { get; } = new(initialCount: 0, maxCount: MaximumRequestsInParallel);
 
 	private IHttpClient HttpClient { get; }
+
+	private Channel<uint256> Channel { get; } = System.Threading.Channels.Channel.CreateUnbounded<uint256>();
 
 	private async Task FetchUnconfirmedTransactionChainAsync(uint256 txid, CancellationToken cancellationToken)
 	{
@@ -64,6 +65,8 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 				}
 
 				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
+
+				return;
 			}
 			catch (OperationCanceledException)
 			{
@@ -78,25 +81,26 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public void BeginRequestUnconfirmedChain(SmartTransaction tx)
 	{
-		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !Queue.Any(x => x == tx.GetHash()) && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
+		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
 		{
-			Queue.Enqueue(tx.GetHash());
-			Semaphore.Release(1);
+			Channel.Writer.TryWrite(tx.GetHash());
 		}
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
+		List<Task> tasks = [];
 		while (!cancel.IsCancellationRequested)
 		{
-			await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
+			var txidToFetch = await Channel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 
-			if (!Queue.TryDequeue(out var txidToFetch))
+			tasks.Add(Task.Run(() => ScheduledTask(txidToFetch), cancel));
+
+			if (tasks.Count >= MaximumRequestsInParallel)
 			{
-				continue;
+				Task completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+				tasks.Remove(completedTask);
 			}
-
-			_ = ScheduledTask(txidToFetch);
 		}
 
 		async Task ScheduledTask(uint256 txid)
@@ -125,11 +129,5 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 	public List<UnconfirmedTransactionChainItem> GetUnconfirmedTransactionChain(uint256 txId)
 	{
 		return UnconfirmedChainCache.TryGet(txId);
-	}
-
-	public override void Dispose()
-	{
-		Semaphore.Dispose();
-		base.Dispose();
 	}
 }
