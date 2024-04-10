@@ -129,33 +129,9 @@
                         </Style>
                       </TagsBoxAutoCompleteBox.Styles>
                       <Interaction.Behaviors>
-                        <!-- <FocusOnAttachedBehavior /> -->
                         <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
                       </Interaction.Behaviors>
                     </TagsBoxAutoCompleteBox>
-                    <!--
-                    <TagsBox ItemCountLimit="1"
-                             SuggestionsAreCaseSensitive="False"
-                             RestrictInputToSuggestions="True"
-                             Items="{Binding Mnemonics}"
-                             Suggestions="{Binding Suggestions}"
-                             Watermark=""
-                             AllowDuplication="True"
-                             EnableCounter="False"
-                             EnableDelete="False"
-                             Width="150"
-                             Margin="5 0 0 0">
-                      <TagsBox.Styles>
-                        <Style Selector="TagsBox AutoCompleteBox">
-                          <Setter Property="MinimumPrefixLength" Value="0" />
-                        </Style>
-                      </TagsBox.Styles>
-                      <Interaction.Behaviors>
-                        <FocusOnAttachedBehavior />
-                        <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
-                      </Interaction.Behaviors>
-                    </TagsBox>
-                    -->
                   </DockPanel>
 
                 </Panel>
