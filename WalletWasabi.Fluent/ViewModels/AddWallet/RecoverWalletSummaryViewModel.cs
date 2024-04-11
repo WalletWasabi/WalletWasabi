@@ -48,13 +48,7 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 			});
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
-
-		// TODO: Validate Passphrase
-
-		// TODO: Validate MinGapLimit
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
-
-		// TODO: Validate DerivationPath
 		this.ValidateProperty(x => x.DerivationPath, ValidateDerivationPath);
 
 		EnableBack = true;
