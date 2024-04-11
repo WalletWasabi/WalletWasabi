@@ -38,6 +38,11 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
+		if (options.Mnemonic is not null)
+		{
+			Mnemonics.AddRange(options.Mnemonic.Words);
+		}
+
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
 			.Subscribe(x =>
