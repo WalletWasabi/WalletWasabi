@@ -47,15 +47,15 @@
       </DockPanel>
 
       <Grid DockPanel.Dock="Top"
-            ColumnDefinitions="Auto,Auto"
+            ColumnDefinitions="*,*"
             RowDefinitions="Auto,Auto">
 
         <!-- Passphrase -->
         <CopyablePasswordTextBox Watermark="Type the passphrase (13th word)"
                                  Text="{Binding Passphrase}"
                                  PasswordChar="•"
-                                 Classes="revealPasswordButton copyablePasswordTextBox"
-                                 MaxWidth="400"
+                                 Classes="hasCheckMark revealPasswordButton copyablePasswordTextBox"
+                                 HorizontalAlignment="Stretch"
                                  VerticalAlignment="Top"
                                  Margin="0,30,0,0"
                                  Grid.Row="0"
@@ -63,27 +63,25 @@
         </CopyablePasswordTextBox>
 
         <!-- MinGapLimit -->
-        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380"
+        <StackPanel HorizontalAlignment="Stretch" Spacing="20"
                     Grid.Row="1"
                     Grid.Column="0">
           <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
           <TextBox Name="TbGapLimit" Watermark="e.g., 63"
                    Text="{Binding MinGapLimit}"
                    DockPanel.Dock="Top"
-                   Width="350"
                    Classes="hasCheckMark">
           </TextBox>
         </StackPanel>
 
         <!-- DerivationPath -->
-        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380"
+        <StackPanel HorizontalAlignment="Stretch" Spacing="20"
                     Grid.Row="1"
                     Grid.Column="1">
           <Label Content="Derivation _Path:" Target="TbDerivationPath" />
           <TextBox Name="TbDerivationPath" Watermark="e.g., 10/0/2'/3"
                    Text="{Binding DerivationPath}"
                    DockPanel.Dock="Top"
-                   Width="350"
                    Classes="hasCheckMark">
           </TextBox>
         </StackPanel>
