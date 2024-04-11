@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -57,10 +58,15 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 		// Navigate to current page when IsSelected and CurrentPage change
 		this.WhenAnyValue(x => x.IsSelected, x => x.CurrentPage)
+			.Do(x => { Logger.LogInfo($"{WalletModel.Name}, Values changed. {nameof(IsSelected)}:{x.Item1}, {nameof(CurrentPage)}:{x.Item2}"); })
 			.Where(t => t.Item1)
 			.Select(t => t.Item2)
 			.WhereNotNull()
-			.Do(x => UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear))
+			.Do(x =>
+			{
+				Logger.LogInfo($"{WalletModel.Name} navigated to: {x.GetType()}");
+				UiContext.Navigate().To(x, NavigationTarget.HomeScreen, NavigationMode.Clear);
+			})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
@@ -78,12 +84,15 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 	private void ShowLogin()
 	{
 		CurrentPage = new LoginViewModel(UiContext, WalletModel);
+		Logger.LogInfo($"Set CurrentPage to Login for {WalletModel.Name}");
 	}
 
 	private void ShowWalletLoading()
 	{
 		CurrentPage = new LoadingViewModel(WalletModel);
+		Logger.LogInfo($"Set CurrentPage to Loading for {WalletModel.Name}");
 		IsLoading = true;
+		Logger.LogInfo($"{WalletModel.Name}, {nameof(IsLoading)}:{IsLoading}");
 	}
 
 	private void ShowWallet()
@@ -99,7 +108,9 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 			.DisposeWith(_disposables);
 
 		CurrentPage = WalletViewModel;
+		Logger.LogInfo($"Set CurrentPage to WalletPage for {WalletModel.Name}");
 		IsLoading = false;
+		Logger.LogInfo($"{WalletModel.Name}, {nameof(IsLoading)}:{IsLoading}");
 	}
 
 	public void Dispose() => _disposables.Dispose();

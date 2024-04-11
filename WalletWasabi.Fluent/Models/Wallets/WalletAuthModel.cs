@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -58,6 +59,7 @@ public partial class WalletAuthModel : ReactiveObject
 	public void CompleteLogin()
 	{
 		IsLoggedIn = true;
+		Logger.LogInfo($"Login done for {_walletModel.Name}, {nameof(IsLegalRequired)}:{IsLoggedIn}");
 	}
 
 	public void Logout()

@@ -4,6 +4,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -44,6 +45,8 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(IWalletModel walletModel)
 	{
+		Logger.LogInfo($"Login Started for {walletModel.Name}");
+
 		var (success, compatibilityPasswordUsed) = await walletModel.Auth.TryLoginAsync(Password);
 
 		if (!success)
