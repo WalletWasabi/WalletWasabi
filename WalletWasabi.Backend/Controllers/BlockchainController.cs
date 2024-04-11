@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using System;
