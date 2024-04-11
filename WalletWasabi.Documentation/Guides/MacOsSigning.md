@@ -45,10 +45,10 @@
 
 ## Changing the icon
 
-- Wild spec for the icon:
+- Wild specificaiton for the icon:
   - 1024x1024 size
   - 98px padding
-  - BoxShadow params: x:0, y:5, Blur:25, Speard:0, Color:000000, Transparency:50%
+  - BoxShadow params: x:0, y:5, Blur:25, Spread:0, Color:000000, Transparency:50%
 - https://github.com/zkSNACKs/WalletWasabi/issues/2951
 
 ## Changing the background of dmg installer
