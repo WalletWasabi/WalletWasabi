@@ -26,6 +26,17 @@ public class ConversationTracking
 		}
 	}
 
+	public Conversation[] GetConversationsByWalletId(string walletId)
+	{
+		lock (_syncObj)
+		{
+			return Conversations
+				.Where(c => c.Conversation.Id.WalletId == walletId)
+				.Select(c => c.Conversation)
+				.ToArray();
+		}
+	}
+
 	public ConversationUpdateTrack GetConversationTrackById(ConversationId conversationId)
 	{
 		lock (_syncObj)
@@ -33,6 +44,9 @@ public class ConversationTracking
 			return Conversations.First(c => c.Conversation.Id == conversationId);
 		}
 	}
+
+	public Conversation GetConversationsById(ConversationId conversationId) =>
+		GetConversationTrackById(conversationId).Conversation;
 
 	public void Add(ConversationUpdateTrack conversationUpdateTrack)
 	{
@@ -43,6 +57,14 @@ public class ConversationTracking
 			NextConversationIds[walletId] = NextConversationIds.TryGetValue(walletId, out var cid)
 				? cid + 1
 				: 1;
+		}
+	}
+
+	public int RemoveAll(Predicate<ConversationUpdateTrack> predicate)
+	{
+		lock (_syncObj)
+		{
+			return Conversations.RemoveAll(predicate);
 		}
 	}
 
