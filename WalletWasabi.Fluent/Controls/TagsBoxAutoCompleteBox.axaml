@@ -29,27 +29,6 @@
       </Style>
     </ControlTheme>
 
-  <ControlTheme TargetType="TextBox" x:Key="RecoveryAutoCompleteBoxTextBox" BasedOn="{StaticResource TextBoxTheme}">
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="Margin" Value="0" />
-    <Setter Property="Focusable" Value="True" />
-    <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
-    <Setter Property="MaxLength" Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type TagsBox}}}" />
-    <Setter Property="ContextMenu">
-      <ContextMenu>
-        <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
-                  IsEnabled="{Binding $parent[TextBox].CanPaste}"
-                  InputGesture="{x:Static TextBox.PasteGesture}" />
-      </ContextMenu>
-    </Setter>
-    <Style Selector="^ /template/ DataValidationErrors">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
-    <Style Selector="^ /template/ Border#PART_BorderElement">
-      <Setter Property="IsVisible" Value="True" />
-    </Style>
-  </ControlTheme>
-
     <ControlTheme x:Key="TagsBoxAutoCompleteBox" TargetType="AutoCompleteBox">
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="Background" Value="{x:Null}" />
@@ -75,7 +54,8 @@
                      FontWeight="{TemplateBinding FontWeight}"
                      Padding="{TemplateBinding Padding}"
                      Margin="0"
-                     DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
+                     DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}"
+                     Theme="{StaticResource AutoCompleteBoxTextBox}"/>
             <Popup x:Name="PART_Popup"
                    WindowManagerAddShadowHint="False"
                    MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
@@ -102,10 +82,6 @@
 
       <Style Selector="^ /template/ ListBox#PART_SelectingItemsControl">
         <Setter Property="MinWidth" Value="286" />
-      </Style>
-
-      <Style Selector="^ /template/ TextBox#PART_TextBox">
-        <Setter Property="Theme" Value="{StaticResource AutoCompleteBoxTextBox}" />
       </Style>
 
     </ControlTheme>
