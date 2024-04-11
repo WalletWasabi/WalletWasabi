@@ -110,6 +110,14 @@ public partial class Arena : PeriodicRunner
 		}
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("arena-period", duration);
+
+		ThreadPool.GetMaxThreads(out int maxWorkerThreads, out int maxCompletionPortThreads);
+		ThreadPool.GetAvailableThreads(out int availableWorkerThreads, out int availableCompletionPortThreads);
+		RequestTimeStatista.Instance.Add("maxWorker-Threads", maxWorkerThreads);
+		RequestTimeStatista.Instance.Add("availableWorker-Threads", availableWorkerThreads);
+		RequestTimeStatista.Instance.Add("maxCompletionPort-Threads", maxCompletionPortThreads);
+		RequestTimeStatista.Instance.Add("availableCompletionPort-Threads", availableCompletionPortThreads);
+		RequestTimeStatista.Instance.TryDisplay();
 	}
 
 	private void SetRoundStates()

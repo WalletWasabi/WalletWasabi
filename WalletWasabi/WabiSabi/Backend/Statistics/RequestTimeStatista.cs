@@ -1,7 +1,9 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
+using static WalletWasabi.Wallets.FilterProcessor.BlockDownloadService;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
@@ -15,8 +17,10 @@ public class RequestTimeStatista
 
 	public static RequestTimeStatista Instance => Lazy.Value;
 
-	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration)>> Requests { get; } = new();
-	private object Lock { get; } = new();
+	private Dictionary<string, List<TimeSpanData>> TimeSpanDataList { get; } = [];
+	private Dictionary<string, List<IntegerData>> IntegerDataList { get; } = [];
+	private object TimeSpanDataLock { get; } = new();
+	private object IntegerDataLock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(60);
 
@@ -24,27 +28,18 @@ public class RequestTimeStatista
 	{
 		try
 		{
-			var toDisplay = false;
-			lock (Lock)
+			lock (TimeSpanDataLock)
 			{
-				if (Requests.TryGetValue(request, out List<(DateTimeOffset Time, TimeSpan Duration)>? value))
+				TimeSpanData newItem = new(DateTimeOffset.UtcNow, duration);
+
+				if (TimeSpanDataList.TryGetValue(request, out List<TimeSpanData>? value))
 				{
-					value.Add((DateTimeOffset.UtcNow, duration));
+					value.Add(newItem);
 				}
 				else
 				{
-					Requests.Add(request, new() { (DateTimeOffset.UtcNow, duration) });
+					TimeSpanDataList.Add(request, [newItem]);
 				}
-
-				if (DateTimeOffset.UtcNow - LastDisplayed > DisplayFrequency)
-				{
-					toDisplay = true;
-				}
-			}
-
-			if (toDisplay)
-			{
-				Display();
 			}
 		}
 		catch (Exception ex)
@@ -53,19 +48,62 @@ public class RequestTimeStatista
 		}
 	}
 
-	private void Display()
+	public void Add(string request, int integer)
 	{
-		lock (Lock)
+		try
 		{
-			Logger.LogInfo($"Response times for the last {(int)(DateTimeOffset.UtcNow - LastDisplayed).TotalMinutes} minutes:");
-			foreach (var request in Requests.OrderByDescending(x => x.Value.Count))
+			lock (IntegerDataLock)
 			{
-				var seconds = request.Value.Select(x => x.Duration.TotalSeconds);
-				Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.000}s Average: {seconds.Average():0.000}s Largest {seconds.Max():0.000}s");
-			}
+				IntegerData newItem = new(DateTimeOffset.UtcNow, integer);
 
-			LastDisplayed = DateTimeOffset.UtcNow;
-			Requests.Clear();
+				if (IntegerDataList.TryGetValue(request, out List<IntegerData>? value))
+				{
+					value.Add(newItem);
+				}
+				else
+				{
+					IntegerDataList.Add(request, [newItem]);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
 		}
 	}
+
+	public void TryDisplay()
+	{
+		if (DateTimeOffset.UtcNow - LastDisplayed < DisplayFrequency)
+		{
+			return;
+		}
+
+		lock (TimeSpanDataLock)
+		{
+			lock (IntegerDataLock)
+			{
+				Logger.LogInfo($"Response times for the last {(int)(DateTimeOffset.UtcNow - LastDisplayed).TotalMinutes} minutes:");
+				foreach (var request in TimeSpanDataList.OrderByDescending(x => x.Value.Count))
+				{
+					var seconds = request.Value.Select(x => x.Duration.TotalSeconds);
+					Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.000}s Average: {seconds.Average():0.000}s Largest {seconds.Max():0.000}s.");
+				}
+
+				Logger.LogInfo($"Integer statistics:");
+				foreach (var request in IntegerDataList.OrderByDescending(x => x.Value.Count))
+				{
+					var integers = request.Value.Select(x => x.Integer);
+					Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Minimum: {integers.Min()} Average: {integers.Average():0.0} Maximum: {integers.Max()}.");
+				}
+
+				LastDisplayed = DateTimeOffset.UtcNow;
+				TimeSpanDataList.Clear();
+				IntegerDataList.Clear();
+			}
+		}
+	}
+
+	private record TimeSpanData(DateTimeOffset Time, TimeSpan Duration);
+	private record IntegerData(DateTimeOffset Time, int Integer);
 }
