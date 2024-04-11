@@ -52,14 +52,6 @@ public class BuyAnythingClient
 		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
 	}
 
-	// Concierge request status
-	public enum ConciergeRequestStatus
-	{
-		Open,
-		Claimed,
-		Offer
-	}
-
 	// Services provided by Concierge
 	public enum Product
 	{
