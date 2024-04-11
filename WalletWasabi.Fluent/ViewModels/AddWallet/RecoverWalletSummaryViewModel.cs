@@ -53,9 +53,19 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 
 		EnableBack = true;
 
+		var canExecuteNext = this.WhenAnyValue(
+			x => x.MinGapLimit,
+			x => x.DerivationPath,
+			x => x.IsMnemonicsValid)
+			.Select(x =>
+			{
+				var (_, _, isMnemonicsValid) = x;
+				return !Validations.Any && isMnemonicsValid;
+			});
+
 		NextCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnNextAsync(options),
-			canExecute: this.WhenAnyValue(x => x.IsMnemonicsValid));
+			canExecute: canExecuteNext);
 	}
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
