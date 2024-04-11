@@ -291,31 +291,6 @@ public class BuyAnythingManager : PeriodicRunner
 	public int GetNextConversationId(string walletId) =>
 		ConversationTracking.GetNextConversationId(walletId);
 
-	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
-	{
-		var walletId = GetWalletId(wallet);
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return ConversationTracking.GetConversationsByWalletId(walletId);
-	}
-
-	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return ConversationTracking.GetConversationsById(conversationId);
-	}
-
-	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var removedCount = ConversationTracking.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
-		if (removedCount > 0)
-		{
-			await SaveAsync(cancellationToken).ConfigureAwait(false);
-		}
-
-		return removedCount;
-	}
-
 	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
 		return await Client.GetStatesByCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
