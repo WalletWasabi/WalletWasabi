@@ -71,24 +71,18 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 		var (walletName, _, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
-		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", "If you used a passphrase when you created your wallet you must type it below, otherwise leave this empty.").GetResultAsync();
-		if (password is not { }
-		    || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics
-		    || MinGapLimit is null)
-		{
-			return;
-		}
-
-		// TODO: Validate MinGapLimit
-
-		// TODO: Validate DerivationPath
-
 		IsBusy = true;
 
 		try
 		{
-			// TODO: Use DerivationPath
-			options = options with { Passphrase = password, Mnemonic = currentMnemonics, MinGapLimit = int.Parse(MinGapLimit) };
+			options = options with
+			{
+				Passphrase = Passphrase,
+				Mnemonic = _currentMnemonics, 
+				MinGapLimit = int.Parse(MinGapLimit),
+				AccountKeyPath = DerivationPath
+			};
+
 			var wallet = await UiContext.WalletRepository.NewWalletAsync(options);
 			await Navigate().To().CoinJoinProfiles(wallet, options).GetResultAsync();
 		}
