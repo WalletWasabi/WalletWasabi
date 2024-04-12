@@ -79,7 +79,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
-	public void BeginRequestUnconfirmedChain(SmartTransaction tx)
+	public void CheckAndScheduleRequestIfNeeded(SmartTransaction tx)
 	{
 		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
 		{
