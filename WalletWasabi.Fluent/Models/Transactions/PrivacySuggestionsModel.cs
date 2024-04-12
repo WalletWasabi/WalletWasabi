@@ -20,7 +20,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-public class PrivacySuggestionsModel
+[AutoInterface]
+public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = 0.25m;
 	private const int ConsolidationTolerance = 10;

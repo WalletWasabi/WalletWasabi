@@ -1,6 +1,3 @@
-using DynamicData;
-using ReactiveUI;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,13 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
+public partial class PrivacySuggestionsFlyoutViewModel(IWalletModel wallet) : ViewModelBase
 {
-	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
+	private readonly IPrivacySuggestionsModel _privacySuggestionsModel = wallet.GetPrivacySuggestions();
 	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
@@ -26,11 +23,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
-
-	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
-	{
-		_privacySuggestionsModel = new PrivacySuggestionsModel(wallet);
-	}
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();
 	public ObservableCollection<PrivacySuggestion> Suggestions { get; } = new();

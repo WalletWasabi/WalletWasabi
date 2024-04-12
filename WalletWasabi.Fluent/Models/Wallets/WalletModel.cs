@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
@@ -119,6 +120,11 @@ public partial class WalletModel : ReactiveObject
 	public IWalletInfoModel GetWalletInfo()
 	{
 		return new WalletInfoModel(Wallet);
+	}
+
+	public IPrivacySuggestionsModel GetPrivacySuggestions()
+	{
+		return new PrivacySuggestionsModel(Wallet);
 	}
 
 	public void Rename(string newWalletName)
