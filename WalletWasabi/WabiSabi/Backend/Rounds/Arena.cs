@@ -201,7 +201,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
 					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
-					if (alicesDidNotConfirm.Length < round.Alices.Count * 0.7)
+					if (ReasonableOffendersCount(alicesDidNotConfirm.Length, round.Parameters.MinInputCountByRound))
 					{
 						foreach (var alice in alicesDidNotConfirm)
 						{
@@ -214,24 +214,23 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it is too late to do any
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
-						var offendingAliceCounter = 0;
+						var allOffendingAlices = new List<Alice>();
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
-							if (cancel.IsCancellationRequested)
-							{
-								break;
-							}
+							allOffendingAlices.AddRange(offendingAlices);
+						}
 
-							foreach (var offender in offendingAlices)
+						if (ReasonableOffendersCount(allOffendingAlices.Count, round.Parameters.MinInputCountByRound))
+						{
+							foreach (var offender in allOffendingAlices)
 							{
 								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
-								offendingAliceCounter++;
 							}
 						}
 
-						if (offendingAliceCounter > 0)
+						if (allOffendingAlices.Count > 0)
 						{
-							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
+							round.LogInfo($"There were {allOffendingAlices.Count} alices that spent the registered UTXO. Aborting...");
 
 							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
@@ -433,7 +432,7 @@ public partial class Arena : PeriodicRunner
 			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
-		if (alicesWhoDidNotSign.Count < round.Alices.Count * 0.7)
+		if (ReasonableOffendersCount(alicesWhoDidNotSign.Count, round.Parameters.MinInputCountByRound))
 		{
 			foreach (var alice in alicesWhoDidNotSign)
 			{
@@ -452,7 +451,7 @@ public partial class Arena : PeriodicRunner
 	{
 		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
 
-		if (alicesToRemove.Count < round.Alices.Count * 0.7)
+		if (ReasonableOffendersCount(alicesToRemove.Count, round.Parameters.MinInputCountByRound))
 		{
 			foreach (var alice in alicesToRemove)
 			{
@@ -754,4 +753,10 @@ public partial class Arena : PeriodicRunner
 		}
 		base.Dispose();
 	}
+
+	/// <summary>
+	/// If too many inputs seem to misbehave, problem is probably on coordinator's side.
+	/// Don't ban in that case to avoid huge amount of false-positives.
+	/// </summary>
+	private static bool ReasonableOffendersCount(int offendersCount, int minInputCount) => offendersCount <= minInputCount;
 }
