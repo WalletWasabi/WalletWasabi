@@ -1,16 +1,14 @@
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _wallet;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private TimeSpan? _confirmationTime;
@@ -24,17 +22,14 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private double? _amountDiff;
 	[AutoNotify] private double? _feeDiff;
 
-	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
+	private TransactionSummaryViewModel(IWalletModel wallet, TransactionInfo info, bool isPreview = false)
 	{
-		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
-
-	public TransactionPreviewViewModel Parent { get; }
 
 	public bool IsPreview { get; }
 
@@ -44,12 +39,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 	public bool IsPayJoin { get; }
 
-	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
+	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info, Amount? currentAmount, Amount? currentFeeRate)
 	{
 		_transaction = transactionResult;
 
-		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, info.FeeRate, out var estimate);
-		ConfirmationTime = estimate;
+		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 
@@ -59,8 +53,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
-		AmountDiff = DiffOrNull(Amount, Parent.CurrentTransactionSummary.Amount);
-		FeeDiff = DiffOrNull(Fee, Parent.CurrentTransactionSummary.Fee);
+		AmountDiff = DiffOrNull(Amount, currentAmount);
+		FeeDiff = DiffOrNull(Fee, currentFeeRate);
 	}
 
 	private static double? DiffOrNull(Amount? current, Amount? previous)

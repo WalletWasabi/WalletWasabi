@@ -146,8 +146,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_currentTransactionInfo = _info.Clone();
 		}
 
-		summary.UpdateTransaction(transaction, _info);
-
+		summary.UpdateTransaction(transaction, _info, CurrentTransactionSummary.Amount, CurrentTransactionSummary.Fee);
+		
 		DisplayedTransactionSummary = summary;
 	}
 
