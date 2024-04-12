@@ -9,4 +9,9 @@
 	<InvariantGlobalization>true</InvariantGlobalization>
 	 <WarningsAsErrors>false</WarningsAsErrors>
  </PropertyGroup>
+
+ <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+	<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt"/>
+ </ItemGroup>
 </Project>

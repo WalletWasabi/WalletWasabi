@@ -1,0 +1,4 @@
+# The file contains a list of banned API for Wasabi Wallet project.
+# 
+# Syntax: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md
+M:System.Net.Http.HttpClient.#ctor();Each use of an HTTP client operating over clearnet must be approved.
