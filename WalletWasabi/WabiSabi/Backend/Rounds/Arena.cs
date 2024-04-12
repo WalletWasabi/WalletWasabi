@@ -119,7 +119,7 @@ public partial class Arena : PeriodicRunner
 		RequestTimeStatista.Instance.Add("availableWorker-Threads", availableWorkerThreads);
 		RequestTimeStatista.Instance.Add("maxCompletionPort-Threads", maxCompletionPortThreads);
 		RequestTimeStatista.Instance.Add("availableCompletionPort-Threads", availableCompletionPortThreads);
-		RequestTimeStatista.Instance.TryDisplay();
+		RequestTimeStatista.Instance.FlushStatisticsToLogsIfTimeElapsed();
 	}
 
 	private void SetRoundStates()

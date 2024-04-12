@@ -1,9 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
-using static WalletWasabi.Wallets.FilterProcessor.BlockDownloadService;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
@@ -72,7 +70,7 @@ public class RequestTimeStatista
 		}
 	}
 
-	public void TryDisplay()
+	public void FlushStatisticsToLogsIfTimeElapsed()
 	{
 		if (DateTimeOffset.UtcNow - LastDisplayed < DisplayFrequency)
 		{
