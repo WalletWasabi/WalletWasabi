@@ -25,6 +25,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -424,15 +425,17 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
+			var before = DateTimeOffset.UtcNow;
 			uint256 txId = new(transactionId);
 
 			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-
-			return await Cache.GetCachedResponseAsync(
+			var ret = await Cache.GetCachedResponseAsync(
 				cacheKey,
 				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 				options: UnconfirmedTrasanctionChainCacheEntryOptions,
 				cancellationToken);
+			RequestTimeStatista.Instance.Add("unconfirmed-transaction-chain", DateTimeOffset.UtcNow - before);
+			return ret;
 		}
 		catch (OperationCanceledException)
 		{
