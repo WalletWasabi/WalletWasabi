@@ -208,6 +208,10 @@ public partial class Arena : PeriodicRunner
 							Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 						}
 					}
+					else
+					{
+						Logger.LogWarning($"{round.Id}: Tried to ban {alicesDidNotConfirm.Length} inputs for FailedToConfirm - ban was skipped.");
+					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
@@ -226,6 +230,10 @@ public partial class Arena : PeriodicRunner
 							{
 								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
 							}
+						}
+						else
+						{
+							Logger.LogWarning($"{round.Id}: Tried to ban {allOffendingAlices.Count} inputs for DoubleSpent - ban was skipped.");
 						}
 
 						if (allOffendingAlices.Count > 0)
@@ -439,6 +447,10 @@ public partial class Arena : PeriodicRunner
 				Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 			}
 		}
+		else
+		{
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesWhoDidNotSign.Count} inputs for FailedToSign - ban was skipped.");
+		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
@@ -458,6 +470,10 @@ public partial class Arena : PeriodicRunner
 				// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
 				Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
 			}
+		}
+		else
+		{
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesToRemove.Count} inputs for FailedToSignalReadyToSign - ban was skipped.");
 		}
 
 		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
