@@ -168,7 +168,10 @@ public class ApplicationStateManager : IMainWindowService
 			case ActivationKind.Background:
 				if (this is IMainWindowService service)
 				{
-					service.Hide();
+					if (_lifetime.MainWindow is not null)
+					{
+						service.Hide();
+					}
 				}
 				break;
 		}
@@ -180,6 +183,8 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			return;
 		}
+
+		MainViewModel.Instance.ApplyUiConfigWindowState();
 
 		if (_lifetime is IActivatableApplicationLifetime activatable)
 		{

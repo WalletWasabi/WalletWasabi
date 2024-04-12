@@ -317,14 +317,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			{
 				if (!IndexStorage.TryRemoveLast(out filter))
 				{
-					throw new InvalidOperationException("No last filter.");
+					return null;
 				}
 			}
 			else
 			{
 				if (!IndexStorage.TryRemoveLastIfNewerThan(height.Value, out filter))
 				{
-					throw new InvalidOperationException("No last filter.");
+					return null;
 				}
 			}
 
