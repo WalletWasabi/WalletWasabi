@@ -33,7 +33,8 @@
           <RowDefinition Height="20" />
         </Grid.RowDefinitions>
 
-        <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
+               MinWidth="690">
           <ItemsControl ItemsSource="{Binding ConfirmationWords}"
                         Name="ItemsControl">
             <Interaction.Behaviors>
