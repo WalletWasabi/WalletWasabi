@@ -53,8 +53,8 @@
         <!-- Passphrase -->
         <CopyablePasswordTextBox Watermark="Type the passphrase (13th word)"
                                  Text="{Binding Passphrase}"
-                                 PasswordChar="•"
-                                 Classes="hasCheckMark revealPasswordButton copyablePasswordTextBox"
+                                 PasswordChar=""
+                                 Classes="hasCheckMark copyablePasswordTextBox"
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Top"
                                  Margin="0,30,0,0"
