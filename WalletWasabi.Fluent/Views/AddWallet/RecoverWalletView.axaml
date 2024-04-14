@@ -62,7 +62,7 @@
                 <Panel Margin="0,0,0,5">
 
                   <StackPanel IsVisible="{Binding !IsSelected}"
-                              Margin="15 0 0 0"
+                              Margin="15 0 15 0"
                               Width="200"
                               Orientation="Horizontal"
                               Background="Transparent">
@@ -73,6 +73,11 @@
                                              CommandParameter="{Binding .}"/>
                       </RoutedEventTriggerBehavior>
                     </Interaction.Behaviors>
+                    <PathIcon Name="WordIconCheckmark"
+                              Margin="0 0 15 0"
+                              Classes="checkMark"
+                              VerticalAlignment="Center"
+                              Opacity="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).IsMnemonicsValid}" />
                     <Panel Height="45"
                            VerticalAlignment="Stretch">
                       <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
@@ -95,8 +100,14 @@
                   </StackPanel>
 
                   <DockPanel IsVisible="{Binding IsSelected}"
-                             Margin="15 0 0 0"
+                             Margin="15 0 15 0"
                              Width="200">
+                    <PathIcon Name="IconCheckmark"
+                              Margin="0 0 15 0"
+                              Classes="checkMark"
+                              VerticalAlignment="Center"
+                              DockPanel.Dock="Left"
+                              Opacity="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).IsMnemonicsValid}" />
                     <Panel DockPanel.Dock="Left"
                            Height="45"
                            VerticalAlignment="Stretch">
@@ -105,12 +116,6 @@
                                  FontSize="{DynamicResource FontSizeH6}"
                                  VerticalAlignment="Center"/>
                     </Panel>
-                    <PathIcon Name="IconCheckmark"
-                              Margin="15 0 0 0"
-                              Classes="checkMark"
-                              VerticalAlignment="Center"
-                              DockPanel.Dock="Right"
-                              Opacity="{Binding IsMnemonicsValid}" />
                     <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
                                             Text="{Binding Word}"
                                             FilterMode="StartsWith"
@@ -149,7 +154,7 @@
                                  Watermark="Type the passphrase (13th word)"
                                  Text="{Binding Passphrase}"
                                  PasswordChar="•"
-                                 Classes="revealPasswordButton copyablePasswordTextBox"
+                                 Classes="hasCheckMark revealPasswordButton copyablePasswordTextBox"
                                  MaxWidth="400"
                                  VerticalAlignment="Top"
                                  Margin="0,30,0,0">
