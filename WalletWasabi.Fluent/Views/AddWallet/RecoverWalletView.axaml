@@ -14,14 +14,16 @@
                EnableNext="True" NextContent="Continue"
                IsBusy="{Binding IsBusy}">
 
-    <DockPanel HorizontalAlignment="Stretch">
-
-      <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
+    <ContentArea.BottomContent>
+      <Button Classes="h7 plain activeHyperLink" Margin="0 0 0 0"
               DockPanel.Dock="Bottom"
               HorizontalAlignment="Center"
-              VerticalAlignment="Bottom"
+              VerticalAlignment="Center"
               Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
               Content="Advanced Recovery Options" />
+    </ContentArea.BottomContent>
+
+    <DockPanel HorizontalAlignment="Stretch">
 
       <Grid x:Name="Layout" HorizontalAlignment="Center">
         <Grid.RowDefinitions>
