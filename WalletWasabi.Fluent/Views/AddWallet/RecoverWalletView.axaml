@@ -155,8 +155,8 @@
         <CopyablePasswordTextBox Grid.Row="3"
                                  Watermark="Type the passphrase (13th word)"
                                  Text="{Binding Passphrase}"
-                                 PasswordChar="•"
-                                 Classes="hasCheckMark revealPasswordButton copyablePasswordTextBox"
+                                 PasswordChar=""
+                                 Classes="hasCheckMark copyablePasswordTextBox"
                                  MaxWidth="400"
                                  VerticalAlignment="Top"
                                  Margin="0,30,0,0">
