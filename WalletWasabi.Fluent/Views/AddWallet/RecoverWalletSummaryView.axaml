@@ -63,7 +63,7 @@
         </CopyablePasswordTextBox>
 
         <!-- MinGapLimit -->
-        <StackPanel HorizontalAlignment="Stretch" Spacing="20"
+        <StackPanel HorizontalAlignment="Stretch"
                     Grid.Row="1"
                     Grid.Column="0">
           <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
@@ -75,7 +75,7 @@
         </StackPanel>
 
         <!-- DerivationPath -->
-        <StackPanel HorizontalAlignment="Stretch" Spacing="20"
+        <StackPanel HorizontalAlignment="Stretch"
                     Grid.Row="1"
                     Grid.Column="1">
           <Label Content="Derivation _Path:" Target="TbDerivationPath" />
