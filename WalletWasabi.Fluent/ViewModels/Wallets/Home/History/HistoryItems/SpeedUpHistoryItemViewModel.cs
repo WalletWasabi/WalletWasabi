@@ -1,3 +1,4 @@
+using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 
@@ -5,9 +6,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public partial class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public SpeedUpHistoryItemViewModel(UiContext uiContext, TransactionModel transaction, HistoryItemViewModelBase? parent) : base(uiContext, transaction)
+	public SpeedUpHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction, HistoryItemViewModelBase? parent) : base(uiContext, transaction)
 	{
-		ShowDetailsCommand = parent?.ShowDetailsCommand;
+		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
 		SpeedUpTransactionCommand = parent?.SpeedUpTransactionCommand;
 		CancelTransactionCommand = parent?.CancelTransactionCommand;
 	}
