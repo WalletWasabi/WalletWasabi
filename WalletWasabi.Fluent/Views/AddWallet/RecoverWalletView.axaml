@@ -132,9 +132,11 @@
                           <Setter Property="Focusable" Value="True" />
                           <Setter Property="MinimumPrefixLength" Value="0" />
                         </Style>
+                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                          <Setter Property="Focusable" Value="True" />
+                        </Style>
                         <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
                           <Setter Property="IsVisible" Value="True" />
-                          <Setter Property="Focusable" Value="True" />
                         </Style>
                       </TagsBoxAutoCompleteBox.Styles>
                       <Interaction.Behaviors>
