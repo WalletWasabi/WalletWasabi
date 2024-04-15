@@ -91,8 +91,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 				}));
 	}
 
-	private Setting<IApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<IApplicationSettings, TProperty>> selector)
+	private Setting<ApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<ApplicationSettings, TProperty>> selector)
 	{
-		return new Setting<IApplicationSettings, TProperty>(_applicationSettings, selector);
+		return new Setting<ApplicationSettings, TProperty>((ApplicationSettings)_applicationSettings, selector);
 	}
 }

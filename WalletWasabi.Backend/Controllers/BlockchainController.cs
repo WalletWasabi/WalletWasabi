@@ -25,6 +25,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -424,15 +425,17 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
+			var before = DateTimeOffset.UtcNow;
 			uint256 txId = new(transactionId);
 
 			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-
-			return await Cache.GetCachedResponseAsync(
+			var ret = await Cache.GetCachedResponseAsync(
 				cacheKey,
 				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 				options: UnconfirmedTrasanctionChainCacheEntryOptions,
 				cancellationToken);
+			RequestTimeStatista.Instance.Add("unconfirmed-transaction-chain", DateTimeOffset.UtcNow - before);
+			return ret;
 		}
 		catch (OperationCanceledException)
 		{
@@ -499,7 +502,7 @@ public class BlockchainController : ControllerBase
 	{
 		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
 
-		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).ToArray();
+		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).Distinct().ToArray();
 
 		var parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
 
@@ -525,9 +528,9 @@ public class BlockchainController : ControllerBase
 			.Select(input => input.PrevOut)
 			.ToList();
 
-		foreach (var parentTx in parentTxs)
+		foreach (var prevOut in prevOutsForCurrentTx)
 		{
-			var prevOut = prevOutsForCurrentTx.First(x => x.Hash == parentTx.GetHash());
+			var parentTx = parentTxs.First(x => x.GetHash() == prevOut.Hash);
 			var txOut = parentTx.Outputs[prevOut.N];
 			inputs.Add(new Coin(prevOut, txOut));
 		}

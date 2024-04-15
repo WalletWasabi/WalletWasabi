@@ -45,9 +45,6 @@ public class ConversationTracking
 		}
 	}
 
-	public Conversation GetConversationsById(ConversationId conversationId) =>
-		GetConversationTrackById(conversationId).Conversation;
-
 	public void Add(ConversationUpdateTrack conversationUpdateTrack)
 	{
 		lock (_syncObj)

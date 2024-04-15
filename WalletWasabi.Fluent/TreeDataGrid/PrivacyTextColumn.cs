@@ -7,27 +7,33 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class PrivacyTextColumn<T> : ColumnBase<T>
 {
 	private readonly Func<T, string?> _getter;
+	private readonly PrivacyCellType _type;
 	private readonly Comparison<T?>? _sortAscending;
 	private readonly Comparison<T?>? _sortDescending;
 	private readonly int _numberOfPrivacyChars;
+	private readonly bool _ignorePrivacyMode;
 
 	public PrivacyTextColumn(
 		object? header,
 		Func<T, string?> getter,
 		GridLength? width,
 		ColumnOptions<T>? options,
-		int numberOfPrivacyChars = 0)
+		PrivacyCellType type,
+		int numberOfPrivacyChars = 0,
+		bool ignorePrivacyMode = false)
 		: base(header, width, options)
 	{
 		_sortAscending = options?.CompareAscending;
 		_sortDescending = options?.CompareDescending;
 		_getter = getter;
+		_type = type;
 		_numberOfPrivacyChars = numberOfPrivacyChars;
+		_ignorePrivacyMode = ignorePrivacyMode;
 	}
 
 	public override ICell CreateCell(IRow<T> row)
 	{
-		return new PrivacyTextCell(_getter(row.Model), _numberOfPrivacyChars);
+		return new PrivacyTextCell(_getter(row.Model), _type, _numberOfPrivacyChars, _ignorePrivacyMode);
 	}
 
 	public override Comparison<T?>? GetComparison(ListSortDirection direction)
