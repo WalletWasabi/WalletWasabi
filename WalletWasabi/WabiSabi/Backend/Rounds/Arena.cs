@@ -211,6 +211,10 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						Logger.LogWarning($"{round.Id}: Tried to ban {alicesDidNotConfirm.Length} inputs for FailedToConfirm - ban was skipped.");
+						foreach (var alice in alicesDidNotConfirm)
+						{
+							Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+						}
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -233,9 +237,12 @@ public partial class Arena : PeriodicRunner
 						}
 						else
 						{
-							Logger.LogWarning($"{round.Id}: Tried to ban {allOffendingAlices.Count} inputs for DoubleSpent - ban was skipped.");
+							Logger.LogWarning($"{round.Id}: Tried to ban {allOffendingAlices.Count} inputs for FailedToConfirm - ban was skipped.");
+							foreach (var alice in allOffendingAlices)
+							{
+								Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+							}
 						}
-
 						if (allOffendingAlices.Count > 0)
 						{
 							round.LogInfo($"There were {allOffendingAlices.Count} alices that spent the registered UTXO. Aborting...");
@@ -449,7 +456,11 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			Logger.LogWarning($"{round.Id}: Tried to ban {alicesWhoDidNotSign.Count} inputs for FailedToSign - ban was skipped.");
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesWhoDidNotSign.Count} inputs for FailedToConfirm - ban was skipped.");
+			foreach (var alice in alicesWhoDidNotSign)
+			{
+				Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+			}
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
@@ -473,7 +484,11 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			Logger.LogWarning($"{round.Id}: Tried to ban {alicesToRemove.Count} inputs for FailedToSignalReadyToSign - ban was skipped.");
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesToRemove.Count} inputs for FailedToConfirm - ban was skipped.");
+			foreach (var alice in alicesToRemove)
+			{
+				Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+			}
 		}
 
 		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
