@@ -8,6 +8,12 @@
       <Border Padding="60">
         <StackPanel Spacing="20">
 
+          <Button Content="Regular button" Classes="action"></Button>
+
+          <SplitButton></SplitButton>
+
+          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}" />
+
           <SubActionButton>
             <SubActionButton.ItemsSource>
               <generic:List x:TypeArguments="system:String">
@@ -35,23 +41,6 @@
           </SubActionButton>
 
           <SubActionButton CornerRadius="16" Content="Rounded">
-            <!-- <SubActionButton.ItemsSource> -->
-            <!--   <generic:List x:TypeArguments="system:String"> -->
-            <!--     <x:String>Item 0</x:String> -->
-            <!--     <x:String>Item 1</x:String> -->
-            <!--     <x:String>Item 2</x:String> -->
-            <!--   </generic:List> -->
-            <!-- </SubActionButton.ItemsSource> -->
-            <!-- <SubActionButton.Flyout> -->
-            <!--   <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}"> -->
-            <!--     <MenuFlyout.ItemTemplate> -->
-            <!--       <DataTemplate DataType="x:String"> -->
-            <!--         <MenuItem Header="{Binding .}" /> -->
-            <!--       </DataTemplate> -->
-            <!--     </MenuFlyout.ItemTemplate> -->
-            <!--   </MenuFlyout> -->
-            <!-- </SubActionButton.Flyout> -->
-
             <SubActionButton.Flyout>
               <MenuFlyout Placement="BottomEdgeAlignedLeft">
                 <MenuItem Header="Item 0" />
@@ -73,38 +62,20 @@
   <ControlTheme x:Key="{x:Type SubActionButton}"
                 TargetType="SubActionButton"
                 BasedOn="{StaticResource {x:Type SplitButton}}">
-
-    <!-- TODO: Add Icon property support in the template or add InnerRight/InnerLeft content -->
-
-    <!-- TODO: Add custom style for Wasabi -->
-
-    <!-- <Setter Property="Flyout"> -->
-    <!--     <MenuFlyout ItemsSource="{TemplateBinding ItemsSource}"> -->
-    <!-- -->
-    <!--     </MenuFlyout> -->
-    <!-- </Setter> -->
-
-    <Setter Property="CornerRadius" Value="6" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
-    <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
-    <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
-
-    <Style Selector="^:pointerover">
-      <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
-    </Style>
-
-    <Style Selector="^:pressed">
-      <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
-    </Style>
-
-    <Style Selector="^:disabled">
-      <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
-    </Style>
-
-    <Style Selector="^/template/ PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
-    </Style>
+    <!--<Setter Property="Template">
+      <ControlTemplate>
+        <SplitButton Content="dadas" Command="{TemplateBinding Command}" Flyout="{Binding $parent[SubActionButton].Flyout}">
+          <SplitButton.ContentTemplate>
+            <DataTemplate>
+              <DockPanel>
+                <ContentPresenter Content="{Binding $parent[SubActionButton].Content}" />
+                <Path Data="{Binding $parent[SubActionButton].Icon}" />
+              </DockPanel>
+            </DataTemplate>
+          </SplitButton.ContentTemplate>
+        </SplitButton>
+      </ControlTemplate>
+    </Setter>-->
 
   </ControlTheme>
 
