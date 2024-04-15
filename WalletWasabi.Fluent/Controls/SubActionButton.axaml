@@ -15,13 +15,6 @@
           <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}" />
 
           <SubActionButton>
-            <SubActionButton.ItemsSource>
-              <generic:List x:TypeArguments="system:String">
-                <x:String>Item 0</x:String>
-                <x:String>Item 1</x:String>
-                <x:String>Item 2</x:String>
-              </generic:List>
-            </SubActionButton.ItemsSource>
             <SubActionButton.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}">
                 <MenuFlyout.ItemTemplate>
@@ -62,21 +55,14 @@
   <ControlTheme x:Key="{x:Type SubActionButton}"
                 TargetType="SubActionButton"
                 BasedOn="{StaticResource {x:Type SplitButton}}">
-    <!--<Setter Property="Template">
-      <ControlTemplate>
-        <SplitButton Content="dadas" Command="{TemplateBinding Command}" Flyout="{Binding $parent[SubActionButton].Flyout}">
-          <SplitButton.ContentTemplate>
-            <DataTemplate>
-              <DockPanel>
-                <ContentPresenter Content="{Binding $parent[SubActionButton].Content}" />
-                <Path Data="{Binding $parent[SubActionButton].Icon}" />
-              </DockPanel>
-            </DataTemplate>
-          </SplitButton.ContentTemplate>
-        </SplitButton>
-      </ControlTemplate>
-    </Setter>-->
-
+    <Setter Property="ContentTemplate">
+      <DataTemplate>
+        <DockPanel>
+          <PathIcon Margin="0 0 8 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" ></PathIcon>
+          <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
+        </DockPanel>
+      </DataTemplate>
+    </Setter>
   </ControlTheme>
 
 </ResourceDictionary>
