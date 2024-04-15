@@ -41,17 +41,20 @@
                 <MenuFlyout Placement="Top">
                   <MenuItem Header="Sample 1">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource wallet_action_receive}" />
+                      <PathIcon Data="{StaticResource wallet_action_receive}"
+                                Classes="Icon"/>
                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Sample 2">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource settings_bitcoin_regular}" />
+                      <PathIcon Data="{StaticResource settings_bitcoin_regular}"
+                                Classes="Icon" />
                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Sample 3">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource wallet_action_buy}" />
+                      <PathIcon Data="{StaticResource wallet_action_buy}"
+                                Classes="Icon" />
                     </MenuItem.Icon>
                   </MenuItem>
                 </MenuFlyout>
