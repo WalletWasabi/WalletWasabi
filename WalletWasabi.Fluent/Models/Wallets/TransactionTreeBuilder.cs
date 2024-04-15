@@ -190,6 +190,17 @@ public class TransactionTreeBuilder
 				: TransactionStatus.SpeedUp,
 		};
 
+		var dates = children.Select(tx => tx.Date).ToImmutableArray();
+		var firstDate = dates.Min().ToLocalTime();
+		var lastDate = dates.Max().ToLocalTime();
+		if (firstDate.Day == lastDate.Day)
+		{
+			foreach (var child in children)
+			{
+				child.DateString = child.Date.ToLocalTime().ToOnlyTimeString();
+			}
+		}
+
 		foreach (var child in children)
 		{
 			result.Add(child);
