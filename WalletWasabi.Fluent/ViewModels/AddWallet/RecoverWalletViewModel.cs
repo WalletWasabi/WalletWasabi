@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -53,9 +52,19 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 				.Subscribe(_ =>
 				{
 					var count = _words.Count(x => !string.IsNullOrEmpty(x.Word));
-					var mnemonic = count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null;
-					CurrentMnemonics = mnemonic;
-					IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
+					try
+					{
+						var mnemonic = count is 12 or 15 or 18 or 21 or 24
+							? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant())
+							: null;
+						CurrentMnemonics = mnemonic;
+						IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
+					}
+					catch (Exception)
+					{
+						CurrentMnemonics = null;
+						IsMnemonicsValid = false;
+					}
 					this.RaisePropertyChanged(nameof(CurrentMnemonics));
 				});
 		}
@@ -71,66 +80,13 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			canExecute: nextCanExecute);
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
-
-		NextWordCommand = ReactiveCommand.Create(NextWord);
-
-		PreviousWordCommand = ReactiveCommand.Create(PreviousWord);
-
-		SelectWordCommand = ReactiveCommand.Create<RecoverWordViewModel>(SelectWord);
 	}
-
-	public ICommand NextWordCommand { get; }
-
-	public ICommand PreviousWordCommand { get; }
-
-	public ICommand SelectWordCommand { get; }
 
 	public ObservableCollectionExtended<RecoverWordViewModel> ConfirmationWords { get; } = new();
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
 	private int MinGapLimit { get; set; } = 114;
-
-	private void NextWord()
-	{
-		var currentIndex = _words.IndexOf(_currentWord);
-		if (currentIndex >= _words.Count - 1)
-		{
-			_currentWord.IsSelected = false;
-			FocusPassphrase = true;
-			FocusPassphrase = false;
-		}
-		else
-		{
-			_currentWord.IsSelected = false;
-			_currentWord = _words[currentIndex + 1];
-			_currentWord.IsSelected = true;
-		}
-	}
-
-	private void PreviousWord()
-	{
-		var currentIndex = _words.IndexOf(_currentWord);
-		if (currentIndex <= 0 || !_currentWord.IsSelected)
-		{
-			_currentWord.IsSelected = false;
-			_currentWord = _words[^1];
-			_currentWord.IsSelected = true;
-		}
-		else
-		{
-			_currentWord.IsSelected = false;
-			_currentWord = _words[currentIndex - 1];
-			_currentWord.IsSelected = true;
-		}
-	}
-
-	private void SelectWord(RecoverWordViewModel word)
-	{
-		_currentWord.IsSelected = false;
-		_currentWord = word;
-		_currentWord.IsSelected = true;
-	}
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
@@ -204,12 +160,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(ConfirmationWords)
 			.Subscribe()
-			.DisposeWith(disposables);
-
-		confirmationWordsSourceList
-			.Connect()
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Subscribe(_ => AllWordsConfirmed = confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
 			.DisposeWith(disposables);
 
 		confirmationWordsSourceList.AddRange(_words);

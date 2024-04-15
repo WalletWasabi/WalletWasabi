@@ -39,17 +39,6 @@
                MinWidth="690">
           <ItemsControl ItemsSource="{Binding ConfirmationWords}"
                         Name="ItemsControl">
-            <Interaction.Behaviors>
-              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
-                                               KeyGesture="Tab"
-                                               EventRoutingStrategy="Bubble, Tunnel" />
-              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
-                                               KeyGesture="Enter"
-                                               EventRoutingStrategy="Bubble, Tunnel" />
-              <ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
-                                               KeyGesture="Shift+Tab"
-                                               EventRoutingStrategy="Bubble, Tunnel" />
-            </Interaction.Behaviors>
             <ItemsControl.Styles>
               <Style Selector="TextBlock.error">
                 <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
@@ -62,90 +51,49 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Panel Margin="0,0,0,5">
-
-                  <StackPanel IsVisible="{Binding !IsSelected}"
-                              Margin="15 0 15 0"
-                              Width="200"
-                              Orientation="Horizontal"
-                              Background="Transparent">
-                    <Interaction.Behaviors>
-                      <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}"
-                                                  RoutingStrategies="Bubble">
-                        <InvokeCommandAction Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).SelectWordCommand}"
-                                             CommandParameter="{Binding .}"/>
-                      </RoutedEventTriggerBehavior>
-                    </Interaction.Behaviors>
-                    <PathIcon Name="WordIconCheckmark"
-                              Margin="0 0 15 0"
-                              Classes="checkMark"
-                              VerticalAlignment="Center"
-                              Opacity="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).IsMnemonicsValid}" />
-                    <Panel Height="45"
-                           VerticalAlignment="Stretch">
-                      <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
-                                 Opacity="0.5"
-                                 FontSize="{DynamicResource FontSizeH6}"
-                                 VerticalAlignment="Center" />
-                    </Panel>
-                    <Panel VerticalAlignment="Stretch"
-                           HorizontalAlignment="Stretch"
-                           Width="100"
-                           Height="45">
-                    <TextBlock Text="{Binding Word}"
-                               FontWeight="SemiBold"
-                               Margin="5 0 0 0"
-                               Classes.error="{Binding !IsConfirmed}"
+                <DockPanel Margin="15 0 15 5"
+                           Width="200">
+                  <PathIcon Name="IconCheckmark"
+                            Margin="0 0 15 0"
+                            Classes="checkMark"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
+                            Opacity="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).IsMnemonicsValid}" />
+                  <Panel DockPanel.Dock="Left"
+                         Height="45"
+                         VerticalAlignment="Stretch">
+                    <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
+                               Opacity="0.5"
                                FontSize="{DynamicResource FontSizeH6}"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Stretch" />
-                    </Panel>
-                  </StackPanel>
-
-                  <DockPanel IsVisible="{Binding IsSelected}"
-                             Margin="15 0 15 0"
-                             Width="200">
-                    <PathIcon Name="IconCheckmark"
-                              Margin="0 0 15 0"
-                              Classes="checkMark"
-                              VerticalAlignment="Center"
-                              DockPanel.Dock="Left"
-                              Opacity="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).IsMnemonicsValid}" />
-                    <Panel DockPanel.Dock="Left"
-                           Height="45"
-                           VerticalAlignment="Stretch">
-                      <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}"
-                                 Opacity="0.5"
-                                 FontSize="{DynamicResource FontSizeH6}"
-                                 VerticalAlignment="Center"/>
-                    </Panel>
-                    <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
-                                            Text="{Binding Word}"
-                                            FilterMode="StartsWith"
-                                            MinimumPrefixLength="0"
-                                            Width="150"
-                                            Margin="5 0 0 0"
-                                            Theme="{StaticResource TagsBoxAutoCompleteBox}">
-                      <TagsBoxAutoCompleteBox.Styles>
-                        <Style Selector="AutoCompleteBox">
-                          <Setter Property="VerticalAlignment" Value="Center" />
-                          <Setter Property="Focusable" Value="True" />
-                          <Setter Property="MinimumPrefixLength" Value="0" />
-                        </Style>
-                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
-                          <Setter Property="Focusable" Value="True" />
-                        </Style>
-                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-                          <Setter Property="IsVisible" Value="True" />
-                        </Style>
-                      </TagsBoxAutoCompleteBox.Styles>
-                      <Interaction.Behaviors>
-                        <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
-                      </Interaction.Behaviors>
-                    </TagsBoxAutoCompleteBox>
-                  </DockPanel>
-
-                </Panel>
+                               VerticalAlignment="Center"/>
+                  </Panel>
+                  <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
+                                          Text="{Binding Word}"
+                                          FilterMode="StartsWith"
+                                          MinimumPrefixLength="0"
+                                          Width="150"
+                                          Margin="5 0 0 0"
+                                          Theme="{StaticResource TagsBoxAutoCompleteBox}"
+                                          Name="TagsBoxAutoCompleteBox">
+                    <TagsBoxAutoCompleteBox.Styles>
+                      <Style Selector="AutoCompleteBox">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Focusable" Value="True" />
+                        <Setter Property="MinimumPrefixLength" Value="0" />
+                      </Style>
+                      <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                        <Setter Property="Focusable" Value="True" />
+                        <Setter Property="IsReadOnly" Value="False" />
+                      </Style>
+                      <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
+                        <Setter Property="IsVisible" Value="True" />
+                      </Style>
+                    </TagsBoxAutoCompleteBox.Styles>
+                    <Interaction.Behaviors>
+                      <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
+                    </Interaction.Behaviors>
+                  </TagsBoxAutoCompleteBox>
+                </DockPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
