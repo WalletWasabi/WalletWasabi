@@ -22,7 +22,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	private readonly List<RecoverWordViewModel> _words;
 	[AutoNotify] private RecoverWordViewModel _currentWord;
-	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 	[AutoNotify] private string? _passphrase;
@@ -44,31 +43,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		_passphrase = "";
 
-		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-
-		foreach (var word in _words)
-		{
-			word.WhenAnyValue(x => x.Word)
-				.Subscribe(_ =>
-				{
-					var count = _words.Count(x => !string.IsNullOrEmpty(x.Word));
-					try
-					{
-						var mnemonic = count is 12 or 15 or 18 or 21 or 24
-							? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant())
-							: null;
-						CurrentMnemonics = mnemonic;
-						IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
-					}
-					catch (Exception)
-					{
-						CurrentMnemonics = null;
-						IsMnemonicsValid = false;
-					}
-					this.RaisePropertyChanged(nameof(CurrentMnemonics));
-				});
-		}
-
 		this.ValidateProperty(x => x.CurrentMnemonics, ValidateCurrentMnemonics);
 
 		EnableBack = true;
@@ -82,7 +56,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
 	}
 
-	public ObservableCollectionExtended<RecoverWordViewModel> ConfirmationWords { get; } = new();
+	public ObservableCollectionExtended<RecoverWordViewModel> RecoveryWords { get; } = new();
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
@@ -150,19 +124,43 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		ConfirmationWords.Clear();
+		RecoveryWords.Clear();
 
-		var confirmationWordsSourceList = new SourceList<RecoverWordViewModel>();
+		var recoveryWordsSourceList = new SourceList<RecoverWordViewModel>();
 
-		confirmationWordsSourceList
+		recoveryWordsSourceList
 			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(ConfirmationWords)
+			.Bind(RecoveryWords)
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		confirmationWordsSourceList.AddRange(_words);
+		recoveryWordsSourceList.AddRange(_words);
+
+		foreach (var word in _words)
+		{
+			word.WhenAnyValue(x => x.Word)
+				.Subscribe(_ =>
+				{
+					var count = _words.Count(x => !string.IsNullOrEmpty(x.Word));
+					try
+					{
+						var mnemonic = count is 12 or 15 or 18 or 21 or 24
+							? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant())
+							: null;
+						CurrentMnemonics = mnemonic;
+						IsMnemonicsValid = mnemonic is { IsValidChecksum: true };
+					}
+					catch (Exception)
+					{
+						CurrentMnemonics = null;
+						IsMnemonicsValid = false;
+					}
+					this.RaisePropertyChanged(nameof(CurrentMnemonics));
+				})
+				.DisposeWith(disposables);;
+		}
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);

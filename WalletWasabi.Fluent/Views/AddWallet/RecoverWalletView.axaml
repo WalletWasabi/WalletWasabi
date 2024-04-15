@@ -37,7 +37,7 @@
 
         <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
                MinWidth="690">
-          <ItemsControl ItemsSource="{Binding ConfirmationWords}"
+          <ItemsControl ItemsSource="{Binding RecoveryWords}"
                         Name="ItemsControl">
             <ItemsControl.Styles>
               <Style Selector="TextBlock.error">
