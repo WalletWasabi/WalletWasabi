@@ -56,7 +56,7 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 		this.ValidateProperty(x => x.DerivationPath, ValidateDerivationPath);
 
-		EnableBack = true;
+		EnableBack = false;
 
 		var canExecuteNext = this.WhenAnyValue(
 			x => x.MinGapLimit,
