@@ -52,6 +52,10 @@ public class SatoshiSynchronizer : BackgroundService
 				_eventBus.Publish(new ConnectionStateChanged(false));
 				await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
 			}
+			catch (OperationCanceledException)
+			{
+				// Swallow it and try again, or break is cancellation was requested.
+			}
 			catch (Exception e)
 			{
 				Logger.LogError(e);
