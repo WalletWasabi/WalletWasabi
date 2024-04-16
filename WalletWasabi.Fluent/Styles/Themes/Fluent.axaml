@@ -42,6 +42,8 @@
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBoxAutoCompleteBox.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/TagsBox.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/SubActionButton.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/Button.axaml" />
+        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/SplitButton.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Styles.Resources>

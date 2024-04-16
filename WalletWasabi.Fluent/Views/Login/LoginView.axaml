@@ -30,6 +30,7 @@
       </DockPanel.Styles>
 
       <StackPanel MaxWidth="400" DockPanel.Dock="Bottom" Spacing="30">
+        <SplitButton Theme="{StaticResource ActionSplitButton}" />
         <TextBlock Text="{Binding WalletName}"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
