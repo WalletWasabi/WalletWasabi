@@ -199,7 +199,13 @@
           </ToggleSplitButton.Flyout>
         </ToggleSplitButton>
         <ToggleSplitButton Content="Checked Disabled" IsChecked="True" IsEnabled="False"/>
-        <SplitButton Theme="{StaticResource ActionSplitButton}">ActionSplitButton</SplitButton>
+        <SplitButton Theme="{StaticResource ActionSplitButton}">ActionSplitButton
+          <SplitButton.Flyout>
+            <Flyout>
+              <TextBlock>Some content</TextBlock>
+            </Flyout>
+          </SplitButton.Flyout>
+        </SplitButton>
       </StackPanel>
     </Border>
   </Design.PreviewWith>
