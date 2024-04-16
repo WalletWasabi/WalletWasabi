@@ -1394,11 +1394,13 @@ public class TransactionProcessorTests
 		notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0);
 
 		var privateCoin1 = transactionProcessor.NewKey("");
-		transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
+		var processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
+		processorResult.ReceivedCoins.First().IsSufficientlyDistancedFromExternalKeys = true;
 		privateCoin1.SetAnonymitySet(targetAnonSet, 0);
 
 		var privateCoin2 = transactionProcessor.NewKey("");
-		transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
+		processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
+		processorResult.ReceivedCoins.First().IsSufficientlyDistancedFromExternalKeys = true;
 		privateCoin2.SetAnonymitySet(targetAnonSet, 0);
 
 		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
