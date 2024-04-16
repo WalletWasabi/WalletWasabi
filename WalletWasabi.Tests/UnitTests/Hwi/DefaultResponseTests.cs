@@ -10,6 +10,7 @@ using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
 using WalletWasabi.Helpers;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
 
@@ -46,6 +47,10 @@ public class DefaultResponseTests
 	[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 	public async Task GetVersionTestsAsync(HwiClient client)
 	{
+		var hwipath = MicroserviceHelpers.GetBinaryPath("hwi");
+		var isExist = System.IO.File.Exists(hwipath);
+		Assert.True(isExist);
+
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 		Version version = await client.GetVersionAsync(cts.Token);
 		Assert.Equal(Constants.HwiVersion, version);
