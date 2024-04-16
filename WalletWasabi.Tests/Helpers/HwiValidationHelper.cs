@@ -43,7 +43,7 @@ public static class HwiValidationHelper
 				_ => "",
 			};
 		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || (osPlatform != null && osPlatform == OSPlatform.OSX))
+		else
 		{
 			pattern = model switch
 			{
