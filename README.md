@@ -62,8 +62,6 @@
 
 <br>
 
-![](/ui-ww.png)
-
 # Build From Source Code
 
 ### Get The Requirements
