@@ -48,7 +48,7 @@
               </DataTemplate>
             </SplitButton.ContentTemplate>
             <SplitButton.Flyout>
-              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="BottomEdgeAlignedRight">
+              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
                 <MenuFlyout.ItemContainerTheme>
                   <ControlTheme TargetType="MenuItem" x:DataType="IUICommand"
                                 BasedOn="{StaticResource {x:Type MenuItem}}">

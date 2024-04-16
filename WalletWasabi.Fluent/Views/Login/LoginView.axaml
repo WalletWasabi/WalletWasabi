@@ -30,14 +30,6 @@
       </DockPanel.Styles>
 
       <StackPanel MaxWidth="400" DockPanel.Dock="Bottom" Spacing="30">
-        <SplitButton Theme="{StaticResource FunctionSplitButton}" />
-        <SubActionButton Content="Hola">
-          <SubActionButton.SubCommands>
-            <!--<UICommand Name="Command 1" />
-            <UICommand Name="Command 2" />
-            <UICommand Name="Command 3" />-->
-          </SubActionButton.SubCommands>
-        </SubActionButton>
         <TextBlock Text="{Binding WalletName}"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
