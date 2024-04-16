@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -36,14 +34,27 @@ public static class MacOsStartupHelper
 		await DeleteLoginItemIfExistsAsync().ConfigureAwait(false);
 
 		string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-		string plistPath = Path.Combine(homeDir, "Library/LaunchAgents/", Constants.SilentPlistName);
 
-		var fileExists = File.Exists(plistPath);
+		var libraryDir = Path.Combine(homeDir, "Library");
+		if (!Directory.Exists(libraryDir))
+		{
+			Logger.LogInfo("Creating Library directory because it doesn't exist.");
+			Directory.CreateDirectory(libraryDir);
+		}
+
+		var launchAgentsDir = Path.Combine(libraryDir, "LaunchAgents");
+		if (!Directory.Exists(launchAgentsDir))
+		{
+			Logger.LogInfo("Creating LaunchAgents directory because it doesn't exist.");
+			Directory.CreateDirectory(launchAgentsDir);
+		}
+
+		var plistPath = Path.Combine(launchAgentsDir, Constants.SilentPlistName);
 		if (runOnSystemStartup)
 		{
 			await File.WriteAllTextAsync(plistPath, PlistContent).ConfigureAwait(false);
 		}
-		else if (fileExists && !runOnSystemStartup)
+		else if (File.Exists(plistPath))
 		{
 			File.Delete(plistPath);
 		}
