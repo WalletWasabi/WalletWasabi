@@ -59,6 +59,28 @@
                   </MenuItem>
                 </MenuFlyout>
               </SubActionButton.Flyout>-->
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="Command 1">
+                    <UICommand.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_buy}"
+                              Classes="Icon" />
+                  </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Command 2">
+                    <UICommand.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Command 3">
+                    <UICommand.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_send}"
+                              Classes="Icon" />
+                  </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
             </SubActionButton>
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">

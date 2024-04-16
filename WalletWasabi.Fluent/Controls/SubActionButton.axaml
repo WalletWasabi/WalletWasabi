@@ -13,7 +13,12 @@
           <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
             <SubActionButton.SubCommands>
               <UICommandCollection>
-                <UICommand Name="Command 1" />
+                <UICommand Name="Command 2">
+                  <UICommand.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommand.Icon>
+                </UICommand>
                 <UICommand Name="Command 2" />
                 <UICommand Name="Command 3" />
               </UICommandCollection>
@@ -33,7 +38,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate>
-          <SplitButton Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}" Theme="{StaticResource FunctionSplitButton}">
+          <SplitButton Command="{TemplateBinding Command}" Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}" Theme="{StaticResource FunctionSplitButton}">
             <SplitButton.ContentTemplate>
               <DataTemplate>
                 <DockPanel>
@@ -48,7 +53,8 @@
                   <ControlTheme TargetType="MenuItem" x:DataType="IUICommand"
                                 BasedOn="{StaticResource {x:Type MenuItem}}">
                     <Setter Property="Header" Value="{Binding Name}" />
-                    <Setter Property="Command" Value="{Binding Add}" />
+                    <Setter Property="Icon" Value="{Binding Icon}" />
+                    <Setter Property="Command" Value="{Binding Command}" />
                   </ControlTheme>
                 </MenuFlyout.ItemContainerTheme>
               </MenuFlyout>
