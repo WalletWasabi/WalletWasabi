@@ -37,7 +37,7 @@
               </StackPanel>
             </Button>
             <SubActionButton IsVisible="{Binding IsSendButtonVisible}" Command="{Binding SendCommand}" Icon="{StaticResource wallet_action_send}" Content="Send">
-              <SubActionButton.Flyout>
+              <!--<SubActionButton.Flyout>
                 <MenuFlyout Placement="Top">
                   <MenuItem Header="Sample 1">
                     <MenuItem.Icon>
@@ -58,7 +58,7 @@
                     </MenuItem.Icon>
                   </MenuItem>
                 </MenuFlyout>
-              </SubActionButton.Flyout>
+              </SubActionButton.Flyout>-->
             </SubActionButton>
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">

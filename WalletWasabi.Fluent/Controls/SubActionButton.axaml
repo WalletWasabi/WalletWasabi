@@ -4,46 +4,21 @@
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
   <Design.PreviewWith>
-    <Border Padding="0">
+    <Border Width="500" Height="500" >
       <Border Padding="60">
         <StackPanel Spacing="20">
 
-          <Button Content="Regular button" Classes="action"></Button>
+          <SplitButton>Split button</SplitButton>
 
-          <SplitButton></SplitButton>
-
-          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}" />
-
-          <SubActionButton>
-            <SubActionButton.Flyout>
-              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].ItemsSource}">
-                <MenuFlyout.ItemTemplate>
-                  <DataTemplate DataType="system:String">
-                    <Border Width="300" Background="Red">
-                      <TextBlock Text="{Binding .}" Margin="12" />
-                    </Border>
-                    <!-- <MenuItem Header="{Binding .}" /> -->
-                  </DataTemplate>
-                </MenuFlyout.ItemTemplate>
-              </MenuFlyout>
-            </SubActionButton.Flyout>
-            <StackPanel Orientation="Horizontal" Spacing="15">
-              <PathIcon Data="{StaticResource wallet_action_send}" />
-              <TextBlock Text="Send" />
-            </StackPanel>
+          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
+            <SubActionButton.SubCommands>
+              <UICommandCollection>
+                <UICommand Name="Command 1" />
+                <UICommand Name="Command 2" />
+                <UICommand Name="Command 3" />
+              </UICommandCollection>
+            </SubActionButton.SubCommands>
           </SubActionButton>
-
-          <SubActionButton CornerRadius="16" Content="Rounded">
-            <SubActionButton.Flyout>
-              <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                <MenuItem Header="Item 0" />
-                <MenuItem Header="Item 1" />
-                <MenuItem Header="Item 2" />
-              </MenuFlyout>
-            </SubActionButton.Flyout>
-          </SubActionButton>
-
-          <SplitButton IsEnabled="False">Disabled</SplitButton>
 
         </StackPanel>
       </Border>
@@ -53,16 +28,38 @@
   <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
 
   <ControlTheme x:Key="{x:Type SubActionButton}"
-                TargetType="SubActionButton"
-                BasedOn="{StaticResource {x:Type SplitButton}}">
-    <Setter Property="ContentTemplate">
-      <DataTemplate>
-        <DockPanel>
-          <PathIcon Margin="0 0 8 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" ></PathIcon>
-          <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
-        </DockPanel>
-      </DataTemplate>
+                TargetType="SubActionButton">
+    <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <SplitButton Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}" Theme="{StaticResource FunctionSplitButton}">
+            <SplitButton.ContentTemplate>
+              <DataTemplate>
+                <DockPanel>
+                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 8 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" />
+                  <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
+                </DockPanel>
+              </DataTemplate>
+            </SplitButton.ContentTemplate>
+            <SplitButton.Flyout>
+              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="BottomEdgeAlignedRight">
+                <MenuFlyout.ItemContainerTheme>
+                  <ControlTheme TargetType="MenuItem" x:DataType="IUICommand"
+                                BasedOn="{StaticResource {x:Type MenuItem}}">
+                    <Setter Property="Header" Value="{Binding Name}" />
+                    <Setter Property="Command" Value="{Binding Add}" />
+                  </ControlTheme>
+                </MenuFlyout.ItemContainerTheme>
+              </MenuFlyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+        </ControlTemplate>
+      </Setter.Value>
     </Setter>
+
+    
+
   </ControlTheme>
 
 </ResourceDictionary>

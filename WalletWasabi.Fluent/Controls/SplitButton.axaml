@@ -62,7 +62,7 @@
 
           <Button x:Name="PART_SecondaryButton"
                   Grid.Column="2"
-                  Width="{DynamicResource SplitButtonSecondaryButtonSize}"
+                                    Width="{DynamicResource SplitButtonSecondaryButtonSize}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource SecondaryButtonBorderMultiplier}}"
                   CornerRadius="{TemplateBinding CornerRadius, Converter={StaticResource RightCornerRadiusFilterConverter}}"
@@ -74,7 +74,7 @@
                   Focusable="False"
                   KeyboardNavigation.IsTabStop="False">
             <Viewbox>
-              <PathIcon x:Name="PART_Icon" Margin="6" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
+              <PathIcon Foreground="{Binding #PART_PrimaryButton.Foreground}" Margin="6" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
             </Viewbox>
           </Button>
         </Grid>
@@ -94,7 +94,7 @@
     </Style>
   </ControlTheme>
 
-  <ControlTheme x:Key="ActionSplitButton" TargetType="SplitButton" BasedOn="{StaticResource {x:Type SplitButton}}">
+  <ControlTheme x:Key="FunctionSplitButton" TargetType="SplitButton" BasedOn="{StaticResource {x:Type SplitButton}}">
     <Style Selector="^ /template/ Button">
       <Setter Property="Theme" Value="{StaticResource FunctionButton}" />
     </Style>
@@ -104,6 +104,11 @@
     <Border Padding="60">
       <StackPanel Spacing="20">
         <SplitButton Content="SplitButton">
+          <SplitButton.Flyout>
+            <Flyout>Hello</Flyout>
+          </SplitButton.Flyout>
+        </SplitButton>
+        <SplitButton Foreground="Red" Content="SplitButton with foreground">
           <SplitButton.Flyout>
             <Flyout>Hello</Flyout>
           </SplitButton.Flyout>
@@ -125,7 +130,7 @@
           </ToggleSplitButton.Flyout>
         </ToggleSplitButton>
         <ToggleSplitButton Content="Checked Disabled" IsChecked="True" IsEnabled="False"/>
-        <SplitButton Theme="{StaticResource ActionSplitButton}">ActionSplitButton
+        <SplitButton Content="ActionSplitButton" Theme="{StaticResource FunctionSplitButton}">
           <SplitButton.Flyout>
             <Flyout>
               <TextBlock>Some content</TextBlock>
