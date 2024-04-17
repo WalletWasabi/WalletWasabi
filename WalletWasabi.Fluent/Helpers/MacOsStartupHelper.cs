@@ -34,24 +34,24 @@ public static class MacOsStartupHelper
 		await DeleteLoginItemIfExistsAsync().ConfigureAwait(false);
 
 		string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
 		var libraryDir = Path.Combine(homeDir, "Library");
-		if (!Directory.Exists(libraryDir))
-		{
-			Logger.LogInfo("Creating Library directory because it doesn't exist.");
-			Directory.CreateDirectory(libraryDir);
-		}
-
 		var launchAgentsDir = Path.Combine(libraryDir, "LaunchAgents");
-		if (!Directory.Exists(launchAgentsDir))
-		{
-			Logger.LogInfo("Creating LaunchAgents directory because it doesn't exist.");
-			Directory.CreateDirectory(launchAgentsDir);
-		}
-
 		var plistPath = Path.Combine(launchAgentsDir, Constants.SilentPlistName);
+
 		if (runOnSystemStartup)
 		{
+			if (!Directory.Exists(libraryDir))
+			{
+				Logger.LogInfo("Creating Library directory because it doesn't exist.");
+				Directory.CreateDirectory(libraryDir);
+			}
+
+			if (!Directory.Exists(launchAgentsDir))
+			{
+				Logger.LogInfo("Creating LaunchAgents directory because it doesn't exist.");
+				Directory.CreateDirectory(launchAgentsDir);
+			}
+
 			await File.WriteAllTextAsync(plistPath, PlistContent).ConfigureAwait(false);
 		}
 		else if (File.Exists(plistPath))
