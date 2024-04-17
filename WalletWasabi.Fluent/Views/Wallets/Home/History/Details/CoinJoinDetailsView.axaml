@@ -62,9 +62,9 @@
 
       <!-- CJ fee  -->
       <PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Fees"
+                     Label="Coinjoin Fees"
                      CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}"
-                     ToolTip.Tip="Total user cost">
+                     ToolTip.Tip="Coordinator fees and the mining fees for the user">
         <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </PreviewItem>
 
