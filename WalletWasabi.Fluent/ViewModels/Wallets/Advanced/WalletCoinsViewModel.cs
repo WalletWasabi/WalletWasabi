@@ -91,7 +91,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		};
 
 		// TODO: Remove this after TransactionPreviewViewModel is decoupled.
-		var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).WalletViewModel;
-		Navigate().To().TransactionPreview(wallet, info);
+		var walletVm = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).WalletViewModel;
+		Navigate().To().TransactionPreview(walletVm.Wallet, _wallet, info);
 	}
 }

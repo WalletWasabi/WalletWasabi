@@ -31,7 +31,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
-	private readonly WalletViewModel _walletViewModel;
+	private readonly IWalletModel _walletModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
@@ -41,11 +41,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(UiContext uiContext, WalletViewModel walletViewModel, TransactionInfo info)
+	public TransactionPreviewViewModel(UiContext uiContext, Wallet wallet, IWalletModel walletModel, TransactionInfo info)
 	{
 		_undoHistory = new();
-		_wallet = walletViewModel.Wallet;
-		_walletViewModel = walletViewModel;
+		_wallet = wallet;
+		_walletModel = walletModel;
+		
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
@@ -180,9 +181,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnChangeCoinsAsync()
 	{
-		var currentCoins = _walletViewModel.WalletModel.Coins.GetSpentCoins(Transaction);
+		var currentCoins = _walletModel.Coins.GetSpentCoins(Transaction);
 
-		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletViewModel.WalletModel, currentCoins, _info).GetResultAsync();
+		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletModel, currentCoins, _info).GetResultAsync();
 
 		if (selectedCoins is { })
 		{
@@ -420,13 +421,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
-		if (!_wallet.KeyManager.IsHardwareWallet &&
-			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show authentication dialog when password is empty
+		if (!_walletModel.IsHardwareWallet && !_walletModel.Auth.HasPassword) // Do not show authentication dialog when password is empty
 		{
 			return true;
 		}
 
-		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletViewModel.WalletModel, transactionAuthorizationInfo);
+		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletModel, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 		return authDialogResult.Result;
