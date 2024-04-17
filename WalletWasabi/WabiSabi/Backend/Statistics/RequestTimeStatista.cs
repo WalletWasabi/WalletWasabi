@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
