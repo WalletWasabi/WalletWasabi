@@ -28,16 +28,16 @@
         dotnet-trace = pkgs.buildDotnetGlobalTool {
           pname = "dotnet-trace";
           nugetName = "dotnet-trace";
-          version = "7.0.442301";
-          nugetSha256 = "sha256-yKmpygSNpNWNhLt9vS/1mterTU1l0gmpo3Ef2HvLsLw=";
+          version = "8.0.510501";
+          nugetSha256 = "sha256-Kt5x8n5Q0T+BaTVufhsyjXbi/BlGKidb97DWSbI6Iq8=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
         };
         # dotnet dump
         dotnet-dump = pkgs.buildDotnetGlobalTool {
           pname = "dotnet-dump";
           nugetName = "dotnet-dump";
-          version = "7.0.442301";
-          nugetSha256 = "sha256-UZE1UJfOWYw+ONOemAtuhtfXE/9a2WbnOQFXXuE7p80=";
+          version = "8.0.510501";
+          nugetSha256 = "sha256-H7Z4EA/9G3DvVuXbnQJF7IJMEB2SkzRjTAL3eZMqCpI=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
         };
         wasabi-shell = pkgs.mkShell {
