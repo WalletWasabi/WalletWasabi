@@ -59,6 +59,11 @@ public partial class TransactionModel : ReactiveObject
 
 	private Money GetAmount()
 	{
+		if (IsCoinjoin)
+		{
+			return Amount;
+		}
+
 		return Amount < Money.Zero
 			? Amount + (Fee ?? Money.Zero)
 			: Amount;
