@@ -67,6 +67,14 @@
         <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </PreviewItem>
 
+      <!-- Mining fee  -->
+      <PreviewItem Icon="{StaticResource btc_logo}"
+                     IsVisible="{Binding FeeVisible}"
+                     Label="Mining Fee"
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <AmountControl Classes="Fee" Amount="{Binding Fee}" />
+      </PreviewItem>
+
       <!-- Confirmation Time -->
       <PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"

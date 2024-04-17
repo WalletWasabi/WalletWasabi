@@ -21,6 +21,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _feeRateVisible;
+	[AutoNotify] private Amount? _fee;
+	[AutoNotify] private bool _feeVisible;
 
 	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
@@ -56,6 +58,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 			FeeRate = transaction.FeeRate;
 			FeeRateVisible = FeeRate != FeeRate.Zero;
+			Fee = _wallet.AmountProvider.Create(transaction.Fee);
+			FeeVisible = Fee is not null && Fee.HasBalance;
 		}
 	}
 }
