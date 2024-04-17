@@ -85,7 +85,7 @@ public class RequestTimeStatista
 				foreach (var request in TimeSpanDataList.OrderByDescending(x => x.Value.Count))
 				{
 					var seconds = request.Value.Select(x => x.Duration.TotalSeconds);
-					Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.000}s Average: {seconds.Average():0.000}s Largest {seconds.Max():0.000}s.");
+					Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.000}s Average: {seconds.Average():0.000}s StdDev: {seconds.StdDev():0.000} Largest {seconds.Max():0.000}s.");
 				}
 
 				Logger.LogInfo($"Integer statistics:");

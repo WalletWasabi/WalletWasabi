@@ -32,4 +32,15 @@ public static class Extensions
 		var sorted = me.OrderBy(x => x).ToArray();
 		return sorted[sorted.Length / 2];
 	}
+
+	public static double StdDev(this IEnumerable<double> values)
+	{
+		var mean = values.Average();
+		var squaresSum = values
+			.Select(x => x - mean)
+			.Select(x => x * x)
+			.Sum();
+
+		return Math.Sqrt(squaresSum / values.Count());
+	}
 }
