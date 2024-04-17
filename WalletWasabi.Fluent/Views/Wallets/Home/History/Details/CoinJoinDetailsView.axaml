@@ -63,7 +63,8 @@
       <!-- CJ fee  -->
       <PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
-                     CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}"
+                     ToolTip.Tip="Total user cost">
         <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </PreviewItem>
 
@@ -71,7 +72,8 @@
       <PreviewItem Icon="{StaticResource btc_logo}"
                      IsVisible="{Binding FeeVisible}"
                      Label="Mining Fee"
-                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}"
+                     ToolTip.Tip="Total mining fee paid by all participants">
         <AmountControl Classes="Fee" Amount="{Binding Fee}" />
       </PreviewItem>
 
