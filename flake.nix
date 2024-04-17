@@ -40,12 +40,21 @@
           nugetSha256 = "sha256-H7Z4EA/9G3DvVuXbnQJF7IJMEB2SkzRjTAL3eZMqCpI=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
         };
+        # dotnet counters
+        dotnet-counters = pkgs.buildDotnetGlobalTool {
+          pname = "dotnet-counters";
+          nugetName = "dotnet-counters";
+          version = "8.0.510501";
+          nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
+        };
         wasabi-shell = pkgs.mkShell {
            name = "wasabi-shell";
            packages = [
              pkgs.dotnetCorePackages.sdk_8_0
              dotnet-trace
              dotnet-dump
+             dotnet-counters
              ];
 
            shellHook = ''
