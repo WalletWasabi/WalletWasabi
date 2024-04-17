@@ -52,14 +52,6 @@ public class BuyAnythingClient
 		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
 	}
 
-	// Concierge request status
-	public enum ConciergeRequestStatus
-	{
-		Open,
-		Claimed,
-		Offer
-	}
-
 	// Services provided by Concierge
 	public enum Product
 	{
@@ -110,8 +102,8 @@ public class BuyAnythingClient
 		// used to create it so, I don't know whether it makes any sense to use it or not. Here we use the same context
 		// token.
 
-		var shoppingCartCreationResponse = await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
-		var shoppingCartItemAdditionResponse = await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
+		await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
+		await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
 		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 
 		return (orderGenerationResponse.Id, orderGenerationResponse.OrderNumber);

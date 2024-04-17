@@ -200,6 +200,8 @@ public class TagsBox : TemplatedControl
 		{
 			_presenter.Loaded += PresenterOnLoaded;
 		}
+
+		InvalidateWatermark();
 	}
 
 	private void PresenterOnLoaded(object? sender, RoutedEventArgs e)

@@ -10,13 +10,13 @@
       <Setter Property="CornerRadius" Value="5" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="BorderBrush" Value="Gold" />
+      <Setter Property="BorderBrush" Value="{DynamicResource NetworkBadgeColor}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="7 5 8 5" />
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">
       <Setter Property="FontWeight" Value="Normal" />
-      <Setter Property="Foreground" Value="Gold" />
+      <Setter Property="Foreground" Value="{DynamicResource NetworkBadgeColor}" />
     </Style>
   </UserControl.Styles>
 

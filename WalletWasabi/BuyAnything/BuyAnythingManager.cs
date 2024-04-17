@@ -298,12 +298,6 @@ public class BuyAnythingManager : PeriodicRunner
 		return ConversationTracking.GetConversationsByWalletId(walletId);
 	}
 
-	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return ConversationTracking.GetConversationsById(conversationId);
-	}
-
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);

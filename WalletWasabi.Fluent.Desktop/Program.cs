@@ -62,9 +62,9 @@ public class Program
 
 			var exitCode = await app.RunAsGuiAsync();
 
-			if (Services.TerminateService.GracefulCrashException is not null)
+			if (app.TerminateService.GracefulCrashException is not null)
 			{
-				throw Services.TerminateService.GracefulCrashException;
+				throw app.TerminateService.GracefulCrashException;
 			}
 
 			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)

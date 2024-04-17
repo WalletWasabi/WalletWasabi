@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
 
@@ -27,93 +27,126 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<uint256> GetBestBlockHashAsync(CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetBestBlockHashAsync(cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetBestBlockHashAsync),
+			() => Rpc.GetBestBlockHashAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetBlockAsync),
+			() => Rpc.GetBlockAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<Block> GetBlockAsync(uint blockHeight, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetBlockAsync(blockHeight, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetBlockAsync),
+			() => Rpc.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetBlockHeaderAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetBlockHeaderAsync),
+			() => Rpc.GetBlockHeaderAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<BlockchainInfo> GetBlockchainInfoAsync(CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetBlockchainInfoAsync(cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetBlockchainInfoAsync),
+			() => Rpc.GetBlockchainInfoAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<PeerInfo[]> GetPeersInfoAsync(CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetPeersInfoAsync(cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetPeersInfoAsync),
+			() => Rpc.GetPeersInfoAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetMempoolEntryAsync),
+			() => Rpc.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
-		try
-		{
-			var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancel, true).ConfigureAwait(false);
-			static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
-				jt switch
-				{
-					JObject jo => jo.Properties()
-						.Where(p => p.Name != "total_fees")
-						.Select(p => new FeeRateGroup
-						{
-							Group = int.Parse(p.Name),
-							Sizes = p.Value.Value<ulong>("sizes"),
-							Count = p.Value.Value<uint>("count"),
-							Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
-							From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
-							To = new FeeRate(Math.Min(50_000, p.Value.Value<decimal>("to_feerate")))
-						}),
-					_ => Enumerable.Empty<FeeRateGroup>()
-				};
-
-			return new MemPoolInfo()
+		return await Measure(
+			nameof(GetMempoolInfoAsync),
+			async () =>
 			{
-				Size = int.Parse((string)response.Result["size"]!, CultureInfo.InvariantCulture),
-				Bytes = int.Parse((string)response.Result["bytes"]!, CultureInfo.InvariantCulture),
-				Usage = int.Parse((string)response.Result["usage"]!, CultureInfo.InvariantCulture),
-				MaxMemPool = double.Parse((string)response.Result["maxmempool"]!, CultureInfo.InvariantCulture),
-				MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"]!, CultureInfo.InvariantCulture),
-				MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"]!, CultureInfo.InvariantCulture),
-				Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]!).ToArray()
-			};
-		}
-		catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
-		{
-			cancel.ThrowIfCancellationRequested();
+				try
+				{
+					var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancel, true)
+						.ConfigureAwait(false);
 
-			return await Rpc.GetMemPoolAsync(cancel).ConfigureAwait(false);
-		}
+					static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
+						jt switch
+						{
+							JObject jo => jo.Properties()
+								.Where(p => p.Name != "total_fees")
+								.Select(
+									p => new FeeRateGroup
+									{
+										Group = int.Parse(p.Name),
+										Sizes = p.Value.Value<ulong>("sizes"),
+										Count = p.Value.Value<uint>("count"),
+										Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
+										From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
+										To = new FeeRate(Math.Min(50_000, p.Value.Value<decimal>("to_feerate")))
+									}),
+							_ => Enumerable.Empty<FeeRateGroup>()
+						};
+
+					return new MemPoolInfo()
+					{
+						Size = int.Parse((string) response.Result["size"]!, CultureInfo.InvariantCulture),
+						Bytes = int.Parse((string) response.Result["bytes"]!, CultureInfo.InvariantCulture),
+						Usage = int.Parse((string) response.Result["usage"]!, CultureInfo.InvariantCulture),
+						MaxMemPool =
+							double.Parse((string) response.Result["maxmempool"]!, CultureInfo.InvariantCulture),
+						MemPoolMinFee = double.Parse(
+							(string) response.Result["mempoolminfee"]!,
+							CultureInfo.InvariantCulture),
+						MinRelayTxFee = double.Parse(
+							(string) response.Result["minrelaytxfee"]!,
+							CultureInfo.InvariantCulture),
+						Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]!).ToArray()
+					};
+				}
+				catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
+				{
+					cancel.ThrowIfCancellationRequested();
+
+					return await Rpc.GetMemPoolAsync(cancel).ConfigureAwait(false);
+				}
+			}).ConfigureAwait(false);
 	}
 
 	public virtual async Task<uint256[]> GetRawMempoolAsync(CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetRawMempoolAsync),
+			() => Rpc.GetRawMempoolAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetTxOutAsync(txid, index, includeMempool, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GetTxOutAsync),
+			() => Rpc.GetTxOutAsync(txid, index, includeMempool, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.TestMempoolAcceptAsync(transaction, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(TestMempoolAcceptAsync),
+			() => Rpc.TestMempoolAcceptAsync(transaction, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task StopAsync(CancellationToken cancellationToken = default)
@@ -123,22 +156,30 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<uint256[]> GenerateAsync(int blockCount, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GenerateAsync(blockCount, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GenerateAsync),
+			() => Rpc.GenerateAsync(blockCount, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<TimeSpan> UptimeAsync(CancellationToken cancellationToken = default)
 	{
-		return await Rpc.UptimeAsync(cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(UptimeAsync),
+			() => Rpc.UptimeAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.SendRawTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(SendRawTransactionAsync),
+			() => Rpc.SendRawTransactionAsync(transaction, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(EstimateSmartFeeAsync),
+			() => Rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual IRPCClient PrepareBatch()
@@ -148,13 +189,17 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
-		var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3).ConfigureAwait(false);
+		var resp = await Measure(
+			nameof(GetVerboseBlockAsync),
+			() => Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3)).ConfigureAwait(false);
 		return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
 	}
 
 	public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GenerateToAddressAsync(nBlocks, address, cancellationToken).ConfigureAwait(false);
+		return await Measure(
+			nameof(GenerateToAddressAsync),
+			() => Rpc.GenerateToAddressAsync(nBlocks, address, cancellationToken)).ConfigureAwait(false);
 	}
 
 	#region For Testing Only
@@ -254,4 +299,18 @@ public class RpcClientBase : IRPCClient
 	}
 
 	#endregion For Testing Only
+
+	private async Task<T> Measure<T>(string methodName, Func<Task<T>> fnc)
+	{
+		var start = DateTimeOffset.UtcNow;
+		try
+		{
+			return await fnc().ConfigureAwait(false);
+		}
+		finally
+		{
+			RequestTimeStatista.Instance.Add(methodName, DateTimeOffset.UtcNow - start);
+		}
+	}
+
 }
