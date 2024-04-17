@@ -6,16 +6,22 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionSummary
 {
-	public TransactionSummary(SmartTransaction tx, Money amount, FeeRate? effectiveFeeRate)
+	public TransactionSummary(SmartTransaction tx, Money amount, FeeRate? effectiveFeeRate, Money? fee)
 	{
 		Transaction = tx;
 		Amount = amount;
 		EffectiveFeeRate = effectiveFeeRate;
+		Fee = fee;
 	}
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
+
+	// Only available, if we needed the backend's help to calculate tx's fee rate. Use FeeRate().
 	public FeeRate? EffectiveFeeRate { get; }
+
+	// Only available, if we needed the backend's help to calculate tx fee. Use GetFee().
+	public Money? Fee { get; }
 
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;
@@ -27,7 +33,7 @@ public class TransactionSummary
 	public bool IsCPFP => Transaction.IsCPFP;
 	public bool IsCPFPd => Transaction.IsCPFPd;
 
-	public Money? GetFee() => Transaction.GetFee();
+	public Money? GetFee() => Transaction.GetFee() ?? Fee;
 
 	public FeeRate? FeeRate() => Transaction.TryGetFeeRate(out var feeRate) ? feeRate : EffectiveFeeRate;
 
