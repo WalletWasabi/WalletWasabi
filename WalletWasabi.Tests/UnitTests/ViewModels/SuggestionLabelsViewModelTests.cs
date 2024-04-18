@@ -176,7 +176,7 @@ public class SuggestionLabelsViewModelTests
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public ReadOnlyObservableCollection<ICoinModel> ExcludedCoins { get; set; }
+		public IEnumerable<ICoinModel> ExcludedCoins { get; set; }
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
 		public WalletId Id => throw new NotSupportedException();
