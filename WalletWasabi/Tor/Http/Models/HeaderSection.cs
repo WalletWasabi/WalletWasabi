@@ -181,6 +181,7 @@ public class HeaderSection
 				hs.Fields.Add(new HeaderField(ContentLengthHeaderName, contentLength.ToString()));
 			}
 		}
+
 		// -- End [SECTION] Crazy VS2017/.NET Core 1.1 bug ---
 
 		return hs;

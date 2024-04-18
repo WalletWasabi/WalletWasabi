@@ -99,7 +99,7 @@ public partial class MainViewModel : ViewModelBase
 			? ""
 			: UiContext.ApplicationSettings.Network.Name;
 
-		// TODO: the reason why this MainViewModel singleton is even needed thoughout the codebase is dubious.
+		// TODO: the reason why this MainViewModel singleton is even needed throughout the codebase is dubious.
 		// Also it causes tight coupling which damages testability.
 		// We should strive to remove it altogether.
 		if (Instance != null)

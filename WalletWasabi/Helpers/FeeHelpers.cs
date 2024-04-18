@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Helpers;
@@ -103,5 +104,23 @@ public static class FeeHelpers
 		}
 
 		return foundClosestSolution ? lastCorrectFeeRate : null;
+	}
+
+	// TODO: Replace this implementation with the correct Effective FeeRate calculation.
+	public static FeeRate CalculateEffectiveFeeRateOfUnconfirmedChain(List<UnconfirmedTransactionChainItem> unconfirmedTransactionChain)
+	{
+		if (unconfirmedTransactionChain.Count == 0)
+		{
+			return FeeRate.Zero;
+		}
+		try
+		{
+			return new(unconfirmedTransactionChain.Sum(x => x.Fee), unconfirmedTransactionChain.Sum(x => x.Size));
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning(e);
+			return FeeRate.Zero;
+		}
 	}
 }
