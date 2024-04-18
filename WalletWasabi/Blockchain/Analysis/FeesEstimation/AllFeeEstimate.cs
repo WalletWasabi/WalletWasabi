@@ -44,11 +44,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		}
 	}
 
-	public AllFeeEstimate(AllFeeEstimate other)
-		: this(other.Estimations)
-	{
-	}
-
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
 	/// </summary>
