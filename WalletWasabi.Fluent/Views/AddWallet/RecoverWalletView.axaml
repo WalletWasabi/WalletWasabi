@@ -39,6 +39,18 @@
                MinWidth="690">
           <ItemsControl ItemsSource="{Binding RecoveryWords}"
                         Name="ItemsControl">
+            <Interaction.Behaviors>
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
+                                               KeyGesture="Tab"
+                                               EventRoutingStrategy="Bubble, Tunnel" />
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
+                                               KeyGesture="Enter"
+                                               EventRoutingStrategy="Bubble, Tunnel" />
+              <!--<ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
+                                               KeyGesture="Shift+Tab"
+                                               EventRoutingStrategy="Bubble, Tunnel"
+                                               IsEnabled="{Binding CurrentWord.IsValid}" />-->
+            </Interaction.Behaviors>
             <ItemsControl.Styles>
               <Style Selector="TextBlock.error">
                 <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
@@ -67,32 +79,50 @@
                                FontSize="{DynamicResource FontSizeH6}"
                                VerticalAlignment="Center"/>
                   </Panel>
-                  <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
-                                          Text="{Binding Word}"
-                                          FilterMode="StartsWith"
-                                          MinimumPrefixLength="0"
-                                          Width="150"
-                                          Margin="5 0 0 0"
-                                          Theme="{StaticResource TagsBoxAutoCompleteBox}"
-                                          Name="TagsBoxAutoCompleteBox">
-                    <TagsBoxAutoCompleteBox.Styles>
-                      <Style Selector="AutoCompleteBox">
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="Focusable" Value="True" />
-                        <Setter Property="MinimumPrefixLength" Value="0" />
-                      </Style>
-                      <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
-                        <Setter Property="Focusable" Value="True" />
-                        <Setter Property="IsReadOnly" Value="False" />
-                      </Style>
-                      <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-                        <Setter Property="IsVisible" Value="True" />
-                      </Style>
-                    </TagsBoxAutoCompleteBox.Styles>
-                    <Interaction.Behaviors>
-                      <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
-                    </Interaction.Behaviors>
-                  </TagsBoxAutoCompleteBox>
+
+                  <Panel>
+                    <Panel VerticalAlignment="Stretch"
+                           HorizontalAlignment="Stretch"
+                           Width="150"
+                           Height="45">
+                      <TextBlock Text="{Binding Word}"
+                                 FontWeight="SemiBold"
+                                 Margin="5 0 0 0"
+                                 FontSize="{DynamicResource FontSizeH6}"
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Stretch"
+                                 IsVisible="{Binding !IsSelected}" />
+                    </Panel>
+
+                    <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
+                                            Text="{Binding Word}"
+                                            FilterMode="StartsWith"
+                                            MinimumPrefixLength="0"
+                                            Width="150"
+                                            Margin="5 0 0 0"
+                                            Theme="{StaticResource TagsBoxAutoCompleteBox}"
+                                            Name="TagsBoxAutoCompleteBox"
+                                            IsVisible="{Binding IsSelected}">
+                      <TagsBoxAutoCompleteBox.Styles>
+                        <Style Selector="AutoCompleteBox">
+                          <Setter Property="VerticalAlignment" Value="Center" />
+                          <Setter Property="Focusable" Value="True" />
+                          <Setter Property="MinimumPrefixLength" Value="0" />
+                        </Style>
+                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                          <Setter Property="Focusable" Value="True" />
+                          <Setter Property="IsReadOnly" Value="False" />
+                        </Style>
+                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
+                          <Setter Property="IsVisible" Value="True" />
+                        </Style>
+                      </TagsBoxAutoCompleteBox.Styles>
+                      <Interaction.Behaviors>
+                        <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
+                      </Interaction.Behaviors>
+                    </TagsBoxAutoCompleteBox>
+                  </Panel>
+
                 </DockPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

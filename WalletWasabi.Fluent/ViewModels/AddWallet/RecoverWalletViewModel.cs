@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -55,11 +56,21 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnAdvancedRecoveryOptionsDialogAsync(options));
+
+		var canExecuteNextWord = this.WhenAnyValue(x => x.CurrentWord.IsValid);
+
+		NextWordCommand = ReactiveCommand.Create(NextWord, canExecuteNextWord);
+
+		PreviousWordCommand = ReactiveCommand.Create(PreviousWord);
 	}
 
 	public ObservableCollectionExtended<RecoverWordViewModel> RecoveryWords { get; } = new();
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+	public ICommand NextWordCommand { get; }
+
+	public ICommand PreviousWordCommand { get; }
 
 	private int MinGapLimit { get; set; } = 114;
 
@@ -109,6 +120,40 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		}
 
 		IsBusy = false;
+	}
+
+	private void NextWord()
+	{
+		var currentIndex = _words.IndexOf(_currentWord);
+		if (currentIndex >= _words.Count - 1)
+		{
+			_currentWord.IsSelected = false;
+			FocusPassphrase = true;
+			FocusPassphrase = false;
+		}
+		else
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[currentIndex + 1];
+			_currentWord.IsSelected = true;
+		}
+	}
+
+	private void PreviousWord()
+	{
+		var currentIndex = _words.IndexOf(_currentWord);
+		if (currentIndex <= 0 || !_currentWord.IsSelected)
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[^1];
+			_currentWord.IsSelected = true;
+		}
+		else
+		{
+			_currentWord.IsSelected = false;
+			_currentWord = _words[currentIndex - 1];
+			_currentWord.IsSelected = true;
+		}
 	}
 
 	private void ValidateCurrentMnemonics(IValidationErrors errors)
