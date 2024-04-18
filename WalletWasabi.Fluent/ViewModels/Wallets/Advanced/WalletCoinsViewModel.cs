@@ -8,6 +8,7 @@ using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
@@ -92,6 +93,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 		// TODO: Remove this after TransactionPreviewViewModel is decoupled.
 		var walletVm = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).WalletViewModel;
-		Navigate().To().TransactionPreview(walletVm.Wallet, _wallet, info);
+
+		var sendParameters = SendParameters.CreateManual(walletVm.Wallet, selectedSmartCoins);
+
+		Navigate().To().TransactionPreview(_wallet, sendParameters);
 	}
 }

@@ -164,7 +164,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		var sendParameters = _parameters with { TransactionInfo = transactionInfo };
 
-		Navigate().To().TransactionPreview(_wallet, _walletModel, sendParameters);
+		Navigate().To().TransactionPreview(_walletModel, sendParameters);
 	}
 
 	private async Task OnAutoPasteAsync()
