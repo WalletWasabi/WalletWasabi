@@ -136,7 +136,7 @@ public class TransactionTreeBuilder
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate(),
+			FeeRate = transactionSummary.GetFeeRate(),
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 		};
 	}
@@ -275,7 +275,7 @@ public class TransactionTreeBuilder
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate()
+			FeeRate = transactionSummary.GetFeeRate()
 		};
 	}
 

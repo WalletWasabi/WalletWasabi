@@ -176,16 +176,18 @@ public class Wallet : BackgroundService, IWallet
 
 		foreach (SmartCoin coin in GetAllCoins())
 		{
+			var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
+			var fee = unconfTransactionChainOfCoin.FirstOrDefault(item => item.TxId == coin.TransactionId)?.Fee;
+			var feeRate = fee is not null ? new FeeRate(fee, coin.Transaction.Transaction.GetVirtualSize()) : FeeRate.Zero;
+			var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
+
 			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
 			{
 				found.Amount += coin.Amount;
 			}
 			else
 			{
-				var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
-				var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
-
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, feeRate, effectiveFeeRate));
 			}
 
 			if (coin.SpenderTransaction is { } spenderTransaction)
@@ -198,10 +200,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 				else
 				{
-					var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
-					var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
-
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, feeRate, effectiveFeeRate));
 				}
 			}
 		}
