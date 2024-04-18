@@ -36,7 +36,10 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"linux-x64"
+		"win-x64",
+		"linux-x64",
+		"osx-x64",
+		"osx-arm64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
