@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using DynamicData;
@@ -174,6 +175,8 @@ public class SuggestionLabelsViewModelTests
 		}
 
 		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public ReadOnlyObservableCollection<ICoinModel> ExcludedCoins { get; set; }
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
 		public WalletId Id => throw new NotSupportedException();

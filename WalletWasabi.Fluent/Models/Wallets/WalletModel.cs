@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -20,6 +22,7 @@ public partial class WalletModel : ReactiveObject
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
+	private ReadOnlyObservableCollection<ICoinModel> _excludedCoins;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -66,6 +69,20 @@ public partial class WalletModel : ReactiveObject
 
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.BindTo(this, x => x.IsLoggedIn);
+	}
+
+	public IEnumerable<ICoinModel> ExcludedCoins
+	{
+		get => Coins.List.Items.Where(x => x.GetSmartCoin().IsExcludedFromCoinJoin);
+		set
+		{
+			var excludedOutpoints = value.Select(x => x.GetSmartCoin().Outpoint).ToHashSet();
+			
+			foreach (var coin in Wallet.Coins)
+			{
+				Wallet.ExcludeCoinFromCoinJoin(coin.Outpoint, excludedOutpoints.Contains(coin.Outpoint));
+			}
+		}
 	}
 
 	public IAddressesModel Addresses { get; }

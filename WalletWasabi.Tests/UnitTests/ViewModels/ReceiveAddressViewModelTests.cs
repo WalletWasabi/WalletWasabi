@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Moq;
 using NBitcoin;
@@ -40,6 +41,8 @@ public class ReceiveAddressViewModelTests
 	private class TestWallet : IWalletModel
 	{
 		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public ReadOnlyObservableCollection<ICoinModel> ExcludedCoins { get; set; }
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
 		public WalletId Id => throw new NotSupportedException();
