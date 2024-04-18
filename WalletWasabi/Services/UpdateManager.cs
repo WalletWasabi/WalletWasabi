@@ -131,6 +131,8 @@ public class UpdateManager : IDisposable
 
 				// This should also be done using Tor.
 				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
+				// Wait a moment to avoid dossing GitHub API.
+				await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"Trying to download new version: {result.LatestVersion}");
 
 				// Get file stream and copy it to downloads folder to access.
@@ -234,6 +236,8 @@ public class UpdateManager : IDisposable
 
 		try
 		{
+			// Wait a moment to avoid dossing GitHub API.
+			await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
 			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -241,6 +245,7 @@ public class UpdateManager : IDisposable
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
+			await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
 			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
