@@ -53,7 +53,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			async () => await OnNextAsync(options),
 			canExecute: nextCanExecute);
 
-		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
+		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
+			async () => await OnAdvancedRecoveryOptionsDialogAsync(options));
 	}
 
 	public ObservableCollectionExtended<RecoverWordViewModel> RecoveryWords { get; } = new();
@@ -89,13 +90,25 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		IsBusy = false;
 	}
 
-	private async Task OnAdvancedRecoveryOptionsDialogAsync()
+	private async Task OnAdvancedRecoveryOptionsDialogAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var result = await Navigate().To().AdvancedRecoveryOptions(MinGapLimit).GetResultAsync();
-		if (result is { } minGapLimit)
+		var (walletName, _, _, _, _) = options;
+		ArgumentException.ThrowIfNullOrEmpty(walletName);
+
+		IsBusy = true;
+
+		try
 		{
-			MinGapLimit = minGapLimit;
+			options = options with { Passphrase = Passphrase, Mnemonic = CurrentMnemonics, MinGapLimit = MinGapLimit };
+			Navigate().To().RecoverWalletSummary(options);
 		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Wasabi was unable to recover the wallet.");
+		}
+
+		IsBusy = false;
 	}
 
 	private void ValidateCurrentMnemonics(IValidationErrors errors)
