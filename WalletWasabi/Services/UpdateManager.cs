@@ -66,7 +66,7 @@ public class UpdateManager : IDisposable
 			Cleanup();
 			return;
 		}
-
+		bool readyToInstall = false;
 		if (DownloadNewVersion)
 		{
 			do
@@ -74,11 +74,10 @@ public class UpdateManager : IDisposable
 				tries++;
 				try
 				{
-					(string installerPath, Version newVersion) = await GetInstallerAsync(targetVersion, CancellationToken).ConfigureAwait(false);
+					(string installerPath, targetVersion) = await GetInstallerAsync(targetVersion, CancellationToken).ConfigureAwait(false);
 					InstallerPath = installerPath;
-					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
-					updateStatus.IsReadyToInstall = true;
-					updateStatus.ClientVersion = newVersion;
+					Logger.LogInfo($"Version {targetVersion} downloaded successfully.");
+					readyToInstall = true;
 					break;
 				}
 				catch (OperationCanceledException ex)
@@ -102,8 +101,13 @@ public class UpdateManager : IDisposable
 				}
 			} while (tries < MaxTries);
 		}
-
-		UpdateAvailableToGet?.Invoke(this, updateStatus);
+		var newStatus = new UpdateStatus(updateStatus.BackendCompatible,
+			updateStatus.ClientUpToDate,
+			updateStatus.LegalDocumentsVersion,
+			updateStatus.CurrentBackendMajorVersion,
+			targetVersion)
+		{ IsReadyToInstall = readyToInstall };
+		UpdateAvailableToGet?.Invoke(this, newStatus);
 	}
 
 	/// <summary>
