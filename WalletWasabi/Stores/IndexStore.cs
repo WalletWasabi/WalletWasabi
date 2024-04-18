@@ -39,10 +39,10 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			File.Delete(NewIndexFilePath);
 		}
 
-		IndexStorage = CreateIndexStorage();
+		IndexStorage = CreateBlockFilterSqliteStorage();
 	}
 
-	private BlockFilterSqliteStorage CreateIndexStorage()
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
 	{
 		try
 		{
@@ -202,14 +202,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			Logger.LogError(ex);
 
-			SqliteConnection.ClearAllPools();
 			IndexStorage.Dispose();
+			SqliteConnection.ClearAllPools();
 
 			// Do not run migration code again if it fails.
 			File.Delete(NewIndexFilePath);
 			File.Delete(OldIndexFilePath);
 
-			IndexStorage = CreateIndexStorage();
+			IndexStorage = CreateBlockFilterSqliteStorage();
 		}
 	}
 
