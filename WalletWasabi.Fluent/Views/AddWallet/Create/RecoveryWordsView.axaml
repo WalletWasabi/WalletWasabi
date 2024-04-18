@@ -80,14 +80,18 @@
         </Grid>
       </Panel>
 
-      <TextBlock HorizontalAlignment="Center"
-                 IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                 Classes="Passphrase"
-                 Grid.Row="6">
-        <Run>Passphrase: </Run>
-        <Run Text="{Binding Passphrase}"
-             FontWeight="SemiBold" />
-      </TextBlock>
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Center"
+                  Grid.Row="6">
+        <TextBlock IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Classes="Passphrase"
+                   Opacity="0.5"
+                   Text="Passphrase: " />
+        <TextBlock IsVisible="{Binding Passphrase, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Classes="Passphrase"
+                   FontWeight="SemiBold"
+                   Text="{Binding Passphrase}" />
+      </StackPanel>
 
       <CheckBox HorizontalAlignment="Center"
                 IsChecked="{Binding IsConfirmed}"
