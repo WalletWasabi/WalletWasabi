@@ -162,7 +162,9 @@ public partial class SendViewModel : RoutableViewModel
 			await coinJoinManager.WalletEnteredSendingAsync(_wallet);
 		}
 
-		Navigate().To().TransactionPreview(_wallet, _walletModel, transactionInfo);
+		var sendParameters = _parameters with { TransactionInfo = transactionInfo };
+
+		Navigate().To().TransactionPreview(_wallet, _walletModel, sendParameters);
 	}
 
 	private async Task OnAutoPasteAsync()

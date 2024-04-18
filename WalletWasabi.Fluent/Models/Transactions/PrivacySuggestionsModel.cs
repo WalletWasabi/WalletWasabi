@@ -20,7 +20,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-public class PrivacySuggestionsModel
+[AutoInterface]
+public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = 0.25m;
 	private const int ConsolidationTolerance = 10;
@@ -31,15 +32,16 @@ public class PrivacySuggestionsModel
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
-
+	private readonly SendParameters _sendParameters;
+	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
 
-	public PrivacySuggestionsModel(Wallet wallet)
+	public PrivacySuggestionsModel(SendParameters sendParameters)
 	{
-		_wallet = wallet;
+		_sendParameters = sendParameters;
+		_wallet = sendParameters.Wallet;
 		_cjManager = Services.HostedServices.Get<CoinJoinManager>();
 	}
 
@@ -155,15 +157,17 @@ public class PrivacySuggestionsModel
 			yield break;
 		}
 
+		var availableCoins = _sendParameters.AvailableCoins;
+
 		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
 		bool wasCoinjoiningCoinUsed = parameters.Transaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
-		var allPrivateCoin = _wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
+		var allPrivateCoin = availableCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
 
 		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : allPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var onlyKnownByTheRecipientCoins = _wallet.Coins.Where(x => parameters.TransactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
+		var onlyKnownByTheRecipientCoins = availableCoins.Where(x => parameters.TransactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
 		var allSemiPrivateCoin =
 			_wallet.Coins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
 			.Union(onlyKnownByTheRecipientCoins)
