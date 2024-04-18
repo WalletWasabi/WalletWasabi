@@ -100,7 +100,8 @@ public class UpdateManager : IDisposable
 				}
 			} while (tries < MaxTries);
 		}
-		var newStatus = new UpdateStatus(updateStatus.BackendCompatible,
+		var newStatus = new UpdateStatus(
+			updateStatus.BackendCompatible,
 			updateStatus.ClientUpToDate,
 			updateStatus.LegalDocumentsVersion,
 			updateStatus.CurrentBackendMajorVersion,
