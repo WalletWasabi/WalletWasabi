@@ -130,8 +130,6 @@ public class UpdateManager : IDisposable
 			{
 				EnsureToRemoveCorruptedFiles();
 
-				// This should also be done using Tor.
-				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
 				// Wait a moment to avoid dossing GitHub API.
 				await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"Trying to download new version: {result.LatestVersion}");
