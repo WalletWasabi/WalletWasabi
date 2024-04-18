@@ -38,7 +38,7 @@
       </Grid.RowDefinitions>
 
       <InfoMessage HorizontalAlignment="Center"
-                   Margin="0,0,0,20"
+                   Margin="0,0,0,35"
                    Grid.Row="2">
         <TextBlock Text="You will not be able to see these words again once the wallet is created." />
       </InfoMessage>
