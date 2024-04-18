@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	private readonly Wallet _wallet;
+	//private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
@@ -41,7 +41,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(UiContext uiContext, Wallet wallet, IWalletModel walletModel, TransactionInfo info)
+	public TransactionPreviewViewModel(UiContext uiContext, Wallet wallet, IWalletModel walletModel, SendParameters parameters)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
@@ -51,15 +51,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(_wallet);
-		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info, true);
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info, true);
 
-		TransactionSummaries = new List<TransactionSummaryViewModel>
-		{
+		TransactionSummaries =
+		[
 			CurrentTransactionSummary,
 			PreviewTransactionSummary
-		};
+		];
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 		
@@ -104,7 +104,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
 
-	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
+	public bool PreferPsbtWorkflow => _walletModel.Settings.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
 
