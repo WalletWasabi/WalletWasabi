@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	//private readonly Wallet _wallet;
+	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
@@ -41,17 +41,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(UiContext uiContext, Wallet wallet, IWalletModel walletModel, SendParameters parameters)
+	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendParameters parameters)
 	{
 		_undoHistory = new();
-		_wallet = wallet;
+		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
 		
-		_info = info;
-		_currentTransactionInfo = info.Clone();
+		_info = parameters.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
+		_currentTransactionInfo = _info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel);
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, parameters);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info, true);
 
