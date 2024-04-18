@@ -61,7 +61,8 @@
                    MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
                    MaxHeight="120"
                    IsLightDismissEnabled="True"
-                   PlacementTarget="{TemplateBinding}">
+                   PlacementTarget="{TemplateBinding}"
+                   Placement="BottomEdgeAlignedLeft">
               <Border x:Name="PART_SuggestionsContainer"
                       Padding="{DynamicResource AutoCompleteListMargin}"
                       BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
