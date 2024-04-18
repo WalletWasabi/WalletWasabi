@@ -36,10 +36,7 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-		"win-x64",
-		"linux-x64",
-		"osx-x64",
-		"osx-arm64"
+		"linux-x64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
@@ -473,6 +470,13 @@ public static class Program
 					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 
 				File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
+
+				string postInstScriptContent = $"#!/bin/sh\n" +
+											   $"/usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules\n" +
+											   $"exit 0\n";
+
+				string postInstScriptPath = Path.Combine(debianFolderPath, "postinst");
+				File.WriteAllText(postInstScriptPath, postInstScriptContent, Encoding.ASCII);
 
 				var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{ExecutableName}.desktop");
 				var desktopFileContent = $"[Desktop Entry]\n" +
