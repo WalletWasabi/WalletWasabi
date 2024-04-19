@@ -16,8 +16,8 @@ public class TransactionSummary
 
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
-	private FeeRate? EffectiveFeeRate { get; }
-	private FeeRate? FeeRate { get; }
+	public FeeRate? EffectiveFeeRate { get; set; }
+	public FeeRate? FeeRate { get; set; }
 
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;

@@ -184,6 +184,8 @@ public class Wallet : BackgroundService, IWallet
 			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
 			{
 				found.Amount += coin.Amount;
+				found.FeeRate = feeRate;
+				found.EffectiveFeeRate = effectiveFeeRate;
 			}
 			else
 			{
