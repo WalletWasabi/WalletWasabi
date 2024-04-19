@@ -31,7 +31,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			.Select(x => (ConfirmationTarget: x.Range.End, x.BestEstimation.FeeRate));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
-		Estimations = new Dictionary<int, int>();
+		Estimations = [];
 		var lastFeeRate = int.MaxValue;
 		foreach (var estimation in filteredEstimations)
 		{
@@ -61,7 +61,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
 			if (!convertedEstimations.Any())
 			{
-				return Enumerable.Empty<(TimeSpan timeSpan, FeeRate feeRate)>();
+				return [];
 			}
 
 			var wildEstimations = new List<(TimeSpan timeSpan, FeeRate feeRate)>();
