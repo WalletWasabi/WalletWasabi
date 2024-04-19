@@ -32,6 +32,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
+	private readonly SendParameters _parameters;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
@@ -46,12 +47,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_undoHistory = new();
 		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
-		
-		_info = parameters.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
+		_parameters = parameters;
+
+		_info = _parameters.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
 		_currentTransactionInfo = _info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, parameters);
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, _parameters);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info, true);
 
@@ -259,7 +261,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException)
 		{
-			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
+			var canSelectMoreCoins = _parameters.AvailableCoins.Any(coin => !_info.Coins.Contains(coin));
 
 			if (canSelectMoreCoins)
 			{
@@ -476,7 +478,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
-		var pockets = _wallet.GetPockets().ToArray();
+		var pockets = _parameters.GetPockets().Select(x => new Pocket(x)).ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
