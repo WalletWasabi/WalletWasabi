@@ -9,6 +9,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Synchronization;
@@ -108,6 +109,8 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 						socketState.Handshaked = true;
 
 						// Send the best block height
+						await SendSoftwareVersionAsync(socketState.WebSocket, cancellationToken);
+						await SendLegalDocumentVersionAsync(socketState.WebSocket, cancellationToken);
 						await SendBlockHeightAsync(socketState.WebSocket, cancellationToken);
 						await StartSendingFiltersAsync(socketState.WebSocket, bestKnownBlockHash, cancellationToken);
 					}
@@ -151,12 +154,26 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
 	}
 
-	/// <summary>
-	/// SendMissingFiltersAsync sends all the filters since bestknownblockhash to the client.
-	/// </summary>
-	/// <param name="webSocket">The websocket.</param>
-	/// <param name="bestKnownBlockHash">The latest block id known by the client.</param>
-	/// <param name="cancellationToken">The cancellation token.</param>
+	private Task SendSoftwareVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
+	{
+		var clientVersion = Constants.ClientVersion;
+		var backendVersion = new Version(int.Parse(Constants.BackendMajorVersion), 0, 0);
+		var message = new VersionMessage(clientVersion, backendVersion);
+		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+	}
+
+	private Task SendLegalDocumentVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
+	{
+		var message = new LegalDocumentVersionMessage(Constants.Ww2LegalDocumentsVersion);
+		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+	}
+
+	// <summary>
+	// SendMissingFiltersAsync sends all the filters since bestknownblockhash to the client.
+	// </summary>
+	// <param name="webSocket">The websocket.</param>
+	// <param name="bestKnownBlockHash">The latest block id known by the client.</param>
+	// <param name="cancellationToken">The cancellation token.</param>
 	private async Task SendMissingFiltersAsync(
 		WebSocket webSocket,
 		uint256 bestKnownBlockHash,
