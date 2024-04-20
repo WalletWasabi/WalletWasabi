@@ -6,7 +6,8 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
+        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+                   IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
           <TextBlock.Text>
             <MultiBinding StringFormat="{}{0} {1}">
               <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
@@ -20,7 +21,8 @@
     <Style Selector="^.Fee">
       <Setter Property="Template">
         <ControlTemplate>
-          <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
+          <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+                     IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
             <TextBlock.Text>
               <MultiBinding StringFormat="{}{0} {1}">
                 <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToFeeWithUnit}" />

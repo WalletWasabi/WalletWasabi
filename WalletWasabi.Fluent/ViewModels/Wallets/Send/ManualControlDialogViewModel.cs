@@ -1,3 +1,4 @@
+using Avalonia.Data.Converters;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -5,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Converters;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -38,12 +40,20 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
+		SelectedAmount =
+			CoinList.Selection
+				    .ToObservableChangeSet()
+			        .ToCollection()
+			        .Select(c => c.Any() ? walletModel.AmountProvider.Create(c.TotalAmount()) : null);
+
 		SetupCancel(true, true, true);
 		_walletModel = walletModel;
 		_wallet = wallet;
 	}
 
 	public CoinListViewModel CoinList { get; }
+
+	public IObservable<Amount?> SelectedAmount { get; }
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{

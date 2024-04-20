@@ -23,6 +23,10 @@
         </Button.Flyout>
       </Button>
     </ContentArea.TopContent>
+    <ContentArea.BottomContent>
+      <!-- Selected Amount -->
+      <AmountControl Amount="{Binding SelectedAmount^}"/>
+    </ContentArea.BottomContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </ContentArea>
 </UserControl>
