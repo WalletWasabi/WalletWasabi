@@ -153,7 +153,7 @@ public partial class SendViewModel : RoutableViewModel
 			Recipient = label,
 			PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
 			IsFixedAmount = IsFixedAmount,
-			SubtractFee = amount == _wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
+			SubtractFee = amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
 		};
 
 		if (_coinJoinManager is { } coinJoinManager)
