@@ -74,7 +74,15 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _walletModel.AmountProvider.UsdExchangeRate;
 
-		Balance = _walletModel.Balances;
+		Balance =
+			_parameters.IsManual
+			? Observable.Return(_walletModel.AmountProvider.Create(_parameters.AvailableAmount))
+			: _walletModel.Balances;
+
+		BalanceCaption =
+			_parameters.IsManual
+			? "Max:"
+			: "Balance:";
 
 		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
 
@@ -120,6 +128,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		_clipboardObserver = new ClipboardObserver(Balance);
 	}
+
+	public string BalanceCaption { get; }
 
 	public IObservable<Amount> Balance { get; }
 

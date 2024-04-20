@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -16,7 +17,11 @@ public record SendParameters(
 
 	public static SendParameters CreateManual(Wallet wallet, IEnumerable<SmartCoin> coins) => new SendParameters(wallet, new CoinsView(coins));
 
-	public decimal AvailableAmountBtc => AvailableCoins.TotalAmount().ToDecimal(NBitcoin.MoneyUnit.BTC);
+	public decimal AvailableAmountBtc => AvailableAmount.ToDecimal(MoneyUnit.BTC);
+
+	public Money AvailableAmount => AvailableCoins.TotalAmount();
 
 	public IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets() => AvailableCoins.GetPockets(Wallet.AnonScoreTarget);
+
+	public bool IsManual => AvailableCoins.TotalAmount() != Wallet.Coins.TotalAmount();
 }

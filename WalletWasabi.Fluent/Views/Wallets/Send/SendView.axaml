@@ -55,9 +55,12 @@
     <ContentArea.TopContent>
       <!-- Balance -->
       <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
-        <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-          <AmountControl Amount="{Binding Balance^}" />
-        </Button>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <TextBlock Text="{Binding BalanceCaption}"/>
+          <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+            <AmountControl Amount="{Binding Balance^}"/>
+          </Button>
+        </StackPanel>
       </PrivacyContentControl>
     </ContentArea.TopContent>
     <DockPanel LastChildFill="False">

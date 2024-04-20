@@ -44,6 +44,18 @@
                 <TextBlock Text="Send" />
               </StackPanel>
             </Button>
+
+            <!-- Manual Control Button, needs to be replaced by SubActionButton-->
+            <Button Classes="function"
+                    IsVisible="{Binding IsSendButtonVisible}"
+                    Command="{Binding SendManualControlCommand}">
+              <StackPanel Orientation="Horizontal">
+                <PathIcon Data="{StaticResource wallet_action_send}" />
+                <TextBlock Text="Manual Control" />
+              </StackPanel>
+            </Button>
+
+
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal">

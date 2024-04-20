@@ -81,6 +81,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, SendParameters.Create(wallet)));
+		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
 
@@ -164,6 +165,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
+
+	public ICommand SendManualControlCommand { get; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
 
