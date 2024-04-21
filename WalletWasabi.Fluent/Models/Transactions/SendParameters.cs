@@ -21,7 +21,7 @@ public record SendParameters(
 
 	public Money AvailableAmount => AvailableCoins.TotalAmount();
 
-	public IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets() => AvailableCoins.GetPockets(Wallet.AnonScoreTarget);
-
 	public bool IsManual => AvailableCoins.TotalAmount() != Wallet.Coins.TotalAmount();
+
+	public IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets() => AvailableCoins.GetPockets(Wallet.AnonScoreTarget);
 }
