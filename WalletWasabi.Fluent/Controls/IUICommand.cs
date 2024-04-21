@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -6,16 +6,5 @@ public interface IUICommand
 {
 	public string Name { get; }
 	public object Icon { get; }
-	public IUICommand Command { get; }
-}
-
-public class UICommand : IUICommand
-{
-	public string Name { get; set; }
-	public object Icon { get; set; }
-	public IUICommand Command { get; }
-}
-
-public class UICommandCollection : Collection<IUICommand>
-{
+	public ICommand Command { get; }
 }

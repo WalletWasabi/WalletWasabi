@@ -39,24 +39,24 @@
             <SubActionButton IsVisible="{Binding IsSendButtonVisible}" Command="{Binding SendCommand}" Icon="{StaticResource wallet_action_send}" Content="Send">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
-                  <UICommand Name="Command 1">
-                    <UICommand.Icon>
+                  <UICommandDesign Name="Command 1">
+                    <UICommandDesign.Icon>
                     <PathIcon Data="{StaticResource wallet_action_buy}"
                               Classes="Icon" />
-                  </UICommand.Icon>
-                  </UICommand>
-                  <UICommand Name="Command 2">
-                    <UICommand.Icon>
+                  </UICommandDesign.Icon>
+                  </UICommandDesign>
+                  <UICommandDesign Name="Command 2">
+                    <UICommandDesign.Icon>
                     <PathIcon Data="{StaticResource wallet_action_coinjoin}"
                               Classes="Icon" />
-                  </UICommand.Icon>
-                  </UICommand>
-                  <UICommand Name="Command 3">
-                    <UICommand.Icon>
+                  </UICommandDesign.Icon>
+                  </UICommandDesign>
+                  <UICommandDesign Name="Command 3">
+                    <UICommandDesign.Icon>
                     <PathIcon Data="{StaticResource wallet_action_send}"
                               Classes="Icon" />
-                  </UICommand.Icon>
-                  </UICommand>
+                  </UICommandDesign.Icon>
+                  </UICommandDesign>
                 </UICommandCollection>
               </SubActionButton.SubCommands>
             </SubActionButton>

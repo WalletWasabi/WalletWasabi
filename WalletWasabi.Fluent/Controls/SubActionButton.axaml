@@ -1,7 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
-                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Design.PreviewWith>
     <Border Width="500" Height="500" >
@@ -13,14 +11,14 @@
           <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
             <SubActionButton.SubCommands>
               <UICommandCollection>
-                <UICommand Name="Command 2">
-                  <UICommand.Icon>
+                <UICommandDesign Name="Command 2">
+                  <UICommandDesign.Icon>
                     <PathIcon Data="{StaticResource wallet_action_coinjoin}"
                               Classes="Icon" />
-                  </UICommand.Icon>
-                </UICommand>
-                <UICommand Name="Command 2" />
-                <UICommand Name="Command 3" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+                <UICommandDesign Name="Command 2" />
+                <UICommandDesign Name="Command 3" />
               </UICommandCollection>
             </SubActionButton.SubCommands>
           </SubActionButton>
@@ -53,11 +51,11 @@
             <SplitButton.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
                 <MenuFlyout.ItemContainerTheme>
-                  <ControlTheme TargetType="MenuItem" x:DataType="IUICommand"
+                  <ControlTheme TargetType="MenuItem" 
                                 BasedOn="{StaticResource {x:Type MenuItem}}">
-                    <Setter Property="Header" Value="{Binding Name}" />
-                    <Setter Property="Icon" Value="{Binding Icon}" />
-                    <Setter Property="Command" Value="{Binding Command}" />
+                    <Setter x:DataType="IUICommand" Property="Header" Value="{Binding Name}" />
+                    <Setter x:DataType="IUICommand" Property="Icon" Value="{Binding Icon}" />
+                    <Setter x:DataType="IUICommand" Property="Command" Value="{Binding Command}" />
                   </ControlTheme>
                 </MenuFlyout.ItemContainerTheme>
               </MenuFlyout>
