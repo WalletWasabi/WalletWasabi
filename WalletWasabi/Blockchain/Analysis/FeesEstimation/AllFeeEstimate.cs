@@ -128,6 +128,13 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 				}
 			}
 
+			if (wildEstimations.Count > 0 && wildEstimations[0].timeSpan == TimeSpan.FromMinutes(20))
+			{
+				// 1.51 is just a made up coefficient. See https://github.com/zkSNACKs/WalletWasabi/issues/11358#issue-1862849028.
+				FeeRate feeRate = new(Math.Ceiling(wildEstimations[0].feeRate.SatoshiPerByte * 1.51m));
+				wildEstimations = wildEstimations.Prepend((TimeSpan.FromMinutes(10), feeRate)).ToList();
+			}
+
 			return wildEstimations;
 		}
 	}
