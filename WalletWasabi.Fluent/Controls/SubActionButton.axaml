@@ -34,11 +34,14 @@
 
   <ControlTheme x:Key="{x:Type SubActionButton}"
                 TargetType="SubActionButton">
+    <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate>
-          <SplitButton Command="{TemplateBinding Command}" Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}" Theme="{StaticResource FunctionSplitButton}">
+          <SplitButton Command="{TemplateBinding Command}"
+                       BorderThickness="{TemplateBinding BorderThickness}" Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}"
+                       Theme="{StaticResource FunctionSplitButton}">
             <SplitButton.ContentTemplate>
               <DataTemplate>
                 <DockPanel>
