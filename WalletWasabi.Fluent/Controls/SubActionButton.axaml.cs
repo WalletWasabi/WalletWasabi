@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,6 +12,10 @@ public class SubActionButton : ContentControl
 
 	public static readonly StyledProperty<ICommand> CommandProperty = AvaloniaProperty.Register<SubActionButton, ICommand>(nameof(Command));
 
+	public static readonly StyledProperty<UICommandCollection> SubCommandsProperty = AvaloniaProperty.Register<SubActionButton, UICommandCollection>(nameof(SubCommands));
+
+	public static readonly StyledProperty<IEnumerable> ItemsProperty = AvaloniaProperty.Register<SubActionButton, IEnumerable>(nameof(Items));
+
 	public StreamGeometry Icon
 	{
 		get => GetValue(IconProperty);
@@ -25,15 +28,11 @@ public class SubActionButton : ContentControl
 		set => SetValue(CommandProperty, value);
 	}
 
-	public static readonly StyledProperty<UICommandCollection> SubCommandsProperty = AvaloniaProperty.Register<SubActionButton, UICommandCollection>(nameof(SubCommands));
-
 	public UICommandCollection SubCommands
 	{
 		get => GetValue(SubCommandsProperty);
 		set => SetValue(SubCommandsProperty, value);
 	}
-
-	public static readonly StyledProperty<IEnumerable> ItemsProperty = AvaloniaProperty.Register<SubActionButton, IEnumerable>("Items");
 
 	public IEnumerable Items
 	{
