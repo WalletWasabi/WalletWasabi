@@ -476,7 +476,7 @@ public static class Program
 
 				string postInstScriptContent = """
 											   #!/bin/sh
-											   /usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules\n
+											   /usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules
 											   exit 0
 											   """.ReplaceLineEndings("\n");
 
