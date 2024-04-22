@@ -374,14 +374,14 @@ public class AllFeeEstimateTests
 
 		var allFee = new AllFeeEstimate(estimations);
 
-		Assert.Equal(7, allFee.WildEstimations.Count());
-		Assert.Equal(new FeeRate(102m), allFee.WildEstimations.First().feeRate); // 20m
-		Assert.Equal(new FeeRate(20m), allFee.WildEstimations.Skip(1).First().feeRate); // 30m
-		Assert.Equal(new FeeRate(16.666m), allFee.WildEstimations.Skip(2).First().feeRate); // 40m
-		Assert.Equal(new FeeRate(13.333m), allFee.WildEstimations.Skip(3).First().feeRate); // 50m
-		Assert.Equal(new FeeRate(10m), allFee.WildEstimations.Skip(4).First().feeRate); // 1h
-		Assert.Equal(new FeeRate(5.5m), allFee.WildEstimations.Skip(5).First().feeRate); // 2h
-		Assert.Equal(new FeeRate(1m), allFee.WildEstimations.Skip(6).First().feeRate); // 3h
+		Assert.Equal(7, allFee.WildEstimations.Count);
+		Assert.Equal(new FeeRate(102m), allFee.WildEstimations[0].feeRate); // 20m
+		Assert.Equal(new FeeRate(20m), allFee.WildEstimations[1].feeRate); // 30m
+		Assert.Equal(new FeeRate(16.666m), allFee.WildEstimations[2].feeRate); // 40m
+		Assert.Equal(new FeeRate(13.333m), allFee.WildEstimations[3].feeRate); // 50m
+		Assert.Equal(new FeeRate(10m), allFee.WildEstimations[4].feeRate); // 1h
+		Assert.Equal(new FeeRate(5.5m), allFee.WildEstimations[5].feeRate); // 2h
+		Assert.Equal(new FeeRate(1m), allFee.WildEstimations[6].feeRate); // 3h
 
 		Assert.Equal(TimeSpan.FromMinutes(10), allFee.EstimateConfirmationTime(new FeeRate(200m)));
 		Assert.Equal(TimeSpan.FromMinutes(20), allFee.EstimateConfirmationTime(new FeeRate(102.1m)));
