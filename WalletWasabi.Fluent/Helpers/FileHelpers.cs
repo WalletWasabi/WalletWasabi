@@ -18,7 +18,7 @@ public static class FileHelpers
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			// If no associated application/json MimeType is found xdg-open opens retrun error
+			// If no associated application/json MimeType is found xdg-open opens return error
 			// but it tries to open it anyway using the console editor (nano, vim, other..)
 			await EnvironmentHelpers.ShellExecAsync($"which gedit &> /dev/null && gedit {filePath} || xdg-open {filePath}", waitForExit: false).ConfigureAwait(false);
 		}

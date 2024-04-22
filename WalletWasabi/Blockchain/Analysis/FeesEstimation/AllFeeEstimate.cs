@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -15,23 +14,31 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 [JsonObject(MemberSerialization.OptIn)]
 public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 {
+	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
+
+	/// <summary>All allowed target confirmation ranges, i.e. 0-2, 2-3, 3-6, 6-18, ..., 432-1008.</summary>
+	private static readonly IEnumerable<(int Start, int End)> TargetRanges = AllConfirmationTargets
+		.Skip(1)
+		.Zip(AllConfirmationTargets.Skip(1).Prepend(0), (x, y) => (Start: y, End: x));
+
+	/// <summary>
+	/// Constructor takes the input confirmation estimations and filters out all confirmation targets that are not <see cref="Constants.ConfirmationTargets">whitelisted</see>.
+	/// </summary>
+	/// <param name="estimations">Map of confirmation targets to fee rates in satoshis (e.g. confirmation target 1 -> 50 sats/vByte).</param>
 	[JsonConstructor]
 	public AllFeeEstimate(IDictionary<int, int> estimations)
 	{
 		Guard.NotNullOrEmpty(nameof(estimations), estimations);
 
-		var targets = Constants.ConfirmationTargets.Prepend(1).ToArray();
-		var targetRanges = targets.Skip(1).Zip(targets.Skip(1).Prepend(0), (x, y) => (Start: y, End: x));
-
 		var filteredEstimations = estimations
-			.Where(x => x.Key >= targets[0] && x.Key <= targets[^1])
+			.Where(x => x.Key >= AllConfirmationTargets[0] && x.Key <= AllConfirmationTargets[^1])
 			.OrderBy(x => x.Key)
-			.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: targetRanges.First(y => y.Start < x.Key && x.Key <= y.End)))
+			.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: TargetRanges.First(y => y.Start < x.Key && x.Key <= y.End)))
 			.GroupBy(x => x.Range, y => y, (x, y) => (Range: x, BestEstimation: y.Last()))
 			.Select(x => (ConfirmationTarget: x.Range.End, x.BestEstimation.FeeRate));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
-		Estimations = new Dictionary<int, int>();
+		Estimations = [];
 		var lastFeeRate = int.MaxValue;
 		foreach (var estimation in filteredEstimations)
 		{
@@ -42,11 +49,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 				Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
 			}
 		}
-	}
-
-	public AllFeeEstimate(AllFeeEstimate other)
-		: this(other.Estimations)
-	{
 	}
 
 	/// <summary>
@@ -66,7 +68,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
 			if (!convertedEstimations.Any())
 			{
-				return Enumerable.Empty<(TimeSpan timeSpan, FeeRate feeRate)>();
+				return [];
 			}
 
 			var wildEstimations = new List<(TimeSpan timeSpan, FeeRate feeRate)>();

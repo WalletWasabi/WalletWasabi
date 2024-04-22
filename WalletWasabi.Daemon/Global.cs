@@ -60,6 +60,7 @@ public class Global
 			owningProcessId: Environment.ProcessId);
 
 		HostedServices = new HostedServices();
+		EventBus = new EventBus();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
@@ -72,11 +73,15 @@ public class Global
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
-		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(15) : TimeSpan.FromSeconds(90);
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, BitcoinStore.SmartHeaderChain, HttpClientFactory.SharedWasabiClient, EventBus), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
+
+		var coordinatorUri = config.GetCoordinatorUri();
+		var satoshiUriScheme = coordinatorUri.Scheme == "https" ? "wss" : "ws";
+		var satoshiEndpointUri = new UriBuilder(satoshiUriScheme, coordinatorUri.Host, coordinatorUri.Port, "api/satoshi").Uri;
+		HostedServices.Register<SatoshiSynchronizer>(() => new SatoshiSynchronizer(BitcoinStore, satoshiEndpointUri, Config.UseTor ? TorSettings.SocksEndpoint : null, EventBus), "Satoshi Synchronizer");
 
 		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
 		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
@@ -126,7 +131,8 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService);
+        HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
@@ -178,6 +184,7 @@ public class Global
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
+	private EventBus EventBus { get; }
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
@@ -307,7 +314,7 @@ public class Global
 
 	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
-		if (Config.UseTor && Network != Network.RegTest)
+		if (Config.UseTor)
 		{
 			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
@@ -375,7 +382,7 @@ public class Global
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
+		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>(), EventBus), "RPC Fee Provider");
 		if (!Config.BlockOnlyMode)
 		{
 			HostedServices.Register<MempoolMirror>(
@@ -388,7 +395,7 @@ public class Global
 	{
 		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(EventBus), "Hybrid Fee Provider");
 	}
 
 	private void RegisterCoinJoinComponents()
