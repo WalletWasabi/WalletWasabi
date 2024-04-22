@@ -474,9 +474,11 @@ public static class Program
 
 				File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
-				string postInstScriptContent = $"#!/bin/sh\n" +
-											   $"/usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules\n" +
-											   $"exit 0\n";
+				string postInstScriptContent = """
+											   #!/bin/sh
+											   /usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules\n
+											   exit 0
+											   """.ReplaceLineEndings("\n");
 
 				string postInstScriptPath = Path.Combine(debianFolderPath, "postinst");
 				File.WriteAllText(postInstScriptPath, postInstScriptContent, Encoding.ASCII);
