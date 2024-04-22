@@ -27,10 +27,10 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			});
 	}
 
+	public CoinListViewModel CoinList { get; set; }
+
 	private void ExcludeSelectedCoins()
 	{
 		_wallet.ExcludedCoins = CoinList.Selection;
 	}
-
-	public CoinListViewModel CoinList { get; set; }
 }
