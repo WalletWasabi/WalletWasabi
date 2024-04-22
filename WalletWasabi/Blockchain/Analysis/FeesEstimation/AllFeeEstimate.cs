@@ -60,16 +60,17 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// <summary>
 	/// Estimations where we try to fill out gaps for all valid time spans.
 	/// </summary>
-	public IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
+	public IReadOnlyList<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
 	{
 		get
 		{
-			var timeSpan = TimeSpan.FromMinutes(20);
-			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
-			if (!convertedEstimations.Any())
+			if (Estimations.Count == 0)
 			{
 				return [];
 			}
+
+			var timeSpan = TimeSpan.FromMinutes(20);
+			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
 
 			var wildEstimations = new List<(TimeSpan timeSpan, FeeRate feeRate)>();
 			var prevFeeRate = FeeRate.Zero;
