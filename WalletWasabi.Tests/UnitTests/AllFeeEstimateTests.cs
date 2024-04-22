@@ -1,52 +1,51 @@
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
-using Moq;
-using System.Threading;
-using SQLitePCL;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
+/// <summary>
+/// Tests for <see cref="AllFeeEstimate"/>.
+/// </summary>
 public class AllFeeEstimateTests
 {
 	[Fact]
 	public void Serialization()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 2, 102 },
-				{ 3, 20 },
-				{ 19, 1 }
-			};
+		{
+			{ 2, 102 },
+			{ 3, 20 },
+			{ 19, 1 }
+		};
 		var allFee = new AllFeeEstimate(estimations);
 		var serialized = JsonConvert.SerializeObject(allFee);
 		var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
 
 		Assert.NotNull(deserialized);
-		Assert.Equal(estimations[2], deserialized!.Estimations[2]);
-		Assert.Equal(estimations[3], deserialized!.Estimations[3]);
-		Assert.Equal(estimations[19], deserialized!.Estimations[36]);
+		Assert.Equal(estimations[2], deserialized.Estimations[2]);
+		Assert.Equal(estimations[3], deserialized.Estimations[3]);
+		Assert.Equal(estimations[19], deserialized.Estimations[36]);
 	}
 
 	[Fact]
 	public void OrdersByTarget()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 3, 20 },
-				{ 2, 102 },
-				{ 19, 1 },
-				{ 20, 1 }
-			};
+		{
+			{ 3, 20 },
+			{ 2, 102 },
+			{ 19, 1 },
+			{ 20, 1 }
+		};
 
 		var allFee = new AllFeeEstimate(estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
@@ -58,10 +57,10 @@ public class AllFeeEstimateTests
 	public void HandlesDuplicate()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 2, 20 },
-				{ 3, 20 }
-			};
+		{
+			{ 2, 20 },
+			{ 3, 20 }
+		};
 
 		var allFee = new AllFeeEstimate(estimations);
 		Assert.Single(allFee.Estimations);
@@ -73,9 +72,9 @@ public class AllFeeEstimateTests
 	{
 		// If there's no 2, this'll be 2.
 		var estimations = new Dictionary<int, int>
-			{
-				{ 1, 20 }
-			};
+		{
+			{ 1, 20 }
+		};
 
 		var allFees = new AllFeeEstimate(estimations);
 		Assert.Single(allFees.Estimations);
@@ -83,10 +82,10 @@ public class AllFeeEstimateTests
 
 		// If there's 2, 1 is dismissed.
 		estimations = new Dictionary<int, int>
-			{
-				{ 1, 20 },
-				{ 2, 21 }
-			};
+		{
+			{ 1, 20 },
+			{ 2, 21 }
+		};
 
 		allFees = new AllFeeEstimate(estimations);
 		Assert.Single(allFees.Estimations);
@@ -97,9 +96,9 @@ public class AllFeeEstimateTests
 	public void EndOfTheRange()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 1007, 20 }
-			};
+		{
+			{ 1007, 20 }
+		};
 
 		var allFees = new AllFeeEstimate(estimations);
 		var est = Assert.Single(allFees.Estimations);
@@ -110,23 +109,23 @@ public class AllFeeEstimateTests
 	public void HandlesInconsistentData()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 2, 20 },
-				{ 3, 21 }
-			};
+		{
+			{ 2, 20 },
+			{ 3, 21 }
+		};
 
 		var allFee = new AllFeeEstimate(estimations);
 		Assert.Single(allFee.Estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 
 		estimations = new Dictionary<int, int>
-			{
-				{ 18, 1000 },
-				{ 3, 21 },
-				{ 2, 20 },
-				{ 100, 100 },
-				{ 6, 4 },
-			};
+		{
+			{ 18, 1000 },
+			{ 3, 21 },
+			{ 2, 20 },
+			{ 100, 100 },
+			{ 6, 4 },
+		};
 
 		allFee = new AllFeeEstimate(estimations);
 		Assert.Equal(2, allFee.Estimations.Count);
@@ -366,23 +365,23 @@ public class AllFeeEstimateTests
 	public void WildEstimations()
 	{
 		var estimations = new Dictionary<int, int>
-			{
-				{ 2, 102 }, // 20m
-				{ 3, 20 }, // 30m
-				{ 6, 10 }, // 1h
-				{ 18, 1 } // 3h
-			};
+		{
+			{ 2, 102 }, // 20m
+			{ 3, 20 }, // 30m
+			{ 6, 10 }, // 1h
+			{ 18, 1 } // 3h
+		};
 
 		var allFee = new AllFeeEstimate(estimations);
 
-		Assert.Equal(7, allFee.WildEstimations.Count());
-		Assert.Equal(new FeeRate(102m), allFee.WildEstimations.First().feeRate); // 20m
-		Assert.Equal(new FeeRate(20m), allFee.WildEstimations.Skip(1).First().feeRate); // 30m
-		Assert.Equal(new FeeRate(16.666m), allFee.WildEstimations.Skip(2).First().feeRate); // 40m
-		Assert.Equal(new FeeRate(13.333m), allFee.WildEstimations.Skip(3).First().feeRate); // 50m
-		Assert.Equal(new FeeRate(10m), allFee.WildEstimations.Skip(4).First().feeRate); // 1h
-		Assert.Equal(new FeeRate(5.5m), allFee.WildEstimations.Skip(5).First().feeRate); // 2h
-		Assert.Equal(new FeeRate(1m), allFee.WildEstimations.Skip(6).First().feeRate); // 3h
+		Assert.Equal(7, allFee.WildEstimations.Count);
+		Assert.Equal(new FeeRate(102m), allFee.WildEstimations[0].feeRate); // 20m
+		Assert.Equal(new FeeRate(20m), allFee.WildEstimations[1].feeRate); // 30m
+		Assert.Equal(new FeeRate(16.666m), allFee.WildEstimations[2].feeRate); // 40m
+		Assert.Equal(new FeeRate(13.333m), allFee.WildEstimations[3].feeRate); // 50m
+		Assert.Equal(new FeeRate(10m), allFee.WildEstimations[4].feeRate); // 1h
+		Assert.Equal(new FeeRate(5.5m), allFee.WildEstimations[5].feeRate); // 2h
+		Assert.Equal(new FeeRate(1m), allFee.WildEstimations[6].feeRate); // 3h
 
 		Assert.Equal(TimeSpan.FromMinutes(10), allFee.EstimateConfirmationTime(new FeeRate(200m)));
 		Assert.Equal(TimeSpan.FromMinutes(20), allFee.EstimateConfirmationTime(new FeeRate(102.1m)));

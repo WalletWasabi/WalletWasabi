@@ -2,23 +2,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:hardwareWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="hardwareWallet:DetectedHardwareWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.DetectedHardwareWalletView">
   <ContentArea Title="{Binding Title}"
-                 IsBusy="{Binding IsBusy}"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="False"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+               IsBusy="{Binding IsBusy}"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="False"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <QuestionControl Content="{Binding TypeName, StringFormat={}{0} was detected. Is this correct?}"
-                       YesCommand="{Binding NextCommand}"
-                       NoCommand="{Binding NoCommand}"
-                       ImageIcon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
-                       HighlightButton="YesButton" />
+                     YesCommand="{Binding NextCommand}"
+                     NoCommand="{Binding NoCommand}"
+                     HighlightButton="YesButton">
+      <QuestionControl.IconContent>
+        <Viewbox MaxHeight="180">
+          <WalletIconControl WalletType="{Binding Type}" />
+        </Viewbox>
+      </QuestionControl.IconContent>
+    </QuestionControl>
   </ContentArea>
 </UserControl>

@@ -40,7 +40,8 @@ public class Wallet : BackgroundService, IWallet
 		ServiceConfiguration serviceConfiguration,
 		HybridFeeProvider feeProvider,
 		TransactionProcessor transactionProcessor,
-		WalletFilterProcessor walletFilterProcessor)
+		WalletFilterProcessor walletFilterProcessor,
+		UnconfirmedTransactionChainProvider unconfirmedTransactionChainProvider)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -49,6 +50,7 @@ public class Wallet : BackgroundService, IWallet
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
+		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -105,7 +107,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; }
 
 	public HybridFeeProvider FeeProvider { get; }
-
+	public UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 
@@ -180,7 +182,10 @@ public class Wallet : BackgroundService, IWallet
 			}
 			else
 			{
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
+				var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
+				var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
+
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
 			}
 
 			if (coin.SpenderTransaction is { } spenderTransaction)
@@ -193,7 +198,10 @@ public class Wallet : BackgroundService, IWallet
 				}
 				else
 				{
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
+					var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
+
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
 				}
 			}
 		}
@@ -233,7 +241,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		var currentPrivacyScore = Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, x.IsPrivate(AnonScoreTarget) ? AnonScoreTarget - 1 : AnonScoreTarget - 2));
 		var maxPrivacyScore = Coins.TotalAmount().Satoshi * (AnonScoreTarget - 1);
-		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
+		int pcPrivate = maxPrivacyScore == 0M ? 0 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
 
 		return pcPrivate;
 	}
@@ -298,7 +306,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Starting;
 
-			using (BenchmarkLogger.Measure())
+			using (BenchmarkLogger.Measure(operationName: $"Starting of wallet '{WalletName}'"))
 			{
 				await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
@@ -393,6 +401,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
+			UnconfirmedTransactionChainProvider.CheckAndScheduleRequestIfNeeded(e.Transaction);
 		}
 		catch (Exception ex)
 		{
@@ -439,7 +448,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -500,7 +509,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			try
 			{
-				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
+				var client = Synchronizer.WasabiClient;
 				var compactness = 10;
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

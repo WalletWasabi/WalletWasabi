@@ -5,6 +5,7 @@
       <ContentArea Width="500" Height="300"
                      IsBusy="False"
                      Title="Add a Wallet"
+                     TopContent="This is the top content"
                      EnableBack="True"
                      EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
                      EnableNext="True" NextContent="Continue" FocusNext="True"
@@ -76,10 +77,10 @@
                     </Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                   </Button>
-                  <Panel>
+                  <DockPanel>
+                    <ContentPresenter DockPanel.Dock="Right" Name="PART_TopContentPresenter" Content="{TemplateBinding TopContent}" />
                     <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-                    <ContentPresenter Name="PART_TopContentPresenter" Content="{TemplateBinding TopContent}" />
-                  </Panel>
+                  </DockPanel>
                 </DockPanel>
                 <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
                 <Panel Height="6" IsVisible="{Binding !EnableBack}" />

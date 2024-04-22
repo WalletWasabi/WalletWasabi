@@ -12,6 +12,8 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Backend.Statistics;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : IWabiSabiApiRequestHandler
@@ -36,6 +38,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId);
 
 			// Compute but don't commit updated coinjoin to round state, it will
@@ -122,7 +125,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			int currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 
 			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, confirmations, oneHop: oneHop, currentBlockHeight, cancellationToken);
-
+			RequestTimeStatista.Instance.Add("input-registration-inside", DateTimeOffset.UtcNow - beforeInside);
 			return new(alice.Id,
 				commitAmountCredentialResponse,
 				commitVsizeCredentialResponse,
@@ -134,6 +137,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			if (alice.IsCoordinationFeeExempted && request.AffiliationId != AffiliationConstants.DefaultAffiliationId)
@@ -143,6 +147,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 			alice.ReadyToSign = true;
 			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
+			RequestTimeStatista.Instance.Add("ready-to-sign-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
 	}
 
@@ -150,9 +155,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
 			round.Alices.RemoveAll(x => x.Id == request.AliceId && x.ConfirmedConnection == false);
+			RequestTimeStatista.Instance.Add("input-unregistration-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
 	}
 
@@ -181,6 +188,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
 
 			alice = GetAlice(request.AliceId, round);
@@ -200,6 +208,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 			}
+			RequestTimeStatista.Instance.Add("connection-confirmation-inside1", DateTimeOffset.UtcNow - beforeInside);
 		}
 
 		var amountZeroCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
@@ -215,6 +224,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			alice = GetAlice(request.AliceId, round);
 
 			switch (round.Phase)
@@ -223,6 +233,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 					var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
 					var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
 					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+					RequestTimeStatista.Instance.Add("connection-confirmation-inside2", DateTimeOffset.UtcNow - beforeInside);
 					return new(
 						commitAmountZeroCredentialResponse,
 						commitVsizeZeroCredentialResponse);
@@ -241,7 +252,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 					// Update the coinjoin state, adding the confirmed input.
 					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
 					alice.ConfirmedConnection = true;
-
+					RequestTimeStatista.Instance.Add("connection-confirmation-inside2", DateTimeOffset.UtcNow - beforeInside);
 					return response;
 
 				default:
@@ -259,6 +270,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
@@ -307,6 +319,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Update round state.
 			round.Bobs.Add(bob);
 			round.CoinjoinState = newState;
+			RequestTimeStatista.Instance.Add("output-registration-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
 
 		return EmptyResponse.Instance;
@@ -316,12 +329,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
 			var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
 
 			// at this point all of the witnesses have been verified and the state can be updated
 			round.CoinjoinState = state;
+			RequestTimeStatista.Instance.Add("transaction-signature-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
 	}
 
@@ -330,7 +345,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		Round round;
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			var beforeInside = DateTimeOffset.UtcNow;
 			round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
+			RequestTimeStatista.Instance.Add("credential-issuance-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
 
 		if (request.RealAmountCredentialRequests.Delta != 0)
@@ -399,12 +416,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
 	}
 
-	public uint256[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
+	public (uint256 RoundId, FeeRate MiningFeeRate)[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
 		Rounds
-		.Where(r => r.Phase != Phase.Ended)
-		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, Coin: a)))
+		.Where(r => r.Phase != Phase.Ended && r.Phase >= Phase.ConnectionConfirmation)
+		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, MiningFeeRate: r.Parameters.MiningFeeRate, Coin: a)))
 		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-		.Select(x => x.RoundId)
+		.Select(x => (x.RoundId, x.MiningFeeRate))
 		.Distinct()
 		.ToArray();
 

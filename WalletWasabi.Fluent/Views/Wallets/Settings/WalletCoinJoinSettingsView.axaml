@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             x:DataType="vm:WalletCoinJoinSettingsViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
+             x:CompileBindings="True">
+
+  <StackPanel Spacing="20">
+
+    <StackPanel Classes="settingsLayout">
+
+      <DockPanel>
+        <TextBlock Text="Automatically start coinjoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+      </DockPanel>
+
+      <StackPanel Spacing="10"
+                  ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
+        <TextBlock Text="Auto-start coinjoin threshold" />
+        <CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
+      </StackPanel>
+
+      <DockPanel>
+        <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+        <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+        <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+      </DockPanel>
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

@@ -17,6 +17,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -54,8 +55,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		// 2. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
+		HybridFeeProvider feeProvider = new(global.EventBus);
 
 		// 3. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
@@ -73,14 +74,14 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, setup.ServiceConfiguration, httpClientFactory.TorEndpoint);
 
-		SmartBlockProvider blockProvider = new(
+		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			rpcBlockProvider: null,
-			specificNodeBlockProvider,
-			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled),
-			cache);
+			[specificNodeBlockProvider],
+			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, setup.ServiceConfiguration, feeProvider, blockProvider);
+		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
+
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, setup.ServiceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 

@@ -10,7 +10,8 @@ public enum RoundDisruptionMethod
 	DidNotConfirm,
 	DidNotSignalReadyToSign,
 	DidNotSign,
-	DoubleSpent
+	DoubleSpent,
+	BackendStabilitySafety
 }
 
 public abstract record Offense();
@@ -20,6 +21,7 @@ public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Valu
 	public	RoundDisruption(uint256 disruptedRoundId, Money value, RoundDisruptionMethod method)
 		: this(disruptedRoundId.Singleton(), value, method) {}
 }
+public record BackendStabilitySafety(uint256 RoundId) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
 public record Inherited(OutPoint[] Ancestors) : Offense;
 public record Cheating(uint256 RoundId) : Offense;
@@ -51,6 +53,10 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 					{
 						yield return disruptedRoundId.ToString();
 					}
+					break;
+				case BackendStabilitySafety backendStabilitySafety:
+					yield return nameof(BackendStabilitySafety);
+					yield return backendStabilitySafety.RoundId.ToString();
 					break;
 				case FailedToVerify fv:
 					yield return nameof(FailedToVerify);
@@ -97,6 +103,8 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 						"double spent" => RoundDisruptionMethod.DoubleSpent,
 						_ => throw new NotImplementedException("Unknown round disruption method.")
 					}),
+			nameof(BackendStabilitySafety) =>
+				new BackendStabilitySafety(uint256.Parse(parts[3])),
 			nameof(FailedToVerify) =>
 				new FailedToVerify(uint256.Parse(parts[3])),
 			nameof(Inherited) =>

@@ -228,23 +228,23 @@ dotnet_naming_style.T_pascal_case_style.required_prefix = T
 dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 
 
-# IDE0056: Use index operator
-csharp_style_prefer_index_operator = true:error
+# IDE0004: Remove Unnecessary Cast
+dotnet_diagnostic.IDE0004.severity = error
+
+# IDE0019: Use pattern matching
+csharp_style_pattern_matching_over_as_with_null_check = true:error
 
 # IDE0032: Use auto property
 dotnet_style_prefer_auto_properties = true:error
+
+# IDE0056: Use index operator
+csharp_style_prefer_index_operator = true:error
 
 # IDE0057: Use range operator
 csharp_style_prefer_range_operator = true:error
 
 # IDE0071: Simplify interpolation
 dotnet_style_prefer_simplified_interpolation = true:error
-
-# IDE0004: Remove Unnecessary Cast
-dotnet_diagnostic.IDE0004.severity = error
-
-# IDE0019: Use pattern matching
-csharp_style_pattern_matching_over_as_with_null_check = true:error
 
 # IDE0130: Warn and provide code fixes for when namespaces do not match the folder structure.
 dotnet_diagnostic.IDE0130.severity = warning
@@ -254,6 +254,24 @@ dotnet_diagnostic.CA1304.severity = warning
 
 # CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = warning
+
+# CA1816: Dispose methods should call SuppressFinalize
+dotnet_diagnostic.CA1816.severity = none
+
+# CA1822: This complains to make functions static. Static is evil. Don't let it complain.
+dotnet_diagnostic.CA1822.severity = none
+
+# CA1825: Avoid zero-length array allocations
+dotnet_diagnostic.CA1825.severity = warning
+
+# CA1827: Do not use Count() or LongCount() when Any() can be used
+dotnet_diagnostic.CA1827.severity = warning
+
+# CA1829: Use Length/Count property instead of Count() when available
+dotnet_diagnostic.CA1829.severity = warning
+
+# CA1835: Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+dotnet_diagnostic.CA1835.severity = warning
 
 # CA1841: Prefer Dictionary Contains methods
 dotnet_diagnostic.CA1841.severity = warning
@@ -267,8 +285,11 @@ dotnet_diagnostic.CA1846.severity = warning
 # CA1847: Use string.Contains(char) instead of string.Contains(string) with single characters
 dotnet_diagnostic.CA1847.severity = warning
 
-# CA2016: Forward the 'CancellationToken' parameter to methods that take one
-dotnet_diagnostic.CA2016.severity = warning
+# CA1859: Use concrete types when possible for improved performance
+dotnet_diagnostic.CA1859.severity = none
+
+# CA1868: Unnecessary call to Set.Contains(item)
+dotnet_diagnostic.CA1868.severity = warning
 
 # CA2000: Dispose objects before losing scope
 dotnet_diagnostic.CA2000.severity = warning
@@ -276,29 +297,14 @@ dotnet_diagnostic.CA2000.severity = warning
 # CA2009: Do not call ToImmutableCollection on an ImmutableCollection value
 dotnet_diagnostic.CA2009.severity = warning
 
-# CA1825: Avoid zero-length array allocations
-dotnet_diagnostic.CA1825.severity = warning
-
-# CA1829: Use Length/Count property instead of Count() when available
-dotnet_diagnostic.CA1829.severity = warning
-
-# CA1816: Dispose methods should call SuppressFinalize
-dotnet_diagnostic.CA1816.severity = none
-
-# CA1835: Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
-dotnet_diagnostic.CA1835.severity = warning
+# CA2016: Forward the 'CancellationToken' parameter to methods that take one
+dotnet_diagnostic.CA2016.severity = warning
 
 # CA2200: Rethrow to preserve stack details
 dotnet_diagnostic.CA2200.severity = warning
 
-# CA1827: Do not use Count() or LongCount() when Any() can be used
-dotnet_diagnostic.CA1827.severity = warning
-
-# CA1822: This complains to make functions static. Static is evil. Don't let it complain.
-dotnet_diagnostic.CA1822.severity = none
-
-# CA1868: Unnecessary call to Set.Contains(item)
-dotnet_diagnostic.CA1868.severity = warning
-
 # xUnit1030: Do not call ConfigureAwait in test method
 dotnet_diagnostic.xUnit1030.severity = warning
+
+# RS0030: Do not use banned APIs
+dotnet_diagnostic.RS0030.severity = error

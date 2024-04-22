@@ -56,5 +56,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<LabelsArray
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => SuggestionLabels.UpdateLabels())
 			.DisposeWith(disposables);
+
+		SuggestionLabels.Activate(disposables);
 	}
 }

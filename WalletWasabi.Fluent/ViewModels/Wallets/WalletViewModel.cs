@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,8 +10,8 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -19,10 +20,12 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[AppLifetime]
 public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
@@ -44,9 +47,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Wallet = wallet;
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
-		CoinJoinSettings = new CoinJoinSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-        BuyViewModel = new BuyViewModel(UiContext, this);
+		BuyViewModel = new BuyViewModel(UiContext, WalletModel);
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -59,11 +61,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		walletModel.HasBalance
-				   .Select(x => !x)
-				   .BindTo(this, x => x.IsWalletBalanceZero);
+			.Select(x => !x)
+			.BindTo(this, x => x.IsWalletBalanceZero);
 
 		walletModel.Coinjoin.IsRunning
-			       .BindTo(this, x => x.IsCoinJoining);
+			.BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
@@ -93,13 +95,23 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletStatsCommand = ReactiveCommand.Create(() => Navigate().To().WalletStats(WalletModel));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 0;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			});
+
+		CoinJoinSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				Settings.SelectedTab = 1;
+				Navigate(NavigationTarget.DialogScreen).To(Settings);
+			});
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!WalletModel.IsWatchOnlyWallet));
-
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel, Settings);
 
 		Tiles = GetTiles().ToList();
 
@@ -133,8 +145,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
-
-	public CoinJoinSettingsViewModel CoinJoinSettings { get; private set; }
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -202,8 +212,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		}
 
 		WalletModel.State
-				   .BindTo(this, x => x.WalletState)
-				   .DisposeWith(disposables);
+			.BindTo(this, x => x.WalletState)
+			.DisposeWith(disposables);
 	}
 
 	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)

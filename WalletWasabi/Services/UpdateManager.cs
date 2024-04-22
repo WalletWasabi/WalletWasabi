@@ -18,7 +18,6 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager : IDisposable
 {
-	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
@@ -38,13 +37,15 @@ public class UpdateManager : IDisposable
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
+	private string InstallerPath { get; set; } = "";
+
 	public string InstallerDir { get; }
 	private IHttpClient HttpClient { get; }
 
-	///<summary>Whether to download the new installer in the background or not.</summary>
+	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
 
-	///<summary>Install new version on shutdown or not.</summary>
+	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker UpdateChecker { get; }
@@ -90,6 +91,10 @@ public class UpdateManager : IDisposable
 					Logger.LogError($"Getting new update failed with error.", ex);
 					Cleanup();
 					break;
+				}
+				catch (InvalidDataException ex)
+				{
+					Logger.LogWarning(ex);
 				}
 				catch (Exception ex)
 				{
@@ -192,10 +197,12 @@ public class UpdateManager : IDisposable
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
 
-		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
+		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException($"Endpoint gave back wrong json data or it's changed.\n{jsonResponse}");
 
-		// "tag_name" will have a 'v' at the beginning, needs to be removed.
-		Version githubVersion = new(softwareVersion[1..]);
+		// Make sure there are no non-numeric characters (besides '.') in the version string.
+		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
+
+		Version githubVersion = new(softwareVersion);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
 		{

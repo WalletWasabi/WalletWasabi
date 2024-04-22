@@ -14,12 +14,14 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tests.Helpers;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
+using WalletWasabi.Wallets;
+using System.Net.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -39,7 +41,9 @@ public class WalletBuilder : IAsyncDisposable
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
-		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
+		Synchronizer = new(period: TimeSpan.FromSeconds(3), BitcoinStore.SmartHeaderChain, HttpClientFactory.SharedWasabiClient, new EventBus());
+		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
+		UnconfirmedTransactionChainProvider = new(HttpClientFactory);
 	}
 
 	private IndexStore IndexStore { get; }
@@ -48,11 +52,14 @@ public class WalletBuilder : IAsyncDisposable
 	private MemoryCache Cache { get; }
 	private WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiSynchronizer Synchronizer { get; }
+	private BlockDownloadService BlockDownloadService { get; }
+	private UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
 	public IEnumerable<FilterModel> Filters { get; }
 	public string DataDir { get; }
 
 	public async Task<WalletWasabi.Wallets.Wallet> CreateRealWalletBasedOnTestWalletAsync(TestWallet wallet, int? minGapLimit = null)
 	{
+		await BlockDownloadService.StartAsync(CancellationToken.None).ConfigureAwait(false);
 		await BitcoinStore.InitializeAsync().ConfigureAwait(false); // StartingFilter already added to IndexStore after this line.
 
 		await BitcoinStore.IndexStore.AddNewFiltersAsync(Filters.Skip(1)).ConfigureAwait(false);
@@ -61,10 +68,9 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		HybridFeeProvider feeProvider = new(Synchronizer, null);
-		SmartBlockProvider blockProvider = new(BitcoinStore.BlockRepository, rpcBlockProvider: null, null, null, Cache);
+		HybridFeeProvider feeProvider = new(new EventBus());
 
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, blockProvider);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService, UnconfirmedTransactionChainProvider);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
@@ -74,6 +80,8 @@ public class WalletBuilder : IAsyncDisposable
 		await Synchronizer.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
+		BlockDownloadService.Dispose();
+		UnconfirmedTransactionChainProvider.Dispose();
 		Cache.Dispose();
 	}
 }

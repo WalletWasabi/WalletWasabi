@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets.BlockProvider;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
@@ -202,6 +203,7 @@ public class BlockDownloadService : BackgroundService
 		{
 			// This shouldn't happen.
 			Logger.LogError(ex);
+			TerminateService.Instance?.SignalGracefulCrash(ex);
 			throw;
 		}
 		finally

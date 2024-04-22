@@ -31,11 +31,14 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Tests.Helpers;
 
 public static class WabiSabiFactory
 {
+	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
+
 	public static Coin CreateCoin(Key? key = null, Money? amount = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		key ??= new();
@@ -112,7 +115,7 @@ public static class WabiSabiFactory
 				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
 			};
 		};
-		mockRpc.OnGetRawTransactionAsync = (_,_) =>
+		mockRpc.OnGetRawTransactionAsync = (_, _) =>
 			Task.FromResult(BitcoinFactory.CreateTransaction());
 
 		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
@@ -293,9 +296,9 @@ public static class WabiSabiFactory
 				round.Parameters.MiningFeeRate,
 				round.Parameters.CoordinationFeeRate,
 				round.Parameters.MaxSuggestedAmount) with
-			{
-				MinInputCountByRound = cfg.MinInputCountByBlameRound
-			};
+		{
+			MinInputCountByRound = cfg.MinInputCountByBlameRound
+		};
 
 		return new BlameRound(
 			parameters: roundParameters,
@@ -375,8 +378,6 @@ public static class WabiSabiFactory
 			});
 		return mockRoundParameterFactory.Object;
 	}
-
-	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
 	{

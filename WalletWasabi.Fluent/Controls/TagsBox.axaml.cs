@@ -200,6 +200,8 @@ public class TagsBox : TemplatedControl
 		{
 			_presenter.Loaded += PresenterOnLoaded;
 		}
+
+		InvalidateWatermark();
 	}
 
 	private void PresenterOnLoaded(object? sender, RoutedEventArgs e)
@@ -287,6 +289,14 @@ public class TagsBox : TemplatedControl
 			.DisposeWith(_compositeDisposable);
 
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
+			.Subscribe(_ =>
+			{
+				InvalidateWatermark();
+				CheckIsCurrentTextValid();
+			})
+			.DisposeWith(_compositeDisposable);
+
+		this.WhenAnyValue(x => x.Items)
 			.Subscribe(_ =>
 			{
 				InvalidateWatermark();
