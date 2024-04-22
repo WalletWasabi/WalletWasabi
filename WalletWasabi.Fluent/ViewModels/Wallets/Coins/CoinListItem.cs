@@ -21,6 +21,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private bool _isCoinjoining;
+	[AutoNotify] private bool _isExcludedFromCoinJoin;
 
 	protected CoinListItem()
 	{
