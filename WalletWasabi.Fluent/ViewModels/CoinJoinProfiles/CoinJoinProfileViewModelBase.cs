@@ -17,8 +17,6 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
 
-	public virtual string OutputWallet { get; }
-
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
 		if (x is null)
@@ -51,8 +49,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 		return profile.AnonScoreTarget == AnonScoreTarget
 			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
 			&& profile.RedCoinIsolation == RedCoinIsolation
-			&& profile.SkipFactors == SkipFactors
-			&& profile.OutputWallet == OutputWallet;
+			&& profile.SkipFactors == SkipFactors;
 	}
 
 	public override int GetHashCode()
