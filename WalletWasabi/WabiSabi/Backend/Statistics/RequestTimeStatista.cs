@@ -124,7 +124,7 @@ public class RequestTimeStatista
 						double maximum = ((double)measure.Max) / TimeSpan.TicksPerSecond;
 						Int128 averageTicks = (Int128)(average * TimeSpan.TicksPerSecond);
 						// Sum((x-m)^2) = Sum(x^2 - 2*x*m + m^2) = Sum(x^2) - 2*Sum(x)*m + n*m^2
-						Int128 stdsqr = measure.SumSqr - 2 * measure.Sum * averageTicks + count * averageTicks * averageTicks;
+						Int128 stdsqr = measure.SumSqr - (2 * measure.Sum * averageTicks) + (count * averageTicks * averageTicks);
 						double stddev = Math.Sqrt(((double)stdsqr) / count) / TimeSpan.TicksPerSecond;
 						Logger.LogInfo($"Responded to {$"'{request.Key}'",-40} {count,7} times. Average: {average:#0.000}s StdDev: {stddev:#0.000} Largest {maximum:#0.000}s.");
 					}
