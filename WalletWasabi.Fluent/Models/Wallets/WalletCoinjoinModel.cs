@@ -16,15 +16,16 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly Wallet _outputWallet;
+	private readonly IWalletSettingsModel _settings;
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
 	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
 	{
 		_wallet = wallet;
+		_settings = settings;
 		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
-		_outputWallet = settings.OutputWallet;
+
 		StatusUpdated =
 			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 					  .Where(x => x.EventArgs.Wallet == wallet)
@@ -74,7 +75,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await _coinJoinManager.StartAsync(_wallet, _outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.StartAsync(_wallet, _settings.OutputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()
