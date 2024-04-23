@@ -93,7 +93,7 @@ public partial class Arena : PeriodicRunner
 
 			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-			await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
+			StepOutputRegistrationPhase();
 
 			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -211,9 +211,20 @@ public partial class Arena : PeriodicRunner
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
 					var alicesDidNotConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
-					foreach (var alice in alicesDidNotConfirm)
+					if (ReasonableOffendersCount(alicesDidNotConfirm.Length, round.Parameters.MinInputCountByRound))
 					{
-						Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+						foreach (var alice in alicesDidNotConfirm)
+						{
+							Prison.FailedToConfirm(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+						}
+					}
+					else
+					{
+						Logger.LogWarning($"{round.Id}: Tried to ban {alicesDidNotConfirm.Length} inputs for FailedToConfirm - ban was skipped.");
+						foreach (var alice in alicesDidNotConfirm)
+						{
+							Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+						}
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidNotConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -221,19 +232,30 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it is too late to do any
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
-						var offendingAliceCounter = 0;
+						var allOffendingAlices = new List<Alice>();
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
-							foreach (var offender in offendingAlices)
-							{
-								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
-								offendingAliceCounter++;
-							}
+							allOffendingAlices.AddRange(offendingAlices);
 						}
 
-						if (offendingAliceCounter > 0)
+						if (ReasonableOffendersCount(allOffendingAlices.Count, round.Parameters.MinInputCountByRound))
 						{
-							round.LogInfo($"There were {offendingAliceCounter} alices that spent the registered UTXO. Aborting...");
+							foreach (var offender in allOffendingAlices)
+							{
+								Prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
+							}
+						}
+						else
+						{
+							Logger.LogWarning($"{round.Id}: Tried to ban {allOffendingAlices.Count} inputs for FailedToConfirm - ban was skipped.");
+							foreach (var alice in allOffendingAlices)
+							{
+								Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+							}
+						}
+						if (allOffendingAlices.Count > 0)
+						{
+							round.LogInfo($"There were {allOffendingAlices.Count} alices that spent the registered UTXO. Aborting...");
 
 							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
@@ -260,7 +282,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async Task StepOutputRegistrationPhaseAsync(CancellationToken cancellationToken)
+	private void StepOutputRegistrationPhase()
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 		{
@@ -435,9 +457,20 @@ public partial class Arena : PeriodicRunner
 			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
-		foreach (var alice in alicesWhoDidNotSign)
+		if (ReasonableOffendersCount(alicesWhoDidNotSign.Count, round.Parameters.MinInputCountByRound))
 		{
-			Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			foreach (var alice in alicesWhoDidNotSign)
+			{
+				Prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			}
+		}
+		else
+		{
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesWhoDidNotSign.Count} inputs for FailedToConfirm - ban was skipped.");
+			foreach (var alice in alicesWhoDidNotSign)
+			{
+				Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+			}
 		}
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
@@ -451,10 +484,21 @@ public partial class Arena : PeriodicRunner
 	{
 		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
 
-		foreach (var alice in alicesToRemove)
+		if (ReasonableOffendersCount(alicesToRemove.Count, round.Parameters.MinInputCountByRound))
 		{
-			// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
-			Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			foreach (var alice in alicesToRemove)
+			{
+				// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
+				Prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+			}
+		}
+		else
+		{
+			Logger.LogWarning($"{round.Id}: Tried to ban {alicesToRemove.Count} inputs for FailedToConfirm - ban was skipped.");
+			foreach (var alice in alicesToRemove)
+			{
+				Prison.BackendStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+			}
 		}
 
 		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
@@ -750,4 +794,10 @@ public partial class Arena : PeriodicRunner
 		}
 		base.Dispose();
 	}
+
+	/// <summary>
+	/// If too many inputs seem to misbehave, problem is probably on coordinator's side.
+	/// Don't ban in that case to avoid huge amount of false-positives.
+	/// </summary>
+	private static bool ReasonableOffendersCount(int offendersCount, int minInputCount) => offendersCount <= minInputCount;
 }
