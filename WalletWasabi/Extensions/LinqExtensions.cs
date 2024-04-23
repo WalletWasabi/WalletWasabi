@@ -179,13 +179,14 @@ public static class LinqExtensions
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
 		me.DefaultIfEmpty(defaultValue).Max();
 
-	public static double Median(this IEnumerable<double> me)
+	public static double? Median(this IEnumerable<double> me)
 	{
 		if (!me.Any())
 		{
-			return 0;
+			return null;
 		}
-		var sorted = me.OrderBy(x => x).ToArray();
+
+		var sorted = me.Order().ToArray();
 		return sorted[sorted.Length / 2];
 	}
 
