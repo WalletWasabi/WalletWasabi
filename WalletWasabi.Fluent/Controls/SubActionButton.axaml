@@ -75,7 +75,7 @@
                       <Setter.Value>
                         <DataTemplate DataType="IUICommand">
                           <DockPanel>
-                            <Ellipse IsVisible="{Binding IsDefault}" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="7" Width="7" Fill="{DynamicResource AccentButtonBackground}" />
+                            <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="7" Width="7" Fill="{DynamicResource AccentButtonBackground}" />
                             <TextBlock Text="{Binding Name}" />
                           </DockPanel>
                         </DataTemplate>
