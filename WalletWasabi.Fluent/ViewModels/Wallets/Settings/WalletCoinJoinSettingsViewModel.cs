@@ -1,10 +1,14 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -24,24 +28,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 	Searchable = false)]
 public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
+	public UiContext UiContext { get; }
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
-	[AutoNotify] private Wallet? _selectedOutputWallet;
-	[AutoNotify] private ObservableCollection<Wallet> _wallets;
+	[AutoNotify] private IWalletModel _selectedOutputWallet;
+	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets;
 
-	private WalletCoinJoinSettingsViewModel(IWalletModel walletModel)
+	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
+		UiContext = uiContext;
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
-		_selectedOutputWallet = _wallet.Settings.OutputWallet;
+		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Name == _wallet.Settings.OutputWallet.WalletName);
 
-		_wallets = new ObservableCollection<Wallet>(Services.WalletManager.GetWallets());
+		UiContext.WalletRepository
+			.Wallets
+			.Connect()
+			.SortBy(i => i.Name)
+			.Bind(out var wallets)
+			.Subscribe();
+
+		_wallets = wallets;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -93,7 +106,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Subscribe(
 				x =>
 				{
-					_wallet.Settings.OutputWallet = x;
+					_wallet.Settings.OutputWallet = x.Wallet;
 					_wallet.Settings.Save();
 				});
 

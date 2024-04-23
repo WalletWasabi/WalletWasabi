@@ -5,6 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              xmlns:wallets="clr-namespace:WalletWasabi.Wallets;assembly=WalletWasabi"
+             xmlns:wallets1="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
              x:DataType="vm:WalletCoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
@@ -34,8 +35,8 @@
         <TextBlock Text="Output Wallet" />
         <ComboBox ItemsSource="{Binding Wallets}"  SelectedItem="{Binding SelectedOutputWallet}">
           <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="wallets:Wallet">
-              <TextBlock Text="{Binding WalletName}" />
+            <DataTemplate x:DataType="wallets1:IWalletModel">
+              <TextBlock Text="{Binding Name}" />
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>

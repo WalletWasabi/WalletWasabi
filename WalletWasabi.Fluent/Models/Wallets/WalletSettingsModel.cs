@@ -1,10 +1,12 @@
 using System.Linq;
+using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
@@ -26,7 +28,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
-	[AutoNotify] private Wallet? _outputWallet;
+	[AutoNotify] private Wallet _outputWallet;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -45,24 +47,21 @@ public partial class WalletSettingsModel : ReactiveObject
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 		_outputWallet = Services.WalletManager.GetWallets().ToList()
-			.FirstOrDefault(x => x.WalletName == keyManager.OutputWalletName) ?? null;
+			.FirstOrDefault(x => x.WalletName == keyManager.OutputWalletName) ?? Services.WalletManager.GetWallets().ToList().First(x => x.WalletName == keyManager.WalletName);
 
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
-			x => x.AutoCoinjoin,
-			x => x.IsCoinjoinProfileSelected,
-			x => x.PreferPsbtWorkflow,
-			x => x.PlebStopThreshold,
-			x => x.AnonScoreTarget,
-			x => x.RedCoinIsolation,
-			x => x.FeeRateMedianTimeFrameHours)
+				x => x.AutoCoinjoin,
+				x => x.IsCoinjoinProfileSelected,
+				x => x.PreferPsbtWorkflow,
+				x => x.PlebStopThreshold,
+				x => x.AnonScoreTarget,
+				x => x.RedCoinIsolation,
+				x => x.FeeRateMedianTimeFrameHours,
+				x => x.OutputWallet,
+				(_, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
-			.Do(_ => SetValues())
-			.Subscribe();
-
-		this.WhenAnyValue(
-				x => x.OutputWallet)
 			.Do(_ => SetValues())
 			.Subscribe();
 
@@ -110,7 +109,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.CoinjoinSkipFactors = CoinjoinSkipFactors;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
-		_keyManager.OutputWalletName = OutputWallet?.WalletName ?? null;
+		_keyManager.OutputWalletName = OutputWallet.WalletName;
 
 		_isDirty = true;
 	}
