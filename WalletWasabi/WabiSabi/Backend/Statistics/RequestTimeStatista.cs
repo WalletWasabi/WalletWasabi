@@ -60,7 +60,7 @@ public class RequestTimeStatista
 	private object LongDataLock { get; } = new();
 	private object TickDataLock { get; } = new();
 
-	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(30);
+	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(60);
 
 	public void Add(string request, long value)
