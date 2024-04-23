@@ -77,8 +77,11 @@ public class UpdateManager : IDisposable
 					(string installerPath, Version newVersion) = await GetInstallerAsync(targetVersion, CancellationToken).ConfigureAwait(false);
 					InstallerPath = installerPath;
 					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
-					updateStatus.IsReadyToInstall = true;
-					updateStatus.ClientVersion = newVersion;
+					updateStatus = updateStatus with
+					{
+						IsReadyToInstall = true,
+						ClientVersion = newVersion
+					};
 					break;
 				}
 				catch (OperationCanceledException ex)
