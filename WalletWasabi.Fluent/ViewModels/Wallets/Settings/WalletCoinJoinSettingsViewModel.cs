@@ -101,7 +101,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.SelectedOutputWallet)
 			.Skip(1)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(
 				x =>
