@@ -176,6 +176,9 @@ public class SuggestionLabelsViewModelTests
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
+
+		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
+
 		public WalletId Id => throw new NotSupportedException();
 
 		public string Name

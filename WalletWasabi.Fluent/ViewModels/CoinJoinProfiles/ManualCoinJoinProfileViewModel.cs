@@ -11,7 +11,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		int feeRateMedianTimeFrameHours,
 		bool redCoinIsolation,
 		CoinjoinSkipFactors skipFactors,
-		Wallet outputWallet)
+		string outputWallet)
 	{
 		AnonScoreTarget = anonScoreTarget;
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
@@ -40,5 +40,5 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	public override bool RedCoinIsolation { get; }
 	public override CoinjoinSkipFactors SkipFactors { get; }
 
-	public override Wallet OutputWallet { get; }
+	public override string OutputWallet { get; }
 }

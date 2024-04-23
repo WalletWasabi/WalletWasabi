@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -35,7 +36,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
-	[AutoNotify] private IWalletModel _selectedOutputWallet;
+	[AutoNotify] private IWalletModel _selectedOutputWalletName;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets;
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
@@ -45,11 +46,12 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
-		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Name == _wallet.Settings.OutputWallet.WalletName);
+		_selectedOutputWalletName = UiContext.WalletRepository.Wallets.Items.First(x => x.Name == _wallet.Settings.OutputWallet);
 
 		UiContext.WalletRepository
 			.Wallets
 			.Connect()
+			.Filter(x => x.Id == _wallet.Id || x.Settings.OutputWallet != _wallet.Name)
 			.SortBy(i => i.Name)
 			.Bind(out var wallets)
 			.Subscribe();
@@ -99,13 +101,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					}
 				});
 
-		this.WhenAnyValue(x => x.SelectedOutputWallet)
+		this.WhenAnyValue(x => x.SelectedOutputWalletName)
 			.Skip(1)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(
 				x =>
 				{
-					_wallet.Settings.OutputWallet = x.Wallet;
+					_wallet.Settings.OutputWallet = x.Name;
 					_wallet.Settings.Save();
 				});
 

@@ -28,7 +28,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
-	[AutoNotify] private Wallet _outputWallet;
+	[AutoNotify] private string _outputWallet;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -47,7 +47,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 		_outputWallet = Services.WalletManager.GetWallets().ToList()
-			.FirstOrDefault(x => x.WalletName == keyManager.OutputWalletName) ?? Services.WalletManager.GetWallets().ToList().First(x => x.WalletName == keyManager.WalletName);
+			.FirstOrDefault(x => x.WalletName == keyManager.OutputWalletName)?.WalletName ?? keyManager.WalletName;
 
 		WalletType = WalletHelpers.GetType(_keyManager);
 
@@ -109,7 +109,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.CoinjoinSkipFactors = CoinjoinSkipFactors;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
-		_keyManager.OutputWalletName = OutputWallet.WalletName;
+		_keyManager.OutputWalletName = OutputWallet;
 
 		_isDirty = true;
 	}

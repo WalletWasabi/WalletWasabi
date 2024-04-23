@@ -33,7 +33,7 @@
 
       <DockPanel>
         <TextBlock Text="Output Wallet" />
-        <ComboBox ItemsSource="{Binding Wallets}"  SelectedItem="{Binding SelectedOutputWallet}">
+        <ComboBox ItemsSource="{Binding Wallets}" SelectedItem="{Binding SelectedOutputWalletName}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="wallets1:IWalletModel">
               <TextBlock Text="{Binding Name}" />

@@ -17,7 +17,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
 
-	public virtual Wallet OutputWallet { get; }
+	public virtual string OutputWallet { get; }
 
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
