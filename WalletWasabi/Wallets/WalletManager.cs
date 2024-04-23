@@ -118,6 +118,8 @@ public class WalletManager : IWalletProvider
 			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
 		}
 
+		string oldWalletName = wallet.WalletName;
+
 		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
 		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
 
@@ -134,6 +136,15 @@ public class WalletManager : IWalletProvider
 		}
 
 		wallet.KeyManager.SetFilePath(newWalletFilePath);
+
+		foreach (Wallet actualWallet in Wallets)
+		{
+			if (actualWallet.KeyManager.OutputWalletName != null && actualWallet.KeyManager.OutputWalletName.Equals(oldWalletName, StringComparison.OrdinalIgnoreCase))
+			{
+				actualWallet.KeyManager.OutputWalletName = newWalletName;
+				actualWallet.KeyManager.ToFile();
+			}
+		}
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
