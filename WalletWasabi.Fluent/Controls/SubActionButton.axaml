@@ -17,8 +17,19 @@
                               Classes="Icon" />
                   </UICommandDesign.Icon>
                 </UICommandDesign>
-                <UICommandDesign Name="Command 2" />
-                <UICommandDesign Name="Command 3" />
+                <UICommandDesign Name="Command 2">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+
+                <UICommandDesign Name="Command 3">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
               </UICommandCollection>
             </SubActionButton.SubCommands>
           </SubActionButton>
@@ -60,7 +71,16 @@
                 <MenuFlyout.ItemContainerTheme>
                   <ControlTheme TargetType="MenuItem" 
                                 BasedOn="{StaticResource {x:Type MenuItem}}">
-                    <Setter x:DataType="IUICommand" Property="Header" Value="{Binding Name}" />
+                    <Setter x:DataType="IUICommand" Property="HeaderTemplate">
+                      <Setter.Value>
+                        <DataTemplate DataType="IUICommand">
+                          <DockPanel>
+                            <Ellipse IsVisible="{Binding IsDefault}" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="7" Width="7" Fill="{DynamicResource AccentButtonBackground}" />
+                            <TextBlock Text="{Binding Name}" />
+                          </DockPanel>
+                        </DataTemplate>
+                      </Setter.Value>
+                    </Setter>
                     <Setter x:DataType="IUICommand" Property="Icon" Value="{Binding Icon}" />
                     <Setter x:DataType="IUICommand" Property="Command" Value="{Binding Command}" />
                   </ControlTheme>
