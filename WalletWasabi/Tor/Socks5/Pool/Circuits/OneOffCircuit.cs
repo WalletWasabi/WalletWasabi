@@ -12,7 +12,7 @@ public class OneOffCircuit : INamedCircuit, IDisposable
 
 	public OneOffCircuit(string? purpose = null)
 	{
-		Name = RandomString.CapitalAlphaNumeric(21);
+		Name = RandomString.CapitalAlphaNumeric(21, secureRandom: true);
 		_isActive = true;
 		Purpose = purpose;
 	}
