@@ -144,8 +144,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
+		HybridFeeProvider feeProvider = new(global.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -161,7 +161,9 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			[specificNodeBlockProvider],
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService));
+		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
+
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider));
 		walletManager.Initialize();
 
 		nodes.Connect(); // Start connection service.
@@ -245,8 +247,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-
-		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
+		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath, new EventBus());
 		try
 		{
 			indexBuilderService.Synchronize();

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wasabiwallet.io">
-    <img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
+    <img src="https://github.com/zkSNACKs/WalletWasabi/blob/master/ui-ww.png">
   </a>
 </p>
 
@@ -61,8 +61,6 @@
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
 <br>
-
-![](/ui-ww.png)
 
 # Build From Source Code
 

@@ -10,6 +10,7 @@
   (fetchNuGet { pname = "Microsoft.Build.Runtime"; version = "15.3.409"; sha256 = "135ycnqz5jfg61y5zaapgc7xdpjx2aq4icmxb9ph7h5inl445q7q"; })
   (fetchNuGet { pname = "Microsoft.Build.Tasks.Core"; version = "15.3.409"; sha256 = "135swyygp7cz2civwsz6a7dj7h8bzp7yrybmgxjanxwrw66hm933"; })
   (fetchNuGet { pname = "Microsoft.Build.Utilities.Core"; version = "15.3.409"; sha256 = "1p8a0l9sxmjj86qha748qjw2s2n07q8mn41mj5r6apjnwl27ywnf"; })
+  (fetchNuGet { pname = "Microsoft.CodeAnalysis.BannedApiAnalyzers"; version = "3.3.4"; sha256 = "1vzrni7n94f17bzc13lrvcxvgspx9s25ap1p005z6i1ikx6wgx30"; })
   (fetchNuGet { pname = "Microsoft.CSharp"; version = "4.3.0"; sha256 = "0gw297dgkh0al1zxvgvncqs0j15lsna9l1wpqas4rflmys440xvb"; })
   (fetchNuGet { pname = "Microsoft.CSharp"; version = "4.7.0"; sha256 = "0gd67zlw554j098kabg887b5a6pq9kzavpa3jjy5w53ccjzjfy8j"; })
   (fetchNuGet { pname = "Microsoft.Data.Sqlite"; version = "8.0.0"; sha256 = "02y3y3x4ggxcjcrnazwxdi08xmwabaalrm40rwjdij072x5va3yi"; })

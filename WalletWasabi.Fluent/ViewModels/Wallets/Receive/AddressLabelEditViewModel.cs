@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -32,4 +33,11 @@ public partial class AddressLabelEditViewModel : DialogViewModelBase<LabelsArray
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		SuggestionLabels.Activate(disposables);
+	}
 }

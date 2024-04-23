@@ -7,6 +7,16 @@
 	<Nullable>enable</Nullable>
 	<Deterministic>true</Deterministic>
 	<InvariantGlobalization>true</InvariantGlobalization>
-	 <WarningsAsErrors>false</WarningsAsErrors>
+	<WarningsAsErrors>false</WarningsAsErrors>
+
+	<!-- Audit both top-level and transitive dependencies for vulnerabilities in NuGet packages. -->
+	<!-- https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#setting-a-security-audit-mode -->
+	<NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
  </PropertyGroup>
+
+ <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+	<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt"/>
+ </ItemGroup>
 </Project>

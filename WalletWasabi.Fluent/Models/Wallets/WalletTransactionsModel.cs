@@ -46,8 +46,14 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
+		RequestedUnconfirmedTxChainArrived =
+			Observable.FromEventPattern<EventArgs>(wallet.UnconfirmedTransactionChainProvider, nameof(wallet.UnconfirmedTransactionChainProvider.RequestedUnconfirmedChainArrived)).ToSignal()
+				.ObserveOn(RxApp.MainThreadScheduler);
+
 		Cache =
-			TransactionProcessed.Fetch(BuildSummary, model => model.Id)
+			TransactionProcessed
+			.Merge(RequestedUnconfirmedTxChainArrived)
+			.Fetch(BuildSummary, model => model.Id)
 								.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
@@ -60,6 +66,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
+	public IObservable<Unit> RequestedUnconfirmedTxChainArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -91,7 +98,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		}
 
 		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
 				? estimate
 				: null;
 	}

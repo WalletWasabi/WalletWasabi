@@ -40,11 +40,6 @@ public static class Constants
 	public const int P2shInputVirtualSize = 297; // we assume a 2-of-n multisig
 	public const int P2shOutputVirtualSize = 32;
 
-	/// <summary>
-	/// OBSOLATED, USE SPECIFIC TYPE
-	/// </summary>
-	public const int OutputSizeInBytes = 33;
-
 	// https://en.bitcoin.it/wiki/Bitcoin
 	// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 	public const long MaximumNumberOfSatoshis = 2099999997690000;
@@ -79,6 +74,9 @@ public static class Constants
 	/// <summary>Executable file name of Wasabi Wallet UI application (without extension).</summary>
 	public const string ExecutableName = "wassabee";
 
+	/// <summary>Plist name, only for MacOs. Starts Wasabi with -startsilent argument.</summary>
+	public const string SilentPlistName = "com.wasabiwallet.startup.plist";
+
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
@@ -86,9 +84,9 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 6, 0);
+	public static readonly Version ClientVersion = new(2, 0, 7, 1);
 
-	public static readonly Version HwiVersion = new("2.4.0");
+	public static readonly Version HwiVersion = new("3.0.0");
 	public static readonly Version BitcoinCoreVersion = new("23.0");
 	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);

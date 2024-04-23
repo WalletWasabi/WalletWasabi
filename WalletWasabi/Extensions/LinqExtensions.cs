@@ -178,4 +178,25 @@ public static class LinqExtensions
 
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
 		me.DefaultIfEmpty(defaultValue).Max();
+
+	public static double Median(this IEnumerable<double> me)
+	{
+		if (!me.Any())
+		{
+			return 0;
+		}
+		var sorted = me.OrderBy(x => x).ToArray();
+		return sorted[sorted.Length / 2];
+	}
+
+	public static double StdDev(this IEnumerable<double> values)
+	{
+		var mean = values.Average();
+		var squaresSum = values
+			.Select(x => x - mean)
+			.Select(x => x * x)
+			.Sum();
+
+		return Math.Sqrt(squaresSum / values.Count());
+	}
 }

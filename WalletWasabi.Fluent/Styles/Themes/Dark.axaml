@@ -4,7 +4,7 @@
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
 
-  <Color x:Key="SystemAccentColor">#77C400</Color>
+  <Color x:Key="SystemAccentColor">#FF63A300</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemAltLowColor">#FF000000</Color>
   <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -34,12 +34,12 @@
   <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
   <Color x:Key="SystemRevealListLowColor">#262626</Color>
   <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF63AF00</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF4F9A00</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF3C8600</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF87CC1E</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF98D43C</Color>
-  <Color x:Key="SystemAccentColorLight3">#FFA8DB5A</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF539000</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF427D00</Color>
+  <Color x:Key="SystemAccentColorDark3">#FF326B00</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF76AF1E</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF89BB3C</Color>
+  <Color x:Key="SystemAccentColorLight3">#FF9BC75B</Color>
   <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
   <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
@@ -126,7 +126,7 @@
   <Color x:Key="NetworkBadgeColor">Gold</Color>
 
   <!-- MusicBox -->
-  <Color x:Key="CoinjoinWaveDefaultColor">#77C400</Color>
+  <Color x:Key="CoinjoinWaveDefaultColor">#FF63A300</Color>
   <Color x:Key="CoinjoinWaveCriticalColor">#FF7800</Color>
 
   <!-- BuyAnything -->
@@ -141,8 +141,8 @@
   <!-- WalletIcon -->
   <Color x:Key="WalletIconBackgroundStartColor">#FF646464</Color>
   <Color x:Key="WalletIconBackgroundEndColor">#FF333333</Color>
-  <Color x:Key="WalletIconAccentStartColor">#FF77C400</Color>
-  <Color x:Key="WalletIconAccentEndColor">#FF94D12A</Color>
+  <Color x:Key="WalletIconAccentStartColor">#63A300</Color>
+  <Color x:Key="WalletIconAccentEndColor">#7EB230</Color>
   <Color x:Key="WalletIconForegroundColor">#FFDBDBDB</Color>
   <Color x:Key="WalletIconShadeColor1">#0077C400</Color>
   <Color x:Key="WalletIconShadeColor2">#03355700</Color>

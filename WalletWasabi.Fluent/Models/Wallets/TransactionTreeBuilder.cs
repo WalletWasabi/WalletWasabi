@@ -190,6 +190,17 @@ public class TransactionTreeBuilder
 				: TransactionStatus.SpeedUp,
 		};
 
+		var dates = children.Select(tx => tx.Date).ToImmutableArray();
+		var firstDate = dates.Min().ToLocalTime();
+		var lastDate = dates.Max().ToLocalTime();
+		if (firstDate.Day == lastDate.Day)
+		{
+			foreach (var child in children)
+			{
+				child.DateString = child.Date.ToLocalTime().ToOnlyTimeString();
+			}
+		}
+
 		foreach (var child in children)
 		{
 			result.Add(child);
@@ -227,10 +238,19 @@ public class TransactionTreeBuilder
 
 		coinjoinGroup.DateString = lastDate.ToUserFacingFriendlyString();
 
-		coinjoinGroup.DateToolTipString =
-			firstDate.Day == lastDate.Day
-			? $"{firstDate.ToUserFacingString(withTime: false)}"
-			: $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
+		if (firstDate.Day == lastDate.Day)
+		{
+			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: false)}";
+
+			foreach (var child in coinjoinGroup.Children)
+			{
+				child.DateString = child.Date.ToLocalTime().ToOnlyTimeString();
+			}
+		}
+		else
+		{
+			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
+		}
 	}
 
 	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary)
@@ -254,7 +274,8 @@ public class TransactionTreeBuilder
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
-			Fee = transactionSummary.GetFee()
+			Fee = transactionSummary.GetFee(),
+			FeeRate = transactionSummary.FeeRate()
 		};
 	}
 
@@ -318,7 +339,7 @@ public class TransactionTreeBuilder
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, smartTransaction, out var estimate)
+		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
 			? TextHelpers.TimeSpanToFriendlyString(estimate.Value)
 			: "";
 

@@ -13,6 +13,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -20,6 +21,7 @@ using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
+[AppLifetime]
 public partial class HistoryViewModel : ActivatableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -221,7 +223,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			TransactionType.Coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
 			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, transaction, parent),
+			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, _wallet, transaction, parent),
 			_ => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction)
 		};
 

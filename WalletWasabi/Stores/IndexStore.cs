@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores;
 
@@ -24,6 +23,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		SmartHeaderChain = smartHeaderChain;
+		Network = network;
 
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
@@ -39,9 +39,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			File.Delete(NewIndexFilePath);
 		}
 
+		IndexStorage = CreateBlockFilterSqliteStorage();
+	}
+
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
+	{
 		try
 		{
-			IndexStorage = BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(network));
+			return BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(Network));
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
@@ -70,6 +75,9 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	/// <summary>Run migration if SQLite file does not exist.</summary>
 	private bool RunMigration { get; }
 
+	/// <summary>NBitcoin network.</summary>
+	private Network Network { get; }
+
 	private SmartHeaderChain SmartHeaderChain { get; }
 
 	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
@@ -78,7 +86,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
-	private BlockFilterSqliteStorage IndexStorage { get; }
+	private BlockFilterSqliteStorage IndexStorage { get; set; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
 	private AsyncLock IndexLock { get; } = new();
@@ -194,11 +202,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			Logger.LogError(ex);
 
+			IndexStorage.Dispose();
 			SqliteConnection.ClearAllPools();
 
 			// Do not run migration code again if it fails.
 			File.Delete(NewIndexFilePath);
 			File.Delete(OldIndexFilePath);
+
+			IndexStorage = CreateBlockFilterSqliteStorage();
 		}
 	}
 
@@ -280,6 +291,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 					}
 
 					processed++;
+					SmartHeaderChain.SetServerTipHeight(Math.Max(SmartHeaderChain.ServerTipHeight, filter.Header.Height));
 				}
 			}
 			finally
@@ -317,14 +329,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			{
 				if (!IndexStorage.TryRemoveLast(out filter))
 				{
-					throw new InvalidOperationException("No last filter.");
+					return null;
 				}
 			}
 			else
 			{
 				if (!IndexStorage.TryRemoveLastIfNewerThan(height.Value, out filter))
 				{
-					throw new InvalidOperationException("No last filter.");
+					return null;
 				}
 			}
 
