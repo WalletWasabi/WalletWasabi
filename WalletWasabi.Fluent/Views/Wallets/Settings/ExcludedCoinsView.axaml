@@ -29,6 +29,7 @@
         <ToggleButton Theme="{StaticResource DialogButton}" Command="{Binding ToggleSelectionCommand}" IsChecked="{Binding HasSelection}">
           <ToggleButton.Styles>
             <Style Selector="ToggleButton[IsChecked=True]">
+              <Setter Property="ToolTip.Tip" Value="Unselect all" />
               <Setter Property="ContentTemplate">
                 <Setter.Value>
                   <DataTemplate>
@@ -38,6 +39,7 @@
               </Setter>
             </Style>
             <Style Selector="ToggleButton[IsChecked=False]">
+              <Setter Property="ToolTip.Tip" Value="Select all" />
               <Setter Property="ContentTemplate">
                 <Setter.Value>
                   <DataTemplate>

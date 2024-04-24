@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -22,7 +21,6 @@ public partial class WalletModel : ReactiveObject
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
-	private ReadOnlyObservableCollection<ICoinModel> _excludedCoins;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -77,7 +75,7 @@ public partial class WalletModel : ReactiveObject
 		set
 		{
 			var excludedOutpoints = value.Select(x => x.GetSmartCoin().Outpoint).ToHashSet();
-			
+
 			foreach (var coin in Wallet.Coins)
 			{
 				Wallet.ExcludeCoinFromCoinJoin(coin.Outpoint, excludedOutpoints.Contains(coin.Outpoint));

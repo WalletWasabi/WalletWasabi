@@ -31,7 +31,8 @@ public class PocketViewModel : CoinListItem, IDisposable
 		AnonymityScore = GetAnonScore(pocketCoins);
 		Labels = pocket.Labels;
 		Children =
-			pocketCoins.Select(wallet.Coins.GetCoinModel)
+			pocketCoins
+				.Select(wallet.Coins.GetCoinModel)
 				.OrderByDescending(x => x.AnonScore)
 				.Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
 				.ToList();
@@ -51,39 +52,36 @@ public class PocketViewModel : CoinListItem, IDisposable
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Select(c => Children.Where(x => x.Coin.IsSameAddress(c.Sender.Coin) && x.IsSelected != c.Sender.IsSelected))
-			.Do(
-				coins =>
+			.Do(coins =>
+			{
+				// Select/deselect all the coins on the same address.
+				foreach (var coin in coins)
 				{
-					// Select/deselect all the coins on the same address.
-					foreach (var coin in coins)
-					{
-						coin.IsSelected = !coin.IsSelected;
-					}
-				})
-			.Select(
-				_ =>
-				{
-					var totalCount = Children.Count;
-					var selectedCount = Children.Count(x => x.IsSelected == true);
-					return (bool?) (selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
-				})
+					coin.IsSelected = !coin.IsSelected;
+				}
+			})
+			.Select(_ =>
+			{
+				var totalCount = Children.Count;
+				var selectedCount = Children.Count(x => x.IsSelected == true);
+				return (bool?)(selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
+			})
 			.BindTo(this, x => x.IsSelected)
 			.DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.IsSelected)
-			.Do(
-				isSelected =>
+			.Do(isSelected =>
+			{
+				if (isSelected is null)
 				{
-					if (isSelected is null)
-					{
-						return;
-					}
+					return;
+				}
 
-					foreach (var item in Children)
-					{
-						item.IsSelected = isSelected.Value;
-					}
-				})
+				foreach (var item in Children)
+				{
+					item.IsSelected = isSelected.Value;
+				}
+			})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
