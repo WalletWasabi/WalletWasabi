@@ -27,18 +27,18 @@
           <ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
           <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
-            <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
+            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
               <Button Name="PART_CancelButton"
                       Classes="invisible"
                       IsVisible="{TemplateBinding EnableCancel}"
                       Content="{TemplateBinding CancelContent}"
-                      HorizontalAlignment="Left" Command="{Binding CancelCommand}">
+                      DockPanel.Dock="Left" Command="{Binding CancelCommand}">
                 <Interaction.Behaviors>
                   <FocusOnAttachedBehavior
                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                 </Interaction.Behaviors>
               </Button>
-              <DockPanel>
+              
                 <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Right">
                   <Button Name="PART_SkipButton"
                           IsVisible="{TemplateBinding EnableSkip}"
@@ -59,8 +59,7 @@
                 </StackPanel>
                 <ContentPresenter Content="{TemplateBinding BottomContent}"
                                   x:Name="PART_BottomContentPresenter" />
-              </DockPanel>
-            </Panel>
+            </DockPanel>
 
             <Panel DockPanel.Dock="Top">
               <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />

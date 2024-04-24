@@ -37,8 +37,8 @@
               </StackPanel>
             </Button>
 
-            <SubActionButton Content="Subaction Button"
-                             Icon="{StaticResource wallet_action_buy}"
+            <SubActionButton Content="Send"
+                             Icon="{StaticResource wallet_action_send}"
                              Command="{Binding SendCommand}"
                              IsVisible="{Binding IsSendButtonVisible}">
               <SubActionButton.SubCommands>

@@ -15,17 +15,21 @@
                ScrollViewer.VerticalScrollBarVisibility="Disabled"
                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <ContentArea.TopContent>
-      <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}"  ToolTip.Tip="Sorting">
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedRight">
-            <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
-          </Flyout>
-        </Button.Flyout>
-      </Button>
+      <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
+        <Button Theme="{StaticResource DialogSortButton}"  ToolTip.Tip="Sorting">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        
+      </StackPanel>
+
     </ContentArea.TopContent>
     <ContentArea.BottomContent>
       <!-- Selected Amount -->
-      <AmountControl Amount="{Binding SelectedAmount^}"/>
+      <AmountControl Amount="{Binding SelectedAmount^}" Classes="Material" HorizontalAlignment="Center"/>
     </ContentArea.BottomContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </ContentArea>

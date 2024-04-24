@@ -34,6 +34,25 @@
       </Setter>
     </Style>
 
+    <Style Selector="^.Material">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{DynamicResource TileRegionColor}"
+                  Padding="10" CornerRadius="10">
+            <StackPanel Orientation="Horizontal" Spacing="5"
+                      DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
+                      IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
+                         Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}"/>
+              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
+                         Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdFormatted}}"
+                         Opacity="0.6"/>
+            </StackPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
   </ControlTheme>
 
 </ResourceDictionary>
