@@ -1,0 +1,97 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Design.PreviewWith>
+    <Border Width="500" Height="500">
+      <Border Padding="60">
+        <StackPanel Spacing="20">
+
+          <SplitButton>Split button</SplitButton>
+
+          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
+            <SubActionButton.SubCommands>
+              <UICommandCollection>
+                <UICommandDesign Name="Command 2">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+                <UICommandDesign Name="Command 2">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+
+                <UICommandDesign Name="Command 3">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
+                              Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+              </UICommandCollection>
+            </SubActionButton.SubCommands>
+          </SubActionButton>
+
+          <Button Theme="{StaticResource FunctionButton}">Hola</Button>
+          <Button Classes="function">Hola</Button>
+
+        </StackPanel>
+      </Border>
+    </Border>
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type SubActionButton}"
+                TargetType="SubActionButton">
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinHeight" Value="33" />
+    <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <SplitButton Command="{TemplateBinding Command}"
+                       BorderThickness="{TemplateBinding BorderThickness}"
+                       Padding="{TemplateBinding Padding}"
+                       BorderBrush="{TemplateBinding BorderBrush}"
+                       Foreground="{TemplateBinding Foreground}"
+                       Content="{TemplateBinding Content}"
+                       Theme="{StaticResource FunctionSplitButton}">
+            <SplitButton.ContentTemplate>
+              <DataTemplate>
+                <DockPanel>
+                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 10 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" />
+                  <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
+                </DockPanel>
+              </DataTemplate>
+            </SplitButton.ContentTemplate>
+            <SplitButton.Flyout>
+              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
+                <MenuFlyout.ItemContainerTheme>
+                  <ControlTheme TargetType="MenuItem"
+                                BasedOn="{StaticResource {x:Type MenuItem}}">
+                    <Setter x:DataType="IUICommand" Property="HeaderTemplate">
+                      <Setter.Value>
+                        <DataTemplate DataType="IUICommand">
+                          <DockPanel>
+                            <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="8" Width="8" Fill="{DynamicResource SystemAccentColor}" />
+                            <TextBlock Text="{Binding Name}" />
+                          </DockPanel>
+                        </DataTemplate>
+                      </Setter.Value>
+                    </Setter>
+                    <Setter x:DataType="IUICommand" Property="Icon" Value="{Binding Icon}" />
+                    <Setter x:DataType="IUICommand" Property="Command" Value="{Binding Command}" />
+                  </ControlTheme>
+                </MenuFlyout.ItemContainerTheme>
+              </MenuFlyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+
+  </ControlTheme>
+
+</ResourceDictionary>
