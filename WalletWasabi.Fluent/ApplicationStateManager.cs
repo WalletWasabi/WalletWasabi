@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -35,7 +36,7 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 
-		if (Application.Current?.TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatableLifetime)
+		if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
 		{
 			if (startInBg)
 			{
@@ -187,7 +188,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		MainViewModel.Instance.ApplyUiConfigWindowState();
 
-		if (Application.Current?.TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatableLifetime)
+		if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
 		{
 			activatableLifetime.TryLeaveBackground();
 		}
