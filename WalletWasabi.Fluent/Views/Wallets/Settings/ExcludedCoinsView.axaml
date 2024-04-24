@@ -18,13 +18,16 @@
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <ContentArea.Caption>The chosen coins will be excluded from Coinjoin. It's important to note that there will be no increase in the privacy of those coins.</ContentArea.Caption>
     <ContentArea.TopContent>
-      <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedRight">
-            <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
-          </Flyout>
-        </Button.Flyout>
-      </Button>
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 0 8 0">
+        <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <CheckBox Command="{Binding ToggleSelectionCommand}" IsChecked="{Binding AreAllCoinsSelected}" />
+      </StackPanel>
     </ContentArea.TopContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </ContentArea>
