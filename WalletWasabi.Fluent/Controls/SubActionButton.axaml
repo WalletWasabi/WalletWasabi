@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Design.PreviewWith>
-    <Border Width="500" Height="500" >
+    <Border Width="500" Height="500">
       <Border Padding="60">
         <StackPanel Spacing="20">
 
@@ -69,13 +69,13 @@
             <SplitButton.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
                 <MenuFlyout.ItemContainerTheme>
-                  <ControlTheme TargetType="MenuItem" 
+                  <ControlTheme TargetType="MenuItem"
                                 BasedOn="{StaticResource {x:Type MenuItem}}">
                     <Setter x:DataType="IUICommand" Property="HeaderTemplate">
                       <Setter.Value>
                         <DataTemplate DataType="IUICommand">
                           <DockPanel>
-                            <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="7" Width="7" Fill="{DynamicResource AccentButtonBackground}" />
+                            <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="8" Width="8" Fill="{DynamicResource SystemAccentColor}" />
                             <TextBlock Text="{Binding Name}" />
                           </DockPanel>
                         </DataTemplate>
@@ -91,8 +91,6 @@
         </ControlTemplate>
       </Setter.Value>
     </Setter>
-
-    
 
   </ControlTheme>
 
