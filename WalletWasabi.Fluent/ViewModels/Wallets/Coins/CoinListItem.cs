@@ -22,6 +22,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private bool _isCoinjoining;
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
+	[AutoNotify] private bool _canBeSelected;
 
 	protected CoinListItem()
 	{
@@ -94,9 +95,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public bool IsChild { get; set; }
 
 	public bool IsLastChild { get; set; }
-
-	public bool CanBeSelected { get; protected set; }
-
+	
 	public bool IgnorePrivacyMode { get; protected set; }
 
 	public bool? IsSelected

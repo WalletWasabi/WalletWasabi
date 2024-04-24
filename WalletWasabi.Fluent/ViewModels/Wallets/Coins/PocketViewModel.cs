@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
@@ -31,9 +32,9 @@ public class PocketViewModel : CoinListItem, IDisposable
 		Labels = pocket.Labels;
 		Children =
 			pocketCoins.Select(wallet.Coins.GetCoinModel)
-					   .OrderByDescending(x => x.AnonScore)
-					   .Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
-					   .ToList();
+				.OrderByDescending(x => x.AnonScore)
+				.Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
+				.ToList();
 
 		IsExcludedFromCoinJoin = pocketCoins.All(x => x.IsExcludedFromCoinJoin);
 
@@ -44,46 +45,59 @@ public class PocketViewModel : CoinListItem, IDisposable
 			.BindTo(this, x => x.IsCoinjoining)
 			.DisposeWith(_disposables);
 
-		CanBeSelected = true;
 		ScriptType = null;
 
 		Children
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Select(c => Children.Where(x => x.Coin.IsSameAddress(c.Sender.Coin) && x.IsSelected != c.Sender.IsSelected))
-			.Do(coins =>
-			{
-				// Select/deselect all the coins on the same address.
-				foreach (var coin in coins)
+			.Do(
+				coins =>
 				{
-					coin.IsSelected = !coin.IsSelected;
-				}
-			})
-			.Select(_ =>
-			{
-				var totalCount = Children.Count;
-				var selectedCount = Children.Count(x => x.IsSelected == true);
-				return (bool?)(selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
-			})
+					// Select/deselect all the coins on the same address.
+					foreach (var coin in coins)
+					{
+						coin.IsSelected = !coin.IsSelected;
+					}
+				})
+			.Select(
+				_ =>
+				{
+					var totalCount = Children.Count;
+					var selectedCount = Children.Count(x => x.IsSelected == true);
+					return (bool?) (selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
+				})
 			.BindTo(this, x => x.IsSelected)
 			.DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.IsSelected)
-			.Do(isSelected =>
-			{
-				if (isSelected is null)
+			.Do(
+				isSelected =>
 				{
-					return;
-				}
+					if (isSelected is null)
+					{
+						return;
+					}
 
-				foreach (var item in Children)
-				{
-					item.IsSelected = isSelected.Value;
-				}
-			})
+					foreach (var item in Children)
+					{
+						item.IsSelected = isSelected.Value;
+					}
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
+
+		ThereAreSelectableCoins()
+			.BindTo(this, x => x.CanBeSelected)
+			.DisposeWith(_disposables);
 	}
+
+	private IObservable<bool> ThereAreSelectableCoins() => Children
+		.AsObservableChangeSet()
+		.AutoRefresh(x => x.CanBeSelected)
+		.Filter(x => x.CanBeSelected)
+		.Count()
+		.Select(i => i > 0);
 
 	public void Dispose()
 	{
