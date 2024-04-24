@@ -88,7 +88,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		EnableBack = false;
+		EnableBack = parameters.IsManual;
 
 		this.ValidateProperty(x => x.To, ValidateToField);
 		this.ValidateProperty(x => x.AmountBtc, ValidateAmount);

@@ -36,25 +36,22 @@
                 <TextBlock Text="Broadcast" />
               </StackPanel>
             </Button>
-            <Button Classes="function"
-                    IsVisible="{Binding IsSendButtonVisible}"
-                    Command="{Binding SendCommand}">
-              <StackPanel Orientation="Horizontal">
-                <PathIcon Data="{StaticResource wallet_action_send}" />
-                <TextBlock Text="Send" />
-              </StackPanel>
-            </Button>
 
-            <!-- Manual Control Button, needs to be replaced by SubActionButton-->
-            <Button Classes="function"
-                    IsVisible="{Binding IsSendButtonVisible}"
-                    Command="{Binding SendManualControlCommand}">
-              <StackPanel Orientation="Horizontal">
-                <PathIcon Data="{StaticResource wallet_action_send}" />
-                <TextBlock Text="Manual Control" />
-              </StackPanel>
-            </Button>
-
+            <SubActionButton Content="Subaction Button"
+                             Icon="{StaticResource wallet_action_buy}"
+                             Command="{Binding SendCommand}"
+                             IsVisible="{Binding IsSendButtonVisible}">
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource wallet_action_send}"
+                                Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                  </UICommandCollection>
+                </SubActionButton.SubCommands>
+              </SubActionButton>
 
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">
