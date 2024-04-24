@@ -137,7 +137,7 @@ public class SatoshiSynchronizer : BackgroundService
 						var filter = reader.ReadFilterModel();
 						if (localChain.TipHeight + 1 != filter.Header.Height)
 						{
-							Logger.LogDebug(ChainHeightMismatchError(filter));
+							Logger.LogInfo(ChainHeightMismatchError(filter));
 							await RewindAsync(1).ConfigureAwait(false);
 							return;
 						}
