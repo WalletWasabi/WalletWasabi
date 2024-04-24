@@ -36,30 +36,14 @@
                 <TextBlock Text="Broadcast" />
               </StackPanel>
             </Button>
-            <SubActionButton IsVisible="{Binding IsSendButtonVisible}" Command="{Binding SendCommand}" Icon="{StaticResource wallet_action_send}" Content="Send">
-              <SubActionButton.SubCommands>
-                <UICommandCollection>
-                  <UICommandDesign Name="Command 1" IsDefault="True">
-                    <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_buy}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                  </UICommandDesign>
-                  <UICommandDesign Name="Command 2">
-                    <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                  </UICommandDesign>
-                  <UICommandDesign Name="Command 3">
-                    <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_send}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                  </UICommandDesign>
-                </UICommandCollection>
-              </SubActionButton.SubCommands>
-            </SubActionButton>
+            <Button Classes="function"
+                    IsVisible="{Binding IsSendButtonVisible}"
+                    Command="{Binding SendCommand}">
+              <StackPanel Orientation="Horizontal">
+                <PathIcon Data="{StaticResource wallet_action_send}" />
+                <TextBlock Text="Send" />
+              </StackPanel>
+            </Button>
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal">
