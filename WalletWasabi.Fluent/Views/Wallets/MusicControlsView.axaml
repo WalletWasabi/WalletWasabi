@@ -116,7 +116,7 @@
                 </MenuItem>
                 <MenuItem Header="Exclude Coins" Command="{Binding NavigateToExcludedCoinsCommand}">
                   <MenuItem.Icon>
-                    <PathIcon Data="{StaticResource coins}" />
+                    <PathIcon Data="{StaticResource exclude_coins}" />
                   </MenuItem.Icon>
                 </MenuItem>
               </MenuFlyout>
