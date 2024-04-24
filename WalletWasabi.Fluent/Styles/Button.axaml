@@ -49,7 +49,14 @@
       </Style>
     </ControlTheme>
 
-    <ControlTheme x:Key="DialogSortButton" TargetType="Button" BasedOn="{StaticResource SortButtonBase}">
+    <ControlTheme x:Key="DialogButton" TargetType="Button" BasedOn="{StaticResource SortButtonBase}">
+      <Setter Property="Width" Value="35" />
+      <Setter Property="Height" Value="35" />
+      <Setter Property="CornerRadius" Value="100" />
+      <Setter Property="Padding" Value="-1 1 0 0" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="DialogSortButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
       <Setter Property="Width" Value="35" />
       <Setter Property="Height" Value="35" />
       <Setter Property="CornerRadius" Value="100" />
@@ -212,6 +219,7 @@
         <Button Theme="{StaticResource AccentButton}" IsEnabled="False" Content="Accent Button Disabled" />
         <Button Theme="{StaticResource SortButtonBase}">Layer2</Button>
         <Button Theme="{StaticResource HistorySortButton}" />
+        <Button Theme="{StaticResource DialogButton}" />
         <Button Theme="{StaticResource DialogSortButton}" />
       </StackPanel>
     </Border>

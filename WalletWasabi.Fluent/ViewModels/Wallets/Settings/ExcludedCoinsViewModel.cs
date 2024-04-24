@@ -21,7 +21,7 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 	private readonly IWalletModel _wallet;
 	private readonly CompositeDisposable _disposables = new();
 
-	[AutoNotify] private bool? _areAllCoinsSelected;
+	[AutoNotify] private bool _hasSelection;
 
 	public ExcludedCoinsViewModel(IWalletModel wallet)
 	{
@@ -53,8 +53,8 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		CoinList.CoinItems
 			.ToObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.Select(_ => CoinList.Selection.Count == CoinList.CoinItems.Count ? true : CoinList.Selection.Count == 0 ? false : (bool?)null)
-			.BindTo(this, x => x.AreAllCoinsSelected)
+			.Select(_ => CoinList.Selection.Count > 0)
+			.BindTo(this, x => x.HasSelection)
 			.DisposeWith(_disposables);
 	}
 
