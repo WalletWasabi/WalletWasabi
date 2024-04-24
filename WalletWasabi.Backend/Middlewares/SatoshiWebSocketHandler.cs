@@ -108,7 +108,6 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 						var bestKnownBlockHash = reader.ReadUInt256();
 						socketState.Handshaked = true;
 
-						// Send the best block height
 						await SendSoftwareVersionAsync(socketState.WebSocket, cancellationToken);
 						await SendLegalDocumentVersionAsync(socketState.WebSocket, cancellationToken);
 						await SendBlockHeightAsync(socketState.WebSocket, cancellationToken);

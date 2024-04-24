@@ -3,7 +3,7 @@ using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Synchronization;
 
-public record LegalDocumentVersionMessage(Version version)
+public record LegalDocumentVersionMessage(Version Version)
 {
 	public byte[] ToByteArray()
 	{
@@ -11,7 +11,7 @@ public record LegalDocumentVersionMessage(Version version)
 		using var writer = new BinaryWriter(mem);
 
 		writer.Write((byte) ResponseMessage.LegalDocumentVersion);
-		writer.Write(version);
+		writer.Write(Version);
 
 		return mem.ToArray();
 	}
