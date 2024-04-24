@@ -36,8 +36,8 @@ public static class Capture
 	{
 		var file = await FileDialogHelper.SaveFileAsync(
 			"Save screenshot...",
-			["png", "svg", "*"],
-			"WalletWasabi.png",
+			["svg", "png", "*"],
+			"WalletWasabi.svg",
 			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
 		if (file is not null)
 		{
