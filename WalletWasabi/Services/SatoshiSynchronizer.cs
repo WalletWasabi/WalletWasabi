@@ -133,6 +133,17 @@ public class SatoshiSynchronizer : BackgroundService
 						_eventBus.Publish(new ServerTipHeightChanged(height));
 						break;
 
+					case ResponseMessage.SoftwareVersion:
+						var clientVersion = reader.ReadVersion();
+						var serverVersion = reader.ReadVersion();
+						_eventBus.Publish(new SoftwareVersionChanged(clientVersion, serverVersion));
+						break;
+
+					case ResponseMessage.LegalDocumentVersion:
+						var version = reader.ReadVersion();
+						_eventBus.Publish(new LegalDocumentVersionChanged(version));
+						break;
+
 					case ResponseMessage.Filter:
 						var filter = reader.ReadFilterModel();
 						if (localChain.TipHeight + 1 != filter.Header.Height)
