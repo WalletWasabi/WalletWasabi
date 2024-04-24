@@ -12,7 +12,7 @@ public class DefaultCircuit : INamedCircuit
 {
 	public static readonly DefaultCircuit Instance = new();
 
-	private static string RandomName = RandomString.CapitalAlphaNumeric(21);
+	private static string RandomName = RandomString.CapitalAlphaNumeric(21, secureRandom: true);
 
 	private long _isolationId = 0;
 

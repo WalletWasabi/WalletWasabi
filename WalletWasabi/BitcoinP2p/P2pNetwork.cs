@@ -84,7 +84,7 @@ public class P2pNetwork : BackgroundService
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 
-			var userAgent = Constants.UserAgents.RandomElement(InsecureRandom.Instance);
+			var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
 			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
