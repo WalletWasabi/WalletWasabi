@@ -31,7 +31,7 @@
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.2" />
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.1.0-beta1.1" />
+    <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.1.0-beta1.4" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
