@@ -111,7 +111,7 @@ public class LinqExtensionsTests
 	[Fact]
 	public void Median()
 	{
-		Assert.Null(Array.Empty<double>().Median());
+		Assert.Throws<ArgumentException>(() => Array.Empty<double>().Median());
 		Assert.Equal(1, new double[] { 1 }.Median());
 		Assert.Equal(2, new double[] { 1, 2 }.Median());
 		Assert.Equal(2, new double[] { 1, 2, 3 }.Median());

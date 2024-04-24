@@ -179,11 +179,11 @@ public static class LinqExtensions
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
 		me.DefaultIfEmpty(defaultValue).Max();
 
-	public static double? Median(this IEnumerable<double> me)
+	public static double Median(this IEnumerable<double> me)
 	{
 		if (!me.Any())
 		{
-			return null;
+			throw new ArgumentException("Median of an empty set is not defined.", nameof(me));
 		}
 
 		var sorted = me.Order().ToArray();
