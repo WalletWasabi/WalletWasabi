@@ -99,7 +99,15 @@ public class SatoshiSynchronizer : BackgroundService
 		{
 			if (ws.State == WebSocketState.Open)
 			{
-				await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", cancellationToken).ConfigureAwait(false);
+				try
+				{
+					await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", cancellationToken)
+						.ConfigureAwait(false);
+				}
+				catch
+				{
+					// ignored
+				}
 			}
 		}
 
