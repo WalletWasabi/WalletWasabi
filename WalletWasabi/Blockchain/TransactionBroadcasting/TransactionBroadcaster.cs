@@ -34,7 +34,7 @@ public class TransactionBroadcaster
 	private NodesGroup? Nodes { get; set; }
 	private IRPCClient? RpcClient { get; set; }
 	private WalletManager WalletManager { get; }
-	private WasabiRandom Random { get; } = InsecureRandom.Instance;
+	private WasabiRandom Random { get; } = SecureRandom.Instance;
 
 	public void Initialize(NodesGroup nodes, IRPCClient? rpcClient)
 	{

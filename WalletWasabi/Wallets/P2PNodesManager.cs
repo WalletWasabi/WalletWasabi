@@ -32,7 +32,7 @@ public class P2PNodesManager
 		}
 
 		// Select a random node we are connected to.
-		return Nodes.ConnectedNodes.RandomElement(InsecureRandom.Instance);
+		return Nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
 	}
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)

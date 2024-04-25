@@ -27,56 +27,56 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<uint256> GetBestBlockHashAsync(CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetBestBlockHashAsync),
 			() => Rpc.GetBestBlockHashAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetBlockAsync),
 			() => Rpc.GetBlockAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<Block> GetBlockAsync(uint blockHeight, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetBlockAsync),
 			() => Rpc.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetBlockHeaderAsync),
 			() => Rpc.GetBlockHeaderAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<BlockchainInfo> GetBlockchainInfoAsync(CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetBlockchainInfoAsync),
 			() => Rpc.GetBlockchainInfoAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<PeerInfo[]> GetPeersInfoAsync(CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetPeersInfoAsync),
 			() => Rpc.GetPeersInfoAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetMempoolEntryAsync),
 			() => Rpc.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetMempoolInfoAsync),
 			async () =>
 			{
@@ -130,21 +130,21 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<uint256[]> GetRawMempoolAsync(CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetRawMempoolAsync),
 			() => Rpc.GetRawMempoolAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GetTxOutAsync),
 			() => Rpc.GetTxOutAsync(txid, index, includeMempool, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(TestMempoolAcceptAsync),
 			() => Rpc.TestMempoolAcceptAsync(transaction, cancellationToken)).ConfigureAwait(false);
 	}
@@ -156,28 +156,28 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<uint256[]> GenerateAsync(int blockCount, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GenerateAsync),
 			() => Rpc.GenerateAsync(blockCount, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<TimeSpan> UptimeAsync(CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(UptimeAsync),
 			() => Rpc.UptimeAsync(cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(SendRawTransactionAsync),
 			() => Rpc.SendRawTransactionAsync(transaction, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public virtual async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(EstimateSmartFeeAsync),
 			() => Rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
@@ -189,7 +189,7 @@ public class RpcClientBase : IRPCClient
 
 	public virtual async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
-		var resp = await Measure(
+		var resp = await MeasureAsync(
 			nameof(GetVerboseBlockAsync),
 			() => Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3)).ConfigureAwait(false);
 		return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
@@ -197,7 +197,7 @@ public class RpcClientBase : IRPCClient
 
 	public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default)
 	{
-		return await Measure(
+		return await MeasureAsync(
 			nameof(GenerateToAddressAsync),
 			() => Rpc.GenerateToAddressAsync(nBlocks, address, cancellationToken)).ConfigureAwait(false);
 	}
@@ -300,7 +300,7 @@ public class RpcClientBase : IRPCClient
 
 	#endregion For Testing Only
 
-	private async Task<T> Measure<T>(string methodName, Func<Task<T>> fnc)
+	private async Task<T> MeasureAsync<T>(string methodName, Func<Task<T>> fnc)
 	{
 		var start = DateTimeOffset.UtcNow;
 		try

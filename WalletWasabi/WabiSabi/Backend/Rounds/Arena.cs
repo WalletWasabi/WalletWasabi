@@ -93,7 +93,7 @@ public partial class Arena : PeriodicRunner
 
 			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-			await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
+			StepOutputRegistrationPhase();
 
 			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -282,7 +282,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async Task StepOutputRegistrationPhaseAsync(CancellationToken cancellationToken)
+	private void StepOutputRegistrationPhase()
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 		{
