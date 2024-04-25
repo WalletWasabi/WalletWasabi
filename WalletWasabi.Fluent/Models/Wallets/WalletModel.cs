@@ -69,20 +69,6 @@ public partial class WalletModel : ReactiveObject
 			.BindTo(this, x => x.IsLoggedIn);
 	}
 
-	public IEnumerable<ICoinModel> ExcludedCoins
-	{
-		get => Coins.List.Items.Where(x => x.GetSmartCoin().IsExcludedFromCoinJoin);
-		set
-		{
-			var excludedOutpoints = value.Select(x => x.GetSmartCoin().Outpoint).ToHashSet();
-
-			foreach (var coin in Wallet.Coins)
-			{
-				Wallet.ExcludeCoinFromCoinJoin(coin.Outpoint, excludedOutpoints.Contains(coin.Outpoint));
-			}
-		}
-	}
-
 	public IAddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }

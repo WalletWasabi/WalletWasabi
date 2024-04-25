@@ -34,6 +34,9 @@ public class CoinViewModel : CoinListItem, IDisposable
 			.Where(b => !b)
 			.Do(_ => IsSelected = false)
 			.Subscribe();
+		this.WhenAnyValue(x => x.IsExcludedFromCoinJoin)
+			.Select(x => x)
+			.BindTo(this, x => x.Coin.IsExcludedFromCoinJoin);
 	}
 
 	public ICoinModel Coin { get; }

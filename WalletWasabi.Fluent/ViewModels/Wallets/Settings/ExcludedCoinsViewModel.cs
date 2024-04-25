@@ -22,15 +22,10 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 	public ExcludedCoinsViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
-		CoinList = new CoinListViewModel(wallet, wallet.ExcludedCoins.ToList(), true);
+		var initialCoins = wallet.Coins.List.Items.Where(x => x.IsExcludedFromCoinJoin);
+		CoinList = new CoinListViewModel(wallet, initialCoins.ToList(), true);
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		NextCommand = ReactiveCommand.Create(
-			() =>
-			{
-				ExcludeSelectedCoins();
-				Close();
-			});
-
+		NextCommand = ReactiveCommand.Create(() => Close());
 		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()));
 	}
 
@@ -44,6 +39,13 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			.Select(_ => CoinList.Selection.Count > 0)
 			.BindTo(this, x => x.HasSelection)
 			.DisposeWith(disposables);
+
+		CoinList.Selection
+			.ToObservableChangeSet()
+			.OnItemAdded(model => model.IsExcludedFromCoinJoin = true)
+			.OnItemRemoved(model => model.IsExcludedFromCoinJoin = false)
+			.Subscribe()
+			.DisposeWith(disposables);
 	}
 
 	private void SelectAll(bool value)
@@ -55,9 +57,4 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 	}
 
 	public CoinListViewModel CoinList { get; set; }
-
-	private void ExcludeSelectedCoins()
-	{
-		_wallet.ExcludedCoins = CoinList.Selection;
-	}
 }

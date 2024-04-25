@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -23,7 +24,7 @@ public partial class CoinModel : ReactiveObject, IDisposable
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 	
-	public CoinModel(SmartCoin coin, int anonScoreTarget)
+	public CoinModel(SmartCoin coin, Wallet wallet, int anonScoreTarget)
 	{
 		Coin = coin;
 		PrivacyLevel = coin.GetPrivacyLevel(anonScoreTarget);
@@ -44,6 +45,10 @@ public partial class CoinModel : ReactiveObject, IDisposable
 		var confirmations = coin.GetConfirmations();
 		Confirmations = confirmations;
 		ConfirmedToolTip = TextHelpers.GetConfirmationText(confirmations);
+		this.WhenAnyValue(x => x.IsExcludedFromCoinJoin)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(isExcludedFromCoinjoin => wallet.ExcludeCoinFromCoinJoin(Coin.Outpoint, isExcludedFromCoinjoin))
+			.Subscribe();
 	}
 
 	private SmartCoin Coin { get; }
