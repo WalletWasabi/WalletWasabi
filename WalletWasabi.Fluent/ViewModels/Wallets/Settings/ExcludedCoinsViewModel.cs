@@ -16,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 {
 	private readonly IWalletModel _wallet;
-	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private bool _hasSelection;
 
@@ -35,14 +34,6 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()));
 	}
 
-	private void SelectAll(bool value)
-	{
-		foreach (var coin in CoinList.CoinItems)
-		{
-			coin.IsSelected = value;
-		}
-	}
-	
 	public ICommand ToggleSelectionCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -52,14 +43,14 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Select(_ => CoinList.Selection.Count > 0)
 			.BindTo(this, x => x.HasSelection)
-			.DisposeWith(_disposables);
+			.DisposeWith(disposables);
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	private void SelectAll(bool value)
 	{
-		if (!isInHistory)
+		foreach (var coin in CoinList.CoinItems)
 		{
-			_disposables.Dispose();
+			coin.IsSelected = value;
 		}
 	}
 
