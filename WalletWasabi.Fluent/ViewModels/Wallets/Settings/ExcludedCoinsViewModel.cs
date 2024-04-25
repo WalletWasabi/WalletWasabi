@@ -4,17 +4,14 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
-using DynamicData.Aggregation;
 using DynamicData.Binding;
 using ReactiveUI;
-using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
-[AppLifetime]
 [NavigationMetaData(Title = "Excluded Coins", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 {
