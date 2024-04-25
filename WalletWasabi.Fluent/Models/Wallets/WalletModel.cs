@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -108,15 +107,6 @@ public partial class WalletModel : ReactiveObject
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
-
-	public async Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
-	{
-		await Task.Run(() =>
-		{
-			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
-			Wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
-		});
-	}
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{

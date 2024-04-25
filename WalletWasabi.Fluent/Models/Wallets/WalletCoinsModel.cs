@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -51,6 +52,20 @@ public partial class WalletCoinsModel : IDisposable
 	public IObservableCache<ICoinModel, int> List { get; }
 
 	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
+
+	public async Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
+	{
+		await Task.Run(() =>
+		{
+			foreach (var coinModel in List.Items)
+			{
+				coinModel.IsExcludedFromCoinJoin = coinsToExclude.Contains(coinModel);
+			}
+
+			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
+			_wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
+		});
+	}
 
 	public List<ICoinModel> GetSpentCoins(BuildTransactionResult? transaction)
 	{

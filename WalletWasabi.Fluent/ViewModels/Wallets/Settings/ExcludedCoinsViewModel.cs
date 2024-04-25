@@ -46,7 +46,7 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		CoinList.Selection
 			.ToObservableChangeSet()
 			.ToCollection()
-			.DoAsync(async x => await _wallet.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
+			.DoAsync(async x => await _wallet.Coins.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
