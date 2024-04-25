@@ -255,6 +255,9 @@ dotnet_diagnostic.IDE0130.severity = warning
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = silent
 
+# IDE0300: Simplify collection initialization
+dotnet_diagnostic.IDE0300.severity = silent
+
 # IDE0305: Simplify collection initialization
 dotnet_diagnostic.IDE0305.severity = silent
 
