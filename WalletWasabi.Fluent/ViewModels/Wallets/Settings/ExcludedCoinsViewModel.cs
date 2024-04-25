@@ -50,6 +50,8 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			.DoAsync(async x => await _wallet.Coins.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
 			.Subscribe()
 			.DisposeWith(disposables);
+
+		CoinList.DisposeWith(disposables);
 	}
 
 	private void SelectAll(bool value)
