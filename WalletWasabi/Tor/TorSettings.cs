@@ -190,7 +190,7 @@ public class TorSettings
 			{
 				string fileNameWithoutExtension = plugin switch
 				{
-					"obfs4" => "obfs4proxy",
+					"obfs4" => "lyrebird", // obfs4 was renamed to lyrebird.
 					"webtunnel" => "webtunnel-client",
 					"snowflake" => "snowflake-client",
 					_ => throw new NotSupportedException($"Unknown Tor pluggable transport '{plugin}'."),
