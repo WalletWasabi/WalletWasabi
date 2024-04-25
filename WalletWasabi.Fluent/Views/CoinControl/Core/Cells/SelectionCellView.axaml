@@ -22,8 +22,8 @@
         <Binding Path="IsChild" />
       </MultiBinding>
     </Classes.transparent>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="15 0">
+    <InvalidatingStackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="15 0">
       <CheckBox Padding="0" IsChecked="{Binding IsSelected}" IsVisible="{Binding CanBeSelected}" />
-    </StackPanel>
+    </InvalidatingStackPanel>
   </Border>
 </UserControl>
