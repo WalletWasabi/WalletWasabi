@@ -235,7 +235,7 @@ dotnet_diagnostic.IDE0004.severity = error
 csharp_style_pattern_matching_over_as_with_null_check = true:error
 
 # IDE0028: Simplify collection initialization
-dotnet_diagnostic.IDE0028.severity = none
+dotnet_diagnostic.IDE0028.severity = silent
 
 # IDE0032: Use auto property
 dotnet_style_prefer_auto_properties = true:error
@@ -253,10 +253,10 @@ dotnet_style_prefer_simplified_interpolation = true:error
 dotnet_diagnostic.IDE0130.severity = warning
 
 # IDE0290: Use primary constructor
-dotnet_diagnostic.IDE0290.severity = none
+dotnet_diagnostic.IDE0290.severity = silent
 
 # IDE0305: Simplify collection initialization
-dotnet_diagnostic.IDE0305.severity = none
+dotnet_diagnostic.IDE0305.severity = silent
 
 # CA1304: Specify CultureInfo
 dotnet_diagnostic.CA1304.severity = warning
