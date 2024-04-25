@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Stores;
 
@@ -21,6 +22,7 @@ public class BlockFilterIterator
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
 	internal Dictionary<uint, FilterModel> Cache { get; } = new();
+	private AsyncLock Lock { get; } = new();
 	private IIndexStore IndexStore { get; }
 	public int MaxNumberFiltersInMemory { get; }
 
@@ -30,47 +32,68 @@ public class BlockFilterIterator
 	/// <remarks>Filter is immediately removed from the cache once the method returns. Repeated calls for single height are thus expensive.</remarks>
 	public async Task<FilterModel> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
 	{
-		// Each block filter is to needed just once, so we can remove the block right now and free the memory sooner.
-		if (Cache.Remove(height, out FilterModel? result))
+		using (await Lock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return result;
-		}
-
-		// We don't have the next filter to process, so fetch another batch of filters from the database.
-		Clear();
-
-		FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
-
-		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
-		if (filtersBatch.Length == 0)
-		{
-			throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
-		}
-
-		if (filtersBatch[0].Header.Height != height)
-		{
-			throw new UnreachableException($"Block filter for height {height} was not found.");
-		}
-
-		// Cache filters.
-		uint expectedHeight = height + 1;
-
-		// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
-		foreach (FilterModel filter in filtersBatch.Skip(1))
-		{
-			// Make sure that the sequence of blocks is consecutive.
-			if (expectedHeight != filter.Header.Height)
+			// Each block filter is to needed just once, so we can remove the block right now and free the memory sooner.
+			if (Cache.Remove(height, out FilterModel? result))
 			{
-				throw new UnreachableException($"Expected block with height {expectedHeight}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
+				return result;
 			}
 
-			Cache[filter.Header.Height] = filter;
-			expectedHeight++;
+			// We don't have the next filter to process, so fetch another batch of filters from the database.
+			Clear();
+
+			FilterModel[] filtersBatch = await IndexStore
+				.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+
+			// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
+			if (filtersBatch.Length == 0)
+			{
+				throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
+			}
+
+			if (filtersBatch[0].Header.Height != height)
+			{
+				throw new UnreachableException($"Block filter for height {height} was not found.");
+			}
+
+			// Cache filters.
+			uint expectedHeight = height + 1;
+
+			// Do not store the first filter, the semantics is that the returned filter is no longer stored in the cache.
+			foreach (FilterModel filter in filtersBatch.Skip(1))
+			{
+				// Make sure that the sequence of blocks is consecutive.
+				if (expectedHeight != filter.Header.Height)
+				{
+					throw new UnreachableException(
+						$"Expected block with height {expectedHeight}, got {filter.Header.Height} (block hash: {filter.Header.BlockHash}).");
+				}
+
+				Cache[filter.Header.Height] = filter;
+				expectedHeight++;
+			}
+
+			result = filtersBatch[0];
+
+			return result;
 		}
+	}
 
-		result = filtersBatch[0];
+	public async Task RemoveNewerThanAsync(uint height, CancellationToken cancellationToken)
+	{
+		using (await Lock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			var keysToRemove = Cache
+				.Select(kvp => kvp.Key)
+				.Where(key => key > height)
+				.ToList();
 
-		return result;
+			foreach (var keyToRemove in keysToRemove)
+			{
+				Cache.Remove(keyToRemove);
+			}
+		}
 	}
 
 	public void Clear()
