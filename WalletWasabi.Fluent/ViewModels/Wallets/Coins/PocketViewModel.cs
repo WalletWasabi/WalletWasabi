@@ -37,7 +37,12 @@ public class PocketViewModel : CoinListItem, IDisposable
 				.Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
 				.ToList();
 
-		IsExcludedFromCoinJoin = pocketCoins.All(x => x.IsExcludedFromCoinJoin);
+		Children
+			.AsObservableChangeSet()
+			.AutoRefresh(x => IsExcludedFromCoinJoin)
+			.Select(_ => Children.All(x => x.IsExcludedFromCoinJoin))
+			.BindTo(this, x => x.IsExcludedFromCoinJoin)
+			.DisposeWith(_disposables);
 
 		Children
 			.AsObservableChangeSet()
