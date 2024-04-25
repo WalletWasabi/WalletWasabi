@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -10,8 +11,10 @@ using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem
+public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem, IDisposable
 {
+	protected readonly CompositeDisposable _disposables = new();
+
 	private bool? _isSelected;
 
 	[AutoNotify] private bool _isParentSelected;
@@ -95,7 +98,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public bool IsChild { get; set; }
 
 	public bool IsLastChild { get; set; }
-	
+
 	public bool IgnorePrivacyMode { get; protected set; }
 
 	public bool? IsSelected
@@ -115,4 +118,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public ScriptType? ScriptType { get; protected set; }
 
 	public virtual bool HasChildren() => Children.Count != 0;
+
+	public void Dispose() => _disposables.Dispose();
 }

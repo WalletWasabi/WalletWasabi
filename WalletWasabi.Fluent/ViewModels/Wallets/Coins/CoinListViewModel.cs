@@ -48,7 +48,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				})
 			.AddKey(model => model.Coin.Key);
 
-		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges())
+		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges(_disposables))
 			.Subscribe()
 			.DisposeWith(_disposables);
 
@@ -111,7 +111,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
-		
+
 		_wallet = wallet;
 
 		ExpandAllCommand = ReactiveCommand.Create(

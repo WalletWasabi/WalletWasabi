@@ -9,9 +9,8 @@ using WalletWasabi.Fluent.Helpers;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class CoinModel : ReactiveObject, IDisposable
+public partial class CoinModel : ReactiveObject
 {
-	private readonly CompositeDisposable _disposable = new();
 	private bool _subscribedToCoinChanges;
 
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
@@ -68,26 +67,26 @@ public partial class CoinModel : ReactiveObject, IDisposable
 
 	/// <summary>Subscribes to property changes of underlying SmartCoin.</summary>
 	/// <remarks>This method is not thread safe. Make sure it's not called concurrently.</remarks>
-	public void SubscribeToCoinChanges()
+	public void SubscribeToCoinChanges(CompositeDisposable disposable)
 	{
 		if (_subscribedToCoinChanges)
 		{
 			return;
 		}
 
-		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin).DisposeWith(_disposable);
-		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed).DisposeWith(_disposable);
-		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int) x).BindTo(this, x => x.AnonScore).DisposeWith(_disposable);
-		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress).DisposeWith(_disposable);
-		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned).DisposeWith(_disposable);
-		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposable);
+		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.IsBanned).BindTo(this, x => x.IsBanned).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(disposable);
 
 		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(
 			confirmations =>
 			{
 				Confirmations = confirmations;
 				ConfirmedToolTip = TextHelpers.GetConfirmationText(confirmations);
-			}).DisposeWith(_disposable);
+			}).DisposeWith(disposable);
 
 		_subscribedToCoinChanges = true;
 	}
@@ -98,9 +97,4 @@ public partial class CoinModel : ReactiveObject, IDisposable
 
 	// TODO: Leaky abstraction. This shouldn't exist.
 	public SmartCoin GetSmartCoin() => Coin;
-
-	public void Dispose()
-	{
-		_disposable.Dispose();
-	}
 }

@@ -12,10 +12,8 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class PocketViewModel : CoinListItem, IDisposable
+public class PocketViewModel : CoinListItem
 {
-	private readonly CompositeDisposable _disposables = new();
-
 	public PocketViewModel(IWalletModel wallet, Pocket pocket, bool ignorePrivacyMode = false)
 	{
 		var pocketCoins = pocket.Coins.ToList();
@@ -101,11 +99,6 @@ public class PocketViewModel : CoinListItem, IDisposable
 		.Filter(x => x.CanBeSelected)
 		.Count()
 		.Select(i => i > 0);
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
-	}
 
 	private static int? GetAnonScore(IEnumerable<SmartCoin> pocketCoins)
 	{

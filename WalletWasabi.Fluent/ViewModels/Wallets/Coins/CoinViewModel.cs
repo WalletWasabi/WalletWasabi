@@ -8,10 +8,8 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class CoinViewModel : CoinListItem, IDisposable
+public class CoinViewModel : CoinListItem
 {
-	private readonly CompositeDisposable _disposables = new();
-
 	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
 	{
 		Labels = labels;
@@ -37,6 +35,4 @@ public class CoinViewModel : CoinListItem, IDisposable
 	}
 
 	public ICoinModel Coin { get; }
-
-	public void Dispose() => _disposables.Dispose();
 }
