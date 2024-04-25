@@ -57,9 +57,10 @@ public partial class WalletCoinsModel : IDisposable
 	{
 		await Task.Run(() =>
 		{
+			// TODO: To keep models in sync with business objects. Should be automatic.
 			foreach (var coinModel in List.Items)
 			{
-				coinModel.IsExcludedFromCoinJoin = coinsToExclude.Contains(coinModel);
+				coinModel.IsExcludedFromCoinJoin = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).Contains(coinModel.GetSmartCoin().Outpoint);
 			}
 
 			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
