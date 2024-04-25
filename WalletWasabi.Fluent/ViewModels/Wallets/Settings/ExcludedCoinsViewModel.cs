@@ -6,6 +6,7 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
@@ -29,6 +30,8 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()));
 	}
 
+	public CoinListViewModel CoinList { get; set; }
+
 	public ICommand ToggleSelectionCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -42,8 +45,8 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 
 		CoinList.Selection
 			.ToObservableChangeSet()
-			.OnItemAdded(model => model.IsExcludedFromCoinJoin = true)
-			.OnItemRemoved(model => model.IsExcludedFromCoinJoin = false)
+			.ToCollection()
+			.DoAsync(async x => await _wallet.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
@@ -55,6 +58,4 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			coin.IsSelected = value;
 		}
 	}
-
-	public CoinListViewModel CoinList { get; set; }
 }
