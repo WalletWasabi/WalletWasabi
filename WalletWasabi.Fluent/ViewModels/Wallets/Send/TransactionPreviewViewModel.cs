@@ -32,7 +32,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
-	private readonly SendParameters _parameters;
+	private readonly SendFlowModel _sendFlow;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
@@ -42,18 +42,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendParameters parameters)
+	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel sendFlow)
 	{
 		_undoHistory = new();
-		_wallet = parameters.Wallet;
+		_wallet = sendFlow.Wallet;
 		_walletModel = walletModel;
-		_parameters = parameters;
+		_sendFlow = sendFlow;
 
-		_info = _parameters.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
+		_info = _sendFlow.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
 		_currentTransactionInfo = _info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, _parameters);
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, _sendFlow);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info, true);
 
@@ -185,7 +185,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		var currentCoins = _walletModel.Coins.GetSpentCoins(Transaction);
 
-		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletModel, currentCoins, _info).GetResultAsync();
+		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletModel, currentCoins, _sendFlow).GetResultAsync();
 
 		if (selectedCoins is { })
 		{
@@ -261,7 +261,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException)
 		{
-			var canSelectMoreCoins = _parameters.AvailableCoins.Any(coin => !_info.Coins.Contains(coin));
+			var canSelectMoreCoins = _sendFlow.AvailableCoins.Any(coin => !_info.Coins.Contains(coin));
 
 			if (canSelectMoreCoins)
 			{
@@ -478,7 +478,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
-		var pockets = _parameters.GetPockets().Select(x => new Pocket(x)).ToArray();
+		var pockets = _sendFlow.GetPockets().Select(x => new Pocket(x)).ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 

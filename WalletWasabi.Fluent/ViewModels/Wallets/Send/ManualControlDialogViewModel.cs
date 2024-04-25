@@ -55,16 +55,17 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		CoinList.Dispose();
-
-		base.OnNavigatedFrom(isInHistory);
+		if (!isInHistory)
+		{
+			CoinList.Dispose();
+		}
 	}
 
 	private void OnNext()
 	{
 		var coins = CoinList.Selection.GetSmartCoins().ToList();
 
-		var sendParameters = SendParameters.CreateManual(_wallet, coins);
+		var sendParameters = new SendFlowModel(_wallet, _walletModel, coins);
 
 		Navigate().To().Send(_walletModel, sendParameters);
 	}

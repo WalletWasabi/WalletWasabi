@@ -94,7 +94,7 @@ public class ReceiveAddressViewModelTests
 			throw new NotImplementedException();
 		}
 
-		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendParameters sendParameters)
+		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

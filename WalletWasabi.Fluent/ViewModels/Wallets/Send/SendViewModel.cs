@@ -45,7 +45,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
-	private readonly SendParameters _parameters;
+	private readonly SendFlowModel _parameters;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private readonly ClipboardObserver _clipboardObserver;
 
@@ -60,7 +60,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 
-	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendParameters parameters)
+	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
 		UiContext = uiContext;
 		_to = "";

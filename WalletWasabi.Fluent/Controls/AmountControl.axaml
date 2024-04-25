@@ -39,7 +39,7 @@
         <ControlTemplate>
           <Border Background="{DynamicResource TileRegionColor}"
                   Padding="10" CornerRadius="10">
-            <StackPanel Orientation="Horizontal" Spacing="5"
+            <StackPanel Orientation="Horizontal" Spacing="10"
                       DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
                       IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
               <TextBlock Classes="monoSpaced" TextWrapping="Wrap"

@@ -229,7 +229,7 @@ public class SuggestionLabelsViewModelTests
 			throw new NotImplementedException();
 		}
 
-		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendParameters sendParameters)
+		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

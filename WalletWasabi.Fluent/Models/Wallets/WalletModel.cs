@@ -122,9 +122,9 @@ public partial class WalletModel : ReactiveObject
 		return new WalletInfoModel(Wallet);
 	}
 
-	public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendParameters sendParameters)
+	public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow)
 	{
-		return new PrivacySuggestionsModel(sendParameters);
+		return new PrivacySuggestionsModel(sendFlow);
 	}
 
 	public void Rename(string newWalletName)
