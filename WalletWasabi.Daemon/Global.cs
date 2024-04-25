@@ -83,11 +83,9 @@ public class Global
 		var satoshiEndpointUri = new UriBuilder(satoshiUriScheme, coordinatorUri.Host, coordinatorUri.Port, "api/satoshi").Uri;
 		HostedServices.Register<SatoshiSynchronizer>(() => new SatoshiSynchronizer(BitcoinStore, satoshiEndpointUri, Config.UseTor ? TorSettings.SocksEndpoint : null, EventBus), "Satoshi Synchronizer");
 
-		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
-		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
-
-		LegalChecker = new(DataDir, updateChecker);
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
+		var httpClientForUpdates = HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10);
+		LegalChecker = new(DataDir, new WasabiClient(httpClientForUpdates), EventBus);
+		UpdateManager = new(DataDir, Config.DownloadNewVersion, httpClientForUpdates, EventBus);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
