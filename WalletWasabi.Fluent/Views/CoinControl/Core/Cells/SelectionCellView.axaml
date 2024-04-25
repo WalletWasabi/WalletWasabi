@@ -23,7 +23,12 @@
       </MultiBinding>
     </Classes.transparent>
     <InvalidatingStackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="15 0">
-      <CheckBox Padding="0" IsChecked="{Binding IsSelected}" IsVisible="{Binding CanBeSelected}" />
+      <InvalidatingStackPanel.Styles>
+        <Style Selector="CheckBox:disabled">
+          <Setter Property="Opacity" Value="0.3" />
+        </Style>
+      </InvalidatingStackPanel.Styles>
+      <CheckBox Padding="0" IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanBeSelected}" />
     </InvalidatingStackPanel>
   </Border>
 </UserControl>
