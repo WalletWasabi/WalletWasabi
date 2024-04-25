@@ -48,11 +48,17 @@
     </Panel>
 
     <!-- Banned -->
-    <PathIcon IsVisible="{Binding IsBanned}"
-              Data="{StaticResource warning_filled}"
+    <PathIcon Data="{StaticResource warning_filled}"
               Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
               Height="14"
-              ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
+              ToolTip.Tip="{Binding BannedUntilUtcToolTip}">
+      <PathIcon.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="IsBanned"/>
+          <Binding Path="!IsExcludedFromCoinJoin"/>
+        </MultiBinding>
+      </PathIcon.IsVisible>
+    </PathIcon>
 
     <PathIcon IsVisible="{Binding IsExcludedFromCoinJoin}"
               Data="{StaticResource forbidden}"
