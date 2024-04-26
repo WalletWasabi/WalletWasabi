@@ -24,12 +24,6 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
-using System.Net.WebSockets;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using System.Net;
 using WalletWasabi.Services;
 
 [assembly: ApiController]
@@ -187,7 +181,7 @@ public class Startup
 
 		var serviceScopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
 		var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
-		app.MapWebSocketManager("/api/satoshi", serviceProvider.GetService<SatoshiWebSocketHandler>());
+		app.MapWebSocketManager("/api/satoshi", serviceProvider.GetRequiredService<SatoshiWebSocketHandler>());
 
 		app.UseResponseCompression();
 

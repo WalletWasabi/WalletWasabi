@@ -49,13 +49,19 @@ public class Config
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+			[ nameof(TorFolder)] = (
+				"Folder where Tor binary is located",
+				GetNullableStringValue("TorFolder", null, cliArgs)),
 			[ nameof(TorSocksPort)] = (
 				"Tor is started to listen with the specified SOCKS5 port",
 				GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs)),
 			[ nameof(TorControlPort)] = (
 				"Tor is started to listen with the specified control port",
 				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
-			[ nameof(TerminateTorOnExit)] = (
+			[nameof(TorBridges)] = (
+				"Tor is started with the set of specified bridges",
+				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges, cliArgs)),
+			[nameof(TerminateTorOnExit)] = (
 				"Stop the Tor process when Wasabi is closed",
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
 			[ nameof(DownloadNewVersion)] = (
@@ -136,8 +142,10 @@ public class Config
 	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
 	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
 	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor)) && Network != Network.RegTest;
+	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
+	public string[] TorBridges => GetEffectiveValue<StringArrayValue, string[]>(nameof(TorBridges));
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>(nameof(StartLocalBitcoinCoreOnStartup));
@@ -316,7 +324,8 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			return new StringArrayValue(arrayValues, new string[] { overrideValue }, valueSource.Value);
+			string[] overrideValues = overrideValue.Split(';', StringSplitOptions.None);
+			return new StringArrayValue(arrayValues, overrideValues, valueSource.Value);
 		}
 
 		return new StringArrayValue(arrayValues, arrayValues, ValueSource.Disk);
