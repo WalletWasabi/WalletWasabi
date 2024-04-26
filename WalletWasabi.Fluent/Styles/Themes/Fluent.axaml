@@ -4,7 +4,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/ThemeVariants.axaml" />
-        <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/CaptionButtons.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
         <MergeResourceInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
