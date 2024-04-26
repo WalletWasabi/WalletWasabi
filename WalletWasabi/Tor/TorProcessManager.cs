@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -140,10 +141,36 @@ public class TorProcessManager : IAsyncDisposable
 					{
 						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
 					}
+
+					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
+					if (!clientTransportPluginReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
+					}
+
+					// Check if the bridges in the running Tor instance are the same as user requested.
+					TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
+					if (!bridgeReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report active bridges.");
+					}
+
+					// Compare as two unordered sets.
+					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
+					bool areBridgesAsRequired = currentBridges.SequenceEqual(Settings.Bridges.Order());
+				
+					if (!areBridgesAsRequired)
+					{
+						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
+						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
+						continue;
+					}
 				}
 				else
 				{
 					string arguments = Settings.GetCmdArguments();
+					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
+
 					process = StartProcess(arguments);
 
 					bool isRunning = await EnsureRunningAsync(process, cancellationToken).ConfigureAwait(false);
@@ -332,7 +359,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo("Starting Tor process…");
+		Logger.LogInfo(Settings.IsCustomTorFolder ? $"Starting Tor process in folder '{Settings.TorBinaryDir}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 

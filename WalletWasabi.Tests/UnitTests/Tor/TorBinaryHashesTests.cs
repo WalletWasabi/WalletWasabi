@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using WalletWasabi.Helpers;
+using WalletWasabi.Microservices;
 using WalletWasabi.Tor;
 using Xunit;
 
@@ -27,7 +28,8 @@ public class TorBinaryHashesTests
 
 		foreach ((OSPlatform platform, string expectedHash) in expectedHashes)
 		{
-			string filePath = TorSettings.GetTorBinaryFilePath(platform);
+			string torFolder = Path.Combine(MicroserviceHelpers.GetBinaryFolder(platform), "Tor");
+			string filePath = TorSettings.GetTorBinaryFilePath(torFolder, platform);
 			using FileStream fileStream = File.OpenRead(filePath);
 
 			string actualHash = ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant();

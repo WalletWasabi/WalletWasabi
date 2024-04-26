@@ -54,6 +54,7 @@ public class ConfigManagerNgTests
 			  "RegTestBackendUri": "http://localhost:37127/",
 			  "UseTor": true,
 			  "TerminateTorOnExit": false,
+			  "TorBridges": [],
 			  "DownloadNewVersion": true,
 			  "StartLocalBitcoinCoreOnStartup": false,
 			  "StopLocalBitcoinCoreOnShutdown": true,
