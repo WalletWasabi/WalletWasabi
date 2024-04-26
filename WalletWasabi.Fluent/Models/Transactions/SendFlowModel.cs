@@ -17,7 +17,7 @@ public record SendFlowModel
 	{
 		Wallet = wallet;
 		AvailableCoins = availableCoins;
-		CoinListModel = coinListModel;
+		CoinList = coinListModel;
 	}
 
 	/// <summary>Regular Send Flow. Uses all wallet coins</summary>
@@ -36,7 +36,7 @@ public record SendFlowModel
 
 	public ICoinsView AvailableCoins { get; }
 
-	public ICoinListModel CoinListModel { get; }
+	public ICoinListModel CoinList { get; }
 
 	public TransactionInfo? TransactionInfo { get; init; } = null;
 

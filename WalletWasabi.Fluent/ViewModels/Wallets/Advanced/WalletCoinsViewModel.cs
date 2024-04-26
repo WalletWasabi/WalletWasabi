@@ -40,7 +40,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
-		_coinList = new CoinListViewModel(_wallet, new List<ICoinModel>());
+		_coinList = new CoinListViewModel(_wallet, _wallet.Coins, new List<ICoinModel>());
 		IsAnySelected = CoinList.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
 	}
 

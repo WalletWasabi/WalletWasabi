@@ -25,7 +25,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly bool _ignorePrivacyMode;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
+	public CoinListViewModel(IWalletModel wallet, ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
 	{
 		_wallet = wallet;
 		_ignorePrivacyMode = ignorePrivacyMode;
@@ -69,7 +69,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(GetSelectedCoins);
 
-		wallet.Coins.Pockets
+		availableCoins.Pockets
 			.Connect()
 			.ToCollection()
 			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
@@ -98,7 +98,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
-		wallet.Coins.Pockets
+		availableCoins.Pockets
 			.Connect()
 			.ToCollection()
 			.SkipWhile(pockets => pockets.Count == 0)
