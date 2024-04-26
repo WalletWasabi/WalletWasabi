@@ -149,7 +149,8 @@ public class WasabiApplication
 		LogLevel logLevel = Enum.TryParse(Config.LogLevel, ignoreCase: true, out LogLevel parsedLevel)
 			? parsedLevel
 			: LogLevel.Info;
-		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel);
+
+		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel, Config.LogModes);
 	}
 
 	private void ShowHelp()
