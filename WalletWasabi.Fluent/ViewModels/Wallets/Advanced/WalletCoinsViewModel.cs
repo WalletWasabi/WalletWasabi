@@ -1,18 +1,13 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
-using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
@@ -30,19 +25,17 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private CoinListViewModel _coinList;
-
-	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
-
-	private WalletCoinsViewModel(IWalletModel wallet)
+	public WalletCoinsViewModel(UiContext uiContext, IWalletModel wallet)
 	{
+		UiContext = uiContext;
 		_wallet = wallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
-		
-		_coinList = new CoinListViewModel(_wallet, _wallet.Coins, new List<ICoinModel>());
-		IsAnySelected = CoinList.Selection.ToObservableChangeSet().Count().Select(i => i > 0);
+
+		CoinList = new CoinListViewModel(_wallet, _wallet.Coins, new List<ICoinModel>(), ignorePrivacyMode: false, allowSelection: false);
 	}
+
+	public CoinListViewModel CoinList { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

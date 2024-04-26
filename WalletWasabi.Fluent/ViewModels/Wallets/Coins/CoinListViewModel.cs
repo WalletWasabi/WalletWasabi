@@ -25,7 +25,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly bool _ignorePrivacyMode;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
+	public CoinListViewModel(IWalletModel wallet, ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false, bool allowSelection = true)
 	{
 		_wallet = wallet;
 		_ignorePrivacyMode = ignorePrivacyMode;
@@ -94,7 +94,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode, allowSelection);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
