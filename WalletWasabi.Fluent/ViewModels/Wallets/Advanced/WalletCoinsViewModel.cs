@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using DynamicData.Aggregation;
-using DynamicData.Binding;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
