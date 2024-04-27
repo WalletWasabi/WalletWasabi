@@ -83,13 +83,13 @@ public class BlockFilterIterator
 	{
 		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
 
-		var keysToRemove = Cache.Keys
+		List<uint> keysToRemove = Cache.Keys
 			.Where(key => key > height)
 			.ToList();
 
-		foreach (var keyToRemove in keysToRemove)
+		foreach (uint heightToRemove in keysToRemove)
 		{
-			Cache.Remove(keyToRemove);
+			Cache.Remove(heightToRemove);
 		}
 	}
 
