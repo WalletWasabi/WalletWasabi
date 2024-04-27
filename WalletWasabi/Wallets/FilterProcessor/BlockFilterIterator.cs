@@ -99,7 +99,8 @@ public class BlockFilterIterator
 	public async Task ClearAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
-		Cache.Clear();
+
+		ClearNoLock();
 	}
 
 	/// <remarks>Needs to be guarded by <see cref="Lock"/></remarks>
