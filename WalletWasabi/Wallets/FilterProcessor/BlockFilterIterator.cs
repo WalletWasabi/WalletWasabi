@@ -21,7 +21,9 @@ public class BlockFilterIterator
 	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
-	internal Dictionary<uint, FilterModel> Cache { get; } = new();
+	internal Dictionary<uint, FilterModel> Cache { get; } = [];
+
+	/// <remarks>Lock object to guard <see cref="Cache"/>.</remarks>
 	private AsyncLock Lock { get; } = new();
 	private IIndexStore IndexStore { get; }
 	public int MaxNumberFiltersInMemory { get; }
