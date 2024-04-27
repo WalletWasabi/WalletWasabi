@@ -43,7 +43,7 @@ public class BlockFilterIterator
 		}
 
 		// We don't have the next filter to process, so fetch another batch of filters from the database.
-		Clear();
+		ClearNoLock();
 
 		FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
@@ -96,7 +96,14 @@ public class BlockFilterIterator
 		}
 	}
 
-	public void Clear()
+	public async Task ClearAsync(CancellationToken cancellationToken)
+	{
+		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+		Cache.Clear();
+	}
+
+	/// <remarks>Needs to be guarded by <see cref="Lock"/></remarks>
+	private void ClearNoLock()
 	{
 		Cache.Clear();
 	}

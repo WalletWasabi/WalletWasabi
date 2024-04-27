@@ -175,7 +175,7 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					foreach (SyncType syncType in Enum.GetValues<SyncType>())
 					{
-						FilterIteratorsBySyncType[syncType].Clear();
+						await FilterIteratorsBySyncType[syncType].ClearAsync(cancellationToken).ConfigureAwait(false);
 					}
 				}
 			}
