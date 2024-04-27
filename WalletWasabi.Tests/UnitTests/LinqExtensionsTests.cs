@@ -107,4 +107,19 @@ public class LinqExtensionsTests
 		Assert.Equal(4, new int[] { 4, 3 }.MaxOrDefault(defaultValue: 10));
 		Assert.Equal(4, new int[] { 4 }.MaxOrDefault(defaultValue: 10));
 	}
+
+	[Fact]
+	public void Median()
+	{
+		Assert.Throws<ArgumentException>(() => Array.Empty<double>().Median());
+		Assert.Equal(1, new double[] { 1 }.Median());
+		Assert.Equal(2, new double[] { 1, 2 }.Median());
+		Assert.Equal(2, new double[] { 1, 2, 3 }.Median());
+		Assert.Equal(3, new double[] { 1, 2, 3, 4 }.Median());
+		Assert.Equal(3, new double[] { 4, 3, 2, 1 }.Median());
+		Assert.Equal(3, new double[] { 4, 3, 2 }.Median());
+		Assert.Equal(4, new double[] { 4, 3 }.Median());
+		Assert.Equal(4, new double[] { 4 }.Median());
+		Assert.Equal(6, new double[] { 6, 6, 3 }.Median());
+	}
 }
