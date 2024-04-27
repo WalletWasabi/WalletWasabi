@@ -89,7 +89,10 @@ public class BlockFilterIterator
 
 		foreach (uint heightToRemove in keysToRemove)
 		{
-			Cache.Remove(heightToRemove);
+			if (!Cache.Remove(heightToRemove))
+			{
+				throw new UnreachableException($"Filter {heightToRemove} was already removed from the Cache.");
+			}
 		}
 	}
 
