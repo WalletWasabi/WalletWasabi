@@ -15,9 +15,7 @@ public enum ResponseMessage
 	HandshakeError,
 	BlockHeight,
 	ExchangeRate,
-	MiningFeeRates,
-	SoftwareVersion,
-	LegalDocumentVersion
+	MiningFeeRates
 }
 
 public record FilterMessage(FilterModel filterModel)
