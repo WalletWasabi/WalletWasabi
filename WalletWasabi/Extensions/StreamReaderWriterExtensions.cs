@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
@@ -81,22 +82,5 @@ public static class StreamReaderWriterExtensions
 		}
 
 		return new AllFeeEstimate(estimations);
-	}
-
-	public static void Write(this BinaryWriter writer, Version version)
-	{
-		writer.Write(version.Major);
-		writer.Write(version.Minor);
-		writer.Write(version.Build);
-	}
-
-	public static Version ReadVersion(this BinaryReader reader)
-	{
-		var major = reader.ReadInt32();
-		var minor = reader.ReadInt32();
-		var build = reader.ReadInt32();
-		return build >= 0
-			? new Version(major, minor, build)
-			: new Version(major, minor);
 	}
 }
