@@ -99,15 +99,7 @@ public class SatoshiSynchronizer : BackgroundService
 		{
 			if (ws.State == WebSocketState.Open)
 			{
-				try
-				{
-					await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", cancellationToken)
-						.ConfigureAwait(false);
-				}
-				catch
-				{
-					// ignored
-				}
+				await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -148,7 +140,7 @@ public class SatoshiSynchronizer : BackgroundService
 						var filter = reader.ReadFilterModel();
 						if (localChain.TipHeight + 1 != filter.Header.Height)
 						{
-							Logger.LogInfo(ChainHeightMismatchError(filter));
+							Logger.LogError(ChainHeightMismatchError(filter));
 							await RewindAsync(1).ConfigureAwait(false);
 							return;
 						}
