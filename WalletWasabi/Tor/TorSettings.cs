@@ -31,20 +31,21 @@ public class TorSettings
 		int controlPort = DefaultControlPort,
 		string? torFolder = null,
 		string[]? bridges = null,
-		int? owningProcessId = null)
+		int? owningProcessId = null,
+		bool log = true)
 	{
 		IsCustomTorFolder = torFolder is not null;
 
-        bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
+		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
 
 		// Use different ports when user overrides Tor folder to avoid accessing the same control_auth_cookie file.
-        if (IsCustomTorFolder && defaultWasabiTorPorts)
-        {
+		if (IsCustomTorFolder && defaultWasabiTorPorts)
+		{
 			socksPort = 37152;
 			controlPort = 37153;
-        }
+		}
 
-        TorBinaryDir = torFolder ?? Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
+		TorBinaryDir = torFolder ?? Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 		TorBinaryFilePath = GetTorBinaryFilePath(TorBinaryDir);
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
@@ -62,15 +63,16 @@ public class TorSettings
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 		DistributionFolder = distributionFolderPath;
 		TerminateOnExit = terminateOnExit;
+		Log = log;
 		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
 
-    /// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
-    public bool IsCustomTorFolder { get; }
+	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
+	public bool IsCustomTorFolder { get; }
 
-    /// <summary>Full directory path where Tor binaries are placed.</summary>
-    public string TorBinaryDir { get; }
+	/// <summary>Full directory path where Tor binaries are placed.</summary>
+	public string TorBinaryDir { get; }
 
 	/// <summary>Full directory path where Tor transports plugins are placed.</summary>
 	public string TorTransportPluginsDir { get; }
@@ -97,6 +99,9 @@ public class TorSettings
 	/// <summary>Owning process ID for Tor program.</summary>
 	public int? OwningProcessId { get; }
 
+	/// <summary><c>true</c> if logging to TorLogs.txt file is enabled, <c>false</c> otherwise.</summary>
+	public bool Log { get; }
+
 	/// <summary>Full path to executable file that is used to start Tor process.</summary>
 	public string TorBinaryFilePath { get; }
 
@@ -115,7 +120,7 @@ public class TorSettings
 	private string GeoIp6Path { get; }
 
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
-	public static string GetTorBinaryFilePath(string path, OSPlatform ? platform = null)
+	public static string GetTorBinaryFilePath(string path, OSPlatform? platform = null)
 	{
 		return Path.Combine(path, MicroserviceHelpers.GetFilenameWithExtension(TorBinaryFileName, platform));
 	}
@@ -146,8 +151,7 @@ public class TorSettings
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{GeoIpPath}\"",
-			$"--GeoIPv6File \"{GeoIp6Path}\"",
-			$"--Log \"notice file {LogFilePath}\""
+			$"--GeoIPv6File \"{GeoIp6Path}\""
 		];
 
 		if (useBridges)
@@ -186,9 +190,9 @@ public class TorSettings
 			{
 				string fileNameWithoutExtension = plugin switch
 				{
-					"obfs4" => "obfs4proxy",
+					"obfs4" => "lyrebird", // obfs4 was renamed to lyrebird.
 					"webtunnel" => "webtunnel-client",
-                    "snowflake" => "snowflake-client",
+					"snowflake" => "snowflake-client",
 					_ => throw new NotSupportedException($"Unknown Tor pluggable transport '{plugin}'."),
 				};
 
@@ -202,6 +206,11 @@ public class TorSettings
 
 				arguments.Add($"--ClientTransportPlugin \"{plugin} exec {path}\"");
 			}
+		}
+
+		if (Log)
+		{
+			arguments.Add($"--Log \"notice file {LogFilePath}\"");
 		}
 
 		if (TerminateOnExit && OwningProcessId is not null)

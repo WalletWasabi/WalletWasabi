@@ -59,7 +59,8 @@ public class Global
 			controlPort: config.TorControlPort,
 			torFolder: config.TorFolder,
 			bridges: config.TorBridges,
-			owningProcessId: Environment.ProcessId);
+			owningProcessId: Environment.ProcessId,
+			log: Config.LogModes.Contains(LogMode.File));
 
 		HostedServices = new HostedServices();
 		EventBus = new EventBus();
