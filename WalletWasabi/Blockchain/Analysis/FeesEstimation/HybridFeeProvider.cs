@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
-using WalletWasabi.Services.Events;
+using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
@@ -14,52 +15,121 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 /// </summary>
 public class HybridFeeProvider : IHostedService
 {
-	public HybridFeeProvider(EventBus eventBus)
+	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
 	{
-		EventBus = eventBus;
-		MiningFeeRatesChangedSubscription = EventBus.Subscribe<MiningFeeRatesChanged>(OnAllFeeEstimateArrived);
+		ThirdPartyFeeProvider = thirdPartyFeeProvider;
+		RpcFeeProvider = rpcFeeProvider;
 	}
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
+	public RpcFeeProvider? RpcFeeProvider { get; }
+	public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
 	private object Lock { get; } = new();
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
-	private EventBus EventBus { get; }
-	private IDisposable MiningFeeRatesChangedSubscription { get; set; }
+	private AbandonedTasks ProcessingEvents { get; } = new();
 
 	public Task StartAsync(CancellationToken cancellationToken)
 	{
-		return Task.CompletedTask;
-	}
+		SetAllFeeEstimateIfLooksBetter(RpcFeeProvider?.LastAllFeeEstimate);
+		SetAllFeeEstimateIfLooksBetter(ThirdPartyFeeProvider.LastAllFeeEstimate);
 
-
-	public Task StopAsync(CancellationToken cancellationToken)
-	{
-		MiningFeeRatesChangedSubscription.Dispose();
-		return Task.CompletedTask;
-	}
-
-	private void OnAllFeeEstimateArrived(MiningFeeRatesChanged e)
-	{
-		// Only go further if we have estimations.
-		if (e.AllFeeEstimate.Estimations.Any() is not true)
+		ThirdPartyFeeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+		if (RpcFeeProvider is not null)
 		{
-			return;
+			RpcFeeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 		}
 
-		lock (Lock)
+		return Task.CompletedTask;
+	}
+
+	public async Task StopAsync(CancellationToken cancellationToken)
+	{
+		ThirdPartyFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+		if (RpcFeeProvider is not null)
 		{
-			if (AllFeeEstimate == e.AllFeeEstimate)
+			RpcFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+		}
+
+		await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
+	}
+
+	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
+	{
+		using (RunningTasks.RememberWith(ProcessingEvents))
+		{
+			// Only go further if we have estimations.
+			if (fees.Estimations.Any() is not true)
 			{
 				return;
 			}
-			AllFeeEstimate = e.AllFeeEstimate;
-		}
 
-		var from = e.AllFeeEstimate.Estimations.First();
-		var to = e.AllFeeEstimate.Estimations.Last();
-		var sender = Enum.GetName(e.Source);
-		Logger.LogInfo($"Fee rates are acquired from {sender} ranging from target {from.Key} blocks at {from.Value} sat/vByte to target {to.Key} blocks at {to.Value} sat/vByte.");
-		AllFeeEstimateChanged?.Invoke(this, e.AllFeeEstimate);
+			var notify = false;
+			lock (Lock)
+			{
+				if (AllFeeEstimate is null)
+				{
+					// If it wasn't set before, then set it regardless everything.
+					notify = SetAllFeeEstimate(fees);
+				}
+				else if (sender is IThirdPartyFeeProvider)
+				{
+					var rpcProvider = RpcFeeProvider;
+					if (rpcProvider is null)
+					{
+						// If user doesn't use full node, then set it, this is the best we got.
+						notify = SetAllFeeEstimate(fees);
+					}
+					else
+					{
+						if (!rpcProvider.InError)
+						{
+							// If user's full node is properly serving data, then we don't care about the third party.
+							return;
+						}
+
+						// If the third party is properly serving accurate data then, this is the best we got.
+						notify = SetAllFeeEstimate(fees);
+					}
+				}
+				else if (sender is RpcFeeProvider rpcProvider)
+				{
+					// If user's full node is properly serving data, we're done here.
+					notify = SetAllFeeEstimate(fees);
+				}
+			}
+
+			if (notify)
+			{
+				var from = fees.Estimations.First();
+				var to = fees.Estimations.Last();
+				Logger.LogInfo($"Fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} blocks at {from.Value} sat/vByte to target {to.Key} blocks at {to.Value} sat/vByte.");
+				AllFeeEstimateChanged?.Invoke(this, fees);
+			}
+		}
+	}
+
+	/// <returns>True if changed.</returns>
+	private bool SetAllFeeEstimateIfLooksBetter(AllFeeEstimate? fees)
+	{
+		var current = AllFeeEstimate;
+		if (fees is null
+			|| fees == current
+			|| (current is not null && fees.Estimations.Count <= current.Estimations.Count))
+		{
+			return false;
+		}
+		return SetAllFeeEstimate(fees);
+	}
+
+	/// <returns>True if changed.</returns>
+	private bool SetAllFeeEstimate(AllFeeEstimate fees)
+	{
+		if (AllFeeEstimate == fees)
+		{
+			return false;
+		}
+		AllFeeEstimate = fees;
+		return true;
 	}
 }
