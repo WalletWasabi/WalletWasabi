@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -381,160 +380,7 @@ public class CoinJoinClient
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
 	{
-		int eventInvokedAlready = 0;
-
-		UnexpectedRoundPhaseException? lastUnexpectedRoundPhaseException = null;
-
-		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-
-		using CancellationTokenSource strictInputRegTimeoutCts = new(remainingInputRegTime);
-		using CancellationTokenSource inputRegTimeoutCts = new(remainingInputRegTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource connConfTimeoutCts = new(remainingInputRegTime + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource registrationsCts = new();
-		using CancellationTokenSource confirmationsCts = new();
-
-		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
-		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
-		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
-		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
-
-		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
-		{
-			PersonCircuit? personCircuit = null;
-			bool disposeCircuit = true;
-			try
-			{
-				var (newPersonCircuit, httpClient) = HttpClientFactory.NewHttpClientWithPersonCircuit();
-				personCircuit = newPersonCircuit;
-
-				// Alice client requests are inherently linkable to each other, so the circuit can be reused
-				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
-
-				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(SecureRandom),
-					roundState.CreateVsizeCredentialClient(SecureRandom),
-					CoordinatorIdentifier,
-					arenaRequestHandler);
-
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
-
-				// Right after the first real-cred confirmation happened we entered into critical phase.
-				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
-				{
-					CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
-				}
-
-				// Do not dispose the circuit, it will be used later.
-				disposeCircuit = false;
-				return (aliceClient, personCircuit);
-			}
-			catch (WabiSabiProtocolException wpe)
-			{
-				switch (wpe.ErrorCode)
-				{
-					case WabiSabiProtocolErrorCode.RoundNotFound:
-						// if the round does not exist then it ended/aborted.
-						roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
-						registrationsCts.Cancel();
-						confirmationsCts.Cancel();
-						break;
-
-					case WabiSabiProtocolErrorCode.WrongPhase:
-						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
-						{
-							roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
-							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
-							{
-								// Cancel all remaining pending input registrations because they will arrive late too.
-								registrationsCts.Cancel();
-
-								if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
-								{
-									// Cancel all remaining pending connection confirmations because they will arrive late too.
-									confirmationsCts.Cancel();
-								}
-							}
-						}
-						else
-						{
-							throw new InvalidOperationException(
-								$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
-						}
-						break;
-
-					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-						roundState.LogInfo($"{coin.Coin.Outpoint} was already registered.");
-						break;
-
-					case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
-						roundState.LogInfo($"{coin.Coin.Outpoint} already confirmed connection.");
-						break;
-
-					case WabiSabiProtocolErrorCode.InputSpent:
-						coin.SpentAccordingToBackend = true;
-						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
-						break;
-
-					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
-						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
-						if (inputBannedExData is null)
-						{
-							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
-						}
-						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
-						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
-						break;
-
-					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						coin.SpentAccordingToBackend = false;
-						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
-						break;
-
-					default:
-						roundState.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
-						break;
-				}
-			}
-			catch (OperationCanceledException ex)
-			{
-				if (cancel.IsCancellationRequested)
-				{
-					Logger.LogDebug("User requested cancellation of registration and confirmation.");
-				}
-				else if (registrationsCts.IsCancellationRequested)
-				{
-					Logger.LogDebug("Registration was cancelled.");
-				}
-				else if (connConfTimeoutCts.IsCancellationRequested)
-				{
-					Logger.LogDebug("Connection confirmation was cancelled.");
-				}
-				else
-				{
-					Logger.LogDebug(ex);
-				}
-			}
-			catch (UnexpectedRoundPhaseException ex)
-			{
-				lastUnexpectedRoundPhaseException = ex;
-				Logger.LogTrace(ex);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				if (disposeCircuit)
-				{
-					personCircuit?.Dispose();
-				}
-			}
-
-			// In case of any exception.
-			return (null, null);
-		}
+		using CoinConfirmationState coinConfirmationState = new CoinConfirmationState(roundState, cancel, ExtraPhaseTimeoutMargin);
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
@@ -554,9 +400,9 @@ public class CoinJoinClient
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
-					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
+					await Task.Delay(delay, coinConfirmationState.TimeoutAndGlobalCts.Token).ConfigureAwait(false);
 				}
-				return await RegisterInputAsync(coin).ConfigureAwait(false);
+				return await RegisterInputAsync(coinConfirmationState, coin).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
 
@@ -568,13 +414,152 @@ public class CoinJoinClient
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
 
-		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
+		if (!successfulAlices.Any() && coinConfirmationState.LastUnexpectedRoundPhaseException is { })
 		{
 			// In this case the coordinator aborted the round - throw only one exception and log outside.
-			throw lastUnexpectedRoundPhaseException;
+			throw coinConfirmationState.LastUnexpectedRoundPhaseException;
 		}
 
 		return successfulAlices;
+	}
+
+	private async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(CoinConfirmationState coinConfirmationState, SmartCoin coin)
+	{
+		RoundState roundState = coinConfirmationState.RoundState;
+		PersonCircuit? personCircuit = null;
+		bool disposeCircuit = true;
+		try
+		{
+			var (newPersonCircuit, httpClient) = HttpClientFactory.NewHttpClientWithPersonCircuit();
+			personCircuit = newPersonCircuit;
+
+			// Alice client requests are inherently linkable to each other, so the circuit can be reused
+			var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
+
+			var aliceArenaClient = new ArenaClient(
+				roundState.CreateAmountCredentialClient(SecureRandom),
+				roundState.CreateVsizeCredentialClient(SecureRandom),
+				CoordinatorIdentifier,
+				arenaRequestHandler);
+
+			var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, coinConfirmationState.LinkedUnregisterCts.Token, coinConfirmationState.LinkedRegistrationsCts.Token, coinConfirmationState.LinkedConfirmationsCts.Token).ConfigureAwait(false);
+
+			// Right after the first real-cred confirmation happened we entered into critical phase.
+			if (coinConfirmationState.EventInvocedAlready(1) == 0)
+			{
+				CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
+			}
+
+			// Do not dispose the circuit, it will be used later.
+			disposeCircuit = false;
+			return (aliceClient, personCircuit);
+		}
+		catch (WabiSabiProtocolException wpe)
+		{
+			switch (wpe.ErrorCode)
+			{
+				case WabiSabiProtocolErrorCode.RoundNotFound:
+					// if the round does not exist then it ended/aborted.
+					roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
+					coinConfirmationState.RegistrationsCts.Cancel();
+					coinConfirmationState.ConfirmationsCts.Cancel();
+					break;
+
+				case WabiSabiProtocolErrorCode.WrongPhase:
+					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
+					{
+						roundState.LogInfo($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
+						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
+						{
+							// Cancel all remaining pending input registrations because they will arrive late too.
+							coinConfirmationState.RegistrationsCts.Cancel();
+
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+							{
+								// Cancel all remaining pending connection confirmations because they will arrive late too.
+								coinConfirmationState.ConfirmationsCts.Cancel();
+							}
+						}
+					}
+					else
+					{
+						throw new InvalidOperationException(
+							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
+					}
+					break;
+
+				case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+					roundState.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+					break;
+
+				case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
+					roundState.LogInfo($"{coin.Coin.Outpoint} already confirmed connection.");
+					break;
+
+				case WabiSabiProtocolErrorCode.InputSpent:
+					coin.SpentAccordingToBackend = true;
+					roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+					break;
+
+				case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+					var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+					if (inputBannedExData is null)
+					{
+						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+					}
+					var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+					CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
+					roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
+					break;
+
+				case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+					coin.SpentAccordingToBackend = false;
+					Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
+					break;
+
+				default:
+					roundState.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+					break;
+			}
+		}
+		catch (OperationCanceledException ex)
+		{
+			if (coinConfirmationState.Cancel.IsCancellationRequested)
+			{
+				Logger.LogDebug("User requested cancellation of registration and confirmation.");
+			}
+			else if (coinConfirmationState.RegistrationsCts.IsCancellationRequested)
+			{
+				Logger.LogDebug("Registration was cancelled.");
+			}
+			else if (coinConfirmationState.ConnConfTimeoutCts.IsCancellationRequested)
+			{
+				Logger.LogDebug("Connection confirmation was cancelled.");
+			}
+			else
+			{
+				Logger.LogDebug(ex);
+			}
+		}
+		catch (UnexpectedRoundPhaseException ex)
+		{
+			coinConfirmationState.LastUnexpectedRoundPhaseException = ex;
+			Logger.LogTrace(ex);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning(ex);
+		}
+		finally
+		{
+			if (disposeCircuit)
+			{
+				personCircuit?.Dispose();
+			}
+		}
+
+		// In case of any exception.
+		return (null, null);
 	}
 
 	private BobClient CreateBobClient(RoundState roundState)
