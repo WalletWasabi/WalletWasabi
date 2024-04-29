@@ -67,18 +67,21 @@ public static class Logger
 	/// </para>
 	/// </summary>
 	/// <param name="logLevel">Use <c>null</c> to use default <see cref="LogLevel"/> or a custom value to force non-default <see cref="LogLevel"/>.</param>
-	public static void InitializeDefaults(string filePath, LogLevel? logLevel = null)
+	/// <param name="logModes">Use <c>null</c> to use default <see cref="LogMode">logging modes</see> or custom values to force non-default logging modes.</param>
+	public static void InitializeDefaults(string filePath, LogLevel? logLevel = null, LogMode[]? logModes = null)
 	{
 		SetFilePath(filePath);
 
 #if RELEASE
-		SetMinimumLevel(logLevel ??= LogLevel.Info);
-		SetModes(LogMode.Console, LogMode.File);
-
+		logLevel ??= LogLevel.Info;
+		logModes ??= [LogMode.Console, LogMode.File];
 #else
-		SetMinimumLevel(logLevel ??= LogLevel.Debug);
-		SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+		logLevel ??= LogLevel.Debug;
+		logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
 #endif
+
+		SetMinimumLevel(logLevel.Value);
+		SetModes(logModes);
 
 		lock (Lock)
 		{
