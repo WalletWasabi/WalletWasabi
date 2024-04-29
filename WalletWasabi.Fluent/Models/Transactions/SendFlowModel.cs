@@ -46,5 +46,8 @@ public record SendFlowModel
 
 	public bool IsManual => AvailableCoins.TotalAmount() != Wallet.Coins.TotalAmount();
 
-	public IEnumerable<(LabelsArray Labels, ICoinsView Coins)> GetPockets() => AvailableCoins.GetPockets(Wallet.AnonScoreTarget);
+	public Pocket[] GetPockets() =>
+		AvailableCoins.GetPockets(Wallet.AnonScoreTarget)
+					  .Select(x => new Pocket(x))
+		              .ToArray();
 }

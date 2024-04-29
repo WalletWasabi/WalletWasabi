@@ -4,11 +4,14 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -19,13 +22,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly Wallet _wallet;
+	private readonly SendFlowModel _sendFlow;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
+		_sendFlow = sendFlow;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
@@ -56,7 +61,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 		var coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList();
 
-		await LabelSelection.ResetAsync(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray(), coinsToExclude);
+		var pockets = _sendFlow.GetPockets();
+
+		await LabelSelection.ResetAsync(pockets, coinsToExclude);
 		await LabelSelection.SetUsedLabelAsync(_usedCoins, privateThreshold);
 	}
 
@@ -64,6 +71,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
+		// TODO: Decoupling
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)

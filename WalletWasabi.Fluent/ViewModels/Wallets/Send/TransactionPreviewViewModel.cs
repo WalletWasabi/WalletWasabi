@@ -217,7 +217,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: true));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, Transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
 				privacyControlDialogResult.Result is { } coins)
 			{
@@ -266,7 +266,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			if (canSelectMoreCoins)
 			{
 				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
 
 				if (selectPocketsDialog.Result is { } newCoins)
 				{
@@ -478,7 +478,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
-		var pockets = _sendFlow.GetPockets().Select(x => new Pocket(x)).ToArray();
+		var pockets = _sendFlow.GetPockets();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
@@ -492,7 +492,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			case LabelManagementSuggestion:
 				{
 					var selectPocketsDialog =
-						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, Transaction?.SpentCoins, false));
 
 					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 					{
