@@ -61,6 +61,9 @@ public class P2PBlockProvider : IP2PBlockProvider
 			}
 		}
 
+		// Restart the duration computation to avoid accounting for node's discovery.
+		duration.Restart();
+
 		double timeout = sourceRequest.Timeout ?? P2PNodesManager.SuggestedTimeout;
 
 		uint connectedNodes = P2PNodesManager.ConnectedNodesCount;
