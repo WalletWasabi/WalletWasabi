@@ -64,27 +64,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		var selectedCoins = coinItems
-			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
-			.Select(GetSelectedCoins);
-
-		wallet.Coins.Pockets
-			.Connect()
-			.ToCollection()
-			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			.Do(
-				tuple =>
-				{
-					var (pockets, sl) = tuple;
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
-
 		coinItems.AutoRefresh(x => x.IsSelected)
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
@@ -94,23 +73,24 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
-		TreeDataGridSource.DisposeWith(_disposables);
-		CoinItems = coinItemsCollection;
-
-		wallet.Coins.Pockets
-			.Connect()
+		wallet.Coins.List
+			.Connect(suppressEmptyChangeSets: false)
 			.ToCollection()
-			.SkipWhile(pockets => pockets.Count == 0)
 			.Do(
-				pockets =>
+				_ =>
 				{
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, initialCoinSelection);
-					ExpandSelectedItems();
+					var oldSelection = Selection.ToArray();
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					RefreshFromPockets(sourceItems, wallet.Coins.Pockets.Items);
+					UpdateSelection(coinItemsCollection, oldSelection);
+					RestoreExpandedRows(oldExpandedItemsLabel);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
+
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
+		TreeDataGridSource.DisposeWith(_disposables);
+		CoinItems = coinItemsCollection;
 
 		_wallet = wallet;
 
@@ -181,12 +161,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				return new PocketViewModel(_wallet, pocket, _ignorePrivacyMode);
 			});
 
-		source.Edit(
-			x =>
-			{
-				x.Clear();
-				x.AddRange(newItems);
-			});
+		source.EditDiff(newItems);
 	}
 
 	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)
