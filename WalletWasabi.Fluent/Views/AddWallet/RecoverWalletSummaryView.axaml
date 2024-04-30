@@ -74,18 +74,6 @@
           </TextBox>
         </StackPanel>
 
-        <!-- DerivationPath -->
-        <StackPanel HorizontalAlignment="Stretch"
-                    Grid.Row="1"
-                    Grid.Column="1">
-          <Label Content="Derivation _Path:" Target="TbDerivationPath" />
-          <TextBox Name="TbDerivationPath" Watermark="e.g., 10/0/2'/3"
-                   Text="{Binding DerivationPath}"
-                   DockPanel.Dock="Top"
-                   Classes="hasCheckMark">
-          </TextBox>
-        </StackPanel>
-
       </Grid>
 
     </DockPanel>

@@ -26,15 +26,12 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 	[AutoNotify] private bool _isMnemonicsValid;
 	[AutoNotify] private string? _passphrase;
 	[AutoNotify] private string? _minGapLimit;
-	[AutoNotify] private string? _derivationPath;
 
 	private RecoverWalletSummaryViewModel(WalletCreationOptions.RecoverWallet options)
 	{
 		Passphrase = options.Passphrase;
 
 		MinGapLimit = options.MinGapLimit.ToString();
-
-		DerivationPath = "";
 
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -54,17 +51,15 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
-		this.ValidateProperty(x => x.DerivationPath, ValidateDerivationPath);
 
 		EnableBack = false;
 
 		var canExecuteNext = this.WhenAnyValue(
 			x => x.MinGapLimit,
-			x => x.DerivationPath,
 			x => x.IsMnemonicsValid)
 			.Select(x =>
 			{
-				var (_, _, isMnemonicsValid) = x;
+				var (_, isMnemonicsValid) = x;
 				return !Validations.Any && isMnemonicsValid;
 			});
 
@@ -88,8 +83,7 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 			{
 				Passphrase = Passphrase,
 				Mnemonic = _currentMnemonics,
-				MinGapLimit = int.Parse(MinGapLimit),
-				AccountKeyPath = DerivationPath
+				MinGapLimit = int.Parse(MinGapLimit)
 			};
 
 			var wallet = await UiContext.WalletRepository.NewWalletAsync(options);
@@ -123,20 +117,6 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 		}
 
 		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
-	}
-
-	private void ValidateDerivationPath(IValidationErrors errors)
-	{
-		if (string.IsNullOrEmpty(DerivationPath))
-		{
-			ClearValidations();
-			return;
-		}
-
-		if (!KeyPath.TryParse(DerivationPath, out var keyPath) || keyPath is null)
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid derivation path.");
-		}
 	}
 
 	private void ValidateMinGapLimit(IValidationErrors errors)
