@@ -49,16 +49,31 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, UnconfirmedTransactionChainProvider unconfirmedTxChainProvider, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
-		return TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
-	}
 
-	public static bool TryEstimateConfirmationTime(Wallet wallet, SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? estimate)
-	{
-		estimate = null;
-		return TryGetFeeEstimates(wallet, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate);
+		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate))
+		{
+			return true;
+		}
+
+		if (feeEstimates is not null)
+		{
+			var unconfirmedChain = unconfirmedTxChainProvider.GetUnconfirmedTransactionChain(tx.GetHash());
+
+			if (unconfirmedChain is null || unconfirmedChain.Count == 0)
+			{
+				return false;
+			}
+
+			var feeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
+
+			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+			return true;
+		}
+
+		return false;
 	}
 
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)

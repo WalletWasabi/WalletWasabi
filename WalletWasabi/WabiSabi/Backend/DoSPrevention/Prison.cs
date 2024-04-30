@@ -25,6 +25,9 @@ public class Prison
 	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>and <see cref="BanningTimeCache"/></remarks>
 	private object Lock { get; } = new();
 
+	public void BackendStabilitySafetyBan(OutPoint outPoint, uint256 roundId) =>
+		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new BackendStabilitySafety(roundId)));
+
 	public void FailedToConfirm(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DidNotConfirm)));
 
@@ -120,6 +123,7 @@ public class Prison
 		var banningTime = EffectiveMinTimeFrame(offender switch
 		{
 			null => TimeFrame.Zero,
+			{ Offense: BackendStabilitySafety } => new TimeFrame(offender.StartedTime, configuration.MinTimeInPrison + TimeSpan.FromHours(new Random().Next(0, 4))),
 			{ Offense: FailedToVerify } => new TimeFrame(offender.StartedTime, configuration.MinTimeForFailedToVerify),
 			{ Offense: Cheating } => new TimeFrame(offender.StartedTime, configuration.MinTimeForCheating),
 			{ Offense: RoundDisruption offense } => new TimeFrame(offender.StartedTime, CalculatePunishment(offender, offense)),

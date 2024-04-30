@@ -288,8 +288,6 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			result = true;
 
-			var parsedLabel = parserResult.Label is { } label ? new LabelsArray(label) : LabelsArray.Empty;
-
 			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
 
 			if (parserResult.Address is { })
@@ -307,11 +305,14 @@ public partial class SendViewModel : RoutableViewModel
 				IsFixedAmount = false;
 			}
 
-			SuggestionLabels = new SuggestionLabelsViewModel(
+			if (parserResult.Label is { } parsedLabel)
+			{
+				SuggestionLabels = new SuggestionLabelsViewModel(
 				WalletVm.WalletModel,
 				Intent.Send,
 				3,
-				parsedLabel.AsEnumerable());
+				[parsedLabel]);
+			}
 		}
 		else
 		{
@@ -337,6 +338,8 @@ public partial class SendViewModel : RoutableViewModel
 				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletId);
 			}
 		}
+
+		_suggestionLabels.Activate(disposables);
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)

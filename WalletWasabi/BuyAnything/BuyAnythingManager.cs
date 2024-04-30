@@ -298,12 +298,6 @@ public class BuyAnythingManager : PeriodicRunner
 		return ConversationTracking.GetConversationsByWalletId(walletId);
 	}
 
-	public async Task<Conversation> GetConversationByIdAsync(ConversationId conversationId, CancellationToken cancellationToken)
-	{
-		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return ConversationTracking.GetConversationsById(conversationId);
-	}
-
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -652,7 +646,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private NetworkCredential GenerateRandomCredential() =>
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
-			password: RandomString.AlphaNumeric(25));
+			password: RandomString.AlphaNumeric(25, secureRandom: true));
 
 	public async Task EnsureCountriesAreLoadedAsync(CancellationToken cancel)
 	{

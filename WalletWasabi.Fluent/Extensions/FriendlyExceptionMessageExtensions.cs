@@ -14,7 +14,7 @@ public static class FriendlyExceptionMessageExtensions
 
 		if (exceptionMessage.Length == 0)
 		{
-			return "An unexpected error occured. Please try again or contact support.";
+			return "An unexpected error occurred. Please try again or contact support.";
 		}
 
 		if (TryFindRpcErrorMessage(exceptionMessage, out var friendlyMessage))

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wasabiwallet.io">
-    <img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
+    <img src="https://github.com/zkSNACKs/WalletWasabi/blob/master/ui-ww.png">
   </a>
 </p>
 
@@ -32,10 +32,9 @@
   <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">
     PGP
   </a>
-</div>
+</h3>
 
-<br>
-<br>
+<h3>
 
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
@@ -56,13 +55,12 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
+</h3>
 <br>
 
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
 <br>
-
-![](/ui-ww.png)
 
 # Build From Source Code
 

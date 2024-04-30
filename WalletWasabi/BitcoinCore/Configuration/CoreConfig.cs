@@ -139,4 +139,6 @@ public class CoreConfig
 
 		return retLines.Select(x => new CoreConfigLine(x));
 	}
+
+	public int RemoveAll(string configKey) => Lines.RemoveAll(line => line.Key.Contains(configKey));
 }

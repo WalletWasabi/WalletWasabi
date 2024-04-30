@@ -18,7 +18,6 @@ services:
         zmqpubrawtx=tcp://0.0.0.0:18446
         deprecatedrpc=signrawtransaction
         fallbackfee=0.0002
-        mempoolreplacement=fee,optin
         txindex=1
     ports:
       - "18443:18443"

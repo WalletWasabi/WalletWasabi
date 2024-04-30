@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:authorization="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs.Authorization"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="authorization:HardwareWalletAuthDialogViewModel"
              x:CompileBindings="True"
@@ -18,8 +17,8 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <StackPanel>
-      <Viewbox MaxHeight="120">
-        <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
+      <Viewbox MaxHeight="100">
+        <WalletIconControl WalletType="{Binding WalletType}" />
       </Viewbox>
       <TextBlock TextAlignment="Center" Foreground="{DynamicResource SystemErrorTextColor}"
                  Text="{Binding AuthorizationFailedMessage}"
