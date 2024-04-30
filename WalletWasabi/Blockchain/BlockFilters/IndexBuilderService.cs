@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
@@ -23,8 +22,6 @@ public class IndexBuilderService
 	private const long Stopping = 2;
 	private const long Stopped = 3;
 
-	private readonly EventBus _eventBus;
-
 	/// <summary>
 	/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 	/// </summary>
@@ -32,9 +29,8 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IndexType indexType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath, EventBus eventBus)
+	public IndexBuilderService(IndexType indexType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
-		_eventBus = eventBus;
 		IndexType = indexType;
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -208,7 +204,6 @@ public class IndexBuilderService
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
-							NotifyAll(filterModel);
 
 							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
@@ -398,10 +393,5 @@ public class IndexBuilderService
 		{
 			await Task.Delay(50).ConfigureAwait(false);
 		}
-	}
-
-	private void NotifyAll(FilterModel filterModel)
-	{
-		_eventBus.Publish(filterModel);
 	}
 }

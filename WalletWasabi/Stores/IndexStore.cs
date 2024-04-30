@@ -291,7 +291,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 					}
 
 					processed++;
-					SmartHeaderChain.SetServerTipHeight(Math.Max(SmartHeaderChain.ServerTipHeight, filter.Header.Height));
 				}
 			}
 			finally
