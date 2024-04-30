@@ -58,7 +58,8 @@ public record EmptySourceData(Source Source) : ISourceData
 /// Source data for a bitcoin block downloaded over the P2P Network.
 /// </summary>
 /// <param name="StatusCode">Description of the P2P operation result.</param>
-/// <param name="Node">Node from which we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
+/// <param name="Duration">Amount of time it took for the P2P Operation, regardless of its result.</param>
+/// <param name="Node">Node from w4hich we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
 /// <param name="ConnectedNodes">
 /// Number of connected peers at the moment when we downloaded the bitcoin block.
 /// The number of connected peers can change at any moment.
