@@ -98,6 +98,17 @@ public class P2PBlockProvider : IP2PBlockProvider
 		{
 			if (ex is OperationCanceledException or TimeoutException)
 			{
+				if (!cancellationToken.IsCancellationRequested)
+				{
+					return await NotifyNodeManagerAndCreateResponseAsync(
+						block: null,
+						statusCode: P2pSourceDataStatusCode.TimedOut,
+						duration: duration.Elapsed,
+						node: node,
+						connectedNodes: connectedNodes).ConfigureAwait(false);
+				}
+
+				// The global cancellation token kicked in, app is probably shutting down.
 				return await NotifyNodeManagerAndCreateResponseAsync(
 					block: null,
 					statusCode: P2pSourceDataStatusCode.Cancelled,

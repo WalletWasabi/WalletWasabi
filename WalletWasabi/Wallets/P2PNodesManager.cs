@@ -82,7 +82,7 @@ public class P2PNodesManager
 		}
 		else
 		{
-			if (p2PSourceData.StatusCode == P2pSourceDataStatusCode.Cancelled)
+			if (p2PSourceData.StatusCode == P2pSourceDataStatusCode.TimedOut)
 			{
 				if (LastTenCancellationDurations.Count == 10)
 				{

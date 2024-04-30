@@ -30,7 +30,10 @@ public enum P2pSourceDataStatusCode
 	/// <remarks>This covers for example networking errors.</remarks>
 	Failure,
 
-	/// <summary>Operation was cancelled.</summary>
+	/// <summary>Operation was cancelled because the timeout cancellation token kicked in.</summary>
+	TimedOut,
+
+	/// <summary>Operation was cancelled the global cancellation token kicked in (app is probably shutting down)</summary>
 	Cancelled,
 
 	/// <summary>P2P node returned a block to us but it is not valid.</summary>
