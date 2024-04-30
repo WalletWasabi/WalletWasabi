@@ -14,7 +14,17 @@
                  Height="280" Width="450">
     <InfoMessage>
       <DockPanel>
-        <TextBlock Text="Your passphrase is also required to restore your wallet, do not forget it." />
+        <TextBlock Text="Pressing OK will shut down Wasabi." />
+      </DockPanel>
+    </InfoMessage>
+    <InfoMessage>
+      <DockPanel>
+        <TextBlock Text="Rescanning the wallet could take several hours, based on how many transactions your wallet had." />
+      </DockPanel>
+    </InfoMessage>
+    <InfoMessage>
+      <DockPanel>
+        <TextBlock Text="Do you want to continute?" />
       </DockPanel>
     </InfoMessage>
   </ContentArea>
