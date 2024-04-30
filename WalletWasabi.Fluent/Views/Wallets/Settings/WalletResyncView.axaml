@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletResyncView"
+             x:DataType="vm:WalletResyncViewModel">
+  <ContentArea Title="{Binding Title}"
+                 Caption="Signal to rescan the wallet"
+                 EnableBack="{Binding EnableBack}"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableNext="True" NextContent="Save"
+                 Height="280" Width="450">
+    <InfoMessage>
+      <DockPanel>
+        <TextBlock Text="Your passphrase is also required to restore your wallet, do not forget it." />
+      </DockPanel>
+    </InfoMessage>
+  </ContentArea>
+</UserControl>
