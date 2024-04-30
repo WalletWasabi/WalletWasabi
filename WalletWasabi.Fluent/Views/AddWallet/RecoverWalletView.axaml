@@ -8,6 +8,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
   <ContentArea Title="{Binding Title}"
+               Caption="Fill your 12 words in the correct order and enter the same passphrase that you used on wallet creation. If you have more words than 12 go to the advanced view."
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
