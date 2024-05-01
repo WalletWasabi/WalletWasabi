@@ -19,7 +19,15 @@ public abstract class WebSocketHandlerBase(WebSocketsConnectionTracker connectio
 	/// <param name="cancellationToken">The cancellation token.</param>
 	public virtual Task OnConnectedAsync(WebSocket socket, CancellationToken cancellationToken)
 	{
-		connectionTracker.AddSocket(socket);
+		var channel = connectionTracker.AddSocket(socket);
+		Task.Run(async () =>
+		{
+			await foreach (var message in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+			{
+				await socket.SendAsync(message, WebSocketMessageType.Binary, true, cancellationToken)
+					.ConfigureAwait(false);
+			}
+		}, cancellationToken);
 		return Task.CompletedTask;
 	}
 
@@ -31,6 +39,9 @@ public abstract class WebSocketHandlerBase(WebSocketsConnectionTracker connectio
 	/// <param name="cancellationToken">The cancellation token.</param>
 	public virtual Task OnDisconnectedAsync(WebSocket socket, CancellationToken cancellationToken)
 	{
+		var connectionState = connectionTracker.GetWebSocketConnectionState(socket);
+		connectionState.MessagesToSend.Writer.Complete();
+
 		connectionTracker.RemoveSocket(socket);
 		return socket.State is WebSocketState.Open
 			? socket.CloseAsync(
@@ -38,6 +49,12 @@ public abstract class WebSocketHandlerBase(WebSocketsConnectionTracker connectio
 				$"Closed by the {nameof(WebSocketHandlerBase)}",
 				cancellationToken)
 			: Task.CompletedTask;
+	}
+
+	public async Task SendAsync(WebSocket socket, byte[] message, CancellationToken cancellationToken)
+	{
+		var connectionState = connectionTracker.GetWebSocketConnectionState(socket);
+		await connectionState.MessagesToSend.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>

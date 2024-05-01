@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Threading.Channels;
 
 namespace WalletWasabi.Backend.Middlewares;
 
@@ -25,12 +26,15 @@ public class WebSocketsConnectionTracker
 		}
 	}
 
-	public void AddSocket(WebSocket socket)
+	public Channel<byte[]> AddSocket(WebSocket socket)
 	{
+		var webSocketConnectionState = new WebSocketConnectionState(socket, DateTime.UtcNow);
 		lock (_sync)
 		{
-			_sockets.Add(new WebSocketConnectionState(socket, DateTime.UtcNow));
+			_sockets.Add(webSocketConnectionState);
 		}
+
+		return webSocketConnectionState.MessagesToSend;
 	}
 
 	public void RemoveSocket(WebSocket socket)

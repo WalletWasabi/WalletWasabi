@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Synchronization;
 
@@ -28,22 +27,14 @@ namespace WalletWasabi.Backend.Middlewares;
 /// is the initial handshake that is started by the client sending the best known block hash. After that, all
 /// messages from the client are simply ignored.
 /// </remarks>
-public class SatoshiWebSocketHandler : WebSocketHandlerBase
+public class SatoshiWebSocketHandler(
+	WebSocketsConnectionTracker connectionTracker,
+	EventBus eventBus,
+	IndexBuilderService indexBuilderService)
+	: WebSocketHandlerBase(connectionTracker)
 {
-	private readonly IndexBuilderService _indexBuilderService;
-	private readonly EventBus _eventBus;
 	private readonly Dictionary<WebSocket, List<IDisposable>> _socketResources = new();
 	private readonly object _synObj = new();
-
-	public SatoshiWebSocketHandler(
-		WebSocketsConnectionTracker connectionTracker,
-		EventBus eventBus,
-		IndexBuilderService indexBuilderService)
-		: base(connectionTracker)
-	{
-		_eventBus = eventBus;
-		_indexBuilderService = indexBuilderService;
-	}
 
 	public override Task OnConnectedAsync(WebSocket socket, CancellationToken cancellationToken)
 	{
@@ -63,7 +54,7 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 	{
 		lock (_synObj)
 		{
-			var notification = _eventBus.Subscribe(builder(socket));
+			var notification = eventBus.Subscribe(builder(socket));
 			var resources = _socketResources.TryGetValue(socket, out var r) ? r : [];
 			resources.Add(notification);
 			_socketResources[socket] = resources;
@@ -126,8 +117,8 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 		}
 	}
 
-	private static Task SendHandshakeErrorAsync(WebSocket webSocket, CancellationToken cancellationToken) =>
-		webSocket.SendAsync(
+	private static async Task SendHandshakeErrorAsync(WebSocket webSocket, CancellationToken cancellationToken) =>
+		await webSocket.SendAsync(
 			new[] { (byte) ResponseMessage.HandshakeError },
 			WebSocketMessageType.Binary,
 			true,
@@ -145,26 +136,26 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 		Subscribe(webSocket, SendFilter);
 	}
 
-	private Task SendBlockHeightAsync(WebSocket webSocket, CancellationToken cancellationToken)
+	private async Task SendBlockHeightAsync(WebSocket webSocket, CancellationToken cancellationToken)
 	{
-		var lastFilter = _indexBuilderService.GetLastFilter();
+		var lastFilter = indexBuilderService.GetLastFilter();
 		var bestBlockHeight = lastFilter.Header.Height;
 		var message = new BlockHeightMessage(bestBlockHeight);
-		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+		await SendAsync(webSocket, message.ToByteArray(), cancellationToken);
 	}
 
-	private Task SendSoftwareVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
+	private async Task SendSoftwareVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
 	{
 		var clientVersion = Constants.ClientVersion;
 		var backendVersion = new Version(int.Parse(Constants.BackendMajorVersion), 0, 0);
 		var message = new VersionMessage(clientVersion, backendVersion);
-		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+		await SendAsync(webSocket, message.ToByteArray(), cancellationToken);
 	}
 
-	private Task SendLegalDocumentVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
+	private async Task SendLegalDocumentVersionAsync(WebSocket webSocket, CancellationToken cancellationToken)
 	{
 		var message = new LegalDocumentVersionMessage(Constants.Ww2LegalDocumentsVersion);
-		return webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+		await SendAsync(webSocket, message.ToByteArray(), cancellationToken);
 	}
 
 	// <summary>
@@ -186,7 +177,7 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 			foreach (var filter in getFiltersChunk)
 			{
 				var message = new FilterMessage(filter);
-				await webSocket.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, cancellationToken);
+				await SendAsync(webSocket, message.ToByteArray(), cancellationToken);
 
 				lastTransmittedFilter = filter.Header.BlockHash;
 			}
@@ -197,7 +188,7 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 
 	private IEnumerable<FilterModel> GetFiltersBucketStartingFrom(uint256 startingBlockHash)
 	{
-		var (_, filters) = _indexBuilderService.GetFilterLinesExcluding(startingBlockHash, 1_000, out var found);
+		var (_, filters) = indexBuilderService.GetFilterLinesExcluding(startingBlockHash, 1_000, out var found);
 		if (!found)
 		{
 			throw new InvalidOperationException($"Filter {startingBlockHash} not found");
@@ -207,23 +198,23 @@ public class SatoshiWebSocketHandler : WebSocketHandlerBase
 	}
 
 	private Action<AllFeeEstimate> NotifyFeeEstimations(WebSocket ws) =>
-		allFeeEstimate =>
+		async allFeeEstimate =>
 		{
 			var message = new MiningFeeRatesMessage(allFeeEstimate);
-			ws.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, CancellationToken.None);
+			await SendAsync(ws, message.ToByteArray(), CancellationToken.None);
 		};
 
 	private Action<ExchangeRate> NotifyExchangeRate(WebSocket ws) =>
-		exchangeRate =>
+		async exchangeRate =>
 		{
 			var message = new ExchangeRateMessage(exchangeRate);
-			ws.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, CancellationToken.None);
+			await SendAsync(ws, message.ToByteArray(), CancellationToken.None);
 		};
 
 	private Action<FilterModel> SendFilter(WebSocket ws) =>
-		filter =>
+		async filter =>
 		{
 			var message = new FilterMessage(filter);
-			ws.SendAsync(message.ToByteArray(), WebSocketMessageType.Binary, true, CancellationToken.None);
+			await SendAsync(ws, message.ToByteArray(), CancellationToken.None);
 		};
 }
