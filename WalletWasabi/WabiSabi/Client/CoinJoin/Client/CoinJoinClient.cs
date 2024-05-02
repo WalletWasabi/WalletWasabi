@@ -392,6 +392,7 @@ public class CoinJoinClient
 		using CancellationTokenSource connConfTimeoutCts = new(remainingInputRegTime + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource registrationsCts = new();
 		using CancellationTokenSource confirmationsCts = new();
+		using CancellationTokenSource coinBanCheckMode = new();
 
 		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
 		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
@@ -416,7 +417,7 @@ public class CoinJoinClient
 					CoordinatorIdentifier,
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token, coinBanCheckMode.Token).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -484,6 +485,11 @@ public class CoinJoinClient
 						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
 						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
 						roundState.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
+						if (!coinBanCheckMode.IsCancellationRequested)
+						{
+							roundState.LogInfo($"Switching to banned coin check mode.");
+							coinBanCheckMode.Cancel();
+						}
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
