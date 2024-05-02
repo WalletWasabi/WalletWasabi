@@ -38,30 +38,23 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var cts = new CancellationTokenSource()
-			.DisposeWith(disposables);
-
 		_model.Progress
 			.Do(t => SetStatus(t.Percentage, t.RemainingTime))
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var t = FindPasswordAsync(cts.Token);
+		var findPasswordTask = FindPasswordAsync();
 
-		Disposable.Create(
-				async () =>
-				{
-					cts.Cancel();
-					await t;
-				})
+		Disposable.Create(async () => await findPasswordTask)
 			.DisposeWith(disposables);
 	}
 
-	private async Task FindPasswordAsync(CancellationToken token)
+	private async Task FindPasswordAsync()
 	{
 		try
 		{
-			var (result, foundPassword) = await _model.FindPasswordAsync(token);
+			using var cts = new CancellationTokenSource();
+			var (result, foundPassword) = await _model.FindPasswordAsync(cts.Token);
 			if (result && foundPassword is { })
 			{
 				UiContext.Navigate().To().PasswordFound(foundPassword, navigationMode: NavigationMode.Clear);
