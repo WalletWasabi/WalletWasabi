@@ -43,9 +43,13 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var findPasswordTask = FindPasswordAsync();
+		var t = FindPasswordAsync();
 
-		Disposable.Create(async () => await findPasswordTask)
+		Disposable.Create(
+				async () =>
+				{
+					await t;
+				})
 			.DisposeWith(disposables);
 	}
 
