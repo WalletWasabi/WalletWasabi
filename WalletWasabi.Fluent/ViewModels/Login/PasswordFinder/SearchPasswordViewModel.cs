@@ -38,8 +38,7 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var cts = new CancellationTokenSource()
-			.DisposeWith(disposables);
+		var cts = new CancellationTokenSource();
 
 		_model.Progress
 			.Do(t => SetStatus(t.Percentage, t.RemainingTime))
@@ -55,6 +54,8 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 					await t;
 				})
 			.DisposeWith(disposables);
+
+		disposables.Add(cts);
 	}
 
 	private async Task FindPasswordAsync(CancellationToken token)
