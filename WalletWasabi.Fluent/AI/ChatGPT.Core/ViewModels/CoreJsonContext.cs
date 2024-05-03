@@ -15,7 +15,6 @@ namespace ChatGPT.ViewModels;
 [JsonSerializable(typeof(ObservableCollection<ChatViewModel>))]
 [JsonSerializable(typeof(ChatSettingsViewModel))]
 [JsonSerializable(typeof(ObservableCollection<ChatMessageViewModel>))]
-[JsonSerializable(typeof(MainViewModel))]
 [JsonSerializable(typeof(PromptViewModel))]
 [JsonSerializable(typeof(ObservableCollection<PromptViewModel>))]
 [JsonSerializable(typeof(LayoutViewModel))]
@@ -23,9 +22,9 @@ namespace ChatGPT.ViewModels;
 [JsonSerializable(typeof(DesktopLayoutViewModel))]
 [JsonSerializable(typeof(ObservableCollection<LayoutViewModel>))]
 [JsonSerializable(typeof(WorkspaceViewModel))]
-public partial class MainViewModelJsonContext : JsonSerializerContext
+public partial class CoreJsonContext : JsonSerializerContext
 {
-    public static readonly MainViewModelJsonContext s_instance = new(
+    public static readonly CoreJsonContext s_instance = new(
         new JsonSerializerOptions
         {
             WriteIndented = true,

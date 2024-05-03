@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using AI;
 using AI.Model.Json.Chat;
 using AI.Model.Services;
-using ChatGPT.Model.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChatGPT.ViewModels.Chat;
 
 public class ChatViewModel : ObservableObject
 {
+    private readonly IChatService _chatService;
+    private readonly IChatSerializer _chatSerializer;
     private string? _name;
     private ChatSettingsViewModel? _settings;
     private ObservableCollection<ChatMessageViewModel> _messages;
@@ -25,20 +26,30 @@ public class ChatViewModel : ObservableObject
     private CancellationTokenSource? _cts;
 
     [JsonConstructor]
-    public ChatViewModel()
+    public ChatViewModel(
+        IChatService chatService,
+        IChatSerializer chatSerializer)
     {
+        _chatService = chatService;
+        _chatSerializer = chatSerializer;
         _messages = new ObservableCollection<ChatMessageViewModel>();
         _isEnabled = true;
         _debug = false;
         _requireApiKey = true;
     }
 
-    public ChatViewModel(ChatSettingsViewModel settings) : this()
+    public ChatViewModel(
+        IChatService chatService,
+        IChatSerializer chatSerializer,
+        ChatSettingsViewModel settings) 
+        : this(chatService, chatSerializer)
     {
         _settings = settings;
     }
 
     public ChatViewModel(
+        IChatService chatService,
+        IChatSerializer chatSerializer,
         string directions = "You are a helpful assistant.", 
         decimal temperature = 0.7m,
         decimal topP = 1m,
@@ -46,7 +57,8 @@ public class ChatViewModel : ObservableObject
         decimal frequencyPenalty = 0m,
         int maxTokens = 2000, 
         string? apiKey = null,
-        string model = "gpt-3.5-turbo") : this()
+        string model = "gpt-3.5-turbo") 
+        : this(chatService, chatSerializer)
     {
         _settings = new ChatSettingsViewModel
         {
@@ -110,6 +122,158 @@ public class ChatViewModel : ObservableObject
         set => SetProperty(ref _requireApiKey, value);
     }
 
+    public async Task<ChatResultViewModel?> SendAsync(ChatMessage[] messages, CancellationToken token)
+    {
+        var settings = Settings;
+        if (settings is null)
+        {
+            return default;
+        }
+
+        var chatServiceSettings = new ChatServiceSettings
+        {
+            Model = settings.Model,
+            Messages = messages,
+            Functions = settings.Functions,
+            FunctionCall = settings.FunctionCall,
+            Suffix = null,
+            Temperature = settings.Temperature,
+            MaxTokens = settings.MaxTokens,
+            TopP = 1.0m,
+            Stop = null,
+            ApiUrl = settings.ApiUrl,
+            Debug = Debug,
+            RequireApiKey = RequireApiKey,
+        };
+
+        var result = new ChatResultViewModel
+        {
+            Message = default,
+            IsError = false
+        };
+   
+        var responseData = await GetResponseDataAsync(chatServiceSettings, settings, token);
+        if (responseData is null)
+        {
+            result.Message = "Response data is empty.";
+            result.IsError = true;
+        }
+        else if (responseData is ChatResponseError error)
+        {
+            var message = error.Error?.Message;
+            result.Message = message ?? "Response error.";
+            result.IsError = true;
+        }
+        else if (responseData is ChatResponseSuccess success)
+        {
+            var choice = success.Choices?.FirstOrDefault();
+            var message = choice?.Message?.Content?.Trim();
+            result.Message = message;
+            result.IsError = false;
+
+            if (choice is { } && choice.Message?.FunctionCall is { } functionCall)
+            {
+                var arguments = functionCall.Arguments is { }
+                    ? _chatSerializer?.Deserialize<Dictionary<string, string>>(functionCall.Arguments)
+                    : null;
+
+                result.FunctionCall = new ()
+                {
+                    Name = functionCall.Name,
+                    Arguments = arguments
+                };
+            }
+        }
+
+        return result;
+    }
+
+    private async Task<ChatResponse?> GetResponseDataAsync(ChatServiceSettings chatServiceSettings, ChatSettingsViewModel chatSettings, CancellationToken token)
+    {
+        if (_chatService is null)
+        {
+            return new ChatResponseError
+            {
+                Error = new ChatError
+                {
+                    Message = "Cant locate chat service."
+                }
+            };
+        }
+
+        // API Key
+
+        var apiKey = Environment.GetEnvironmentVariable(Constants.EnvironmentVariableApiKey);
+        var restoreApiKey = !string.IsNullOrWhiteSpace(chatSettings.ApiKey);
+
+        if (chatServiceSettings.RequireApiKey)
+        {
+            if (string.IsNullOrWhiteSpace(chatSettings.ApiKey) && string.IsNullOrEmpty(apiKey))
+            {
+                return new ChatResponseError
+                {
+                    Error = new ChatError {Message = "The OpenAI api key is not set."}
+                };
+            }
+        }
+
+        // API Model
+
+        var apiModel = Environment.GetEnvironmentVariable(Constants.EnvironmentVariableApiModel);
+        var restoreApiModel = !string.IsNullOrWhiteSpace(chatSettings.Model);
+
+        if (string.IsNullOrWhiteSpace(chatSettings.Model) && string.IsNullOrEmpty(apiModel))
+        {
+            return new ChatResponseError
+            {
+                Error = new ChatError {Message = "The OpenAI api model is not set."}
+            };
+        }
+
+        // Settings
+        
+        if (restoreApiKey)
+        {
+            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiKey, chatSettings.ApiKey);
+        }
+
+        if (restoreApiModel)
+        {
+            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiModel, chatSettings.Model);
+        }
+
+        // Get
+
+        ChatResponse? responseData;
+
+        try
+        {
+            responseData = await _chatService.GetResponseDataAsync(chatServiceSettings, token);
+        }
+        catch (Exception e)
+        {
+            responseData = new ChatResponseError()
+            {
+                Error = new ChatError
+                {
+                    Message = $"{e}"
+                }
+            };
+        }
+
+        if (restoreApiKey && !string.IsNullOrWhiteSpace(apiKey))
+        {
+            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiKey, apiKey);
+        }
+
+        if (restoreApiModel && !string.IsNullOrWhiteSpace(apiModel))
+        {
+            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiModel, apiModel);
+        }
+
+        return responseData;
+    }
+
     public void SetMessageActions(ChatMessageViewModel message)
     {
         message.SetSendAction(SendAsync);
@@ -119,7 +283,12 @@ public class ChatViewModel : ObservableObject
 
     public async Task CopyAsync(ChatMessageViewModel message)
     {
-        var app = Defaults.Locator.GetService<IApplicationService>();
+        // TODO:
+        await Task.Yield();
+
+        // TODO:
+        /*
+        var app = Ioc.Locator.GetService<IApplicationService>();
         if (app is { })
         {
             if (message.Message is { } text)
@@ -127,6 +296,7 @@ public class ChatViewModel : ObservableObject
                 await app.SetClipboardTextAsync(text);
             }
         }
+        */
     }
 
     public void Remove(ChatMessageViewModel message)
@@ -256,7 +426,7 @@ public class ChatViewModel : ObservableObject
 
         // Response
 
-        var result = await SendAsync(messages, token);
+        var result = await this.SendAsync(messages, token);
 
         // Update
 
@@ -323,159 +493,6 @@ public class ChatViewModel : ObservableObject
         return chatMessages.ToArray();
     }
 
-    private static async Task<ChatResponse?> GetResponseDataAsync(ChatServiceSettings chatServiceSettings, ChatSettingsViewModel chatSettings, CancellationToken token)
-    {
-        var chat = Defaults.Locator.GetService<IChatService>();
-        if (chat is null)
-        {
-            return new ChatResponseError
-            {
-                Error = new ChatError
-                {
-                    Message = "Cant locate chat service."
-                }
-            };
-        }
-
-        // API Key
-
-        var apiKey = Environment.GetEnvironmentVariable(Constants.EnvironmentVariableApiKey);
-        var restoreApiKey = !string.IsNullOrWhiteSpace(chatSettings.ApiKey);
-
-        if (chatServiceSettings.RequireApiKey)
-        {
-            if (string.IsNullOrWhiteSpace(chatSettings.ApiKey) && string.IsNullOrEmpty(apiKey))
-            {
-                return new ChatResponseError
-                {
-                    Error = new ChatError {Message = "The OpenAI api key is not set."}
-                };
-            }
-        }
-
-        // API Model
-
-        var apiModel = Environment.GetEnvironmentVariable(Constants.EnvironmentVariableApiModel);
-        var restoreApiModel = !string.IsNullOrWhiteSpace(chatSettings.Model);
-
-        if (string.IsNullOrWhiteSpace(chatSettings.Model) && string.IsNullOrEmpty(apiModel))
-        {
-            return new ChatResponseError
-            {
-                Error = new ChatError {Message = "The OpenAI api model is not set."}
-            };
-        }
-
-        // Settings
-        
-        if (restoreApiKey)
-        {
-            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiKey, chatSettings.ApiKey);
-        }
-
-        if (restoreApiModel)
-        {
-            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiModel, chatSettings.Model);
-        }
-
-        // Get
-
-        ChatResponse? responseData;
-
-        try
-        {
-            responseData = await chat.GetResponseDataAsync(chatServiceSettings, token);
-        }
-        catch (Exception e)
-        {
-            responseData = new ChatResponseError()
-            {
-                Error = new ChatError
-                {
-                    Message = $"{e}"
-                }
-            };
-        }
-
-        if (restoreApiKey && !string.IsNullOrWhiteSpace(apiKey))
-        {
-            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiKey, apiKey);
-        }
-
-        if (restoreApiModel && !string.IsNullOrWhiteSpace(apiModel))
-        {
-            Environment.SetEnvironmentVariable(Constants.EnvironmentVariableApiModel, apiModel);
-        }
-
-        return responseData;
-    }
-
-    public async Task<ChatResultViewModel?> SendAsync(ChatMessage[] messages, CancellationToken token)
-    {
-        if (Settings is null)
-        {
-            return default;
-        }
-
-        var chatServiceSettings = new ChatServiceSettings
-        {
-            Model = Settings.Model,
-            Messages = messages,
-            Functions = Settings.Functions,
-            FunctionCall = Settings.FunctionCall,
-            Suffix = null,
-            Temperature = Settings.Temperature,
-            MaxTokens = Settings.MaxTokens,
-            TopP = 1.0m,
-            Stop = null,
-            ApiUrl = Settings.ApiUrl,
-            Debug = Debug,
-            RequireApiKey = RequireApiKey,
-        };
-
-        var result = new ChatResultViewModel
-        {
-            Message = default,
-            IsError = false
-        };
-   
-        var responseData = await GetResponseDataAsync(chatServiceSettings, Settings, token);
-        if (responseData is null)
-        {
-            result.Message = "Response data is empty.";
-            result.IsError = true;
-        }
-        else if (responseData is ChatResponseError error)
-        {
-            var message = error.Error?.Message;
-            result.Message = message ?? "Response error.";
-            result.IsError = true;
-        }
-        else if (responseData is ChatResponseSuccess success)
-        {
-            var choice = success.Choices?.FirstOrDefault();
-            var message = choice?.Message?.Content?.Trim();
-            result.Message = message;
-            result.IsError = false;
-
-            if (choice is { } && choice.Message?.FunctionCall is { } functionCall)
-            {
-                var serializer = Defaults.Locator.GetService<IChatSerializer>();
-                var arguments = functionCall.Arguments is { }
-                    ? serializer?.Deserialize<Dictionary<string, string>>(functionCall.Arguments)
-                    : null;
-
-                result.FunctionCall = new ()
-                {
-                    Name = functionCall.Name,
-                    Arguments = arguments
-                };
-            }
-        }
-
-        return result;
-    }
-
     public ChatViewModel AddSystemMessage(string? message)
     {
         Messages.Add(new ChatMessageViewModel
@@ -540,7 +557,7 @@ public class ChatViewModel : ObservableObject
 
     public ChatViewModel Copy()
     {
-        return new ChatViewModel
+        return new ChatViewModel(_chatService, _chatSerializer)
         {
             Name = _name,
             Settings = _settings?.Copy(),

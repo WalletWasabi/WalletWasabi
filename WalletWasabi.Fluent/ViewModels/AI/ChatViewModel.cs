@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using AI.Model.Services;
+using AI.Services;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
@@ -25,6 +27,8 @@ public partial class ChatViewModel : ViewModelBase
 	private CancellationTokenSource _cts;
 
 	private ChatGPT.ViewModels.Chat.ChatViewModel _chat;
+	private IChatSerializer _chatSerializer;
+	private IChatService _chatService;
 
 	public ChatViewModel(UiContext uiContext, string title, int chatNumber, CancellationToken cancellationToken)
 	{
@@ -63,17 +67,22 @@ public partial class ChatViewModel : ViewModelBase
 
 	private void InitializeChat()
 	{
-		_chat = new ChatGPT.ViewModels.Chat.ChatViewModel(new ChatGPT.ViewModels.Chat.ChatSettingsViewModel
-		{
-			Temperature = 0.7m,
-			MaxTokens = 8000,
-			Model = "mistralai/Mistral-7B-Instruct-v0.2",
-			ApiUrl = "https://enclave.blyss.dev/v1/chat/completions",
-			// TODO: No api key for now
-			ApiKey = null,
-			Format = ChatGPT.Defaults.TextMessageFormat,
-		});
+		_chatSerializer = new SystemTextJsonChatSerializer();
+		_chatService = new ChatService(_chatSerializer);
 
+		_chat = new ChatGPT.ViewModels.Chat.ChatViewModel(
+			_chatService,
+			_chatSerializer,
+			new ChatGPT.ViewModels.Chat.ChatSettingsViewModel
+			{
+				Temperature = 0.7m,
+				MaxTokens = 8000,
+				Model = "mistralai/Mistral-7B-Instruct-v0.2",
+				ApiUrl = "https://enclave.blyss.dev/v1/chat/completions",
+				// TODO: No api key for now
+				ApiKey = null,
+				Format = ChatGPT.Defaults.TextMessageFormat,
+			});
 
 		// TODO: No api key for now
 		_chat.RequireApiKey = false;

@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using ChatGPT.Model.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -281,18 +279,29 @@ public class ChatMessageViewModel : ObservableObject
 
     private async Task OpenActionAsync()
     {
+        // TODO:
+        await Task.Yield();
+
+        // TODO:
+        /*
         var app = Defaults.Locator.GetService<IApplicationService>();
         if (app is { })
         {
             await app.OpenFileAsync(
-                OpenCallbackAsync, 
-                new List<string>(new[] { "All" }), 
+                OpenCallbackAsync,
+                new List<string>(new[] { "All" }),
                 "Open");
         }
+        */
     }
 
     private async Task SaveActionAsync()
     {
+        // TODO:
+        await Task.Yield();
+
+        // TODO:
+        /*
         var app = Defaults.Locator.GetService<IApplicationService>();
         if (app is { } && Message is { })
         {
@@ -303,6 +312,7 @@ public class ChatMessageViewModel : ObservableObject
                 "message",
                 "txt");
         }
+        */
     }
 
     private async Task OpenCallbackAsync(Stream stream)

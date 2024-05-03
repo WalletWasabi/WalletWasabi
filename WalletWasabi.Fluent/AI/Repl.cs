@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using AI.Services;
 using ChatGPT;
 using ChatGPT.ViewModels.Chat;
 
@@ -9,20 +10,24 @@ public static class Repl
 {
 	public static async Task RunAsync()
 	{
-		Defaults.ConfigureDefaultServices();
+		var chatSerializer = new SystemTextJsonChatSerializer();
+		var chatService = new ChatService(chatSerializer);
 
 		using var cts = new CancellationTokenSource();
 
-		var chat = new ChatViewModel(new ChatSettingsViewModel
-		{
-			Temperature = 0.7m,
-			MaxTokens = 8000,
-			Model = "",
-			ApiUrl = "",
-			// TODO: No api key for now
-			ApiKey = null,
-			Format = Defaults.TextMessageFormat,
-		});
+		var chat = new ChatViewModel(
+			chatService,
+			chatSerializer,
+			new ChatSettingsViewModel
+			{
+				Temperature = 0.7m,
+				MaxTokens = 8000,
+				Model = "mistralai/Mistral-7B-Instruct-v0.2",
+				ApiUrl = "https://enclave.blyss.dev/v1/chat/completions",
+				// TODO: No api key for now
+				ApiKey = null,
+				Format = Defaults.TextMessageFormat,
+			});
 
 		// TODO: No api key for now
 		chat.RequireApiKey = false;

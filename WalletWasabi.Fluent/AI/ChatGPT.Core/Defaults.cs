@@ -1,13 +1,3 @@
-using System;
-using AI.Model.Services;
-using AI.Services;
-using ChatGPT.Model.Services;
-using ChatGPT.Services;
-using ChatGPT.ViewModels.Chat;
-using ChatGPT.ViewModels.Settings;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace ChatGPT;
 
 public static class Defaults
@@ -35,27 +25,4 @@ public static class Defaults
     public const string MarkdownMessageFormat = "Markdown";
     
     public const string HtmlMessageTextFormat = "Html";
-
-    public static Ioc Locator = Ioc.Default;
-
-    public static IServiceProvider ConfigureDefaultServices()
-    {
-        IServiceCollection serviceCollection = new ServiceCollection();
-
-        serviceCollection.AddSingleton<IChatSerializer, SystemTextJsonChatSerializer>();
-        serviceCollection.AddSingleton<IStorageFactory, IsolatedStorageFactory>();
-        serviceCollection.AddSingleton<IChatService, ChatService>();
-
-        serviceCollection.AddTransient<ChatMessageViewModel>();
-        serviceCollection.AddTransient<ChatSettingsViewModel>();
-        serviceCollection.AddTransient<ChatResultViewModel>();
-        serviceCollection.AddTransient<ChatViewModel>();
-        serviceCollection.AddTransient<PromptViewModel>();
-
-        IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-
-        Locator.ConfigureServices(serviceProvider);
-
-        return serviceProvider;
-    }
 }

@@ -1,12 +1,10 @@
 using System.Linq;
 using System.Reactive.Concurrency;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ChatGPT;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
@@ -25,12 +23,6 @@ public class App : Application
 	private readonly bool _startInBg;
 	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
-
-	static App()
-	{
-		// TODO:
-		Defaults.ConfigureDefaultServices();
-	}
 
 	public App()
 	{
