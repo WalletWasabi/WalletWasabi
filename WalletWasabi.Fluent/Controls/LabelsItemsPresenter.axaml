@@ -66,9 +66,24 @@
                       BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type LabelsItemsPresenter}}}">
                 <ToolTip.Tip>
                   <Panel>
-                    <TagsBox IsReadOnly="True"
-                             Margin="4,6,0,0"
-                             Items="{Binding}" />
+                    <ItemsControl ItemsSource="{Binding}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TagControl Content="{Binding}">
+                            <TagControl.Styles>
+                              <Style Selector="TagControl /template/ Panel#PART_TagPanel">
+                                <Setter Property="Margin" Value="3" />
+                              </Style>
+                            </TagControl.Styles>
+                          </TagControl>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                   </Panel>
                 </ToolTip.Tip>
                 <TextBlock Text="..."
