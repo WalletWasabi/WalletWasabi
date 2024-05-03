@@ -646,7 +646,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private NetworkCredential GenerateRandomCredential() =>
 		new(
 			userName: $"{Guid.NewGuid()}@me.com",
-			password: RandomString.AlphaNumeric(25));
+			password: RandomString.AlphaNumeric(25, secureRandom: true));
 
 	public async Task EnsureCountriesAreLoadedAsync(CancellationToken cancel)
 	{

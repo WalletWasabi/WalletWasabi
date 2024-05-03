@@ -57,7 +57,10 @@ public class Global
 			Config.TerminateTorOnExit,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
-			owningProcessId: Environment.ProcessId);
+			torFolder: config.TorFolder,
+			bridges: config.TorBridges,
+			owningProcessId: Environment.ProcessId,
+			log: Config.LogModes.Contains(LogMode.File));
 
 		HostedServices = new HostedServices();
 
@@ -126,7 +129,8 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService);
+        HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 

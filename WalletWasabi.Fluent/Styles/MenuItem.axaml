@@ -2,4 +2,8 @@
   <Style Selector="MenuItem">
     <Setter Property="CornerRadius" Value="8" />
   </Style>
+
+  <Style Selector="MenuItem > PathIcon">
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
 </Styles>

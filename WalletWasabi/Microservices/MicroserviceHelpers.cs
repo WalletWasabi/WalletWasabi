@@ -58,8 +58,14 @@ public static class MicroserviceHelpers
 	{
 		platform ??= GetCurrentPlatform();
 		string binaryFolder = GetBinaryFolder(platform);
-		string fileName = platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
+		string fileName = GetFilenameWithExtension(binaryNameWithoutExtension, platform);
 
 		return Path.Combine(binaryFolder, fileName);
 	}
+
+	public static string GetFilenameWithExtension(string binaryNameWithoutExtension, OSPlatform? platform = null)
+	{
+        platform ??= GetCurrentPlatform();
+        return platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
+    }
 }

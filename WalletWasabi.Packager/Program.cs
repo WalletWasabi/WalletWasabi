@@ -474,6 +474,15 @@ public static class Program
 
 				File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
+				string postInstScriptContent = """
+											   #!/bin/sh
+											   /usr/local/bin/wasabiwallet/Microservices/Binaries/lin64/hwi installudevrules
+											   exit 0
+											   """.ReplaceLineEndings("\n");
+
+				string postInstScriptPath = Path.Combine(debianFolderPath, "postinst");
+				File.WriteAllText(postInstScriptPath, postInstScriptContent, Encoding.ASCII);
+
 				var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{ExecutableName}.desktop");
 				var desktopFileContent = $"[Desktop Entry]\n" +
 					$"Type=Application\n" +
