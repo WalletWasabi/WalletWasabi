@@ -14,7 +14,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WebClients.Wasabi;
@@ -63,16 +62,12 @@ public class Global : IDisposable
 	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
-	private CoinVerifierApiClient? CoinVerifierApiClient { get; set; }
-	public CoinVerifier? CoinVerifier { get; private set; }
-
 	public Config Config { get; }
 
 	private CoordinatorParameters CoordinatorParameters { get; }
 
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
-	private Whitelist? WhiteList { get; set; }
 	public MempoolMirror MempoolMirror { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
@@ -89,43 +84,9 @@ public class Global : IDisposable
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
-		bool coinVerifierEnabled = wabiSabiConfig.IsCoinVerifierEnabled;
-
-		if (coinVerifierEnabled)
-		{
-			try
-			{
-				if (!Uri.TryCreate(wabiSabiConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
-				{
-					throw new ArgumentException($"Blacklist API URL is invalid in {nameof(WabiSabiConfig)}.");
-				}
-				if (string.IsNullOrEmpty(wabiSabiConfig.CoinVerifierApiAuthToken))
-				{
-					throw new ArgumentException($"Blacklist API token was not provided in {nameof(WabiSabiConfig)}.");
-				}
-				if (wabiSabiConfig.RiskFlags is null)
-				{
-					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
-				}
-
-				CoinVerifierHttpClient.BaseAddress = url;
-				CoinVerifierHttpClient.Timeout = CoinVerifierApiClient.ApiRequestTimeout;
-
-				WhiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				CoinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, CoinVerifierHttpClient);
-				CoinVerifier = new(CoinJoinIdStore, CoinVerifierApiClient, WhiteList, CoordinatorParameters.RuntimeCoordinatorConfig, auditsDirectoryPath: Path.Combine(CoordinatorParameters.CoordinatorDataDir, "CoinVerifierAudits"));
-
-				Logger.LogInfo("CoinVerifier created successfully.");
-			}
-			catch (Exception exc)
-			{
-				throw new InvalidOperationException($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'", exc);
-			}
-		}
-
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory, wabiSabiConfig.IsCoinVerifierEnabled ? CoinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;
@@ -223,24 +184,6 @@ public class Global : IDisposable
 
 		await P2pNode.DisposeAsync().ConfigureAwait(false);
 		Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
-
-		if (WhiteList is { } whiteList)
-		{
-			if (await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false))
-			{
-				Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
-			}
-		}
-
-		if (CoinVerifier is { } coinVerifier)
-		{
-			await coinVerifier.DisposeAsync().ConfigureAwait(false);
-		}
-
-		if (CoinVerifierApiClient is { } coinVerifierApiClient)
-		{
-			await coinVerifierApiClient.DisposeAsync().ConfigureAwait(false);
-		}
 	}
 
 	public void Dispose()
