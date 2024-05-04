@@ -275,7 +275,6 @@ public class TransactionTreeBuilder
 			BlockHash = transactionSummary.BlockHash,
 			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
 			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate()
 		};
 	}
 

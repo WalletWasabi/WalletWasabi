@@ -27,8 +27,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isLabelsVisible;
 	[AutoNotify] private LabelsArray? _labels;
 	[AutoNotify] private Amount? _amount;
-	[AutoNotify] private FeeRate? _feeRate;
-	[AutoNotify] private bool _isFeeRateVisible;
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
@@ -37,6 +35,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = wallet.AmountProvider.Create(model.Fee);
+		FeeRate = model.FeeRate;
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
@@ -48,6 +47,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	}
 
 	public BitcoinAddress? SingleAddress { get; set; }
+
+	public FeeRate? FeeRate { get; set; }
 
 	public uint256 TransactionId { get; }
 
@@ -64,7 +65,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = model.BlockHeight;
 		Confirmations = model.Confirmations;
 		FeeRate = model.FeeRate;
-		IsFeeRateVisible = FeeRate != FeeRate.Zero;
 
 		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
 		if (confirmationTime is { })

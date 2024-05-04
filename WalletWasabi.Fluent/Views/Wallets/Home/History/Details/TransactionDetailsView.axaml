@@ -67,7 +67,7 @@
       <Separator IsVisible="{Binding IsFeeVisible}" />
 
       <!-- Fee Rate-->
-      <PreviewItem IsVisible="{Binding IsFeeRateVisible}"
+      <PreviewItem IsVisible="{Binding !!FeeRate}"
                      Icon="{StaticResource paper_cash_regular}"
                      Label="Fee Rate"
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
@@ -76,7 +76,7 @@
         </PrivacyContentControl>
       </PreviewItem>
 
-      <Separator IsVisible="{Binding IsFeeRateVisible}" />
+      <Separator IsVisible="{Binding !!FeeRate}" />
 
       <!-- Status -->
       <PreviewItem Icon="{StaticResource copy_confirmed}"
