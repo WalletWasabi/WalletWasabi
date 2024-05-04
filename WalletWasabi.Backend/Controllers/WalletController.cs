@@ -26,8 +26,6 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/[controller]")]
 public class WalletController : ControllerBase
 {
-	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
-	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions TransactionCacheOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
 	private static readonly VersionsResponse VersionsResponse = new()
@@ -307,121 +305,57 @@ public class WalletController : ControllerBase
 		return Ok("Transaction is successfully broadcasted.");
 	}
 
-	[HttpGet("unconfirmed-transaction-chain")]
-	[ProducesResponseType(200)]
+	/// <summary>
+	/// Gets block filters from the provided block hash.
+	/// </summary>
+	/// <remarks>
+	/// Filter examples:
+	///
+	///     Main: 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+	///     TestNet: 00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
+	///     RegTest: 0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+	///
+	/// </remarks>
+	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
+	/// <param name="count">The number of filters to return.</param>
+	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
+	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
+	/// <response code="204">When the provided hash is the tip.</response>
+	/// <response code="400">The provided hash was malformed or the count value is out of range</response>
+	/// <response code="404">If the hash is not found. This happens at blockchain reorg.</response>
+	[HttpGet("filters")]
+	[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
+	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	[ProducesResponseType(404)]
+	[ResponseCache(Duration = 60)]
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 	{
-		try
+		if (count <= 0)
 		{
-			uint256 txId = new(transactionId);
-
-			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-			var ret = await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (request, token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
-				options: UnconfirmedTransactionChainCacheEntryOptions,
-				cancellationToken);
-			return ret;
-		}
-		catch (OperationCanceledException)
-		{
-			return BadRequest("Operation took more than 10 seconds. Aborting.");
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
-			return BadRequest($"Failed to compute unconfirmed chain for {transactionId}");
-		}
-	}
-
-	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
-	{
-		var mempoolHashes = Mempool.GetMempoolHashes();
-		if (!mempoolHashes.Contains(txId))
-		{
-			return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
+			return BadRequest("Invalid block hash or count is provided.");
 		}
 
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-		var linkedCancellationToken = linkedCts.Token;
+		var knownHash = new uint256(bestKnownBlockHash);
 
-		var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
-		return Ok(unconfirmedTxsChainById.Values.ToList());
-	}
+		var (bestHeight, filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
-	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
-	{
-		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
-		var toFetchFeeList = new List<uint256> { requestedTxId };
-
-		while (toFetchFeeList.Count > 0)
+		if (!found)
 		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			var currentTxId = toFetchFeeList.First();
-
-			// Check if we just computed the item.
-			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTxId}";
-
-			var currentTxChainItem = await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (request, token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, token),
-				options: UnconfirmedTransactionChainItemCacheEntryOptions,
-				cancellationToken);
-
-			toFetchFeeList.Remove(currentTxId);
-
-			var discoveredTxsToFetchFee = currentTxChainItem.Parents
-				.Union(currentTxChainItem.Children)
-				.Where(x => !unconfirmedTxsChainById.ContainsKey(x) && !toFetchFeeList.Contains(x));
-
-			toFetchFeeList.AddRange(discoveredTxsToFetchFee);
-
-			unconfirmedTxsChainById.Add(currentTxId, currentTxChainItem);
+			return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
 		}
 
-		return unconfirmedTxsChainById;
-	}
-
-	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
-	{
-		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
-
-		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).Distinct().ToArray();
-
-		var parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
-
-		// Get unconfirmed parents and children
-		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
-		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
-
-		return new UnconfirmedTransactionChainItem(
-			TxId: currentTxId,
-			Size: currentTx.GetVirtualSize(),
-			Fee: ComputeFee(currentTx, parentTxs, cancellationToken),
-			Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
-			Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet());
-	}
-
-	private Money ComputeFee(Transaction currentTx, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
-	{
-		cancellationToken.ThrowIfCancellationRequested();
-
-		var inputs = new List<Coin>();
-
-		var prevOutsForCurrentTx = currentTx.Inputs
-			.Select(input => input.PrevOut)
-			.ToList();
-
-		foreach (var prevOut in prevOutsForCurrentTx)
+		if (!filters.Any())
 		{
-			var parentTx = parentTxs.First(x => x.GetHash() == prevOut.Hash);
-			var txOut = parentTx.Outputs[prevOut.N];
-			inputs.Add(new Coin(prevOut, txOut));
+			return NoContent();
 		}
 
-		return currentTx.GetFee(inputs.ToArray());
+		var response = new FiltersResponse
+		{
+			BestHeight = bestHeight,
+			Filters = filters
+		};
+
+		return Ok(response);
 	}
 }
