@@ -121,11 +121,6 @@ public class Startup
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.CoinJoinFeeRateStatStore;
 		});
-		services.AddSingleton(serviceProvider =>
-		{
-			var global = serviceProvider.GetRequiredService<Global>();
-			return global.CoinJoinMempoolManager;
-		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
 		services.AddResponseCompression();

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
@@ -6,7 +5,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
-using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -21,18 +19,16 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, CoinJoinMempoolManager coinJoinMempoolManager)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
-		CoinJoinMempoolManager = coinJoinMempoolManager;
 	}
 
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
-	public CoinJoinMempoolManager CoinJoinMempoolManager { get; }
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -104,19 +100,4 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 
 		return new HumanMonitorResponse(response.ToArray());
 	}
-
-	/// <summary>
-	/// Gets the list of unconfirmed coinjoin transaction Ids.
-	/// </summary>
-	/// <returns>The list of coinjoin transactions in the mempool.</returns>
-	/// <response code="200">An array of transaction Ids</response>
-	[HttpGet("unconfirmed-coinjoins")]
-	[ProducesResponseType(200)]
-	public IActionResult GetUnconfirmedCoinjoins()
-	{
-		IEnumerable<string> unconfirmedCoinJoinString = GetUnconfirmedCoinJoinCollection().Select(x => x.ToString());
-		return Ok(unconfirmedCoinJoinString);
-	}
-
-	private IEnumerable<uint256> GetUnconfirmedCoinJoinCollection() => CoinJoinMempoolManager.CoinJoinIds;
 }
