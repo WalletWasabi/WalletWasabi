@@ -153,9 +153,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				});
-
-				// Emulate that the first coin is coming from a coinjoin.
-				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
 
 		// Create the coinjoin client

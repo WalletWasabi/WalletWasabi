@@ -48,8 +48,7 @@ public class BobClientTests
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		using var mempoolMirror = new MempoolMirror(TimeSpan.Zero, null!, null!);
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), mempoolMirror);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, coinJoinMempoolManager);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);

@@ -21,19 +21,17 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, CoinJoinMempoolManager coinJoinMempoolManager)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
-		CoinJoinMempoolManager = coinJoinMempoolManager;
 	}
 
 	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
-	public CoinJoinMempoolManager CoinJoinMempoolManager { get; }
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -117,19 +115,4 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 
 		return new HumanMonitorResponse(response.ToArray());
 	}
-
-	/// <summary>
-	/// Gets the list of unconfirmed coinjoin transaction Ids.
-	/// </summary>
-	/// <returns>The list of coinjoin transactions in the mempool.</returns>
-	/// <response code="200">An array of transaction Ids</response>
-	[HttpGet("unconfirmed-coinjoins")]
-	[ProducesResponseType(200)]
-	public IActionResult GetUnconfirmedCoinjoins()
-	{
-		IEnumerable<string> unconfirmedCoinJoinString = GetUnconfirmedCoinJoinCollection().Select(x => x.ToString());
-		return Ok(unconfirmedCoinJoinString);
-	}
-
-	internal IEnumerable<uint256> GetUnconfirmedCoinJoinCollection() => CoinJoinMempoolManager.CoinJoinIds;
 }
