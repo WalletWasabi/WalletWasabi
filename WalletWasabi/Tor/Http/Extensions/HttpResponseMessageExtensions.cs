@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using WalletWasabi.Affiliation;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.WabiSabi;
@@ -97,7 +96,6 @@ public static class HttpResponseMessageExtensions
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 					? new WabiSabiProtocolException(code, error.Description, exceptionData: error.ExceptionData)
 					: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
-				{ Type: AffiliationConstants.RequestSecrecyViolationType } => new AffiliationException(error.Description),
 				{ Type: "unknown" } => new Exception(error.Description),
 				_ => null
 			};

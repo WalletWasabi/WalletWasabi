@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Announcement;
