@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
@@ -221,10 +220,7 @@ public class ArenaClient
 		CancellationToken cancellationToken)
 	{
 		await RequestHandler.ReadyToSignAsync(
-			new ReadyToSignRequestRequest(
-				roundId,
-				aliceId,
-				AffiliationConstants.DefaultAffiliationId),
+			new ReadyToSignRequestRequest(roundId, aliceId),
 			cancellationToken).ConfigureAwait(false);
 	}
 }

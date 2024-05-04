@@ -9,9 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend;
@@ -192,14 +190,6 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "AllowP2wshOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wshOutputs { get; set; } = false;
-
-	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
-	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string AffiliationMessageSignerKey { get; set; } = Constants.FallbackAffiliationMessageSignerKey;
-
-	[DefaultAffiliateServers]
-	[JsonProperty(PropertyName = "AffiliateServers", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public ImmutableDictionary<string, string> AffiliateServers { get; set; } = ImmutableDictionary<string, string>.Empty;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
