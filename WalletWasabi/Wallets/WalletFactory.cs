@@ -19,15 +19,14 @@ public record WalletFactory(
 	WasabiSynchronizer WasabiSynchronizer,
 	ServiceConfiguration ServiceConfiguration,
 	FeeRateEstimationUpdater FeeRateEstimationUpdater,
-	BlockDownloadService BlockDownloadService,
-    UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider)
+	BlockDownloadService BlockDownloadService)
 {
 	public Wallet Create(KeyManager keyManager)
 	{
 		TransactionProcessor transactionProcessor = new(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
 		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockDownloadService);
 
-		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeRateEstimationUpdater, transactionProcessor, walletFilterProcessor, UnconfirmedTransactionChainProvider);
+		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeRateEstimationUpdater, transactionProcessor, walletFilterProcessor);
 	}
 
 	public Wallet CreateAndInitialize(KeyManager keyManager)

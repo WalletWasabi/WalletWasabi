@@ -40,8 +40,7 @@ public class Wallet : BackgroundService, IWallet
 		ServiceConfiguration serviceConfiguration,
 		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
-		WalletFilterProcessor walletFilterProcessor,
-		UnconfirmedTransactionChainProvider unconfirmedTransactionChainProvider)
+		WalletFilterProcessor walletFilterProcessor)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -50,7 +49,6 @@ public class Wallet : BackgroundService, IWallet
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeRateEstimationUpdater = feeRateEstimationUpdater;
-		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -105,9 +103,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
-
 	public FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
-	public UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 
@@ -182,10 +178,7 @@ public class Wallet : BackgroundService, IWallet
 			}
 			else
 			{
-				var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
-				var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
-
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
 			}
 
 			if (coin.SpenderTransaction is { } spenderTransaction)
@@ -198,10 +191,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 				else
 				{
-					var unconfTransactionChainOfCoin = UnconfirmedTransactionChainProvider.GetUnconfirmedTransactionChain(coin.TransactionId) ?? [];
-					var effectiveFeeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfTransactionChainOfCoin);
-
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
 				}
 			}
 		}
@@ -398,7 +388,6 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			UnconfirmedTransactionChainProvider.CheckAndScheduleRequestIfNeeded(e.Transaction);
 		}
 		catch (Exception ex)
 		{
