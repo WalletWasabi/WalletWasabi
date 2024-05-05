@@ -66,11 +66,6 @@ public partial class WalletAuthModel : ReactiveObject
 		IsLoggedIn = false;
 	}
 
-	public IPasswordFinderModel GetPasswordFinder(string password)
-	{
-		return new PasswordFinderModel(_walletModel, _wallet, password);
-	}
-
 	public bool VerifyRecoveryWords(Mnemonic mnemonic)
 	{
 		var saltSoup = _wallet.Kitchen.SaltSoup();
