@@ -20,8 +20,6 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		BlocksFolderPath = blocksFolderPath;
 		Network = network;
 		CreateFolders();
