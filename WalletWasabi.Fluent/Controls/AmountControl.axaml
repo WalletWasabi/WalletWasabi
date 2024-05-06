@@ -38,10 +38,10 @@
       <Setter Property="Template">
         <ControlTemplate>
           <Border Background="{DynamicResource TileRegionColor}"
-                  Padding="10" CornerRadius="10">
-            <StackPanel Orientation="Horizontal" Spacing="10"
-                      DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
-                      IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  Padding="10 5 10 5" CornerRadius="10"
+                  DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
+                  IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
               <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
                          Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}"/>
               <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
