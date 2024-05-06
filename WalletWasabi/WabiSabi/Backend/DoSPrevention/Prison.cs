@@ -133,7 +133,7 @@ public class Prison
 			_ => throw new NotSupportedException("Unknown offense type.")
 		});
 
-		if (DateTimeOffset.UtcNow - banningTime.StartTime < TimeSpan.FromHours(1) && banningTime.Duration < TimeSpan.FromMinutes(30))
+		if (DateTimeOffset.UtcNow < banningTime.StartTime + TimeSpan.FromHours(1) && banningTime.Duration < TimeSpan.FromMinutes(30))
 		{
 			banningTime = new TimeFrame(banningTime.StartTime, TimeSpan.FromMinutes(30 + SecureRandom.Instance.GetInt(0, 30)));
 		}
