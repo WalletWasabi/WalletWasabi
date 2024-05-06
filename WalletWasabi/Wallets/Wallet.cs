@@ -306,16 +306,13 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Starting;
 
-			using (BenchmarkLogger.Measure(operationName: $"Starting of wallet '{WalletName}'"))
-			{
-				await RuntimeParams.LoadAsync().ConfigureAwait(false);
+			await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
-				await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
+			await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
 
-				await LoadWalletStateAsync(cancel).ConfigureAwait(false);
-				await LoadDummyMempoolAsync().ConfigureAwait(false);
-				LoadExcludedCoins();
-			}
+			await LoadWalletStateAsync(cancel).ConfigureAwait(false);
+			await LoadDummyMempoolAsync().ConfigureAwait(false);
+			LoadExcludedCoins();
 
 			await base.StartAsync(cancel).ConfigureAwait(false);
 
@@ -467,10 +464,7 @@ public class Wallet : BackgroundService, IWallet
 
 		Height bestTurboSyncHeight = KeyManager.GetBestHeight(SyncType.Turbo);
 
-		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
-		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
-		}
+		TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestTurboSyncHeight));
 
 		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
 

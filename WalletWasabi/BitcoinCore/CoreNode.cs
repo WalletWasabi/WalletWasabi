@@ -46,8 +46,6 @@ public class CoreNode
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		string configPath = Path.Combine(coreNodeParams.DataDir, "bitcoin.conf");
 		CoreConfig coreConfig = new();
 

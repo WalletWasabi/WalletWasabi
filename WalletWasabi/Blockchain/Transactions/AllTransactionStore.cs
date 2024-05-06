@@ -47,8 +47,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancellationToken = default)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		var initTasks = new[]
 		{
 			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancellationToken),
