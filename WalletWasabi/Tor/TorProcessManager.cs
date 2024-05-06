@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,7 +22,7 @@ public class TorProcessManager : IAsyncDisposable
 	internal const string TorProcessStartedByDifferentUser = "Tor was started by another user and we can't use it nor kill it.";
 
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
-	private volatile TaskCompletionSource<(CancellationToken, TorControlClient)> _tcs = new();
+	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
 	public TorProcessManager(TorSettings settings) :
 		this(settings, new(settings.SocksEndpoint))
@@ -50,14 +51,20 @@ public class TorProcessManager : IAsyncDisposable
 	private TorSettings Settings { get; }
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>
+	/// Only set if <see cref="TorSettings.UseOnlyRunningTor"/> is not on.
+	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// </remarks>
 	private ProcessAsync? TorProcess { get; set; }
 
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>
+	/// Only set if <see cref="TorSettings.UseOnlyRunningTor"/> is not on.
+	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// </remarks>
 	private TorControlClient? TorControlClient { get; set; }
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
-	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken)
+	public Task<(CancellationToken, TorControlClient?)> StartAsync(CancellationToken cancellationToken)
 	{
 		return StartAsync(attempts: 1, cancellationToken);
 	}
@@ -68,7 +75,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <remarks>This method must be called exactly once.</remarks>
 	/// <exception cref="OperationCanceledException">When the operation is cancelled by the user.</exception>
 	/// <exception cref="InvalidOperationException">When all attempts are tried without success.</exception>
-	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken)
+	public async Task<(CancellationToken, TorControlClient?)> StartAsync(int attempts, CancellationToken cancellationToken)
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
 
@@ -94,7 +101,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
 	/// <returns>Cancellation token which is canceled once Tor process terminates or once <paramref name="cancellationToken"/> is canceled.</returns>
 	/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
-	public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
+	public Task<(CancellationToken, TorControlClient?)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
 	{
 		return _tcs.Task.WaitAsync(cancellationToken);
 	}
@@ -103,7 +110,56 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
-		await RestartingLoopForBundledTorAsync(globalCancellationToken).ConfigureAwait(false);
+		if (Settings.UseOnlyRunningTor)
+		{
+			await RestartingLoopForRunningTorAsync(globalCancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			await RestartingLoopForBundledTorAsync(globalCancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task RestartingLoopForRunningTorAsync(CancellationToken globalCancellationToken)
+	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		CancellationToken cancellationToken = linkedCts.Token;
+
+		bool detectedTorState = false;
+		CancellationTokenSource torStoppedCts = new();
+
+		while (!cancellationToken.IsCancellationRequested)
+		{
+			bool isTorRunning = await TcpConnectionFactory.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+
+			if (detectedTorState && isTorRunning) // Case: Still running.
+			{
+				// No-op.
+			}
+			else if (!detectedTorState && isTorRunning) // Case: Started running.
+			{
+				_tcs.SetResult((torStoppedCts.Token, null));
+			}
+			else if (detectedTorState && !isTorRunning) // Case: Stopped running.
+			{
+				bool willWaitForTorRestart = !cancellationToken.IsCancellationRequested;
+				OnTorStop(willWaitForTorRestart, exception: null, torStoppedCts, globalCancellationToken);
+				torStoppedCts = new();
+			}
+
+			detectedTorState = isTorRunning;
+
+			// We don't use Tor Control client with an already running Tor, so we just use a simple sleep mechanism.
+			await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+			if (cancellationToken.IsCancellationRequested)
+			{
+				Logger.LogDebug("User canceled operation.");
+				break;
+			}
+		}
+
+		torStoppedCts.Dispose();
 	}
 
 	/// <summary>
@@ -266,27 +322,7 @@ public class TorProcessManager : IAsyncDisposable
 			}
 			finally
 			{
-				TaskCompletionSource<(CancellationToken, TorControlClient)> originalTcs = _tcs;
-
-				if (setNewTcs)
-				{
-					// (1) and (2) must be in this order. Otherwise, there is a race condition risk of getting invalid CT by clients.
-					TaskCompletionSource<(CancellationToken, TorControlClient)> newTcs = new();
-					originalTcs = Interlocked.Exchange(ref _tcs, newTcs); // (1)
-				}
-
-				cts.Cancel(); // (2)
-
-				if (exception is not null)
-				{
-					originalTcs.TrySetException(exception);
-				}
-				else
-				{
-					originalTcs.TrySetCanceled(globalCancellationToken);
-				}
-
-				cts.Dispose();
+				OnTorStop(setNewTcs, exception, cts, globalCancellationToken);
 
 				if (controlClient is not null)
 				{
@@ -302,6 +338,31 @@ public class TorProcessManager : IAsyncDisposable
 				}
 			}
 		}
+	}
+
+	private void OnTorStop(bool willWaitForTorRestart, Exception? exception, CancellationTokenSource torStoppedCts, CancellationToken globalCancellationToken)
+	{
+		TaskCompletionSource<(CancellationToken, TorControlClient?)> originalTcs = _tcs;
+
+		if (willWaitForTorRestart)
+		{
+			// (1) and (2) must be in this order. Otherwise, there is a race condition risk of getting invalid CT by clients.
+			TaskCompletionSource<(CancellationToken, TorControlClient?)> newTcs = new();
+			originalTcs = Interlocked.Exchange(ref _tcs, newTcs); // (1)
+		}
+
+		torStoppedCts.Cancel(); // (2)
+
+		if (exception is not null)
+		{
+			originalTcs.TrySetException(exception);
+		}
+		else
+		{
+			originalTcs.TrySetCanceled(globalCancellationToken);
+		}
+
+		torStoppedCts.Dispose();
 	}
 
 	internal virtual Process[] GetTorProcesses()

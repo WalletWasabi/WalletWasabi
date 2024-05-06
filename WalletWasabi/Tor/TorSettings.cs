@@ -27,6 +27,7 @@ public class TorSettings
 		string dataDir,
 		string distributionFolderPath,
 		bool terminateOnExit,
+		bool useOnlyRunningTor = false,
 		int socksPort = DefaultSocksPort,
 		int controlPort = DefaultControlPort,
 		string? torFolder = null,
@@ -62,11 +63,22 @@ public class TorSettings
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 		DistributionFolder = distributionFolderPath;
-		TerminateOnExit = terminateOnExit;
+
+		if (useOnlyRunningTor && terminateOnExit)
+		{
+			Logger.LogWarning("Wasabi is instructed to use a running Tor process. Terminate on exit was disabled.");
+		}
+
+		UseOnlyRunningTor = useOnlyRunningTor; 
+		TerminateOnExit = useOnlyRunningTor ? false : terminateOnExit;
+
 		Log = log;
 		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
+
+	/// <summary><c>true</c> if Wasabi should not attempt to run any Tor process (bundled) or specified via <c>--TorFolder</c> command line option.</summary>
+	public bool UseOnlyRunningTor { get; }
 
 	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
 	public bool IsCustomTorFolder { get; }

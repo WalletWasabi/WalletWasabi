@@ -41,15 +41,16 @@ public class TorHttpPool : IAsyncDisposable
 		SingleWriter = false,
 	};
 
-	public TorHttpPool(EndPoint endpoint)
-		: this(new TorTcpConnectionFactory(endpoint))
+	public TorHttpPool(EndPoint endpoint, bool torControlAvailable = true)
+		: this(new TorTcpConnectionFactory(endpoint), torControlAvailable)
 	{
 	}
 
 	/// <summary>Constructor that helps in tests.</summary>
-	internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory)
+	internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory, bool torControlAvailable = true)
 	{
 		TcpConnectionFactory = tcpConnectionFactory;
+		TorControlAvailable = torControlAvailable;
 		PreBuildingRequestChannel = Channel.CreateUnbounded<TorPrebuildCircuitRequest>(Options);
 		PreBuildingLoopTask = Task.Run(PreBuildingLoopAsync);
 	}
@@ -72,7 +73,7 @@ public class TorHttpPool : IAsyncDisposable
 	private object ConnectionsLock { get; } = new();
 
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
-
+	public bool TorControlAvailable { get; }
 	public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
 	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
@@ -407,9 +408,12 @@ public class TorHttpPool : IAsyncDisposable
 
 	private async Task<TorTcpConnection?> CreateNewConnectionAsync(Uri requestUri, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
-		lock (ConnectionsLock)
+		if (TorControlAvailable)
 		{
-			TorStreamsBeingBuilt[circuit.Name] = null;
+			lock (ConnectionsLock)
+			{
+				TorStreamsBeingBuilt[circuit.Name] = null;
+			}
 		}
 
 		TorTcpConnection? connection = null;
@@ -443,11 +447,14 @@ public class TorHttpPool : IAsyncDisposable
 		{
 			lock (ConnectionsLock)
 			{
-				if (TorStreamsBeingBuilt.Remove(circuit.Name, out TorStreamInfo? streamInfo))
+				if (TorControlAvailable)
 				{
-					if (connection is not null && streamInfo is not null)
+					if (TorStreamsBeingBuilt.Remove(circuit.Name, out TorStreamInfo? streamInfo))
 					{
-						connection.SetLatestStreamInfo(streamInfo, ifEmpty: true);
+						if (connection is not null && streamInfo is not null)
+						{
+							connection.SetLatestStreamInfo(streamInfo, ifEmpty: true);
+						}
 					}
 				}
 
@@ -524,6 +531,11 @@ public class TorHttpPool : IAsyncDisposable
 	/// </remarks>
 	public void ReportStreamStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
 	{
+		if (!TorControlAvailable)
+		{
+			throw new UnreachableException("This method can be called only if Wasabi was run with Tor Control support.");
+		}
+
 		lock (ConnectionsLock)
 		{
 			// If the key is not present, then are not the ones starting that Tor stream.

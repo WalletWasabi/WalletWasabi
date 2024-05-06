@@ -58,6 +58,9 @@ public class Config
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+			[ nameof(UseOnlyRunningTor)] = (
+				"Connect to an already running Tor instance without attempting to run the bundled Tor",
+				GetBoolValue("UseOnlyRunningTor", false, cliArgs)),
 			[ nameof(TorFolder)] = (
 				"Folder where Tor binary is located",
 				GetNullableStringValue("TorFolder", null, cliArgs)),
@@ -160,6 +163,7 @@ public class Config
 	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
 	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
 	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor)) && Network != Network.RegTest;
+	public bool UseOnlyRunningTor => GetEffectiveValue<BoolValue, bool>(nameof(UseOnlyRunningTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));

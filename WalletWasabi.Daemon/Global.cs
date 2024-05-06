@@ -54,7 +54,8 @@ public class Global
 		TorSettings = new TorSettings(
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
-			Config.TerminateTorOnExit,
+			terminateOnExit: Config.TerminateTorOnExit,
+			useOnlyRunningTor: Config.UseOnlyRunningTor,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
 			torFolder: config.TorFolder,
@@ -186,7 +187,8 @@ public class Global
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter);
+			backendUriGetter,
+			torControlAvailable: !TorSettings.UseOnlyRunningTor);
 
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
@@ -333,7 +335,12 @@ public class Global
 				}
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			// Do not monitor Tor when Tor is an already running service.
+			if (!TorSettings.UseOnlyRunningTor)
+			{
+				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			}
+
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
