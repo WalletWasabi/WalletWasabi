@@ -41,7 +41,6 @@ public class WalletController : ControllerBase
 	}
 
 	private IRPCClient RpcClient => Global.RpcClient;
-	private MempoolMirror Mempool => Global.MempoolMirror;
 
 	public IdempotencyRequestCache Cache { get; }
 	public Global Global { get; }
