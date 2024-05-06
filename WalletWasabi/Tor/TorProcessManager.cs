@@ -103,7 +103,15 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		await RestartingLoopForBundledTorAsync(globalCancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Keeps starting Tor OS process.
+	/// </summary>
+	private async Task RestartingLoopForBundledTorAsync(CancellationToken globalCancellationToken)
+	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
 		while (!cancellationToken.IsCancellationRequested)
@@ -158,7 +166,7 @@ public class TorProcessManager : IAsyncDisposable
 					// Compare as two unordered sets.
 					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
 					bool areBridgesAsRequired = currentBridges.SequenceEqual(Settings.Bridges.Order());
-				
+
 					if (!areBridgesAsRequired)
 					{
 						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
