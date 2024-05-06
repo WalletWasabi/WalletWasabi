@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -80,7 +81,8 @@ public class Prison
 
 			var maxOffense = offenderHistory.Count == 0
 				? 1
-				: offenderHistory.Max( x => x switch {
+				: offenderHistory.Max(x => x switch
+				{
 					{ Method: RoundDisruptionMethod.DidNotConfirm } => configuration.PenaltyFactorForDisruptingConfirmation,
 					{ Method: RoundDisruptionMethod.DidNotSign } => configuration.PenaltyFactorForDisruptingSigning,
 					{ Method: RoundDisruptionMethod.DoubleSpent } => configuration.PenaltyFactorForDisruptingByDoubleSpending,
@@ -130,6 +132,11 @@ public class Prison
 			{ Offense: Inherited { Ancestors: { } ancestors } } => CalculatePunishmentInheritance(ancestors),
 			_ => throw new NotSupportedException("Unknown offense type.")
 		});
+
+		if (DateTimeOffset.UtcNow - banningTime.StartTime < TimeSpan.FromHours(1) && banningTime.Duration < TimeSpan.FromMinutes(30))
+		{
+			banningTime = new TimeFrame(banningTime.StartTime, TimeSpan.FromMinutes(30 + SecureRandom.Instance.GetInt(0, 30)));
+		}
 
 		lock (Lock)
 		{
