@@ -100,13 +100,21 @@ public class TerminateService
 
 	private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 	{
-		Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
+		if (ForcefulTerminationRequested.Task.IsCompleted)
+		{
+			Logger.LogWarning("Multiple requests to terminate registered. Stopping the application non-gracefully.");
+			e.Cancel = false;
+		}
+		else
+		{
+			Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
 
-		// Do not kill the process ...
-		e.Cancel = true;
+			// Do not kill the process ...
+			e.Cancel = true;
 
-		// ... instead signal back that the app should terminate.
-		SignalForceTerminate();
+			// ... instead signal back that the app should terminate.
+			SignalForceTerminate();
+		}
 	}
 
 	public void SignalGracefulCrash(Exception ex)

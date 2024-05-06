@@ -239,6 +239,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool DelayTransactionSigning { get; set; } = false;
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "IsCoordinationEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoordinationEnabled { get; set; } = true;
+
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
 
 	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs, AllowP2pkhOutputs, AllowP2shOutputs, AllowP2wshOutputs);
