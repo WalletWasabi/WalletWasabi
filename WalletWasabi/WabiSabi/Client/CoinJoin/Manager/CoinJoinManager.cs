@@ -202,28 +202,8 @@ public class CoinJoinManager : BackgroundService
 
 				var coinCandidates = await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false);
 
-				bool enableOutputWalletCj = false;
-				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)) && walletToStart.WalletName != startCommand.OutputWallet.WalletName)
-				{
-					// Check if the outputWallet has started a coinjoin before
-					if (!trackedCoinJoins.Values.Any(tracker => tracker.Wallet == startCommand.OutputWallet))
-					{
-						var result = await walletToStart.GetCoinjoinCoinCandidatesAsync();
-						var coins = result.Where(x => x.IsPrivate(walletToStart.AnonScoreTarget)).ToArray();
-
-						var batchedPayments = new PaymentBatch();
-
-						foreach (SmartCoin smartCoin in coins)
-						{
-							batchedPayments.AddPayment(startCommand.OutputWallet.DestinationProvider.GetNextDestinations(1, false).FirstOrDefault(), smartCoin.Amount);
-						}
-
-						enableOutputWalletCj = true;
-					}
-				}
-
 				// If there are pending payments, ignore already achieved privacy.
-				if (!walletToStart.BatchedPayments.AreTherePendingPayments && !enableOutputWalletCj)
+				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
 				{
 					// If all coins are already private, then don't mix.
 					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
@@ -246,14 +226,7 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var destinationWallet = walletToStart;
-
-			if (startCommand.OutputWallet.WalletName != walletToStart.WalletName && await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
-			{
-				destinationWallet = startCommand.OutputWallet;
-			}
-
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, destinationWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
 			{
