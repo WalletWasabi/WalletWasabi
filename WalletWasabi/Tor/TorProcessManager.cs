@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -52,13 +53,13 @@ public class TorProcessManager : IAsyncDisposable
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 	/// <remarks>
-	/// Only set if <see cref="TorSettings.UseOnlyRunningTor"/> is not on.
+	/// Only set if <see cref="TorMode.Enabled"/> is not on.
 	/// <para>Guarded by <see cref="StateLock"/>.</para>
 	/// </remarks>
 	private ProcessAsync? TorProcess { get; set; }
 
 	/// <remarks>
-	/// Only set if <see cref="TorSettings.UseOnlyRunningTor"/> is not on.
+	/// Only set if <see cref="TorMode.Enabled"/> is not on.
 	/// <para>Guarded by <see cref="StateLock"/>.</para>
 	/// </remarks>
 	private TorControlClient? TorControlClient { get; set; }
@@ -79,11 +80,13 @@ public class TorProcessManager : IAsyncDisposable
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
 
+		string operation = Settings.TorMode == TorMode.Enabled ? "start" : "connect to";
+
 		for (int i = 0; i < attempts; i++)
 		{
 			try
 			{
-				Logger.LogDebug($"Attempt #{i + 1} to start Tor.");
+				Logger.LogDebug($"Attempt #{i + 1} to {operation} Tor.");
 				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -95,7 +98,7 @@ public class TorProcessManager : IAsyncDisposable
 			}
 		}
 
-		throw new InvalidOperationException("No attempt to start Tor was successful.");
+		throw new InvalidOperationException($"No attempt to {operation} Tor was successful.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
@@ -110,7 +113,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
-		if (Settings.UseOnlyRunningTor)
+		if (Settings.TorMode == TorMode.EnabledOnlyRunning)
 		{
 			await RestartingLoopForRunningTorAsync(globalCancellationToken).ConfigureAwait(false);
 		}
@@ -138,10 +141,16 @@ public class TorProcessManager : IAsyncDisposable
 			}
 			else if (!detectedTorState && isTorRunning) // Case: Started running.
 			{
+				Logger.LogDebug("Connection to Tor SOCKS5 is established.");
 				_tcs.SetResult((torStoppedCts.Token, null));
 			}
-			else if (detectedTorState && !isTorRunning) // Case: Stopped running.
+			else if (!isTorRunning) // Case: Stopped running, or still not running.
 			{
+				if (detectedTorState)
+				{
+					Logger.LogDebug("Connection to Tor SOCKS5 was lost.");
+				}
+
 				bool willWaitForTorRestart = !cancellationToken.IsCancellationRequested;
 				OnTorStop(willWaitForTorRestart, exception: null, torStoppedCts, globalCancellationToken);
 				torStoppedCts = new();

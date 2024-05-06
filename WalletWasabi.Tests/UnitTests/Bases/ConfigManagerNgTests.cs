@@ -52,7 +52,7 @@ public class ConfigManagerNgTests
 			  "MainNetBackendUri": "https://api.wasabiwallet.io/",
 			  "TestNetClearnetBackendUri": "https://api.wasabiwallet.co/",
 			  "RegTestBackendUri": "http://localhost:37127/",
-			  "UseTor": true,
+			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
 			  "DownloadNewVersion": true,

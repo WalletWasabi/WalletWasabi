@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Models.UI;
@@ -50,7 +51,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
-	[AutoNotify] private bool _useTor;
+	[AutoNotify] private TorMode _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
 
@@ -92,7 +93,7 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _startupConfig.UseTor;
+		_useTor = config.UseTor;
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
 
@@ -242,7 +243,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// General
 		result = result with
 		{
-			UseTor = UseTor,
+			UseTor = UseTor.ToString(),
 			TerminateTorOnExit = TerminateTorOnExit,
 			DownloadNewVersion = DownloadNewVersion,
 		};
