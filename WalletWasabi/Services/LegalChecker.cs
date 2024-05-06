@@ -5,8 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
-using WalletWasabi.Services.Events;
-using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services;
 
@@ -17,20 +16,21 @@ public class LegalChecker : IDisposable
 
 	private bool _disposedValue;
 
-	public LegalChecker(string dataDir, WasabiClient wasabiClient, EventBus eventBus)
+	public LegalChecker(string dataDir, UpdateChecker updateChecker)
 	{
 		LegalFolder = Path.Combine(dataDir, LegalFolderName);
 		ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
-		WasabiClient = wasabiClient;
-		LegalDocumentVersionSubscription = eventBus.Subscribe<LegalDocumentVersionChanged>(OnLegalDocumentVersionChanged);
+		UpdateChecker = updateChecker;
 	}
 
-	public IDisposable LegalDocumentVersionSubscription { get; }
+	public event EventHandler<LegalDocuments>? AgreedChanged;
+
+	public event EventHandler<LegalDocuments>? ProvisionalChanged;
 
 	/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
 	private AsyncLock LegalDocumentLock { get; } = new();
 
-	private WasabiClient WasabiClient { get; }
+	private UpdateChecker UpdateChecker { get; }
 	public string LegalFolder { get; }
 	public string ProvisionalLegalFolder { get; }
 	public LegalDocuments? CurrentLegalDocument { get; private set; }
@@ -39,6 +39,7 @@ public class LegalChecker : IDisposable
 
 	public async Task InitializeAsync()
 	{
+		UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 		CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
 		ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
@@ -79,9 +80,8 @@ public class LegalChecker : IDisposable
 		return false;
 	}
 
-	private async void OnLegalDocumentVersionChanged(LegalDocumentVersionChanged evnt)
+	private async void UpdateChecker_UpdateStatusChangedAsync(object? _, UpdateStatus updateStatus)
 	{
-		var legalDocumentsVersion = evnt.Version;
 		try
 		{
 			LegalDocuments? provisionalLegalDocument = null;
@@ -89,18 +89,23 @@ public class LegalChecker : IDisposable
 			using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 			{
 				// If we don't have it or there is a new one.
-				if (CurrentLegalDocument is null || CurrentLegalDocument.Version < legalDocumentsVersion)
+				if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
 				{
 					// UpdateChecker cannot be null as the event called by it.
-					var content = await WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
+					var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
 					// Save it as a provisional legal document.
-					provisionalLegalDocument = new(legalDocumentsVersion, content);
+					provisionalLegalDocument = new(updateStatus.LegalDocumentsVersion, content);
 					await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
 					ProvisionalLegalDocument = provisionalLegalDocument;
 					LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
 				}
+			}
+
+			if (provisionalLegalDocument is { })
+			{
+				ProvisionalChanged?.Invoke(this, provisionalLegalDocument);
 			}
 		}
 		catch (Exception ex)
@@ -124,6 +129,8 @@ public class LegalChecker : IDisposable
 			CurrentLegalDocument = ProvisionalLegalDocument;
 			ProvisionalLegalDocument = null;
 		}
+
+		AgreedChanged?.Invoke(this, CurrentLegalDocument);
 	}
 
 	protected virtual void Dispose(bool disposing)
@@ -132,7 +139,10 @@ public class LegalChecker : IDisposable
 		{
 			if (disposing)
 			{
-				LegalDocumentVersionSubscription.Dispose();
+				if (UpdateChecker is { } updateChecker)
+				{
+					updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+				}
 				LatestDocumentTaskCompletion.TrySetCanceled();
 			}
 

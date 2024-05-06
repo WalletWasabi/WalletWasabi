@@ -5,7 +5,8 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "WASABI_BIND": "http://0.0.0.0:37127"
       },
       "applicationUrl": "http://localhost:37127"
     }

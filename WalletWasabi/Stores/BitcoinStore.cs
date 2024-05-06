@@ -46,8 +46,6 @@ public class BitcoinStore
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		var initTasks = new[]
 		{
 			IndexStore.InitializeAsync(cancel),

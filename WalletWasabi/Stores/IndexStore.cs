@@ -93,8 +93,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		try
 		{
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -218,8 +216,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
-			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "Block filters loading");
-
 			int i = 0;
 
 			// Read last N filters. There is no need to read all of them.
@@ -291,7 +287,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 					}
 
 					processed++;
-					SmartHeaderChain.SetServerTipHeight(Math.Max(SmartHeaderChain.ServerTipHeight, filter.Header.Height));
 				}
 			}
 			finally

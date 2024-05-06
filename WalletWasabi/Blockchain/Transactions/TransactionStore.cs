@@ -66,12 +66,9 @@ public class TransactionStore : IAsyncDisposable
 
 	public Task InitializeAsync(string operationName, CancellationToken cancellationToken)
 	{
-		using (BenchmarkLogger.Measure(operationName: operationName))
+		lock (SqliteStorageLock)
 		{
-			lock (SqliteStorageLock)
-			{
-				InitializeTransactionsNoLock(cancellationToken);
-			}
+			InitializeTransactionsNoLock(cancellationToken);
 		}
 
 		return Task.CompletedTask;
