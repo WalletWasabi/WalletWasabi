@@ -30,7 +30,6 @@ public class UiContext
 		IAmountProvider amountProvider,
 		IEditableSearchSource editableSearchSource,
 		ITorStatusCheckerModel torStatusChecker,
-		ILegalDocumentsProvider legalDocumentsProvider,
 		IHealthMonitor healthMonitor)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
@@ -46,7 +45,6 @@ public class UiContext
 		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
 		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
 		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
-		LegalDocumentsProvider = legalDocumentsProvider ?? throw new ArgumentNullException(nameof(legalDocumentsProvider));
 		HealthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
 	}
 
@@ -63,7 +61,6 @@ public class UiContext
 	public IAmountProvider AmountProvider { get; }
 	public IEditableSearchSource EditableSearchSource { get; }
 	public ITorStatusCheckerModel TorStatusChecker { get; }
-	public ILegalDocumentsProvider LegalDocumentsProvider { get; }
 	public IHealthMonitor HealthMonitor { get; }
 
 	public void RegisterNavigation(INavigate navigate)

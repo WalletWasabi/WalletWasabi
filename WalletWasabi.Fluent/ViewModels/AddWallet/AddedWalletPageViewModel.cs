@@ -81,11 +81,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		if (password is { })
 		{
-			var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, _wallet);
-			if (termsAndConditionsAccepted)
-			{
-				await _wallet.Auth.LoginAsync(password);
-			}
+			await _wallet.Auth.LoginAsync(password);
 		}
 	}
 }
