@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NBitcoin;
 using System;
 using System.Collections;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
@@ -22,6 +24,14 @@ public class Config
 	{
 		PersistentConfig = persistentConfig;
 		CliArgs = cliArgs;
+
+		LogMode[] defaultLogModes;
+
+#if RELEASE
+		defaultLogModes = [LogMode.Console, LogMode.File];
+#else
+		defaultLogModes = [LogMode.Debug, LogMode.Console, LogMode.File];
+#endif
 
 		Data = new()
 		{
@@ -49,13 +59,19 @@ public class Config
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+			[ nameof(TorFolder)] = (
+				"Folder where Tor binary is located",
+				GetNullableStringValue("TorFolder", null, cliArgs)),
 			[ nameof(TorSocksPort)] = (
 				"Tor is started to listen with the specified SOCKS5 port",
 				GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs)),
 			[ nameof(TorControlPort)] = (
 				"Tor is started to listen with the specified control port",
 				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
-			[ nameof(TerminateTorOnExit)] = (
+			[nameof(TorBridges)] = (
+				"Tor is started with the set of specified bridges",
+				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges, cliArgs)),
+			[nameof(TerminateTorOnExit)] = (
 				"Stop the Tor process when Wasabi is closed",
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
 			[ nameof(DownloadNewVersion)] = (
@@ -103,6 +119,9 @@ public class Config
 			[ nameof(LogLevel)] = (
 				"The level of detail in the logs: trace, debug, info, warning, error, or critical",
 				GetStringValue("LogLevel", value: "", cliArgs)),
+			[ nameof(LogModes)] = (
+				"The logging modes: console, and file (for multiple values use comma as a separator)",
+				GetLogModeArrayValue("LogModes", arrayValues: defaultLogModes, cliArgs)),
 			[ nameof(EnableGpu)] = (
 				"Use a GPU to render the user interface",
 				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
@@ -136,8 +155,10 @@ public class Config
 	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
 	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
 	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor)) && Network != Network.RegTest;
+	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
+	public string[] TorBridges => GetEffectiveValue<StringArrayValue, string[]>(nameof(TorBridges));
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>(nameof(StartLocalBitcoinCoreOnStartup));
@@ -154,6 +175,7 @@ public class Config
 	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>(nameof(DustThreshold));
 	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>(nameof(BlockOnlyMode));
 	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
+	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
@@ -316,10 +338,35 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			return new StringArrayValue(arrayValues, new string[] { overrideValue }, valueSource.Value);
+			string[] overrideValues = overrideValue.Split(';', StringSplitOptions.None);
+			return new StringArrayValue(arrayValues, overrideValues, valueSource.Value);
 		}
 
 		return new StringArrayValue(arrayValues, arrayValues, ValueSource.Disk);
+	}
+
+	private static LogModeArrayValue GetLogModeArrayValue(string key, LogMode[] arrayValues, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			LogMode[] logModes = overrideValue.Split(',', StringSplitOptions.RemoveEmptyEntries)
+				.Where(x => !string.IsNullOrWhiteSpace(x)) // Filter our whitespace-only elements.
+				.Select(x =>
+				{
+					if (!Enum.TryParse(x.Trim(), ignoreCase: true, out LogMode logMode))
+					{
+						throw new NotSupportedException($"Logging mode '{x}' is not supported.");
+					}
+
+					return logMode;
+				})
+				.ToHashSet() // Remove duplicates.
+				.ToArray();
+
+			return new LogModeArrayValue(arrayValues, logModes, valueSource.Value);
+		}
+
+		return new LogModeArrayValue(arrayValues, arrayValues, ValueSource.Disk);
 	}
 
 	private static bool GetOverrideValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? overrideValue, [NotNullWhen(true)] out ValueSource? valueSource)
@@ -412,6 +459,7 @@ public class Config
 	private record StringValue(string Value, string EffectiveValue, ValueSource ValueSource) : ITypedValue<string>;
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;
+	private record LogModeArrayValue(LogMode[] Value, LogMode[] EffectiveValue, ValueSource ValueSource) : ITypedValue<LogMode[]>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
 	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;
