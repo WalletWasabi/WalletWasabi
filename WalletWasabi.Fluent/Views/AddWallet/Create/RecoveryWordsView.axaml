@@ -25,6 +25,9 @@
                EnableBack="{Binding EnableBack}"
                EnableNext="True" NextContent="Continue" FocusNext="True"
                ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <Interaction.Behaviors>
+      <ExecuteCommandOnKeyDownBehavior KeyGesture="Enter" Command="{Binding NextCommand}" />
+    </Interaction.Behaviors>
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="*" />
@@ -93,9 +96,16 @@
                    Text="{Binding Passphrase}" />
       </StackPanel>
 
-      <CheckBox HorizontalAlignment="Center"
+      <CheckBox x:Name="CheckBox"
+                HorizontalAlignment="Center"
                 IsChecked="{Binding IsConfirmed}"
                 Grid.Row="7">
+        <Interaction.Behaviors>
+          <FocusOnAttachedBehavior />
+          <DataTriggerBehavior Binding="{Binding #CheckBox.IsChecked}" Value="True">
+            <FocusNextControlAction />
+          </DataTriggerBehavior>
+        </Interaction.Behaviors>
         <CheckBox.Content>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="I have written down the 12 words" />
