@@ -39,7 +39,7 @@ public class KeyManager
 		new ExtPubKeyJsonConverter(),
 		new KeyPathJsonConverter(),
 		new MoneyBtcJsonConverter(),
-		new CoinjoinSkipFactorsJsonConverter(),
+		new CoinjoinSkipFactorsJsonConverter()
 	};
 
 	[JsonConstructor]

@@ -1,6 +1,5 @@
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 

@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
@@ -6,7 +5,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 

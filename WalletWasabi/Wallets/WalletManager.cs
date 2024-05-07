@@ -118,8 +118,6 @@ public class WalletManager : IWalletProvider
 			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
 		}
 
-		string oldWalletName = wallet.WalletName;
-
 		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
 		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
 
