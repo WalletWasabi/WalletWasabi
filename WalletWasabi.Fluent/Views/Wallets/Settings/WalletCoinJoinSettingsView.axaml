@@ -37,7 +37,7 @@
           <ToolTip.Tip>
             <TextBlock>
               - Only opened wallets can be selected.<LineBreak /><LineBreak />
-              - Coins from the CoinJoin transaction will be received by the output wallet. However, this setting resets after a restart.<LineBreak /><LineBreak />
+              - Coins from the CoinJoin transaction will be received by the output wallet. However, this setting resets after Wallet Wasabi restarted.<LineBreak /><LineBreak />
               - Until coinjoin is running you can't set the output wallet.
             </TextBlock>
           </ToolTip.Tip>
