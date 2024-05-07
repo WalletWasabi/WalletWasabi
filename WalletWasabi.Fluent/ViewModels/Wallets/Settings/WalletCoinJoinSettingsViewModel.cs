@@ -103,8 +103,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.SelectedOutputWalletName).Select(x => x.Id != _wallet.Id)
 			.BindTo(this, x => x.NotMatchOutputWallet);
-		walletModel.Coinjoin.IsRunning.Select(isRunning => !isRunning) // This inverts the boolean value from IsRunning
+
+		walletModel.Coinjoin.IsRunning.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsEnableOutputWalletChoose);
+
 		Update();
 		ManuallyUpdateOutputWalletList();
 	}
