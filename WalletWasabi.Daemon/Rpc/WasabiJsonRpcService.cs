@@ -495,8 +495,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private async Task StartCoinjoinSweepAsync(Wallet activeWallet, Wallet outputWallet)
 	{
-		activeWallet.ConsolidationMode = true;
-
 		// If output wallet isn't initialized, then load it.
 		if (outputWallet.State == WalletState.Uninitialized)
 		{
