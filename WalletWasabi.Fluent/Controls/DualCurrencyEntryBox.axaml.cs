@@ -99,7 +99,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay());
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay());
-		this.GetObservable(AmountBtcProperty).Where(_ => !_skipProcessing).Subscribe(_ => UpdateDisplay(true));
+		this.GetObservable(AmountBtcProperty).Where(_ => !_skipProcessing).Do(_ => FocusOnLeftEntryBox()).Subscribe(_ => UpdateDisplay(true));
 
 		UpdateDisplay();
 
