@@ -105,8 +105,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	public async Task Activate()
 	{
-		MainViewModel.Instance.IsOobeBackgroundVisible = true;
 		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 }
