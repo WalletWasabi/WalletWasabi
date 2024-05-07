@@ -1,19 +1,16 @@
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -29,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 	Searchable = false)]
 public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
-	public UiContext UiContext { get; }
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
@@ -37,8 +33,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 	[AutoNotify] private IWalletModel _selectedOutputWalletName;
-	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets;
+	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
 	[AutoNotify] private bool _notMatchOutputWallet;
+
+	private CompositeDisposable _disposable = new();
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -48,16 +46,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
 		_selectedOutputWalletName = UiContext.WalletRepository.Wallets.Items.First(x => x.Name == _wallet.Settings.OutputWallet);
-
-		UiContext.WalletRepository
-			.Wallets
-			.Connect()
-			.Filter(x => x.Id == _wallet.Id || x.Settings.OutputWallet != _wallet.Name)
-			.SortBy(i => i.Name)
-			.Bind(out var wallets)
-			.Subscribe();
-
-		_wallets = wallets;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -116,11 +104,28 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.BindTo(this, x => x.NotMatchOutputWallet);
 
 		Update();
+		ManuallyUpdateOutputWalletList();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
+
+	public void ManuallyUpdateOutputWalletList()
+	{
+		_disposable.Dispose();
+		_disposable = new CompositeDisposable();
+
+		UiContext.WalletRepository.Wallets
+			.Connect()
+			.Filter(x => x.Id == _wallet.Id || x.Settings.OutputWallet != _wallet.Name)
+			.SortBy(i => i.Name)
+			.Bind(out var wallets)
+			.Subscribe()
+			.DisposeWith(_disposable);
+
+		_wallets = wallets;
+	}
 
 	private void Update()
 	{
