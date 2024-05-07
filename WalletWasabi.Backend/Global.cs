@@ -30,7 +30,6 @@ public class Global : IDisposable
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		CoinVerifierHttpClient = WasabiHttpClientFactory.CreateLongLivedHttpClient();
 		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
@@ -59,7 +58,6 @@ public class Global : IDisposable
 
 	public IndexBuilderService IndexBuilderService { get; }
 
-	private HttpClient CoinVerifierHttpClient { get; }
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Config Config { get; }
@@ -161,7 +159,6 @@ public class Global : IDisposable
 					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
 
-				CoinVerifierHttpClient.Dispose();
 				CoinJoinMempoolManager.Dispose();
 
 				var stoppingTask = Task.Run(DisposeAsync);
