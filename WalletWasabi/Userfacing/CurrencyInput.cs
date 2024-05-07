@@ -50,7 +50,7 @@ public static partial class CurrencyInput
 		}
 
 		// Trim starting zeros.
-		if (corrected.StartsWith("0"))
+		if (corrected.StartsWith('0'))
 		{
 			// If zeroless starts with a dot, then leave a zero.
 			// Else trim all the zeros.
