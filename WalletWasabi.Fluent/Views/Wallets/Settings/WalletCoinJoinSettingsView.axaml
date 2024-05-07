@@ -33,7 +33,7 @@
 
       <DockPanel>
         <TextBlock Text="Output Wallet" />
-        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Right" Margin="10,0,0,0" Height="20" ToolTip.Tip ="{Binding UserNotifyText}" IsVisible="{Binding IsUserNotifyVisible}"></PathIcon>
+        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Right" Margin="10,0,0,0" Height="20" ToolTip.Tip ="Only logged in wallets can be use. Coins from the CoinJoin transaction will be received by the output wallet. However, this setting resets after a restart. Until coinjoin is running you can't set the output wallet." ></PathIcon>
 
         <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsEnableOutputWalletChoose}" SelectedItem="{Binding SelectedOutputWalletName}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>

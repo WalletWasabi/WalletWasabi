@@ -34,10 +34,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 	[AutoNotify] private IWalletModel _selectedOutputWalletName;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
-	[AutoNotify] private bool _notMatchOutputWallet;
 	[AutoNotify] private bool _isEnableOutputWalletChoose = true;
-	[AutoNotify] private string _userNotifyText;
-	[AutoNotify] private bool _isUserNotifyVisible;
 
 	private CompositeDisposable _disposable = new();
 
@@ -103,45 +100,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					_wallet.Settings.Save();
 				});
 
-		this.WhenAnyValue(x => x.SelectedOutputWalletName).Select(x => x.Id != _wallet.Id)
-			.BindTo(this, x => x.NotMatchOutputWallet);
-
 		walletModel.Coinjoin.IsRunning.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsEnableOutputWalletChoose);
-
-		this.WhenAnyValue(
-				x => x.NotMatchOutputWallet,
-				x => x.IsEnableOutputWalletChoose)
-			.Select(tuple =>
-			{
-				var (notMatchOutputWallet, isEnableOutputWalletChoose) = tuple;
-				var notifyText = string.Empty;
-
-				if (notMatchOutputWallet)
-				{
-					notifyText = "After a CoinJoin transaction is completed, the coins should be transferred to a selected output wallet. However, this setting resets after a restart.";
-				}
-
-				if (!isEnableOutputWalletChoose)
-				{
-					notifyText += (notifyText == string.Empty ? "" : "\r\n\r\n") + "Until coinjoin is running you can't set the output wallet.";
-				}
-
-				return notifyText;
-			})
-			.BindTo(this, x => x.UserNotifyText);
-
-		this.WhenAnyValue(
-				x => x.NotMatchOutputWallet,
-				x => x.IsEnableOutputWalletChoose)
-			.Select(tuple =>
-			{
-				var (notMatchOutputWallet, isEnableOutputWalletChoose) = tuple;
-
-				// Define visibility logic based on these conditions
-				return notMatchOutputWallet || !isEnableOutputWalletChoose;
-			})
-			.BindTo(this, x => x.IsUserNotifyVisible);
 
 		Update();
 		ManuallyUpdateOutputWalletList();
