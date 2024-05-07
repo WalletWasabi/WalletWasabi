@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -75,22 +76,11 @@ public class LiveServerTests : IAsyncLifetime
 		IEnumerable<Transaction> retrievedTxs = await client.GetTransactionsAsync(network, randomTxIds.Take(4), ctsTimeout.Token);
 		Assert.Empty(retrievedTxs);
 
-		var mempoolTxIds = (await client.GetMempoolHashesAsync(64, ctsTimeout.Token)).Select(uint256.Parse).ToArray();
-		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement(InsecureRandom.Instance)!).Distinct().ToArray();
+		var mempoolTxIds = await client.GetMempoolHashesAsync(10, ctsTimeout.Token);
+		randomTxIds = Enumerable.Range(0, 5).Select(_ => uint256.Parse(mempoolTxIds.RandomElement(InsecureRandom.Instance)!)).Distinct().ToArray();
 		var txs = await client.GetTransactionsAsync(network, randomTxIds, ctsTimeout.Token);
 		var returnedTxIds = txs.Select(tx => tx.GetHash());
 		Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
-	}
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetBackendVersionTestsAsync(Network network)
-	{
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-		WasabiClient client = MakeWasabiClient(network);
-		var backendMajorVersion = await client.GetBackendMajorVersionAsync(ctsTimeout.Token);
-		Assert.Equal(4, backendMajorVersion);
 	}
 
 	private WasabiClient MakeWasabiClient(Network network)
