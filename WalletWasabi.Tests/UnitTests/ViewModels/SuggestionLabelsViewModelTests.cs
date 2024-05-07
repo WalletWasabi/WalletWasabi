@@ -33,6 +33,10 @@ public class SuggestionLabelsViewModelTests
 		Assert.Equal(expectedSuggestionsCount, sut.TopSuggestions.Count);
 	}
 
+	private static readonly string[] WhenLabelIsTakenItShouldNotBeSuggestedExpected = new[] { "Label 5", "Label 4", "Label 2" };
+	private static readonly string[] SuggestionsShouldBeInCorrectOrderAccordingToScoreExpected = new[] { "Label 2", "Label 3", "Label 1" };
+	private static readonly string[] SuggestionsShouldNotContainDuplicatesExpected = new[] { "label 3", "Label 2", "label 1" };
+
 	[Fact]
 	public void WhenLabelIsTakenItShouldNotBeSuggested()
 	{
@@ -50,7 +54,7 @@ public class SuggestionLabelsViewModelTests
 
 		sut.Labels.Add("Label 3");
 
-		Assert.Equal(new[] { "Label 5", "Label 4", "Label 2" }, sut.TopSuggestions);
+		Assert.Equal(WhenLabelIsTakenItShouldNotBeSuggestedExpected, sut.TopSuggestions);
 	}
 
 	[Fact]
@@ -81,7 +85,7 @@ public class SuggestionLabelsViewModelTests
 		var wallet = new TestWallet(mostUsedLabels);
 		var sut = CreateSut(wallet, Intent.Send, 100);
 
-		Assert.Equal(new[] { "Label 2", "Label 3", "Label 1" }, sut.Suggestions);
+		Assert.Equal(SuggestionsShouldBeInCorrectOrderAccordingToScoreExpected, sut.Suggestions);
 	}
 
 	[Fact]
@@ -154,13 +158,13 @@ public class SuggestionLabelsViewModelTests
 		var wallet = new TestWallet(labels);
 		var sut = CreateSut(wallet, Intent.Send, 100);
 
-		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
+		Assert.Equal(SuggestionsShouldNotContainDuplicatesExpected, sut.Suggestions);
 	}
 
 	private static SuggestionLabelsViewModel CreateSut(TestWallet wallet, Intent intent, int maxSuggestions)
 	{
 		var sut = new SuggestionLabelsViewModel(wallet, intent, maxSuggestions);
-		sut.Activate(new CompositeDisposable());
+		sut.Activate([]);
 		return sut;
 	}
 
