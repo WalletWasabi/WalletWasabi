@@ -86,7 +86,7 @@ public static class AnalyzerExtensions
 	{
 		if (node is not ClassDeclarationSyntax cls)
 		{
-			return (null, Array.Empty<string>());
+			return (null, []);
 		}
 
 		var currentType = model.GetDeclaredSymbol(cls);
@@ -103,7 +103,7 @@ public static class AnalyzerExtensions
 			currentType = currentType.BaseType;
 		}
 
-		return (null, Array.Empty<string>());
+		return (null, []);
 	}
 
 	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
