@@ -86,7 +86,6 @@ public class Global
 		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
 		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
 
-		LegalChecker = new(DataDir, updateChecker);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
@@ -158,7 +157,6 @@ public class Global
 
 	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
-	public LegalChecker LegalChecker { get; private set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -209,8 +207,6 @@ public class Global
 			try
 			{
 				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				await LegalChecker.InitializeAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -479,12 +475,6 @@ public class Global
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
-				}
-
-				if (LegalChecker is { } legalChecker)
-				{
-					legalChecker.Dispose();
-					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
 
 				if (HostedServices is { } backgroundServices)

@@ -184,7 +184,7 @@ public class WasabiClient
 
 	#region software
 
-	public async Task<(Version ClientVersion, ushort BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
+	public async Task<(Version ClientVersion, ushort BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
 	{
 		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
@@ -196,12 +196,12 @@ public class WasabiClient
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
-		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.Ww2LegalDocumentsVersion));
+		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion));
 	}
 
 	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 	{
-		var (clientVersion, backendMajorVersion, legalDocumentsVersion) = await GetVersionsAsync(cancel).ConfigureAwait(false);
+		var (clientVersion, backendMajorVersion) = await GetVersionsAsync(cancel).ConfigureAwait(false);
 		var clientUpToDate = Helpers.Constants.ClientVersion >= clientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
 		var currentBackendMajorVersion = backendMajorVersion;
@@ -212,30 +212,8 @@ public class WasabiClient
 			ApiVersion = currentBackendMajorVersion;
 		}
 
-		return new UpdateStatus(backendCompatible, clientUpToDate, legalDocumentsVersion, currentBackendMajorVersion, clientVersion);
+		return new UpdateStatus(backendCompatible, clientUpToDate, currentBackendMajorVersion, clientVersion);
 	}
 
 	#endregion software
-
-	#region wasabi
-
-	public async Task<string> GetLegalDocumentsAsync(CancellationToken cancel)
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
-			$"api/v{ApiVersion}/wasabi/legaldocuments?id=ww2",
-			cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		string result = await content.ReadAsStringAsync(cancel).ConfigureAwait(false);
-
-		return result;
-	}
-
-	#endregion wasabi
 }
