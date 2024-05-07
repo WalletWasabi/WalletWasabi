@@ -28,8 +28,6 @@ public class WalletManager : IWalletProvider
 		WalletDirectories walletDirectories,
 		WalletFactory walletFactory)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		Network = network;
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);

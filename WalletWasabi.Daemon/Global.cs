@@ -313,26 +313,23 @@ public class Global
 	{
 		if (Config.UseTor && Network != Network.RegTest)
 		{
-			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-			{
-				TorManager = new TorProcessManager(TorSettings);
-				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+			TorManager = new TorProcessManager(TorSettings);
+			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
-				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
-				if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+			var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+			if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+			{
+				var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
+				if (!anonymousAccessAllowed)
 				{
-					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
-					if (!anonymousAccessAllowed)
-					{
-						var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
-						OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
-						Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
-					}
-					else
-					{
-						Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
-					}
+					var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
+					OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
+					Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
+				}
+				else
+				{
+					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
 			}
 
