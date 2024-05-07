@@ -38,6 +38,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
 	[AutoNotify] private IWalletModel _selectedOutputWalletName;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets;
+	[AutoNotify] private bool _notMatchOutputWallet;
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -110,6 +111,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					_wallet.Settings.OutputWallet = x.Name;
 					_wallet.Settings.Save();
 				});
+
+		this.WhenAnyValue(x => x.SelectedOutputWalletName).Select(x => x.Id != _wallet.Id)
+			.BindTo(this, x => x.NotMatchOutputWallet);
 
 		Update();
 	}
