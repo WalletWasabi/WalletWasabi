@@ -136,15 +136,6 @@ public class WalletManager : IWalletProvider
 		}
 
 		wallet.KeyManager.SetFilePath(newWalletFilePath);
-
-		foreach (Wallet actualWallet in Wallets)
-		{
-			if (actualWallet.KeyManager.OutputWalletName != null && actualWallet.KeyManager.OutputWalletName.Equals(oldWalletName, StringComparison.OrdinalIgnoreCase))
-			{
-				actualWallet.KeyManager.OutputWalletName = newWalletName;
-				actualWallet.KeyManager.ToFile();
-			}
-		}
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
