@@ -94,7 +94,6 @@ public class LiveServerTests : IAsyncLifetime
 		Assert.InRange(versions.ClientVersion, new(2, 0, 0), new(2, 99, 99));
 		Assert.InRange(versions.ClientVersion, new(2, 0, 0), WalletWasabi.Helpers.Constants.ClientVersion);
 		Assert.Equal(4, versions.BackendMajorVersion);
-		Assert.Equal(new(1, 0), versions.LegalDocumentsVersion);
 	}
 
 	[Theory]
@@ -108,27 +107,8 @@ public class LiveServerTests : IAsyncLifetime
 
 		Assert.True(updateStatus.BackendCompatible);
 		Assert.True(updateStatus.ClientUpToDate);
-		Assert.Equal(new Version(1, 0), updateStatus.LegalDocumentsVersion);
 		Assert.Equal((ushort)4, updateStatus.CurrentBackendMajorVersion);
 		Assert.Equal(WalletWasabi.Helpers.Constants.ClientVersion.ToString(3), updateStatus.ClientVersion.ToString());
-
-		var versions = await client.GetVersionsAsync(ctsTimeout.Token);
-		Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
-	}
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetLegalDocumentsTestsAsync(Network network)
-	{
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-		WasabiClient client = MakeWasabiClient(network);
-		var content = await client.GetLegalDocumentsAsync(ctsTimeout.Token);
-		var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-		Assert.Equal("Last Updated: 2022-06-15", lines[0]);
-		var lineCount = lines.Length;
-		Assert.InRange(lineCount, 100, 1000);
 	}
 
 	private WasabiClient MakeWasabiClient(Network network)
