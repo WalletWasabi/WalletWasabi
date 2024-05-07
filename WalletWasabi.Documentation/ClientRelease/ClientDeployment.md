@@ -29,6 +29,8 @@
 17. Share the Final Test issue link with developers an test it for 24 hours.
 18. Every PR which is contained in the release must be at least 24 hours old.
 
+Make sure to run a virus detection scan on one of the Release candidate's .msi installer (preferably the final one). You can use this site for example: https://www.virustotal.com/gui/home/upload.
+
 # 3. Packaging
 
 0. Make sure local .NET Core version is up to date.

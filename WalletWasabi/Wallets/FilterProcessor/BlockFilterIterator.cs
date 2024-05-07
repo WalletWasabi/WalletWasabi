@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Stores;
 
@@ -20,7 +21,10 @@ public class BlockFilterIterator
 	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
-	internal Dictionary<uint, FilterModel> Cache { get; } = new();
+	internal Dictionary<uint, FilterModel> Cache { get; } = [];
+
+	/// <remarks>Lock object to guard <see cref="Cache"/>.</remarks>
+	private AsyncLock Lock { get; } = new();
 	private IIndexStore IndexStore { get; }
 	public int MaxNumberFiltersInMemory { get; }
 
@@ -30,6 +34,8 @@ public class BlockFilterIterator
 	/// <remarks>Filter is immediately removed from the cache once the method returns. Repeated calls for single height are thus expensive.</remarks>
 	public async Task<FilterModel> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
 	{
+		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+
 		// Each block filter is to needed just once, so we can remove the block right now and free the memory sooner.
 		if (Cache.Remove(height, out FilterModel? result))
 		{
@@ -37,7 +43,7 @@ public class BlockFilterIterator
 		}
 
 		// We don't have the next filter to process, so fetch another batch of filters from the database.
-		Clear();
+		ClearNoLock();
 
 		FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
@@ -73,7 +79,32 @@ public class BlockFilterIterator
 		return result;
 	}
 
-	public void Clear()
+	public async Task RemoveNewerThanAsync(uint height, CancellationToken cancellationToken)
+	{
+		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+
+		List<uint> keysToRemove = Cache.Keys
+			.Where(key => key > height)
+			.ToList();
+
+		foreach (uint heightToRemove in keysToRemove)
+		{
+			if (!Cache.Remove(heightToRemove))
+			{
+				throw new UnreachableException($"Filter {heightToRemove} was already removed from the Cache.");
+			}
+		}
+	}
+
+	public async Task ClearAsync(CancellationToken cancellationToken)
+	{
+		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+
+		ClearNoLock();
+	}
+
+	/// <remarks>Needs to be guarded by <see cref="Lock"/></remarks>
+	private void ClearNoLock()
 	{
 		Cache.Clear();
 	}

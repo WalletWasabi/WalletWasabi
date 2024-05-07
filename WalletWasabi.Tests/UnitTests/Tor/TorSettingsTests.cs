@@ -23,6 +23,7 @@ public class TorSettingsTests
 			" ",
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
+			$"--UseBridges 0",
 			$"--SOCKSPort \"127.0.0.1:37150 ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--MaxCircuitDirtiness 1800",
 			$"--SocksTimeout 30",

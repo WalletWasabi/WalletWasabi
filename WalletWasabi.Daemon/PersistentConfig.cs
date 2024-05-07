@@ -54,6 +54,10 @@ public record PersistentConfig : IConfigNg
 	public bool TerminateTorOnExit { get; init; } = false;
 
 	[DefaultValue(true)]
+	[JsonPropertyName("TorBridges")]
+	public string[] TorBridges { get; init; } = [];
+
+	[DefaultValue(true)]
 	[JsonPropertyName("DownloadNewVersion")]
 	public bool DownloadNewVersion { get; init; } = true;
 

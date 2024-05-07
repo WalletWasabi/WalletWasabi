@@ -41,15 +41,10 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		var before = DateTimeOffset.UtcNow;
 		var response = await Arena.GetStatusAsync(request, cancellationToken);
 		var medians = CoinJoinFeeRateStatStore.GetDefaultMedians();
 		var affiliateInformation = AffiliationManager.GetAffiliateInformation();
-		var ret = new RoundStateResponse(response.RoundStates, medians, affiliateInformation);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("status", duration);
-		return ret;
+		return new RoundStateResponse(response.RoundStates, medians, affiliateInformation);
 	}
 
 	[HttpPost("connection-confirmation")]
@@ -58,12 +53,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		using CancellationTokenSource timeoutCts = new(RequestTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, linkedCts.Token);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("connection-confirmation", duration);
-		return ret;
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, linkedCts.Token);
 	}
 
 	[HttpPost("input-registration")]
@@ -72,12 +62,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		using CancellationTokenSource timeoutCts = new(RequestTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-		var before = DateTimeOffset.UtcNow;
-		InputRegistrationResponse ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, linkedCts.Token);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("input-registration", duration);
-		return ret;
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, linkedCts.Token);
 	}
 
 	[HttpPost("output-registration")]
@@ -86,11 +71,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		using CancellationTokenSource timeoutCts = new(RequestTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-		var before = DateTimeOffset.UtcNow;
 		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, linkedCts.Token);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("output-registration", duration);
 	}
 
 	[HttpPost("credential-issuance")]
@@ -99,42 +80,25 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		using CancellationTokenSource timeoutCts = new(RequestTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, linkedCts.Token);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("credential-issuance", duration);
-		return ret;
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, linkedCts.Token);
 	}
 
 	[HttpPost("input-unregistration")]
 	public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellableToken)
 	{
-		var before = DateTimeOffset.UtcNow;
 		await Arena.RemoveInputAsync(request, cancellableToken);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("input-unregistration", duration);
 	}
 
 	[HttpPost("transaction-signature")]
 	public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 	{
-		var before = DateTimeOffset.UtcNow;
 		await Arena.SignTransactionAsync(request, cancellableToken);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("transaction-signature", duration);
 	}
 
 	[HttpPost("ready-to-sign")]
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 	{
-		var before = DateTimeOffset.UtcNow;
 		await Arena.ReadyToSignAsync(request, cancellableToken);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("ready-to-sign", duration);
 	}
 
 	/// <summary>
