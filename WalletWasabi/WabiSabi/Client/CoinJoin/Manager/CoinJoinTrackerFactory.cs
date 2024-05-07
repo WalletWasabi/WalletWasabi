@@ -39,6 +39,9 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
+		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
+		wallet.ConsolidationMode = outputWallet is not null && outputWallet.WalletId != wallet.WalletId;
+
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
