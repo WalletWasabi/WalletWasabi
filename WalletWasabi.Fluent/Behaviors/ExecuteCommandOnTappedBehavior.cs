@@ -8,13 +8,13 @@ using Avalonia.Xaml.Interactions.Custom;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ExecuteCommandOnDoubleTappedBehavior : DisposingBehavior<Control>
+public class ExecuteCommandOnTappedBehavior : DisposingBehavior<Control>
 {
 	public static readonly StyledProperty<ICommand?> CommandProperty =
-		AvaloniaProperty.Register<ExecuteCommandOnDoubleTappedBehavior, ICommand?>(nameof(Command));
+		AvaloniaProperty.Register<ExecuteCommandOnTappedBehavior, ICommand?>(nameof(Command));
 
 	public static readonly StyledProperty<object?> CommandParameterProperty =
-		AvaloniaProperty.Register<ExecuteCommandOnDoubleTappedBehavior, object?>(nameof(CommandParameter));
+		AvaloniaProperty.Register<ExecuteCommandOnTappedBehavior, object?>(nameof(CommandParameter));
 
 	public ICommand? Command
 	{
@@ -30,7 +30,7 @@ public class ExecuteCommandOnDoubleTappedBehavior : DisposingBehavior<Control>
 
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		Gestures.DoubleTappedEvent.AddClassHandler<InputElement>(
+		Gestures.TappedEvent.AddClassHandler<InputElement>(
 				(x, _) =>
 				{
 					if (Equals(x, AssociatedObject))
