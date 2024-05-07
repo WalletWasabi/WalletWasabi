@@ -2,7 +2,6 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData.Tests;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;
 

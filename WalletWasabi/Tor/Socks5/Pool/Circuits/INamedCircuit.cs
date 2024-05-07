@@ -1,4 +1,3 @@
-using System.Threading;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
 

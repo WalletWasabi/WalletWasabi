@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
-using Avalonia;
 
 namespace WalletWasabi.Fluent.Models.UI;
 

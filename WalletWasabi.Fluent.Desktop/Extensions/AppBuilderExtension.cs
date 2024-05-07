@@ -3,8 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.Media;
-using Avalonia.Platform;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Desktop.Extensions;
 

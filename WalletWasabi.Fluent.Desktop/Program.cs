@@ -12,7 +12,6 @@ using ReactiveUI;
 using System.Linq;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using System.Diagnostics.CodeAnalysis;

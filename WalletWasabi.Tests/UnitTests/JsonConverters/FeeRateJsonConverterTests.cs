@@ -1,6 +1,5 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.JsonConverters.Bitcoin;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;
