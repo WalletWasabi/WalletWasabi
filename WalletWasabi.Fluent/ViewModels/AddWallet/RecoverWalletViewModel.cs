@@ -228,7 +228,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					}
 					this.RaisePropertyChanged(nameof(CurrentMnemonics));
 				})
-				.DisposeWith(disposables);;
+				.DisposeWith(disposables);
 		}
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
