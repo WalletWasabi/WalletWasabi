@@ -2,11 +2,10 @@ namespace WalletWasabi.Models;
 
 public class UpdateStatus : IEquatable<UpdateStatus>
 {
-	public UpdateStatus(bool backendCompatible, bool clientUpToDate, Version legalDocumentsVersion, ushort currentBackendMajorVersion, Version clientVersion)
+	public UpdateStatus(bool backendCompatible, bool clientUpToDate, ushort currentBackendMajorVersion, Version clientVersion)
 	{
 		BackendCompatible = backendCompatible;
 		ClientUpToDate = clientUpToDate;
-		LegalDocumentsVersion = legalDocumentsVersion;
 		CurrentBackendMajorVersion = currentBackendMajorVersion;
 		ClientVersion = clientVersion;
 	}
@@ -15,7 +14,6 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 	public bool BackendCompatible { get; }
 	public bool IsReadyToInstall { get; set; }
 
-	public Version LegalDocumentsVersion { get; }
 	public ushort CurrentBackendMajorVersion { get; }
 
 	public Version ClientVersion { get; set; }
@@ -23,7 +21,7 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 	#region EqualityAndComparison
 
 	public static bool operator ==(UpdateStatus? x, UpdateStatus? y)
-		=> (x?.ClientUpToDate, x?.BackendCompatible, x?.LegalDocumentsVersion, x?.CurrentBackendMajorVersion, x?.ClientVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.LegalDocumentsVersion, y?.CurrentBackendMajorVersion, y?.ClientVersion);
+		=> (x?.ClientUpToDate, x?.BackendCompatible, x?.CurrentBackendMajorVersion, x?.ClientVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.CurrentBackendMajorVersion, y?.ClientVersion);
 
 	public static bool operator !=(UpdateStatus? x, UpdateStatus? y) => !(x == y);
 
@@ -31,7 +29,7 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 
 	public bool Equals(UpdateStatus? other) => this == other;
 
-	public override int GetHashCode() => (ClientUpToDate, BackendCompatible, LegalDocumentsVersion, CurrentBackendMajorVersion, ClientVersion).GetHashCode();
+	public override int GetHashCode() => (ClientUpToDate, BackendCompatible, CurrentBackendMajorVersion, ClientVersion).GetHashCode();
 
 	#endregion EqualityAndComparison
 }

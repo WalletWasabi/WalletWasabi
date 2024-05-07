@@ -52,7 +52,6 @@ public class UiContextBuilder
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
 			Mock.Of<ITorStatusCheckerModel>(),
-			Mock.Of<ILegalDocumentsProvider>(),
 			Mock.Of<IHealthMonitor>());
 
 		uiContext.RegisterNavigation(Navigate);
