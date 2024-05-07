@@ -45,7 +45,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
-		_selectedOutputWalletName = UiContext.WalletRepository.Wallets.Items.First(x => x.Name == _wallet.Settings.OutputWallet);
+		_selectedOutputWalletName = UiContext.WalletRepository.Wallets.Items.First(x => x.Wallet.WalletId == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -96,7 +96,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Subscribe(
 				x =>
 				{
-					_wallet.Settings.OutputWallet = x.Name;
+					_wallet.Settings.OutputWalletId = x.Wallet.WalletId;
 					_wallet.Settings.Save();
 				});
 
@@ -118,7 +118,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		UiContext.WalletRepository.Wallets
 			.Connect()
-			.Filter(x => x.Id == _wallet.Id || x.Settings.OutputWallet != _wallet.Name)
+			.Filter(x => x.Id == _wallet.Id || x.Settings.OutputWalletId != _wallet.Id)
 			.SortBy(i => i.Name)
 			.Bind(out var wallets)
 			.Subscribe()
