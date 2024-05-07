@@ -79,7 +79,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Do(
 				_ =>
 				{
-					var oldSelection = Selection.ToArray();
+					IList<ICoinModel> oldSelection = Selection.ToArray();
 					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
 					RefreshFromPockets(sourceItems, wallet.Coins.Pockets.Items);
 					UpdateSelection(coinItemsCollection, oldSelection);
@@ -110,6 +110,19 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Descending)) },
 			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending)) },
 		];
+		
+		SetInitialSelection(initialCoinSelection);
+	}
+
+	private void SetInitialSelection(IEnumerable<ICoinModel> initialSelection)
+	{
+		var initialSmartCoins = initialSelection.GetSmartCoins().ToList();
+		var coinsToSelect = CoinItems.Where(x => initialSmartCoins.Contains(x.Coin.GetSmartCoin()));
+
+		foreach (var coinItem in coinsToSelect)
+		{
+			coinItem.IsSelected = true;
+		}
 	}
 
 	public ReadOnlyObservableCollection<CoinViewModel> CoinItems { get; }
