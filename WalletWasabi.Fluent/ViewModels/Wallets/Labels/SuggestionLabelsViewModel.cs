@@ -56,6 +56,9 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
+		_topSuggestions.Clear();
+		_suggestions.Clear();
+		
 		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
 			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
 			.Select(_ => SuggestionLabelsFilter());
