@@ -1,6 +1,6 @@
-# 1. Final tests
+# Final tests
 
-1. Go to https://github.com/zkSNACKs/WalletWasabi/releases.
+1. Draft a new release.
 2. Check the exact **date** of the last release and the **name** of the last PR.
 3. List the PR-s in order, open the [link and (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
 4. Go trough all PR, create the Release Notes document and the Final Test issue. Create test cases according to PR-s and write a list. [Release Notes format](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.6) and [Final Test format](https://github.com/zkSNACKs/WalletWasabi/issues/2227).
@@ -8,61 +8,51 @@
 6. Check Tor status. Never release during a Tor network disruption: https://status.torproject.org/
 7. At the end there will be a Final Test document and a Release Notes document.
 
-# 2. Release candidate
+# Release candidate
 
-1. Go to https://github.com/molnard/WalletWasabi/releases and press Draft a new release.
+1. Go to your own fork of Wasabi and press Draft a new release. Release candidates are not published in the main repository!
 2. Tag version: add `rc1` postfix e.g: v1.1.7rc1.
 3. Set release title e.g: `Wasabi v1.1.7: <Release Title> - Release candidate`.
-4. Set description use [previous releases](https://github.com/molnard/WalletWasabi/releases) as a template.
+4. Set description use [Release Notes Template]([https://github.com/molnard/WalletWasabi/releases](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientRelease/ReleaseNotesTemplate.md)).
 5. Add the Release Notes, the same as it will be at the final release (can be typofixed).
-6. Make sure local .NET Core version is up to date.
-7. Set the version number in the software but only increase the rev number by one to avoid version collision like: 1.1.6.4.
-8. Run tests.
-9. Run packager in publish mode.
-10. Create `.msi`.
-11. Run packager in sign mode. (Set back to publish mode)
-12. Test asc file for `.msi`.
-13. Final `.msi` test on own computer.
-14. Upload the files to the pre-release.
-15. Check `This is a pre-release` and press Publish Release.
-16. Add the pre-release link to the Final Test issue.
-17. Share the Final Test issue link with developers an test it for 24 hours.
-18. Every PR which is contained in the release must be at least 24 hours old.
+6. Do Packaging (see below).
+16. Upload the files to the pre-release.
+17. Check `This is a pre-release` and press Publish Release.
+18. Add the pre-release link to the Final Test issue.
+19. Share the Final Test issue link with developers and test it for 24 hours.
+20. Every PR that is contained in the release must be at least 24 hours old.
 
 Make sure to run a virus detection scan on one of the Release candidate's .msi installer (preferably the final one). You can use this site for example: https://www.virustotal.com/gui/home/upload.
 
-# 3. Packaging
+# Packaging
 
 0. Make sure local .NET Core version is up to date.
-1. Run tests.
-2. Retest every PR since last release on Windows, macOS and Linux.
-3. Bump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html).
-4. Run packager in publish mode.
-5. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
-6. [mac sign] Run the packager on macOS.
-7. [mac sign] Copy the final dmg back to dist folder on windows.
-8. Create `.msi`.
-9. Run packager in sign mode. (Set back to publish mode)
-10. Final `.msi` test on own computer.
+1. Make sure CI and CodeFactor check out.
+2. Run tests.
+3. Run the [script file](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/Wasabi_release.ps1) on the **Windows Release Laptop** and follow the instructions.
+4. At some point you will need to run [this script](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/WasabiNoratize.scpt) file on Mac. Don't forget to open the script file on Mac and insert your Apple dev username and password. Guide how to setup it: [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md).
+5. Finish the script on Windows. Now a folder should pop up with all the files that need to be uploaded to GitHub.
+6. Test asc file for `.msi`.
+7. Final `.msi` test on own computer.
 
-# 4. GitHub Release
+# Final release
 
-1. Create GitHub Release. (Use the previous release as template)
-2. Write Release notes based on commits since last release.
-3. Download and test the binaries on all VMs.
+1. Draft a [new release at the main repo](https://github.com/zkSNACKs/WalletWasabi/releases/new).
+2. Bump client version. (WalletWasabi/Helpers/Constants.cs).
+3. Copy and paste the release notes from the RC releases. It should have been well-reviewed until now. Make sure the the recent changes are in the What's new section. 
+2. Run tests.
+3. Do Packaging (see above).
+4. Upload the files to the main repo!
+5. Download MSI from the draft release to your local computer, test it and verify the version number in about!
+6. Do not set pre-release flag!
+7. Publish the release.
 
-# 5. Notify
+# Notify
 
 1. Refresh website download and signature links.
-2. Update InstallationGuide and DeterministicBuildGuide download links, [here](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js).
-3. Make sure CI and CodeFactor checks out.
-4. [Deploy testnet and mainnet backend](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update).
+2. [Deploy testnet and mainnet backend](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/HowToDeploy.md).
 
-# 6. Update Docs
-
-1. Bump the client version in [the docs](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js).
-
-# 7. Announce
+# Announce
 
 1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
 2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
