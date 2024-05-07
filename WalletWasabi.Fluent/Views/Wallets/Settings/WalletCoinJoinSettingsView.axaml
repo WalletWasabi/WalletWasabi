@@ -35,7 +35,7 @@
         <TextBlock Text="Output Wallet" />
         <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Right" Margin="10,0,0,0" Height="20" ToolTip.Tip ="After a CoinJoin transaction is completed, the coins should be transferred to a selected output wallet. However, this setting resets after a restart." IsVisible="{Binding NotMatchOutputWallet}"></PathIcon>
 
-        <ComboBox ItemsSource="{Binding Wallets}" SelectedItem="{Binding SelectedOutputWalletName}" HorizontalAlignment="Stretch">
+        <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsEnableOutputWalletChoose}" SelectedItem="{Binding SelectedOutputWalletName}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="wallets1:IWalletModel">
               <TextBlock Text="{Binding Name}" />

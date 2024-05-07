@@ -35,6 +35,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private IWalletModel _selectedOutputWalletName;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
 	[AutoNotify] private bool _notMatchOutputWallet;
+	[AutoNotify] private bool _isEnableOutputWalletChoose = true;
 
 	private CompositeDisposable _disposable = new();
 
@@ -102,7 +103,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.SelectedOutputWalletName).Select(x => x.Id != _wallet.Id)
 			.BindTo(this, x => x.NotMatchOutputWallet);
-
+		walletModel.Coinjoin.IsRunning.Select(isRunning => !isRunning) // This inverts the boolean value from IsRunning
+			.BindTo(this, x => x.IsEnableOutputWalletChoose);
 		Update();
 		ManuallyUpdateOutputWalletList();
 	}
