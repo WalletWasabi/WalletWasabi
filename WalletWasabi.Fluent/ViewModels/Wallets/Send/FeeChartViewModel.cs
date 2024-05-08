@@ -255,7 +255,7 @@ public partial class FeeChartViewModel : ViewModelBase
 		if (satoshiPerByteValues.Length != 0)
 		{
 			var maxY = satoshiPerByteValues.Max();
-			var minY = satoshiPerByteValues.Min();
+			var minY = 1; // If values are not the same, it will be always rendered starting from 1.
 
 			SatoshiPerByteLabels = areAllValuesEqual
 				? new[] { "", "", maxY.ToString("F0") }
