@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfilesView">
   <ContentArea Title="{Binding Title}"
-               Caption="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee + the mining fees. Select a coinjoin strategy that fits you best!"
+               Caption="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds. Select a coinjoin strategy that fits you best!"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
                NextContent="Done" EnableNext="True"
