@@ -178,12 +178,12 @@ public partial class CurrencyEntryBox : TextBox
 
 	private bool IsReplacingWithImplicitDecimal(string input)
 	{
-		return input.StartsWith(".") && SelectedText == Text;
+		return input.StartsWith('.') && SelectedText == Text;
 	}
 
 	private bool IsInsertingImplicitDecimal(string input)
 	{
-		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
+		return input.StartsWith('.') && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
 	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
