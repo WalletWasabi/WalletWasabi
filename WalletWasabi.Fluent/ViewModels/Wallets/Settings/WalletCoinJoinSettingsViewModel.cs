@@ -93,8 +93,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.SelectedOutputWallet)
 			.Skip(1)
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x => _wallet.Settings.OutputWalletId = x.Id);
+			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
 		walletModel.Coinjoin.IsRunning
 			.Select(isRunning => !isRunning)
