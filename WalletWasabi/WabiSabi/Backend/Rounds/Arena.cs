@@ -12,7 +12,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
@@ -31,13 +30,11 @@ public partial class Arena : PeriodicRunner
 		IRPCClient rpc,
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
-		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null ) : base(period)
 	{
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		TransactionArchiver = archiver;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
 		MaxSuggestedAmountProvider = new(Config);
@@ -52,7 +49,6 @@ public partial class Arena : PeriodicRunner
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
-	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -311,12 +307,6 @@ public partial class Arena : PeriodicRunner
 
 					round.LogInfo(
 						$"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
-
-					// Store transaction.
-					if (TransactionArchiver is not null)
-					{
-						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
-					}
 
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
