@@ -1,6 +1,5 @@
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
