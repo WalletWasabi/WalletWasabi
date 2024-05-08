@@ -71,6 +71,8 @@ public class ReceiveAddressViewModelTests
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
+		public bool IsLoaded { get; set; }
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
