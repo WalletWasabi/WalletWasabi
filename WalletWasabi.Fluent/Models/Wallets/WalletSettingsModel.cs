@@ -44,7 +44,10 @@ public partial class WalletSettingsModel : ReactiveObject
 		_redCoinIsolation = _keyManager.RedCoinIsolation;
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
-		_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+		if (!isNewWallet)
+		{
+			_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+		}
 
 		WalletType = WalletHelpers.GetType(_keyManager);
 
@@ -86,6 +89,7 @@ public partial class WalletSettingsModel : ReactiveObject
 			{
 				Services.WalletManager.AddWallet(_keyManager);
 				IsNewWallet = false;
+				_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 			}
 
 			_isDirty = false;
