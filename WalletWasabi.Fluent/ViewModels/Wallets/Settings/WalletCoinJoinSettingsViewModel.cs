@@ -1,8 +1,13 @@
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -27,13 +32,20 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
+	[AutoNotify] private IWalletModel _selectedOutputWallet;
+	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
+	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 
-	private WalletCoinJoinSettingsViewModel(IWalletModel walletModel)
+	private CompositeDisposable _disposable = new();
+
+	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
+		UiContext = uiContext;
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
+		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -78,12 +90,39 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					}
 				});
 
+		this.WhenAnyValue(x => x.SelectedOutputWallet)
+			.Skip(1)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x => _wallet.Settings.OutputWalletId = x.Id);
+
+		walletModel.Coinjoin.IsRunning
+			.Select(isRunning => !isRunning)
+			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
+
 		Update();
+		ManuallyUpdateOutputWalletList();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
+
+	public void ManuallyUpdateOutputWalletList()
+	{
+		_disposable.Dispose();
+		_disposable = new CompositeDisposable();
+
+		UiContext.WalletRepository.Wallets
+			.Connect()
+			.Filter(x => (x.Id == _wallet.Id || x.Settings.OutputWalletId != _wallet.Id) && x.IsLoggedIn)
+			.SortBy(i => i.Name)
+			.Bind(out var wallets)
+			.Subscribe()
+			.DisposeWith(_disposable);
+
+		_wallets = wallets;
+	}
 
 	private void Update()
 	{
@@ -94,11 +133,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		SelectedCoinjoinProfileName =
 			(_wallet.Settings.IsCoinjoinProfileSelected,
 					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
-				{
-					(true, CoinJoinProfileViewModelBase x) => x.Title,
-					(false, _) => "None",
-					_ => "Unknown"
-				};
+			{
+				(true, CoinJoinProfileViewModelBase x) => x.Title,
+				(false, _) => "None",
+				_ => "Unknown"
+			};
 	}
 
 	private async Task SelectCoinjoinProfileAsync()
