@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -22,7 +21,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore)
 	{
 		Parameters = parameters;
 		RpcClient = rpc;
@@ -47,7 +46,6 @@ public class WabiSabiCoordinator : BackgroundService
 			roundParameterFactory,
 			transactionArchiver,
 			coinJoinScriptStore);
-		AffiliationManager = new(Arena, Config, httpClientFactory);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
@@ -65,7 +63,6 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
-	public AffiliationManager AffiliationManager { get; }
 	private IRPCClient RpcClient { get; }
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
@@ -220,7 +217,6 @@ public class WabiSabiCoordinator : BackgroundService
 		await Arena.StartAsync(stoppingToken).ConfigureAwait(false);
 
 		await CoinJoinFeeRateStatStore.StartAsync(stoppingToken).ConfigureAwait(false);
-		await AffiliationManager.StartAsync(stoppingToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
@@ -232,7 +228,6 @@ public class WabiSabiCoordinator : BackgroundService
 		await Warden.StopAsync(cancellationToken).ConfigureAwait(false);
 
 		await CoinJoinFeeRateStatStore.StopAsync(cancellationToken).ConfigureAwait(false);
-		await AffiliationManager.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override void Dispose()
@@ -241,7 +236,6 @@ public class WabiSabiCoordinator : BackgroundService
 		Arena.CoinJoinBroadcast -= Arena_CoinJoinBroadcast;
 		ConfigWatcher.Dispose();
 		Warden.Dispose();
-		AffiliationManager.Dispose();
 		base.Dispose();
 	}
 }

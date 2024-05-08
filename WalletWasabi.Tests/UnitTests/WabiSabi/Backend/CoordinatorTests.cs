@@ -79,7 +79,7 @@ public class CoordinatorTests
 		DoSConfiguration dosConfig = cfg.GetDoSConfiguration() with { MinTimeInPrison = TimeSpan.Zero };
 		var coinJoinIdStore = new InMemoryCoinJoinIdStore();
 		var mockRpcClient = new MockRpcClient { Network = Network.Main };
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, coinJoinIdStore, new CoinJoinScriptStore());
 
 		// Receive a tx that is not spending coins registered in any round.
 		{
@@ -156,5 +156,5 @@ public class CoordinatorTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new MockHttpClientFactory());
+		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
 }
