@@ -30,7 +30,7 @@ public class CoinJoinTrackerFactory
 	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -39,11 +39,13 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
+		wallet.ConsolidationMode = outputWallet is not null && outputWallet.WalletId != wallet.WalletId;
+
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			wallet.KeyChain,
-			outputWallet.OutputProvider,
+			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
 			coinSelector,

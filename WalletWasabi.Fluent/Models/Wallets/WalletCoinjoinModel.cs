@@ -77,7 +77,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	{
 		Wallet outputWallet = Services.WalletManager.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
-		await _coinJoinManager.StartAsync(_wallet, _wallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.StartAsync(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()
