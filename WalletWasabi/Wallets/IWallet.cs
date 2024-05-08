@@ -25,7 +25,7 @@ public interface IWallet
 	PaymentBatch BatchedPayments => new();
 
 	int AnonScoreTarget { get; }
-	bool ConsolidationMode { get; }
+	bool ConsolidationMode { get; set; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
 	CoinjoinSkipFactors CoinjoinSkipFactors { get; }
