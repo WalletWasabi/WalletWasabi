@@ -16,7 +16,6 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Backend;
 
@@ -24,13 +23,12 @@ public class Global : IDisposable
 {
 	private bool _disposedValue;
 
-	public Global(string dataDir, IRPCClient rpcClient, Config config, IHttpClientFactory httpClientFactory)
+	public Global(string dataDir, IRPCClient rpcClient, Config config)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		RpcClient = rpcClient;
 		Config = config;
 		HostedServices = new();
-		HttpClientFactory = httpClientFactory;
 
 		CoordinatorParameters = new(DataDir);
 		CoinJoinIdStore = CoinJoinIdStore.Create(CoordinatorParameters.CoinJoinIdStoreFilePath);
@@ -58,8 +56,6 @@ public class Global : IDisposable
 
 	public IndexBuilderService IndexBuilderService { get; }
 
-	private IHttpClientFactory HttpClientFactory { get; }
-
 	public Config Config { get; }
 
 	private CoordinatorParameters CoordinatorParameters { get; }
@@ -84,7 +80,7 @@ public class Global : IDisposable
 		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, HttpClientFactory);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;

@@ -7,7 +7,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
-using WalletWasabi.Affiliation.Models;
 using System.Net;
 using Newtonsoft.Json;
 using WalletWasabi.WabiSabi.Client;
@@ -215,7 +214,7 @@ public class RoundStateUpdaterTests
 	}
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
-		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>(), AffiliateInformation.Empty));
+		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 
 	private static HttpResponseMessage Ok<T>(T obj)
 	{
