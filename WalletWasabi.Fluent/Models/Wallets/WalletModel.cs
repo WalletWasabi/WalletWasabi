@@ -70,7 +70,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IAddressesModel Addresses { get; }
 
-	public Wallet Wallet { get; }
+	internal Wallet Wallet { get; }
 
 	public WalletId Id => Wallet.WalletId;
 

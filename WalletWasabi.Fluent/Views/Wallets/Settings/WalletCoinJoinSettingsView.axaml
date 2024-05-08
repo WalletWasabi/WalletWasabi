@@ -43,7 +43,7 @@
           </ToolTip.Tip>
         </PathIcon>
 
-        <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsEnableOutputWalletChoose}" SelectedItem="{Binding SelectedOutputWalletName}" HorizontalAlignment="Stretch">
+        <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="wallets1:IWalletModel">
               <TextBlock Text="{Binding Name}" />

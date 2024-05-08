@@ -55,9 +55,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
 				x => x.RedCoinIsolation,
-				x => x.FeeRateMedianTimeFrameHours,
-				x => x.OutputWalletId,
-				(_, _, _, _, _, _, _, _) => Unit.Default)
+				x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
