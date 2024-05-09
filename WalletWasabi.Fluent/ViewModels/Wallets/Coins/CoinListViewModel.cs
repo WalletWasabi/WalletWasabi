@@ -23,12 +23,14 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly ReadOnlyObservableCollection<CoinListItem> _itemsCollection;
 	private readonly IWalletModel _wallet;
 	private readonly bool _ignorePrivacyMode;
+	private readonly bool _allowCoinjoiningCoinSelection;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool ignorePrivacyMode = false)
+	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode)
 	{
 		_wallet = wallet;
 		_ignorePrivacyMode = ignorePrivacyMode;
+		_allowCoinjoiningCoinSelection = allowCoinjoiningCoinSelection;
 
 		var sourceItems = new SourceList<CoinListItem>().DisposeWith(_disposables);
 
@@ -175,10 +177,10 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 					var coin = pocket.Coins.First();
 					var coinModel = _wallet.Coins.GetCoinModel(coin);
 
-					return (CoinListItem)new CoinViewModel(pocket.Labels, coinModel, _ignorePrivacyMode);
+					return (CoinListItem)new CoinViewModel(pocket.Labels, coinModel, _ignorePrivacyMode, _allowCoinjoiningCoinSelection);
 				}
 
-				return new PocketViewModel(_wallet, pocket, _ignorePrivacyMode);
+				return new PocketViewModel(_wallet, pocket, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
 		source.Edit(

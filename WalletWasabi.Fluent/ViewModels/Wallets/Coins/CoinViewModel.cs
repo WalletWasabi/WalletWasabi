@@ -11,7 +11,7 @@ public class CoinViewModel : CoinListItem, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
+	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -27,6 +27,11 @@ public class CoinViewModel : CoinListItem, IDisposable
 		ScriptType = coin.ScriptType;
 		IgnorePrivacyMode = ignorePrivacyMode;
 		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress).BindTo(this, x => x.IsCoinjoining).DisposeWith(_disposables);
+
+		if (canSelectWhenCoinjoining)
+		{
+			this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
+		}
 	}
 
 	public ICoinModel Coin { get; }
