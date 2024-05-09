@@ -175,6 +175,9 @@ public class SuggestionLabelsViewModelTests
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
+
+		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
+
 		public WalletId Id => throw new NotSupportedException();
 
 		public string Name
@@ -200,6 +203,8 @@ public class SuggestionLabelsViewModelTests
 		public IBuyAnythingModel BuyAnything => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+		public bool IsLoaded { get; set; }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
