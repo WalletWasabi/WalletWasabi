@@ -87,7 +87,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 		CancellationToken shutdownToken = LoopCts.Token;
 		TimeSpan reconnectDelay = MinReconnectDelay;
 
-		bool logWarningOnHandshakeError = true;
+		bool logWarningOnConnectionEx = true;
 
 		while (!shutdownToken.IsCancellationRequested)
 		{
@@ -101,7 +101,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 				using ConnectedNode connectedNode = await ConnectAsync(linkedCts.Token).ConfigureAwait(false);
 
 				// Reset the flag because we successfully connected.
-				logWarningOnHandshakeError = true;
+				logWarningOnConnectionEx = true;
 
 				// Reset reconnect delay as we actually connected the local node.
 				reconnectDelay = MinReconnectDelay;
@@ -116,22 +116,27 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 			}
 			catch (Exception ex)
 			{
-				// In general, we do do not log a message if we fail to connect to the bitcoin core endpoint. The only exception is when a handshake error occurs.
-				// If we are not shutting down the application and if this is not a repeated-handshake failure, then log a warning.
-				if (ex is OperationCanceledException && !shutdownToken.IsCancellationRequested && logWarningOnHandshakeError)
-				{
-					string message = $"""
-						Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
-						Use "whitebind" in the node configuration. Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.
-						""";
-
-					Logger.LogWarning(message);
-					logWarningOnHandshakeError = false;
-				}
-
+				// If we are not shutting down the application and if this is not a repeated failure, then log a warning.
 				if (!shutdownToken.IsCancellationRequested)
 				{
-					Logger.LogTrace($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'.", ex);
+					if (logWarningOnConnectionEx)
+					{
+						if (ex is OperationCanceledException)
+						{
+							string message = $"""
+							                  Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
+							                  Use "whitebind" in the node configuration. Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.
+							                  """;
+
+							Logger.LogWarning(message);
+						}
+						else
+						{
+							Logger.LogWarning($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'. Exception: {ex}");
+						}
+
+						logWarningOnConnectionEx = false;
+					}
 
 					// Failing to connect leads to exponential slowdown.
 					reconnectDelay *= 2;
