@@ -54,7 +54,6 @@ public partial class WalletCoinjoinModel : ReactiveObject
 						 .Select(_ => true);
 		var coinjoinStarted =
 			StatusUpdated.OfType<WalletStartedCoinJoinEventArgs>()
-
 				.Select(_ => true);
 
 		var coinjoinStopped =
