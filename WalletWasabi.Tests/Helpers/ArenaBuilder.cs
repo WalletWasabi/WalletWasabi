@@ -23,7 +23,6 @@ public class ArenaBuilder
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
 	public RoundParameterFactory? RoundParameterFactory { get; set; }
-	public ICoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -33,10 +32,9 @@ public class ArenaBuilder
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient();
 		Network network = Network ?? Network.Main;
-		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
+		Arena arena = new(period, config, rpc, prison, roundParameterFactory);
 
 		foreach (var round in rounds)
 		{
@@ -65,12 +63,6 @@ public class ArenaBuilder
 		{
 			toDispose?.Dispose();
 		}
-	}
-
-	public ArenaBuilder With(ICoinJoinIdStore store)
-	{
-		CoinJoinIdStore = store;
-		return this;
 	}
 
 	public ArenaBuilder With(IRPCClient rpc)

@@ -21,13 +21,12 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc,  CoinJoinScriptStore coinJoinScriptStore)
 	{
 		Parameters = parameters;
 		RpcClient = rpc;
-		Warden = new(parameters.PrisonFilePath, coinJoinIdStore, Config);
+		Warden = new(parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
-		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
@@ -42,17 +41,14 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			coinJoinIdStore,
 			roundParameterFactory,
 			transactionArchiver,
 			coinJoinScriptStore);
 
-		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }
-	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }
@@ -68,8 +64,6 @@ public class WabiSabiCoordinator : BackgroundService
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
 		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
-
-		CoinJoinIdStore.TryAdd(transaction.GetHash());
 
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try
@@ -103,7 +97,7 @@ public class WabiSabiCoordinator : BackgroundService
 		OutPoint[] BannedInputs(Transaction tx) => tx.Inputs.Where(IsInputBanned).Select(x => x.PrevOut).ToArray();
 
 		var outpointsToBan = block.Transactions
-			.Where(tx => !CoinJoinIdStore.Contains(tx.GetHash()))  // We don't ban coinjoin outputs
+			.Where(tx => IsWasabiCoinJoin(tx.GetHash(), tx))  // We don't ban coinjoin outputs
 			.Select(tx => (Tx: tx, BannedInputs: BannedInputs(tx)))
 			.Where(x => x.BannedInputs.Length != 0)
 			.SelectMany(x => x.Tx.Outputs.Select((_, i) => (new OutPoint(x.Tx, i), x.BannedInputs)));
@@ -195,7 +189,7 @@ public class WabiSabiCoordinator : BackgroundService
 	}
 
 	private bool IsWasabiCoinJoin(uint256 txId, Transaction tx) =>
-		CoinJoinIdStore.Contains(txId) || IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx);
+		IsFinishedCoinJoin(txId) || IsWasabiCoinJoinLookingTx(tx);
 
 	private bool IsFinishedCoinJoin(uint256 txId) =>
 		Arena.RoundStates
