@@ -1,9 +1,7 @@
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -12,7 +10,6 @@ using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using Xunit;
 
@@ -146,5 +143,5 @@ public class ConfigTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore());
+		=> new(coordinatorParameters, NewMockRpcClient(),  new CoinJoinScriptStore());
 }

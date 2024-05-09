@@ -37,11 +37,6 @@ public class CoordinatorParameters
 	public string WhitelistFilePath => Path.Combine(CoordinatorDataDir, "Whitelist.txt");
 
 	/// <summary>
-	/// File that is storing the hashes of WabiSabi CoinJoins.
-	/// </summary>
-	public string CoinJoinIdStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinIdStore.txt");
-
-	/// <summary>
 	/// File that is storing the fee rate statistics.
 	/// </summary>
 	public string CoinJoinFeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinFeeRateStatStore.txt");
