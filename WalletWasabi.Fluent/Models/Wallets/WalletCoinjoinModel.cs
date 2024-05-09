@@ -30,7 +30,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 					  .Where(x => x.EventArgs.Wallet == wallet)
 					  .Select(x => x.EventArgs)
-					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs or CompletedEventArgs)
+					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
@@ -48,10 +48,14 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				})
 				.Subscribe();
 
-		var coinjoinStarted =
+		var coinjoinInputStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
 						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
 						 .Select(_ => true);
+
+		var coinjoinStarted =
+			StatusUpdated.OfType<StartedEventArgs>()
+				.Select(_ => true);
 
 		var coinjoinStopped =
 			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
@@ -62,16 +66,22 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				.Select(_ => false);
 
 		IsRunning =
-			coinjoinStarted.Merge(coinjoinStopped)
+			coinjoinInputStarted.Merge(coinjoinStopped)
 				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
 		IsRunning.BindTo(this, x => x.IsCoinjoining);
+
+		IsStarted =
+			coinjoinStarted.Merge(coinjoinStopped)
+				.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
 
 	public IObservable<bool> IsRunning { get; }
+
+	public IObservable<bool> IsStarted { get; }
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
