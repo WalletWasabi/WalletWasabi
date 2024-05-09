@@ -27,7 +27,7 @@
           <ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
           <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
-            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea" Margin="0 0 0 10">
+            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea" Margin="31 0 31 10">
               <Button Name="PART_CancelButton"
                       Classes="invisible"
                       IsVisible="{TemplateBinding EnableCancel}"
