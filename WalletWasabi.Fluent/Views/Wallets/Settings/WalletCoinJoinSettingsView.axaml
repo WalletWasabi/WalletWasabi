@@ -33,16 +33,15 @@
 
       <DockPanel>
         <TextBlock Text="Output Wallet" />
-        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Right" Margin="10,0,0,0" Height="20">
+        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}"  Margin="-10,0,10,0" Height="20">
           <ToolTip.Tip>
             <TextBlock>
-              - Only loaded wallets can be selected.<LineBreak /><LineBreak />
-              - Coins from the CoinJoin transaction will be received by the output wallet. However, this setting resets after Wallet Wasabi restart.<LineBreak /><LineBreak />
-              - Until coinjoin is running you can't set the output wallet.
+              - Only loaded wallets can be selected.<LineBreak />
+              - Coins from the coinjoin transaction will be received by the output wallet. However, this setting resets after Wallet Wasabi restarts.<LineBreak />
+              - Output wallet cannot be changed when a coinjoin is in progress.
             </TextBlock>
           </ToolTip.Tip>
         </PathIcon>
-
         <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="wallets1:IWalletModel">

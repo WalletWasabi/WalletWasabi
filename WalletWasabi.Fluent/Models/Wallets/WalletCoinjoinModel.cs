@@ -49,10 +49,14 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				})
 				.Subscribe();
 
-		var coinjoinStarted =
+		var coinjoinInputStarted =
 			StatusUpdated.OfType<CoinJoinStatusEventArgs>()
 						 .Where(e => e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase)
 						 .Select(_ => true);
+		var coinjoinStarted =
+			StatusUpdated.OfType<WalletStartedCoinJoinEventArgs>()
+
+				.Select(_ => true);
 
 		var coinjoinStopped =
 			StatusUpdated.OfType<WalletStoppedCoinJoinEventArgs>()
@@ -63,16 +67,22 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				.Select(_ => false);
 
 		IsRunning =
-			coinjoinStarted.Merge(coinjoinStopped)
+			coinjoinInputStarted.Merge(coinjoinStopped)
 				.Merge(coinjoinCompleted)
 						   .ObserveOn(RxApp.MainThreadScheduler);
 
 		IsRunning.BindTo(this, x => x.IsCoinjoining);
+
+		IsStarted =
+			coinjoinStarted.Merge(coinjoinStopped)
+				.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }
 
 	public IObservable<bool> IsRunning { get; }
+
+	public IObservable<bool> IsStarted { get; }
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
