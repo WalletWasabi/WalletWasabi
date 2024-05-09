@@ -193,7 +193,7 @@ public class Config
 
 	/// <summary>Whether a config option was overridden by a command line argument or an environment variable.</summary>
 	/// <remarks>
-	/// Changing config options in the UI while a config option is overridden would bring uncertainty if user understands consequences,
+	/// Changing config options in the UI while a config option is overridden would bring uncertainty if user understands consequences or not,
 	/// thus it is normally not allowed. However, there are exceptions as what options are taken into account, there is currently
 	/// one exception: <see cref="LogLevel"/>.
 	/// </remarks>
