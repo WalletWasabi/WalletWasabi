@@ -23,7 +23,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	public SelectCoinsDialogViewModel(IWalletModel wallet, IList<ICoinModel> selectedCoins, TransactionInfo transactionInfo)
 	{
-		CoinList = new CoinListViewModel(wallet, selectedCoins, allowCoinjoiningCoinSelection: false, ignorePrivacyMode: true);
+		CoinList = new CoinListViewModel(wallet, selectedCoins, allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true);
 
 		EnoughSelected = CoinList.Selection.ToObservableChangeSet()
 			.ToCollection()

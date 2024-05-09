@@ -28,7 +28,7 @@ public class CoinViewModel : CoinListItem, IDisposable
 		IgnorePrivacyMode = ignorePrivacyMode;
 		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress).BindTo(this, x => x.IsCoinjoining).DisposeWith(_disposables);
 
-		if (canSelectWhenCoinjoining)
+		if (!canSelectWhenCoinjoining)
 		{
 			this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
 		}
