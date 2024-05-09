@@ -64,7 +64,7 @@ public class WalletGenerator
 			return false;
 		}
 		var invalidChars = Path.GetInvalidFileNameChars();
-		var isValid = !walletName.Any(c => invalidChars.Contains(c)) && !walletName.EndsWith(".");
+		var isValid = !walletName.Any(c => invalidChars.Contains(c)) && !walletName.EndsWith('.');
 		var isReserved = ReservedFileNames.Any(w => walletName.ToUpper() == w || walletName.ToUpper().StartsWith(w + "."));
 		return isValid && !isReserved;
 	}

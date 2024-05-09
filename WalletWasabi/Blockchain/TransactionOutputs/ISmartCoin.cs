@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 

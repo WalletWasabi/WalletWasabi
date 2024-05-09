@@ -1,8 +1,5 @@
 using NBitcoin;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using System.Collections.Immutable;
 using WalletWasabi.BitcoinCore.Mempool;

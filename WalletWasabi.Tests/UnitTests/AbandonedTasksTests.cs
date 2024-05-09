@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Nito.AsyncEx;
 using Xunit;
 

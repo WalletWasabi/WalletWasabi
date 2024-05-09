@@ -1,9 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation;

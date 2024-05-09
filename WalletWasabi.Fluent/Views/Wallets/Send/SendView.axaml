@@ -58,6 +58,11 @@
         <StackPanel Orientation="Horizontal" Spacing="5">
           <TextBlock Text="{Binding BalanceCaption}"/>
           <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="Click">
+                <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
             <AmountControl Amount="{Binding Balance^}"/>
           </Button>
         </StackPanel>

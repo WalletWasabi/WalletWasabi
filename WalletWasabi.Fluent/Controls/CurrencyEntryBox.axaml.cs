@@ -3,14 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -181,12 +178,12 @@ public partial class CurrencyEntryBox : TextBox
 
 	private bool IsReplacingWithImplicitDecimal(string input)
 	{
-		return input.StartsWith(".") && SelectedText == Text;
+		return input.StartsWith('.') && SelectedText == Text;
 	}
 
 	private bool IsInsertingImplicitDecimal(string input)
 	{
-		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
+		return input.StartsWith('.') && CaretIndex == 0 && Text is not null && !Text.Contains('.');
 	}
 
 	private TextInputEventArgs ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)

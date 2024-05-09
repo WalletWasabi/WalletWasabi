@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -21,7 +20,6 @@ using System.Linq;
 using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
 using WalletWasabi.Wallets;
-using System.Net.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 

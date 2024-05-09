@@ -1,9 +1,7 @@
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
