@@ -166,7 +166,6 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	}
 
 	/// <exception cref="SocketException">When connecting to the node fails.</exception>
-	/// <exception cref="OperationCanceledException">When handshake protocol with the node fails.</exception>
 	/// <exception cref="InvalidOperationException">If we are still not connected to the node after we successfully connected to it and went through a handshake.</exception>
 	internal virtual async Task<ConnectedNode> ConnectAsync(CancellationToken cancellationToken)
 	{
