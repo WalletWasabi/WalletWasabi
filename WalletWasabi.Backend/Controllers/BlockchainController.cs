@@ -352,69 +352,6 @@ public class BlockchainController : ControllerBase
 		return Ok(response);
 	}
 
-	[HttpGet("status")]
-	[ProducesResponseType(typeof(StatusResponse), 200)]
-	public async Task<StatusResponse> GetStatusAsync(CancellationToken cancellationToken)
-	{
-		try
-		{
-			var cacheKey = $"{nameof(GetStatusAsync)}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
-
-			return await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (string request, CancellationToken token) => FetchStatusAsync(token),
-				options: cacheOptions,
-				cancellationToken);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			throw;
-		}
-	}
-
-	private async Task<StatusResponse> FetchStatusAsync(CancellationToken cancellationToken = default)
-	{
-		StatusResponse status = new();
-
-		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
-		{
-			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
-			var lastFilterHash = lastFilter.Header.BlockHash;
-			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
-			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
-			var prevHash = lastBlockHeader.HashPrevBlock;
-
-			if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-			{
-				status.FilterCreationActive = true;
-			}
-		}
-		else
-		{
-			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of WabiSabi coinjoin.
-		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
-		{
-			var ww2CjDownAfter = TimeSpan.FromHours(3);
-			var wabiSabiValidInterval = wabiSabiCoordinator.Config.StandardInputRegistrationTimeout * 2;
-			if (wabiSabiValidInterval < ww2CjDownAfter)
-			{
-				wabiSabiValidInterval = ww2CjDownAfter;
-			}
-			if (DateTimeOffset.UtcNow - wabiSabiCoordinator.LastSuccessfulCoinJoinTime < wabiSabiValidInterval)
-			{
-				status.WabiSabiCoinJoinCreationActive = true;
-			}
-		}
-
-		return status;
-	}
 
 	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
