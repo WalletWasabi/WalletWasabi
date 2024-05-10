@@ -59,7 +59,6 @@ public class RegTestSetup : IAsyncDisposable
 	{
 		string dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
 		RegTestSetup setup = new(regTestFixture, dir);
-		await setup.AssertFiltersInitializedAsync().ConfigureAwait(false); // Make sure filters are created on the server side.
 
 		if (numberOfBlocksToGenerate != 0)
 		{
@@ -69,28 +68,6 @@ public class RegTestSetup : IAsyncDisposable
 		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 
 		return setup;
-	}
-
-	public async Task AssertFiltersInitializedAsync()
-	{
-		uint256 firstHash = await Global.RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
-
-		while (true)
-		{
-			var client = new WasabiClient(RegTestFixture.BackendHttpClient);
-			FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
-			Assert.NotNull(filtersResponse);
-
-			var filterCount = filtersResponse!.Filters.Count();
-			if (filterCount >= 101)
-			{
-				break;
-			}
-			else
-			{
-				await Task.Delay(100).ConfigureAwait(false);
-			}
-		}
 	}
 
 	public async Task WaitForFiltersToBeProcessedAsync(TimeSpan timeout, int numberOfFiltersToWaitFor)
