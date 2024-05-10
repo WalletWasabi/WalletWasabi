@@ -91,6 +91,9 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	public bool InError => BackendStatus != BackendStatus.Connected;
 
+	// We disregard the pause from the IThirdPartyFeeProvider since the backend connection is currently always on if possible
+	public bool IsPaused { get; set; }
+
 	#endregion EventsPropertiesMembers
 
 	protected override async Task ActionAsync(CancellationToken cancel)

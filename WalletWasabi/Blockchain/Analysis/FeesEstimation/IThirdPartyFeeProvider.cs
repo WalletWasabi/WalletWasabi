@@ -6,4 +6,5 @@ public interface IThirdPartyFeeProvider
 
 	AllFeeEstimate? LastAllFeeEstimate { get; }
 	bool InError { get; }
+	bool IsPaused { get; set; }
 }

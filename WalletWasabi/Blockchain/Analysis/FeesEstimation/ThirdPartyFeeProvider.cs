@@ -1,46 +1,80 @@
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.Services;
-using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
-	public ThirdPartyFeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider)
+	private int _actualFeeProviderIndex = -1;
+	private bool _isPaused;
+
+	public ThirdPartyFeeProvider(TimeSpan period, ImmutableArray<IThirdPartyFeeProvider> feeProviders)
 		: base(period)
 	{
-		Synchronizer = synchronizer;
-		BlockstreamProvider = blockstreamProvider;
+		FeeProviders = feeProviders;
+		if (FeeProviders.Length > 0)
+		{
+			ActualFeeProviderIndex = 0;
+		}
 	}
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
-	public WasabiSynchronizer Synchronizer { get; }
-	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
 	private object Lock { get; } = new();
 	public bool InError { get; private set; }
+
+	public bool IsPaused
+	{
+		get => _isPaused;
+		set
+		{
+			_isPaused = value;
+			SetPauseStates();
+		}
+	}
+
 	private AbandonedTasks ProcessingEvents { get; } = new();
+
+	private ImmutableArray<IThirdPartyFeeProvider> FeeProviders { get; }
+
+	protected int ActualFeeProviderIndex
+	{
+		get => _actualFeeProviderIndex;
+		set
+		{
+			if (_actualFeeProviderIndex != value)
+			{
+				_actualFeeProviderIndex = value;
+				LastStatusChange = DateTimeOffset.UtcNow;
+				SetPauseStates();
+			}
+		}
+	}
+
+	protected DateTimeOffset LastStatusChange { get; set; } = DateTimeOffset.UtcNow;
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		SetAllFeeEstimateIfLooksBetter(Synchronizer.LastAllFeeEstimate);
-		SetAllFeeEstimateIfLooksBetter(BlockstreamProvider.LastAllFeeEstimate);
-
-		Synchronizer.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
-		BlockstreamProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+		foreach (var feeProvider in FeeProviders)
+		{
+			SetAllFeeEstimateIfLooksBetter(feeProvider.LastAllFeeEstimate);
+			feeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+		}
 
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		Synchronizer.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
-		BlockstreamProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+		foreach (var feeProvider in FeeProviders)
+		{
+			feeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+		}
 
 		await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
@@ -56,15 +90,26 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 				return;
 			}
 
-			var notify = false;
-			lock (Lock)
+			if (sender is IThirdPartyFeeProvider)
 			{
-				notify = SetAllFeeEstimate(fees);
-			}
+				int senderIdx = FeeProviders.IndexOf((IThirdPartyFeeProvider)sender);
+				if (senderIdx != -1 && senderIdx <= ActualFeeProviderIndex)
+				{
+					ActualFeeProviderIndex = senderIdx;
+					InError = false;
+					LastStatusChange = DateTimeOffset.UtcNow;
 
-			if (notify)
-			{
-				AllFeeEstimateArrived?.Invoke(sender, fees);
+					var notify = false;
+					lock (Lock)
+					{
+						notify = SetAllFeeEstimate(fees);
+					}
+
+					if (notify)
+					{
+						AllFeeEstimateArrived?.Invoke(sender, fees);
+					}
+				}
 			}
 		}
 	}
@@ -92,18 +137,29 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		return true;
 	}
 
+	private void SetPauseStates()
+	{
+		for (int idx = 0; idx < FeeProviders.Length; idx++)
+		{
+			FeeProviders[idx].IsPaused = IsPaused || idx > _actualFeeProviderIndex;
+		}
+	}
+
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		// If the backend doesn't work for a period of time, then and only then start using Blockstream.
-		if (Synchronizer.InError && Synchronizer.BackendStatusChangedSince > TimeSpan.FromMinutes(1))
+		if (IsPaused)
 		{
-			BlockstreamProvider.IsPaused = false;
-			InError = BlockstreamProvider.InError;
+			return Task.CompletedTask;
 		}
-		else
+
+		bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
+
+		// Let's wait a bit more
+		if (inError && !InError && LastStatusChange - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1))
 		{
-			BlockstreamProvider.IsPaused = true;
-			InError = false;
+			InError = true;
+			ActualFeeProviderIndex = FeeProviders.Length - 1;
+			LastStatusChange = DateTimeOffset.UtcNow;
 		}
 
 		return Task.CompletedTask;
