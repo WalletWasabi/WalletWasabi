@@ -28,7 +28,5 @@ public static class StrobeHasherExtensions
 		=> hasher.Append(fieldName, (long)(value * Money.COIN));
 
 	public static StrobeHasher Append(this StrobeHasher hasher, string fieldName, CoordinationFeeRate coordinationFeeRate)
-		=> hasher
-			.Append($"{fieldName}.Rate", coordinationFeeRate.Rate)
-			.Append($"{fieldName}.PlebsDontPayThreshold", coordinationFeeRate.PlebsDontPayThreshold);
+		=> hasher.Append($"{fieldName}.Rate", coordinationFeeRate.Rate);
 }
