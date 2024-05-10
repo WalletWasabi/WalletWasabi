@@ -624,7 +624,7 @@ public partial class Arena : PeriodicRunner
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
 
-		var expectedCoordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var expectedCoordinationFee = round.Alices.Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		var availableCoordinationFee = coinjoin.Balance - miningFee;
 
 		round.LogInfo($"Expected coordination fee: {expectedCoordinationFee} - Available coordination: {availableCoordinationFee}.");
