@@ -94,25 +94,4 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
 		await Arena.ReadyToSignAsync(request, cancellableToken);
 	}
-
-	/// <summary>
-	/// Information about the current Rounds designed for the human eyes.
-	/// </summary>
-	[HttpGet("human-monitor")]
-	public HumanMonitorResponse GetHumanMonitor()
-	{
-		var response = Arena.Rounds
-			.Where(r => r.Phase is not Phase.Ended)
-			.OrderByDescending(x => x.InputCount)
-			.Select(r =>
-				new HumanMonitorRoundResponse(
-					RoundId: r.Id,
-					IsBlameRound: r is BlameRound,
-					InputCount: r.InputCount,
-					Phase: r.Phase.ToString(),
-					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(MoneyUnit.BTC),
-					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
-
-		return new HumanMonitorResponse(response.ToArray());
-	}
 }
