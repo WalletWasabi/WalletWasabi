@@ -37,9 +37,9 @@ public partial class WalletCoinsModel : IDisposable
 				.Merge(isCoinjoinRunningChanged)
 				.Publish();
 
-		List = signals.Fetch(GetCoins, x => x.Key).DisposeWith(_disposables);
 		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
-
+		List = Pockets.Connect().MergeMany(x => x.Coins.Select(GetCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
+		
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
 			.Subscribe()
@@ -87,11 +87,6 @@ public partial class WalletCoinsModel : IDisposable
 	private Pocket[] GetPockets()
 	{
 		return _wallet.GetPockets().ToArray();
-	}
-
-	private ICoinModel[] GetCoins()
-	{
-		return _wallet.Coins.Select(GetCoinModel).ToArray();
 	}
 
 	public void Dispose() => _disposables.Dispose();

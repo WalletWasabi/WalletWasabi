@@ -32,9 +32,9 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		_ignorePrivacyMode = ignorePrivacyMode;
 		_allowCoinjoiningCoinSelection = allowCoinjoiningCoinSelection;
 
-		var sourceItems = new SourceList<CoinListItem>().DisposeWith(_disposables);
+		var viewModels = new SourceList<CoinListItem>().DisposeWith(_disposables);
 
-		var changes = sourceItems.Connect();
+		var changes = viewModels.Connect();
 
 		var coinItems = changes
 			.TransformMany(
@@ -75,15 +75,15 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
-		wallet.Coins.List
+		wallet.Coins.Pockets
 			.Connect(suppressEmptyChangeSets: false)
 			.ToCollection()
 			.Do(
-				_ =>
+				pockets =>
 				{
 					IList<ICoinModel> oldSelection = Selection.ToArray();
 					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, wallet.Coins.Pockets.Items);
+					Rebuild(viewModels, pockets);
 					UpdateSelection(coinItemsCollection, oldSelection);
 					RestoreExpandedRows(oldExpandedItemsLabel);
 				})
@@ -159,7 +159,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	private void RefreshFromPockets(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets)
+	private void Rebuild(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets)
 	{
 		var newItems =
 			pockets.Select(pocket =>
