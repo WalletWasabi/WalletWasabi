@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;

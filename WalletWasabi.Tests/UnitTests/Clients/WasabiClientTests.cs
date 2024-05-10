@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -8,8 +7,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using SQLitePCL;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 

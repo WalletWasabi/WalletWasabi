@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using System.Net.Http;
 using System.Threading;

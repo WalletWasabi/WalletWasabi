@@ -1,5 +1,4 @@
 using Avalonia;
-using WalletWasabi.Fluent.Controls.Spectrum;
 
 namespace WalletWasabi.Fluent.Controls.Rendering;
 

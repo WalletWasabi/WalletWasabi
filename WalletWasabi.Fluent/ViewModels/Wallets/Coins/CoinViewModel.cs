@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class CoinViewModel : CoinListItem
 {
-	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
+    public CoinViewModel(LabelsArray labels, ICoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -27,11 +27,15 @@ public class CoinViewModel : CoinListItem
 		IgnorePrivacyMode = ignorePrivacyMode;
 		this.WhenAnyValue(x => x.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin).DisposeWith(_disposables);
 		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress).BindTo(this, x => x.IsCoinjoining).DisposeWith(_disposables);
-		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
 		this.WhenAnyValue(x => x.CanBeSelected)
 			.Where(b => !b)
 			.Do(_ => IsSelected = false)
 			.Subscribe();
+		
+        if (!canSelectWhenCoinjoining)
+        {
+            this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
+        }
 	}
 
 	public ICoinModel Coin { get; }

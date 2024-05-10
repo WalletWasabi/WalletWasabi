@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -632,10 +631,7 @@ public class CoinJoinClient
 				}
 				try
 				{
-					using (BenchmarkLogger.Measure(LogLevel.Debug, nameof(SignTransactionAsync)))
-					{
-						await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-					}
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{

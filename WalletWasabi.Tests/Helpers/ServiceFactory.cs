@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;

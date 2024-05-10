@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation.Extensions;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 

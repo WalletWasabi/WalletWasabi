@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class PocketViewModel : CoinListItem
 {
-	public PocketViewModel(IWalletModel wallet, Pocket pocket, bool ignorePrivacyMode = false)
+    public PocketViewModel(IWalletModel wallet, Pocket pocket, bool canSelectCoinjoiningCoins, bool ignorePrivacyMode)
 	{
 		var pocketCoins = pocket.Coins.ToList();
 
@@ -32,7 +32,7 @@ public class PocketViewModel : CoinListItem
 			pocketCoins
 				.Select(wallet.Coins.GetCoinModel)
 				.OrderByDescending(x => x.AnonScore)
-				.Select(coin => new CoinViewModel("", coin, ignorePrivacyMode) { IsChild = true })
+                .Select(coin => new CoinViewModel("", coin, canSelectCoinjoiningCoins, ignorePrivacyMode) { IsChild = true })
 				.ToList();
 
 		Children
