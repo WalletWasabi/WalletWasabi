@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Channels;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
