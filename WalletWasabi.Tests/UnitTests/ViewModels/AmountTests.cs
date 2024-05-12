@@ -5,7 +5,6 @@ using System.Reactive.Subjects;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;

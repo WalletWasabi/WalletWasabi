@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;

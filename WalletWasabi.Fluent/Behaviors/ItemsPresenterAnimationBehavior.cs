@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Styling;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactions.Custom;
 
 namespace WalletWasabi.Fluent.Behaviors;

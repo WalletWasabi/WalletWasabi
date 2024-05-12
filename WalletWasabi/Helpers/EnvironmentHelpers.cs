@@ -1,6 +1,5 @@
 using Microsoft.Win32;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -121,10 +120,10 @@ public static class EnvironmentHelpers
 	// the whole string is the file name.
 	public static string ExtractFileName(string callerFilePath)
 	{
-		var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
+		var lastSeparatorIndex = callerFilePath.LastIndexOf('\\');
 		if (lastSeparatorIndex == -1)
 		{
-			lastSeparatorIndex = callerFilePath.LastIndexOf("/");
+			lastSeparatorIndex = callerFilePath.LastIndexOf('/');
 		}
 
 		var fileName = callerFilePath;

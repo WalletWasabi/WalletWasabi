@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Packager;

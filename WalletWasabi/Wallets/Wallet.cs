@@ -560,6 +560,16 @@ public class Wallet : BackgroundService, IWallet
 		UpdateExcludedCoinFromCoinJoin();
 	}
 
+	public void UpdateExcludedCoinsFromCoinJoin(OutPoint[] outPointsToExclude)
+	{
+		foreach (var coin in Coins)
+		{
+			coin.IsExcludedFromCoinJoin = outPointsToExclude.Contains(coin.Outpoint);
+		}
+
+		UpdateExcludedCoinFromCoinJoin();
+	}
+
 	private void UpdateExcludedCoinFromCoinJoin()
 	{
 		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);

@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
-using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;

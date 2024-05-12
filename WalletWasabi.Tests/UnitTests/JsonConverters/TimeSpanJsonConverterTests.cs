@@ -1,4 +1,3 @@
-using NBitcoin;
 using WalletWasabi.JsonConverters.Timing;
 using Xunit;
 using JsonConvertNew = System.Text.Json.JsonSerializer;

@@ -1,13 +1,6 @@
 using NBitcoin;
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.Models;
 

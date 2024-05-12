@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
