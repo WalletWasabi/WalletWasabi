@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NBitcoin;
 using System.IO;
 using System.Linq;
@@ -6,12 +5,9 @@ using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Client;
 using Xunit;
 using WalletWasabi.Wallets;
 

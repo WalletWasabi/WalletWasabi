@@ -1,4 +1,3 @@
-using System.Runtime.Serialization;
 using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;

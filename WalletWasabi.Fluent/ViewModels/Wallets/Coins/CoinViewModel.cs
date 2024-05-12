@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
@@ -7,11 +8,9 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class CoinViewModel : CoinListItem, IDisposable
+public class CoinViewModel : CoinListItem
 {
-	private readonly CompositeDisposable _disposables = new();
-
-	public CoinViewModel(LabelsArray labels, ICoinModel coin, bool ignorePrivacyMode = false)
+    public CoinViewModel(LabelsArray labels, ICoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -26,10 +25,18 @@ public class CoinViewModel : CoinListItem, IDisposable
 		IsSelected = false;
 		ScriptType = coin.ScriptType;
 		IgnorePrivacyMode = ignorePrivacyMode;
+		this.WhenAnyValue(x => x.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin).DisposeWith(_disposables);
 		this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress).BindTo(this, x => x.IsCoinjoining).DisposeWith(_disposables);
+		this.WhenAnyValue(x => x.CanBeSelected)
+			.Where(b => !b)
+			.Do(_ => IsSelected = false)
+			.Subscribe();
+		
+        if (!canSelectWhenCoinjoining)
+        {
+            this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
+        }
 	}
 
 	public ICoinModel Coin { get; }
-
-	public void Dispose() => _disposables.Dispose();
 }

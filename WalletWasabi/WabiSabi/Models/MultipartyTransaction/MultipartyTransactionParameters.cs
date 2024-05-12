@@ -1,4 +1,3 @@
-using NBitcoin.Protocol;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;

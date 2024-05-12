@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BuyAnything;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy.Workflows;

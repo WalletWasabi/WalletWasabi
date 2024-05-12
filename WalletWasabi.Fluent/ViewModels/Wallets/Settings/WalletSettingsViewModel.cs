@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -72,5 +73,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		await Navigate().To().WalletRename(_wallet).GetResultAsync();
 		UiContext.WalletRepository.StoreLastSelectedWallet(_wallet);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		WalletCoinJoinSettings.ManuallyUpdateOutputWalletList();
 	}
 }

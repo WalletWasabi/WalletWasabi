@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
