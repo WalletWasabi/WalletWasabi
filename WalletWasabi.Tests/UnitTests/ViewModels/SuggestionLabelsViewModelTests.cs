@@ -160,7 +160,7 @@ public class SuggestionLabelsViewModelTests
 	private static SuggestionLabelsViewModel CreateSut(TestWallet wallet, Intent intent, int maxSuggestions)
 	{
 		var sut = new SuggestionLabelsViewModel(wallet, intent, maxSuggestions);
-		sut.Activate([]);
+		sut.Activate(new CompositeDisposable());
 		return sut;
 	}
 
