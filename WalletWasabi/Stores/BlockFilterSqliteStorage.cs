@@ -42,6 +42,7 @@ public class BlockFilterSqliteStorage : IDisposable
 		{
 			SqliteConnectionStringBuilder builder = new();
 			builder.DataSource = dataSource;
+			builder.Pooling = false;
 
 			SqliteConnection connection = new(builder.ConnectionString);
 			connectionToDispose = connection;
