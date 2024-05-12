@@ -373,13 +373,8 @@ public partial class CurrencyEntryBox : TextBox
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
 	// be committed to the TextPresenter in this control.
 
-	private string RemoveInvalidCharacters(string? text)
+	private string RemoveInvalidCharacters(string text)
 	{
-		if (text is null)
-		{
-			return "";
-		}
-
 		for (var i = 0; i < InvalidCharacters.Length; i++)
 		{
 			text = text.Replace(InvalidCharacters[i], string.Empty);
