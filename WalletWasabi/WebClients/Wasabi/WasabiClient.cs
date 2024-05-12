@@ -61,32 +61,6 @@ public class WasabiClient
 
 	#region blockchain
 
-	/// <remarks>
-	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
-	/// </remarks>
-	public async Task<FiltersResponse?> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
-			$"api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
-			cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode == HttpStatusCode.NoContent)
-		{
-			return null;
-		}
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync<FiltersResponse>().ConfigureAwait(false);
-
-		return ret;
-	}
-
 	public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
 	{
 		var allTxs = new List<Transaction>();

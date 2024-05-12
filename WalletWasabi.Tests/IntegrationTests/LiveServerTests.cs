@@ -50,21 +50,6 @@ public class LiveServerTests : IAsyncLifetime
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
-	public async Task GetFiltersAsync(Network network)
-	{
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-		FilterModel filterModel = StartingFilters.GetStartingFilter(network);
-
-		WasabiClient client = MakeWasabiClient(network);
-		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, count: 2, ctsTimeout.Token);
-
-		Assert.NotNull(filtersResponse);
-		Assert.Equal(2, filtersResponse.Filters.Count());
-	}
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
 	public async Task GetTransactionsAsync(Network network)
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
