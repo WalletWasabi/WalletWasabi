@@ -21,10 +21,10 @@ public class UpdateManager
 {
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient, WasabiClient sharedWasabiClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
-		HttpClient = httpClient;
+		GithubHttpClient = githubHttpClient;
 		WasabiClient = sharedWasabiClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -35,7 +35,7 @@ public class UpdateManager
 	private string InstallerPath { get; set; } = "";
 
 	private string InstallerDir { get; }
-	private IHttpClient HttpClient { get; }
+	private IHttpClient GithubHttpClient { get; }
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
@@ -116,7 +116,7 @@ public class UpdateManager
 
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
-				using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+				using HttpResponseMessage response = await GithubHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogInfo("Installer downloaded, copying...");
@@ -177,7 +177,7 @@ public class UpdateManager
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await HttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+		var response = await GithubHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
 
@@ -212,14 +212,14 @@ public class UpdateManager
 		try
 		{
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
-			using HttpResponseMessage sha256Response = await HttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage sha256Response = await GithubHttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
-			using HttpResponseMessage signatureResponse = await HttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage signatureResponse = await GithubHttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
