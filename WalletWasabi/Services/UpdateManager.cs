@@ -34,7 +34,7 @@ public class UpdateManager
 
 	private string InstallerPath { get; set; } = "";
 
-	public string InstallerDir { get; }
+	private string InstallerDir { get; }
 	private IHttpClient HttpClient { get; }
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
@@ -43,7 +43,7 @@ public class UpdateManager
 	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
-	public WasabiClient WasabiClient { get; }
+	private WasabiClient WasabiClient { get; }
 
 	public async Task UpdateClientAsync(CancellationToken cancellationToken)
 	{
