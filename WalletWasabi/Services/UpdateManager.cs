@@ -75,11 +75,11 @@ public class UpdateManager
 		}
 		catch (OperationCanceledException ex)
 		{
-			Logger.LogTrace($"Getting new update was canceled.", ex);
+			Logger.LogTrace("Getting new update was canceled.", ex);
 		}
 		catch (InvalidOperationException ex)
 		{
-			Logger.LogError($"Getting new update failed with error.", ex);
+			Logger.LogError("Getting new update failed with error.", ex);
 			Cleanup();
 		}
 		catch (InvalidDataException ex)
@@ -88,7 +88,7 @@ public class UpdateManager
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Getting new update failed with error.", ex);
+			Logger.LogError("Getting new update failed with error.", ex);
 		}
 	}
 
