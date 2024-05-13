@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using NBitcoin;
 using System;
 using System.Collections;
@@ -131,12 +130,18 @@ public class Config
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
-		foreach ((_, IValue optionValue) in Data.Values)
+		foreach (string optionName in Data.Keys)
 		{
-			if (optionValue.Overridden)
+			// It is allowed to override the log level.
+			if (!string.Equals(optionName, nameof(LogLevel)))
 			{
-				IsOverridden = true;
-				break;
+				(_, IValue optionValue) = Data[optionName];
+
+				if (optionValue.Overridden)
+				{
+					IsOverridden = true;
+					break;
+				}
 			}
 		}
 
@@ -186,6 +191,12 @@ public class Config
 		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),
 		Environment.GetCommandLineArgs()).EffectiveValue;
 
+	/// <summary>Whether a config option was overridden by a command line argument or an environment variable.</summary>
+	/// <remarks>
+	/// Changing config options in the UI while a config option is overridden would bring uncertainty if user understands consequences or not,
+	/// thus it is normally not allowed. However, there are exceptions as what options are taken into account, there is currently
+	/// one exception: <see cref="LogLevel"/>.
+	/// </remarks>
 	public bool IsOverridden { get; }
 
 	public EndPoint GetBitcoinP2pEndPoint()

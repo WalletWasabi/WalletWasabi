@@ -1,7 +1,6 @@
 using System.Linq;
 using Avalonia;
 using Avalonia.Media;
-using Avalonia.Platform;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using SkiaSharp;

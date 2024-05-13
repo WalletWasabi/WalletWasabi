@@ -67,7 +67,7 @@ public record CircuitInfo
 		while (remainder != "")
 		{
 			// Read <PATH>.
-			if (remainder.StartsWith("$", StringComparison.Ordinal))
+			if (remainder.StartsWith('$'))
 			{
 				string pathVal;
 				(pathVal, remainder) = Tokenizer.ReadUntilSeparator(remainder);

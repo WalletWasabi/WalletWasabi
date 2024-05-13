@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public class TargettedNavigationStack : NavigationStack<RoutableViewModel>

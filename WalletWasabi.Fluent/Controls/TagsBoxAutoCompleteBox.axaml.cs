@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Controls;
 

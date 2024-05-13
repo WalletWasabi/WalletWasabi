@@ -300,6 +300,11 @@ dotnet_diagnostic.CA1847.severity = warning
 # CA1859: Use concrete types when possible for improved performance
 dotnet_diagnostic.CA1859.severity = none
 
+# CA1865-CA1867: Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
+dotnet_diagnostic.CA1865.severity = warning
+dotnet_diagnostic.CA1866.severity = warning
+dotnet_diagnostic.CA1867.severity = warning
+
 # CA1868: Unnecessary call to Set.Contains(item)
 dotnet_diagnostic.CA1868.severity = warning
 

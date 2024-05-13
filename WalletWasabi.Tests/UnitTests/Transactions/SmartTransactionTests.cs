@@ -1,7 +1,5 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;

@@ -30,6 +30,7 @@
     <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Focusable" Value="True" />
     <Setter Property="IsTabStop" Value="False" />
@@ -63,7 +64,8 @@
             <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
-                    Padding="{TemplateBinding Padding}">
+                    Padding="{TemplateBinding Padding}"
+                    CornerRadius="{TemplateBinding CornerRadius}">
               <Panel>
                 <TextBlock Name="PART_Watermark"
                            Opacity="0.5"
@@ -99,8 +101,12 @@
         </DataValidationErrors>
       </ControlTemplate>
     </Setter>
+
     <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
 
+    <Style Selector="^:focus-within /template/ Border#PART_Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}"/>
+    </Style>
   </ControlTheme>
 
 </ResourceDictionary>
