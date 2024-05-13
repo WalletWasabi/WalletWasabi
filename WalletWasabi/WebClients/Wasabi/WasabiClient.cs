@@ -221,7 +221,9 @@ public class WasabiClient
 	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 	{
 		var backendMajorVersion = await GetBackendMajorVersionAsync(cancel).ConfigureAwait(false);
-		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);  // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+
+		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);
 		var currentBackendMajorVersion = backendMajorVersion;
 
 		if (backendCompatible)
