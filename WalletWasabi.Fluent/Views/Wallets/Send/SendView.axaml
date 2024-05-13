@@ -56,6 +56,11 @@
       <!-- Balance -->
       <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
         <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="Click">
+              <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
           <AmountControl Amount="{Binding Balance^}" />
         </Button>
       </PrivacyContentControl>

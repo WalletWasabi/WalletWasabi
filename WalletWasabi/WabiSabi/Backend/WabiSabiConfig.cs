@@ -9,7 +9,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;

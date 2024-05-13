@@ -6,7 +6,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

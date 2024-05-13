@@ -1,12 +1,9 @@
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
-using SQLitePCL;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Timing;

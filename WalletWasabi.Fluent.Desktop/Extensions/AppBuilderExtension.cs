@@ -3,8 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.Media;
-using Avalonia.Platform;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Desktop.Extensions;
 
@@ -12,7 +10,7 @@ public static class AppBuilderExtension
 {
 	public static AppBuilder SetupAppBuilder(this AppBuilder appBuilder)
 	{
-		bool enableGpu = Services.PersistentConfig is null ? false : Services.PersistentConfig.EnableGpu;
+		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{

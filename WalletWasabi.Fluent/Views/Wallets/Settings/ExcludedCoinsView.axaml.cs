@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Login.PasswordFinder;
+namespace WalletWasabi.Fluent.Views.Wallets.Settings;
 
-public class SearchPasswordView : UserControl
+public partial class ExcludedCoinsView : UserControl
 {
-	public SearchPasswordView()
+	public ExcludedCoinsView()
 	{
 		InitializeComponent();
 	}

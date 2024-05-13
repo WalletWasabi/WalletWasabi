@@ -1,5 +1,4 @@
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 

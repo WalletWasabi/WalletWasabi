@@ -54,6 +54,6 @@ public class OwnershipIdentifier : IBitcoinSerializable, IEquatable<OwnershipIde
 
 	public bool Equals(OwnershipIdentifier? other)
 	{
-		return other is null ? false : other.Bytes.SequenceEqual(Bytes);
+		return other is not null && other.Bytes.SequenceEqual(Bytes);
 	}
 }

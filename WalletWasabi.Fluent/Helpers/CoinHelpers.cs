@@ -2,7 +2,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Wallets;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Fluent.Helpers;

@@ -3,7 +3,6 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -20,7 +19,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 

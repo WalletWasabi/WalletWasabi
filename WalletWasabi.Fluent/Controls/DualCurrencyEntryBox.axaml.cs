@@ -12,7 +12,6 @@ using Avalonia.VisualTree;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Controls;

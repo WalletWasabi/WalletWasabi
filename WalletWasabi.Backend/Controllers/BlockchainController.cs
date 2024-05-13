@@ -1,31 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Cache;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -434,7 +424,6 @@ public class BlockchainController : ControllerBase
 				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 				options: UnconfirmedTransactionChainCacheEntryOptions,
 				cancellationToken);
-			RequestTimeStatista.Instance.Add("unconfirmed-transaction-chain", DateTimeOffset.UtcNow - before);
 			return ret;
 		}
 		catch (OperationCanceledException)

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -28,8 +27,6 @@ public class WalletManager : IWalletProvider
 		WalletDirectories walletDirectories,
 		WalletFactory walletFactory)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		Network = network;
 		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(WorkDir);

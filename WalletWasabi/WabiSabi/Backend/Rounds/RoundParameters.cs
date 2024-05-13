@@ -1,11 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
-using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 

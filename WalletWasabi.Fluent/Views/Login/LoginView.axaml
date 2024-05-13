@@ -58,7 +58,6 @@
               </Interaction.Behaviors>
             </CopyablePasswordTextBox>
             <Panel Margin="0 -20 0 0 ">
-              <Button Classes="activeHyperLink skip" IsVisible="{Binding IsForgotPasswordVisible}" Content="Forgot passphrase?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
               <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
                 <Button.IsDefault>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">

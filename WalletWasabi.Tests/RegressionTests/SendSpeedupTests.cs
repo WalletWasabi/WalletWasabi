@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.Protocol;
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -20,11 +17,9 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
-using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.RegressionTests;
