@@ -178,7 +178,7 @@ public static class BitcoinFactory
 			new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-				Histogram = Array.Empty<FeeRateGroup>()
+				Histogram = []
 			});
 
 		mockRpc.OnEstimateSmartFeeAsync = (target, mode) => Task.FromResult(
