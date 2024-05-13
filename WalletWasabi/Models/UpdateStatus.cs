@@ -14,7 +14,7 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 
 	public ushort CurrentBackendMajorVersion { get; }
 
-	public Version ClientVersion { get; set; } = new Version(0, 0, 0);
+	public Version ClientVersion { get; set; } = new(0, 0, 0);
 
 	#region EqualityAndComparison
 
