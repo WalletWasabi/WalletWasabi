@@ -95,14 +95,14 @@ public class UpdateManager
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
-	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(GithubResult result, CancellationToken cancellationToken)
+	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
 	{
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, result.Sha256SumsUrl, result.WasabiSigUrl, cancellationToken).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, info.Sha256SumsUrl, info.WasabiSigUrl, cancellationToken).ConfigureAwait(false);
 
-		var installerFilePath = Path.Combine(InstallerDir, result.InstallerFileName);
+		var installerFilePath = Path.Combine(InstallerDir, info.InstallerFileName);
 
 		try
 		{
@@ -112,10 +112,10 @@ public class UpdateManager
 
 				// This should also be done using Tor.
 				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
-				Logger.LogInfo($"Trying to download new version: {result.LatestClientVersion}");
+				Logger.LogInfo($"Trying to download new version: {info.LatestClientVersion}");
 
 				// Get file stream and copy it to downloads folder to access.
-				using HttpRequestMessage request = new(HttpMethod.Get, result.InstallerDownloadUrl);
+				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
 				using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
@@ -124,7 +124,7 @@ public class UpdateManager
 				using MemoryStream stream = new(installerFileBytes);
 				await CopyStreamContentToFileAsync(stream, installerFilePath, cancellationToken).ConfigureAwait(false);
 			}
-			string expectedHash = await GetHashFromSha256SumsFileAsync(result.InstallerFileName, sha256SumsFilePath).ConfigureAwait(false);
+			string expectedHash = await GetHashFromSha256SumsFileAsync(info.InstallerFileName, sha256SumsFilePath).ConfigureAwait(false);
 			await VerifyInstallerHashAsync(installerFilePath, expectedHash, cancellationToken).ConfigureAwait(false);
 		}
 		catch (IOException)
@@ -133,7 +133,7 @@ public class UpdateManager
 			throw;
 		}
 
-		return (installerFilePath, result.LatestClientVersion);
+		return (installerFilePath, info.LatestClientVersion);
 	}
 
 	private async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash, CancellationToken cancellationToken)
@@ -173,7 +173,7 @@ public class UpdateManager
 		File.Move(tmpFilePath, filePath);
 	}
 
-	private async Task<GithubResult> GetLatestReleaseFromGithubAsync(CancellationToken cancellationToken)
+	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(CancellationToken cancellationToken)
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
@@ -202,7 +202,7 @@ public class UpdateManager
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
 
-		return new GithubResult(shortGithubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
+		return new ReleaseInfo(shortGithubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl, CancellationToken cancellationToken)
@@ -349,5 +349,5 @@ public class UpdateManager
 		}
 	}
 
-	private record GithubResult(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
+	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
 }
