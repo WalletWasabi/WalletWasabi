@@ -19,7 +19,6 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager
 {
-	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient, WasabiClient sharedWasabiClient)
@@ -48,57 +47,49 @@ public class UpdateManager
 
 	public async Task UpdateClientAsync(CancellationToken cancellationToken)
 	{
-		var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
-		var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
-
-		var tries = 0;
-		bool updateAvailable = !updateStatus.BackendCompatible || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
-
-		if (!updateAvailable)
+		try
 		{
-			// After updating Wasabi, remove old installer file.
-			Cleanup();
-			return;
-		}
+			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
+			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
-		if (DownloadNewVersion)
-		{
-			do
+			bool updateAvailable = !updateStatus.BackendCompatible || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
+
+			if (!updateAvailable)
 			{
-				tries++;
-				try
-				{
-					(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
-					InstallerPath = installerPath;
-					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
-					updateStatus.IsReadyToInstall = true;
-					updateStatus.ClientVersion = newVersion;
-					updateStatus.ClientUpToDate = !updateAvailable;
-					break;
-				}
-				catch (OperationCanceledException ex)
-				{
-					Logger.LogTrace($"Getting new update was canceled.", ex);
-					break;
-				}
-				catch (InvalidOperationException ex)
-				{
-					Logger.LogError($"Getting new update failed with error.", ex);
-					Cleanup();
-					break;
-				}
-				catch (InvalidDataException ex)
-				{
-					Logger.LogWarning(ex);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Getting new update failed with error.", ex);
-				}
-			} while (tries < MaxTries);
-		}
+				// After updating Wasabi, remove old installer file.
+				Cleanup();
+				return;
+			}
 
-		UpdateAvailableToGet?.Invoke(this, updateStatus);
+			if (DownloadNewVersion)
+			{
+				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
+				InstallerPath = installerPath;
+				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
+				updateStatus.IsReadyToInstall = true;
+				updateStatus.ClientVersion = newVersion;
+				updateStatus.ClientUpToDate = !updateAvailable;
+			}
+
+			UpdateAvailableToGet?.Invoke(this, updateStatus);
+		}
+		catch (OperationCanceledException ex)
+		{
+			Logger.LogTrace($"Getting new update was canceled.", ex);
+		}
+		catch (InvalidOperationException ex)
+		{
+			Logger.LogError($"Getting new update failed with error.", ex);
+			Cleanup();
+		}
+		catch (InvalidDataException ex)
+		{
+			Logger.LogWarning(ex);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"Getting new update failed with error.", ex);
+		}
 	}
 
 	/// <summary>
