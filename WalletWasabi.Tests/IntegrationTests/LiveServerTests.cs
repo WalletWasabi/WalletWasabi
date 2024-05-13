@@ -84,7 +84,7 @@ public class LiveServerTests : IAsyncLifetime
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
-	public async Task GetVersionsTestsAsync(Network network)
+	public async Task GetBackendVersionTestsAsync(Network network)
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
