@@ -2,21 +2,19 @@ namespace WalletWasabi.Models;
 
 public class UpdateStatus : IEquatable<UpdateStatus>
 {
-	public UpdateStatus(bool backendCompatible, bool clientUpToDate, ushort currentBackendMajorVersion, Version clientVersion)
+	public UpdateStatus(bool backendCompatible, ushort currentBackendMajorVersion)
 	{
 		BackendCompatible = backendCompatible;
-		ClientUpToDate = clientUpToDate;
 		CurrentBackendMajorVersion = currentBackendMajorVersion;
-		ClientVersion = clientVersion;
 	}
 
-	public bool ClientUpToDate { get; }
+	public bool ClientUpToDate { get; set; }
 	public bool BackendCompatible { get; }
 	public bool IsReadyToInstall { get; set; }
 
 	public ushort CurrentBackendMajorVersion { get; }
 
-	public Version ClientVersion { get; set; }
+	public Version ClientVersion { get; set; } = new Version(0, 0, 0);
 
 	#region EqualityAndComparison
 

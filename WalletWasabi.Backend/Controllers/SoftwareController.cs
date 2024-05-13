@@ -14,7 +14,6 @@ public class SoftwareController : ControllerBase
 {
 	private readonly VersionsResponse _versionsResponse = new()
 	{
-		ClientVersion = Constants.ClientVersion.ToString(3),
 		BackendMajorVersion = Constants.BackendMajorVersion,
 		CommitHash = GetCommitHash()
 	};
