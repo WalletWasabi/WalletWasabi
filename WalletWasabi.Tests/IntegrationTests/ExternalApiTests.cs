@@ -34,7 +34,7 @@ public class ExternalApiTests
 	private async Task AssertProviderAsync(string providerName)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		var provider = new ExchangeRateProvider2();
+		var provider = new ExchangeRateProvider();
 		var rate = await provider.GetExchangeRateAsync(providerName, timeoutCts.Token).ConfigureAwait(false);
 		Assert.NotEqual(0m, rate.Rate);
 	}

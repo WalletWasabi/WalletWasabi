@@ -9,7 +9,7 @@ using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string
 
 namespace WalletWasabi.Interfaces;
 
-public class ExchangeRateProvider2
+public class ExchangeRateProvider
 {
 	private static ExchangeRateProviderInfo[] Providers = [
 		("Bitstamp", "https://www.bitstamp.net/api/v2/ticker/btcusd", XPath(".bid")),

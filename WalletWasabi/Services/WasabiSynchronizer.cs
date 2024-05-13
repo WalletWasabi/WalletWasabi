@@ -58,13 +58,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
 
-	/// <summary>Gets the Bitcoin price in USD.</summary>
-	public decimal UsdExchangeRate
-	{
-		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-	}
-
 	public TorStatus TorStatus
 	{
 		get => _torStatus;
@@ -157,12 +150,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
 				TriggerRound();
-			}
-
-			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-			if (exchangeRate is { Rate: > 0 })
-			{
-				UsdExchangeRate = exchangeRate.Rate;
 			}
 
 			await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);

@@ -21,8 +21,6 @@ public class SynchronizeResponse
 
 	public AllFeeEstimate? AllFeeEstimate { get; set; }
 
-	public IEnumerable<ExchangeRate> ExchangeRates { get; set; } = new List<ExchangeRate>();
-
 	// Property was used in WW1. Leaving it here for backward compatibility.
 	[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 	public IEnumerable<uint256> UnconfirmedCoinJoins { get; } = Array.Empty<uint256>();
