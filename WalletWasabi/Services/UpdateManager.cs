@@ -17,7 +17,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class UpdateManager : IDisposable
+public class UpdateManager
 {
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
@@ -26,7 +26,6 @@ public class UpdateManager : IDisposable
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
-		CancellationToken = CancellationTokenSource.Token;
 		WasabiClient = sharedWasabiClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -45,17 +44,12 @@ public class UpdateManager : IDisposable
 	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
-
-	/// <remarks>Defensive copy of the token to avoid issues with <see cref="CancellationTokenSource"/> being disposed.</remarks>
-	private CancellationToken CancellationToken { get; }
-
 	public WasabiClient WasabiClient { get; }
 
-	public async Task UpdateClientAsync()
+	public async Task UpdateClientAsync(CancellationToken cancellationToken)
 	{
-		var updateStatus = await WasabiClient.CheckUpdatesAsync(CancellationToken).ConfigureAwait(false);
-		var result = await GetLatestReleaseFromGithubAsync(CancellationToken).ConfigureAwait(false);
+		var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
+		var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
 		var tries = 0;
 		bool updateAvailable = !updateStatus.BackendCompatible || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
@@ -74,7 +68,7 @@ public class UpdateManager : IDisposable
 				tries++;
 				try
 				{
-					(string installerPath, Version newVersion) = await GetInstallerAsync(result, CancellationToken).ConfigureAwait(false);
+					(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
 					InstallerPath = installerPath;
 					Logger.LogInfo($"Version {newVersion} downloaded successfully.");
 					updateStatus.IsReadyToInstall = true;
@@ -218,7 +212,7 @@ public class UpdateManager : IDisposable
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
 
-		return new GithubResult(githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
+		return new GithubResult(shortGithubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl, CancellationToken cancellationToken)
@@ -363,12 +357,6 @@ public class UpdateManager : IDisposable
 		{
 			Logger.LogError("Failed to install latest release. File might be corrupted.", ex);
 		}
-	}
-
-	public void Dispose()
-	{
-		CancellationTokenSource.Cancel();
-		CancellationTokenSource.Dispose();
 	}
 
 	private record GithubResult(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);

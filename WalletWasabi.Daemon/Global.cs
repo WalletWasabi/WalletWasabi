@@ -206,7 +206,6 @@ public class Global
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
-				await UpdateManager.UpdateClientAsync().ConfigureAwait(false);
 
 				try
 				{
@@ -257,6 +256,8 @@ public class Global
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				WalletManager.Initialize();
+
+				await UpdateManager.UpdateClientAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -437,9 +438,6 @@ public class Global
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
-
-				UpdateManager.Dispose();
-				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
 
 				CoinPrison.Dispose();
 
