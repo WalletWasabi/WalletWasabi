@@ -1,50 +1,41 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.WebClients.BlockchainInfo;
-using WalletWasabi.WebClients.Coinbase;
-using WalletWasabi.WebClients.CoinGecko;
-using WalletWasabi.WebClients.Bitstamp;
-using WalletWasabi.WebClients.Gemini;
 using Xunit;
 using WalletWasabi.Interfaces;
 using System.Threading;
-using WalletWasabi.WebClients.Coingate;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
 public class ExternalApiTests
 {
 	[Fact]
-	public async Task CoinbaseExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoinbaseExchangeRateProvider());
+	public async Task CoinbaseExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("Coinbase");
 
 	[Fact]
-	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new BlockchainInfoExchangeRateProvider());
+	public async Task BlockchainInfoExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("Blockchain.info");
 
 	[Fact]
-	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoinGeckoExchangeRateProvider());
+	public async Task CoinGeckoExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("CoinGecko");
 
 	[Fact]
-	public async Task BitstampExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new BitstampExchangeRateProvider());
+	public async Task BitstampExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("Bitstamp");
 
 	[Fact]
-	public async Task GeminiExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new GeminiExchangeRateProvider());
+	public async Task GeminiExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("Gemini");
 
 	[Fact]
-	public async Task CoingateExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoingateExchangeRateProvider());
+	public async Task CoingateExchangeRateProviderTestsAsync2() =>
+		await AssertProviderAsync("Coingate");
 
-	private async Task AssertProviderAsync(IExchangeRateProvider provider)
+	private async Task AssertProviderAsync(string providerName)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(timeoutCts.Token).ConfigureAwait(false);
-
-		var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-		Assert.NotEqual(0.0m, usdRate.Rate);
+		var provider = new ExchangeRateProvider2();
+		var rate = await provider.GetExchangeRateAsync(providerName, timeoutCts.Token).ConfigureAwait(false);
+		Assert.NotEqual(0m, rate.Rate);
 	}
 }
