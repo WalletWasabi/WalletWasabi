@@ -83,7 +83,6 @@ public class Global
 
 		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), wasabiSynchronizer.HttpClientFactory.SharedWasabiClient);
 
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -127,8 +126,8 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-        HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
-        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
+		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
@@ -207,6 +206,7 @@ public class Global
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
+				await UpdateManager.UpdateClientAsync().ConfigureAwait(false);
 
 				try
 				{
@@ -227,7 +227,7 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-                await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
 
