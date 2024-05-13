@@ -95,7 +95,6 @@ public class UpdateManager
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
-	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
 	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(GithubResult result, CancellationToken cancellationToken)
 	{
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
