@@ -10,7 +10,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 public interface IEvent
-{ };
+{ }
 
 public record RoundCreated(RoundParameters RoundParameters) : IEvent;
 public record InputAdded(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
