@@ -45,6 +45,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	protected int ActualFeeProviderIndex
 	{
 		get => _actualFeeProviderIndex;
+		// Aside from the constructor always called under the Lock
 		set
 		{
 			if (_actualFeeProviderIndex != value)
@@ -92,23 +93,21 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 			if (sender is IThirdPartyFeeProvider)
 			{
-				int senderIdx = FeeProviders.IndexOf((IThirdPartyFeeProvider)sender);
-				if (senderIdx != -1 && senderIdx <= ActualFeeProviderIndex)
+				var notify = false;
+				lock (Lock)
 				{
-					ActualFeeProviderIndex = senderIdx;
-					InError = false;
-					LastStatusChange = DateTimeOffset.UtcNow;
-
-					var notify = false;
-					lock (Lock)
+					int senderIdx = FeeProviders.IndexOf((IThirdPartyFeeProvider)sender);
+					if (senderIdx != -1 && senderIdx <= ActualFeeProviderIndex)
 					{
+						ActualFeeProviderIndex = senderIdx;
+						InError = false;
+						LastStatusChange = DateTimeOffset.UtcNow;
 						notify = SetAllFeeEstimate(fees);
 					}
-
-					if (notify)
-					{
-						AllFeeEstimateArrived?.Invoke(sender, fees);
-					}
+				}
+				if (notify)
+				{
+					AllFeeEstimateArrived?.Invoke(sender, fees);
 				}
 			}
 		}
@@ -139,9 +138,10 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	private void SetPauseStates()
 	{
+		int feeProviderIndex = ActualFeeProviderIndex;
 		for (int idx = 0; idx < FeeProviders.Length; idx++)
 		{
-			FeeProviders[idx].IsPaused = IsPaused || idx > _actualFeeProviderIndex;
+			FeeProviders[idx].IsPaused = IsPaused || idx > feeProviderIndex;
 		}
 	}
 
@@ -152,14 +152,16 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			return Task.CompletedTask;
 		}
 
-		bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
-
-		// Let's wait a bit more
-		if (inError && !InError && LastStatusChange - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1))
+		lock (Lock)
 		{
-			InError = true;
-			ActualFeeProviderIndex = FeeProviders.Length - 1;
-			LastStatusChange = DateTimeOffset.UtcNow;
+			bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
+			// Let's wait a bit more
+			if (inError && !InError && LastStatusChange - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1))
+			{
+				InError = true;
+				ActualFeeProviderIndex = FeeProviders.Length - 1;
+				LastStatusChange = DateTimeOffset.UtcNow;
+			}
 		}
 
 		return Task.CompletedTask;
