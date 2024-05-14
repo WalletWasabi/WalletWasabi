@@ -65,8 +65,8 @@ public class CubicSpline
 			double w2 = w * w;
 			c0[i] = y[i];
 			c1[i] = firstDerivatives[i];
-			c2[i] = ((3 * (y[i + 1] - y[i])) / w - (2 * firstDerivatives[i]) - firstDerivatives[i + 1]) / w;
-			c3[i] = ((2 * (y[i] - y[i + 1])) / w + firstDerivatives[i] + firstDerivatives[i + 1]) / w2;
+			c2[i] = (((3 * (y[i + 1] - y[i])) / w) - (2 * firstDerivatives[i]) - firstDerivatives[i + 1]) / w;
+			c3[i] = (((2 * (y[i] - y[i + 1])) / w) + firstDerivatives[i] + firstDerivatives[i + 1]) / w2;
 		}
 
 		return new CubicSpline(x, c0, c1, c2, c3);
