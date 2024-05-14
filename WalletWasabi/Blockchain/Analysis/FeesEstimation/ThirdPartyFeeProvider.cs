@@ -7,6 +7,10 @@ using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
+/// <summary>
+/// Manages multiple fee sources. Returns the best one.
+/// The list order considered to be the priority (first one is the highest).
+/// </summary>
 public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
 	private int _actualFeeProviderIndex = -1;
@@ -86,17 +90,18 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		using (RunningTasks.RememberWith(ProcessingEvents))
 		{
 			// Only go further if we have estimations.
-			if (fees?.Estimations?.Any() is not true)
+			if (fees is null || fees.Estimations.Count == 0)
 			{
 				return;
 			}
 
-			if (sender is IThirdPartyFeeProvider)
+			if (sender is IThirdPartyFeeProvider provider)
 			{
 				var notify = false;
 				lock (Lock)
 				{
-					int senderIdx = FeeProviders.IndexOf((IThirdPartyFeeProvider)sender);
+					int senderIdx = FeeProviders.IndexOf(provider);
+					// If we are on a higher priority fee provider then just drop it silently
 					if (senderIdx != -1 && senderIdx <= ActualFeeProviderIndex)
 					{
 						ActualFeeProviderIndex = senderIdx;
@@ -139,6 +144,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	private void SetPauseStates()
 	{
 		int feeProviderIndex = ActualFeeProviderIndex;
+		// Even in active mode we pause the lower priority fee providers
 		for (int idx = 0; idx < FeeProviders.Length; idx++)
 		{
 			FeeProviders[idx].IsPaused = IsPaused || idx > feeProviderIndex;
@@ -158,6 +164,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			// Let's wait a bit more
 			if (inError && !InError && LastStatusChange - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1))
 			{
+				// We are in error mode, all fee provider turned on at once and the successful highest priority fee provider will win
 				InError = true;
 				ActualFeeProviderIndex = FeeProviders.Length - 1;
 				LastStatusChange = DateTimeOffset.UtcNow;
