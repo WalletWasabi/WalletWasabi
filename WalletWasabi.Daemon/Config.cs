@@ -128,6 +128,9 @@ public class Config
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
+			[ nameof(ExchangeRateProvider)] = (
+				"The USD/BTC exchange rate provider. Available providers are Bitstamp, Blockchain, Coingate, CoinGecko and Coinbase",
+				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -176,6 +179,7 @@ public class Config
 	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>(nameof(BlockOnlyMode));
 	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
 	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
+	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));

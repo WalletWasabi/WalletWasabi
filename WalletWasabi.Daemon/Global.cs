@@ -392,7 +392,7 @@ public class Global
 
 	private void RegisterExchangeRateProviders()
 	{
-		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5)), "Exchange rate updater");
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider), "Exchange rate updater");
 	}
 
 	private void RegisterCoinJoinComponents()

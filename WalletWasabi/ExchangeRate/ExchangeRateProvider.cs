@@ -12,7 +12,7 @@ public class ExchangeRateProvider
 {
 	private static ExchangeRateProviderInfo[] Providers = [
 		("Bitstamp", "https://www.bitstamp.net/api/v2/ticker/btcusd", XPath(".bid")),
-		("Blockchain.info", "https://blockchain.info/ticker", XPath(".USD.buy")),
+		("Blockchain", "https://blockchain.info/ticker", XPath(".USD.buy")),
 		("Coinbase", "https://api.coinbase.com/v2/exchange-rates?currency=BTC", XPath(".data.rates.USD")),
 		("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", XPath(".[0].current_price")),
 		("Coingate", "https://api.coingate.com/v2/rates/merchant/BTC/USD", XPath("$")),
