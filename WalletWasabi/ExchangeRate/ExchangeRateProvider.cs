@@ -4,10 +4,9 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.Backend.Models;
 using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string, decimal> Extractor);
 
-namespace WalletWasabi.Interfaces;
+namespace WalletWasabi.ExchangeRate;
 
 public class ExchangeRateProvider
 {
@@ -33,7 +32,7 @@ public class ExchangeRateProvider
 		using var response = await _httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		var rate = providerInfo.Extractor(json);
-		return new ExchangeRate {Rate = rate, Ticker = "USD"};
+		return new ExchangeRate("USD", rate);
 	}
 
 	private static Func<string, decimal> XPath(string xpath) =>

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Xunit;
 using WalletWasabi.Interfaces;
 using System.Threading;
+using WalletWasabi.ExchangeRate;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 

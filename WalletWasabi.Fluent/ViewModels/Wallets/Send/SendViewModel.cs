@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.ExchangeRate;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -45,6 +46,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager? _coinJoinManager;
+	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
@@ -69,7 +71,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
-		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
+		ExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 
 		Balance = walletVm.WalletModel.Balances;
 
@@ -341,7 +344,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_suggestionLabels.Activate(disposables);
 
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+		_exchangeRateUpdater.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
