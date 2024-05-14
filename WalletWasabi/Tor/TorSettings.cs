@@ -6,6 +6,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Tor;
 
@@ -27,6 +28,7 @@ public class TorSettings
 		string dataDir,
 		string distributionFolderPath,
 		bool terminateOnExit,
+        TorMode torMode = TorMode.Enabled,
 		int socksPort = DefaultSocksPort,
 		int controlPort = DefaultControlPort,
 		string? torFolder = null,
@@ -62,11 +64,21 @@ public class TorSettings
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 		DistributionFolder = distributionFolderPath;
-		TerminateOnExit = terminateOnExit;
+
+		if (torMode == TorMode.EnabledOnlyRunning && terminateOnExit)
+		{
+			Logger.LogWarning("Wasabi is instructed to use a running Tor process. Terminate on exit was disabled.");
+		}
+
+		TorMode = torMode;
+		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
+
 		Log = log;
 		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
+
+	public TorMode TorMode { get; }
 
 	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
 	public bool IsCustomTorFolder { get; }

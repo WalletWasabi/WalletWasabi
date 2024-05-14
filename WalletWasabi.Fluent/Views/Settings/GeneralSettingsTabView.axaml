@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:basemodels="using:WalletWasabi.Models"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:Class="WalletWasabi.Fluent.Views.Settings.GeneralSettingsTabView"
@@ -45,10 +46,17 @@
 
     <DockPanel>
       <TextBlock Text="Network anonymization (Tor)" />
-      <ToggleSwitch IsChecked="{Binding Settings.UseTor}" />
+      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}" Width="250">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="basemodels:TorMode">
+            <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
     </DockPanel>
 
-    <DockPanel IsVisible="{Binding Settings.UseTor}">
+    <!--<DockPanel IsVisible="{Binding Settings.UseTor}">-->
+    <DockPanel IsVisible="{Binding Settings.UseTor, ConverterParameter={x:Static basemodels:TorMode.Enabled}, Converter={x:Static conv:EnumToBoolConverter.Instance}}">
       <TextBlock Text="Terminate Tor when Wasabi shuts down" />
       <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
     </DockPanel>
