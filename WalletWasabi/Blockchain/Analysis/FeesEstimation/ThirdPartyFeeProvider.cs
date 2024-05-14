@@ -15,10 +15,12 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
 	private int _actualFeeProviderIndex = -1;
 	private bool _isPaused;
+	private TimeSpan _admitErrorTimeSpan;
 
-	public ThirdPartyFeeProvider(TimeSpan period, ImmutableArray<IThirdPartyFeeProvider> feeProviders)
+	public ThirdPartyFeeProvider(TimeSpan period, ImmutableArray<IThirdPartyFeeProvider> feeProviders, TimeSpan? admitErrorTimeSpan = null)
 		: base(period)
 	{
+		_admitErrorTimeSpan = admitErrorTimeSpan ?? TimeSpan.FromMinutes(1);
 		FeeProviders = feeProviders;
 		if (FeeProviders.Length > 0)
 		{
@@ -162,7 +164,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		{
 			bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
 			// Let's wait a bit more
-			if (inError && !InError && LastStatusChange - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1))
+			if (inError && !InError && DateTimeOffset.UtcNow - LastStatusChange > _admitErrorTimeSpan)
 			{
 				// We are in error mode, all fee provider turned on at once and the successful highest priority fee provider will win
 				InError = true;
