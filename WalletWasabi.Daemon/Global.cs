@@ -257,7 +257,7 @@ public class Global
 
 				WalletManager.Initialize();
 
-				await UpdateManager.UpdateClientAsync(cancel).ConfigureAwait(false);
+				await UpdateManager.TryUpdateApplicationAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{

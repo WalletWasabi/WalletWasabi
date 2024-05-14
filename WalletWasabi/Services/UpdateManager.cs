@@ -45,7 +45,7 @@ public class UpdateManager
 
 	private WasabiClient WasabiClient { get; }
 
-	public async Task UpdateClientAsync(CancellationToken cancellationToken)
+	public async Task TryUpdateApplicationAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
