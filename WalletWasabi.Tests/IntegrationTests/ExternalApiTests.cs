@@ -1,35 +1,34 @@
-using System.Threading.Tasks;
-using Xunit;
-using WalletWasabi.Interfaces;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.ExchangeRate;
+using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
 public class ExternalApiTests
 {
 	[Fact]
-	public async Task CoinbaseExchangeRateProviderTestsAsync2() =>
+	public async Task CoinbaseExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Coinbase");
 
 	[Fact]
-	public async Task BlockchainInfoExchangeRateProviderTestsAsync2() =>
+	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Blockchain");
 
 	[Fact]
-	public async Task CoinGeckoExchangeRateProviderTestsAsync2() =>
+	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("CoinGecko");
 
 	[Fact]
-	public async Task BitstampExchangeRateProviderTestsAsync2() =>
+	public async Task BitstampExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Bitstamp");
 
 	[Fact]
-	public async Task GeminiExchangeRateProviderTestsAsync2() =>
+	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Gemini");
 
 	[Fact]
-	public async Task CoingateExchangeRateProviderTestsAsync2() =>
+	public async Task CoingateExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Coingate");
 
 	private async Task AssertProviderAsync(string providerName)
