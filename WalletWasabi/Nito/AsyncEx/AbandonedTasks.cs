@@ -55,7 +55,7 @@ public class AbandonedTasks
 				tasks = Tasks.ToArray();
 
 				// 2. If all tasks cleared, then break.
-				if (!tasks.Any())
+				if (tasks.Length == 0)
 				{
 					break;
 				}
