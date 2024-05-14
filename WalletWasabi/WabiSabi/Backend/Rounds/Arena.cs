@@ -107,7 +107,6 @@ public partial class Arena : PeriodicRunner
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
-
 		}
 	}
 
