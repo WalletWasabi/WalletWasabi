@@ -25,11 +25,11 @@ public class ExchangeRateProvider
 		var url = new Uri(providerInfo.ApiUrl);
 
 #pragma warning disable RS0030 // Do not use banned APIs
-		using var _httpClient = new HttpClient();
-		_httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
-		_httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("WasabiWallet", Helpers.Constants.ClientVersion.ToString()));
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
+		httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("WasabiWallet", Helpers.Constants.ClientVersion.ToString()));
 #pragma warning restore RS0030 // Do not use banned APIs
-		using var response = await _httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
+		using var response = await httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		var rate = providerInfo.Extractor(json);
 		return new ExchangeRate("USD", rate);
