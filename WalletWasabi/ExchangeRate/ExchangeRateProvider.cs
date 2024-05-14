@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string, decimal> Extractor);
 
 namespace WalletWasabi.ExchangeRate;
@@ -11,17 +12,21 @@ namespace WalletWasabi.ExchangeRate;
 public class ExchangeRateProvider
 {
 	private static ExchangeRateProviderInfo[] Providers = [
-		("Bitstamp", "https://www.bitstamp.net/api/v2/ticker/btcusd", XPath(".bid")),
-		("Blockchain", "https://blockchain.info/ticker", XPath(".USD.buy")),
-		("Coinbase", "https://api.coinbase.com/v2/exchange-rates?currency=BTC", XPath(".data.rates.USD")),
-		("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", XPath(".[0].current_price")),
-		("Coingate", "https://api.coingate.com/v2/rates/merchant/BTC/USD", XPath("$")),
-		("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", XPath(".bid")),
+		("bitstamp", "https://www.bitstamp.net/api/v2/ticker/btcusd", XPath(".bid")),
+		("blockchain", "https://blockchain.info/ticker", XPath(".USD.buy")),
+		("coinbase", "https://api.coinbase.com/v2/exchange-rates?currency=BTC", XPath(".data.rates.USD")),
+		("coingecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", XPath(".[0].current_price")),
+		("coingate", "https://api.coingate.com/v2/rates/merchant/BTC/USD", XPath("$")),
+		("gemini", "https://api.gemini.com/v1/pubticker/btcusd", XPath(".bid")),
 	];
 
 	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, CancellationToken cancellationToken)
 	{
-		var providerInfo = Providers.First(x => x.Name == providerName);
+		var providerInfo = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase));
+		if (providerInfo == default)
+		{
+			throw new NotSupportedException($"Exchange rate provider '{providerName}' is not supported.");
+		}
 		var url = new Uri(providerInfo.ApiUrl);
 
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -39,7 +44,4 @@ public class ExchangeRateProvider
 		json =>
 			JToken.Parse(json).SelectToken(xpath)?.Value<decimal>()
 			?? throw new ArgumentException($@"The xpath {xpath} was not found.", nameof(xpath));
-
-	private static Func<string, decimal> Plain() =>
-		decimal.Parse;
 }

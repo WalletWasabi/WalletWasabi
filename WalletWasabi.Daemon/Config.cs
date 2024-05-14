@@ -129,7 +129,7 @@ public class Config
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
 			[ nameof(ExchangeRateProvider)] = (
-				"The USD/BTC exchange rate provider. Available providers are Bitstamp, Blockchain, Coingate, CoinGecko and Coinbase",
+				"The BTC/USD exchange rate provider. Available providers are Bitstamp (default), Blockchain, Coingate, CoinGecko, and Coinbase",
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 		};
 

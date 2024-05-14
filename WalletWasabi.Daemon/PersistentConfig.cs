@@ -114,7 +114,7 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
-	[DefaultValue("ExchangeRateProvider")]
+	[DefaultValue("Bitstamp")]
 	[JsonPropertyName("ExchangeRateProvider")]
 	public string ExchangeRateProvider { get; init; } = "Bitstamp";
 
