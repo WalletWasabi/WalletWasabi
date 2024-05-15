@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.FeeRateEstimation;
 using FeeRateProviderInfo = (string Name, string ApiUrl, Func<string, AllFeeEstimate> Extractor);
@@ -12,7 +11,7 @@ using FeeRateProviderInfo = (string Name, string ApiUrl, Func<string, AllFeeEsti
 public class FeeRateProvider(EndPoint? socksProxyEndPoint = null)
 {
 	private static FeeRateProviderInfo[] Providers = [
-		("Blockstream", "https://blockstream.info/api/fee-estimates", BlockstreamHandler()),
+		("BlockstreamInfo", "https://blockstream.info/api/fee-estimates", BlockstreamHandler()),
 		("MempoolSpace", "https://mempool.space/api/v1/fees/recommended", MempoolSpaceHandler()),
 	];
 

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -16,6 +15,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -38,7 +38,7 @@ public class Wallet : BackgroundService, IWallet
 		BitcoinStore bitcoinStore,
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
-		HybridFeeProvider feeProvider,
+		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
 		UnconfirmedTransactionChainProvider unconfirmedTransactionChainProvider)
@@ -49,7 +49,7 @@ public class Wallet : BackgroundService, IWallet
 		BitcoinStore = bitcoinStore;
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
-		FeeProvider = feeProvider;
+		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
@@ -106,7 +106,7 @@ public class Wallet : BackgroundService, IWallet
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 
-	public HybridFeeProvider FeeProvider { get; }
+	public FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
 	public UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;

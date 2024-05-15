@@ -1,19 +1,17 @@
-using System.ComponentModel;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public class FeeRateEstimationUpdater :  PeriodicRunner, INotifyPropertyChanged
+public class FeeRateEstimationUpdater :  PeriodicRunner
 {
 	private readonly Func<string> _feeRateProviderGetter;
 	private readonly FeeRateProvider _provider;
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
-
-	public event PropertyChangedEventHandler? PropertyChanged;
+	public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 	public FeeRateEstimationUpdater(TimeSpan period, Func<string> feeRateProviderGetter, EndPoint? socksProxyUri = null)
 		: base(period)
@@ -28,7 +26,7 @@ public class FeeRateEstimationUpdater :  PeriodicRunner, INotifyPropertyChanged
 		if (newFeeRAteEstimations != AllFeeEstimate)
 		{
 			AllFeeEstimate = newFeeRAteEstimations;
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllFeeEstimate)));
+			AllFeeEstimateChanged.SafeInvoke(this, AllFeeEstimate);
 		}
 	}
 }
