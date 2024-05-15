@@ -94,6 +94,10 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	// We disregard the pause from the IThirdPartyFeeProvider since the backend connection is currently always on if possible
 	public bool IsPaused { get; set; }
 
+	public void TriggerOutOfOrderUpdate()
+	{
+	}
+
 	#endregion EventsPropertiesMembers
 
 	protected override async Task ActionAsync(CancellationToken cancel)

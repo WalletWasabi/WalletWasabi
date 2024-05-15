@@ -10,6 +10,8 @@ public class ThirdPartyFeeProviderTests
 {
 	protected class TestFeeProvider : IThirdPartyFeeProvider
 	{
+		public int OutOfOrderUpdate { get; set; } = -1;
+
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public AllFeeEstimate? LastAllFeeEstimate { get; set; }
@@ -22,6 +24,14 @@ public class ThirdPartyFeeProviderTests
 			AllFeeEstimate fees = new(new Dictionary<int, int>() { { key, value } });
 			LastAllFeeEstimate = fees;
 			AllFeeEstimateArrived?.Invoke(this, fees);
+		}
+
+		public void TriggerOutOfOrderUpdate()
+		{
+			if (OutOfOrderUpdate > 0)
+			{
+				SendSimpleEstimate(2, OutOfOrderUpdate);
+			}
 		}
 	}
 
@@ -40,6 +50,7 @@ public class ThirdPartyFeeProviderTests
 
 		// we shouldn't move to error mode instantly
 		feeProvider1.InError = true;
+		feeProvider2.InError = true;
 		thirdPartyFeeProvider.TriggerRound();
 		Assert.False(thirdPartyFeeProvider.InError);
 
@@ -64,6 +75,17 @@ public class ThirdPartyFeeProviderTests
 		feeProvider2.SendSimpleEstimate(2, 2);
 		thirdPartyFeeProvider.LastAllFeeEstimate?.Estimations.TryGetValue(2, out result);
 		Assert.Equal(1, result);
+
+		// TriggerOutOfOrderUpdate check
+		feeProvider3.OutOfOrderUpdate = 4;
+		feeProvider1.InError = true;
+		feeProvider2.InError = true;
+		feeProvider3.InError = true;
+		await Task.Delay(5000);
+		thirdPartyFeeProvider.TriggerRound();
+		Assert.False(thirdPartyFeeProvider.InError);
+		thirdPartyFeeProvider.LastAllFeeEstimate?.Estimations.TryGetValue(2, out result);
+		Assert.Equal(4, result);
 
 		await thirdPartyFeeProvider.StopAsync(cts.Token);
 	}

@@ -44,6 +44,19 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		}
 	}
 
+	public void TriggerOutOfOrderUpdate()
+	{
+		if (!_isPaused)
+		{
+			int feeProviderIndex = ActualFeeProviderIndex;
+			// Even in active mode we pause the lower priority fee providers
+			for (int idx = 0; idx < feeProviderIndex; idx++)
+			{
+				FeeProviders[idx].TriggerOutOfOrderUpdate();
+			}
+		}
+	}
+
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
 	private ImmutableArray<IThirdPartyFeeProvider> FeeProviders { get; }
@@ -149,7 +162,12 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		// Even in active mode we pause the lower priority fee providers
 		for (int idx = 0; idx < FeeProviders.Length; idx++)
 		{
+			var pauseStatusBefore = FeeProviders[idx].IsPaused;
 			FeeProviders[idx].IsPaused = IsPaused || idx > feeProviderIndex;
+			if (pauseStatusBefore && !FeeProviders[idx].IsPaused)
+			{
+				FeeProviders[idx].TriggerOutOfOrderUpdate();
+			}
 		}
 	}
 
@@ -168,8 +186,9 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			{
 				// We are in error mode, all fee provider turned on at once and the successful highest priority fee provider will win
 				InError = true;
-				ActualFeeProviderIndex = FeeProviders.Length - 1;
 				LastStatusChange = DateTimeOffset.UtcNow;
+				// This might lead to instant resolution through the SetPauseStates' TriggerOutOfOrderUpdate calls
+				ActualFeeProviderIndex = FeeProviders.Length - 1;
 			}
 		}
 
