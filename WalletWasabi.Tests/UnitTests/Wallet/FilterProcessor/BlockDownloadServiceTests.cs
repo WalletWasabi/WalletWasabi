@@ -104,7 +104,7 @@ public class BlockDownloadServiceTests
 			}
 
 			// Add small delay to make sure that things stabilize.
-			await Task.Delay(2000); // fake comment for the check
+			await Task.Delay(2000);
 
 			// Allow downloading of the block1.
 			{
