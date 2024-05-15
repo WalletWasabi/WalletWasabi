@@ -63,7 +63,7 @@ internal class HorizontalScrollViewerBehavior : Behavior<ScrollViewer>
 			return;
 		}
 
-		if (RequireShiftKey && e.KeyModifiers == KeyModifiers.Shift || !RequireShiftKey)
+		if ((RequireShiftKey && e.KeyModifiers == KeyModifiers.Shift) || !RequireShiftKey)
 		{
 			if (e.Delta.Y < 0)
 			{

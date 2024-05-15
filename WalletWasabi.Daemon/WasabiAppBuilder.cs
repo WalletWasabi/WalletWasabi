@@ -79,7 +79,6 @@ public static class WasabiAppExtensions
 					ProcessCommands();
 					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
 				}
-
 			}).ConfigureAwait(false);
 	}
 }

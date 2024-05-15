@@ -185,7 +185,7 @@ public class UpdateManager : IDisposable
 
 			// Closing the file to rename.
 			file.Close();
-		};
+		}
 		File.Move(tmpFilePath, filePath);
 	}
 

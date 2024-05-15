@@ -7,6 +7,7 @@ using System.Windows.Input;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -54,4 +55,7 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
+
+	public IEnumerable<TorMode> TorModes =>
+		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
 }
