@@ -26,7 +26,7 @@ public class ThirdPartyFeeProviderTests
 			AllFeeEstimateArrived?.Invoke(this, fees);
 		}
 
-		public void TriggerOutOfOrderUpdate()
+		public void TriggerUpdate()
 		{
 			if (OutOfOrderUpdate > 0)
 			{

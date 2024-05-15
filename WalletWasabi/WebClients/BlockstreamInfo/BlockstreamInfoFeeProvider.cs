@@ -19,7 +19,7 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public bool InError { get; private set; } = false;
 	public bool IsPaused { get; set; } = false;
 
-	public void TriggerOutOfOrderUpdate()
+	public void TriggerUpdate()
 	{
 		TriggerRound();
 	}

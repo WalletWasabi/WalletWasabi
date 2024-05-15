@@ -44,7 +44,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		}
 	}
 
-	public void TriggerOutOfOrderUpdate()
+	public void TriggerUpdate()
 	{
 		if (!_isPaused)
 		{
@@ -52,7 +52,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			// Even in active mode we pause the lower priority fee providers
 			for (int idx = 0; idx < feeProviderIndex; idx++)
 			{
-				FeeProviders[idx].TriggerOutOfOrderUpdate();
+				FeeProviders[idx].TriggerUpdate();
 			}
 		}
 	}
@@ -166,7 +166,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			FeeProviders[idx].IsPaused = IsPaused || idx > feeProviderIndex;
 			if (pauseStatusBefore && !FeeProviders[idx].IsPaused)
 			{
-				FeeProviders[idx].TriggerOutOfOrderUpdate();
+				FeeProviders[idx].TriggerUpdate();
 			}
 		}
 	}

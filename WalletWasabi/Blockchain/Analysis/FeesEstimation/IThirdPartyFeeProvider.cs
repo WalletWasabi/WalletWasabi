@@ -8,5 +8,5 @@ public interface IThirdPartyFeeProvider
 	bool InError { get; }
 	bool IsPaused { get; set; }
 
-	public void TriggerOutOfOrderUpdate();
+	public void TriggerUpdate();
 }
