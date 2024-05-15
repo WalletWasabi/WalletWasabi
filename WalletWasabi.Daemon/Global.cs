@@ -35,6 +35,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.ExchangeRate;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
@@ -385,6 +386,7 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, Config.UseTor ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
