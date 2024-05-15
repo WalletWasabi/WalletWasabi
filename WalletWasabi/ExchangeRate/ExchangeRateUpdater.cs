@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -8,14 +9,15 @@ namespace WalletWasabi.ExchangeRate;
 public class ExchangeRateUpdater : PeriodicRunner, INotifyPropertyChanged
 {
 	private readonly Func<string> _exchangeRateProviderGetter;
-	private readonly ExchangeRateProvider _provider = new();
+	private readonly ExchangeRateProvider _provider;
 	public decimal UsdExchangeRate { get; private set; }
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	public ExchangeRateUpdater(TimeSpan period, Func<string> exchangeRateProviderGetter)
+	public ExchangeRateUpdater(TimeSpan period, Func<string> exchangeRateProviderGetter, EndPoint? socksProxyUri = null)
 		: base(period)
 	{
+		_provider = new ExchangeRateProvider(socksProxyUri);
 		_exchangeRateProviderGetter = exchangeRateProviderGetter;
 	}
 
