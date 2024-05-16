@@ -47,6 +47,9 @@ public static partial class StringExtensions
 	public static string[] SplitWords(this string text) =>
 		text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
+	public static string[] SplitLines(this string text) =>
+		text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
 	public static string[] SplitLines(this string text, int lineWidth)
 	{
 		static void InternalSplit(string text, int lineWidth, List<string> result)

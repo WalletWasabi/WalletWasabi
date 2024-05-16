@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.ExchangeRate;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
@@ -124,7 +125,7 @@ public class App : Application
 
 	private static IAmountProvider CreateAmountProvider()
 	{
-		return new AmountProvider(Services.HostedServices.Get<WasabiSynchronizer>());
+		return new AmountProvider(Services.HostedServices.Get<ExchangeRateUpdater>());
 	}
 
 	private UiContext CreateUiContext()

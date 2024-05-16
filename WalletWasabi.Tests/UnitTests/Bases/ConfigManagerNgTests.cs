@@ -77,6 +77,7 @@ public class ConfigManagerNgTests
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "MaxCoordinationFeeRate": 0.0,
 			  "MaxCoinJoinMiningFeeRate": 150.0
+			  "ExchangeRateProvider": "MempoolSpace"
 			}
 			""";
 

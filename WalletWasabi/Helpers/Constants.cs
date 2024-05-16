@@ -83,6 +83,14 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
+	public static readonly EndPoint DefaultMainNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinP2pPort);
+	public static readonly EndPoint DefaultTestNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinP2pPort);
+	public static readonly EndPoint DefaultRegTestBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinP2pPort);
+
+	public static readonly EndPoint DefaultMainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinCoreRpcPort);
+	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);
+	public static readonly EndPoint DefaultRegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinCoreRpcPort);
+
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public static readonly Version ClientVersion = new(2, 0, 8, 1);
