@@ -181,9 +181,9 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 		lock (Lock)
 		{
-			bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
+			bool allActualFeeProvidersAreInError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
 			// Let's wait a bit more
-			if (inError && !InError && DateTimeOffset.UtcNow - LastStatusChange > AdmitErrorTimeSpan)
+			if (allActualFeeProvidersAreInError && !InError && DateTimeOffset.UtcNow - LastStatusChange > AdmitErrorTimeSpan)
 			{
 				// We are in error mode, all fee provider turned on at once and the successful highest priority fee provider will win
 				InError = true;
