@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Tor.Socks5;
 using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string, decimal> Extractor);
 
 namespace WalletWasabi.ExchangeRate;
@@ -31,7 +32,7 @@ public class ExchangeRateProvider(EndPoint? socksProxyEndPoint = null)
 #pragma warning disable RS0030 // Do not use banned APIs
 		using var httpClientHandler = new HttpClientHandler();
 		using var httpClient = new HttpClient(httpClientHandler);
-		httpClientHandler.Proxy = GetWebProxy();
+		httpClientHandler.Proxy = Socks5Proxy.GetWebProxy(socksProxyEndPoint);
 		httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
 		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -40,18 +41,6 @@ public class ExchangeRateProvider(EndPoint? socksProxyEndPoint = null)
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		var rate = providerInfo.Extractor(json);
 		return new ExchangeRate("USD", rate);
-	}
-
-	private WebProxy? GetWebProxy()
-	{
-		return socksProxyEndPoint switch
-		{
-			DnsEndPoint dns => TorWebProxy(dns.Host, dns.Port),
-			IPEndPoint ip => TorWebProxy(ip.Address.ToString(), ip.Port),
-			null => null,
-			_ => throw new NotSupportedException("The endpoint type is not supported.")
-		};
-		static WebProxy TorWebProxy(string host, int port) => new(new UriBuilder("socks5", host, port).Uri);
 	}
 
 	private static Func<string, decimal> JsonPath(string xpath) =>

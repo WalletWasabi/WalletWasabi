@@ -36,7 +36,7 @@ public class ExternalApiTests
 
 	[Fact]
 	public async Task BlockstreamFeeRateProviderTestsAsync() =>
-		await AssertFeeProviderAsync("Blockstream");
+		await AssertFeeProviderAsync("BlockstreamInfo");
 
 	[Fact]
 	public async Task MempoolSpaceRateProviderTestsAsync() =>
@@ -46,7 +46,8 @@ public class ExternalApiTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = new FeeRateProvider();
-		var estimations = await provider.GetFeeRateEstimationsAsync(providerName, timeoutCts.Token).ConfigureAwait(false);
+		var userAgent = UserAgent.GetNew(Random.Shared.Next());
+		var estimations = await provider.GetFeeRateEstimationsAsync(providerName, userAgent, timeoutCts.Token).ConfigureAwait(false);
 		Assert.NotEmpty(estimations.Estimations);
 	}
 }
