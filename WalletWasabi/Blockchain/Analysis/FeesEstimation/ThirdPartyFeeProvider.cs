@@ -15,18 +15,19 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
 	private int _actualFeeProviderIndex = -1;
 	private bool _isPaused;
-	private TimeSpan _admitErrorTimeSpan;
 
-	public ThirdPartyFeeProvider(TimeSpan period, ImmutableArray<IThirdPartyFeeProvider> feeProviders, TimeSpan? admitErrorTimeSpan = null)
+	public ThirdPartyFeeProvider(TimeSpan period, ImmutableArray<IThirdPartyFeeProvider> feeProviders)
 		: base(period)
 	{
-		_admitErrorTimeSpan = admitErrorTimeSpan ?? TimeSpan.FromMinutes(1);
+		AdmitErrorTimeSpan = TimeSpan.FromMinutes(1);
 		FeeProviders = feeProviders;
 		if (FeeProviders.Length > 0)
 		{
 			ActualFeeProviderIndex = 0;
 		}
 	}
+
+	public TimeSpan AdmitErrorTimeSpan { get; internal set; }
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
@@ -50,9 +51,9 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		{
 			int feeProviderIndex = ActualFeeProviderIndex;
 			// Even in active mode we pause the lower priority fee providers
-			for (int idx = 0; idx < feeProviderIndex; idx++)
+			foreach (var feeProvider in FeeProviders.Take(feeProviderIndex + 1))
 			{
-				FeeProviders[idx].TriggerUpdate();
+				feeProvider.TriggerUpdate();
 			}
 		}
 	}
@@ -61,7 +62,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	private ImmutableArray<IThirdPartyFeeProvider> FeeProviders { get; }
 
-	protected int ActualFeeProviderIndex
+	private int ActualFeeProviderIndex
 	{
 		get => _actualFeeProviderIndex;
 		// Aside from the constructor always called under the Lock
@@ -76,7 +77,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		}
 	}
 
-	protected DateTimeOffset LastStatusChange { get; set; } = DateTimeOffset.UtcNow;
+	public DateTimeOffset LastStatusChange { get; private set; } = DateTimeOffset.UtcNow;
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -158,7 +159,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	private void SetPauseStates()
 	{
-		int feeProviderIndex = ActualFeeProviderIndex;
+		var feeProviderIndex = ActualFeeProviderIndex;
 		// Even in active mode we pause the lower priority fee providers
 		for (int idx = 0; idx < FeeProviders.Length; idx++)
 		{
@@ -182,7 +183,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		{
 			bool inError = FeeProviders.Take(ActualFeeProviderIndex + 1).All(f => f.InError);
 			// Let's wait a bit more
-			if (inError && !InError && DateTimeOffset.UtcNow - LastStatusChange > _admitErrorTimeSpan)
+			if (inError && !InError && DateTimeOffset.UtcNow - LastStatusChange > AdmitErrorTimeSpan)
 			{
 				// We are in error mode, all fee provider turned on at once and the successful highest priority fee provider will win
 				InError = true;

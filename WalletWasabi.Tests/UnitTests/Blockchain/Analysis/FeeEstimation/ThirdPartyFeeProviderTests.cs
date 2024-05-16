@@ -43,7 +43,9 @@ public class ThirdPartyFeeProviderTests
 		var feeProvider3 = new TestFeeProvider();
 
 		using CancellationTokenSource cts = new CancellationTokenSource();
-		using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromSeconds(2), [feeProvider1, feeProvider2, feeProvider3], TimeSpan.FromSeconds(4));
+		using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromSeconds(2), [feeProvider1, feeProvider2, feeProvider3]);
+		thirdPartyFeeProvider.AdmitErrorTimeSpan = TimeSpan.FromSeconds(4);
+
 		await thirdPartyFeeProvider.StartAsync(cts.Token);
 
 		int result = 0;
