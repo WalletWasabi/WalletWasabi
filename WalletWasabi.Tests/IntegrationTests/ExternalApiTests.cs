@@ -1,7 +1,7 @@
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.ExchangeRate;
+using WalletWasabi.WebClients;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
@@ -36,7 +36,8 @@ public class ExternalApiTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = new ExchangeRateProvider();
-		var rate = await provider.GetExchangeRateAsync(providerName, timeoutCts.Token).ConfigureAwait(false);
+		var userAgent = UserAgent.GetNew(Random.Shared.Next());
+		var rate = await provider.GetExchangeRateAsync(providerName, userAgent, timeoutCts.Token).ConfigureAwait(false);
 		Assert.NotEqual(0m, rate.Rate);
 	}
 }

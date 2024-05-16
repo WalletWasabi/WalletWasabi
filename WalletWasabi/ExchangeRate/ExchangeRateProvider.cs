@@ -22,7 +22,7 @@ public class ExchangeRateProvider(EndPoint? socksProxyEndPoint = null)
 		("gemini", false, "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"))
 	];
 
-	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, CancellationToken cancellationToken)
+	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string userAgent, CancellationToken cancellationToken)
 	{
 		var providerInfo = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase));
 		if (providerInfo == default)
@@ -42,7 +42,7 @@ public class ExchangeRateProvider(EndPoint? socksProxyEndPoint = null)
 		using var httpClient = new HttpClient(httpClientHandler);
 		httpClientHandler.Proxy = proxy;
 		httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
-		httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("WasabiWallet", Helpers.Constants.ClientVersion.ToString()));
+		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
 #pragma warning restore RS0030 // Do not use banned APIs
 
 		using var response = await httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
