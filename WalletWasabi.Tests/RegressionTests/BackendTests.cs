@@ -62,7 +62,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
+		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate.ExchangeRate>>();
 		Assert.Single(exchangeRates);
 
 		var rate = exchangeRates[0];

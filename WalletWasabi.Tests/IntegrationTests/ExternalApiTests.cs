@@ -1,50 +1,35 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.WebClients.BlockchainInfo;
-using WalletWasabi.WebClients.Coinbase;
-using WalletWasabi.WebClients.CoinGecko;
-using WalletWasabi.WebClients.Bitstamp;
-using WalletWasabi.WebClients.Gemini;
-using Xunit;
-using WalletWasabi.Interfaces;
 using System.Threading;
-using WalletWasabi.WebClients.Coingate;
+using System.Threading.Tasks;
+using WalletWasabi.ExchangeRate;
+using WalletWasabi.WebClients;
+using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
 public class ExternalApiTests
 {
 	[Fact]
-	public async Task CoinbaseExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoinbaseExchangeRateProvider());
+	public async Task MempoolSpaceExchangeRateProviderTestsAsync() =>
+		await AssertProviderAsync("mempoolspace");
 
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new BlockchainInfoExchangeRateProvider());
+		await AssertProviderAsync("Blockchaininfo");
 
 	[Fact]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoinGeckoExchangeRateProvider());
-
-	[Fact]
-	public async Task BitstampExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new BitstampExchangeRateProvider());
+		await AssertProviderAsync("CoinGecko");
 
 	[Fact]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new GeminiExchangeRateProvider());
+		await AssertProviderAsync("Gemini");
 
-	[Fact]
-	public async Task CoingateExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync(new CoingateExchangeRateProvider());
-
-	private async Task AssertProviderAsync(IExchangeRateProvider provider)
+	private async Task AssertProviderAsync(string providerName)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(timeoutCts.Token).ConfigureAwait(false);
-
-		var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-		Assert.NotEqual(0.0m, usdRate.Rate);
+		var provider = new ExchangeRateProvider();
+		var userAgent = UserAgent.GetNew(Random.Shared.Next());
+		var rate = await provider.GetExchangeRateAsync(providerName, userAgent, timeoutCts.Token).ConfigureAwait(false);
+		Assert.NotEqual(0m, rate.Rate);
 	}
 }

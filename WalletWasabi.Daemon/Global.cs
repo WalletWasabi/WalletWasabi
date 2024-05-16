@@ -32,12 +32,13 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.ExchangeRate;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Daemon;
 
@@ -113,6 +114,7 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
+		RegisterExchangeRateProviders();
 		RegisterFeeRateProviders();
 
 		// Block providers.
@@ -386,6 +388,11 @@ public class Global
 		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+	}
+
+	private void RegisterExchangeRateProviders()
+	{
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, Config.UseTor ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 	}
 
 	private void RegisterCoinJoinComponents()

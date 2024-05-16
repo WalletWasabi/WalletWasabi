@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.ExchangeRate;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -33,6 +34,7 @@ public class PrivacySuggestionsModel
 
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager _cjManager;
+	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
@@ -41,6 +43,7 @@ public class PrivacySuggestionsModel
 	{
 		_wallet = wallet;
 		_cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
 	}
 
 	/// <summary>
@@ -171,7 +174,7 @@ public class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		var usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -265,7 +268,7 @@ public class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		decimal usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 
 		// Only allow to create 1 more input with BnB. This accounts for the change created.
 		int maxInputCount = transaction.SpentCoins.Count() + 1;

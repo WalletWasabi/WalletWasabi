@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.ExchangeRate;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -193,6 +194,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public JsonRpcResult GetStatus()
 	{
 		var sync = Global.HostedServices.Get<WasabiSynchronizer>();
+		var exchangeRateUpdater = Global.HostedServices.Get<ExchangeRateUpdater>();
 		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new JsonRpcResult
@@ -210,7 +212,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["filtersCount"] = smartHeaderChain.HashCount,
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
-			["exchangeRate"] = sync.UsdExchangeRate,
+			["exchangeRate"] = exchangeRateUpdater.UsdExchangeRate,
 			["peers"] = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
 				x => new JsonRpcResult
 				{
