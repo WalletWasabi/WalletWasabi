@@ -9,28 +9,20 @@ namespace WalletWasabi.Tests.IntegrationTests;
 public class ExternalApiTests
 {
 	[Fact]
-	public async Task CoinbaseExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Coinbase");
+	public async Task MempoolSpaceExchangeRateProviderTestsAsync() =>
+		await AssertProviderAsync("mempoolspace");
 
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Blockchain");
+		await AssertProviderAsync("Blockchaininfo");
 
 	[Fact]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("CoinGecko");
 
 	[Fact]
-	public async Task BitstampExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Bitstamp");
-
-	[Fact]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertProviderAsync("Gemini");
-
-	[Fact]
-	public async Task CoingateExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Coingate");
 
 	private async Task AssertProviderAsync(string providerName)
 	{

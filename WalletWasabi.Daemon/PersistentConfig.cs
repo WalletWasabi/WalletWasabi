@@ -114,9 +114,9 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
-	[DefaultValue("Bitstamp")]
+	[DefaultValue("MempoolSpace")]
 	[JsonPropertyName("ExchangeRateProvider")]
-	public string ExchangeRateProvider { get; init; } = "Bitstamp";
+	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
 	public bool DeepEquals(PersistentConfig other)
 	{

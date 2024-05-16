@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.ExchangeRate;
@@ -31,6 +32,7 @@ public class ExchangeRateUpdater : PeriodicRunner, INotifyPropertyChanged
 		{
 			UsdExchangeRate = newExchangeRate.Rate;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UsdExchangeRate)));
+			Logger.LogInfo($"Fetched exchange rate from {_exchangeRateProviderGetter()}: {newExchangeRate.Rate}.");
 		}
 	}
 }

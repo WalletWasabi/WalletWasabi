@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using NBitcoin;
 using System;
 using System.Collections;
@@ -129,7 +128,7 @@ public class Config
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
 			[ nameof(ExchangeRateProvider)] = (
-				"The BTC/USD exchange rate provider. Available providers are Bitstamp (default), Blockchain, Coingate, CoinGecko, and Coinbase",
+				"The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockchainInfo, CoinGecko",
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 		};
 
