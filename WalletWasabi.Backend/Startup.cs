@@ -77,7 +77,6 @@ public class Startup
 
 		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
-		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton(serviceProvider =>
 		{
 			string configFilePath = Path.Combine(dataDir, "Config.json");

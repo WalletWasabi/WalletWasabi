@@ -118,6 +118,10 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	[DefaultValue("MempoolSpace")]
+	[JsonPropertyName("ExchangeRateProvider")]
+	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = UseTor.ToString() == other.UseTor.ToString();
@@ -145,7 +149,8 @@ public record PersistentConfig : IConfigNg
 			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
-			CoordinatorIdentifier == other.CoordinatorIdentifier;
+			CoordinatorIdentifier == other.CoordinatorIdentifier &&
+			ExchangeRateProvider == other.ExchangeRateProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
