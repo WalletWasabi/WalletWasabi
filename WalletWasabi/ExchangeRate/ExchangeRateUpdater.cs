@@ -34,5 +34,7 @@ public class ExchangeRateUpdater : PeriodicRunner, INotifyPropertyChanged
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UsdExchangeRate)));
 			Logger.LogInfo($"Fetched exchange rate from {_exchangeRateProviderGetter()}: {newExchangeRate.Rate}.");
 		}
+
+		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
 	}
 }
