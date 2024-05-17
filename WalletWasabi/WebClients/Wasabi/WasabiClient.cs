@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 
@@ -218,7 +218,7 @@ public class WasabiClient
 		return ushort.Parse(resp.BackendMajorVersion);
 	}
 
-	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
+	public async Task<UpdateManager.UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 	{
 		var backendMajorVersion = await GetBackendMajorVersionAsync(cancel).ConfigureAwait(false);
 
@@ -232,7 +232,7 @@ public class WasabiClient
 			ApiVersion = currentBackendMajorVersion;
 		}
 
-		return new UpdateStatus(backendCompatible, currentBackendMajorVersion);
+		return new UpdateManager.UpdateStatus(backendCompatible);
 	}
 
 	#endregion software

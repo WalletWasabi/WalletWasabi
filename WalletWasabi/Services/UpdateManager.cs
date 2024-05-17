@@ -350,4 +350,10 @@ public class UpdateManager
 	}
 
 	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
+	public record UpdateStatus(bool BackendCompatible)
+	{
+		public bool ClientUpToDate { get; set; }
+		public bool IsReadyToInstall { get; set; }
+		public Version ClientVersion { get; set; } = new(0, 0, 0);
+	}
 }
