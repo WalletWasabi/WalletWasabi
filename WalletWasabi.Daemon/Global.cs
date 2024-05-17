@@ -12,7 +12,6 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -35,11 +34,11 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.BuyAnything;
 using WalletWasabi.ExchangeRate;
+using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
-using WalletWasabi.Models;
-using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Daemon;
 
@@ -56,8 +55,7 @@ public class Global
 		TorSettings = new TorSettings(
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
-			terminateOnExit: Config.TerminateTorOnExit,
-			torMode: Config.UseTor,
+			Config.TerminateTorOnExit,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
 			torFolder: config.TorFolder,
@@ -132,7 +130,7 @@ public class Global
 			new P2PBlockProvider(P2PNodesManager));
 
         HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
-        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
+        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<FeeRateEstimationUpdater>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
@@ -187,8 +185,7 @@ public class Global
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
 			Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-			backendUriGetter,
-			torControlAvailable: Config.UseTor == TorMode.Enabled);
+			backendUriGetter);
 
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
@@ -311,7 +308,7 @@ public class Global
 
 	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
-		if (Config.UseTor != TorMode.Disabled)
+		if (Config.UseTor != TorMode.Disabled && Network != Network.RegTest)
 		{
 			TorManager = new TorProcessManager(TorSettings);
 			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
@@ -333,12 +330,7 @@ public class Global
 				}
 			}
 
-			// Do not monitor Tor when Tor is an already running service.
-			if (TorSettings.TorMode == TorMode.Enabled)
-			{
-				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
-			}
-
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
@@ -381,7 +373,6 @@ public class Global
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 		if (!Config.BlockOnlyMode)
 		{
 			HostedServices.Register<MempoolMirror>(
@@ -392,9 +383,7 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 	}
 
 	private void RegisterExchangeRateProviders()
@@ -410,6 +399,7 @@ public class Global
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
+
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
 	{

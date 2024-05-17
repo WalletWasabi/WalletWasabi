@@ -1,5 +1,4 @@
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 

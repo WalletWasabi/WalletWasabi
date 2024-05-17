@@ -127,6 +127,10 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("ExchangeRateProvider")]
 	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
+	[DefaultValue("BlockstreamInfo")]
+	[JsonPropertyName("FeeRateEstimationProvider")]
+	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
@@ -157,7 +161,8 @@ public record PersistentConfig : IConfigNg
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			MaxCoordinationFeeRate == other.MaxCoordinationFeeRate &&
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
-			ExchangeRateProvider == other.ExchangeRateProvider;
+			ExchangeRateProvider == other.ExchangeRateProvider &&
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

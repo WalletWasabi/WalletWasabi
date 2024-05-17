@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Models;
@@ -20,7 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
 	private decimal _usdExchangeRate;
 
@@ -45,8 +44,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	public event EventHandler<bool>? SynchronizeRequestFinished;
 
 	public event EventHandler<SynchronizeResponse>? ResponseArrived;
-
-	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -86,8 +83,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	private int MaxFiltersToSync { get; }
 	private SmartHeaderChain SmartHeaderChain { get; }
 	private FilterProcessor FilterProcessor { get; }
-
-	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
 	public bool InError => BackendStatus != BackendStatus.Connected;
 
@@ -171,10 +166,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 			LastResponse = response;
 			ResponseArrived?.Invoke(this, response);
-			if (response.AllFeeEstimate is { } allFeeEstimate)
-			{
-				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
-			}
 		}
 		catch (HttpRequestException)
 		{
