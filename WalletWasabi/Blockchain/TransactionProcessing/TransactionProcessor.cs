@@ -32,6 +32,7 @@ public class TransactionProcessor
 
 	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
 	public static object Lock { get; } = new();
+
 	public AllTransactionStore TransactionStore { get; }
 	private HashSet<uint256> Aware { get; } = new();
 
@@ -148,7 +149,7 @@ public class TransactionProcessor
 				// if the received transaction is spending at least one input already
 				// spent by a previous unconfirmed transaction then it is not considered a double
 				// spending transaction but a replacement transaction.
-				var isReplacementTx = doubleSpentSpenders.Any();
+				var isReplacementTx = doubleSpentSpenders.Count != 0;
 				if (isReplacementTx)
 				{
 					// Undo the replaced transaction by removing the coins it created (if other coin

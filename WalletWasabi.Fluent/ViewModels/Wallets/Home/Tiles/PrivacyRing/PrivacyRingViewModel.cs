@@ -77,7 +77,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var coinsList =
 			_wallet.Coins.List
 						 .Connect(suppressEmptyChangeSets: false)
-						 .OnItemAdded(c => c.SubscribeToCoinChanges()) // Subscribe to SmartCoin changes for dynamic updates
+						 .OnItemAdded(c => c.SubscribeToCoinChanges(disposables)) // Subscribe to SmartCoin changes for dynamic updates
 						 .ToCollection()
 						 .Select(x => x.Distinct());
 

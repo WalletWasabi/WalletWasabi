@@ -45,9 +45,13 @@ public record PersistentConfig : IConfigNg
 	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 	public string? RegTestCoordinatorUri { get; init; }
 
-	[DefaultValue(true)]
+	/// <remarks>
+	/// For backward compatibility this was changed to an object.
+	/// Only strings (new) and booleans (old) are supported.
+	/// </remarks>
+	[DefaultValue("Enabled")]
 	[JsonPropertyName("UseTor")]
-	public bool UseTor { get; init; } = true;
+	public object UseTor { get; init; } = "Enabled";
 
 	[DefaultValue(false)]
 	[JsonPropertyName("TerminateTorOnExit")]
@@ -116,6 +120,8 @@ public record PersistentConfig : IConfigNg
 
 	public bool DeepEquals(PersistentConfig other)
 	{
+		bool useTorIsEqual = UseTor.ToString() == other.UseTor.ToString();
+
 		return
 			Network == other.Network &&
 			MainNetBackendUri == other.MainNetBackendUri &&
@@ -124,7 +130,7 @@ public record PersistentConfig : IConfigNg
 			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
 			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
 			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
-			UseTor == other.UseTor &&
+			useTorIsEqual &&
 			TerminateTorOnExit == other.TerminateTorOnExit &&
 			DownloadNewVersion == other.DownloadNewVersion &&
 			StartLocalBitcoinCoreOnStartup == other.StartLocalBitcoinCoreOnStartup &&
