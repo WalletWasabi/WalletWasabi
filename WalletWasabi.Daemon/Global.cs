@@ -82,10 +82,8 @@ public class Global
 		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
-		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
+		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), wasabiSynchronizer.HttpClientFactory.SharedWasabiClient);
 
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -230,7 +228,7 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-                await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
 
@@ -260,6 +258,8 @@ public class Global
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				WalletManager.Initialize();
+
+				await UpdateManager.TryUpdateApplicationAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -443,9 +443,6 @@ public class Global
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
-
-				UpdateManager.Dispose();
-				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
 
 				CoinPrison.Dispose();
 
