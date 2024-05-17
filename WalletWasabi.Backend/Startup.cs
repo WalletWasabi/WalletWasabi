@@ -13,6 +13,7 @@ using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http.Timeouts;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -122,6 +123,12 @@ public class Startup
 		services.AddStartupTask<InitConfigStartupTask>();
 
 		services.AddResponseCompression();
+		services.AddRequestTimeouts(options =>
+			options.DefaultPolicy =
+				new RequestTimeoutPolicy
+				{
+					Timeout = TimeSpan.FromSeconds(5)
+				});
 	}
 
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
@@ -143,6 +150,7 @@ public class Startup
 		app.UseResponseCompression();
 
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
+		app.UseRequestTimeouts();
 
 		var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
 		applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
