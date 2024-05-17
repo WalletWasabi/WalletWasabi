@@ -3,8 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
@@ -30,10 +30,10 @@ public static class TransactionFeeHelper
 
 	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		var feeProvider = wallet.FeeProvider;
+		var feeProvider = wallet.FeeRateEstimationUpdater;
 
-		bool RpcFeeProviderInError() => feeProvider.RpcFeeProvider?.InError ?? true;
-		bool ThirdPartyFeeProviderInError() => feeProvider.ThirdPartyFeeProvider.InError;
+		bool RpcFeeProviderInError() => false;
+		bool ThirdPartyFeeProviderInError() => false;
 
 		while (!RpcFeeProviderInError() || !ThirdPartyFeeProviderInError())
 		{
@@ -48,7 +48,7 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, UnconfirmedTransactionChainProvider unconfirmedTxChainProvider, [NotNullWhen(true)] out TimeSpan? estimate)
+	public static bool TryEstimateConfirmationTime(FeeRateEstimationUpdater feeProvider, Network network, SmartTransaction tx, UnconfirmedTransactionChainProvider unconfirmedTxChainProvider, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
 
@@ -87,9 +87,9 @@ public static class TransactionFeeHelper
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out AllFeeEstimate? estimates)
-		=> TryGetFeeEstimates(wallet.FeeProvider, wallet.Network, out estimates);
+		=> TryGetFeeEstimates(wallet.FeeRateEstimationUpdater, wallet.Network, out estimates);
 
-	public static bool TryGetFeeEstimates(HybridFeeProvider feeProvider, Network network, [NotNullWhen(true)] out AllFeeEstimate? estimates)
+	public static bool TryGetFeeEstimates(FeeRateEstimationUpdater feeProvider, Network network, [NotNullWhen(true)] out AllFeeEstimate? estimates)
 	{
 		estimates = null;
 

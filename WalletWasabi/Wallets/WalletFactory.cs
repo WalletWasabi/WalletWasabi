@@ -1,7 +1,7 @@
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -18,7 +18,7 @@ public record WalletFactory(
 	BitcoinStore BitcoinStore,
 	WasabiSynchronizer WasabiSynchronizer,
 	ServiceConfiguration ServiceConfiguration,
-	HybridFeeProvider FeeProvider,
+	FeeRateEstimationUpdater FeeRateEstimationUpdater,
 	BlockDownloadService BlockDownloadService,
     UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider)
 {
@@ -27,7 +27,7 @@ public record WalletFactory(
 		TransactionProcessor transactionProcessor = new(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
 		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockDownloadService);
 
-		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeProvider, transactionProcessor, walletFilterProcessor, UnconfirmedTransactionChainProvider);
+		return new(DataDir, Network, keyManager, BitcoinStore, WasabiSynchronizer, ServiceConfiguration, FeeRateEstimationUpdater, transactionProcessor, walletFilterProcessor, UnconfirmedTransactionChainProvider);
 	}
 
 	public Wallet CreateAndInitialize(KeyManager keyManager)
