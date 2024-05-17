@@ -8,7 +8,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -85,30 +84,13 @@ public class LiveServerTests : IAsyncLifetime
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
-	public async Task GetVersionsTestsAsync(Network network)
+	public async Task GetBackendVersionTestsAsync(Network network)
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
 		WasabiClient client = MakeWasabiClient(network);
-		var versions = await client.GetVersionsAsync(ctsTimeout.Token);
-		Assert.InRange(versions.ClientVersion, new(2, 0, 0), new(2, 99, 99));
-		Assert.InRange(versions.ClientVersion, new(2, 0, 0), WalletWasabi.Helpers.Constants.ClientVersion);
-		Assert.Equal(4, versions.BackendMajorVersion);
-	}
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task CheckUpdatesTestsAsync(Network network)
-	{
-		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-		WasabiClient client = MakeWasabiClient(network);
-		UpdateStatus updateStatus = await client.CheckUpdatesAsync(ctsTimeout.Token);
-
-		Assert.True(updateStatus.BackendCompatible);
-		Assert.True(updateStatus.ClientUpToDate);
-		Assert.Equal((ushort)4, updateStatus.CurrentBackendMajorVersion);
-		Assert.Equal(WalletWasabi.Helpers.Constants.ClientVersion.ToString(3), updateStatus.ClientVersion.ToString());
+		var backendMajorVersion = await client.GetBackendMajorVersionAsync(ctsTimeout.Token);
+		Assert.Equal(4, backendMajorVersion);
 	}
 
 	private WasabiClient MakeWasabiClient(Network network)
