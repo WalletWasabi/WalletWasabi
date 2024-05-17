@@ -104,7 +104,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		// Update Available
 		if (Services.UpdateManager is { })
 		{
-			Observable.FromEventPattern<UpdateStatus>(Services.UpdateManager, nameof(Services.UpdateManager.UpdateAvailableToGet))
+			Observable.FromEventPattern<UpdateManager.UpdateStatus>(Services.UpdateManager, nameof(Services.UpdateManager.UpdateAvailableToGet))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
