@@ -7,12 +7,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
-using WalletWasabi.Extensions;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -82,7 +79,7 @@ public class BlockchainController : ControllerBase
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => GetRawMempoolStringsNoCacheAsync(token),
+			action: (request, token) => GetRawMempoolStringsNoCacheAsync(token),
 			options: cacheOptions,
 			cancellationToken);
 	}
@@ -283,13 +280,12 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
-			var before = DateTimeOffset.UtcNow;
 			uint256 txId = new(transactionId);
 
 			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
 			var ret = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
+				action: (request, token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 				options: UnconfirmedTransactionChainCacheEntryOptions,
 				cancellationToken);
 			return ret;
@@ -337,7 +333,7 @@ public class BlockchainController : ControllerBase
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, cancellationToken),
+				action: (request, token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, token),
 				options: UnconfirmedTransactionChainItemCacheEntryOptions,
 				cancellationToken);
 
