@@ -149,7 +149,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient,IDestinationProvider destinationProvider, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -184,7 +184,7 @@ public class DependencyGraphTaskScheduler
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
+					destinationProvider.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
 				}
 				catch (Exception ex)
 				{
