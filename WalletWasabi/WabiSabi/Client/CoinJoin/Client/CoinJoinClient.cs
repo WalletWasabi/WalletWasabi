@@ -739,8 +739,8 @@ public class CoinJoinClient
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
-		var outputRegistrationEndTime = now + remainingTime * 0.8; // 80% of the time.
-		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
+		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
+		var readyToSignEndTime = outputRegistrationEndTime + (remainingTime * 0.2); // 20% of the time.
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 

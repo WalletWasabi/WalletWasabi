@@ -20,11 +20,13 @@ public class SpectrumDrawHandler : IDrawHandler
 	private readonly SpectrumControl _control;
 	private SKColor _pathColor;
 	private SKSurface? _surface;
+
 	private SKPaint? _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
 		FilterQuality = SKFilterQuality.Low
 	};
+
 	private float[] _data;
 	private bool _isGenerating;
 
@@ -175,7 +177,7 @@ public class SpectrumDrawHandler : IDrawHandler
 				(float)x,
 				(float)height,
 				(float)(x + thickness),
-				(float)(height - multiplier * _data[i] * (height * 0.8)));
+				(float)(height - (multiplier * _data[i] * (height * 0.8))));
 			path.AddRect(rect);
 
 			x += thickness;

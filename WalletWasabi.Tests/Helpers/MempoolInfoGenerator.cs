@@ -40,7 +40,7 @@ public class MempoolInfoGenerator
 		static FeeRateGroup ToFeeRateGroup((int from, int to) range, int size)
 		{
 			var count = size / Math.Max(300, Random.Shared.Gaussian(500, 100));
-			var avgFeeRate = range.from + (range.to - range.from) / 2.0m;
+			var avgFeeRate = range.from + ((range.to - range.from) / 2.0m);
 			return new FeeRateGroup
 			{
 				Count = (uint)count,
@@ -109,7 +109,7 @@ public class MempoolInfoGenerator
 			MaxMemPool = info.Value<double>("maxmempool"),
 			MemPoolMinFee = info.Value<double>("mempoolminfee"),
 			MinRelayTxFee = info.Value<double>("minrelaytxfee"),
-			Histogram = ExtractFeeRateGroups(info["fee_histogram"] ).ToArray()
+			Histogram = ExtractFeeRateGroups(info["fee_histogram"]).ToArray()
 		};
 	}
 

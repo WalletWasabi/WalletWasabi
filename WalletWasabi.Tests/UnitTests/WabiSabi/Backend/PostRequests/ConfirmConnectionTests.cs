@@ -25,7 +25,7 @@ public class ConfirmConnectionTests
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 
 		var resp = await arena.ConfirmConnectionAsync(req, CancellationToken.None);
 		Assert.NotNull(resp);

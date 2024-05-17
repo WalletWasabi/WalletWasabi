@@ -69,7 +69,7 @@ public static class Decomposer
 		var list = new long[count];
 		for (var i = 0; i < count; i++)
 		{
-			var index = decomposition >> i * 8 & 0xff;
+			var index = (decomposition >> (i * 8)) & 0xff;
 			list[count - i - 1] = denoms[index];
 		}
 		return list;

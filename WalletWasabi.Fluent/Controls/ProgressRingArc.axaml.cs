@@ -155,8 +155,8 @@ public class ProgressRingArc : TemplatedControl
 		var endPoint = ComputeCartesianCoordinate(angle, _radius);
 		endPoint += new Point(_radius, _radius);
 
-		PathFigureWidth = (int)_radius * 2 + StrokeThickness;
-		PathFigureHeight = (int)_radius * 2 + StrokeThickness;
+		PathFigureWidth = ((int)_radius * 2) + StrokeThickness;
+		PathFigureHeight = ((int)_radius * 2) + StrokeThickness;
 		PathFigureMargin = new Thickness(StrokeThickness, StrokeThickness, 0, 0);
 
 		var largeArc = angle > 180.0;
