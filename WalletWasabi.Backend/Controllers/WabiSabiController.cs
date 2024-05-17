@@ -71,7 +71,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		using CancellationTokenSource timeoutCts = new(RequestTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, linkedCts.Token);
+		await Arena.RegisterOutputCoreAsync(request, linkedCts.Token);
 	}
 
 	[HttpPost("credential-issuance")]
