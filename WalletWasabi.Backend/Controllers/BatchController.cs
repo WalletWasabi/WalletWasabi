@@ -21,18 +21,14 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, OffchainController offchainController, WabiSabiController wabiSabiController, Global global)
+	public BatchController(BlockchainController blockchainController, Global global)
 	{
 		BlockchainController = blockchainController;
-		OffchainController = offchainController;
-		WabiSabiController = wabiSabiController;
 		Global = global;
 	}
 
 	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
-	public OffchainController OffchainController { get; }
-	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
 	[ResponseCache(Duration = 60)]
@@ -63,17 +59,6 @@ public class BatchController : ControllerBase
 			response.FiltersResponseState = FiltersResponseState.NewFilters;
 			response.Filters = filters;
 		}
-
-		try
-		{
-			response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(EstimateSmartFeeMode.Conservative, cancellationToken);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
-
-		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
 		return Ok(response);
 	}

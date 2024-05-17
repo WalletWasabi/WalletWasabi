@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -99,7 +99,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var feeProvider = _wallet.FeeProvider;
+		var feeProvider = _wallet.FeeRateEstimationUpdater;
 
 		Observable
 			.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))

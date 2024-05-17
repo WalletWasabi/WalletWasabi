@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -13,7 +12,6 @@ using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -27,7 +25,6 @@ public class WabiSabiCoordinator : BackgroundService
 		RpcClient = rpc;
 		Warden = new(parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
-		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
@@ -42,7 +39,6 @@ public class WabiSabiCoordinator : BackgroundService
 			rpc,
 			Warden.Prison,
 			roundParameterFactory,
-			transactionArchiver,
 			coinJoinScriptStore);
 
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;

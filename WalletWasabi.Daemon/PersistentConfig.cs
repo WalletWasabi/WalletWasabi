@@ -114,6 +114,14 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	[DefaultValue("MempoolSpace")]
+	[JsonPropertyName("ExchangeRateProvider")]
+	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
+
+	[DefaultValue("BlockstreamInfo")]
+	[JsonPropertyName("FeeRateEstimationProvider")]
+	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		return
@@ -139,7 +147,9 @@ public record PersistentConfig : IConfigNg
 			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
-			CoordinatorIdentifier == other.CoordinatorIdentifier;
+			CoordinatorIdentifier == other.CoordinatorIdentifier &&
+			ExchangeRateProvider == other.ExchangeRateProvider &&
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

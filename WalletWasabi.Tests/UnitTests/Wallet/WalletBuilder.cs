@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
@@ -20,6 +19,7 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Wallets;
 using System.Net.Http;
 
@@ -68,7 +68,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		HybridFeeProvider feeProvider = new(Synchronizer, null);
+		FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, ()=>"BlockstreamInfo");
 
 		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService, UnconfirmedTransactionChainProvider);
 		return walletFactory.CreateAndInitialize(keyManager);

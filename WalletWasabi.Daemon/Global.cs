@@ -12,7 +12,6 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -32,9 +31,10 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.BuyAnything;
+using WalletWasabi.ExchangeRate;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
@@ -111,6 +111,7 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
+		RegisterExchangeRateProviders();
 		RegisterFeeRateProviders();
 
 		// Block providers.
@@ -126,8 +127,8 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
-		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
+        HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<FeeRateEstimationUpdater>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
@@ -372,7 +373,6 @@ public class Global
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 		if (!Config.BlockOnlyMode)
 		{
 			HostedServices.Register<MempoolMirror>(
@@ -383,9 +383,12 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, Config.UseTor ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
+	}
+
+	private void RegisterExchangeRateProviders()
+	{
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, Config.UseTor ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 	}
 
 	private void RegisterCoinJoinComponents()
@@ -394,6 +397,7 @@ public class Global
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), Config.CoordinatorIdentifier, CoinPrison), "CoinJoin Manager");
 	}
+
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
 	{

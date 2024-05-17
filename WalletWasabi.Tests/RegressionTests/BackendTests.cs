@@ -14,12 +14,12 @@ using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -62,7 +62,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
+		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate.ExchangeRate>>();
 		Assert.Single(exchangeRates);
 
 		var rate = exchangeRates[0];
@@ -145,7 +145,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+		var feeProvider = new FeeRateEstimationUpdater(TimeSpan.Zero, ()=>"BlockstreamInfo");
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -305,77 +305,6 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			{
 				await indexBuilderService.StopAsync();
 			}
-		}
-	}
-
-	[Fact]
-	public async Task StatusRequestTestAsync()
-	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
-		IRPCClient rpc = setup.RpcClient;
-		using Backend.Global global = setup.Global;
-
-		var requestUri = "btc/Blockchain/status";
-
-		try
-		{
-			global.IndexBuilderService.Synchronize();
-
-			// Test initial synchronization.
-			var times = 0;
-			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (global.IndexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
-			{
-				if (times > 500) // 30 sec
-				{
-					throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
-				}
-				await Task.Delay(100);
-				times++;
-			}
-
-			// First request.
-			using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
-			{
-				Assert.NotNull(response);
-
-				var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
-				Assert.True(resp.FilterCreationActive);
-
-				// Simulate an unintended stop
-				await global.IndexBuilderService.StopAsync();
-				await rpc.GenerateAsync(1);
-			}
-
-			// Second request.
-			using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
-			{
-				Assert.NotNull(response);
-
-				var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
-				Assert.True(resp.FilterCreationActive);
-
-				await rpc.GenerateAsync(1);
-
-				var blockchainController = RegTestFixture.BackendHost.Services.GetRequiredService<BlockchainController>();
-				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
-
-				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
-				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
-			}
-
-			// Third request.
-			using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
-			{
-				Assert.NotNull(response);
-
-				var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
-				Assert.False(resp.FilterCreationActive);
-			}
-		}
-		finally
-		{
-			await global.IndexBuilderService.StopAsync();
 		}
 	}
 

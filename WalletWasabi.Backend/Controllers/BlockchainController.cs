@@ -1,26 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Cache;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Cache;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -34,8 +23,6 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BlockchainController : ControllerBase
 {
-	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
-	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions TransactionCacheOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
@@ -53,39 +40,6 @@ public class BlockchainController : ControllerBase
 	public IdempotencyRequestCache Cache { get; }
 
 	public Global Global { get; }
-
-	/// <summary>
-	/// Get all fees.
-	/// </summary>
-	/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
-	/// <returns>A dictionary of fee targets and estimations.</returns>
-	/// <response code="200">A dictionary of fee targets and estimations.</response>
-	/// <response code="400">Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.</response>
-	[HttpGet("all-fees")]
-	[ProducesResponseType(200)]
-	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
-	{
-		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
-		{
-			return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
-		}
-
-		AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode, cancellationToken);
-
-		return Ok(estimation.Estimations);
-	}
-
-	internal Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode, CancellationToken cancellationToken = default)
-	{
-		var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-
-		return Cache.GetCachedResponseAsync(
-			cacheKey,
-			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(token),
-			options: CacheEntryOptions,
-			cancellationToken);
-	}
 
 	/// <summary>
 	/// Gets mempool hashes.
@@ -125,7 +79,7 @@ public class BlockchainController : ControllerBase
 
 		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken token) => GetRawMempoolStringsNoCacheAsync(token),
+			action: (request, token) => GetRawMempoolStringsNoCacheAsync(token),
 			options: cacheOptions,
 			cancellationToken);
 	}
@@ -298,124 +252,6 @@ public class BlockchainController : ControllerBase
 		return Ok("Transaction is successfully broadcasted.");
 	}
 
-	/// <summary>
-	/// Gets block filters from the provided block hash.
-	/// </summary>
-	/// <remarks>
-	/// Filter examples:
-	///
-	///     Main: 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
-	///     TestNet: 00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
-	///     RegTest: 0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-	///
-	/// </remarks>
-	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
-	/// <param name="count">The number of filters to return.</param>
-	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
-	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
-	/// <response code="204">When the provided hash is the tip.</response>
-	/// <response code="400">The provided hash was malformed or the count value is out of range</response>
-	/// <response code="404">If the hash is not found. This happens at blockchain reorg.</response>
-	[HttpGet("filters")]
-	[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
-	[ProducesResponseType(204)]
-	[ProducesResponseType(400)]
-	[ProducesResponseType(404)]
-	[ResponseCache(Duration = 60)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
-	{
-		if (count <= 0)
-		{
-			return BadRequest("Invalid block hash or count is provided.");
-		}
-
-		var knownHash = new uint256(bestKnownBlockHash);
-
-		var (bestHeight, filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
-
-		if (!found)
-		{
-			return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
-		}
-
-		if (!filters.Any())
-		{
-			return NoContent();
-		}
-
-		var response = new FiltersResponse
-		{
-			BestHeight = bestHeight,
-			Filters = filters
-		};
-
-		return Ok(response);
-	}
-
-	[HttpGet("status")]
-	[ProducesResponseType(typeof(StatusResponse), 200)]
-	public async Task<StatusResponse> GetStatusAsync(CancellationToken cancellationToken)
-	{
-		try
-		{
-			var cacheKey = $"{nameof(GetStatusAsync)}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
-
-			return await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (string request, CancellationToken token) => FetchStatusAsync(token),
-				options: cacheOptions,
-				cancellationToken);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			throw;
-		}
-	}
-
-	private async Task<StatusResponse> FetchStatusAsync(CancellationToken cancellationToken = default)
-	{
-		StatusResponse status = new();
-
-		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
-		{
-			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
-			var lastFilterHash = lastFilter.Header.BlockHash;
-			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
-			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
-			var prevHash = lastBlockHeader.HashPrevBlock;
-
-			if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-			{
-				status.FilterCreationActive = true;
-			}
-		}
-		else
-		{
-			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of WabiSabi coinjoin.
-		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
-		{
-			var ww2CjDownAfter = TimeSpan.FromHours(3);
-			var wabiSabiValidInterval = wabiSabiCoordinator.Config.StandardInputRegistrationTimeout * 2;
-			if (wabiSabiValidInterval < ww2CjDownAfter)
-			{
-				wabiSabiValidInterval = ww2CjDownAfter;
-			}
-			if (DateTimeOffset.UtcNow - wabiSabiCoordinator.LastSuccessfulCoinJoinTime < wabiSabiValidInterval)
-			{
-				status.WabiSabiCoinJoinCreationActive = true;
-			}
-		}
-
-		return status;
-	}
-
 	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
@@ -423,13 +259,12 @@ public class BlockchainController : ControllerBase
 	{
 		try
 		{
-			var before = DateTimeOffset.UtcNow;
 			uint256 txId = new(transactionId);
 
 			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
 			var ret = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
+				action: (request, token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
 				options: UnconfirmedTransactionChainCacheEntryOptions,
 				cancellationToken);
 			return ret;
@@ -477,7 +312,7 @@ public class BlockchainController : ControllerBase
 
 			var currentTxChainItem = await Cache.GetCachedResponseAsync(
 				cacheKey,
-				action: (string request, CancellationToken token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, cancellationToken),
+				action: (request, token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, token),
 				options: UnconfirmedTransactionChainItemCacheEntryOptions,
 				cancellationToken);
 

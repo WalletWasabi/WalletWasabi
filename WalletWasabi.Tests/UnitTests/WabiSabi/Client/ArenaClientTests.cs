@@ -23,7 +23,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -192,7 +191,7 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
 
-		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+		var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 		var aliceId = inputRegistrationResponse.Value;
 
 		var amountsToRequest = new[]
@@ -282,6 +281,6 @@ public class ArenaClientTests
 
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Single(tx.Inputs);
-		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
+		Assert.Equal(2, tx.Outputs.Count);
 	}
 }

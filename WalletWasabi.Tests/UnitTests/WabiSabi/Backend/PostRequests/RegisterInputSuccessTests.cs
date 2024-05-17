@@ -8,7 +8,6 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -41,7 +40,7 @@ public class RegisterInputSuccessTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+		var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 		await arena.StopAsync(CancellationToken.None);
@@ -69,7 +68,7 @@ public class RegisterInputSuccessTests
 			arena);
 		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", round.Id), ScriptPubKeyType.Segwit);
 
-		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+		var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 		await arena.StopAsync(CancellationToken.None);
@@ -114,7 +113,7 @@ public class RegisterInputSuccessTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, ScriptPubKeyType.TaprootBIP86);
 
-		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+		var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 		await arena.StopAsync(CancellationToken.None);

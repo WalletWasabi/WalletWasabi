@@ -15,7 +15,6 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -580,7 +579,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+		var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}
