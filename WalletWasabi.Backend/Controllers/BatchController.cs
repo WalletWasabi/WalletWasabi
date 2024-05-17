@@ -21,16 +21,14 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, WabiSabiController wabiSabiController, Global global)
+	public BatchController(BlockchainController blockchainController, Global global)
 	{
 		BlockchainController = blockchainController;
-		WabiSabiController = wabiSabiController;
 		Global = global;
 	}
 
 	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
-	public WabiSabiController WabiSabiController { get; }
 
 	[HttpGet("synchronize")]
 	[ResponseCache(Duration = 60)]

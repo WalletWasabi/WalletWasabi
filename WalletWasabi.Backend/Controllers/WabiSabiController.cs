@@ -1,12 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
-using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -28,7 +24,6 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
@@ -44,37 +39,25 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("connection-confirmation")]
 	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(RequestTimeout);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, linkedCts.Token);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, cancellationToken);
 	}
 
 	[HttpPost("input-registration")]
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(RequestTimeout);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, linkedCts.Token);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, cancellationToken);
 	}
 
 	[HttpPost("output-registration")]
 	public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(RequestTimeout);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, linkedCts.Token);
+		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, cancellationToken);
 	}
 
 	[HttpPost("credential-issuance")]
 	public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(RequestTimeout);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, linkedCts.Token);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, cancellationToken);
 	}
 
 	[HttpPost("input-unregistration")]
