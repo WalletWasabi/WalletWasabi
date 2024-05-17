@@ -118,6 +118,10 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("ExchangeRateProvider")]
 	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
+	[DefaultValue("BlockstreamInfo")]
+	[JsonPropertyName("FeeRateEstimationProvider")]
+	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		return
@@ -144,7 +148,8 @@ public record PersistentConfig : IConfigNg
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
-			ExchangeRateProvider == other.ExchangeRateProvider;
+			ExchangeRateProvider == other.ExchangeRateProvider &&
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

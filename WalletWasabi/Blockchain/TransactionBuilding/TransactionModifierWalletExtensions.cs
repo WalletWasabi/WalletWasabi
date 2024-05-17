@@ -123,7 +123,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.AllFeeEstimate?.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
@@ -274,7 +274,7 @@ public static class TransactionModifierWalletExtensions
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
 		var txSizeBytes = transactionToCpfp.Transaction.GetVirtualSize();
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.AllFeeEstimate?.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);

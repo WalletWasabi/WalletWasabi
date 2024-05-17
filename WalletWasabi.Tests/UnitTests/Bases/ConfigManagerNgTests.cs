@@ -72,7 +72,8 @@ public class ConfigManagerNgTests
 			  "DustThreshold": "0.00005",
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
-			  "ExchangeRateProvider": "MempoolSpace"
+			  "ExchangeRateProvider": "MempoolSpace",
+			  "FeeRateEstimationProvider": "BlockstreamInfo"
 			}
 			""";
 

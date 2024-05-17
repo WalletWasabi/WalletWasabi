@@ -62,15 +62,6 @@ public class BatchController : ControllerBase
 			response.Filters = filters;
 		}
 
-		try
-		{
-			response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(EstimateSmartFeeMode.Conservative, cancellationToken);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
-
 		return Ok(response);
 	}
 }
