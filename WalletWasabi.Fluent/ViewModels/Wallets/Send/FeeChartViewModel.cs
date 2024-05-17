@@ -162,7 +162,7 @@ public partial class FeeChartViewModel : ViewModelBase
 				}
 
 				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
-				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
+				var interpolated = (decimal)(ys[0] + ((t - xs[0]) * slope));
 				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 			}
 
