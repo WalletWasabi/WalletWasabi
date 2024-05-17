@@ -22,6 +22,8 @@ namespace WalletWasabi.Tests.IntegrationTests;
 /// <summary>
 /// Integration tests for <see cref="BlockDownloadService"/>.
 /// </summary>
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class BlockDownloadTests
 {
 	public static readonly SortedDictionary<uint, uint256> HeightToBlockHash = new()
