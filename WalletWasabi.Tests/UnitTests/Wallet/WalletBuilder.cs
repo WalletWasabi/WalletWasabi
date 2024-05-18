@@ -41,7 +41,7 @@ public class WalletBuilder : IAsyncDisposable
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
-		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
+		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory.SharedWasabiClient);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
 		UnconfirmedTransactionChainProvider = new(HttpClientFactory);
 	}
@@ -70,7 +70,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, ()=>"BlockstreamInfo");
 
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService, UnconfirmedTransactionChainProvider);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, HttpClientFactory.SharedWasabiClient, serviceConfiguration, feeProvider, BlockDownloadService, UnconfirmedTransactionChainProvider);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 

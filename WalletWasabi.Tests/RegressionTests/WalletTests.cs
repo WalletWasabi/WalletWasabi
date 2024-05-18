@@ -51,8 +51,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		// 2. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
-		var feeProvider = new FeeRateEstimationUpdater(TimeSpan.Zero, ()=>"BlockstreamInfo");
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory.SharedWasabiClient);
+		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo");
 
 		// 3. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
@@ -77,7 +77,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, setup.ServiceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, httpClientFactory.SharedWasabiClient, setup.ServiceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 

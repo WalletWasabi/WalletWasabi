@@ -101,8 +101,8 @@ public class P2pTests
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		await using WasabiHttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		var feeProvider = new FeeRateEstimationUpdater(period:TimeSpan.Zero, ()=> "MempoolSpace");
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory.SharedWasabiClient);
+		using var feeProvider = new FeeRateEstimationUpdater(period:TimeSpan.Zero, ()=> "MempoolSpace");
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		using MemoryCache cache = new(new MemoryCacheOptions
@@ -122,7 +122,7 @@ public class P2pTests
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
+		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, synchronizer, httpClientFactory.SharedWasabiClient, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
