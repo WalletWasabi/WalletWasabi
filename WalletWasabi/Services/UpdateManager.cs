@@ -8,20 +8,21 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
-using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class UpdateManager
+public class UpdateManager : PeriodicRunner
 {
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
+		: base(period)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		GithubHttpClient = githubHttpClient;
@@ -45,7 +46,7 @@ public class UpdateManager
 
 	private WasabiClient WasabiClient { get; }
 
-	public async Task TryUpdateApplicationAsync(CancellationToken cancellationToken)
+	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
