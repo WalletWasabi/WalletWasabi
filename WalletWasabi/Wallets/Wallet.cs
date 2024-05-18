@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WabiSabi.Crypto;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -24,6 +25,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -36,7 +38,8 @@ public class Wallet : BackgroundService, IWallet
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
-		WasabiSynchronizer syncer,
+		WasabiSynchronizer synchronizer,
+		WasabiClient wasabiClient,
 		ServiceConfiguration serviceConfiguration,
 		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
@@ -47,7 +50,8 @@ public class Wallet : BackgroundService, IWallet
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
-		Synchronizer = syncer;
+		Synchronizer = synchronizer;
+		WasabiClient = wasabiClient;
 		ServiceConfiguration = serviceConfiguration;
 		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
@@ -95,6 +99,7 @@ public class Wallet : BackgroundService, IWallet
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; }
+	private WasabiClient WasabiClient { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string WalletName => KeyManager.WalletName;
 
@@ -445,7 +450,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(WasabiClient).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -503,10 +508,9 @@ public class Wallet : BackgroundService, IWallet
 		{
 			try
 			{
-				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
 				var compactness = 10;
 
-				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+				var mempoolHashes = await WasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 				var txsToProcess = new List<SmartTransaction>();
 				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
