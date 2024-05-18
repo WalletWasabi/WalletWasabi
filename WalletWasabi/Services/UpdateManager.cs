@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
-using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -21,7 +20,7 @@ public class UpdateManager
 {
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiClient sharedWasabiClient)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		GithubHttpClient = githubHttpClient;
@@ -35,7 +34,7 @@ public class UpdateManager
 	private string InstallerPath { get; set; } = "";
 
 	private string InstallerDir { get; }
-	private IHttpClient GithubHttpClient { get; }
+	private HttpClient GithubHttpClient { get; }
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }

@@ -39,6 +39,10 @@ using WalletWasabi.Models;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
+using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Tor.Socks5;
+using System.Net.Http;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Daemon;
 
@@ -80,8 +84,14 @@ public class Global
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory.SharedWasabiClient), "Wasabi Synchronizer");
+		SharedHttpClient = CreateSharedHttpClient();
+
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory, new WasabiClient(SharedHttpClient)), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
+
+		WasabiClient sharedWasabiClient = new(SharedHttpClient);
+
+		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, SharedHttpClient, sharedWasabiClient);
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
@@ -136,6 +146,24 @@ public class Global
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "HttpClientHandler is set to be disposed by the HttpClient instance.")]
+	private HttpClient CreateSharedHttpClient(TimeSpan? pooledConnectionLifetime = null)
+	{
+		IWebProxy? proxy = Config.UseTor
+			? Socks5Proxy.GetWebProxy(TorSettings.SocksEndpoint, new NetworkCredential(DefaultCircuit.Instance.Name, DefaultCircuit.Instance.Name))
+			: null;
+
+		// HttpClientHandler httpClientHandler = new();
+		SocketsHttpHandler handler = new()
+		{
+			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Brotli,
+			PooledConnectionLifetime = pooledConnectionLifetime ?? TimeSpan.FromMinutes(5),
+			Proxy = proxy
+		};
+
+		return new HttpClient(handler, disposeHandler: true);
+	}
+
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 	public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
@@ -150,7 +178,12 @@ public class Global
 	public BitcoinStore BitcoinStore { get; }
 
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
+	/// <remarks>Obsolete HTTP client.</remarks>
 	public WasabiHttpClientFactory HttpClientFactory { get; }
+
+	/// <summary>HTTP client running over clearnet or over a default Tor circuit.</summary>
+	/// <seealso cref="DefaultCircuit"/>
+	private HttpClient SharedHttpClient { get; }
 
 	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
