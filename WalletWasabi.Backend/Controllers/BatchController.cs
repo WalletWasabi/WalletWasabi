@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -19,12 +21,14 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(Global global)
+	public BatchController(BlockchainController blockchainController, Global global)
 	{
+		BlockchainController = blockchainController;
 		Global = global;
 	}
 
 	public Global Global { get; }
+	public BlockchainController BlockchainController { get; }
 
 	[HttpGet("synchronize")]
 	[ResponseCache(Duration = 60)]
