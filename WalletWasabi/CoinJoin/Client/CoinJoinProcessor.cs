@@ -30,11 +30,11 @@ public class CoinJoinProcessor : IDisposable
 		Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 	}
 
-	public WasabiSynchronizer Synchronizer { get; }
-	public WalletManager WalletManager { get; }
-	public Network Network { get; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private WalletManager WalletManager { get; }
+	private Network Network { get; }
 	private WasabiHttpClientFactory HttpClientFactory { get; }
-	public IRPCClient? RpcClient { get; private set; }
+	private IRPCClient? RpcClient { get; set; }
 	private AsyncLock ProcessLock { get; }
 
 	private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
