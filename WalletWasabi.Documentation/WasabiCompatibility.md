@@ -49,5 +49,5 @@ Wasabi dependencies are:
 
 ## What about Tails and Whonix?
 
-It is currently not possible to use Wasabi on Tails or Whonix.
-That is because Wasabi uses the Tor control port, which is not exposed in these operating systems.
+Tails and Whonix are privacy-oriented OSs, so it makes sense to use them with Wasabi Wallet. At the moment, Wasabi is working properly on these platforms, but our dependencies do not officially support them, so we cannot make promises regarding future stability.
+To make Wasabi work on these OSs, it should be started with the following start up parameters: `--UseTor=EnabledOnlyRunning --TorSocksPort=9050`.
