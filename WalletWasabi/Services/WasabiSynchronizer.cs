@@ -11,7 +11,6 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -22,8 +21,6 @@ namespace WalletWasabi.Services;
 
 public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
-	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
