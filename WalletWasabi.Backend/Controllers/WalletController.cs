@@ -65,9 +65,7 @@ public class WalletController : ControllerBase
 
 	[HttpGet("synchronize")]
 	[ResponseCache(Duration = 60)]
-	public async Task<IActionResult> GetSynchronizeAsync(
-		[FromQuery, Required] string bestKnownBlockHash,
-		CancellationToken cancellationToken = default)
+	public IActionResult GetSynchronize([FromQuery, Required] string bestKnownBlockHash)
 	{
 		if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
 		{
