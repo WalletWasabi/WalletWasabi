@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
@@ -7,39 +6,95 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
 
 /// <summary>
-/// To interact with the Bitcoin Blockchain.
+/// To make batched requests.
 /// </summary>
 [Produces("application/json")]
-[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-public class BlockchainController : ControllerBase
+[Route("api/v" + Constants.BackendMajorVersion + "/[controller]")]
+public class WalletController : ControllerBase
 {
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
 	private static readonly MemoryCacheEntryOptions TransactionCacheOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
-	public BlockchainController(IMemoryCache memoryCache, Global global)
+	private static readonly VersionsResponse VersionsResponse = new()
 	{
-		Cache = new(memoryCache);
+		BackendMajorVersion = Constants.BackendMajorVersion,
+		CommitHash = GetCommitHash()
+	};
+
+	public WalletController(Global global, IMemoryCache memoryCache)
+	{
 		Global = global;
+		Cache = new(memoryCache);
 	}
 
 	private IRPCClient RpcClient => Global.RpcClient;
-	private Network Network => Global.Config.Network;
 	private MempoolMirror Mempool => Global.MempoolMirror;
 
 	public IdempotencyRequestCache Cache { get; }
-
 	public Global Global { get; }
+
+	/// <summary>
+	/// Gets the latest versions of the client and backend.
+	/// </summary>
+	/// <returns>ClientVersion, BackendMajorVersion.</returns>
+	/// <response code="200">ClientVersion, BackendMajorVersion.</response>
+	[HttpGet("versions")]
+	[ProducesResponseType(typeof(VersionsResponse), 200)]
+	public VersionsResponse GetVersions()
+	{
+		return VersionsResponse;
+	}
+
+	private static string GetCommitHash() =>
+		ReflectionUtils.GetAssemblyMetadata("CommitHash") ?? "";
+
+	[HttpGet("synchronize")]
+	[ResponseCache(Duration = 60)]
+	public IActionResult GetSynchronize([FromQuery, Required] string bestKnownBlockHash)
+	{
+		if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
+		{
+			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
+		}
+
+		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
+		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
+
+		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
+
+		if (!found)
+		{
+			response.FiltersResponseState = FiltersResponseState.BestKnownHashNotFound;
+		}
+		else if (!filters.Any())
+		{
+			response.FiltersResponseState = FiltersResponseState.NoNewFilter;
+		}
+		else
+		{
+			response.FiltersResponseState = FiltersResponseState.NewFilters;
+			response.Filters = filters;
+		}
+
+		return Ok(response);
+	}
+
+
 
 	/// <summary>
 	/// Gets mempool hashes.
@@ -226,7 +281,7 @@ public class BlockchainController : ControllerBase
 		Transaction transaction;
 		try
 		{
-			transaction = Transaction.Parse(hex, Network);
+			transaction = Transaction.Parse(hex, Global.Config.Network);
 		}
 		catch (Exception ex)
 		{
