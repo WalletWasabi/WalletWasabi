@@ -7,11 +7,11 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client;
 
@@ -19,20 +19,22 @@ public class CoinJoinProcessor : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public CoinJoinProcessor(Network network, WasabiSynchronizer synchronizer, WalletManager walletManager, IRPCClient? rpc)
+	public CoinJoinProcessor(Network network, WasabiSynchronizer synchronizer, WalletManager walletManager, WasabiClient wasabiClient, IRPCClient? rpc)
 	{
-		Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-		WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
+		Synchronizer = synchronizer;
+		WalletManager = walletManager;
 		Network = network;
+        WasabiClient = wasabiClient;
 		RpcClient = rpc;
 		ProcessLock = new AsyncLock();
 		Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 	}
 
-	public WasabiSynchronizer Synchronizer { get; }
-	public WalletManager WalletManager { get; }
-	public Network Network { get; }
-	public IRPCClient? RpcClient { get; private set; }
+	private WasabiSynchronizer Synchronizer { get; }
+	private WalletManager WalletManager { get; }
+	private Network Network { get; }
+	private WasabiClient WasabiClient { get; }
+	private IRPCClient? RpcClient { get; set; }
 	private AsyncLock ProcessLock { get; }
 
 	private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
@@ -49,8 +51,7 @@ public class CoinJoinProcessor : IDisposable
 
 				var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
-				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
-				var unconfirmedCoinJoins = await client.GetTransactionsAsync(Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
+				var unconfirmedCoinJoins = await WasabiClient.GetTransactionsAsync(Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
 				foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
 				{
