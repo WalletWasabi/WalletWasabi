@@ -21,8 +21,6 @@ namespace WalletWasabi.Services;
 
 public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
-	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
