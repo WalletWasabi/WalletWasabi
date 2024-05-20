@@ -25,15 +25,14 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 
 	private BackendStatus _backendStatus;
 
-	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
+	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiClient wasabiClient) : base(period)
 	{
 		MaxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
 		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
 		FilterProcessor = new FilterProcessor(bitcoinStore);
-		HttpClientFactory = httpClientFactory;
-		WasabiClient = httpClientFactory.SharedWasabiClient;
+		WasabiClient = wasabiClient;
 	}
 
 	#region EventsPropertiesMembers
@@ -48,7 +47,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiClient WasabiClient { get; }
 
 	public TorStatus TorStatus
