@@ -12,7 +12,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -23,12 +22,10 @@ public class RecoverWordBox : TemplatedControl
 {
 	private CompositeDisposable? _compositeDisposable;
 	private TagsBoxAutoCompleteBox? _autoCompleteBox;
-	private TextBlock? _watermark;
 	private StringComparison _stringComparison;
 	private bool _isInputEnabled = true;
 	private IList<string>? _suggestions;
 	private IEnumerable<string>? _items;
-	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
 
 	public static readonly StyledProperty<string?> TextProperty =
@@ -46,9 +43,6 @@ public class RecoverWordBox : TemplatedControl
 
 	public static readonly StyledProperty<bool> ForceAddProperty =
 		AvaloniaProperty.Register<RecoverWordBox, bool>(nameof(ForceAdd));
-
-	public static readonly StyledProperty<string> WatermarkProperty =
-		TextBox.WatermarkProperty.AddOwner<RecoverWordBox>();
 
 	public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 		AvaloniaProperty.Register<RecoverWordBox, bool>(nameof(RestrictInputToSuggestions));
@@ -73,11 +67,6 @@ public class RecoverWordBox : TemplatedControl
 			o => o.Items,
 			(o, v) => o.Items = v,
 			enableDataValidation: true);
-
-	public static readonly DirectProperty<RecoverWordBox, IEnumerable<string>?> TopItemsProperty =
-		AvaloniaProperty.RegisterDirect<RecoverWordBox, IEnumerable<string>?>(nameof(TopItems),
-			o => o.TopItems,
-			(o, v) => o.TopItems = v);
 
 	public static readonly DirectProperty<RecoverWordBox, IList<string>?> SuggestionsProperty =
 		AvaloniaProperty.RegisterDirect<RecoverWordBox, IList<string>?>(
@@ -114,18 +103,6 @@ public class RecoverWordBox : TemplatedControl
 	{
 		get => GetValue(IsCurrentTextValidProperty);
 		private set => SetValue(IsCurrentTextValidProperty, value);
-	}
-
-	public IEnumerable<string>? TopItems
-	{
-		get => _topItems;
-		set => SetAndRaise(TopItemsProperty, ref _topItems, value);
-	}
-
-	public string Watermark
-	{
-		get => GetValue(WatermarkProperty);
-		set => SetValue(WatermarkProperty, value);
 	}
 
 	public bool RequestAdd
@@ -218,8 +195,6 @@ public class RecoverWordBox : TemplatedControl
 		{
 			_autoCompleteBox.Loaded += PresenterOnLoaded;
 		}
-
-		InvalidateWatermark();
 	}
 
 	private void PresenterOnLoaded(object? sender, RoutedEventArgs e)
@@ -299,7 +274,6 @@ public class RecoverWordBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
 			{
-				InvalidateWatermark();
 				CheckIsCurrentTextValid();
 			})
 			.DisposeWith(_compositeDisposable);
@@ -307,7 +281,6 @@ public class RecoverWordBox : TemplatedControl
 		this.WhenAnyValue(x => x.Items)
 			.Subscribe(_ =>
 			{
-				InvalidateWatermark();
 				CheckIsCurrentTextValid();
 			})
 			.DisposeWith(_compositeDisposable);
@@ -379,7 +352,7 @@ public class RecoverWordBox : TemplatedControl
 	{
 		base.OnGotFocus(e);
 
-		_autoCompleteBox.InternalTextBox?.Focus();
+		_autoCompleteBox?.InternalTextBox?.Focus();
 	}
 
 	private void CheckIsInputEnabled()
@@ -387,15 +360,6 @@ public class RecoverWordBox : TemplatedControl
 		if (Items is IList items && ItemCountLimit > 0)
 		{
 			_isInputEnabled = items.Count < ItemCountLimit;
-		}
-	}
-
-	private void InvalidateWatermark()
-	{
-		if (_watermark is { })
-		{
-			_watermark.IsVisible =
-				(Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
 		}
 	}
 
@@ -479,7 +443,6 @@ public class RecoverWordBox : TemplatedControl
 
 		items.RemoveAt(index);
 		CheckIsInputEnabled();
-		InvalidateWatermark();
 	}
 
 	public void AddTag(object? value)
@@ -530,6 +493,5 @@ public class RecoverWordBox : TemplatedControl
 
 		items.Add(inputTag);
 		CheckIsInputEnabled();
-		InvalidateWatermark();
 	}
 }
