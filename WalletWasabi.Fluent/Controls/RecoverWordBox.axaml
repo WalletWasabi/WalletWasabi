@@ -26,31 +26,33 @@
     <Setter Property="IsTabStop" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                ItemsSource="{TemplateBinding Suggestions}"
-                                Text="{TemplateBinding Text}"
-                                FilterMode="StartsWith"
-                                MinimumPrefixLength="0"
-                                Width="150"
-                                Margin="5 0 0 0"
-                                Theme="{StaticResource TagsBoxAutoCompleteBox}"
-                                Name="TagsBoxAutoCompleteBox"
-                                IsVisible="{TemplateBinding IsSelected}">
-          <TagsBoxAutoCompleteBox.Styles>
-            <Style Selector="AutoCompleteBox">
-              <Setter Property="VerticalAlignment" Value="Center" />
-              <Setter Property="Focusable" Value="True" />
-              <Setter Property="MinimumPrefixLength" Value="0" />
-            </Style>
-            <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
-              <Setter Property="Focusable" Value="True" />
-              <Setter Property="IsReadOnly" Value="False" />
-            </Style>
-            <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-              <Setter Property="IsVisible" Value="True" />
-            </Style>
-          </TagsBoxAutoCompleteBox.Styles>
-        </TagsBoxAutoCompleteBox>
+        <DataValidationErrors>
+          <TagsBoxAutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                  ItemsSource="{TemplateBinding Suggestions}"
+                                  Text="{TemplateBinding Text}"
+                                  FilterMode="StartsWith"
+                                  MinimumPrefixLength="0"
+                                  Width="150"
+                                  Margin="5 0 0 0"
+                                  Theme="{StaticResource TagsBoxAutoCompleteBox}"
+                                  Name="TagsBoxAutoCompleteBox"
+                                  IsVisible="{TemplateBinding IsSelected}">
+            <TagsBoxAutoCompleteBox.Styles>
+              <Style Selector="AutoCompleteBox">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="MinimumPrefixLength" Value="0" />
+              </Style>
+              <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="IsReadOnly" Value="False" />
+              </Style>
+              <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
+                <Setter Property="IsVisible" Value="True" />
+              </Style>
+            </TagsBoxAutoCompleteBox.Styles>
+          </TagsBoxAutoCompleteBox>
+        </DataValidationErrors>
       </ControlTemplate>
     </Setter>
 
