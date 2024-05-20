@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
@@ -27,16 +26,6 @@ public class KeyChain : IKeyChain
 	private Key GetMasterKey()
 	{
 		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
-	}
-
-	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
-	{
-		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
-		{
-			KeyManager.SetKeyState(state, hdPubKey);
-		}
-
-		KeyManager.ToFile();
 	}
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)

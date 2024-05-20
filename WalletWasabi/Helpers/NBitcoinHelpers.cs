@@ -16,7 +16,7 @@ public static class NBitcoinHelpers
 	public static Money TakeFee(IEnumerable<Coin> inputs, int outputCount, Money feePerInputs, Money feePerOutputs)
 	{
 		var inputValue = inputs.Sum(coin => coin.TxOut.Value);
-		var fee = inputs.Count() * feePerInputs + outputCount * feePerOutputs;
+		var fee = (inputs.Count() * feePerInputs) + (outputCount * feePerOutputs);
 		Money outputSum = inputValue - fee;
 		if (outputSum < Money.Zero)
 		{

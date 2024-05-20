@@ -28,17 +28,17 @@ public class PeriodicRunnerTests
 
 		Assert.True(await runner.WaitForNextRoundAsync());
 		Assert.Equal(1, runner.RoundCounter);
-		Assert.InRange(sw.Elapsed, TimeSpan.Zero, 1 * runner.Period + leniencyThreshold); // Full period must elapse.
+		Assert.InRange(sw.Elapsed, TimeSpan.Zero, (1 * runner.Period) + leniencyThreshold); // Full period must elapse.
 
 		// Round #2.
 		Assert.True(await runner.WaitForNextRoundAsync());
 		Assert.Equal(2, runner.RoundCounter);
-		Assert.InRange(sw.Elapsed, 1 * runner.Period, 2 * runner.Period + leniencyThreshold); // Full period must elapse.
+		Assert.InRange(sw.Elapsed, 1 * runner.Period, (2 * runner.Period) + leniencyThreshold); // Full period must elapse.
 
 		// Round #3.
 		Assert.True(await runner.WaitForNextRoundAsync());
 		Assert.Equal(3, runner.RoundCounter);
-		Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Full period must elapse.
+		Assert.InRange(sw.Elapsed, 2 * runner.Period, (3 * runner.Period) + leniencyThreshold); // Full period must elapse.
 
 		// Run immediately next round when trigger is called.
 		runner.TriggerRound();
@@ -52,7 +52,7 @@ public class PeriodicRunnerTests
 		// Round #4.
 		Assert.True(await runner.WaitForNextRoundAsync());
 		Assert.Equal(4, runner.RoundCounter);
-		Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Elapsed time should not change much from the last round.
+		Assert.InRange(sw.Elapsed, 2 * runner.Period, (3 * runner.Period) + leniencyThreshold); // Elapsed time should not change much from the last round.
 
 		await runner.StopAsync(cts.Token);
 		await runnerTask;

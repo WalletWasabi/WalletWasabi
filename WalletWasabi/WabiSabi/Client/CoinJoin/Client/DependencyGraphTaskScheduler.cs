@@ -5,9 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing.Bip21;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
@@ -149,7 +152,12 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
+	public record OutputRegistrationError();
+	public record UnknownError(Script ScriptPubKey) : OutputRegistrationError;
+	public record AlreadyRegisteredScriptError(Script ScriptPubKey) : OutputRegistrationError;
+
+	public async Task<Result<OutputRegistrationError[]>> StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient,
+		ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -180,20 +188,23 @@ public class DependencyGraphTaskScheduler
 						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 					}
 					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+					return Result<OutputRegistrationError>.Ok();
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
+					return new AlreadyRegisteredScriptError(txOut.ScriptPubKey);
 				}
 				catch (Exception ex)
 				{
 					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
+					return new UnknownError(txOut.ScriptPubKey);
 				}
 			})
 			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+		return tasks.Select(x => x.Result).SequenceResults();
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)

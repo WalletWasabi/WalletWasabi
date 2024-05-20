@@ -97,8 +97,8 @@ public class CoinPrison : IDisposable
 		if (bannedUntil > currentDate.AddDays(MaxDaysToTrustLocalPrison))
 		{
 			Random random = new();
-			int minHours = (MaxDaysToTrustLocalPrison * 24 - 1) / 2;
-			int maxHours = MaxDaysToTrustLocalPrison * 24 - 1;
+			int minHours = ((MaxDaysToTrustLocalPrison * 24) - 1) / 2;
+			int maxHours = (MaxDaysToTrustLocalPrison * 24) - 1;
 			int randomHours = random.Next(minHours, maxHours);
 			int randomMinutes = random.Next(0, 60);
 			int randomSeconds = random.Next(0, 60);

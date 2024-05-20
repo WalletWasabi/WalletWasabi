@@ -59,7 +59,7 @@ public class PrivacyBar : ItemsControl
 
 		var coinCount = children.Count;
 		var totalAmount = TotalAmount;
-		var usableWidth = finalSize.Width - (coinCount - 1) * GapBetweenSegments;
+		var usableWidth = finalSize.Width - ((coinCount - 1) * GapBetweenSegments);
 
 		// Calculate the width of the segments.
 		var rawSegments =
