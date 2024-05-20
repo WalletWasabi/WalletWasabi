@@ -98,33 +98,17 @@
                                  IsVisible="{Binding !IsSelected}" />
                     </Panel>
 
-                    <TagsBoxAutoCompleteBox ItemsSource="{Binding Suggestions}"
-                                            Text="{Binding Word}"
-                                            FilterMode="StartsWith"
-                                            MinimumPrefixLength="0"
-                                            Width="150"
-                                            Margin="5 0 0 0"
-                                            Theme="{StaticResource TagsBoxAutoCompleteBox}"
-                                            Name="TagsBoxAutoCompleteBox"
-                                            IsVisible="{Binding IsSelected}">
-                      <TagsBoxAutoCompleteBox.Styles>
-                        <Style Selector="AutoCompleteBox">
-                          <Setter Property="VerticalAlignment" Value="Center" />
-                          <Setter Property="Focusable" Value="True" />
-                          <Setter Property="MinimumPrefixLength" Value="0" />
-                        </Style>
-                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
-                          <Setter Property="Focusable" Value="True" />
-                          <Setter Property="IsReadOnly" Value="False" />
-                        </Style>
-                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-                          <Setter Property="IsVisible" Value="True" />
-                        </Style>
-                      </TagsBoxAutoCompleteBox.Styles>
+                    <RecoverWordBox Suggestions="{Binding Suggestions}"
+                                    Text="{Binding Word}"
+                                    Width="150"
+                                    Margin="5 0 0 0"
+                                    IsVisible="{Binding IsSelected}"
+                                    IsSelected="{Binding IsSelected}">
                       <Interaction.Behaviors>
+                        <!-- TODO: Add IsSelected -->
                         <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
                       </Interaction.Behaviors>
-                    </TagsBoxAutoCompleteBox>
+                    </RecoverWordBox>
                   </Panel>
 
                 </DockPanel>
