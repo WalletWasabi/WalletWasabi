@@ -106,7 +106,7 @@ public class TransactionBroadcaster
 		{
 			// Broadcast to a random node.
 			// Wait until it arrives to at least two other nodes.
-			// If something's wrong, fall back broadcasting with rpc, then backend.
+			// If something's wrong, fall back broadcasting with rpc.
 
 			if (Nodes is null)
 			{
