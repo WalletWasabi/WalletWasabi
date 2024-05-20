@@ -409,7 +409,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		const int NumberOfCoinsPerParticipant = 2;
 		const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
 
-		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
+		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync(nameof(MultiClientsCoinJoinTestAsync));
 		try
 		{
 			var rpc = new TestableRpcClient((RpcClientBase)node.RpcClient);

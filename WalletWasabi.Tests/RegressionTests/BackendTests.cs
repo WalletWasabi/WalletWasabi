@@ -82,7 +82,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(GetClientVersionAsync));
 		IRPCClient rpc = setup.RpcClient;
 
 		var utxos = await rpc.ListUnspentAsync();
@@ -102,7 +102,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task BroadcastInvalidTxAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(BroadcastReplayTxAsync));
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -122,7 +122,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		#region Initialize
 
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(BroadcastInvalidTxAsync));
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
@@ -151,7 +151,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
-		var workDir = Helpers.Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(GetUnconfirmedTxChainAsync));
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
@@ -241,11 +241,11 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(GetUnconfirmedTxChainAsync));
 		IRPCClient rpc = setup.RpcClient;
 		using Backend.Global global = setup.Global;
 
-		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
+		var indexBuilderServiceDir = Common.GetWorkDir(nameof(FilterBuilderTestAsync));
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
 		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);

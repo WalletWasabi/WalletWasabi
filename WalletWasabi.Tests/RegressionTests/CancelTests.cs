@@ -40,7 +40,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task CancelTestsAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(CancelTestsAsync));
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
@@ -70,7 +70,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CancelTestsAsync));
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);

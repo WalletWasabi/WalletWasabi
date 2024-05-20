@@ -27,9 +27,9 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class WalletBuilder : IAsyncDisposable
 {
-	public WalletBuilder(MockNode node, [CallerMemberName] string callerName = "NN")
+	public WalletBuilder(MockNode node, string testName)
 	{
-		DataDir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
+		DataDir = Path.Combine(Common.GetWorkDir(nameof(WalletSynchronizationTests)), testName);
 
 		SmartHeaderChain smartHeaderChain = new();
 		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, smartHeaderChain);

@@ -54,10 +54,9 @@ public class RegTestSetup : IAsyncDisposable
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
 		int numberOfBlocksToGenerate,
-		[CallerFilePath] string callerFilePath = "",
-		[CallerMemberName] string callerMemberName = "")
+		string path)
 	{
-		string dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
+		string dir = Helpers.Common.GetWorkDir(path);
 		RegTestSetup setup = new(regTestFixture, dir);
 
 		if (numberOfBlocksToGenerate != 0)

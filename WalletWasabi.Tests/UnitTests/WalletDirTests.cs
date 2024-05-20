@@ -27,7 +27,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task CreatesWalletDirectoriesAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(CreatesWalletDirectoriesAsync));
 		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 		_ = new WalletDirectories(Network.Main, baseDir);
@@ -43,7 +43,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task TestPathsAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(TestPathsAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var mainWd = new WalletDirectories(Network.Main, baseDir);
@@ -65,7 +65,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task CorrectWalletDirectoryNameAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(CorrectWalletDirectoryNameAsync));
 		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, $" {baseDir} ");
@@ -76,7 +76,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task ServesWalletFilesAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(ServesWalletFilesAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
@@ -91,7 +91,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task EnsuresJsonAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(EnsuresJsonAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
@@ -107,7 +107,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task EnumerateFilesAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(EnumerateFilesAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
@@ -136,7 +136,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task EnumerateOrdersByAccessAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(EnumerateOrdersByAccessAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
@@ -161,7 +161,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task EnumerateMissingDirAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(EnumerateMissingDirAsync));
 		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
@@ -178,7 +178,7 @@ public class WalletDirTests
 	[Fact]
 	public async Task GetNextWalletTestAsync()
 	{
-		var baseDir = Common.GetWorkDir();
+		var baseDir = Common.GetWorkDir(nameof(GetNextWalletTestAsync));
 		await CleanupWalletDirectoriesAsync(baseDir);
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));

@@ -5,7 +5,6 @@ using WalletWasabi.Bases;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Bases;
@@ -21,7 +20,7 @@ public class ConfigManagerTests
 	[Fact]
 	public async Task CheckFileChangeTestAsync()
 	{
-		string workDirectory = await Common.GetEmptyWorkDirAsync();
+		string workDirectory = await Common.GetEmptyWorkDirAsync(nameof(CheckFileChangeTestAsync));
 		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
 		// Create config and store it.

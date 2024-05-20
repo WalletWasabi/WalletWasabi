@@ -13,14 +13,14 @@ public class NodeBuildingTests
 	[Fact]
 	public async Task CanBuildCoreNodeAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanBuildCoreNodeAsync));
 		await coreNode.TryStopAsync();
 	}
 
 	[Fact]
 	public async Task NodesDifferAsync()
 	{
-		var coreNodes = await Task.WhenAll(TestNodeBuilder.CreateAsync(additionalFolder: "0"), TestNodeBuilder.CreateAsync(additionalFolder: "1"));
+		var coreNodes = await Task.WhenAll(TestNodeBuilder.CreateAsync($"{nameof(NodesDifferAsync)}/0"), TestNodeBuilder.CreateAsync($"{nameof(NodesDifferAsync)}/1"));
 		CoreNode node1 = coreNodes[0];
 		CoreNode node2 = coreNodes[1];
 		try
@@ -38,7 +38,7 @@ public class NodeBuildingTests
 	[Fact]
 	public async Task RpcWorksAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(RpcWorksAsync));
 		try
 		{
 			var blockCount = await coreNode.RpcClient.GetBlockCountAsync();
@@ -53,7 +53,7 @@ public class NodeBuildingTests
 	[Fact]
 	public async Task P2pWorksAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(P2pWorksAsync));
 		using var node = await coreNode.CreateNewP2pNodeAsync();
 		try
 		{

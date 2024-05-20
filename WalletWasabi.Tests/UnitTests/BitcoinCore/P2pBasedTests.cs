@@ -23,13 +23,13 @@ public class P2pBasedTests
 	[Fact]
 	public async Task MempoolNotifiesAsync()
 	{
-		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
+		CoreNode coreNode = await TestNodeBuilder.CreateAsync(nameof(MempoolNotifiesAsync));
 
 		using var node = await coreNode.CreateNewP2pNodeAsync();
 
 		try
 		{
-			string dir = Common.GetWorkDir();
+			string dir = Common.GetWorkDir(nameof(MempoolNotifiesAsync));
 			var network = coreNode.Network;
 			var rpc = coreNode.RpcClient;
 
@@ -92,7 +92,7 @@ public class P2pBasedTests
 	[Fact]
 	public async Task TrustedNotifierNotifiesTxAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(TrustedNotifierNotifiesTxAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -102,7 +102,7 @@ public class P2pBasedTests
 			await rpc.GenerateAsync(101);
 			var network = rpc.Network;
 
-			var dir = Common.GetWorkDir();
+			var dir = Common.GetWorkDir(nameof(TrustedNotifierNotifiesTxAsync));
 
 			using Key k = new();
 			var addr = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
@@ -139,7 +139,7 @@ public class P2pBasedTests
 	[Fact]
 	public async Task BlockNotifierTestsAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(BlockNotifierTestsAsync));
 		using HostedServices services = new();
 		services.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 

@@ -55,7 +55,7 @@ public class P2pTests
 			throw new NotSupportedNetworkException(network);
 		}
 
-		var dataDir = Common.GetWorkDir();
+		var dataDir = Common.GetWorkDir($"{nameof(TestServicesAsync)}");
 
 		SmartHeaderChain smartHeaderChain = new();
 		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);

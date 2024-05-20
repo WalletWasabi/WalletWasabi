@@ -5,7 +5,6 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Daemon</PathMap>
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 
