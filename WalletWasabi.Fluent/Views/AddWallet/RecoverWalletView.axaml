@@ -46,10 +46,10 @@
               <ExecuteCommandOnKeyDownBehavior Command="{Binding NextWordCommand}"
                                                KeyGesture="Enter"
                                                EventRoutingStrategy="Bubble, Tunnel" />
-              <!--<ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
                                                KeyGesture="Shift+Tab"
                                                EventRoutingStrategy="Bubble, Tunnel"
-                                               IsEnabled="{Binding CurrentWord.IsValid}" />-->
+                                               IsEnabled="{Binding CurrentWord.IsValid}" />
             </Interaction.Behaviors>
             <ItemsControl.Styles>
               <Style Selector="TextBlock.error">
