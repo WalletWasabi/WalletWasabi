@@ -19,7 +19,7 @@ public class ConfigManagerNgTests
 	[Fact]
 	public async Task ToFileAndLoadFileTestAsync()
 	{
-		string workDirectory = await Common.GetEmptyWorkDirAsync();
+		string workDirectory = await Common.GetEmptyWorkDirAsync(nameof(ToFileAndLoadFileTestAsync));
 		string configPath = Path.Combine(workDirectory, $"{nameof(ToFileAndLoadFileTestAsync)}.json");
 
 		string expectedLocalBitcoinCoreDataDir = nameof(ConfigManagerNgTests);

@@ -154,7 +154,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task AllFeeEstimateAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(AllFeeEstimateAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -172,7 +172,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task FeeEstimationCanCancelAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(FeeEstimationCanCancelAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -188,14 +188,14 @@ public class RpcBasedTests
 	[Fact]
 	public async Task CantDoubleSpendAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CantDoubleSpendAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
 
 			var walletName = "wallet";
-			await rpc.CreateWalletAsync(walletName);
+			var walletRpc = await rpc.CreateWalletAsync(walletName);
 
 			using var k1 = new Key();
 			var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
@@ -205,21 +205,21 @@ public class RpcBasedTests
 			var tx = Transaction.Create(network);
 			tx.Inputs.Add(coinBaseTx, 0);
 			using var k2 = new Key();
-			tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
+			tx.Outputs.Add(coinBaseTx.Outputs[0].Value - Money.Satoshis(1000), k2.PubKey.WitHash.GetAddress(network));
 			tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 			var valid = tx.Check();
 
 			var doubleSpend = Transaction.Create(network);
 			doubleSpend.Inputs.Add(coinBaseTx, 0);
 			using var k3 = new Key();
-			doubleSpend.Outputs.Add(Money.Coins(49.998m), k3.PubKey.WitHash.GetAddress(network));
+			doubleSpend.Outputs.Add(coinBaseTx.Outputs[0].Value - Money.Satoshis(2000), k3.PubKey.WitHash.GetAddress(network));
 			doubleSpend.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 			valid = doubleSpend.Check();
 
-			await rpc.GenerateAsync(101);
+			await walletRpc.GenerateAsync(101);
 
-			var txId = await rpc.SendRawTransactionAsync(tx);
-			await Assert.ThrowsAsync<RPCException>(async () => await rpc.SendRawTransactionAsync(doubleSpend));
+			var txId = await walletRpc.SendRawTransactionAsync(tx);
+			await Assert.ThrowsAsync<RPCException>(async () => await walletRpc.SendRawTransactionAsync(doubleSpend));
 		}
 		finally
 		{
@@ -230,7 +230,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task VerboseBlockInfoAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(VerboseBlockInfoAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -272,7 +272,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task GetRawTransactionsAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(GetRawTransactionsAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;

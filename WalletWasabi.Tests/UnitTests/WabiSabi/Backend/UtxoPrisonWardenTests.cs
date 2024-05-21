@@ -14,7 +14,7 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task CanStartAndStopAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CanStartAndStopAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using var w = new Warden(
@@ -27,7 +27,7 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task PrisonSerializationAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(PrisonSerializationAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.

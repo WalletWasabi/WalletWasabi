@@ -8,7 +8,6 @@
 		<PackageTags>walletwasabi, wasabiwallet, wasabi, wallet, bitcoin, nbitcoin, tor, zerolink, wabisabi, coinjoin, fungibility, privacy, anonymity</PackageTags>
 		<RepositoryType>Git</RepositoryType>
 		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Backend</PathMap>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
 	</PropertyGroup>

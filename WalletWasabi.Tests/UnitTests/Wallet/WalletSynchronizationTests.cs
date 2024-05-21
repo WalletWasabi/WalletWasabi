@@ -38,7 +38,7 @@ public class WalletSynchronizationTests
 		// Address re-use.
 		await SendToAsync(minerWallet, wallet, Money.Coins(2), firstInternalKeyScript, node, testDeadlineCts.Token);
 
-		await using var builder = new WalletBuilder(node);
+		await using var builder = new WalletBuilder(node, nameof(InternalAddressReuseNoBlockOverlapTestAsync));
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
@@ -78,7 +78,7 @@ public class WalletSynchronizationTests
 		// Self spend the coins to an external key.
 		await SendToAsync(wallet, wallet, Money.Coins(2), walletExternalKeyScript, node, testDeadlineCts.Token);
 
-		await using var builder = new WalletBuilder(node);
+		await using var builder = new WalletBuilder(node, nameof(InternalAddressReuseThenSpendOnExternalKeyTestAsync));
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 		var coins = realWallet.Coins;
@@ -129,7 +129,7 @@ public class WalletSynchronizationTests
 		// Self spend the coins to an external key
 		await SendToAsync(wallet, wallet, Money.Coins(3), walletExternalKeyScript, node, testDeadlineCts.Token);
 
-		await using var builder = new WalletBuilder(node);
+		await using var builder = new WalletBuilder(node, nameof(InternalAddressReuseChainThenSpendOnExternalKeyTestAsync));
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 
@@ -168,7 +168,7 @@ public class WalletSynchronizationTests
 		await SendToMempoolAsync(minerWallet, wallet, Money.Coins(1), walletExternalKeyScript, testDeadlineCts.Token);
 		await node.GenerateBlockAsync(CancellationToken.None);
 
-		await using var builder = new WalletBuilder(node);
+		await using var builder = new WalletBuilder(node, nameof(InternalAddressReuseWithBlockOverlapTestAsync));
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet);
 		await realWallet.WalletFilterProcessor.StartAsync(testDeadlineCts.Token);
 

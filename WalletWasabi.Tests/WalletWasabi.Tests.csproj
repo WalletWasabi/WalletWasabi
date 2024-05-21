@@ -8,8 +8,6 @@
 		<OutputType>Library</OutputType>
 		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<!-- TODO: PathMap breaks Verifier.Verify -->
-		<!--<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>-->
 	</PropertyGroup>
 
 	<ItemGroup>
