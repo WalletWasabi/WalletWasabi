@@ -62,6 +62,7 @@ public static class NotificationHelpers
 			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Count != 0;
 			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Count != 0;
 			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
+			bool isAccelerator = result.Transaction.IsCPFP;
 
 			if (isReceived || isSpent)
 			{
@@ -78,7 +79,7 @@ public static class NotificationHelpers
 				}
 				else if (isSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer";
+					message = isAccelerator ? "Accelerator transaction" : $"Self transfer";
 				}
 				else if (incoming > Money.Zero)
 				{
@@ -102,7 +103,7 @@ public static class NotificationHelpers
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer confirmed";
+					message = isAccelerator ? "Accelerator transaction confirmed" : $"Self transfer confirmed";
 				}
 				else if (incoming > Money.Zero)
 				{
