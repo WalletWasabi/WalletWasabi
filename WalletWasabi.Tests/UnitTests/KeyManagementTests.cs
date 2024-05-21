@@ -113,7 +113,7 @@ public class KeyManagementTests
 	{
 		string password = "password";
 
-		var filePath = Path.Combine(Common.GetWorkDir(), "Wallet.json");
+		var filePath = Path.Combine(Common.GetWorkDir(nameof(CanSerialize)), "Wallet.json");
 		DeleteFileAndDirectoryIfExists(filePath);
 
 		Logger.TurnOff();

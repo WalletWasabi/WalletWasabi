@@ -20,7 +20,7 @@ public class ConfigManagerTests
 	[Fact]
 	public async Task CheckFileChangeTestAsync()
 	{
-		string workDirectory = await Common.GetEmptyWorkDirAsync();
+		string workDirectory = await Common.GetEmptyWorkDirAsync(nameof(CheckFileChangeTestAsync));
 		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
 		// Create config and store it.

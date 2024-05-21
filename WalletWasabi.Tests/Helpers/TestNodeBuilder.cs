@@ -13,21 +13,21 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class TestNodeBuilder
 {
-	public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
+	public static async Task<CoreNode> CreateAsync(string path)
 	{
-		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
+		var dataDir = Common.GetWorkDir(path);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
+		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(new MempoolService(), dataDir);
 		return await CoreNode.CreateAsync(
 			nodeParameters,
 			CancellationToken.None);
 	}
 
-	public static async Task<CoreNode> CreateForHeavyConcurrencyAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
+	public static async Task<CoreNode> CreateForHeavyConcurrencyAsync(string path)
 	{
-		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
+		var dataDir = Common.GetWorkDir(path);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
+		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(new MempoolService(), dataDir);
 		nodeParameters.RpcWorkQueue = 32;
 		return await CoreNode.CreateAsync(
 			nodeParameters,
@@ -38,7 +38,7 @@ public static class TestNodeBuilder
 	{
 		var nodeParameters = new CoreNodeParams(
 				Network.RegTest,
-				mempoolService ?? new MempoolService(),
+				mempoolService,
 				dataDir,
 				tryRestart: true,
 				tryDeleteDataDir: true,

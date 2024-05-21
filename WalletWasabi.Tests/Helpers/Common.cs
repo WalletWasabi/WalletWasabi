@@ -26,18 +26,18 @@ public static class Common
 
 	public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
-	public static string GetWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	public static string GetWorkDir(string path)
 	{
-		return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+		return Path.Combine(DataDir, path);
 	}
 
 	/// <summary>
 	/// Gets an empty directory for test to work with.
 	/// </summary>
 	/// <remarks>If the directory exists, its content is removed.</remarks>
-	public static async Task<string> GetEmptyWorkDirAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	public static async Task<string> GetEmptyWorkDirAsync(string path)
 	{
-		string workDirectory = GetWorkDir(callerFilePath, callerMemberName);
+		string workDirectory = GetWorkDir(path);
 
 		if (Directory.Exists(workDirectory))
 		{

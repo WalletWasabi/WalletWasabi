@@ -61,7 +61,7 @@ public class StartWasabiOnSystemStartupTests
 	public void RunOnSystemStartupGetsSetCorrectly()
 	{
 		// Imitate fresh UiConfig file
-		string workDir = Common.GetWorkDir();
+		string workDir = Common.GetWorkDir(nameof(RunOnSystemStartupGetsSetCorrectly));
 		IoHelpers.EnsureDirectoryExists(workDir);
 		UiConfig config = new(Path.Combine(workDir, "UiConfig.json"));
 		config.LoadFile(true);

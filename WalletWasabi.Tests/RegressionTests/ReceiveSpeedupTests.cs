@@ -38,7 +38,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task ReceiveSpeedupTestsAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1, nameof(ReceiveSpeedupTestsAsync));
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
@@ -68,7 +68,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(ReceiveSpeedupTestsAsync));
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);

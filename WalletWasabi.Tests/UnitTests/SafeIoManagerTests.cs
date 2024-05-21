@@ -21,7 +21,7 @@ public class SafeIoManagerTests
 	[Fact]
 	public async Task IoManagerTestsAsync()
 	{
-		var file = Path.Combine(Common.GetWorkDir(), "file1.dat");
+		var file = Path.Combine(Common.GetWorkDir(nameof(IoManagerTestsAsync)), "file1.dat");
 
 		List<string> lines = new();
 		for (int i = 0; i < 1000; i++)
@@ -128,7 +128,7 @@ public class SafeIoManagerTests
 	[Fact]
 	public async Task IoTestsAsync()
 	{
-		var file = Path.Combine(Common.GetWorkDir(), "file.dat");
+		var file = Path.Combine(Common.GetWorkDir(nameof(IoTestsAsync)), "file.dat");
 
 		AsyncLock asyncLock = new();
 		SafeIoManager ioman = new(file);

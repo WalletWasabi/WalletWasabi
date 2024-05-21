@@ -62,7 +62,7 @@ public class WalletFilterProcessorTests
 
 		var node = await MockNode.CreateNodeAsync();
 		var wallet = new TestWallet("wallet", node.Rpc);
-		await using var builder = new WalletBuilder(node);
+		await using var builder = new WalletBuilder(node, nameof(TestFilterProcessingAsync));
 
 		await node.GenerateBlockAsync(testDeadlineCts.Token);
 

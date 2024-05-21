@@ -22,7 +22,7 @@ public class IndexStoreTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
-		string directory = GetWorkDirectory();
+		string directory = Path.Combine(Common.GetWorkDir(nameof(IndexStoreTestsAsync)), "IndexStore");
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
@@ -37,7 +37,4 @@ public class IndexStoreTests
 		filterModel = await indexStore.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
-
-	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-		=> Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 }
