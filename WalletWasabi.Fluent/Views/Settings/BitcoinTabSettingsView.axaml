@@ -47,7 +47,7 @@
     <StackPanel Spacing="10"
                 ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
       <TextBlock Text="Dust Threshold" />
-      <CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+      <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </StackPanel>
   </StackPanel>
 </UserControl>
