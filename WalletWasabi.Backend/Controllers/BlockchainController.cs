@@ -210,6 +210,20 @@ public class BlockchainController : ControllerBase
 				{
 					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
 				}
+
+				var stillMissing = txIdsRetrieve.Where(x => !rpcBatch.ContainsKey(x.Key)).ToList();
+				if (stillMissing.Count > 0)
+				{
+					List<Exception> exceptions = new();
+					foreach (KeyValuePair<uint256, TaskCompletionSource<Transaction>> txStillMissingWithTcs in stillMissing)
+					{
+						var ex = new InvalidOperationException($"Transaction {txStillMissingWithTcs.Key} wasn't found.");
+						txStillMissingWithTcs.Value.SetException(ex);
+						exceptions.Add(ex);
+					}
+
+					throw new AggregateException(exceptions);
+				}
 			}
 
 			Transaction[] result = new Transaction[requestCount];
