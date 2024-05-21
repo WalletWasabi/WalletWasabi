@@ -50,4 +50,4 @@ Wasabi dependencies are:
 ## What about Tails and Whonix?
 
 Tails and Whonix are privacy-oriented OSs, so it makes sense to use them with Wasabi Wallet. At the moment, Wasabi is working properly on these platforms, but our dependencies do not officially support them, so we cannot make promises regarding future stability.
-To make Wasabi work on these OSs, it should be started with the following start up parameters: `--UseTor=EnabledOnlyRunning --TorSocksPort=9050`.
+To make Wasabi work on these OSs, it should be started with the following start up parameters: `--UseTor=EnabledOnlyRunning`.
