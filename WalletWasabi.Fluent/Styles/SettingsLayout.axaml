@@ -16,7 +16,6 @@
   </Style>
 
   <Style Selector="StackPanel.settingsLayout > DockPanel > Button">
-    <Setter Property="Margin" Value="0 0 -12 0" />
     <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
 
