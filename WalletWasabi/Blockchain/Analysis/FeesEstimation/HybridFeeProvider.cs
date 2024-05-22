@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;
@@ -59,7 +58,7 @@ public class HybridFeeProvider : IHostedService
 		using (RunningTasks.RememberWith(ProcessingEvents))
 		{
 			// Only go further if we have estimations.
-			if (fees.Estimations.Any() is not true)
+			if (fees.Estimations.Count == 0)
 			{
 				return;
 			}
@@ -69,7 +68,7 @@ public class HybridFeeProvider : IHostedService
 			{
 				if (AllFeeEstimate is null)
 				{
-					// If it wasn't set before, then set it regardless everything.
+					// If it wasn't set before, then set it regardless of everything.
 					notify = SetAllFeeEstimate(fees);
 				}
 				else if (sender is IThirdPartyFeeProvider)

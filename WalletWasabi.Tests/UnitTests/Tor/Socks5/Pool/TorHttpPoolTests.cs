@@ -45,7 +45,7 @@ public class TorHttpPoolTests
 		TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
 		// Use implementation of TorHttpPool and only replace SendCoreAsync behavior.
-		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, tcpConnectionFactory) { CallBase = true };
+		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, tcpConnectionFactory, true) { CallBase = true };
 		mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
 			.Returns((TorTcpConnection tcpConnection, HttpRequestMessage request, Uri requestUriOverride, CancellationToken cancellationToken) =>
 			{
@@ -373,7 +373,7 @@ public class TorHttpPoolTests
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 		mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
 
-		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, mockTcpConnectionFactory.Object) { CallBase = true };
+		Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, mockTcpConnectionFactory.Object, true) { CallBase = true };
 		mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
 			.Returns((TorTcpConnection tcpConnection, HttpRequestMessage request, Uri requestUriOverride, CancellationToken cancellationToken) =>
 			{

@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;

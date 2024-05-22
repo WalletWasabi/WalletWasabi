@@ -3,7 +3,6 @@ using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -20,7 +19,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -494,6 +492,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
+		var destinationProvider = finishedCoinJoin.OutputWallet.OutputProvider.DestinationProvider;
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		try
@@ -503,7 +502,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				CoinRefrigerator.Freeze(successfulCoinjoin.Coins);
 				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
-				await MarkDestinationsUsedAsync(successfulCoinjoin.OutputScripts).ConfigureAwait(false);
+				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
@@ -515,7 +514,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			// Assuming that the round might be broadcast but our client was not able to get the ending status.
 			CoinRefrigerator.Freeze(ex.Coins);
-			await MarkDestinationsUsedAsync(ex.OutputScripts).ConfigureAwait(false);
+			MarkDestinationsUsed(destinationProvider, ex.OutputScripts);
 			Logger.LogDebug(ex);
 		}
 		catch (CoinJoinClientException clientException)
@@ -621,30 +620,9 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>
-	private async Task MarkDestinationsUsedAsync(ImmutableList<Script> outputs)
+	private void MarkDestinationsUsed(IDestinationProvider destinationProvider, ImmutableList<Script> outputs)
 	{
-		var scripts = outputs.ToHashSet();
-		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
-		foreach (var k in wallets)
-		{
-			var kc = k.KeyChain;
-			var state = KeyState.Used;
-
-			// Watch only wallets have no key chains.
-			if (kc is null && k is Wallet w)
-			{
-				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
-				{
-					w.KeyManager.SetKeyState(state, hdPubKey);
-				}
-
-				w.KeyManager.ToFile();
-			}
-			else
-			{
-				k.KeyChain?.TrySetScriptStates(state, scripts);
-			}
-		}
+		destinationProvider.TrySetScriptStates(KeyState.Used, outputs.ToHashSet());
 	}
 
 	private void NotifyWalletStartedCoinJoin(IWallet openedWallet) =>

@@ -62,10 +62,7 @@ public static class EnumerableExtensions
 
 	public static int LastIndexOf<T>(this IEnumerable<T> source, T itemToFind, IEqualityComparer<T> equalityComparer)
 	{
-		if (source is null)
-		{
-			throw new ArgumentNullException(nameof(source));
-		}
+		ArgumentNullException.ThrowIfNull(source);
 
 		var sourceArray = source.ToArray();
 

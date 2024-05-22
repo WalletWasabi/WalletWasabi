@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
 

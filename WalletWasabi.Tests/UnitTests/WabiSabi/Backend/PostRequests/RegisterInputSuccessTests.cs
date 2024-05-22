@@ -37,7 +37,7 @@ public class RegisterInputSuccessTests
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
-		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -59,7 +59,7 @@ public class RegisterInputSuccessTests
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
-		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 
 		var roundState = RoundState.FromRound(arena.Rounds.First());
 		var arenaClient = new ArenaClient(
@@ -88,7 +88,7 @@ public class RegisterInputSuccessTests
 		coinJoinIdStore.TryAdd(coin.Outpoint.Hash);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(coinJoinIdStore).CreateAndStartAsync(round);
 
-		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -136,7 +136,7 @@ public class RegisterInputSuccessTests
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
-		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, ScriptPubKeyType.TaprootBIP86);
 

@@ -1,11 +1,9 @@
-using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Stores;

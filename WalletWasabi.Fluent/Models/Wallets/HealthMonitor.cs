@@ -49,7 +49,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		// Tor Status
 		synchronizer.WhenAnyValue(x => x.TorStatus)
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(status => UseTor ? status : TorStatus.TurnedOff)
+							 .Select(status => UseTor != TorMode.Disabled ? status : TorStatus.TurnedOff)
 							 .BindTo(this, x => x.TorStatus)
 							 .DisposeWith(Disposables);
 
@@ -137,7 +137,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 	public ICollection<Issue> TorIssues => _torIssues.Value;
 
-	public bool UseTor { get; }
+	public TorMode UseTor { get; }
 	public bool UseBitcoinCore { get; }
 
 	private CompositeDisposable Disposables { get; } = new();
@@ -164,7 +164,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			return HealthMonitorState.UpdateAvailable;
 		}
 
-		var torConnected = !UseTor || TorStatus == TorStatus.Running;
+		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
 		if (torConnected && BackendStatus == BackendStatus.Connected && IsP2pConnected)
 		{
 			return HealthMonitorState.Ready;

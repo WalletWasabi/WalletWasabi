@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
@@ -31,8 +30,8 @@ public partial class WalletRepository : ReactiveObject
 
 		var signals =
 			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
-					  .Select(_ => Unit.Default)
-					  .StartWith(Unit.Default);
+					  .Select(_ => System.Reactive.Unit.Default)
+					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
 			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)

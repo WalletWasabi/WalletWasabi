@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
-using NBitcoin.Secp256k1;
-using NBitcoin;
-using System.Linq;
 
 namespace WalletWasabi.Crypto;
 

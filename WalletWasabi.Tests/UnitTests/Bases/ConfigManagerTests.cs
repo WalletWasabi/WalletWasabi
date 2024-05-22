@@ -5,7 +5,6 @@ using WalletWasabi.Bases;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Bases;

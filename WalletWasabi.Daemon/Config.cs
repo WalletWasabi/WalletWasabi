@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using NBitcoin;
 using System;
 using System.Collections;
@@ -58,7 +57,7 @@ public class Config
 				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
-				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
 			[ nameof(TorFolder)] = (
 				"Folder where Tor binary is located",
 				GetNullableStringValue("TorFolder", null, cliArgs)),
@@ -131,12 +130,18 @@ public class Config
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
-		foreach ((_, IValue optionValue) in Data.Values)
+		foreach (string optionName in Data.Keys)
 		{
-			if (optionValue.Overridden)
+			// It is allowed to override the log level.
+			if (!string.Equals(optionName, nameof(LogLevel)))
 			{
-				IsOverridden = true;
-				break;
+				(_, IValue optionValue) = Data[optionName];
+
+				if (optionValue.Overridden)
+				{
+					IsOverridden = true;
+					break;
+				}
 			}
 		}
 
@@ -154,7 +159,7 @@ public class Config
 	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(MainNetCoordinatorUri));
 	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
 	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
-	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor)) && Network != Network.RegTest;
+	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
@@ -186,6 +191,12 @@ public class Config
 		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),
 		Environment.GetCommandLineArgs()).EffectiveValue;
 
+	/// <summary>Whether a config option was overridden by a command line argument or an environment variable.</summary>
+	/// <remarks>
+	/// Changing config options in the UI while a config option is overridden would bring uncertainty if user understands consequences or not,
+	/// thus it is normally not allowed. However, there are exceptions as what options are taken into account, there is currently
+	/// one exception: <see cref="LogLevel"/>.
+	/// </remarks>
 	public bool IsOverridden { get; }
 
 	public EndPoint GetBitcoinP2pEndPoint()
@@ -369,6 +380,46 @@ public class Config
 		return new LogModeArrayValue(arrayValues, arrayValues, ValueSource.Disk);
 	}
 
+	private static TorModeValue GetTorModeValue(string key, object value, string[] cliArgs)
+	{
+		TorMode computedValue;
+
+		string? stringValue = value.ToString();
+
+		if (stringValue is null)
+		{
+			throw new ArgumentException($"Could not convert '{value}' to a string value.");
+		}
+		else if (stringValue.Equals("true", StringComparison.OrdinalIgnoreCase))
+		{
+			computedValue = TorMode.Enabled;
+		}
+		else if (stringValue.Equals("false", StringComparison.OrdinalIgnoreCase))
+		{
+			computedValue = TorMode.Disabled;
+		}
+		else if (Enum.TryParse(stringValue, out TorMode parsedTorMode))
+		{
+			computedValue = parsedTorMode;
+		}
+		else
+		{
+			throw new ArgumentException($"Could not convert '{value}' to a valid {nameof(TorMode)} value.");
+		}
+
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!Enum.TryParse(overrideValue, out TorMode parsedOverrideValue))
+			{
+				throw new ArgumentException($"Could not convert overridden value '{overrideValue}' to a valid {nameof(TorMode)} value.");
+			}
+
+			return new TorModeValue(computedValue, parsedOverrideValue, valueSource.Value);
+		}
+
+		return new TorModeValue(computedValue, computedValue, ValueSource.Disk);
+	}
+
 	private static bool GetOverrideValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? overrideValue, [NotNullWhen(true)] out ValueSource? valueSource)
 	{
 		// CLI arguments have higher precedence than environment variables.
@@ -460,6 +511,7 @@ public class Config
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;
 	private record LogModeArrayValue(LogMode[] Value, LogMode[] EffectiveValue, ValueSource ValueSource) : ITypedValue<LogMode[]>;
+	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
 	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Transactions;

@@ -23,6 +23,7 @@ using WalletWasabi.WebClients.Wasabi;
 namespace WalletWasabi.Tor;
 
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
+/// <remarks>Tor Monitor can only work if Tor Control is available.</remarks>
 public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(10);
@@ -107,7 +108,7 @@ public class TorMonitor : PeriodicRunner
 			using CancellationTokenSource linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, torTerminatedCancellationToken);
 
 			Logger.LogInfo("Starting Tor bootstrap monitor…");
-			await torControlClient.SubscribeEventsAsync(EventNames, linkedCts2.Token).ConfigureAwait(false);
+			await torControlClient!.SubscribeEventsAsync(EventNames, linkedCts2.Token).ConfigureAwait(false);
 			bool circuitEstablished = false;
 
 			await foreach (TorControlReply reply in torControlClient.ReadEventsAsync(linkedCts2.Token).ConfigureAwait(false))

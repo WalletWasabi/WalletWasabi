@@ -2,7 +2,6 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Cache;

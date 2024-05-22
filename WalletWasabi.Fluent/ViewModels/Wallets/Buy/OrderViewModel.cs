@@ -53,7 +53,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		
 		OrderNumber = orderNumber;
 
 		HasUnreadMessagesObs = _messagesList.Connect()

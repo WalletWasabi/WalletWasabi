@@ -8,7 +8,6 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
 

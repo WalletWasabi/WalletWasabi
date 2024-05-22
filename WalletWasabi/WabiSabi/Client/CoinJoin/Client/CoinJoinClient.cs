@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,9 +5,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -740,8 +741,8 @@ public class CoinJoinClient
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
-		var outputRegistrationEndTime = now + remainingTime * 0.8; // 80% of the time.
-		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
+		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
+		var readyToSignEndTime = outputRegistrationEndTime + (remainingTime * 0.2); // 20% of the time.
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
@@ -776,8 +777,10 @@ public class CoinJoinClient
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
 			var outputRegistrationScheduledDates = outputRegistrationEndTime.GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, MaximumRequestDelay);
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
+			var registrationResult = await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
+			registrationResult.MatchDo(
+				OnOutputRegistrationSuccess,
+				OnOutputRegistrationErrors);
 		}
 		catch (Exception e)
 		{
@@ -790,6 +793,26 @@ public class CoinJoinClient
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
 		return outputTxOuts;
+
+		void OnOutputRegistrationSuccess(Unit _) =>
+			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
+
+		void OnOutputRegistrationErrors(DependencyGraphTaskScheduler.OutputRegistrationError[] errors)
+		{
+			foreach (var e in errors)
+			{
+				switch (e)
+				{
+					case DependencyGraphTaskScheduler.UnknownError s:
+						roundState.LogInfo($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...");
+						break;
+					case DependencyGraphTaskScheduler.AlreadyRegisteredScriptError s:
+						OutputProvider.DestinationProvider.TrySetScriptStates(KeyState.Used, [s.ScriptPubKey]);
+						roundState.LogInfo($"Script ({s.ScriptPubKey}) was already registered. Continuing...");
+						break;
+				}
+			}
+		}
 	}
 
 	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(

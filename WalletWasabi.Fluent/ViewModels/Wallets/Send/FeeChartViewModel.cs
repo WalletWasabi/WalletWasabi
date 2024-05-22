@@ -162,7 +162,7 @@ public partial class FeeChartViewModel : ViewModelBase
 				}
 
 				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
-				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
+				var interpolated = (decimal)(ys[0] + ((t - xs[0]) * slope));
 				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 			}
 
@@ -255,7 +255,7 @@ public partial class FeeChartViewModel : ViewModelBase
 		if (satoshiPerByteValues.Length != 0)
 		{
 			var maxY = satoshiPerByteValues.Max();
-			var minY = satoshiPerByteValues.Min();
+			var minY = 1; // If values are not the same, it will be always rendered starting from 1.
 
 			SatoshiPerByteLabels = areAllValuesEqual
 				? new[] { "", "", maxY.ToString("F0") }

@@ -205,7 +205,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (!Services.Config.UseTor)
+			if (Services.Config.UseTor != TorMode.Disabled)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{

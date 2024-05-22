@@ -26,7 +26,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	{
 		var transactionInfo = sendFlow.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
 
-		CoinList = new CoinListViewModel(wallet, sendFlow.CoinList, selectedCoins, true);
+		CoinList = new CoinListViewModel(wallet, sendFlow.CoinList, selectedCoins, allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
 		EnoughSelected = CoinList.Selection.ToObservableChangeSet()
 			.ToCollection()
