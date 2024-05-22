@@ -66,7 +66,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-
 		coinItems.AutoRefresh(x => x.IsSelected)
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
