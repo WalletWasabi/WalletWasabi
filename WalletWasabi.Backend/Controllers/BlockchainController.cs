@@ -242,17 +242,18 @@ public class BlockchainController : ControllerBase
 
 		IReadOnlyList<Exception> MarkNotFinishedTasksAsFailed(Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve)
 		{
-			IReadOnlyList<Exception>? exceptions = null;
+			List<Exception>? exceptions = null;
 
 			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
 			foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
 			{
 				if (!tcs.Task.IsCompleted)
 				{
-					exceptions ??= new List<Exception>();
+					exceptions ??= new();
 
 					// Prefer new cache requests to try again rather than getting the exception. The window is small though.
 					Exception e = new InvalidOperationException($"Failed to get the transaction '{txid}'.");
+					exceptions.Add(e);
 					Cache.Remove(txid);
 					tcs.SetException(e);
 				}
