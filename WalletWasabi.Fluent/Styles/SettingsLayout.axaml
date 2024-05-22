@@ -29,4 +29,8 @@
     <Setter Property="Margin" Value="0 8 0 0" />
     <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
+
+  <Style Selector="StackPanel.settingsLayout > StackPanel">
+    <Setter Property="Spacing" Value="6" />
+  </Style>
 </Styles>

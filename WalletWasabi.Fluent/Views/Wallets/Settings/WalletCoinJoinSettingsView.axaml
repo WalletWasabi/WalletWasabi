@@ -10,30 +10,23 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
 
-  <StackPanel Spacing="20">
+  <StackPanel Classes="settingsLayout">
 
-    <StackPanel Classes="settingsLayout">
+    <DockPanel>
+      <TextBlock Text="Automatically start coinjoin" />
+      <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+    </DockPanel>
 
-      <DockPanel>
-        <TextBlock Text="Automatically start coinjoin" />
-        <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
-      </DockPanel>
+    <DockPanel>
+      <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+      <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+      <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+    </DockPanel>
 
-      <StackPanel Spacing="10"
-                  ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
-        <TextBlock Text="Auto-start coinjoin threshold" />
-        <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-      </StackPanel>
-
-      <DockPanel>
-        <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
-        <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-        <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
-      </DockPanel>
-
-      <DockPanel>
+    <StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
         <TextBlock Text="Destination Wallet" />
-        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}"  Margin="-10,0,10,0" Height="20">
+        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" Height="17">
           <ToolTip.Tip>
             <TextBlock>
               - Only loaded wallets can be selected.<LineBreak />
@@ -42,14 +35,20 @@
             </TextBlock>
           </ToolTip.Tip>
         </PathIcon>
-        <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="wallets1:IWalletModel">
-              <TextBlock Text="{Binding Name}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-      </DockPanel>
+      </StackPanel>
+      <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="wallets1:IWalletModel">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
     </StackPanel>
+
+    <StackPanel ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
+      <TextBlock Text="Auto-start coinjoin threshold" />
+      <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
+    </StackPanel>
+
   </StackPanel>
 </UserControl>
