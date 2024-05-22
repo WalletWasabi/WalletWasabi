@@ -177,6 +177,7 @@ public class BlockchainController : ControllerBase
 	/// <summary>
 	/// Fetches transactions from cache if possible and missing transactions are fetched using RPC.
 	/// </summary>
+	/// <exception cref="AggregateException">If RPC client succeeds in getting some transactions but not all.</exception>
 	private async Task<Transaction[]> FetchTransactionsAsync(uint256[] txIds, CancellationToken cancellationToken)
 	{
 		int requestCount = txIds.Length;
@@ -204,6 +205,7 @@ public class BlockchainController : ControllerBase
 			{
 				// Ask to get missing transactions over RPC.
 				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+
 				Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
 
 				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
@@ -211,17 +213,10 @@ public class BlockchainController : ControllerBase
 					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
 				}
 
-				var stillMissing = txIdsRetrieve.Where(x => !rpcBatch.ContainsKey(x.Key)).ToList();
-				if (stillMissing.Count > 0)
+				// RPC client does not throw if a transaction is missing, so we need to account for this case.
+				if (txs.Count() < txIdsRetrieve.Count)
 				{
-					List<Exception> exceptions = new();
-					foreach (KeyValuePair<uint256, TaskCompletionSource<Transaction>> txStillMissingWithTcs in stillMissing)
-					{
-						var ex = new InvalidOperationException($"Transaction {txStillMissingWithTcs.Key} wasn't found.");
-						txStillMissingWithTcs.Value.SetException(ex);
-						exceptions.Add(ex);
-					}
-
+					IReadOnlyList<Exception> exceptions = MarkNotFinishedTasksAsFailed(txIdsRetrieve);
 					throw new AggregateException(exceptions);
 				}
 			}
@@ -241,18 +236,29 @@ public class BlockchainController : ControllerBase
 		{
 			if (txIdsRetrieve.Count > 0)
 			{
-				// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
-				Exception ex = new InvalidOperationException("Failed to get the transaction.");
-				foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
+				MarkNotFinishedTasksAsFailed(txIdsRetrieve);
+			}
+		}
+
+		IReadOnlyList<Exception> MarkNotFinishedTasksAsFailed(Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve)
+		{
+			IReadOnlyList<Exception>? exceptions = null;
+
+			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
+			foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
+			{
+				if (!tcs.Task.IsCompleted)
 				{
-					if (!tcs.Task.IsCompleted)
-					{
-						// Prefer new cache requests to try again rather than getting the exception. The window is small though.
-						Cache.Remove(txid);
-						tcs.SetException(ex);
-					}
+					exceptions ??= new List<Exception>();
+
+					// Prefer new cache requests to try again rather than getting the exception. The window is small though.
+					Exception e = new InvalidOperationException($"Failed to get the transaction '{txid}'.");
+					Cache.Remove(txid);
+					tcs.SetException(e);
 				}
 			}
+
+			return exceptions ?? [];
 		}
 	}
 
