@@ -32,13 +32,13 @@
       </DockPanel>
 
       <DockPanel>
-        <TextBlock Text="Output Wallet" />
+        <TextBlock Text="Destination Wallet" />
         <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}"  Margin="-10,0,10,0" Height="20">
           <ToolTip.Tip>
             <TextBlock>
               - Only loaded wallets can be selected.<LineBreak />
-              - Coins from the coinjoin transaction will be received by the output wallet. However, this setting resets after Wallet Wasabi restarts.<LineBreak />
-              - Output wallet cannot be changed when a coinjoin is in progress.
+              - Coins from the coinjoin transaction will be received by the destination wallet. However, this setting resets after Wasabi restarts.<LineBreak />
+              - Destination wallet cannot be changed when a coinjoin is in progress.
             </TextBlock>
           </ToolTip.Tip>
         </PathIcon>
