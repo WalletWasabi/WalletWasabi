@@ -26,7 +26,7 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 
 	private ManualControlDialogViewModel(IWalletModel walletModel, Wallet wallet)
 	{
-		CoinList = new CoinListViewModel(walletModel, walletModel.Coins, [], true);
+		CoinList = new CoinListViewModel(walletModel, walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
 		EnableBack = true;
 
