@@ -214,7 +214,7 @@ public class BlockchainController : ControllerBase
 				}
 
 				// RPC client does not throw if a transaction is missing, so we need to account for this case.
-				if (txs.Count() < txIdsRetrieve.Count)
+				if (rpcBatch.Count < txIdsRetrieve.Count)
 				{
 					IReadOnlyList<Exception> exceptions = MarkNotFinishedTasksAsFailed(txIdsRetrieve);
 					throw new AggregateException(exceptions);
