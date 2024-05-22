@@ -28,7 +28,7 @@ public class TorSettings
 		string dataDir,
 		string distributionFolderPath,
 		bool terminateOnExit,
-        TorMode torMode = TorMode.Enabled,
+		TorMode torMode = TorMode.Enabled,
 		int socksPort = DefaultSocksPort,
 		int controlPort = DefaultControlPort,
 		string? torFolder = null,
@@ -40,11 +40,20 @@ public class TorSettings
 
 		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
 
-		// Use different ports when user overrides Tor folder to avoid accessing the same control_auth_cookie file.
-		if (IsCustomTorFolder && defaultWasabiTorPorts)
+		if (defaultWasabiTorPorts)
 		{
-			socksPort = 37152;
-			controlPort = 37153;
+			// Use different ports when user overrides Tor folder to avoid accessing the same control_auth_cookie file.
+			if (IsCustomTorFolder)
+			{
+				socksPort = 37152;
+				controlPort = 37153;
+			}
+			else if (torMode == TorMode.EnabledOnlyRunning)
+			{
+				// Whonix & Tails use standard ports.
+				socksPort = 9050;
+				controlPort = 9051;
+			}
 		}
 
 		TorBinaryDir = torFolder ?? Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
