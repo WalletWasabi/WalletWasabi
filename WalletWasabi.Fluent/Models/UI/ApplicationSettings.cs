@@ -93,7 +93,7 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = config.UseTor;
+		_useTor = Config.ObjectToTorMode(_startupConfig.UseTor);
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
 
