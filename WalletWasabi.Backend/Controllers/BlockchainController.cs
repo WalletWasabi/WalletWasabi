@@ -254,7 +254,7 @@ public class BlockchainController : ControllerBase
 					// Prefer new cache requests to try again rather than getting the exception. The window is small though.
 					Exception e = new InvalidOperationException($"Failed to get the transaction '{txid}'.");
 					exceptions.Add(e);
-					Cache.Remove(txid);
+					Cache.Remove($"{nameof(GetTransactionsAsync)}#{txid}");
 					tcs.SetException(e);
 				}
 			}
