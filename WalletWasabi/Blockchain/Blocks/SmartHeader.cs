@@ -1,7 +1,4 @@
 using NBitcoin;
-using System.Linq;
-using WalletWasabi.BitcoinCore.Rpc.Models;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 
@@ -68,50 +65,14 @@ public class SmartHeader
 		0,
 		Network.RegTest.GetGenesis().Header.BlockTime);
 
-	/// <summary>
-	/// Where the first possible transaction can ever be found with the specified script types.
-	/// </summary>
-	public static SmartHeader GetStartingHeader(Network network, IndexType indexType)
-	{
-		var scriptTypes = IndexTypeConverter.ToRpcPubKeyTypes(indexType);
-
-		if (network == Network.Main)
+	public static SmartHeader GetStartingHeader(Network network) =>
+		network.Name switch
 		{
-			if (scriptTypes.Length == 1 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot))
-			{
-				return StartingHeaderTaprootMain;
-			}
-			else if (scriptTypes.Length == 2 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot) && scriptTypes.Contains(RpcPubkeyType.TxWitnessV0Keyhash))
-			{
-				return StartingHeaderSegwitMain;
-			}
-			else
-			{
-				throw new NotImplementedException("Script types not supported.");
-			}
-		}
-		else if (network == Network.TestNet)
-		{
-			if (scriptTypes.Length == 1 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot))
-			{
-				return StartingHeaderTaprootTestNet;
-			}
-			else if (scriptTypes.Length == 2 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot) && scriptTypes.Contains(RpcPubkeyType.TxWitnessV0Keyhash))
-			{
-				return StartingHeaderSegwitTestNet;
-			}
-			else
-			{
-				throw new NotImplementedException("Script types not supported.");
-			}
-		}
-		else if (network == Network.RegTest)
-		{
-			return StartingHeaderRegTest;
-		}
-
-		throw new NotSupportedNetworkException(network);
-	}
+			"Main" => StartingHeaderSegwitMain,
+			"TestNet" => StartingHeaderSegwitTestNet,
+			"RegTest" => StartingHeaderRegTest,
+			_ => throw new NotSupportedNetworkException(network)
+		};
 
 	#endregion SpecialHeaders
 }

@@ -221,7 +221,7 @@ public class Global
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
 					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
 					throw;
 				}
 
