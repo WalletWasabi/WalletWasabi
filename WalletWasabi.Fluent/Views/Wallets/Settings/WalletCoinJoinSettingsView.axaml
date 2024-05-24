@@ -45,8 +45,8 @@
       </ComboBox>
     </StackPanel>
 
-    <StackPanel ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
-      <TextBlock Text="Auto-start coinjoin threshold" />
+    <StackPanel ToolTip.Tip="Coinjoin will automatically stop if the wallet balance is less than this.">
+      <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
     </StackPanel>
 
