@@ -58,9 +58,4 @@ public class CoordinatorParameters
 	/// Set how often changes in the configuration file should be monitored.
 	/// </summary>
 	public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(7);
-
-	/// <summary>
-	/// How often should rounds be stepped.
-	/// </summary>
-	public TimeSpan RoundProgressSteppingPeriod { get; init; } = TimeSpan.FromSeconds(1);
 }

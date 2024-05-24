@@ -18,7 +18,7 @@ public class MempoolMirrorTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, TimeSpan.FromSeconds(2)), "Mempool Mirror");
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -59,7 +59,7 @@ public class MempoolMirrorTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, TimeSpan.FromSeconds(7)), "Mempool Mirror");
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -97,7 +97,7 @@ public class MempoolMirrorTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, TimeSpan.FromSeconds(2)), "Mempool Mirror");
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -150,7 +150,7 @@ public class MempoolMirrorTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, TimeSpan.FromSeconds(2)), "Mempool Mirror");
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -196,7 +196,7 @@ public class MempoolMirrorTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, TimeSpan.FromSeconds(2)), "Mempool Mirror");
 		try
 		{
 			var rpc = coreNode.RpcClient;
