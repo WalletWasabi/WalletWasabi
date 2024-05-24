@@ -19,8 +19,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
-using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -43,11 +41,10 @@ public class RegTestSetup : IAsyncDisposable
 	}
 
 	public RegTestFixture RegTestFixture { get; }
-	public Global Global => RegTestFixture.Global;
 	public IndexStore IndexStore { get; }
 	public BitcoinStore BitcoinStore { get; }
 	public AllTransactionStore TransactionStore { get; }
-	public IRPCClient RpcClient => Global.RpcClient!;
+	public IRPCClient RpcClient => RegTestFixture.BackendRegTestNode.RpcClient;
 	public Network Network => RpcClient.Network;
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string Password { get; } = "password";
