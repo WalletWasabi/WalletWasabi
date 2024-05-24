@@ -118,6 +118,7 @@ public class P2pTests
 			bitcoinStore.BlockRepository,
 			[specificNodeBlockProvider],
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
+		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
