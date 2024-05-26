@@ -45,7 +45,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, SharedWasabiClient);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
-		UnconfirmedTransactionChainProvider = new(HttpClientFactory);
+		UnconfirmedTransactionChainProvider = new(HttpClient);
 	}
 
 	private IndexStore IndexStore { get; }

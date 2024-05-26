@@ -75,7 +75,7 @@ public class Global
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
-        SharedHttpClient = CreateSharedHttpClient();
+        SharedHttpClient = Socks5Proxy.CreateHttpClient(enableProxy: Config.UseTor != TorMode.Disabled, proxyEndpoint: TorSettings.SocksEndpoint);
 		SharedWasabiClient = new(SharedHttpClient);
 
         HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
@@ -132,31 +132,13 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
+		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(SharedHttpClient), friendlyName: "Unconfirmed Transaction Chain Provider");
 		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, SharedWasabiClient, config.ServiceConfiguration, HostedServices.Get<FeeRateEstimationUpdater>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
-	}
-
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "HttpClientHandler is set to be disposed by the HttpClient instance.")]
-	private HttpClient CreateSharedHttpClient(TimeSpan? pooledConnectionLifetime = null)
-	{
-		IWebProxy? proxy = Config.UseTor != TorMode.Disabled
-			? Socks5Proxy.GetWebProxy(TorSettings.SocksEndpoint, new NetworkCredential(DefaultCircuit.Instance.Name, DefaultCircuit.Instance.Name))
-			: null;
-
-		// HttpClientHandler httpClientHandler = new();
-		SocketsHttpHandler handler = new()
-		{
-			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Brotli,
-			PooledConnectionLifetime = pooledConnectionLifetime ?? TimeSpan.FromMinutes(5),
-			Proxy = proxy
-		};
-
-		return new HttpClient(handler, disposeHandler: true);
 	}
 
 	public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";

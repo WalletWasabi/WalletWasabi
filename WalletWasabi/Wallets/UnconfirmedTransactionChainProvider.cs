@@ -22,16 +22,17 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 	private const int MaximumDelayInSeconds = 120;
 	private const int MaximumRequestsInParallel = 3;
 
-	public UnconfirmedTransactionChainProvider(WasabiHttpClientFactory httpClientFactory)
+	/// <param name="httpClient">HTTP client that sends each HTTP request over a new Tor circuit.</param>
+	public UnconfirmedTransactionChainProvider(HttpClient httpClient)
 	{
-		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		HttpClient = httpClient;
 	}
 
 	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
 
 	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
 
-	private IHttpClient HttpClient { get; }
+	private HttpClient HttpClient { get; }
 
 	private Channel<uint256> Channel { get; } = System.Threading.Channels.Channel.CreateUnbounded<uint256>();
 
@@ -46,11 +47,8 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
 				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-				var response = await HttpClient.SendAsync(
-					HttpMethod.Get,
-					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/unconfirmed-transaction-chain?transactionId={txid}",
-					null,
-					linkedCts.Token).ConfigureAwait(false);
+				using HttpRequestMessage request = new(HttpMethod.Get, new Uri($"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/unconfirmed-transaction-chain?transactionId={txid}"));
+				using HttpResponseMessage response = await HttpClient.SendAsync(request, linkedCts.Token).ConfigureAwait(false);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
