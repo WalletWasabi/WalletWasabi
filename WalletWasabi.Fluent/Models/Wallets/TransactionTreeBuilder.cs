@@ -187,7 +187,7 @@ public class TransactionTreeBuilder
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
-				: TransactionStatus.SpeedUp,
+				: TransactionStatus.Pending,
 		};
 
 		var dates = children.Select(tx => tx.Date).ToImmutableArray();
@@ -310,26 +310,9 @@ public class TransactionTreeBuilder
 		return TransactionType.Unknown;
 	}
 
-	private TransactionStatus GetItemStatus(TransactionSummary transactionSummary)
+	private static TransactionStatus GetItemStatus(TransactionSummary transactionSummary)
 	{
-		var isConfirmed = transactionSummary.IsConfirmed();
-
-		if (isConfirmed)
-		{
-			return TransactionStatus.Confirmed;
-		}
-
-		if (!isConfirmed && (transactionSummary.IsSpeedup || transactionSummary.IsCPFPd))
-		{
-			return TransactionStatus.SpeedUp;
-		}
-
-		if (!isConfirmed && !transactionSummary.IsSpeedup)
-		{
-			return TransactionStatus.Pending;
-		}
-
-		return TransactionStatus.Unknown;
+		return transactionSummary.IsConfirmed() ? TransactionStatus.Confirmed : TransactionStatus.Pending;
 	}
 
 	private string GetConfirmationToolTip(TransactionStatus status, int confirmations, SmartTransaction smartTransaction)
@@ -345,8 +328,6 @@ public class TransactionTreeBuilder
 
 		return (status, friendlyString != "") switch
 		{
-			(TransactionStatus.SpeedUp, true) => $"Pending (accelerated, confirming in ≈ {friendlyString})",
-			(TransactionStatus.SpeedUp, false) => "Pending (accelerated)",
 			(TransactionStatus.Pending, true) => $"Pending (confirming in ≈ {friendlyString})",
 			(TransactionStatus.Pending, false) => "Pending",
 			_ => "Unknown"

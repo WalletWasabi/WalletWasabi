@@ -14,7 +14,6 @@
     <!--First icon (Confirmation Status) -->
     <PathIcon Classes.Confirmed="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Confirmed}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
               Classes.Pending="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Pending}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-              Classes.SpeedUp="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.SpeedUp}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
               ToolTip.Tip="{Binding Transaction.ConfirmedTooltip}"
               Opacity="0.6">
       <PathIcon.Styles>
@@ -24,10 +23,6 @@
         </Style>
         <Style Selector="PathIcon.Pending">
           <Setter Property="Data" Value="{StaticResource clock_regular}" />
-          <Setter Property="Height" Value="15" />
-        </Style>
-        <Style Selector="PathIcon.SpeedUp">
-          <Setter Property="Data" Value="{StaticResource rocket_regular}" />
           <Setter Property="Height" Value="15" />
         </Style>
       </PathIcon.Styles>
