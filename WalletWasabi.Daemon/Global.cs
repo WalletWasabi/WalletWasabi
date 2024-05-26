@@ -2,9 +2,11 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -12,7 +14,6 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -23,26 +24,23 @@ using WalletWasabi.ExchangeRate;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
-using WalletWasabi.Wallets.FilterProcessor;
-using WalletWasabi.Tor.Socks5;
-using System.Net.Http;
-using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Daemon;
 
@@ -77,21 +75,18 @@ public class Global
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
-		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
+        SharedHttpClient = CreateSharedHttpClient();
+		SharedWasabiClient = new(SharedHttpClient);
+
+        HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
-		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient);
+		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, SharedHttpClient, SharedWasabiClient);
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-		SharedHttpClient = CreateSharedHttpClient();
-
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory, new WasabiClient(SharedHttpClient)), "Wasabi Synchronizer");
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, SharedWasabiClient), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
-
-		WasabiClient sharedWasabiClient = new(SharedHttpClient);
-
-		UpdateManager = new UpdateManager(DataDir, Config.DownloadNewVersion, SharedHttpClient, sharedWasabiClient);
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
@@ -138,7 +133,7 @@ public class Global
 			new P2PBlockProvider(P2PNodesManager));
 
 		HostedServices.Register<UnconfirmedTransactionChainProvider>(() => new UnconfirmedTransactionChainProvider(HttpClientFactory), friendlyName: "Unconfirmed Transaction Chain Provider");
-		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, HttpClientFactory.SharedWasabiClient, config.ServiceConfiguration, HostedServices.Get<FeeRateEstimationUpdater>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
+		WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, SharedWasabiClient, config.ServiceConfiguration, HostedServices.Get<FeeRateEstimationUpdater>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
@@ -149,7 +144,7 @@ public class Global
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "HttpClientHandler is set to be disposed by the HttpClient instance.")]
 	private HttpClient CreateSharedHttpClient(TimeSpan? pooledConnectionLifetime = null)
 	{
-		IWebProxy? proxy = Config.UseTor
+		IWebProxy? proxy = Config.UseTor != TorMode.Disabled
 			? Socks5Proxy.GetWebProxy(TorSettings.SocksEndpoint, new NetworkCredential(DefaultCircuit.Instance.Name, DefaultCircuit.Instance.Name))
 			: null;
 
@@ -185,7 +180,10 @@ public class Global
 	/// <seealso cref="DefaultCircuit"/>
 	private HttpClient SharedHttpClient { get; }
 
-	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
+    /// <summary>Wasabi client based on <see cref="SharedHttpClient"/>.</summary>
+    private WasabiClient SharedWasabiClient { get; }
+
+    public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
@@ -285,7 +283,7 @@ public class Global
 				Logger.LogInfo("Start synchronizing filters...");
 
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Network, HostedServices.Get<WasabiSynchronizer>(), WalletManager, HttpClientFactory.SharedWasabiClient, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Network, HostedServices.Get<WasabiSynchronizer>(), WalletManager, SharedWasabiClient, BitcoinCoreNode?.RpcClient);
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
@@ -416,12 +414,12 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), () => Config.FeeRateEstimationProvider, Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 	}
 
 	private void RegisterExchangeRateProviders()
 	{
-		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), () => Config.ExchangeRateProvider, Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null), "Exchange rate updater");
 	}
 
 	private void RegisterCoinJoinComponents()

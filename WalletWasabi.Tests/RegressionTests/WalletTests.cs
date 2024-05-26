@@ -16,6 +16,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using System.Net.Http;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -50,8 +51,9 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 2. Create wasabi synchronizer service.
-		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory.SharedWasabiClient);
+		using HttpClient httpClient = new() { BaseAddress = new Uri(RegTestFixture.BackendEndPoint) };
+		WasabiClient wasabiClient = new(httpClient);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, wasabiClient);
 		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo");
 
 		// 3. Create key manager service.
@@ -68,16 +70,16 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, setup.ServiceConfiguration, httpClientFactory.TorEndpoint);
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, setup.ServiceConfiguration, torEndPoint: null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[specificNodeBlockProvider],
-			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
+			new P2PBlockProvider(network, nodes, isTorEnabled: false));
 
-		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
+		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClient);
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, httpClientFactory.SharedWasabiClient, setup.ServiceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, wasabiClient, setup.ServiceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 

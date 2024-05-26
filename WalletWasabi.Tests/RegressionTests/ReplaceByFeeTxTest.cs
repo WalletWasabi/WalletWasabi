@@ -52,7 +52,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		using HttpClient httpClient = new() { BaseAddress = new Uri(RegTestFixture.BackendEndPoint) }; WasabiClient wasabiClient = new(httpClient);
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory.SharedWasabiClient);
 		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo");
 

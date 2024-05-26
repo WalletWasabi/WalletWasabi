@@ -34,8 +34,6 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 		{
 			BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
 		}
-
-		SharedWasabiClient = new(BackendHttpClient);
 	}
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -57,9 +55,6 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 
 	/// <summary>Backend HTTP client, shared instance.</summary>
 	private IHttpClient BackendHttpClient { get; }
-
-	/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
-	public WasabiClient SharedWasabiClient { get; }
 
 	/// <summary>
 	/// Creates a long-lived <see cref="HttpClient"/> instance for accessing clearnet sites.

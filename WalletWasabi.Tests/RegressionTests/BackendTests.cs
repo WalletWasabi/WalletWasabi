@@ -143,8 +143,9 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory.SharedWasabiClient);
+		using HttpClient httpClient = new() { BaseAddress = new Uri(RegTestFixture.BackendEndPoint) };
+		WasabiClient wasabiClient = new(httpClient);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, wasabiClient);
 		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo");
 
 		// 4. Create key manager service.
@@ -154,7 +155,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var workDir = Common.GetWorkDir(nameof(GetUnconfirmedTxChainAsync));
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, torEndPoint: null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
@@ -163,7 +164,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, httpClientFactory.SharedWasabiClient, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, wasabiClient, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 
