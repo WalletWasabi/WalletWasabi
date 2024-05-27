@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Announcement;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -136,9 +137,12 @@ public partial class MainViewModel : ViewModelBase
 
 	public static MainViewModel Instance { get; private set; }
 
-	private IEnumerable<DialogViewModelBase<Unit>> GetAnnouncements()
+	private IEnumerable<AnnouncementBase> GetAnnouncements()
 	{
-		return [];
+		return new[]
+		{
+			new ZkSnacksCoordinatorAnnouncementViewModel(UiContext),
+		};
 	}
 
 	public bool IsDialogOpen()
