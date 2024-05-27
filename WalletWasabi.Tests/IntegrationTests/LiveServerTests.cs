@@ -76,7 +76,7 @@ public class LiveServerTests : IAsyncLifetime
 		IEnumerable<Transaction> retrievedTxs = await client.GetTransactionsAsync(network, randomTxIds.Take(4), ctsTimeout.Token);
 		Assert.Empty(retrievedTxs);
 
-		var mempoolTxIds = await client.GetMempoolHashesAsync(ctsTimeout.Token);
+		var mempoolTxIds = (await client.GetMempoolHashesAsync(64, ctsTimeout.Token)).Select(uint256.Parse).ToArray();
 		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement(InsecureRandom.Instance)!).Distinct().ToArray();
 		var txs = await client.GetTransactionsAsync(network, randomTxIds, ctsTimeout.Token);
 		var returnedTxIds = txs.Select(tx => tx.GetHash());
