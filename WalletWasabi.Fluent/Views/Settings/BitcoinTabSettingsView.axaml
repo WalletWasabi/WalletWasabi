@@ -44,6 +44,11 @@
       </PrivacyContentControl>
     </StackPanel>
 
+    <StackPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
+      <TextBlock Text="Coordinator URI" />
+      <TextBox Text="{Binding CoordinatorUri}" />
+    </StackPanel>
+
     <StackPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
       <TextBlock Text="Dust Threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
