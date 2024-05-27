@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Backend.Controllers;
 [ApiController]
 [ExceptionTranslate]
 [LateResponseLoggerFilter]
-[Route("[controller]")]
+[Route("api/v" + Constants.WabiSabiProtocolVersion + "/[controller]")]
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {

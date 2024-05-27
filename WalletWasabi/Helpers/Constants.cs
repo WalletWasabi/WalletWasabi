@@ -10,7 +10,9 @@ public static class Constants
 
 	public const string BackendUri = "https://api.wasabiwallet.io/";
 	public const string TestnetBackendUri = "https://api.wasabiwallet.co/";
-	public const string BackendMajorVersion = "4";
+	public const string BackendMajorVersion = "5";
+	public const string WalletProtocolVersion = "5";
+	public const string WabiSabiProtocolVersion = "2";
 
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
 	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";

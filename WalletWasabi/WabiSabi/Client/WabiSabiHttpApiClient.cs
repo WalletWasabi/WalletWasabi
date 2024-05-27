@@ -9,6 +9,7 @@ using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -157,7 +158,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	}
 
 	private static string GetUriEndPoint(RemoteAction action) =>
-		"wabisabi/" + action switch
+		$"api/v{Constants.WabiSabiProtocolVersion}/wabisabi/" + action switch
 		{
 			RemoteAction.RegisterInput => "input-registration",
 			RemoteAction.RegisterOutput => "output-registration",

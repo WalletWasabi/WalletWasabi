@@ -28,7 +28,7 @@ public class WasabiClient
 	public static Dictionary<uint256, Transaction> TransactionCache { get; } = new();
 	private static Queue<uint256> TransactionIdQueue { get; } = new();
 	public static object TransactionCacheLock { get; } = new();
-	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.BackendMajorVersion);
+	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.WalletProtocolVersion);
 
 	/// <remarks>
 	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
