@@ -1,3 +1,4 @@
+using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Announcement;
@@ -10,6 +11,10 @@ public partial class ZkSnacksCoordinatorAnnouncementViewModel : AnnouncementBase
 		UiContext = uiContext;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
-		NextCommand = CancelCommand;
+		NextCommand = ReactiveCommand.Create(() =>
+		{
+			UiContext.ApplicationSettings.ShowCoordinatorAnnouncement = false;
+			Close();
+		});
 	}
 }

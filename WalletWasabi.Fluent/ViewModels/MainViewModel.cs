@@ -139,10 +139,14 @@ public partial class MainViewModel : ViewModelBase
 
 	private IEnumerable<AnnouncementBase> GetAnnouncements()
 	{
-		return new[]
+		var announcements = new List<AnnouncementBase>();
+
+		if (UiContext.ApplicationSettings.ShowCoordinatorAnnouncement)
 		{
-			new ZkSnacksCoordinatorAnnouncementViewModel(UiContext),
-		};
+			announcements.Add(new ZkSnacksCoordinatorAnnouncementViewModel(UiContext));
+		}
+
+		return announcements;
 	}
 
 	public bool IsDialogOpen()
