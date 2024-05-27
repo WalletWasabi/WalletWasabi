@@ -120,7 +120,7 @@ public record PersistentConfig : IConfigNg
 
 	public bool DeepEquals(PersistentConfig other)
 	{
-		bool useTorIsEqual = UseTor.ToString() == other.UseTor.ToString();
+		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
 
 		return
 			Network == other.Network &&

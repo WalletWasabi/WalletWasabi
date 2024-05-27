@@ -384,8 +384,26 @@ public class Config
 	{
 		TorMode computedValue;
 
+		computedValue = ObjectToTorMode(value);
+
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!Enum.TryParse(overrideValue, out TorMode parsedOverrideValue))
+			{
+				throw new ArgumentException($"Could not convert overridden value '{overrideValue}' to a valid {nameof(TorMode)} value.");
+			}
+
+			return new TorModeValue(computedValue, parsedOverrideValue, valueSource.Value);
+		}
+
+		return new TorModeValue(computedValue, computedValue, ValueSource.Disk);
+	}
+
+	public static TorMode ObjectToTorMode(object value)
+	{
 		string? stringValue = value.ToString();
 
+		TorMode computedValue;
 		if (stringValue is null)
 		{
 			throw new ArgumentException($"Could not convert '{value}' to a string value.");
@@ -407,17 +425,7 @@ public class Config
 			throw new ArgumentException($"Could not convert '{value}' to a valid {nameof(TorMode)} value.");
 		}
 
-		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
-		{
-			if (!Enum.TryParse(overrideValue, out TorMode parsedOverrideValue))
-			{
-				throw new ArgumentException($"Could not convert overridden value '{overrideValue}' to a valid {nameof(TorMode)} value.");
-			}
-
-			return new TorModeValue(computedValue, parsedOverrideValue, valueSource.Value);
-		}
-
-		return new TorModeValue(computedValue, computedValue, ValueSource.Disk);
+		return computedValue;
 	}
 
 	private static bool GetOverrideValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? overrideValue, [NotNullWhen(true)] out ValueSource? valueSource)

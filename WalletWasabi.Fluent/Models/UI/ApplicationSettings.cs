@@ -93,7 +93,7 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = config.UseTor;
+		_useTor = Config.ObjectToTorMode(_startupConfig.UseTor);
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
 
@@ -178,7 +178,8 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				try
 				{
-					PersistentConfig newConfig = ApplyChanges(_startupConfig);
+					PersistentConfig currentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(_persistentConfigFilePath);
+					PersistentConfig newConfig = ApplyChanges(currentConfig);
 					ConfigManagerNg.ToFile(_persistentConfigFilePath, newConfig);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
@@ -237,7 +238,7 @@ public partial class ApplicationSettings : ReactiveObject
 				Network = Network
 			};
 
-			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 
 		// General

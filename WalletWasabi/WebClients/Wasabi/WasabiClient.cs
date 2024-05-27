@@ -158,25 +158,6 @@ public class WasabiClient
 		await BroadcastAsync(transaction.Transaction).ConfigureAwait(false);
 	}
 
-	public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
-			$"api/v{ApiVersion}/btc/blockchain/mempool-hashes",
-			cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var strings = await content.ReadAsJsonAsync<IEnumerable<string>>().ConfigureAwait(false);
-		var ret = strings.Select(x => new uint256(x));
-
-		return ret;
-	}
-
 	/// <summary>
 	/// Gets mempool hashes, but strips the last x characters of each hash.
 	/// </summary>
