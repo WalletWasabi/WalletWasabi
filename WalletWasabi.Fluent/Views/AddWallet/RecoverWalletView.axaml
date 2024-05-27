@@ -7,6 +7,13 @@
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.error">
+      <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                Caption="Fill your 12 words in the correct order and enter the same passphrase that you used on wallet creation. If you have more words than 12 go to the advanced view."
                CancelContent="Cancel"
@@ -32,6 +39,7 @@
           <RowDefinition Height="16" />
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -51,11 +59,6 @@
                                                EventRoutingStrategy="Bubble, Tunnel"
                                                IsEnabled="{Binding CurrentWord.IsValid}" />
             </Interaction.Behaviors>
-            <ItemsControl.Styles>
-              <Style Selector="TextBlock.error">
-                <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
-              </Style>
-            </ItemsControl.Styles>
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
@@ -138,6 +141,12 @@
             <FocusBehavior IsFocused="{Binding FocusPassphrase, Mode=OneWay}" />
           </Interaction.Behaviors>
         </CopyablePasswordTextBox>
+
+        <TextBlock Grid.Row="4"
+                   Text="Invalid recovery words entered."
+                   IsVisible="{Binding !IsMnemonicsValid}"
+                   HorizontalAlignment="Center"
+                   Classes="error" />
 
       </Grid>
 
