@@ -13,10 +13,7 @@ public class SpectrumDrawHandler : IDrawHandler
 	private const int NumBins = 64;
 	private const double TextureHeight = 32;
 	private const double TextureWidth = 32;
-	private const double Fps = 15.0;
-
 	private readonly SpectrumDataSource[] _sources;
-	private readonly DispatcherTimer _invalidationTimer;
 	private readonly SpectrumControl _control;
 	private SKColor _pathColor;
 	private SKSurface? _surface;

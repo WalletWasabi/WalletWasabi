@@ -142,11 +142,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		_disposables.Dispose();
 	}
 
-	private static ReadOnlyCollection<ICoinModel> GetSelectedCoins(IReadOnlyCollection<CoinViewModel> list)
-	{
-		return new ReadOnlyCollection<ICoinModel>(list.Where(item => item.IsSelected == true).Select(x => x.Coin).ToList());
-	}
-
 	private static void UpdateSelection(IEnumerable<CoinViewModel> coinItems, IList<ICoinModel> selectedCoins)
 	{
 		var selectedSmartCoins = selectedCoins.GetSmartCoins().ToList();
@@ -184,14 +179,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
 
 		foreach (var item in itemsToExpand)
-		{
-			item.IsExpanded = true;
-		}
-	}
-
-	private void ExpandSelectedItems()
-	{
-		foreach (var item in _itemsCollection.Where(x => x.IsSelected is not false))
 		{
 			item.IsExpanded = true;
 		}

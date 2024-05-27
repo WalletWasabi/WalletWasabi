@@ -10,46 +10,45 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
 
-  <StackPanel Spacing="20">
+  <StackPanel Classes="settingsLayout">
 
-    <StackPanel Classes="settingsLayout">
+    <DockPanel>
+      <TextBlock Text="Automatically start coinjoin" />
+      <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+    </DockPanel>
 
-      <DockPanel>
-        <TextBlock Text="Automatically start coinjoin" />
-        <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
-      </DockPanel>
+    <DockPanel>
+      <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+      <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+      <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+    </DockPanel>
 
-      <StackPanel Spacing="10"
-                  ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
-        <TextBlock Text="Auto-start coinjoin threshold" />
-        <CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-      </StackPanel>
-
-      <DockPanel>
-        <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
-        <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-        <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
-      </DockPanel>
-
-      <DockPanel>
-        <TextBlock Text="Output Wallet" />
-        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}"  Margin="-10,0,10,0" Height="20">
+    <StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="Coinjoin to this wallet:" />
+        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" Height="17">
           <ToolTip.Tip>
             <TextBlock>
               - Only loaded wallets can be selected.<LineBreak />
-              - Coins from the coinjoin transaction will be received by the output wallet. However, this setting resets after Wallet Wasabi restarts.<LineBreak />
-              - Output wallet cannot be changed when a coinjoin is in progress.
+              - Coins from the coinjoin transaction will be received by this wallet. However, this setting resets after Wasabi restarts.<LineBreak />
+              - The selected wallet cannot be changed when a coinjoin is in progress.
             </TextBlock>
           </ToolTip.Tip>
         </PathIcon>
-        <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="wallets1:IWalletModel">
-              <TextBlock Text="{Binding Name}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-      </DockPanel>
+      </StackPanel>
+      <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="wallets1:IWalletModel">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
     </StackPanel>
+
+    <StackPanel ToolTip.Tip="Coinjoin will automatically stop if the wallet balance is less than this.">
+      <TextBlock Text="Stop coinjoin threshold" />
+      <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
+    </StackPanel>
+
   </StackPanel>
 </UserControl>
