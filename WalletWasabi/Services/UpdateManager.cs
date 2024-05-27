@@ -53,7 +53,7 @@ public class UpdateManager : PeriodicRunner
 			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
 			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = !updateStatus.BackendCompatible || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
+			bool updateAvailable = !updateStatus.BackendCompatible.GetValueOrDefault() || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
 
 			if (!updateAvailable)
 			{
@@ -351,7 +351,7 @@ public class UpdateManager : PeriodicRunner
 	}
 
 	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
-	public record UpdateStatus(bool BackendCompatible)
+	public record UpdateStatus(bool? BackendCompatible)
 	{
 		public bool ClientUpToDate { get; set; }
 		public bool IsReadyToInstall { get; set; }

@@ -116,7 +116,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 				var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 
 				// If the backend is compatible and the Api version updated then we just used the wrong API.
-				if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+				if (result.BackendCompatible.GetValueOrDefault() && lastUsedApiVersion != WasabiClient.ApiVersion)
 				{
 					// Next request will be fine, do not throw exception.
 					TriggerRound();

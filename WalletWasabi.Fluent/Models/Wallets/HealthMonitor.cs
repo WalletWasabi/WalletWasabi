@@ -111,7 +111,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 					var updateStatus = e.EventArgs;
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
-					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
+					CriticalUpdateAvailable = !updateStatus.BackendCompatible.GetValueOrDefault();
 					IsReadyToInstall = updateStatus.IsReadyToInstall;
 					ClientVersion = updateStatus.ClientVersion;
 				})

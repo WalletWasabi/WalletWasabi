@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -185,7 +186,16 @@ public class WasabiClient
 
 	public async Task<UpdateManager.UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 	{
-		var backendMajorVersion = await GetBackendMajorVersionAsync(cancel).ConfigureAwait(false);
+		ushort backendMajorVersion;
+		try
+		{
+			 backendMajorVersion = await GetBackendMajorVersionAsync(cancel).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning($"Could not get the backend major version: {ex}");
+			return new UpdateManager.UpdateStatus(null);
+		}
 
 		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
 		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);
