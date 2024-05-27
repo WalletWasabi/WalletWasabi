@@ -31,6 +31,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool DownloadNewVersion { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
+	public bool ShowCoordinatorAnnouncement { get; set; }
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
 
