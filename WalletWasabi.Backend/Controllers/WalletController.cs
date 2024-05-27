@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend.Controllers;
 /// To make batched requests.
 /// </summary>
 [Produces("application/json")]
-[Route("api/v" + Constants.BackendMajorVersion + "/[controller]")]
+[Route("api/v" + Constants.WalletProtocolVersion + "/[controller]")]
 public class WalletController : ControllerBase
 {
 	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
