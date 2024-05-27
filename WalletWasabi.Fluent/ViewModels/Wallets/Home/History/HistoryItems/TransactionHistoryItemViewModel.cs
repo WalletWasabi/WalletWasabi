@@ -19,7 +19,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
 	}
 
-	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction && !IsChild;
+	public bool TransactionOperationsVisible => (Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction) && !IsChild;
 
 	private void OnSpeedUpTransaction(TransactionModel transaction)
 	{
