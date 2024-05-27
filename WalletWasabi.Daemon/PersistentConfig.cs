@@ -33,17 +33,17 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("RegTestBackendUri")]
 	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
+	[DefaultValue(Constants.BackendUri)]
 	[JsonPropertyName("MainNetCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? MainNetCoordinatorUri { get; init; }
+	public string MainNetCoordinatorUri { get; init; } = Constants.BackendUri;
 
+	[DefaultValue(Constants.TestnetBackendUri)]
 	[JsonPropertyName("TestNetCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? TestNetCoordinatorUri { get; init; }
+	public string TestNetCoordinatorUri { get; init; } = Constants.TestnetBackendUri;
 
+	[DefaultValue("http://localhost:37127/")]
 	[JsonPropertyName("RegTestCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? RegTestCoordinatorUri { get; init; }
+	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37127/";
 
 	/// <remarks>
 	/// For backward compatibility this was changed to an object.
