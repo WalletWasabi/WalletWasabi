@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -64,6 +63,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		PreviousWordCommand = ReactiveCommand.Create(PreviousWord);
 
 		SelectWordCommand = ReactiveCommand.Create<RecoverWordViewModel>(SelectWord);
+
+		DeselectWordCommand = ReactiveCommand.Create<RecoverWordViewModel>(DeselectWord);
 	}
 
 	public ObservableCollectionExtended<RecoverWordViewModel> RecoveryWords { get; } = new();
@@ -75,6 +76,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	public ICommand PreviousWordCommand { get; }
 
 	public ICommand SelectWordCommand { get; }
+
+	public ICommand DeselectWordCommand { get; }
 
 	private int MinGapLimit { get; set; } = 114;
 
@@ -165,6 +168,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		_currentWord.IsSelected = false;
 		_currentWord = word;
 		_currentWord.IsSelected = true;
+	}
+
+	private void DeselectWord(RecoverWordViewModel word)
+	{
+		word.IsSelected = false;
 	}
 
 	private void ValidateCurrentMnemonics(IValidationErrors errors)
