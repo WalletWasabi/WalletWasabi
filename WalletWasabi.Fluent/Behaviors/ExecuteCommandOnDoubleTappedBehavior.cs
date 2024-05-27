@@ -11,7 +11,7 @@ public class ExecuteCommandOnDoubleTappedBehavior : ExecuteCommandBaseBehavior
 		Gestures.DoubleTappedEvent.AddClassHandler<InputElement>(
 				(x, _) =>
 				{
-					if (Equals(x, AssociatedObject))
+					if (Equals(x, AssociatedObject) && IsEnabled)
 					{
 						var parameter = CommandParameter;
 						if (Command is { } cmd && cmd.CanExecute(parameter))

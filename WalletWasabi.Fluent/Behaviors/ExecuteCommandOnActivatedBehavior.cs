@@ -17,6 +17,11 @@ public class ExecuteCommandOnActivatedBehavior : ExecuteCommandBaseBehavior
 				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
 				.Subscribe(_ =>
 				{
+					if (!IsEnabled)
+					{
+						return;
+					}
+
 					var parameter = CommandParameter;
 					if (Command is { } cmd && cmd.CanExecute(parameter))
 					{

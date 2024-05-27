@@ -15,7 +15,7 @@ public class ExecuteCommandOnLostFocusBehavior : ExecuteCommandBaseBehavior
 		InputElement.LostFocusEvent.AddClassHandler<InputElement>(
 				(x, _) =>
 				{
-					if (Equals(x, AssociatedObject))
+					if (Equals(x, AssociatedObject) && IsEnabled)
 					{
 						var parameter = CommandParameter;
 						if (Command is { } cmd && cmd.CanExecute(parameter))
