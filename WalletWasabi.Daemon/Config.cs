@@ -396,11 +396,7 @@ public class Config
 
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			if (!Enum.TryParse(overrideValue, out TorMode parsedOverrideValue))
-			{
-				throw new ArgumentException($"Could not convert overridden value '{overrideValue}' to a valid {nameof(TorMode)} value.");
-			}
-
+			TorMode parsedOverrideValue = ObjectToTorMode(overrideValue);
 			return new TorModeValue(computedValue, parsedOverrideValue, valueSource.Value);
 		}
 
@@ -424,7 +420,7 @@ public class Config
 		{
 			computedValue = TorMode.Disabled;
 		}
-		else if (Enum.TryParse(stringValue, out TorMode parsedTorMode))
+		else if (Enum.TryParse(stringValue, ignoreCase: true, out TorMode parsedTorMode))
 		{
 			computedValue = parsedTorMode;
 		}
