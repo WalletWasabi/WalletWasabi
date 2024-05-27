@@ -107,10 +107,10 @@
                       <Interaction.Behaviors>
                         <!-- TODO: Add IsSelected -->
                         <FocusBehavior IsFocused="{Binding IsSelected, Mode=OneWay}" />
-                        <ExecuteCommandOnLostFocusBehavior
+                        <!--<ExecuteCommandOnLostFocusBehavior
                           IsEnabled="{Binding IsSelected}"
                           Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).DeselectWordCommand, Mode=OneWay}"
-                          CommandParameter="{Binding .}"/>
+                          CommandParameter="{Binding .}"/>-->
                       </Interaction.Behaviors>
                     </RecoverWordBox>
                   </Panel>
