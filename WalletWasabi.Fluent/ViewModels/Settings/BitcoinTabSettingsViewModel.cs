@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
@@ -74,7 +73,6 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{
-		Regex uriRegex = new Regex(@".*", RegexOptions.Compiled);
 		var coordinatorUri = CoordinatorUri;
 
 		if (string.IsNullOrEmpty(coordinatorUri))
@@ -82,7 +80,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (!uriRegex.IsMatch(coordinatorUri))
+		if (!Uri.TryCreate(coordinatorUri, UriKind.Absolute, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Invalid URI.");
 			return;
