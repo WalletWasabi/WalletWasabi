@@ -59,10 +59,6 @@
                                                KeyGesture="Shift+Tab"
                                                EventRoutingStrategy="Bubble, Tunnel"
                                                IsEnabled="{Binding CurrentWord.IsValid}" />
-              <ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
-                                               KeyGesture="Back"
-                                               EventRoutingStrategy="Bubble, Tunnel"
-                                               IsEnabled="{Binding CurrentWord.Word.Length, FallbackValue=0, Converter={x:Static converters:IntConverter.IsZero}}" />
             </Interaction.Behaviors>
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
@@ -119,6 +115,10 @@
                           IsEnabled="{Binding IsSelected}"
                           Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).DeselectWordCommand, Mode=OneWay}"
                           CommandParameter="{Binding .}"/>-->
+                        <ExecuteCommandOnKeyDownBehavior Command="{Binding #ItemsControl.((recoverWallet:RecoverWalletViewModel)DataContext).PreviousWordCommand}"
+                                                         KeyGesture="Back"
+                                                         EventRoutingStrategy="Bubble, Tunnel"
+                                                         IsEnabled="{Binding Word.Length, FallbackValue=0, Converter={x:Static converters:IntConverter.IsZero}}" />
                       </Interaction.Behaviors>
                     </RecoverWordBox>
                   </Panel>
