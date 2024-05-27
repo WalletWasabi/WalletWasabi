@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -6,7 +6,7 @@ using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -90,6 +90,11 @@ public partial class MainViewModel : ViewModelBase
 					IsOobeBackgroundVisible = false;
 				}
 			}
+
+			foreach (var page in GetAnnouncements())
+			{
+				await uiContext.Navigate().NavigateDialogAsync(page, navigationMode: NavigationMode.Clear);
+			}
 		});
 
 		SearchBar = CreateSearchBar();
@@ -130,6 +135,11 @@ public partial class MainViewModel : ViewModelBase
 	public WalletNotificationsViewModel Notifications { get; }
 
 	public static MainViewModel Instance { get; private set; }
+
+	private IEnumerable<DialogViewModelBase<Unit>> GetAnnouncements()
+	{
+		return [];
+	}
 
 	public bool IsDialogOpen()
 	{
