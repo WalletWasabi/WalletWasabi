@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
@@ -91,6 +92,8 @@ public partial class MainViewModel : ViewModelBase
 					IsOobeBackgroundVisible = false;
 				}
 			}
+
+			await Task.Delay(1000);
 
 			foreach (var page in GetAnnouncements())
 			{

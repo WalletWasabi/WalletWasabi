@@ -11,10 +11,12 @@ public partial class ZkSnacksCoordinatorAnnouncementViewModel : AnnouncementBase
 		UiContext = uiContext;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
-		NextCommand = ReactiveCommand.Create(() =>
-		{
-			UiContext.ApplicationSettings.ShowCoordinatorAnnouncement = false;
-			Close();
-		});
+		NextCommand = CancelCommand;
+	}
+
+	protected override void OnDialogClosed()
+	{
+		base.OnDialogClosed();
+		UiContext.ApplicationSettings.ShowCoordinatorAnnouncement = false;
 	}
 }
