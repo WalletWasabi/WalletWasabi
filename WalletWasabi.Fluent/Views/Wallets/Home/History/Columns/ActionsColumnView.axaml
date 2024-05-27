@@ -27,7 +27,7 @@
       <!-- SpeedUp -->
       <Button Classes="plain" ToolTip.Tip="Speed Up Transaction"
               Command="{Binding SpeedUpTransactionCommand}"
-              IsVisible="{Binding Transaction.CanSpeedUpTransaction}">
+              IsVisible="{Binding $self.IsEffectivelyEnabled}">
         <PathIcon Data="{StaticResource rocket_regular}" Height="16" />
       </Button>
 
