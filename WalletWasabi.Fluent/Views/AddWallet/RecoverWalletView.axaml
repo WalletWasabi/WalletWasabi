@@ -120,7 +120,7 @@
                                                          EventRoutingStrategy="Bubble, Tunnel">
                           <ExecuteCommandOnKeyDownBehavior.IsEnabled>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
-                              <Binding Path="Word.Length" FallbackValue="0" Converter="{x:Static converters:IntConverter.IsZero}" />
+                              <Binding Path="Word.Length" FallbackValue="-1" Converter="{x:Static converters:IntConverter.IsZero}" />
                               <Binding Path="IsSelected" />
                             </MultiBinding>
                           </ExecuteCommandOnKeyDownBehavior.IsEnabled>
