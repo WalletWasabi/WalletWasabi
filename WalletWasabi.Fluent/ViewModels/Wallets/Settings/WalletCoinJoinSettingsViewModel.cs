@@ -9,8 +9,10 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -48,6 +50,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
 
 		NextCommand = CancelCommand;
 
@@ -106,6 +110,23 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
+
+	private void ValidatePlebStopThreshold(IValidationErrors errors)
+	{
+		var plebStopThreshold = PlebStopThreshold;
+
+		if (string.IsNullOrEmpty(plebStopThreshold))
+		{
+			errors.Add(ErrorSeverity.Error, "Cannot be empty.");
+			return;
+		}
+
+		if (!Money.TryParse(plebStopThreshold, out _))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid threshold.");
+			return;
+		}
+	}
 
 	public void ManuallyUpdateOutputWalletList()
 	{

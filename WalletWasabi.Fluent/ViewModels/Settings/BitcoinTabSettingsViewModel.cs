@@ -64,28 +64,19 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	private void ValidateDustThreshold(IValidationErrors errors)
 	{
 		var dustThreshold = DustThreshold;
-		if (!string.IsNullOrWhiteSpace(dustThreshold))
+
+		if (string.IsNullOrWhiteSpace(dustThreshold))
 		{
-			bool error = false;
-
-			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
-				',',
-				StringComparison.InvariantCultureIgnoreCase))
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-			}
-
-			if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
-			{
-				error = true;
-				errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
-			}
-
-			if (!error)
-			{
-				Settings.DustThreshold = dustThreshold;
-			}
+			errors.Add(ErrorSeverity.Error, "Cannot be empty.");
+			return;
 		}
+
+		if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
+			return;
+		}
+
+		Settings.DustThreshold = dustThreshold;
 	}
 }
