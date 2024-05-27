@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
@@ -58,6 +59,10 @@
                                                KeyGesture="Shift+Tab"
                                                EventRoutingStrategy="Bubble, Tunnel"
                                                IsEnabled="{Binding CurrentWord.IsValid}" />
+              <ExecuteCommandOnKeyDownBehavior Command="{Binding PreviousWordCommand}"
+                                               KeyGesture="Back"
+                                               EventRoutingStrategy="Bubble, Tunnel"
+                                               IsEnabled="{Binding CurrentWord.Word.Length, FallbackValue=0, Converter={x:Static converters:IntConverter.IsZero}}" />
             </Interaction.Behaviors>
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
