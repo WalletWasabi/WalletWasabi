@@ -8,6 +8,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletSummaryView">
 
+  <UserControl.Styles>
+    <Style Selector="TextBlock.error">
+      <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea x:Name="RecoveryPageRoot"
                  Title="{Binding Title}"
                  CancelContent="Cancel"
@@ -48,7 +54,7 @@
 
       <Grid DockPanel.Dock="Top"
             ColumnDefinitions="*,*"
-            RowDefinitions="Auto,Auto">
+            RowDefinitions="Auto,Auto,Auto">
 
         <!-- Passphrase -->
         <CopyablePasswordTextBox Watermark="Type the passphrase (13th word)"
@@ -73,6 +79,13 @@
                    Classes="hasCheckMark">
           </TextBox>
         </StackPanel>
+
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                   Grid.Row="2"
+                   Text="Invalid recovery words entered."
+                   IsVisible="{Binding !IsMnemonicsValid}"
+                   HorizontalAlignment="Center"
+                   Classes="error" />
 
       </Grid>
 
