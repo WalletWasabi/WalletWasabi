@@ -29,6 +29,8 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _dustThreshold;
 
+	[AutoNotify] private bool _focusCoordinatorUri;
+
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;

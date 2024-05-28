@@ -40,13 +40,24 @@
                 ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
       <PrivacyContentControl PrivacyReplacementMode="Text" UseOpacity="True">
-        <TextBox Text="{Binding BitcoinP2PEndPoint}" />
+        <TextBox Text="{Binding BitcoinP2PEndPoint}">
+          <Interaction.Behaviors>
+            <TextBoxAutoSelectTextBehavior />
+          </Interaction.Behaviors>
+        </TextBox>
       </PrivacyContentControl>
     </StackPanel>
 
     <StackPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
       <TextBlock Text="Coordinator URI" />
-      <TextBox Text="{Binding CoordinatorUri}" />
+      <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+          <DataTriggerBehavior Binding="{Binding FocusCoordinatorUri}" Value="True">
+            <FocusControlActionCustom TargetControl="CoordinatorTextBox" />
+          </DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </TextBox>
     </StackPanel>
 
     <StackPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">

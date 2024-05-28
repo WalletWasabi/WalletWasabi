@@ -1,6 +1,7 @@
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -65,6 +66,7 @@ public class UiContext
 	public ITorStatusCheckerModel TorStatusChecker { get; }
 	public ILegalDocumentsProvider LegalDocumentsProvider { get; }
 	public IHealthMonitor HealthMonitor { get; }
+	public MainViewModel? MainViewModel { get; private set; }
 
 	public void RegisterNavigation(INavigate navigate)
 	{
@@ -81,5 +83,10 @@ public class UiContext
 		return
 			_navigate?.Navigate(target)
 			?? throw new InvalidOperationException($"{GetType().Name} {nameof(_navigate)} hasn't been initialized.");
+	}
+
+	public void SetMainViewModel(MainViewModel viewModel)
+	{
+		MainViewModel ??= viewModel;
 	}
 }
