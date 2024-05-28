@@ -15,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -40,6 +41,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
+	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _dustThreshold;
 
 	// General
@@ -81,6 +83,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
 		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_coordinatorUri = _startupConfig.GetCoordinatorUri();
 		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
@@ -112,10 +115,12 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.LocalBitcoinCoreDataDir,
 			x => x.StopLocalBitcoinCoreOnShutdown,
 			x => x.BitcoinP2PEndPoint,
+			x => x.CoordinatorUri,
 			x => x.DustThreshold,
 			x => x.UseTor,
 			x => x.TerminateTorOnExit,
-			x => x.DownloadNewVersion)
+			x => x.DownloadNewVersion,
+			(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -221,6 +226,23 @@ public partial class ApplicationSettings : ReactiveObject
 				}
 			}
 
+			if (Network == Network.Main)
+			{
+				result = result with { MainNetCoordinatorUri = CoordinatorUri };
+			}
+			else if (Network == Network.TestNet)
+			{
+				result = result with { TestNetCoordinatorUri = CoordinatorUri };
+			}
+			else if (Network == Network.RegTest)
+			{
+				result = result with { RegTestCoordinatorUri = CoordinatorUri };
+			}
+			else
+			{
+				throw new NotSupportedNetworkException(Network);
+			}
+
 			result = result with
 			{
 				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
@@ -239,6 +261,7 @@ public partial class ApplicationSettings : ReactiveObject
 			};
 
 			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			CoordinatorUri = result.GetCoordinatorUri();
 		}
 
 		// General
