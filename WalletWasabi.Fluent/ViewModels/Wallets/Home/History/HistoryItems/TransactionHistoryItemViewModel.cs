@@ -9,17 +9,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private IWalletModel _wallet;
+	private readonly TransactionModel _transaction;
 
 	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
 	{
 		_wallet = wallet;
+		_transaction = transaction;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(transaction.CanSpeedUpTransaction && !IsChild));
+		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(CanBeSpedUp));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
+		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
 
-	public bool TransactionOperationsVisible => (Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction) && !IsChild;
+	private bool CanBeSpedUp => _transaction.CanSpeedUpTransaction && !IsChild && !_transaction.HasBeenSpedUp;
+
+	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || CanBeSpedUp;
 
 	private void OnSpeedUpTransaction(TransactionModel transaction)
 	{

@@ -188,6 +188,7 @@ public class TransactionTreeBuilder
 				isConfirmed
 				? TransactionStatus.Confirmed
 				: TransactionStatus.Pending,
+			HasBeenSpedUp = true,
 		};
 
 		var dates = children.Select(tx => tx.Date).ToImmutableArray();
