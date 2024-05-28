@@ -22,7 +22,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
 
-	private bool CanBeSpedUp => _transaction.CanSpeedUpTransaction && !IsChild && !_transaction.HasBeenSpedUp;
+	private bool CanBeSpedUp => _transaction.CanSpeedUpTransaction && !IsChild;
 
 	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || CanBeSpedUp;
 

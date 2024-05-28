@@ -24,16 +24,22 @@
     </Classes.transparent>
     <InvalidatingStackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="15 0">
 
-      <!--Speed Up Confirmed indicator-->
-      <PathIcon IsVisible="{Binding HasBeenSpedUp}"
-                ToolTip.Tip="This transaction has been sped up"
-                Height="16" Data="{StaticResource rocket_confirmed}" />
-
       <!-- SpeedUp button -->
       <Button Classes="plain" ToolTip.Tip="Speed Up Transaction"
               Command="{Binding SpeedUpTransactionCommand}"
               IsVisible="{Binding $self.IsEffectivelyEnabled}">
-        <PathIcon Data="{StaticResource rocket_regular}" Height="16" />
+        <PathIcon Classes.AlreadySpedUp="{Binding HasBeenSpedUp}"
+                  Classes.NotSpedUp="{Binding !HasBeenSpedUp}"
+                  Height="16">
+          <PathIcon.Styles>
+            <Style Selector="PathIcon.AlreadySpedUp">
+              <Setter Property="Data" Value="{StaticResource rocket_confirmed}" />
+            </Style>
+            <Style Selector="PathIcon.NotSpedUp">
+              <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+            </Style>
+          </PathIcon.Styles>
+        </PathIcon>
       </Button>
 
       <!-- Cancel -->
