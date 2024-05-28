@@ -56,8 +56,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 			.Subscribe();
 	}
 
-	public bool HasBeenSpedUp { get; set; }
-
 	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)
 	{
 		UiContext = uiContext;
@@ -92,6 +90,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+	
+	public bool HasBeenSpedUp { get; set; }
+
+	public bool CanBeSpedUp { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 

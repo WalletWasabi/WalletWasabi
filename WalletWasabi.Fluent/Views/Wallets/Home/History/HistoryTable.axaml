@@ -38,7 +38,7 @@
         </MenuItem.Icon>
       </MenuItem>
       <Separator IsVisible="{Binding TransactionOperationsVisible}" />
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding $self.IsEffectivelyEnabled}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanBeSpedUp}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />
@@ -86,7 +86,7 @@
     </ContextMenu>
 
     <ContextMenu x:Key="SpeedUpContextMenu" x:DataType="historyItems:SpeedUpHistoryItemViewModel">
-      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding $self.IsEffectivelyEnabled}"
+      <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanBeSpedUp}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource rocket_regular}" />

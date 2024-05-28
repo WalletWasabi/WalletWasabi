@@ -27,7 +27,7 @@
       <!-- SpeedUp button -->
       <Button Classes="plain" ToolTip.Tip="Speed Up Transaction"
               Command="{Binding SpeedUpTransactionCommand}"
-              IsVisible="{Binding $self.IsEffectivelyEnabled}">
+              IsVisible="{Binding CanBeSpedUp}">
         <PathIcon Classes.AlreadySpedUp="{Binding HasBeenSpedUp}"
                   Classes.NotSpedUp="{Binding !HasBeenSpedUp}"
                   Height="16">
