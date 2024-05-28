@@ -50,10 +50,9 @@ public class UpdateManager : PeriodicRunner
 	{
 		try
 		{
-			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
 			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = !updateStatus.BackendCompatible.GetValueOrDefault() || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
+			bool updateAvailable = Helpers.Constants.ClientVersion <= result.LatestClientVersion;
 
 			if (!updateAvailable)
 			{
@@ -61,6 +60,9 @@ public class UpdateManager : PeriodicRunner
 				Cleanup();
 				return;
 			}
+
+			// Check whether the update is critical.
+			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
 
 			if (DownloadNewVersion)
 			{
