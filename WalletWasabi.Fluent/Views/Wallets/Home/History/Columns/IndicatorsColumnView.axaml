@@ -78,7 +78,7 @@
               <Setter Property="ToolTip.Tip" Value="Cancellation" />
             </Style>
             <Style Selector="PathIcon.CPFP">
-              <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+              <Setter Property="Data" Value="{StaticResource rocket_bolt}" />
               <Setter Property="Height" Value="14" />
               <Setter Property="ToolTip.Tip" Value="Accelerator" />
             </Style>
