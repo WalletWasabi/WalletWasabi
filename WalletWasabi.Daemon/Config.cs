@@ -48,13 +48,13 @@ public class Config
 				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is main",
-				GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
+				GetStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
 			[ nameof(TestNetCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
-				GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
+				GetStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
 			[ nameof(RegTestCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
-				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
+				GetStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
@@ -156,9 +156,9 @@ public class Config
 	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(MainNetBackendUri));
 	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(TestNetBackendUri));
 	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>(nameof(RegTestBackendUri));
-	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(MainNetCoordinatorUri));
-	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
-	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
+	public string MainNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(MainNetCoordinatorUri));
+	public string TestNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(TestNetCoordinatorUri));
+	public string RegTestCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(RegTestCoordinatorUri));
 	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
@@ -249,7 +249,7 @@ public class Config
 			_ => throw new NotSupportedNetworkException(Network)
 		};
 
-		return result is null ? GetBackendUri() : new Uri(result);
+		return new Uri(result);
 	}
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
