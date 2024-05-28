@@ -71,7 +71,7 @@ public class UpdateManager : PeriodicRunner
 				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
 				updateStatus.IsReadyToInstall = true;
 				updateStatus.ClientVersion = newVersion;
-				updateStatus.ClientUpToDate = !updateAvailable;
+				updateStatus.ClientUpToDate = false;
 			}
 
 			UpdateAvailableToGet?.Invoke(this, updateStatus);
