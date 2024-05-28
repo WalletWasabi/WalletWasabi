@@ -62,7 +62,9 @@ public class UpdateManager : PeriodicRunner
 			}
 
 			// Check whether the update is critical.
-			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
+			var backendCompatible = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
+
+			UpdateStatus updateStatus = new(backendCompatible);
 
 			if (DownloadNewVersion)
 			{

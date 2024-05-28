@@ -184,7 +184,7 @@ public class WasabiClient
 		return ushort.Parse(resp.BackendMajorVersion);
 	}
 
-	public async Task<UpdateManager.UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
+	public async Task<bool?> CheckUpdatesAsync(CancellationToken cancel)
 	{
 		ushort backendMajorVersion;
 		try
@@ -194,7 +194,7 @@ public class WasabiClient
 		catch (Exception ex)
 		{
 			Logger.LogWarning($"Could not get the backend major version: {ex}");
-			return new UpdateManager.UpdateStatus(null);
+			return null;
 		}
 
 		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
@@ -207,6 +207,6 @@ public class WasabiClient
 			ApiVersion = currentBackendMajorVersion;
 		}
 
-		return new UpdateManager.UpdateStatus(backendCompatible);
+		return backendCompatible;
 	}
 }
