@@ -19,7 +19,7 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager
 {
-	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
+	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
 	{
