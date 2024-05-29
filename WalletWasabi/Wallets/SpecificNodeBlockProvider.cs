@@ -210,9 +210,9 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	{
 		return network switch
 		{
-			{ } n when n == Network.Main => Equals(endpoint, new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort)),
-			{ } n when n == Network.TestNet => Equals(endpoint, new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort)),
-			{ } n when n == Network.RegTest => Equals(endpoint, new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort)),
+			{ } n when n == Network.Main => Equals(endpoint, Constants.DefaultMainNetBitcoinP2PEndPoint),
+			{ } n when n == Network.TestNet => Equals(endpoint, Constants.DefaultTestNetBitcoinP2PEndPoint),
+			{ } n when n == Network.RegTest => Equals(endpoint, Constants.DefaultRegTestBitcoinP2PEndPoint),
 			_ => throw new NotSupportedNetworkException(network)
 		};
 	}

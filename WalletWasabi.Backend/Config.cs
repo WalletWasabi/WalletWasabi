@@ -53,27 +53,27 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-	public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = Constants.DefaultMainNetBitcoinP2PEndPoint;
 
 	[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-	public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = Constants.DefaultTestNetBitcoinP2PEndPoint;
 
 	[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
-	public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinP2PEndPoint;
 
 	[JsonProperty(PropertyName = "MainNetBitcoinCoreRpcEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
-	public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinCoreRpcPort);
+	public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
 	[JsonProperty(PropertyName = "TestNetBitcoinCoreRpcEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinCoreRpcPort)]
-	public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinCoreRpcPort);
+	public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultTestNetBitcoinCoreRpcEndPoint;
 
 	[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
-	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
+	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
