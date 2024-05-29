@@ -1,0 +1,16 @@
+name: "Build"
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - run: nix build --print-build-logs .#all
+      - run: echo OK
