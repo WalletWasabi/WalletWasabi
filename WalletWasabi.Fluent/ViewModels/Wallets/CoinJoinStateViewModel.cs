@@ -168,15 +168,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
 		ChangeCoordinatorCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (UiContext.MainViewModel is not { } mainViewModel)
+			if (UiContext.MainViewModel is { } mainViewModel)
 			{
-				return;
+				await mainViewModel.SettingsPage.ActivateBitcoinTabWithFocusOnCoordinatorUri();
 			}
-
-			mainViewModel.SettingsPage.SelectedTab = 1;
-			mainViewModel.SettingsPage.BitcoinTabSettings.FocusCoordinatorUri = true;
-			await mainViewModel.SettingsPage.Activate();
-			mainViewModel.SettingsPage.BitcoinTabSettings.FocusCoordinatorUri = false;
 		});
 	}
 

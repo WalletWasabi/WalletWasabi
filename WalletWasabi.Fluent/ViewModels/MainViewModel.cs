@@ -1,14 +1,16 @@
-using System.Linq;
+using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Affiliation.Models;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Announcement;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -91,6 +93,13 @@ public partial class MainViewModel : ViewModelBase
 					IsOobeBackgroundVisible = false;
 				}
 			}
+
+			await Task.Delay(1000);
+
+			foreach (var page in GetAnnouncements())
+			{
+				await uiContext.Navigate().NavigateDialogAsync(page, navigationMode: NavigationMode.Clear);
+			}
 		});
 
 		SearchBar = CreateSearchBar();
@@ -131,6 +140,18 @@ public partial class MainViewModel : ViewModelBase
 	public WalletNotificationsViewModel Notifications { get; }
 
 	public static MainViewModel Instance { get; private set; }
+
+	private IEnumerable<AnnouncementBase> GetAnnouncements()
+	{
+		var announcements = new List<AnnouncementBase>();
+
+		if (UiContext.ApplicationSettings.ShowCoordinatorAnnouncement)
+		{
+			announcements.Add(new ZkSnacksCoordinatorAnnouncementViewModel(UiContext));
+		}
+
+		return announcements;
+	}
 
 	public bool IsDialogOpen()
 	{
