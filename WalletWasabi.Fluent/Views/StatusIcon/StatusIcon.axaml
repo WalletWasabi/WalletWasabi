@@ -73,6 +73,19 @@
                        TextAlignment="Center" />
           </DockPanel>
 
+          <DockPanel
+            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}">
+            <PathIcon Data="{StaticResource backend_not_compatible}"
+                      Foreground="{DynamicResource SystemErrorTextColor}"
+                      DockPanel.Dock="Top"
+                      HorizontalAlignment="Center"
+                      Height="30" />
+            <TextBlock DockPanel.Dock="Bottom"
+                       Text="This version of Wasabi is not compatible with the backend it tries to connect to. Try to update if available or change backend provider."
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+          </DockPanel>
+
           <!-- Status -->
           <StackPanel Spacing="16">
 
@@ -114,7 +127,6 @@
                 <Binding Path="HealthMonitor.CheckForUpdates" />
                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                   <Binding Path="HealthMonitor.UpdateAvailable" />
-                  <Binding Path="HealthMonitor.CriticalUpdateAvailable" />
                 </MultiBinding>
               </MultiBinding>
             </StackPanel.IsVisible>
@@ -159,8 +171,8 @@
 
     <!--Critical update available-->
     <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.CriticalUpdateAvailable}}"
-      Data="{StaticResource critical_update}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}"
+      Data="{StaticResource backend_not_compatible}"
       Foreground="{DynamicResource SystemErrorTextColor}" />
 
     <!-- Ready -->

@@ -74,9 +74,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	public async Task GetClientVersionAsync()
 	{
 		WasabiClient client = new(BackendHttpClient);
-		var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
-		Assert.True(uptodate.BackendCompatible);
-		Assert.True(uptodate.ClientUpToDate);
+		var backendCompatible = await client.CheckUpdatesAsync(CancellationToken.None);
+		Assert.True(backendCompatible);
 	}
 
 	[Fact]

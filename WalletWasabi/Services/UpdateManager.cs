@@ -61,10 +61,7 @@ public class UpdateManager : PeriodicRunner
 				return;
 			}
 
-			// Check whether the update is critical.
-			var backendCompatible = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
-
-			UpdateStatus updateStatus = new(backendCompatible);
+			UpdateStatus updateStatus = new();
 
 			if (DownloadNewVersion)
 			{
@@ -355,7 +352,7 @@ public class UpdateManager : PeriodicRunner
 	}
 
 	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
-	public record UpdateStatus(bool? BackendCompatible)
+	public record UpdateStatus
 	{
 		public bool ClientUpToDate { get; set; }
 		public bool IsReadyToInstall { get; set; }

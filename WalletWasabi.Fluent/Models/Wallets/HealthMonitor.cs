@@ -26,12 +26,12 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private BackendStatus _backendStatus;
+	[AutoNotify] private bool _backendNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
 	[AutoNotify] private HealthMonitorState _state;
-	[AutoNotify] private bool _criticalUpdateAvailable;
 	[AutoNotify] private bool _updateAvailable;
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
@@ -58,6 +58,12 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 							 .ObserveOn(RxApp.MainThreadScheduler)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
+
+		// Backend compatibility
+		synchronizer.WhenAnyValue(x => x.BackendNotCompatible)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.BindTo(this, x => x.BackendNotCompatible)
+			.DisposeWith(Disposables);
 
 		// Backend Connection Issues flag
 		Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.SynchronizeRequestFinished))
@@ -111,7 +117,6 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 					var updateStatus = e.EventArgs;
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
-					CriticalUpdateAvailable = !updateStatus.BackendCompatible.GetValueOrDefault();
 					IsReadyToInstall = updateStatus.IsReadyToInstall;
 					ClientVersion = updateStatus.ClientVersion;
 				})
@@ -122,10 +127,10 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 		this.WhenAnyValue(
 				x => x.TorStatus,
 				x => x.BackendStatus,
+				x => x.BackendNotCompatible,
 				x => x.Peers,
 				x => x.BitcoinCoreStatus,
 				x => x.UpdateAvailable,
-				x => x.CriticalUpdateAvailable,
 				x => x.IsConnectionIssueDetected,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
@@ -154,9 +159,9 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			return HealthMonitorState.ConnectionIssueDetected;
 		}
 
-		if (CheckForUpdates && CriticalUpdateAvailable)
+		if (BackendNotCompatible)
 		{
-			return HealthMonitorState.CriticalUpdateAvailable;
+			return HealthMonitorState.BackendNotCompatible;
 		}
 
 		if (CheckForUpdates && UpdateAvailable)
