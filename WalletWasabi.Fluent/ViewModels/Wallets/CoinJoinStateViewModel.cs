@@ -166,6 +166,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
+		ChangeCoordinatorCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (UiContext.MainViewModel is not { } mainViewModel)
+			{
+				return;
+			}
+
+			mainViewModel.SettingsPage.SelectedTab = 1;
+			mainViewModel.SettingsPage.BitcoinTabSettings.FocusCoordinatorUri = true;
+			await mainViewModel.SettingsPage.Activate();
+			mainViewModel.SettingsPage.BitcoinTabSettings.FocusCoordinatorUri = false;
+		});
 	}
 
 	private enum State
@@ -197,6 +209,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand NavigateToSettingsCommand { get; }
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
+
+	public ICommand ChangeCoordinatorCommand { get; }
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 

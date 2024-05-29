@@ -34,6 +34,7 @@ public partial class MainViewModel : ViewModelBase
 	public MainViewModel(UiContext uiContext)
 	{
 		UiContext = uiContext;
+		UiContext.SetMainViewModel(this);
 
 		ApplyUiConfigWindowState();
 
