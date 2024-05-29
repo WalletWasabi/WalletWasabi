@@ -20,7 +20,7 @@
                  Margin="25 0"
                  TextWrapping="Wrap"
                  TextAlignment="Center"
-                 Text="The default coinjoin coordination service provided by zkSNACKs is discontinued as of June 1st 2024. To continue using the coinjoin feature, add a new coordinator to your application’s Bitcoin settings." />
+                 Text="The default coinjoin coordination service provided by zkSNACKs is discontinued as of June 1st 2024. To continue using the coinjoin feature, enter a new coordinator in the Bitcoin Settings." />
 
       <Viewbox MaxHeight="100" Margin="0 30 0 50">
         <PathIcon Opacity="0.6" Data="{StaticResource info_regular}" />
