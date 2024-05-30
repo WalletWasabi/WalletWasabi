@@ -126,6 +126,10 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("FeeRateEstimationProvider")]
 	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
 
+	[DefaultValue(30)]
+	[JsonPropertyName("DropUnconfirmedTransactionsAfterDays")]
+	public int DropUnconfirmedTransactionsAfterDays { get; init; } = 30;
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
@@ -155,7 +159,8 @@ public record PersistentConfig : IConfigNg
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			ExchangeRateProvider == other.ExchangeRateProvider &&
-			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider &&
+			DropUnconfirmedTransactionsAfterDays == other.DropUnconfirmedTransactionsAfterDays;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

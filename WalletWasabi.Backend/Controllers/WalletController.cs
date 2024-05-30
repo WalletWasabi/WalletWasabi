@@ -94,57 +94,6 @@ public class WalletController : ControllerBase
 		return Ok(response);
 	}
 
-
-
-	/// <summary>
-	/// Gets mempool hashes.
-	/// </summary>
-	/// <param name="compactness">Can strip the last x characters from the hashes.</param>
-	/// <returns>A collection of transaction hashes.</returns>
-	/// <response code="200">A collection of transaction hashes.</response>
-	/// <response code="400">Invalid model state.</response>
-	[HttpGet("mempool-hashes")]
-	[ProducesResponseType(200)]
-	[ProducesResponseType(400)]
-	[ResponseCache(Duration = 5)]
-	public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64, CancellationToken cancellationToken = default)
-	{
-		if (compactness is < 1 or > 64)
-		{
-			return BadRequest("Invalid compactness parameter is provided.");
-		}
-
-		IEnumerable<string> fulls = await GetRawMempoolStringsWithCacheAsync(cancellationToken);
-
-		if (compactness == 64)
-		{
-			return Ok(fulls);
-		}
-		else
-		{
-			IEnumerable<string> compacts = fulls.Select(x => x[..compactness]);
-			return Ok(compacts);
-		}
-	}
-
-	internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync(CancellationToken cancellationToken = default)
-	{
-		var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3) };
-
-		return await Cache.GetCachedResponseAsync(
-			cacheKey,
-			action: (request, token) => GetRawMempoolStringsNoCacheAsync(token),
-			options: cacheOptions,
-			cancellationToken);
-	}
-
-	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync(CancellationToken cancellationToken = default)
-	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
-		return transactionHashes.Select(x => x.ToString());
-	}
-
 	/// <summary>
 	/// Attempts to get transactions.
 	/// </summary>

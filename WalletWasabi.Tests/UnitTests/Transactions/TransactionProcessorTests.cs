@@ -271,6 +271,32 @@ public class TransactionProcessorTests
 	}
 
 	[Fact]
+	public async Task ProcessSameTransactionTwiceAsync()
+	{
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ProcessSameTransactionTwiceAsync));
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+
+		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+
+		// An unconfirmed segwit transaction for us
+		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
+
+		// Spend the same coin again
+		var relevant = transactionProcessor.Process(tx0, tx0).ToArray();
+
+		Assert.Equal(2, relevant.Length);
+		Assert.True(relevant[0].IsNews);
+		Assert.False(relevant[1].IsNews);
+		Assert.Single(transactionProcessor.Coins, coin => !coin.IsSpent());
+
+		// Transaction store assertions
+		Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
+		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
+		Assert.Single(mempool);
+		Assert.Equal(tx0, mempool.First());
+	}
+
+	[Fact]
 	public async Task ConfirmedDoubleSpendAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync(nameof(ConfirmedDoubleSpendAsync));

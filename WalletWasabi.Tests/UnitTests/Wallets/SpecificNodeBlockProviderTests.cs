@@ -25,7 +25,7 @@ public class SpecificNodeBlockProviderTests
 
 		Network network = Network.RegTest;
 		IPEndPoint bitcoinCoreEndPoint = new(IPAddress.Loopback, port: 44444); // Port is chosen in the way that no Bitcoin Core is expected to listen on it.
-		ServiceConfiguration serviceConfiguration = new(bitcoinCoreEndPoint, dustThreshold: Money.Satoshis(1000));
+		ServiceConfiguration serviceConfiguration = new(bitcoinCoreEndPoint, dustThreshold: Money.Satoshis(1000), 30);
 
 		await using SpecificNodeBlockProvider provider = new(network, serviceConfiguration, torEndPoint: null);
 
@@ -44,7 +44,7 @@ public class SpecificNodeBlockProviderTests
 		Network network = Network.Main;
 		Block validBlock = Block.Load(Convert.FromHexString(GetRawBlock()), network);
 		IPEndPoint bitcoinCoreEndPoint = new(IPAddress.Loopback, port: 44444);
-		ServiceConfiguration serviceConfiguration = new(bitcoinCoreEndPoint, dustThreshold: Money.Satoshis(1000));
+		ServiceConfiguration serviceConfiguration = new(bitcoinCoreEndPoint, dustThreshold: Money.Satoshis(1000), 30);
 
 		using CancellationTokenSource nodeDisconnectedCts = new();
 		Mock<ConnectedNode> mockNode = new(MockBehavior.Strict, nodeDisconnectedCts) { CallBase = true };
