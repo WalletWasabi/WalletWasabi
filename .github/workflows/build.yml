@@ -1,7 +1,7 @@
 name: "Build"
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "*" ]
   pull_request:
 jobs:
   build:
