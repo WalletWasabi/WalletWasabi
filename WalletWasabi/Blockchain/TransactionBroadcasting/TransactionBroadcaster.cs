@@ -19,16 +19,14 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
 public class TransactionBroadcaster
 {
-	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory, WalletManager walletManager)
+	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WalletManager walletManager)
 	{
 		Network = network;
 		BitcoinStore = bitcoinStore;
-		HttpClientFactory = httpClientFactory;
 		WalletManager = walletManager;
 	}
 
 	private BitcoinStore BitcoinStore { get; }
-	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private Network Network { get; }
 	private NodesGroup? Nodes { get; set; }
 	private IRPCClient? RpcClient { get; set; }
