@@ -78,15 +78,15 @@ public record PersistentConfig : IConfigNg
 
 	[JsonPropertyName("MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
-	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultMainNetBitcoinP2PEndPoint;
 
 	[JsonPropertyName("TestNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(TestNetBitcoinP2pEndPointConverterNg))]
-	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultTestNetBitcoinP2PEndPoint;
 
 	[JsonPropertyName("RegTestBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(RegTestBitcoinP2pEndPointConverterNg))]
-	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = Constants.DefaultRegTestBitcoinP2PEndPoint;
 
 	[DefaultValue(false)]
 	[JsonPropertyName("JsonRpcServerEnabled")]
