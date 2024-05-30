@@ -81,7 +81,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="This version of Wasabi is not compatible with the backend it tries to connect to. Try to update if available or change backend provider."
+                       Text="This version of Wasabi is not compatible with the backend it tries to connect to. Update if available or change the backend provider."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
