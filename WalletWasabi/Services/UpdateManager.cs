@@ -50,10 +50,9 @@ public class UpdateManager : PeriodicRunner
 	{
 		try
 		{
-			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancellationToken).ConfigureAwait(false);
 			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = !updateStatus.BackendCompatible || Helpers.Constants.ClientVersion <= result.LatestClientVersion;
+			bool updateAvailable = Helpers.Constants.ClientVersion <= result.LatestClientVersion;
 
 			if (!updateAvailable)
 			{
@@ -62,6 +61,8 @@ public class UpdateManager : PeriodicRunner
 				return;
 			}
 
+			UpdateStatus updateStatus = new();
+
 			if (DownloadNewVersion)
 			{
 				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
@@ -69,7 +70,7 @@ public class UpdateManager : PeriodicRunner
 				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
 				updateStatus.IsReadyToInstall = true;
 				updateStatus.ClientVersion = newVersion;
-				updateStatus.ClientUpToDate = !updateAvailable;
+				updateStatus.ClientUpToDate = false;
 			}
 
 			UpdateAvailableToGet?.Invoke(this, updateStatus);
@@ -351,7 +352,7 @@ public class UpdateManager : PeriodicRunner
 	}
 
 	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
-	public record UpdateStatus(bool BackendCompatible)
+	public record UpdateStatus
 	{
 		public bool ClientUpToDate { get; set; }
 		public bool IsReadyToInstall { get; set; }

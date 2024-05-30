@@ -27,6 +27,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
+	private bool _backendNotCompatible;
 
 	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
 	{
@@ -81,6 +82,12 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		}
 	}
 
+	public bool BackendNotCompatible
+	{
+		get => _backendNotCompatible;
+		private set => RaiseAndSetIfChanged(ref _backendNotCompatible, value);
+	}
+
 	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 	private int MaxFiltersToSync { get; }
@@ -113,6 +120,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 				// NOT GenSocksServErr
 				BackendStatus = BackendStatus.Connected;
+				BackendNotCompatible = false;
 				TorStatus = TorStatus.Running;
 				OnSynchronizeRequestFinished();
 			}
@@ -129,19 +137,18 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				BackendStatus = BackendStatus.NotConnected;
 
 				// Backend API version might be updated meanwhile. Trying to update the versions.
-				var result = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+				var backendCompatible = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 
 				// If the backend is compatible and the Api version updated then we just used the wrong API.
-				if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 				{
 					// Next request will be fine, do not throw exception.
 					TriggerRound();
 					return;
 				}
-				else
-				{
-					throw;
-				}
+
+				BackendNotCompatible = !backendCompatible;
+				throw;
 			}
 			catch (Exception)
 			{
