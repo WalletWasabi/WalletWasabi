@@ -52,7 +52,7 @@ public class UpdateManager : PeriodicRunner
 		{
 			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = Helpers.Constants.ClientVersion <= result.LatestClientVersion;
+			bool updateAvailable = Helpers.Constants.ClientVersion < result.LatestClientVersion;
 
 			if (!updateAvailable)
 			{
