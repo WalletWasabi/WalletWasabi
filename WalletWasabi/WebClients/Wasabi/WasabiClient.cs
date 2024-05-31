@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 
@@ -184,7 +185,7 @@ public class WasabiClient
 
 	#region software
 
-	public async Task<(Version ClientVersion, ushort BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
+	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
 	{
 		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
@@ -196,14 +197,24 @@ public class WasabiClient
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
-		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.Ww2LegalDocumentsVersion));
+		return ushort.Parse(resp.BackendMajorVersion);
 	}
 
-	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
+	public async Task<bool> CheckUpdatesAsync(CancellationToken cancel)
 	{
-		var (clientVersion, backendMajorVersion, legalDocumentsVersion) = await GetVersionsAsync(cancel).ConfigureAwait(false);
-		var clientUpToDate = Helpers.Constants.ClientVersion >= clientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
-		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+		ushort backendMajorVersion;
+		try
+		{
+			 backendMajorVersion = await GetBackendMajorVersionAsync(cancel).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning($"Could not get the backend major version: {ex}");
+			throw;
+		}
+
+		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);
 		var currentBackendMajorVersion = backendMajorVersion;
 
 		if (backendCompatible)
@@ -212,30 +223,8 @@ public class WasabiClient
 			ApiVersion = currentBackendMajorVersion;
 		}
 
-		return new UpdateStatus(backendCompatible, clientUpToDate, legalDocumentsVersion, currentBackendMajorVersion, clientVersion);
+		return backendCompatible;
 	}
 
 	#endregion software
-
-	#region wasabi
-
-	public async Task<string> GetLegalDocumentsAsync(CancellationToken cancel)
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
-			$"api/v{ApiVersion}/wasabi/legaldocuments?id=ww2",
-			cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		string result = await content.ReadAsStringAsync(cancel).ConfigureAwait(false);
-
-		return result;
-	}
-
-	#endregion wasabi
 }
