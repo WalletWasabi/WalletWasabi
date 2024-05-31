@@ -28,7 +28,7 @@ public class UpdateManager : PeriodicRunner
 		GithubHttpClient = githubHttpClient;
 		WasabiClient = sharedWasabiClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
-		DownloadNewVersion = downloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+		DownloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 	}
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
@@ -66,6 +66,7 @@ public class UpdateManager : PeriodicRunner
 
 			if (DownloadNewVersion)
 			{
+				(result.InstallerDownloadUrl, result.InstallerFileName) = GetAssetToDownload(result.AssetDownloadLinks);
 				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
 				InstallerPath = installerPath;
 				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
@@ -103,7 +104,7 @@ public class UpdateManager : PeriodicRunner
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, info.Sha256SumsUrl, info.WasabiSigUrl, cancellationToken).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, info.AssetDownloadLinks, cancellationToken).ConfigureAwait(false);
 
 		var installerFilePath = Path.Combine(InstallerDir, info.InstallerFileName);
 
@@ -191,23 +192,20 @@ public class UpdateManager : PeriodicRunner
 
 		// Get all asset names and download URLs to find the correct one.
 		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
-		List<string> assetDownloadURLs = new();
+		List<string> assetDownloadLinks = new();
 		foreach (JToken asset in assetsInfo)
 		{
-			assetDownloadURLs.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
+			assetDownloadLinks.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		string sha256SumsUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.asc"));
-		string wasabiSigUrl = assetDownloadURLs.First(url => url.Contains("SHA256SUMS.wasabisig"));
-
-		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
-
-		return new ReleaseInfo(githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
+		return new ReleaseInfo(githubVersion, assetDownloadLinks);
 	}
 
-	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl, CancellationToken cancellationToken)
+	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, List<string> assetDownloadLinks, CancellationToken cancellationToken)
 	{
 		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
+		string sha256SumsUrl = assetDownloadLinks.First(url => url.Contains("SHA256SUMS.asc"));
+		string wasabiSigUrl = assetDownloadLinks.First(url => url.Contains("SHA256SUMS.wasabisig"));
 
 		try
 		{
@@ -248,11 +246,11 @@ public class UpdateManager : PeriodicRunner
 		}
 	}
 
-	private (string url, string fileName) GetAssetToDownload(List<string> assetDownloadURLs)
+	private (string url, string fileName) GetAssetToDownload(List<string> assetDownloadLinks)
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var url = assetDownloadURLs.First(url => url.Contains(".msi"));
+			var url = assetDownloadLinks.First(url => url.Contains(".msi"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -260,10 +258,10 @@ public class UpdateManager : PeriodicRunner
 			var cpu = RuntimeInformation.ProcessArchitecture;
 			if (cpu.ToString() == "Arm64")
 			{
-				var arm64url = assetDownloadURLs.First(url => url.Contains("arm64.dmg"));
+				var arm64url = assetDownloadLinks.First(url => url.Contains("arm64.dmg"));
 				return (arm64url, arm64url.Split("/").Last());
 			}
-			var url = assetDownloadURLs.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
+			var url = assetDownloadLinks.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -349,7 +347,12 @@ public class UpdateManager : PeriodicRunner
 		}
 	}
 
-	private record ReleaseInfo(Version LatestClientVersion, string InstallerDownloadUrl, string InstallerFileName, string Sha256SumsUrl, string WasabiSigUrl);
+	private record ReleaseInfo(Version LatestClientVersion, List<string> AssetDownloadLinks)
+	{
+		public string InstallerDownloadUrl { get; set; } = "";
+		public string InstallerFileName { get; set; } = "";
+	}
+
 	public record UpdateStatus
 	{
 		public bool ClientUpToDate { get; set; }
