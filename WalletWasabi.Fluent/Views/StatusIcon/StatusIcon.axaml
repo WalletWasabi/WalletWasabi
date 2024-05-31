@@ -75,8 +75,7 @@
 
           <DockPanel
             IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}">
-            <PathIcon Data="{StaticResource backend_not_compatible}"
-                      Foreground="{DynamicResource SystemErrorTextColor}"
+            <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
                       Height="30" />
