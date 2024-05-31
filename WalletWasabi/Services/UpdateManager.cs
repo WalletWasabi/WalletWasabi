@@ -51,8 +51,9 @@ public class UpdateManager : PeriodicRunner
 		try
 		{
 			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
+			Version availableMajorVersion = new(result.LatestClientVersion.Major,  result.LatestClientVersion.Minor,  result.LatestClientVersion.Build);
 
-			bool updateAvailable = Helpers.Constants.ClientVersion < result.LatestClientVersion;
+			bool updateAvailable = Helpers.Constants.ClientVersion < availableMajorVersion;
 
 			if (!updateAvailable)
 			{
@@ -189,7 +190,6 @@ public class UpdateManager : PeriodicRunner
 		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
 
 		Version githubVersion = new(softwareVersion);
-		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 
 		// Get all asset names and download URLs to find the correct one.
 		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
@@ -204,7 +204,7 @@ public class UpdateManager : PeriodicRunner
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadURLs);
 
-		return new ReleaseInfo(shortGithubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
+		return new ReleaseInfo(githubVersion, url, fileName, sha256SumsUrl, wasabiSigUrl);
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, string sha256SumsUrl, string wasabiSigUrl, CancellationToken cancellationToken)
