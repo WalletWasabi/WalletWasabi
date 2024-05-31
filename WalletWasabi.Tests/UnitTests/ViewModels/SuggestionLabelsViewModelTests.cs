@@ -186,6 +186,7 @@ public class SuggestionLabelsViewModelTests
 			set => throw new NotSupportedException();
 		}
 
+		public bool SkipSynchronization => throw new NotSupportedException();
 		public IObservable<WalletState> State => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
@@ -205,6 +206,7 @@ public class SuggestionLabelsViewModelTests
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public bool IsLoaded { get; set; }
+		public bool IsStarting { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{

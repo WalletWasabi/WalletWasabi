@@ -21,6 +21,7 @@ public partial class WalletModel : ReactiveObject
 
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isLoaded;
+	[AutoNotify] private bool _isStarting;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
@@ -71,6 +72,10 @@ public partial class WalletModel : ReactiveObject
 		this.WhenAnyObservable(x => x.State)
 			.Select(x => x == WalletState.Started)
 			.BindTo(this, x => x.IsLoaded);
+
+		this.WhenAnyObservable(x => x.State)
+			.Select(x => x == WalletState.Starting)
+			.BindTo(this, x => x.IsStarting);
 	}
 
 	public IAddressesModel Addresses { get; }
@@ -82,6 +87,8 @@ public partial class WalletModel : ReactiveObject
 	public string Name => Wallet.WalletName;
 
 	public Network Network => Wallet.Network;
+
+	public bool SkipSynchronization => Wallet.KeyManager.SkipSynchronization;
 
 	public IWalletTransactionsModel Transactions { get; }
 

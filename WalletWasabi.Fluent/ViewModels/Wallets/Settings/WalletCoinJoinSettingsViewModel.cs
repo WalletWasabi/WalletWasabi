@@ -115,7 +115,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		UiContext.WalletRepository.Wallets
 			.Connect()
 			.AutoRefresh(x => x.IsLoaded)
-			.Filter(x => (x.Id == _wallet.Id || x.Settings.OutputWalletId != _wallet.Id) && x.IsLoaded)
+			.Filter(x => (x.Id == _wallet.Id || x.Settings.OutputWalletId != _wallet.Id) &&
+			             x is { IsLoaded: true } or { SkipSynchronization: true, IsStarting: true })
 			.SortBy(i => i.Name)
 			.Bind(out var wallets)
 			.Subscribe()
