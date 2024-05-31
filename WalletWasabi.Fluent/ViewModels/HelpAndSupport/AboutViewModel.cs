@@ -62,7 +62,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel(UiContext)
 				{
 					Link = StatusPageLink,
-					Description = "Coordinator Status Page",
+					Description = "Backend Status Page",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
