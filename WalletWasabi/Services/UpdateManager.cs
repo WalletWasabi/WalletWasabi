@@ -113,8 +113,6 @@ public class UpdateManager : PeriodicRunner
 			{
 				EnsureToRemoveCorruptedFiles();
 
-				// This should also be done using Tor.
-				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
 				Logger.LogInfo($"Trying to download new version: {info.LatestClientVersion}");
 
 				// Get file stream and copy it to downloads folder to access.
