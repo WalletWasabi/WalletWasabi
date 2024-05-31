@@ -137,7 +137,17 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				BackendStatus = BackendStatus.NotConnected;
 
 				// Backend API version might be updated meanwhile. Trying to update the versions.
-				var backendCompatible = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+				bool backendCompatible;
+				try
+				{
+					backendCompatible = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+				}
+				catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
+				{
+					// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
+					BackendNotCompatible = true;
+					return;
+				}
 
 				// If the backend is compatible and the Api version updated then we just used the wrong API.
 				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
