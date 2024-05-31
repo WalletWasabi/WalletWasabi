@@ -9,7 +9,7 @@ public class ServiceConfiguration
 	public ServiceConfiguration(
 		EndPoint bitcoinCoreEndPoint,
 		Money dustThreshold,
-		int dropUnconfirmedTransactionsAfterDays)
+		int dropUnconfirmedTransactionsAfterDays = 30)
 	{
 		BitcoinCoreEndPoint = Guard.NotNull(nameof(bitcoinCoreEndPoint), bitcoinCoreEndPoint);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
