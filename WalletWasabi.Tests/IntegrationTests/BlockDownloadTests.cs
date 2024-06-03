@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
@@ -52,9 +53,7 @@ public class BlockDownloadTests
 		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 		await RuntimeParams.LoadAsync();
 
-		string roamingDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-		string addressManagerFilePath = Path.Combine(roamingDir, "WalletWasabi", "Client", "BitcoinP2pNetwork", $"AddressManager{Network.Main}.dat");
+		string addressManagerFilePath = Path.Combine(Config.DataDir, "BitcoinP2pNetwork", $"AddressManager{Network.Main}.dat");
 		AddressManager addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
 		AddressManagerBehavior addressManagerBehavior = new(addressManager)
 		{

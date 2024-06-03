@@ -90,7 +90,7 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 				{
 					unchecked
 					{
-						return current * 23 + (obj?.GetHashCode() ?? 0);
+						return (current * 23) + (obj?.GetHashCode() ?? 0);
 					}
 				});
 		}

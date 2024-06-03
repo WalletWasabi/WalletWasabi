@@ -150,7 +150,6 @@ public class App : Application
 			amountProvider,
 			new EditableSearchSourceSource(),
 			torStatusChecker,
-			new LegalDocumentsProvider(),
 			new HealthMonitor(applicationSettings, torStatusChecker));
 	}
 }

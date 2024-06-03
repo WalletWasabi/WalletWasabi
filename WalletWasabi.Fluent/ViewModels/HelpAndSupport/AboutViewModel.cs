@@ -62,7 +62,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel(UiContext)
 				{
 					Link = StatusPageLink,
-					Description = "Coordinator Status Page",
+					Description = "Backend Status Page",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
@@ -122,17 +122,17 @@ public partial class AboutViewModel : RoutableViewModel
 
 	public static string TorLink => "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion";
 
-	public static string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
+	public static string SourceCodeLink => "https://github.com/WalletWasabi/WalletWasabi/";
 
 	public static string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
-	public static string UserSupportLink => "https://github.com/zkSNACKs/WalletWasabi/discussions/5185";
+	public static string UserSupportLink => "https://github.com/WalletWasabi/WalletWasabi/discussions/5185";
 
-	public static string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/new?template=bug-report.md";
+	public static string BugReportLink => "https://github.com/WalletWasabi/WalletWasabi/issues/new?template=bug-report.md";
 
 	public static string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 
 	public static string DocsLink => "https://docs.wasabiwallet.io/";
 
-	public static string LicenseLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
+	public static string LicenseLink => "https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md";
 }

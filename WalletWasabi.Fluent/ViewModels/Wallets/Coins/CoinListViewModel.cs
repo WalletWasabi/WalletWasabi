@@ -32,9 +32,9 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		_ignorePrivacyMode = ignorePrivacyMode;
 		_allowCoinjoiningCoinSelection = allowCoinjoiningCoinSelection;
 
-		var sourceItems = new SourceList<CoinListItem>().DisposeWith(_disposables);
+		var viewModels = new SourceList<CoinListItem>().DisposeWith(_disposables);
 
-		var changes = sourceItems.Connect();
+		var changes = viewModels.Connect();
 
 		var coinItems = changes
 			.TransformMany(
@@ -50,7 +50,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				})
 			.AddKey(model => model.Coin.Key);
 
-		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges())
+		coinItems.OnItemAdded(model => model.Coin.SubscribeToCoinChanges(_disposables))
 			.Subscribe()
 			.DisposeWith(_disposables);
 
@@ -66,27 +66,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		var selectedCoins = coinItems
-			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
-			.Select(GetSelectedCoins);
-
-		wallet.Coins.Pockets
-			.Connect()
-			.ToCollection()
-			.WithLatestFrom(selectedCoins, (pockets, sc) => (pockets, sc))
-			.Do(
-				tuple =>
-				{
-					var (pockets, sl) = tuple;
-					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, sl.ToList());
-					RestoreExpandedRows(oldExpandedItemsLabel);
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
-
 		coinItems.AutoRefresh(x => x.IsSelected)
 			.Filter(x => x.IsSelected == true)
 			.Transform(x => x.Coin)
@@ -96,24 +75,25 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
+		wallet.Coins.Pockets
+			.Connect(suppressEmptyChangeSets: false)
+			.ToCollection()
+			.Do(
+				pockets =>
+				{
+					IList<ICoinModel> oldSelection = Selection.ToArray();
+					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					Rebuild(viewModels, pockets);
+					UpdateSelection(coinItemsCollection, oldSelection);
+					RestoreExpandedRows(oldExpandedItemsLabel);
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
+
 		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
-		wallet.Coins.Pockets
-			.Connect()
-			.ToCollection()
-			.SkipWhile(pockets => pockets.Count == 0)
-			.Do(
-				pockets =>
-				{
-					RefreshFromPockets(sourceItems, pockets);
-					UpdateSelection(coinItemsCollection, initialCoinSelection);
-					ExpandSelectedItems();
-				})
-			.Subscribe()
-			.DisposeWith(_disposables);
-		
 		_wallet = wallet;
 
 		ExpandAllCommand = ReactiveCommand.Create(
@@ -132,6 +112,19 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Descending)) },
 			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending)) },
 		];
+		
+		SetInitialSelection(initialCoinSelection);
+	}
+
+	private void SetInitialSelection(IEnumerable<ICoinModel> initialSelection)
+	{
+		var initialSmartCoins = initialSelection.GetSmartCoins().ToList();
+		var coinsToSelect = CoinItems.Where(x => initialSmartCoins.Contains(x.Coin.GetSmartCoin()));
+
+		foreach (var coinItem in coinsToSelect)
+		{
+			coinItem.IsSelected = true;
+		}
 	}
 
 	public ReadOnlyObservableCollection<CoinViewModel> CoinItems { get; }
@@ -149,11 +142,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		_disposables.Dispose();
 	}
 
-	private static ReadOnlyCollection<ICoinModel> GetSelectedCoins(IReadOnlyCollection<CoinViewModel> list)
-	{
-		return new ReadOnlyCollection<ICoinModel>(list.Where(item => item.IsSelected == true).Select(x => x.Coin).ToList());
-	}
-
 	private static void UpdateSelection(IEnumerable<CoinViewModel> coinItems, IList<ICoinModel> selectedCoins)
 	{
 		var selectedSmartCoins = selectedCoins.GetSmartCoins().ToList();
@@ -166,7 +154,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	private void RefreshFromPockets(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets)
+	private void Rebuild(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets)
 	{
 		var newItems =
 			pockets.Select(pocket =>
@@ -183,12 +171,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				return new PocketViewModel(_wallet, pocket, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
-		source.Edit(
-			x =>
-			{
-				x.Clear();
-				x.AddRange(newItems);
-			});
+		source.EditDiff(newItems);
 	}
 
 	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)
@@ -196,14 +179,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		var itemsToExpand = _itemsCollection.Where(item => oldItemsLabels.Any(label => item.Labels.Equals(label)));
 
 		foreach (var item in itemsToExpand)
-		{
-			item.IsExpanded = true;
-		}
-	}
-
-	private void ExpandSelectedItems()
-	{
-		foreach (var item in _itemsCollection.Where(x => x.IsSelected is not false))
 		{
 			item.IsExpanded = true;
 		}

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.UI;
@@ -82,6 +83,11 @@ public class ReceiveAddressViewModelTests
 
 		public void Dispose()
 		{
+		}
+
+		public Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
+		{
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)

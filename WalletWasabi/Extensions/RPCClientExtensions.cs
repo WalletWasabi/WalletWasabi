@@ -186,7 +186,7 @@ public static class RPCClientExtensions
 
 		var feeGroupsByTarget = splittedFeeGroups.Zip(
 			accumulatedVirtualSizes,
-			(feeGroup, accumulatedVirtualSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedVirtualSize / BlockVirtualSize)));
+			(feeGroup, accumulatedVirtualSize) => (FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + (accumulatedVirtualSize / BlockVirtualSize))));
 
 		// Consolidates all the fee rate groups that share the same confirmation target.
 		// Following the previous example we have the fee rate groups with target in the

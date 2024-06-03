@@ -65,8 +65,8 @@ public class CubicSpline
 			double w2 = w * w;
 			c0[i] = y[i];
 			c1[i] = firstDerivatives[i];
-			c2[i] = (3 * (y[i + 1] - y[i]) / w - 2 * firstDerivatives[i] - firstDerivatives[i + 1]) / w;
-			c3[i] = (2 * (y[i] - y[i + 1]) / w + firstDerivatives[i] + firstDerivatives[i + 1]) / w2;
+			c2[i] = (((3 * (y[i + 1] - y[i])) / w) - (2 * firstDerivatives[i]) - firstDerivatives[i + 1]) / w;
+			c3[i] = (((2 * (y[i] - y[i + 1])) / w) + firstDerivatives[i] + firstDerivatives[i + 1]) / w2;
 		}
 
 		return new CubicSpline(x, c0, c1, c2, c3);
@@ -167,9 +167,9 @@ public class CubicSpline
 			else
 			{
 				// Weighted harmonic mean of each slope.
-				var w1 = 2 * h + hPrev;
-				var w2 = h + 2 * hPrev;
-				dd[i] = (w1 + w2) / (w1 / m[i - 1] + w2 / m[i]);
+				var w1 = (2 * h) + hPrev;
+				var w2 = h + (2 * hPrev);
+				dd[i] = (w1 + w2) / ((w1 / m[i - 1]) + (w2 / m[i]));
 			}
 
 			hPrev = h;
@@ -190,7 +190,7 @@ public class CubicSpline
 	private static double PchipEndPoints(double h0, double h1, double m0, double m1)
 	{
 		// One-sided, shape-preserving, three-point estimate for the derivative.
-		var d = ((2 * h0 + h1) * m0 - h0 * m1) / (h0 + h1);
+		var d = ((((2 * h0) + h1) * m0) - (h0 * m1)) / (h0 + h1);
 
 		if (Math.Sign(d) != Math.Sign(m0))
 		{
@@ -357,7 +357,7 @@ public class CubicSpline
 		double t2 = xx[index2] - xx[index0];
 
 		double a = (x2 - x0 - (t2 / t1 * (x1 - x0))) / (t2 * (t2 - t1));
-		double b = (x1 - x0 - a * t1 * t1) / t1;
+		double b = (x1 - x0 - (a * t1 * t1)) / t1;
 		return (2 * a * t) + b;
 	}
 
@@ -397,7 +397,7 @@ public class CubicSpline
 	{
 		int k = LeftSegmentIndex(t);
 		var x = t - _x[k];
-		return _c0[k] + x * (_c1[k] + x * (_c2[k] + x * _c3[k]));
+		return _c0[k] + (x * (_c1[k] + (x * (_c2[k] + (x * _c3[k])))));
 	}
 
 	/// <summary>
@@ -409,7 +409,7 @@ public class CubicSpline
 	{
 		int k = LeftSegmentIndex(t);
 		var x = t - _x[k];
-		return _c1[k] + x * (2 * _c2[k] + x * 3 * _c3[k]);
+		return _c1[k] + (x * ((2 * _c2[k]) + (x * 3 * _c3[k])));
 	}
 
 	/// <summary>
@@ -421,7 +421,7 @@ public class CubicSpline
 	{
 		int k = LeftSegmentIndex(t);
 		var x = t - _x[k];
-		return 2 * _c2[k] + x * 6 * _c3[k];
+		return (2 * _c2[k]) + (x * 6 * _c3[k]);
 	}
 
 	/// <summary>
@@ -432,7 +432,7 @@ public class CubicSpline
 	{
 		int k = LeftSegmentIndex(t);
 		var x = t - _x[k];
-		return _indefiniteIntegral.Value[k] + x * (_c0[k] + x * (_c1[k] / 2 + x * (_c2[k] / 3 + x * _c3[k] / 4)));
+		return _indefiniteIntegral.Value[k] + (x * (_c0[k] + (x * ((_c1[k] / 2) + (x * ((_c2[k] / 3) + ((x * _c3[k]) / 4)))))));
 	}
 
 	/// <summary>
@@ -451,7 +451,7 @@ public class CubicSpline
 		for (int i = 0; i < integral.Length - 1; i++)
 		{
 			double w = _x[i + 1] - _x[i];
-			integral[i + 1] = integral[i] + w * (_c0[i] + w * (_c1[i] / 2 + w * (_c2[i] / 3 + w * _c3[i] / 4)));
+			integral[i + 1] = integral[i] + (w * (_c0[i] + (w * ((_c1[i] / 2) + (w * ((_c2[i] / 3) + ((w * _c3[i]) / 4)))))));
 		}
 
 		return integral;

@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.AddWallet;
+namespace WalletWasabi.Fluent.Views.Wallets.Settings;
 
-public class TermsAndConditionsView : UserControl
+public partial class ExcludedCoinsView : UserControl
 {
-	public TermsAndConditionsView()
+	public ExcludedCoinsView()
 	{
 		InitializeComponent();
 	}

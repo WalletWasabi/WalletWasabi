@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 
@@ -17,6 +18,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string LocalBitcoinCoreDataDir { get; set; } = "";
 	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
 	public string BitcoinP2PEndPoint { get; set; } = "";
+	public string CoordinatorUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
 	public bool DarkModeEnabled { get; set; }
 	public bool AutoCopy { get; set; }
@@ -25,11 +27,12 @@ public class NullApplicationSettings : IApplicationSettings
 	public FeeDisplayUnit SelectedFeeDisplayUnit { get; set; }
 	public bool RunOnSystemStartup { get; set; }
 	public bool HideOnClose { get; set; }
-	public bool UseTor { get; set; }
+	public TorMode UseTor { get; set; }
 	public bool TerminateTorOnExit { get; set; }
 	public bool DownloadNewVersion { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
+	public bool ShowCoordinatorAnnouncement { get; set; }
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
 

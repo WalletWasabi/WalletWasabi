@@ -115,8 +115,8 @@ public class QrCode : Control
 	private bool[,] AddPaddingToMatrix(bool[,] source)
 	{
 		var (indexW, indexH) = GetMatrixIndexSize(source);
-		var nW = indexW + MatrixPadding * 2;
-		var nH = indexH + MatrixPadding * 2;
+		var nW = indexW + (MatrixPadding * 2);
+		var nH = indexH + (MatrixPadding * 2);
 
 		var paddedMatrix = new bool[nH, nW];
 

@@ -6,6 +6,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Tor;
 
@@ -27,6 +28,7 @@ public class TorSettings
 		string dataDir,
 		string distributionFolderPath,
 		bool terminateOnExit,
+		TorMode torMode = TorMode.Enabled,
 		int socksPort = DefaultSocksPort,
 		int controlPort = DefaultControlPort,
 		string? torFolder = null,
@@ -38,11 +40,20 @@ public class TorSettings
 
 		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
 
-		// Use different ports when user overrides Tor folder to avoid accessing the same control_auth_cookie file.
-		if (IsCustomTorFolder && defaultWasabiTorPorts)
+		if (defaultWasabiTorPorts)
 		{
-			socksPort = 37152;
-			controlPort = 37153;
+			// Use different ports when user overrides Tor folder to avoid accessing the same control_auth_cookie file.
+			if (IsCustomTorFolder)
+			{
+				socksPort = 37152;
+				controlPort = 37153;
+			}
+			else if (torMode == TorMode.EnabledOnlyRunning)
+			{
+				// Whonix & Tails use standard ports.
+				socksPort = 9050;
+				controlPort = 9051;
+			}
 		}
 
 		TorBinaryDir = torFolder ?? Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
@@ -62,11 +73,21 @@ public class TorSettings
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 		DistributionFolder = distributionFolderPath;
-		TerminateOnExit = terminateOnExit;
+
+		if (torMode == TorMode.EnabledOnlyRunning && terminateOnExit)
+		{
+			Logger.LogWarning("Wasabi is instructed to use a running Tor process. Terminate on exit was disabled.");
+		}
+
+		TorMode = torMode;
+		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
+
 		Log = log;
 		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
+
+	public TorMode TorMode { get; }
 
 	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
 	public bool IsCustomTorFolder { get; }

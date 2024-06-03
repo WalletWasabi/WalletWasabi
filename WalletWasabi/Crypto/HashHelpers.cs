@@ -11,8 +11,7 @@ public static class HashHelpers
 
 	public static byte[] GenerateSha256Hash(byte[] input)
 	{
-		using var sha256 = SHA256.Create();
-		var hash = sha256.ComputeHash(input);
+		var hash = SHA256.HashData(input);
 
 		return hash;
 	}

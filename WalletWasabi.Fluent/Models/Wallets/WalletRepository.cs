@@ -30,8 +30,8 @@ public partial class WalletRepository : ReactiveObject
 
 		var signals =
 			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
-					  .Select(_ => Unit.Default)
-					  .StartWith(Unit.Default);
+					  .Select(_ => System.Reactive.Unit.Default)
+					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
 			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)

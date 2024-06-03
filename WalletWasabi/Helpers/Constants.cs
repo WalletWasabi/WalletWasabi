@@ -1,3 +1,4 @@
+using System.Net;
 using NBitcoin;
 using NBitcoin.Protocol;
 
@@ -82,9 +83,17 @@ public static class Constants
 
 	public const string FallbackAffiliationMessageSignerKey = "30770201010420686710a86f0cdf425e3bc9781f51e45b9440aec1215002402d5cdee713066623a00a06082a8648ce3d030107a14403420004f267804052bd863a1644233b8bfb5b8652ab99bcbfa0fb9c36113a571eb5c0cb7c733dbcf1777c2745c782f96e218bb71d67d15da1a77d37fa3cb96f423e53ba";
 
+	public static readonly EndPoint DefaultMainNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinP2pPort);
+	public static readonly EndPoint DefaultTestNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinP2pPort);
+	public static readonly EndPoint DefaultRegTestBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinP2pPort);
+
+	public static readonly EndPoint DefaultMainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinCoreRpcPort);
+	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);
+	public static readonly EndPoint DefaultRegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinCoreRpcPort);
+
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 7, 1);
+	public static readonly Version ClientVersion = new(2, 0, 8, 0);
 
 	public static readonly Version HwiVersion = new("3.0.0");
 	public static readonly Version BitcoinCoreVersion = new("23.0");

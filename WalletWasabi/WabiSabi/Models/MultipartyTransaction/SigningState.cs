@@ -22,7 +22,6 @@ public record SigningState : MultipartyTransactionState
 	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
 	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-
 	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
@@ -11,11 +12,9 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
-public class PocketViewModel : CoinListItem, IDisposable
+public class PocketViewModel : CoinListItem
 {
-	private readonly CompositeDisposable _disposables = new();
-
-	public PocketViewModel(IWalletModel wallet, Pocket pocket, bool canSelectCoinjoiningCoins, bool ignorePrivacyMode)
+    public PocketViewModel(IWalletModel wallet, Pocket pocket, bool canSelectCoinjoiningCoins, bool ignorePrivacyMode)
 	{
 		var pocketCoins = pocket.Coins.ToList();
 
@@ -30,10 +29,18 @@ public class PocketViewModel : CoinListItem, IDisposable
 		AnonymityScore = GetAnonScore(pocketCoins);
 		Labels = pocket.Labels;
 		Children =
-			pocketCoins.Select(wallet.Coins.GetCoinModel)
-					   .OrderByDescending(x => x.AnonScore)
-					   .Select(coin => new CoinViewModel("", coin, canSelectCoinjoiningCoins, ignorePrivacyMode) { IsChild = true })
-					   .ToList();
+			pocketCoins
+				.Select(wallet.Coins.GetCoinModel)
+				.OrderByDescending(x => x.AnonScore)
+                .Select(coin => new CoinViewModel("", coin, canSelectCoinjoiningCoins, ignorePrivacyMode) { IsChild = true })
+				.ToList();
+
+		Children
+			.AsObservableChangeSet()
+			.AutoRefresh(x => IsExcludedFromCoinJoin)
+			.Select(_ => Children.All(x => x.IsExcludedFromCoinJoin))
+			.BindTo(this, x => x.IsExcludedFromCoinJoin)
+			.DisposeWith(_disposables);
 
 		Children
 			.AsObservableChangeSet()
@@ -42,7 +49,6 @@ public class PocketViewModel : CoinListItem, IDisposable
 			.BindTo(this, x => x.IsCoinjoining)
 			.DisposeWith(_disposables);
 
-		CanBeSelected = true;
 		ScriptType = null;
 
 		Children
@@ -81,12 +87,18 @@ public class PocketViewModel : CoinListItem, IDisposable
 			})
 			.Subscribe()
 			.DisposeWith(_disposables);
+
+		ThereAreSelectableCoins()
+			.BindTo(this, x => x.CanBeSelected)
+			.DisposeWith(_disposables);
 	}
 
-	public void Dispose()
-	{
-		_disposables.Dispose();
-	}
+	private IObservable<bool> ThereAreSelectableCoins() => Children
+		.AsObservableChangeSet()
+		.AutoRefresh(x => x.CanBeSelected)
+		.Filter(x => x.CanBeSelected)
+		.Count()
+		.Select(i => i > 0);
 
 	private static int? GetAnonScore(IEnumerable<SmartCoin> pocketCoins)
 	{
