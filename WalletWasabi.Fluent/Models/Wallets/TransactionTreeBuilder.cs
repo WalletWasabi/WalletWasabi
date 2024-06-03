@@ -123,6 +123,7 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
+			HasBeenSpedUp = transactionSummary.IsSpeedup,
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
 			Date = date,

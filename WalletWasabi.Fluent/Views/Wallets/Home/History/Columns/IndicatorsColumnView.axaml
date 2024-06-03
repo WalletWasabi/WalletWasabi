@@ -42,11 +42,22 @@
         <PathIcon Opacity="0.6"
                   Classes.IncomingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.IncomingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.OutgoingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.OutgoingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-                  Classes.SelfTransfer="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.SelfTransferTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.Coinjoin="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Coinjoin}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.Cancellation="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Cancellation}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.CoinjoinGroup="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CoinjoinGroup}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.CPFP="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CPFP}, Converter={x:Static converters:EnumToBoolConverter.Instance}}">
+          <Classes.SelfTransfer>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="Transaction.Type" ConverterParameter="{x:Static model:TransactionType.SelfTransferTransaction}" Converter="{x:Static converters:EnumToBoolConverter.Instance}" />
+              <Binding Path="!HasBeenSpedUp" />
+            </MultiBinding>
+          </Classes.SelfTransfer>
+          <Classes.SpedUpSelfTransfer>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="Transaction.Type" ConverterParameter="{x:Static model:TransactionType.SelfTransferTransaction}" Converter="{x:Static converters:EnumToBoolConverter.Instance}" />
+              <Binding Path="HasBeenSpedUp" />
+            </MultiBinding>
+          </Classes.SpedUpSelfTransfer>
           <PathIcon.Styles>
             <Style Selector="PathIcon.IncomingTransaction">
               <Setter Property="Data" Value="{StaticResource wallet_action_receive}" />
@@ -61,6 +72,11 @@
             <Style Selector="PathIcon.SelfTransfer">
               <Setter Property="Data" Value="{StaticResource normal_transaction}" />
               <Setter Property="ToolTip.Tip" Value="Self Transfer" />
+            </Style>
+            <Style Selector="PathIcon.SpedUpSelfTransfer">
+              <Setter Property="Data" Value="{StaticResource rocket_bolt}" />
+              <Setter Property="Height" Value="14" />
+              <Setter Property="ToolTip.Tip" Value="Accelerated Self Transfer" />
             </Style>
             <Style Selector="PathIcon.Coinjoin">
               <Setter Property="Data" Value="{StaticResource shield_regular}" />
