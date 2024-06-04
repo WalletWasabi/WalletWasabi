@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
@@ -17,16 +18,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Caption = "Manage Bitcoin settings",
 	Order = 1,
 	Category = "Settings",
-	Keywords = new[]
-	{
-			"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-			"P2P", "Endpoint", "Dust", "Threshold", "BTC"
-	},
+	Keywords =
+	[
+		"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
+			"P2P", "Endpoint", "Dust", "Threshold", "BTC", "Coordinator", "Coordination", "Fee"
+	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _coordinatorUri;
+	[AutoNotify] private string _maxAllowedCoordinationFeeRate;
 	[AutoNotify] private string _dustThreshold;
 
 	[AutoNotify] private bool _focusCoordinatorUri;
@@ -37,10 +39,12 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
+		this.ValidateProperty(x => x.MaxAllowedCoordinationFeeRate, ValidateMaxAllowedCoordinationFeeRate);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
 		_coordinatorUri = settings.CoordinatorUri;
+		_maxAllowedCoordinationFeeRate = settings.MaxAllowedCoordinationFeeRate;
 		_dustThreshold = settings.DustThreshold;
 
 		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
@@ -89,6 +93,30 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.CoordinatorUri = coordinatorUri;
+	}
+
+	private void ValidateMaxAllowedCoordinationFeeRate(IValidationErrors errors)
+	{
+		var maxAllowedCoordinationFeeRate = MaxAllowedCoordinationFeeRate;
+
+		if (string.IsNullOrEmpty(maxAllowedCoordinationFeeRate))
+		{
+			return;
+		}
+
+		if (!decimal.TryParse(maxAllowedCoordinationFeeRate, out var maxAllowedCoordinationFeeRateDecimal))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			return;
+		}
+
+		if (maxAllowedCoordinationFeeRateDecimal > 1)
+		{
+			errors.Add(ErrorSeverity.Error, "Absolute maximum allowed coordination fee rate is 1%");
+			return;
+		}
+
+		Settings.MaxAllowedCoordinationFeeRate = maxAllowedCoordinationFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private void ValidateDustThreshold(IValidationErrors errors)

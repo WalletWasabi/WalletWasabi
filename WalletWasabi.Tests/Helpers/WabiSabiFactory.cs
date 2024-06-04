@@ -344,6 +344,7 @@ public static class WabiSabiFactory
 			"CoinJoinCoordinatorIdentifier",
 			coinSelector,
 			new LiquidityClueProvider(),
+			0.3m,
 			TimeSpan.Zero,
 			TimeSpan.Zero,
 			null);

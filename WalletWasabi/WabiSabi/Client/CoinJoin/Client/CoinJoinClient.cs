@@ -44,6 +44,7 @@ public class CoinJoinClient
 		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		LiquidityClueProvider liquidityClueProvider,
+		decimal maxAllowedCoordinationFeeRate,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
 		CoinjoinSkipFactors? skipFactors = null)
@@ -55,6 +56,7 @@ public class CoinJoinClient
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
+		MaxAllowedCoordinationFeeRate = maxAllowedCoordinationFeeRate;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
 		SecureRandom = new SecureRandom();
@@ -71,6 +73,7 @@ public class CoinJoinClient
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private string CoordinatorIdentifier { get; }
+	private decimal MaxAllowedCoordinationFeeRate { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
@@ -151,6 +154,12 @@ public class CoinJoinClient
 					string roundSkippedMessage = "Uneconomical round skipped.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
+				}
+				if (roundParameters.CoordinationFeeRate.Rate * 100 > MaxAllowedCoordinationFeeRate)
+				{
+					string roundSkippedMessage = "Coordination fee rate was too high.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
 				}
 				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
 				{

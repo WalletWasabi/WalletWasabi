@@ -48,6 +48,14 @@
       </PrivacyContentControl>
     </StackPanel>
 
+    <StackPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
+      <TextBlock Text="Dust Threshold" />
+      <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+    </StackPanel>
+
+    <Separator />
+
+    <!-- Coordination related settings !-->
     <StackPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
       <TextBlock Text="Coordinator URI" />
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
@@ -59,10 +67,9 @@
         </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
-
-    <StackPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
-      <TextBlock Text="Dust Threshold" />
-      <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
+    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds charging a coordinaton fee rate (percentage) higher than the value indicated here.">
+      <TextBlock Text="Max Coordination Fee Rate" />
+      <CurrencyEntryBox Classes="standalone" Name="CoordinationFeeRateTextBox" Text="{Binding MaxAllowedCoordinationFeeRate}" CurrencyCode="%"/>
     </StackPanel>
   </StackPanel>
 </UserControl>

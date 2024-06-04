@@ -16,6 +16,7 @@ public record PersistentConfig : IConfigNg
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
+	public static readonly decimal DefaultMaxAllowedCoordinationFeeRate = Constants.DefaultMaxAllowedCoordinationFeeRate;
 
 	[JsonPropertyName("Network")]
 	[JsonConverter(typeof(NetworkJsonConverterNg))]
@@ -118,6 +119,9 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	[JsonPropertyName("MaxAllowedCoordinationFeeRate")]
+	public decimal MaxAllowedCoordinationFeeRate { get; init; } = DefaultMaxAllowedCoordinationFeeRate;
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
@@ -145,7 +149,8 @@ public record PersistentConfig : IConfigNg
 			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
-			CoordinatorIdentifier == other.CoordinatorIdentifier;
+			CoordinatorIdentifier == other.CoordinatorIdentifier &&
+			MaxAllowedCoordinationFeeRate == other.MaxAllowedCoordinationFeeRate;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

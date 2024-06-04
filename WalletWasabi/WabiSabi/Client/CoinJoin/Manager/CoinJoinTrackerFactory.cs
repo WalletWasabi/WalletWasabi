@@ -15,11 +15,13 @@ public class CoinJoinTrackerFactory
 		IWasabiHttpClientFactory httpClientFactory,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
+		decimal maxAllowedCoordinationFeeRate,
 		CancellationToken cancellationToken)
 	{
 		HttpClientFactory = httpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		MaxAllowedCoordinationFeeRate = maxAllowedCoordinationFeeRate;
 		CancellationToken = cancellationToken;
 		LiquidityClueProvider = new LiquidityClueProvider();
 	}
@@ -28,6 +30,7 @@ public class CoinJoinTrackerFactory
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 	private string CoordinatorIdentifier { get; }
+	private decimal MaxAllowedCoordinationFeeRate { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
@@ -51,6 +54,7 @@ public class CoinJoinTrackerFactory
 			CoordinatorIdentifier,
 			coinSelector,
 			LiquidityClueProvider,
+			MaxAllowedCoordinationFeeRate,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			skipFactors: wallet.CoinjoinSkipFactors,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));

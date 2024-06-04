@@ -22,6 +22,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
 	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
+	private const string CoordinationFeeRateTooHighMessage = "Coordination fee rate was too high";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string PressPlayToStartMessage = "Press Play to start";
@@ -382,6 +383,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					CoinjoinError.UneconomicalRound => UneconomicalRoundMessage,
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
+					CoinjoinError.CoordinationFeeRateTooHigh => CoordinationFeeRateTooHighMessage,
 					_ => GeneralErrorMessage
 				};
 
