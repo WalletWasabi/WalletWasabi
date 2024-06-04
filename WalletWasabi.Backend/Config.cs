@@ -75,6 +75,9 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
 	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
+	[JsonProperty(PropertyName = "EnableNostrCoordinatorPublisher", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool EnableNostrCoordinatorPublisher { get; internal set; }
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)
