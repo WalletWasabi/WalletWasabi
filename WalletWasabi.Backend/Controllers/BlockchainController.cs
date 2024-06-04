@@ -177,6 +177,7 @@ public class BlockchainController : ControllerBase
 	/// <summary>
 	/// Fetches transactions from cache if possible and missing transactions are fetched using RPC.
 	/// </summary>
+	/// <exception cref="AggregateException">If RPC client succeeds in getting some transactions but not all.</exception>
 	private async Task<Transaction[]> FetchTransactionsAsync(uint256[] txIds, CancellationToken cancellationToken)
 	{
 		int requestCount = txIds.Length;
@@ -204,11 +205,19 @@ public class BlockchainController : ControllerBase
 			{
 				// Ask to get missing transactions over RPC.
 				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
+
 				Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
 
 				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
 				{
 					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
+				}
+
+				// RPC client does not throw if a transaction is missing, so we need to account for this case.
+				if (rpcBatch.Count < txIdsRetrieve.Count)
+				{
+					IReadOnlyList<Exception> exceptions = MarkNotFinishedTasksAsFailed(txIdsRetrieve);
+					throw new AggregateException(exceptions);
 				}
 			}
 
@@ -227,18 +236,30 @@ public class BlockchainController : ControllerBase
 		{
 			if (txIdsRetrieve.Count > 0)
 			{
-				// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
-				Exception ex = new InvalidOperationException("Failed to get the transaction.");
-				foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
+				MarkNotFinishedTasksAsFailed(txIdsRetrieve);
+			}
+		}
+
+		IReadOnlyList<Exception> MarkNotFinishedTasksAsFailed(Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve)
+		{
+			List<Exception>? exceptions = null;
+
+			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
+			foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
+			{
+				if (!tcs.Task.IsCompleted)
 				{
-					if (!tcs.Task.IsCompleted)
-					{
-						// Prefer new cache requests to try again rather than getting the exception. The window is small though.
-						Cache.Remove(txid);
-						tcs.SetException(ex);
-					}
+					exceptions ??= new();
+
+					// Prefer new cache requests to try again rather than getting the exception. The window is small though.
+					Exception e = new InvalidOperationException($"Failed to get the transaction '{txid}'.");
+					exceptions.Add(e);
+					Cache.Remove($"{nameof(GetTransactionsAsync)}#{txid}");
+					tcs.SetException(e);
 				}
 			}
+
+			return exceptions ?? [];
 		}
 	}
 
@@ -489,11 +510,19 @@ public class BlockchainController : ControllerBase
 
 	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
 	{
-		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).FirstOrDefault() ?? throw new InvalidOperationException("Tx not found");
+		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).First();
 
 		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).Distinct().ToArray();
 
-		var parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
+		Transaction[] parentTxs;
+		try
+		{
+			parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
+		}
+		catch(AggregateException ex)
+		{
+			throw new InvalidOperationException($"Some transactions part of the chain were not found: {ex}");
+		}
 
 		// Get unconfirmed parents and children
 		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();

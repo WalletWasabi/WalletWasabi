@@ -44,18 +44,17 @@
     </DockPanel>
     -->
 
-    <DockPanel>
+    <StackPanel>
       <TextBlock Text="Network anonymization (Tor)" />
-      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}" Width="250">
+      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="basemodels:TorMode">
             <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
           </DataTemplate>
         </ComboBox.ItemTemplate>
       </ComboBox>
-    </DockPanel>
+    </StackPanel>
 
-    <!--<DockPanel IsVisible="{Binding Settings.UseTor}">-->
     <DockPanel IsVisible="{Binding Settings.UseTor, ConverterParameter={x:Static basemodels:TorMode.Enabled}, Converter={x:Static conv:EnumToBoolConverter.Instance}}">
       <TextBlock Text="Terminate Tor when Wasabi shuts down" />
       <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
@@ -66,7 +65,7 @@
       <ToggleSwitch IsChecked="{Binding Settings.DownloadNewVersion}" />
     </DockPanel>
 
-    <StackPanel Spacing="10">
+    <StackPanel>
       <TextBlock Text="Fee display unit" />
       <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding FeeDisplayUnits}" SelectedItem="{Binding Settings.SelectedFeeDisplayUnit}">
         <ComboBox.ItemTemplate>

@@ -35,7 +35,6 @@ public static class MainViewModelExtensions
 
 		AboutViewModel.RegisterLazy(() => new AboutViewModel(uiContext));
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(uiContext));
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(uiContext));
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel(uiContext));
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel(uiContext));
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel(uiContext));

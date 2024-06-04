@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -129,13 +130,13 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 							                  """;
 
 							Logger.LogWarning(message);
+							logWarningOnConnectionEx = false;
 						}
-						else
+						else if(!(ex is SocketException && IsDefaultP2pEndpoint(BitcoinCoreEndPoint, Network)))
 						{
 							Logger.LogWarning($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'. Exception: {ex}");
+							logWarningOnConnectionEx = false;
 						}
-
-						logWarningOnConnectionEx = false;
 					}
 
 					// Failing to connect leads to exponential slowdown.
@@ -203,6 +204,17 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 		}
 
 		return new ConnectedNode(node);
+	}
+
+	private static bool IsDefaultP2pEndpoint(EndPoint endpoint, Network network)
+	{
+		return network switch
+		{
+			{ } n when n == Network.Main => Equals(endpoint, Constants.DefaultMainNetBitcoinP2PEndPoint),
+			{ } n when n == Network.TestNet => Equals(endpoint, Constants.DefaultTestNetBitcoinP2PEndPoint),
+			{ } n when n == Network.RegTest => Equals(endpoint, Constants.DefaultRegTestBitcoinP2PEndPoint),
+			_ => throw new NotSupportedNetworkException(network)
+		};
 	}
 
 	/// <inheritdoc/>

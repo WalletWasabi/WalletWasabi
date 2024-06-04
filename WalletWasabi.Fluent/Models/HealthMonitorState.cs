@@ -4,7 +4,7 @@ public enum HealthMonitorState
 {
 	Loading,
 	Ready,
-	CriticalUpdateAvailable,
+	BackendNotCompatible,
 	UpdateAvailable,
 	ConnectionIssueDetected
 }

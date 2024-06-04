@@ -72,6 +72,14 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		await NavigateDialogAsync(this);
 	}
 
+	public async Task ActivateBitcoinTabWithFocusOnCoordinatorUri()
+	{
+		SelectedTab = 1;
+		BitcoinTabSettings.FocusCoordinatorUri = true;
+		await NavigateDialogAsync(this);
+		BitcoinTabSettings.FocusCoordinatorUri = false;
+	}
+
 	private void ChangeTheme(bool isDark)
 	{
 		RxApp.MainThreadScheduler.Schedule(() => ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light));
