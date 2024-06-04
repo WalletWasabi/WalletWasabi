@@ -33,11 +33,10 @@ public partial class StatusIconViewModel : ViewModelBase
 
 		this.WhenAnyValue(
 				x => x.HealthMonitor.UpdateAvailable,
-				x => x.HealthMonitor.CriticalUpdateAvailable,
 				x => x.HealthMonitor.IsReadyToInstall,
 				x => x.HealthMonitor.ClientVersion,
-				(updateAvailable, criticalUpdateAvailable, isReadyToInstall, clientVersion) =>
-					(updateAvailable || criticalUpdateAvailable || isReadyToInstall) && clientVersion != null)
+				(updateAvailable, isReadyToInstall, clientVersion) =>
+					(updateAvailable || isReadyToInstall) && clientVersion != null)
 			.Select(_ => GetVersionText())
 			.BindTo(this, x => x.VersionText);
 	}
@@ -56,11 +55,7 @@ public partial class StatusIconViewModel : ViewModelBase
 
 	private string GetVersionText()
 	{
-		if (HealthMonitor.CriticalUpdateAvailable)
-		{
-			return $"Critical update required";
-		}
-		else if (HealthMonitor.IsReadyToInstall)
+		if (HealthMonitor.IsReadyToInstall)
 		{
 			return $"Version {HealthMonitor.ClientVersion} is now ready to install";
 		}

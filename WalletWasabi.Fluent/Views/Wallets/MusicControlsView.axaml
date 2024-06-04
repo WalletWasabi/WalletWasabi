@@ -114,6 +114,11 @@
                     <PathIcon Data="{StaticResource settings_general_regular}" />
                   </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Change Coordinator" Command="{Binding ChangeCoordinatorCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource coordinator}" />
+                  </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Exclude Coins" Command="{Binding NavigateToExcludedCoinsCommand}">
                   <MenuItem.Icon>
                     <PathIcon Data="{StaticResource exclude_coins}" />
