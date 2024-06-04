@@ -38,6 +38,7 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -54,7 +55,8 @@ public class Global
 		TorSettings = new TorSettings(
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
-			Config.TerminateTorOnExit,
+			terminateOnExit: Config.TerminateTorOnExit,
+			torMode: Config.UseTor,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
 			torFolder: config.TorFolder,
@@ -75,17 +77,15 @@ public class Global
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient), "Update Manager");
+		UpdateManager = HostedServices.Get<UpdateManager>();
+
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
 		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
-		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
-
-		LegalChecker = new(DataDir, updateChecker);
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -102,7 +102,7 @@ public class Global
 				var p2p = new P2pNetwork(
 						Network,
 						Config.GetBitcoinP2pEndPoint(),
-						Config.UseTor ? TorSettings.SocksEndpoint : null,
+						Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
 						Path.Combine(DataDir, "BitcoinP2pNetwork"),
 						BitcoinStore);
 				if (!Config.BlockOnlyMode)
@@ -156,7 +156,6 @@ public class Global
 
 	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
-	public LegalChecker LegalChecker { get; private set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -185,8 +184,9 @@ public class Global
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter);
+			Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
+			backendUriGetter,
+			torControlAvailable: Config.UseTor == TorMode.Enabled);
 
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
@@ -206,8 +206,6 @@ public class Global
 			try
 			{
 				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				await LegalChecker.InitializeAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -232,7 +230,7 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-                await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
 
@@ -311,7 +309,7 @@ public class Global
 
 	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
-		if (Config.UseTor && Network != Network.RegTest)
+		if (Config.UseTor != TorMode.Disabled)
 		{
 			TorManager = new TorProcessManager(TorSettings);
 			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
@@ -333,7 +331,12 @@ public class Global
 				}
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			// Do not monitor Tor when Tor is an already running service.
+			if (TorSettings.TorMode == TorMode.Enabled)
+			{
+				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			}
+
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
@@ -443,9 +446,6 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				UpdateManager.Dispose();
-				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
-
 				CoinPrison.Dispose();
 
 				if (RpcServer is { } rpcServer)
@@ -471,12 +471,6 @@ public class Global
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
-				}
-
-				if (LegalChecker is { } legalChecker)
-				{
-					legalChecker.Dispose();
-					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
 
 				if (HostedServices is { } backgroundServices)

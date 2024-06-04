@@ -31,7 +31,7 @@ public class RpcFeeProvider : PeriodicRunner
 			var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(cancel).ConfigureAwait(false);
 
 			LastAllFeeEstimate = allFeeEstimate;
-			if (allFeeEstimate.Estimations.Any())
+			if (allFeeEstimate.Estimations.Count != 0)
 			{
 				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
 			}

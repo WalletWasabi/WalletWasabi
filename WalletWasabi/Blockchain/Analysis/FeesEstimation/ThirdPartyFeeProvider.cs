@@ -46,12 +46,12 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
+	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
 	{
 		using (RunningTasks.RememberWith(ProcessingEvents))
 		{
 			// Only go further if we have estimations.
-			if (fees?.Estimations?.Any() is not true)
+			if (fees.Estimations.Count == 0)
 			{
 				return;
 			}

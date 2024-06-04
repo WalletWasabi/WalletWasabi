@@ -17,7 +17,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 	/// Creates a new instance of the object.
 	/// </summary>
 	/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
+	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter, bool torControlAvailable = true)
 	{
 		HttpClient = CreateLongLivedHttpClient(automaticDecompression: DecompressionMethods.GZip | DecompressionMethods.Brotli);
 
@@ -27,7 +27,7 @@ public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposabl
 		// Connecting to loopback's URIs cannot be done via Tor.
 		if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 		{
-			TorHttpPool = new(TorEndpoint);
+			TorHttpPool = new(TorEndpoint, torControlAvailable);
 			BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultCircuit);
 		}
 		else

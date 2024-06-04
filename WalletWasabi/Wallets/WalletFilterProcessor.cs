@@ -129,9 +129,9 @@ public class WalletFilterProcessor : BackgroundService
 
 						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
-							request.Tcs.SetResult();
 							lock (Lock)
 							{
+								request.Tcs.SetResult();
 								SynchronizationRequests.Dequeue();
 							}
 							continue;
@@ -149,9 +149,9 @@ public class WalletFilterProcessor : BackgroundService
 
 					if (reachedBlockChainTip)
 					{
-						request.Tcs.SetResult();
 						lock (Lock)
 						{
+							request.Tcs.SetResult();
 							SynchronizationRequests.Dequeue();
 						}
 					}

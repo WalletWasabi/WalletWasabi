@@ -13,7 +13,9 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -39,6 +41,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
+	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _dustThreshold;
 
 	// General
@@ -50,7 +53,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
-	[AutoNotify] private bool _useTor;
+	[AutoNotify] private TorMode _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
 
@@ -58,6 +61,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _privacyMode;
 
 	[AutoNotify] private bool _oobe;
+	[AutoNotify] private bool _showCoordinatorAnnouncement;
 	[AutoNotify] private WindowState _windowState;
 
 	// Non-persistent
@@ -80,6 +84,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
 		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_coordinatorUri = _startupConfig.GetCoordinatorUri();
 		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
@@ -92,7 +97,7 @@ public partial class ApplicationSettings : ReactiveObject
 			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = _startupConfig.UseTor;
+		_useTor = Config.ObjectToTorMode(_startupConfig.UseTor);
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
 
@@ -100,6 +105,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_privacyMode = _uiConfig.PrivacyMode;
 
 		_oobe = _uiConfig.Oobe;
+		_showCoordinatorAnnouncement = _uiConfig.ShowCoordinatorAnnouncement;
 
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
 
@@ -111,10 +117,12 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.LocalBitcoinCoreDataDir,
 			x => x.StopLocalBitcoinCoreOnShutdown,
 			x => x.BitcoinP2PEndPoint,
+			x => x.CoordinatorUri,
 			x => x.DustThreshold,
 			x => x.UseTor,
 			x => x.TerminateTorOnExit,
-			x => x.DownloadNewVersion)
+			x => x.DownloadNewVersion,
+			(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -131,6 +139,7 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.RunOnSystemStartup,
 			x => x.HideOnClose,
 			x => x.Oobe,
+			x => x.ShowCoordinatorAnnouncement,
 			x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -177,7 +186,8 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				try
 				{
-					PersistentConfig newConfig = ApplyChanges(_startupConfig);
+					PersistentConfig currentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(_persistentConfigFilePath);
+					PersistentConfig newConfig = ApplyChanges(currentConfig);
 					ConfigManagerNg.ToFile(_persistentConfigFilePath, newConfig);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
@@ -219,6 +229,23 @@ public partial class ApplicationSettings : ReactiveObject
 				}
 			}
 
+			if (Network == Network.Main)
+			{
+				result = result with { MainNetCoordinatorUri = CoordinatorUri };
+			}
+			else if (Network == Network.TestNet)
+			{
+				result = result with { TestNetCoordinatorUri = CoordinatorUri };
+			}
+			else if (Network == Network.RegTest)
+			{
+				result = result with { RegTestCoordinatorUri = CoordinatorUri };
+			}
+			else
+			{
+				throw new NotSupportedNetworkException(Network);
+			}
+
 			result = result with
 			{
 				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
@@ -236,13 +263,14 @@ public partial class ApplicationSettings : ReactiveObject
 				Network = Network
 			};
 
-			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			CoordinatorUri = result.GetCoordinatorUri();
 		}
 
 		// General
 		result = result with
 		{
-			UseTor = UseTor,
+			UseTor = UseTor.ToString(),
 			TerminateTorOnExit = TerminateTorOnExit,
 			DownloadNewVersion = DownloadNewVersion,
 		};
@@ -260,6 +288,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.Oobe = Oobe;
+		_uiConfig.ShowCoordinatorAnnouncement = ShowCoordinatorAnnouncement;
 		_uiConfig.WindowState = WindowState.ToString();
 	}
 

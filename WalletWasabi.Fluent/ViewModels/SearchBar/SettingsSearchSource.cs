@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
@@ -52,8 +53,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 			icon: "nav_settings_regular",
 			priority: 7,
 			isEnabled,
-			nestedItemConfiguration: new NestedItemConfiguration<bool>(
-				isDisplayed: isVisible => isVisible,
+			nestedItemConfiguration: new NestedItemConfiguration<TorMode>(
+				isDisplayed: mode => mode != TorMode.Disabled,
 				item: new ContentSearchItem(
 					content: Setting(selector: x => x.TerminateTorOnExit),
 					name: "Terminate Tor when Wasabi shuts down",

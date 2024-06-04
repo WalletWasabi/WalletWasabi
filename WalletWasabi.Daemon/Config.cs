@@ -48,16 +48,16 @@ public class Config
 				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is main",
-				GetNullableStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
+				GetStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
 			[ nameof(TestNetCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
-				GetNullableStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
+				GetStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
 			[ nameof(RegTestCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
-				GetNullableStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
+				GetStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
-				GetBoolValue("UseTor", PersistentConfig.UseTor, cliArgs)),
+				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
 			[ nameof(TorFolder)] = (
 				"Folder where Tor binary is located",
 				GetNullableStringValue("TorFolder", null, cliArgs)),
@@ -156,10 +156,10 @@ public class Config
 	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(MainNetBackendUri));
 	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(TestNetBackendUri));
 	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>(nameof(RegTestBackendUri));
-	public string? MainNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(MainNetCoordinatorUri));
-	public string? TestNetCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(TestNetCoordinatorUri));
-	public string? RegTestCoordinatorUri => GetEffectiveValue<NullableStringValue, string?>(nameof(RegTestCoordinatorUri));
-	public bool UseTor => GetEffectiveValue<BoolValue, bool>(nameof(UseTor)) && Network != Network.RegTest;
+	public string MainNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(MainNetCoordinatorUri));
+	public string TestNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(TestNetCoordinatorUri));
+	public string RegTestCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(RegTestCoordinatorUri));
+	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
@@ -249,7 +249,7 @@ public class Config
 			_ => throw new NotSupportedNetworkException(Network)
 		};
 
-		return result is null ? GetBackendUri() : new Uri(result);
+		return new Uri(result);
 	}
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
@@ -380,6 +380,50 @@ public class Config
 		return new LogModeArrayValue(arrayValues, arrayValues, ValueSource.Disk);
 	}
 
+	private static TorModeValue GetTorModeValue(string key, object value, string[] cliArgs)
+	{
+		TorMode computedValue;
+
+		computedValue = ObjectToTorMode(value);
+
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			TorMode parsedOverrideValue = ObjectToTorMode(overrideValue);
+			return new TorModeValue(computedValue, parsedOverrideValue, valueSource.Value);
+		}
+
+		return new TorModeValue(computedValue, computedValue, ValueSource.Disk);
+	}
+
+	public static TorMode ObjectToTorMode(object value)
+	{
+		string? stringValue = value.ToString();
+
+		TorMode computedValue;
+		if (stringValue is null)
+		{
+			throw new ArgumentException($"Could not convert '{value}' to a string value.");
+		}
+		else if (stringValue.Equals("true", StringComparison.OrdinalIgnoreCase))
+		{
+			computedValue = TorMode.Enabled;
+		}
+		else if (stringValue.Equals("false", StringComparison.OrdinalIgnoreCase))
+		{
+			computedValue = TorMode.Disabled;
+		}
+		else if (Enum.TryParse(stringValue, ignoreCase: true, out TorMode parsedTorMode))
+		{
+			computedValue = parsedTorMode;
+		}
+		else
+		{
+			throw new ArgumentException($"Could not convert '{value}' to a valid {nameof(TorMode)} value.");
+		}
+
+		return computedValue;
+	}
+
 	private static bool GetOverrideValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? overrideValue, [NotNullWhen(true)] out ValueSource? valueSource)
 	{
 		// CLI arguments have higher precedence than environment variables.
@@ -471,6 +515,7 @@ public class Config
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;
 	private record LogModeArrayValue(LogMode[] Value, LogMode[] EffectiveValue, ValueSource ValueSource) : ITypedValue<LogMode[]>;
+	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
 	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;

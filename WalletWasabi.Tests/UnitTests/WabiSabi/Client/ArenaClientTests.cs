@@ -212,7 +212,7 @@ public class ArenaClientTests
 		using var destinationKey2 = new Key();
 		var scriptSize = (long)destinationKey1.PubKey.GetScriptPubKey(scriptPubKeyType).EstimateOutputVsize();
 
-		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVirtualSize + 2 * scriptSize), 2 * scriptSize };
+		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVirtualSize + (2 * scriptSize)), 2 * scriptSize };
 
 		// Phase: Input Registration
 		Assert.Equal(Phase.InputRegistration, round.Phase);

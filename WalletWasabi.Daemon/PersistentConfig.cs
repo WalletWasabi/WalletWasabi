@@ -33,21 +33,25 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("RegTestBackendUri")]
 	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
+	[DefaultValue(Constants.BackendUri)]
 	[JsonPropertyName("MainNetCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? MainNetCoordinatorUri { get; init; }
+	public string MainNetCoordinatorUri { get; init; } = Constants.BackendUri;
 
+	[DefaultValue(Constants.TestnetBackendUri)]
 	[JsonPropertyName("TestNetCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? TestNetCoordinatorUri { get; init; }
+	public string TestNetCoordinatorUri { get; init; } = Constants.TestnetBackendUri;
 
+	[DefaultValue("http://localhost:37127/")]
 	[JsonPropertyName("RegTestCoordinatorUri")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-	public string? RegTestCoordinatorUri { get; init; }
+	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37127/";
 
-	[DefaultValue(true)]
+	/// <remarks>
+	/// For backward compatibility this was changed to an object.
+	/// Only strings (new) and booleans (old) are supported.
+	/// </remarks>
+	[DefaultValue("Enabled")]
 	[JsonPropertyName("UseTor")]
-	public bool UseTor { get; init; } = true;
+	public object UseTor { get; init; } = "Enabled";
 
 	[DefaultValue(false)]
 	[JsonPropertyName("TerminateTorOnExit")]
@@ -74,15 +78,15 @@ public record PersistentConfig : IConfigNg
 
 	[JsonPropertyName("MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
-	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultMainNetBitcoinP2PEndPoint;
 
 	[JsonPropertyName("TestNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(TestNetBitcoinP2pEndPointConverterNg))]
-	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultTestNetBitcoinP2PEndPoint;
 
 	[JsonPropertyName("RegTestBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(RegTestBitcoinP2pEndPointConverterNg))]
-	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = Constants.DefaultRegTestBitcoinP2PEndPoint;
 
 	[DefaultValue(false)]
 	[JsonPropertyName("JsonRpcServerEnabled")]
@@ -116,6 +120,8 @@ public record PersistentConfig : IConfigNg
 
 	public bool DeepEquals(PersistentConfig other)
 	{
+		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
+
 		return
 			Network == other.Network &&
 			MainNetBackendUri == other.MainNetBackendUri &&
@@ -124,7 +130,7 @@ public record PersistentConfig : IConfigNg
 			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
 			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
 			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
-			UseTor == other.UseTor &&
+			useTorIsEqual &&
 			TerminateTorOnExit == other.TerminateTorOnExit &&
 			DownloadNewVersion == other.DownloadNewVersion &&
 			StartLocalBitcoinCoreOnStartup == other.StartLocalBitcoinCoreOnStartup &&
@@ -156,6 +162,26 @@ public record PersistentConfig : IConfigNg
 		{
 			return RegTestBitcoinP2pEndPoint;
 		}
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public string GetCoordinatorUri()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetCoordinatorUri;
+		}
+
+		if (Network == Network.TestNet)
+		{
+			return TestNetCoordinatorUri;
+		}
+
+		if (Network == Network.RegTest)
+		{
+			return RegTestCoordinatorUri;
+		}
+
 		throw new NotSupportedNetworkException(Network);
 	}
 

@@ -76,9 +76,4 @@ public class NavBarItem : ContentControl
 		PseudoClasses.Set(":horizontal", orientation == Orientation.Horizontal);
 		PseudoClasses.Set(":vertical", orientation == Orientation.Vertical);
 	}
-
-	private void UpdatePseudoClass(string pseudoClass, bool value)
-	{
-		PseudoClasses.Set(pseudoClass, value);
-	}
 }
