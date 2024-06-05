@@ -11,10 +11,6 @@ namespace WalletWasabi.Nostr;
 public static class NostrExtensions
 {
 	private const int Kind = 15750;
-	private const string TypeTagIdentifier = "type";
-	private const string TypeTagValue = "wabisabi";
-	private const string NetworkTagIdentifier = "network";
-	private const string EndpointTagIdentifier = "endpoint";
 
 	public static INostrClient Create(Uri[] relays, EndPoint? torEndpoint = null)
 	{
@@ -56,6 +52,7 @@ public static class NostrExtensions
 
 		await client.ConnectAndWaitUntilConnected(cancellationToken).ConfigureAwait(false);
 		await client.SendEventsAndWaitUntilReceived(evts, cancellationToken).ConfigureAwait(false);
+		await client.Disconnect().ConfigureAwait(false);
 	}
 
 	public static async Task<NostrEvent> CreateCoordinatorDiscoveryEventAsync(
@@ -68,17 +65,18 @@ public static class NostrExtensions
 			Content = coordinatorConfiguration.Description,
 			Tags =
 			[
-				new() {TagIdentifier = EndpointTagIdentifier, Data = [coordinatorConfiguration.Uri.ToString()]},
-				new() {TagIdentifier = TypeTagIdentifier, Data = [TypeTagValue]},
-				new()
-				{
-					TagIdentifier = NetworkTagIdentifier,
-					Data = [coordinatorConfiguration.Network.ChainName.ToString().ToLower()]
-				}
+				CreateTag("endpoint", coordinatorConfiguration.Uri.ToString()),
+				CreateTag("type", "wabisabi"),
+				CreateTag("network", coordinatorConfiguration.Network.ChainName.ToString().ToLower())
 			]
 		};
 
 		await evt.ComputeIdAndSignAsync(key).ConfigureAwait(false);
 		return evt;
+	}
+
+	private static NostrEventTag CreateTag(string tagIdentifier, string data)
+	{
+		return new() { TagIdentifier = tagIdentifier, Data = [data] };
 	}
 }
