@@ -78,6 +78,12 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "EnableNostrCoordinatorPublisher", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool EnableNostrCoordinatorPublisher { get; internal set; }
 
+	[JsonProperty(PropertyName = "NostrCoordinatorDescription")]
+	public string NostrCoordinatorDescription { get; internal set; } = "WabiSabi Coinjoin Coordinator";
+
+	[JsonProperty(PropertyName = "NostrCoordinatorUri")]
+	public string NostrCoordinatorUri { get; internal set; } = "";
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)
