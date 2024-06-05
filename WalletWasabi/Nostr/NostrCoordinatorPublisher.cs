@@ -32,5 +32,7 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel);
 		await Client.PublishAsync([discoveryEvent], linkedCts.Token).ConfigureAwait(false);
+
+		Logger.LogInfo("Coordinator has been successfully published on Nostr.");
 	}
 }
