@@ -33,7 +33,6 @@ public class Global : IDisposable
 		HostedServices = new();
 		CoinVerifierHttpClient = WasabiHttpClientFactory.CreateLongLivedHttpClient();
 		HttpClientFactory = httpClientFactory;
-		NostrKeyManager = new(DataDir);
 
 		CoordinatorParameters = new(DataDir);
 		CoinJoinIdStore = CoinJoinIdStore.Create(CoordinatorParameters.CoinJoinIdStoreFilePath);
@@ -41,6 +40,7 @@ public class Global : IDisposable
 		// Add Nostr publisher if enabled
 		if (Config.EnableNostrCoordinatorPublisher)
 		{
+			NostrKeyManager = new(DataDir);
 			var nostrCoordinator = new NostrCoordinator(Config.NostrCoordinatorDescription, new Uri(Config.NostrCoordinatorUri), Config.Network);
 			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), NostrKeyManager.Key, nostrCoordinator), "Coordinator Nostr Publisher");
 		}
@@ -73,7 +73,7 @@ public class Global : IDisposable
 
 	public Config Config { get; }
 
-	private NostrKeyManager NostrKeyManager { get; }
+	private NostrKeyManager? NostrKeyManager { get; }
 
 	private CoordinatorParameters CoordinatorParameters { get; }
 
@@ -172,7 +172,7 @@ public class Global : IDisposable
 					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
 
-				NostrKeyManager.Dispose();
+				NostrKeyManager?.Dispose();
 				CoinVerifierHttpClient.Dispose();
 				CoinJoinMempoolManager.Dispose();
 
