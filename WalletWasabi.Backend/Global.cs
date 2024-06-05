@@ -41,7 +41,7 @@ public class Global : IDisposable
 		if (Config.EnableNostrCoordinatorPublisher)
 		{
 			NostrKeyManager = new(DataDir);
-			var nostrCoordinator = new NostrCoordinator(Config.NostrCoordinatorDescription, new Uri(Config.NostrCoordinatorUri), Config.Network);
+			var nostrCoordinator = new NostrCoordinatorConfiguration(Config.NostrCoordinatorDescription, new Uri(Config.NostrCoordinatorUri), Config.Network);
 			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), NostrKeyManager.Key, nostrCoordinator), "Coordinator Nostr Publisher");
 		}
 

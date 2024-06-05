@@ -12,16 +12,16 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 {
 	private readonly Uri[] _relayUris = [new("wss://relay.primal.net")];
 
-	public NostrCoordinatorPublisher(TimeSpan period, ECPrivKey key, NostrCoordinator coordinator) : base(period)
+	public NostrCoordinatorPublisher(TimeSpan period, ECPrivKey key, NostrCoordinatorConfiguration coordinatorConfiguration) : base(period)
 	{
-		Coordinator = coordinator;
+		CoordinatorConfiguration = coordinatorConfiguration;
 		Key = key;
 		Client = NostrExtensions.Create(_relayUris, (EndPoint?)null);
 	}
 
 	private INostrClient Client { get; }
 
-	private NostrCoordinator Coordinator { get; }
+	private NostrCoordinatorConfiguration CoordinatorConfiguration { get; }
 
 	private ECPrivKey Key { get; }
 
@@ -29,7 +29,7 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 	{
 		try
 		{
-			var discoveryEvent = await Key.CreateCoordinatorDiscoveryEventAsync(Coordinator).ConfigureAwait(false);
+			var discoveryEvent = await Key.CreateCoordinatorDiscoveryEventAsync(CoordinatorConfiguration).ConfigureAwait(false);
 
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel);

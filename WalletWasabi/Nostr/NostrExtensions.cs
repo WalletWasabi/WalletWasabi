@@ -60,20 +60,20 @@ public static class NostrExtensions
 
 	public static async Task<NostrEvent> CreateCoordinatorDiscoveryEventAsync(
 		this ECPrivKey key,
-		NostrCoordinator coordinator)
+		NostrCoordinatorConfiguration coordinatorConfiguration)
 	{
 		var evt = new NostrEvent()
 		{
 			Kind = Kind,
-			Content = coordinator.Description,
+			Content = coordinatorConfiguration.Description,
 			Tags =
 			[
-				new() {TagIdentifier = EndpointTagIdentifier, Data = [coordinator.Uri.ToString()]},
+				new() {TagIdentifier = EndpointTagIdentifier, Data = [coordinatorConfiguration.Uri.ToString()]},
 				new() {TagIdentifier = TypeTagIdentifier, Data = [TypeTagValue]},
 				new()
 				{
 					TagIdentifier = NetworkTagIdentifier,
-					Data = [coordinator.Network.ChainName.ToString().ToLower()]
+					Data = [coordinatorConfiguration.Network.ChainName.ToString().ToLower()]
 				}
 			]
 		};
