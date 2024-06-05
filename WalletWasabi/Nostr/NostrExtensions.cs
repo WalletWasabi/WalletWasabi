@@ -59,8 +59,8 @@ public static class NostrExtensions
 	}
 
 	public static async Task<NostrEvent> CreateCoordinatorDiscoveryEventAsync(
-		this ECPrivKey key,
-		NostrCoordinatorConfiguration coordinatorConfiguration)
+		this NostrCoordinatorConfiguration coordinatorConfiguration,
+		ECPrivKey key)
 	{
 		var evt = new NostrEvent()
 		{

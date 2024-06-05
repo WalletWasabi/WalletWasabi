@@ -27,23 +27,10 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		try
-		{
-			var discoveryEvent = await Key.CreateCoordinatorDiscoveryEventAsync(CoordinatorConfiguration).ConfigureAwait(false);
+		var discoveryEvent = await CoordinatorConfiguration.CreateCoordinatorDiscoveryEventAsync(Key).ConfigureAwait(false);
 
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel);
-			await Client.PublishAsync([discoveryEvent], linkedCts.Token).ConfigureAwait(false);
-		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
-		{
-			Logger.LogError(ex);
-		}
-	}
-
-	public override void Dispose()
-	{
-		Key.Dispose();
-		base.Dispose();
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel);
+		await Client.PublishAsync([discoveryEvent], linkedCts.Token).ConfigureAwait(false);
 	}
 }
