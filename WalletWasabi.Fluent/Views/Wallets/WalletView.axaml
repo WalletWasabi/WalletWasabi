@@ -43,15 +43,21 @@
                              IsVisible="{Binding IsSendButtonVisible}">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
-                  <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
+                  <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
                     <UICommand.Icon>
-                      <PathIcon Data="{StaticResource wallet_action_send}"
+                      <PathIcon Data="{StaticResource automatic_control}"
                                 Classes="Icon" />
                     </UICommand.Icon>
                   </UICommand>
-                  </UICommandCollection>
-                </SubActionButton.SubCommands>
-              </SubActionButton>
+                  <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource manual_control}"
+                                Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
+            </SubActionButton>
 
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">
