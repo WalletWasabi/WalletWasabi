@@ -171,7 +171,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (UiContext.MainViewModel is { } mainViewModel)
 			{
-				await mainViewModel.SettingsPage.ActivateBitcoinTabWithFocusOnCoordinatorUri();
+				await mainViewModel.SettingsPage.ActivateCoinjoinTabWithFocusOnCoordinatorUri();
 			}
 		});
 	}

@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Title = "Advanced",
 	Caption = "Manage advanced settings",
-	Order = 2,
+	Order = 3,
 	Category = "Settings",
 	Keywords = new[]
 	{
