@@ -41,11 +41,9 @@ public class CoinJoinClient
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
-		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
+		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
-		decimal maxCoordinationFeeRate,
-		FeeRate maxCoinjoinMiningFeeRate,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
 		CoinjoinSkipFactors? skipFactors = null)
@@ -54,11 +52,9 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		OutputProvider = outputProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
+		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
-		MaxCoordinationFeeRate = maxCoordinationFeeRate;
-		MaxCoinjoinMiningFeeRate = maxCoinjoinMiningFeeRate;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
 		SecureRandom = new SecureRandom();
@@ -74,10 +70,8 @@ public class CoinJoinClient
 	private IKeyChain KeyChain { get; }
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	private string CoordinatorIdentifier { get; }
-	private decimal MaxCoordinationFeeRate { get; }
-	private FeeRate MaxCoinjoinMiningFeeRate { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
+	public CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -158,15 +152,15 @@ public class CoinJoinClient
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
 				}
-				if (roundParameters.CoordinationFeeRate.Rate * 100 > MaxCoordinationFeeRate)
+				if (roundParameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
 				{
-					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate * 100} but max allowed is {MaxCoordinationFeeRate}.";
+					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate * 100} but max allowed is {CoinJoinConfiguration.MaxCoordinationFeeRate}.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
 				}
-				if (roundParameters.MiningFeeRate > MaxCoinjoinMiningFeeRate)
+				if (roundParameters.MiningFeeRate > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 				{
-					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {MaxCoinjoinMiningFeeRate}.";
+					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.MiningFeeRateTooHigh, roundSkippedMessage);
 				}
@@ -432,7 +426,7 @@ public class CoinJoinClient
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					CoordinatorIdentifier,
+					CoinJoinConfiguration.CoordinatorIdentifier,
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
@@ -605,7 +599,7 @@ public class CoinJoinClient
 			new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
-				CoordinatorIdentifier,
+				CoinJoinConfiguration.CoordinatorIdentifier,
 				arenaRequestHandler));
 	}
 

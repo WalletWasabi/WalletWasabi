@@ -132,7 +132,7 @@ public class Config
 				GetDecimalValue("MaxCoordinationFeeRate", PersistentConfig.MaxCoordinationFeeRate, cliArgs)),
 			[ nameof(MaxCoinjoinMiningFeeRate)] = (
 				"Max mining fee rate in s/vb the client is willing to pay to participate into a round",
-				GetFeeRateValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinjoinMiningFeeRate, cliArgs)),
+				GetFeeRateValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).

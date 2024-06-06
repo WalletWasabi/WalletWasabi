@@ -341,11 +341,9 @@ public static class WabiSabiFactory
 			keyChain,
 			outputProvider,
 			roundStateUpdater,
-			"CoinJoinCoordinatorIdentifier",
 			coinSelector,
+			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 0.3m, new FeeRate(150.0m)),
 			new LiquidityClueProvider(),
-			0.3m,
-			150.0m,
 			TimeSpan.Zero,
 			TimeSpan.Zero,
 			null);

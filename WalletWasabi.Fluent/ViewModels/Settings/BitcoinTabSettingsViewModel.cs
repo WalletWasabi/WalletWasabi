@@ -41,13 +41,13 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
 		this.ValidateProperty(x => x.MaxCoordinationFeeRate, ValidateMaxCoordinationFeeRate);
-		this.ValidateProperty(x => x.MaxCoinjoinMiningFeeRate, ValidateMaxCoinjoinMiningFeeRate);
+		this.ValidateProperty(x => x.MaxCoinjoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
 		_coordinatorUri = settings.CoordinatorUri;
 		_maxCoordinationFeeRate = settings.MaxCoordinationFeeRate;
-		_maxCoinjoinMiningFeeRate = settings.MaxCoinjoinMiningFeeRate;
+		_maxCoinjoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 		_dustThreshold = settings.DustThreshold;
 
 		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
@@ -128,7 +128,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		Settings.MaxCoordinationFeeRate = maxCoordinationFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
-	private void ValidateMaxCoinjoinMiningFeeRate(IValidationErrors errors)
+	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
 	{
 		var maxCoinjoinMiningFeeRate = MaxCoinjoinMiningFeeRate;
 
@@ -149,7 +149,12 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		Settings.MaxCoinjoinMiningFeeRate = maxCoinjoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
+		if (maxCoinjoinMiningFeeRateDecimal > Constants.DefaultMaxCoinJoinMiningFeeRate.SatoshiPerByte)
+		{
+			errors.Add(ErrorSeverity.Error, $"Absolute maximum mining fee rate is {Constants.DefaultMaxCoinJoinMiningFeeRate.SatoshiPerByte}s/vb");
+			return;
+		}
+		Settings.MaxCoinJoinMiningFeeRate = maxCoinjoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private void ValidateDustThreshold(IValidationErrors errors)

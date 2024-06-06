@@ -14,10 +14,7 @@ namespace WalletWasabi.Daemon;
 
 public record PersistentConfig : IConfigNg
 {
-	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
-	public static readonly decimal DefaultMaxCoordinationFeeRate = Constants.DefaultMaxCoordinationFeeRate;
-	public static readonly FeeRate DefaultMaxCoinjoinMiningFeeRate = new (Constants.DefaultMaxCoinjoinMiningFeeRate);
 
 	[JsonPropertyName("Network")]
 	[JsonConverter(typeof(NetworkJsonConverterNg))]
@@ -121,11 +118,11 @@ public record PersistentConfig : IConfigNg
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
 	[JsonPropertyName("MaxCoordinationFeeRate")]
-	public decimal MaxCoordinationFeeRate { get; init; } = DefaultMaxCoordinationFeeRate;
+	public decimal MaxCoordinationFeeRate { get; init; } = Constants.DefaultMaxCoordinationFeeRate;
 
-	[JsonPropertyName("MaxCoinjoinMiningFeeRate")]
+	[JsonPropertyName("MaxCoinJoinMiningFeeRate")]
 	[JsonConverter(typeof(FeeRateSatPerVbJsonConverterNg))]
-	public FeeRate MaxCoinjoinMiningFeeRate { get; init; } = DefaultMaxCoinjoinMiningFeeRate;
+	public FeeRate MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public bool DeepEquals(PersistentConfig other)
 	{
@@ -156,7 +153,7 @@ public record PersistentConfig : IConfigNg
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			MaxCoordinationFeeRate == other.MaxCoordinationFeeRate &&
-			MaxCoinjoinMiningFeeRate == other.MaxCoinjoinMiningFeeRate;
+			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
