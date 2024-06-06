@@ -6,7 +6,7 @@ using NNostr.Client;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Nostr;
+namespace WalletWasabi.Discoverability;
 
 public class NostrCoordinatorPublisher : PeriodicRunner
 {

@@ -2,7 +2,7 @@ using System.IO;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 
-namespace WalletWasabi.Nostr;
+namespace WalletWasabi.Discoverability;
 
 public class NostrKeyManager : IDisposable
 {

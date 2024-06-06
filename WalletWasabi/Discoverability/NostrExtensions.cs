@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin.Secp256k1;
 using NNostr.Client;
 
-namespace WalletWasabi.Nostr;
+namespace WalletWasabi.Discoverability;
 
 public static class NostrExtensions
 {
