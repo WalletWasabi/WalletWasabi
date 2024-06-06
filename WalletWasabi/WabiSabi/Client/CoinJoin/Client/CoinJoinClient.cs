@@ -157,7 +157,7 @@ public class CoinJoinClient
 				}
 				if (roundParameters.CoordinationFeeRate.Rate * 100 > MaxAllowedCoordinationFeeRate)
 				{
-					string roundSkippedMessage = "Coordination fee rate was too high.";
+					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate * 100} but max allowed is {MaxAllowedCoordinationFeeRate}.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
 				}
