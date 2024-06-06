@@ -127,9 +127,9 @@ public class Config
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
-			[ nameof(MaxAllowedCoordinationFeeRate)] = (
+			[ nameof(MaxCoordinationFeeRate)] = (
 				"Max coordination fee rate the client is willing to accept to participate into a round",
-				GetDecimalValue("MaxAllowedCoordinationFeeRate", PersistentConfig.MaxAllowedCoordinationFeeRate, cliArgs)),
+				GetDecimalValue("MaxCoordinationFeeRate", PersistentConfig.MaxCoordinationFeeRate, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -187,7 +187,7 @@ public class Config
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
-	public decimal MaxAllowedCoordinationFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxAllowedCoordinationFeeRate));
+	public decimal MaxCoordinationFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxCoordinationFeeRate));
 	public ServiceConfiguration ServiceConfiguration { get; }
 
 	public static string DataDir { get; } = GetStringValue(

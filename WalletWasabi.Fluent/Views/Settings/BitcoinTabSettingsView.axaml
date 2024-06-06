@@ -69,7 +69,7 @@
     </StackPanel>
     <StackPanel ToolTip.Tip="The client will refuse to participate in rounds charging a coordination fee rate (percentage) higher than the value indicated here.">
       <TextBlock Text="Max Coordination Fee (percent)" />
-      <CurrencyEntryBox Classes="standalone" Name="CoordinationFeeRateTextBox" Text="{Binding MaxAllowedCoordinationFeeRate}" CurrencyCode="%"/>
+      <CurrencyEntryBox Classes="standalone" Name="CoordinationFeeRateTextBox" Text="{Binding MaxCoordinationFeeRate}" CurrencyCode="%"/>
     </StackPanel>
   </StackPanel>
 </UserControl>
