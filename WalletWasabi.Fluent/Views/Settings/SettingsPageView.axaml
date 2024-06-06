@@ -49,6 +49,12 @@
           </ScrollViewer>
         </TabItem>
 
+        <TabItem Header="Coinjoin">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <v:CoinjoinTabSettingsView DataContext="{Binding CoinjoinTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
+          </ScrollViewer>
+        </TabItem>
+
         <TabItem Header="Advanced">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />

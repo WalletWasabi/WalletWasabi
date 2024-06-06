@@ -27,9 +27,16 @@ public static class MainViewModelExtensions
 			return mainViewModel.SettingsPage;
 		});
 
-		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		CoinjoinTabSettingsViewModel.RegisterLazy(() =>
 		{
 			mainViewModel.SettingsPage.SelectedTab = 2;
+			return mainViewModel.SettingsPage;
+		});
+
+
+		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		{
+			mainViewModel.SettingsPage.SelectedTab = 3;
 			return mainViewModel.SettingsPage;
 		});
 
