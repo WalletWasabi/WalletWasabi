@@ -34,6 +34,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// Advanced
 	[AutoNotify] private bool _enableGpu;
+	[AutoNotify] private string _backendUri;
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
@@ -79,6 +80,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Advanced
 		_enableGpu = _startupConfig.EnableGpu;
+		_backendUri = _startupConfig.GetBackendUri();
 
 		// Bitcoin
 		_network = config.Network;
@@ -113,7 +115,8 @@ public partial class ApplicationSettings : ReactiveObject
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
 
 		// Save on change
-		this.WhenAnyValue(
+
+		var configChangeTrigger1 = this.WhenAnyValue(
 			x => x.EnableGpu,
 			x => x.Network,
 			x => x.StartLocalBitcoinCoreOnStartup,
@@ -127,7 +130,12 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.TerminateTorOnExit,
 			x => x.DownloadNewVersion,
 			(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Skip(1)
+			.Skip(1);
+
+		var configChangeTrigger2 = this.WhenAnyValue(x => x.BackendUri).ToSignal().Skip(1);
+
+		configChangeTrigger1
+			.Merge(configChangeTrigger2)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
@@ -236,14 +244,17 @@ public partial class ApplicationSettings : ReactiveObject
 			if (Network == Network.Main)
 			{
 				result = result with { MainNetCoordinatorUri = CoordinatorUri };
+				result = result with { MainNetBackendUri = BackendUri };
 			}
 			else if (Network == Network.TestNet)
 			{
 				result = result with { TestNetCoordinatorUri = CoordinatorUri };
+				result = result with { TestNetBackendUri = BackendUri };
 			}
 			else if (Network == Network.RegTest)
 			{
 				result = result with { RegTestCoordinatorUri = CoordinatorUri };
+				result = result with { RegTestBackendUri = BackendUri };
 			}
 			else
 			{
@@ -272,6 +283,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			CoordinatorUri = result.GetCoordinatorUri();
+			BackendUri = result.GetBackendUri();
 		}
 
 		// General

@@ -190,6 +190,26 @@ public record PersistentConfig : IConfigNg
 		throw new NotSupportedNetworkException(Network);
 	}
 
+	public string GetBackendUri()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBackendUri;
+		}
+
+		if (Network == Network.TestNet)
+		{
+			return TestNetBackendUri;
+		}
+
+		if (Network == Network.RegTest)
+		{
+			return RegTestBackendUri;
+		}
+
+		throw new NotSupportedNetworkException(Network);
+	}
+
 	public bool MigrateOldDefaultBackendUris([NotNullWhen(true)] out PersistentConfig? newConfig)
 	{
 		bool hasChanged = false;
