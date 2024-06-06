@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -42,6 +43,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _coordinatorUri;
+	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _dustThreshold;
 
 	// General
@@ -85,6 +87,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		_coordinatorUri = _startupConfig.GetCoordinatorUri();
+		_maxCoordinationFeeRate = _startupConfig.MaxCoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
 		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
@@ -118,11 +121,12 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.StopLocalBitcoinCoreOnShutdown,
 			x => x.BitcoinP2PEndPoint,
 			x => x.CoordinatorUri,
+			x => x.MaxCoordinationFeeRate,
 			x => x.DustThreshold,
 			x => x.UseTor,
 			x => x.TerminateTorOnExit,
 			x => x.DownloadNewVersion,
-			(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -251,9 +255,12 @@ public partial class ApplicationSettings : ReactiveObject
 				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
 				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
 				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
-				DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-					? Money.Coins(threshold)
-					: PersistentConfig.DefaultDustThreshold,
+				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
+					Money.Coins(threshold) :
+					PersistentConfig.DefaultDustThreshold,
+				MaxCoordinationFeeRate = decimal.TryParse(MaxCoordinationFeeRate, out var maxCoordinationFeeRate) ?
+					maxCoordinationFeeRate :
+					PersistentConfig.DefaultMaxCoordinationFeeRate
 			};
 		}
 		else

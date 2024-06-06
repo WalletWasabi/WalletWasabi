@@ -18,6 +18,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string LocalBitcoinCoreDataDir { get; set; } = "";
 	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
 	public string BitcoinP2PEndPoint { get; set; } = "";
+	public string MaxCoordinationFeeRate { get; set; } = "";
 	public string CoordinatorUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
 	public bool DarkModeEnabled { get; set; }
