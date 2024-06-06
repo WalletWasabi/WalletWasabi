@@ -60,7 +60,8 @@
       <TextBlock Text="Coordinator URI" />
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
         <Interaction.Behaviors>
-          <TextBoxAutoSelectTextBehavior />
+          <!--<TextBoxAutoSelectTextBehavior />-->
+          <TextBoxTrimBehavior />
           <DataTriggerBehavior Binding="{Binding FocusCoordinatorUri}" Value="True">
             <FocusControlActionCustom TargetControl="CoordinatorTextBox" />
           </DataTriggerBehavior>
