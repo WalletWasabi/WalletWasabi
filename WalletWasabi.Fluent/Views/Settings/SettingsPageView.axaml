@@ -49,9 +49,9 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Coinjoin">
+        <TabItem Header="Coordinator">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:CoinjoinTabSettingsView DataContext="{Binding CoinjoinTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
+            <v:CoordinatorTabSettingsView DataContext="{Binding CoordinatorTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 

@@ -39,7 +39,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
-		CoinjoinTabSettings = new CoinjoinTabSettingsViewModel(UiContext.ApplicationSettings);
+		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext.ApplicationSettings);
 		AdvancedSettingsTab = new AdvancedSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
@@ -66,7 +66,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
-	public CoinjoinTabSettingsViewModel CoinjoinTabSettings { get; }
+	public CoordinatorTabSettingsViewModel CoordinatorTabSettings { get; }
 	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
 
 	public async Task Activate()
@@ -74,12 +74,10 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		await NavigateDialogAsync(this);
 	}
 
-	public async Task ActivateCoinjoinTabWithFocusOnCoordinatorUri()
+	public async Task ActivateCoordinatorTab()
 	{
 		SelectedTab = 2;
-		CoinjoinTabSettings.FocusCoordinatorUri = true;
 		await NavigateDialogAsync(this);
-		CoinjoinTabSettings.FocusCoordinatorUri = false;
 	}
 
 	private void ChangeTheme(bool isDark)

@@ -10,8 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Coinjoin",
-	Caption = "Manage Coinjoin settings",
+	Title = "Coordinator",
+	Caption = "Manage Coordinator settings",
 	Order = 2,
 	Category = "Settings",
 	Keywords =
@@ -19,14 +19,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 		"Settings", "Bitcoin", "BTC", "Coordinator", "Coordination", "Fee", "Coinjoin"
 	],
 	IconName = "settings_bitcoin_regular")]
-public partial class CoinjoinTabSettingsViewModel : RoutableViewModel
+public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
 
-	[AutoNotify] private bool _focusCoordinatorUri;
-
-	public CoinjoinTabSettingsViewModel(IApplicationSettings settings)
+	public CoordinatorTabSettingsViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
 

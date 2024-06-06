@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:DataType="settings:CoinjoinTabSettingsViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Settings.CoinjoinTabSettingsView"
+             x:DataType="settings:CoordinatorTabSettingsViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.CoordinatorTabSettingsView"
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
@@ -14,9 +14,6 @@
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />
-          <DataTriggerBehavior Binding="{Binding FocusCoordinatorUri}" Value="True">
-            <FocusControlActionCustom TargetControl="CoordinatorTextBox" />
-          </DataTriggerBehavior>
         </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
