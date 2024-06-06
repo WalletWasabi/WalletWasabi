@@ -345,7 +345,7 @@ In order to minimize the amount of boilerplate required for such initialization,
  - A new constructor is generated for that ViewModel, including all parameters of any existing constructor plus the UiContext.
  - This generated constructor initializes the `UiContext` *after* running the code of the manually written constructor (if any).
  - A Roslyn Analyzer inspects any manually written constructors in the ViewModel to prevent references to `UiContext` in the constructor body, before the above mentioned initialization can take place, resulting in `NullReferenceException`s.
- - The Analyzer demands the manually written constructor to be declared `private`, so that external installation of the ViewModel is done by calling the source-generated constructor.
+ - The Analyzer demands the manually written constructor to be declared `private`, so that external instantiation of the ViewModel is done by calling the source-generated constructor.
 
 ❌ Writing code that directly references `UiContext` in a ViewModel's constructor body will result in a compile-time error.
 
