@@ -40,7 +40,7 @@ public class Global : IDisposable
 		// Add Nostr publisher if enabled
 		if (Config.AnnouncerConfig.IsEnabled)
 		{
-			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), Config.AnnouncerConfig, Config.Network), "Coordinator Nostr Publisher");
+			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), Config.AnnouncerConfig, Config.Network), "Nostr Coordinator Publisher");
 		}
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)

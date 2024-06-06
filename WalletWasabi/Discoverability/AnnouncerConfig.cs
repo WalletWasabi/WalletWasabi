@@ -19,7 +19,7 @@ namespace WalletWasabi.Discoverability
 		public string[] RelayUris { get; set; } = { "wss://relay.primal.net" };
 
 		[JsonProperty(PropertyName = "KeyBytes")]
-		public byte[]? KeyBytes { get; set; } = InitKeyBytes();
+		public byte[] KeyBytes { get; set; } = InitKeyBytes();
 
 		private static byte[] InitKeyBytes()
 		{
