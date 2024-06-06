@@ -110,6 +110,12 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
+		if (maxCoordinationFeeRateDecimal < 0)
+		{
+			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0%");
+			return;
+		}
+
 		if (maxCoordinationFeeRateDecimal > 1)
 		{
 			errors.Add(ErrorSeverity.Error, "Absolute maximum allowed coordination fee rate is 1%");
