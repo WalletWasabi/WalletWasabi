@@ -43,6 +43,8 @@
         <TextBox Text="{Binding BitcoinP2PEndPoint}">
           <Interaction.Behaviors>
             <TextBoxAutoSelectTextBehavior />
+            <WhitespacePasteRemovalBehavior />
+            <WhitespaceInputRemovalBehavior />
           </Interaction.Behaviors>
         </TextBox>
       </PrivacyContentControl>

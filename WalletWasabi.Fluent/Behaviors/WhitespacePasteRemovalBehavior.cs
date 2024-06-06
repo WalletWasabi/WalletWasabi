@@ -23,13 +23,13 @@ public class WhitespacePasteRemovalBehavior : DisposingBehavior<TextBox>
 				.Do(args => args.EventArgs.Handled = true)
 				.Select(_ => Observable.FromAsync(ApplicationHelper.GetTextAsync, scheduler: RxApp.MainThreadScheduler))
 				.Concat()
-				.Do(clipboardText => PasteTo(clipboardText, tb))
+				.Do(clipboardText => Paste(clipboardText, tb))
 				.Subscribe()
 				.DisposeWith(disposables);
 		}
 	}
 
-	private static void PasteTo(string text, TextBox tb)
+	private static void Paste(string text, TextBox tb)
 	{
 		var pasted = text.WithoutWhitespace();
 		var start = tb.SelectionStart;
