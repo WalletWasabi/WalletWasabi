@@ -45,6 +45,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
+	[AutoNotify] private string _maxCoinjoinMiningFeeRate;
 	[AutoNotify] private string _dustThreshold;
 
 	// General
@@ -90,6 +91,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		_coordinatorUri = _startupConfig.GetCoordinatorUri();
 		_maxCoordinationFeeRate = _startupConfig.MaxCoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
+		_maxCoinjoinMiningFeeRate = _startupConfig.MaxCoinjoinMiningFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture);
 		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
@@ -124,18 +126,23 @@ public partial class ApplicationSettings : ReactiveObject
 			x => x.StopLocalBitcoinCoreOnShutdown,
 			x => x.BitcoinP2PEndPoint,
 			x => x.CoordinatorUri,
-			x => x.MaxCoordinationFeeRate,
 			x => x.DustThreshold,
 			x => x.UseTor,
 			x => x.TerminateTorOnExit,
 			x => x.DownloadNewVersion,
-			(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Skip(1);
+			(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			.Skip(1)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
+			.Do(_ => Save())
+			.Subscribe();
 
-		var configChangeTrigger2 = this.WhenAnyValue(x => x.BackendUri).ToSignal().Skip(1);
-
-		configChangeTrigger1
-			.Merge(configChangeTrigger2)
+		// Save on change - continuation. WhenAnyValue cannot have more than 12 arguments.
+		this.WhenAnyValue(x =>
+				x.MaxCoordinationFeeRate,
+				x => x.MaxCoinjoinMiningFeeRate,
+				(_, _) => Unit.Default)
+			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
@@ -271,7 +278,10 @@ public partial class ApplicationSettings : ReactiveObject
 					PersistentConfig.DefaultDustThreshold,
 				MaxCoordinationFeeRate = decimal.TryParse(MaxCoordinationFeeRate, out var maxCoordinationFeeRate) ?
 					maxCoordinationFeeRate :
-					PersistentConfig.DefaultMaxCoordinationFeeRate
+					PersistentConfig.DefaultMaxCoordinationFeeRate,
+				MaxCoinjoinMiningFeeRate = decimal.TryParse(MaxCoinjoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
+					new FeeRate(maxCoinjoinMiningFeeRate) :
+					PersistentConfig.DefaultMaxCoinjoinMiningFeeRate
 			};
 		}
 		else

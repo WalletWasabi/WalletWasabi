@@ -66,6 +66,7 @@ public static class Constants
 
 	public const decimal DefaultDustThreshold = 0.00005m;
 	public const decimal DefaultMaxCoordinationFeeRate = 0.0m;
+	public const decimal DefaultMaxCoinjoinMiningFeeRate = 150.0m;
 
 	public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

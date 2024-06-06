@@ -345,6 +345,7 @@ public static class WabiSabiFactory
 			coinSelector,
 			new LiquidityClueProvider(),
 			0.3m,
+			150.0m,
 			TimeSpan.Zero,
 			TimeSpan.Zero,
 			null);

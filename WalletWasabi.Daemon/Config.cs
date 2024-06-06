@@ -130,6 +130,9 @@ public class Config
 			[ nameof(MaxCoordinationFeeRate)] = (
 				"Max coordination fee rate the client is willing to accept to participate into a round",
 				GetDecimalValue("MaxCoordinationFeeRate", PersistentConfig.MaxCoordinationFeeRate, cliArgs)),
+			[ nameof(MaxCoinjoinMiningFeeRate)] = (
+				"Max mining fee rate in s/vb the client is willing to pay to participate into a round",
+				GetFeeRateValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinjoinMiningFeeRate, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -188,6 +191,7 @@ public class Config
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
 	public decimal MaxCoordinationFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxCoordinationFeeRate));
+	public FeeRate MaxCoinjoinMiningFeeRate => GetEffectiveValue<FeeRateValue, FeeRate>(nameof(MaxCoinjoinMiningFeeRate));
 	public ServiceConfiguration ServiceConfiguration { get; }
 
 	public static string DataDir { get; } = GetStringValue(
@@ -287,6 +291,27 @@ public class Config
 		}
 
 		return new MoneyValue(value, value, ValueSource.Disk);
+	}
+
+	private FeeRateValue GetFeeRateValue(string key, FeeRate value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!decimal.TryParse(overrideValue, out var feeRateDecimal))
+			{
+				throw new ArgumentNullException("MaxCoinjoinMiningFeeRate", "Not a valid number");
+			}
+
+			if (feeRateDecimal < 1)
+			{
+				throw new ArgumentNullException("MaxCoinjoinMiningFeeRate", "Minimum fee rate is 1 s/vb");
+			}
+
+			var feeRate = new FeeRate(feeRateDecimal);
+			return new FeeRateValue(value, feeRate, valueSource.Value);
+		}
+
+		return new FeeRateValue(value, value, ValueSource.Disk);
 	}
 
 	private NetworkValue GetNetworkValue(string key, string value, string[] cliArgs)
@@ -538,5 +563,6 @@ public class Config
 	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
+	private record FeeRateValue(FeeRate Value, FeeRate EffectiveValue, ValueSource ValueSource) : ITypedValue<FeeRate>;
 	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;
 }
