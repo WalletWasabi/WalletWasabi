@@ -12,9 +12,9 @@ namespace WalletWasabi.Discoverability;
 
 public class NostrCoordinatorPublisher : PeriodicRunner
 {
-	public NostrCoordinatorPublisher(TimeSpan period, ECPrivKey key, AnnouncerConfig config, Network network) : base(period)
+	public NostrCoordinatorPublisher(TimeSpan period, AnnouncerConfig config, Network network) : base(period)
 	{
-		Key = key;
+		Key = ECPrivKey.Create(config.KeyBytes);
 		CoordinatorConfiguration = new NostrCoordinatorConfiguration(config.CoordinatorDescription, new Uri(config.CoordinatorUri), network);
 		Client = NostrExtensions.Create(config.RelayUris.Select(x => new Uri(x)).ToArray(), (EndPoint?)null);
 	}
@@ -34,5 +34,11 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 		await Client.PublishAsync([discoveryEvent], linkedCts.Token).ConfigureAwait(false);
 
 		Logger.LogInfo("Coordinator has been successfully published on Nostr.");
+	}
+
+	public override void Dispose()
+	{
+		Key.Dispose();
+		base.Dispose();
 	}
 }

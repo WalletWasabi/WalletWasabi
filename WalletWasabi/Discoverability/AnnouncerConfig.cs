@@ -1,3 +1,4 @@
+using NBitcoin;
 using Newtonsoft.Json;
 
 namespace WalletWasabi.Discoverability
@@ -12,9 +13,18 @@ namespace WalletWasabi.Discoverability
 		public string CoordinatorDescription { get; set; } = "WabiSabi Coinjoin Coordinator";
 
 		[JsonProperty(PropertyName = "CoordinatorUri")]
-		public string CoordinatorUri { get; set; } = "";
+		public string CoordinatorUri { get; set; } = "https://api.example.com/";
 
 		[JsonProperty(PropertyName = "RelayUris")]
 		public string[] RelayUris { get; set; } = { "wss://relay.primal.net" };
+
+		[JsonProperty(PropertyName = "KeyBytes")]
+		public byte[]? KeyBytes { get; set; } = InitKeyBytes();
+
+		private static byte[] InitKeyBytes()
+		{
+			using var key = new Key();
+			return key.ToBytes();
+		}
 	}
 }

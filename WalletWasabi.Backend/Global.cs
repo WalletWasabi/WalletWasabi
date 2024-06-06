@@ -40,8 +40,7 @@ public class Global : IDisposable
 		// Add Nostr publisher if enabled
 		if (Config.AnnouncerConfig.IsEnabled)
 		{
-			NostrKeyManager = new(DataDir);
-			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), NostrKeyManager.Key, Config.AnnouncerConfig, Config.Network), "Coordinator Nostr Publisher");
+			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), Config.AnnouncerConfig, Config.Network), "Coordinator Nostr Publisher");
 		}
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
@@ -71,8 +70,6 @@ public class Global : IDisposable
 	private IHttpClientFactory HttpClientFactory { get; }
 
 	public Config Config { get; }
-
-	private NostrKeyManager? NostrKeyManager { get; }
 
 	private CoordinatorParameters CoordinatorParameters { get; }
 
@@ -171,7 +168,6 @@ public class Global : IDisposable
 					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
 
-				NostrKeyManager?.Dispose();
 				CoinVerifierHttpClient.Dispose();
 				CoinJoinMempoolManager.Dispose();
 
