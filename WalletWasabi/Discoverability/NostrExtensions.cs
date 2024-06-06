@@ -10,8 +10,6 @@ namespace WalletWasabi.Discoverability;
 
 public static class NostrExtensions
 {
-	private const int Kind = 15750;
-
 	public static INostrClient Create(Uri[] relays, EndPoint? torEndpoint = null)
 	{
 		var webProxy = torEndpoint is IPEndPoint endpoint
@@ -53,30 +51,5 @@ public static class NostrExtensions
 		await client.ConnectAndWaitUntilConnected(cancellationToken).ConfigureAwait(false);
 		await client.SendEventsAndWaitUntilReceived(evts, cancellationToken).ConfigureAwait(false);
 		await client.Disconnect().ConfigureAwait(false);
-	}
-
-	public static async Task<NostrEvent> CreateCoordinatorDiscoveryEventAsync(
-		this NostrCoordinatorConfiguration coordinatorConfiguration,
-		ECPrivKey key)
-	{
-		var evt = new NostrEvent()
-		{
-			Kind = Kind,
-			Content = coordinatorConfiguration.Description,
-			Tags =
-			[
-				CreateTag("endpoint", coordinatorConfiguration.Uri.ToString()),
-				CreateTag("type", "wabisabi"),
-				CreateTag("network", coordinatorConfiguration.Network.ChainName.ToString().ToLower())
-			]
-		};
-
-		await evt.ComputeIdAndSignAsync(key).ConfigureAwait(false);
-		return evt;
-	}
-
-	private static NostrEventTag CreateTag(string tagIdentifier, string data)
-	{
-		return new() { TagIdentifier = tagIdentifier, Data = [data] };
 	}
 }
