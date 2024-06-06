@@ -1,5 +1,7 @@
 using NBitcoin;
+using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using NNostr.Client.Protocols;
 
 namespace WalletWasabi.Discoverability
 {
@@ -18,13 +20,14 @@ namespace WalletWasabi.Discoverability
 		[JsonProperty(PropertyName = "RelayUris")]
 		public string[] RelayUris { get; set; } = { "wss://relay.primal.net" };
 
-		[JsonProperty(PropertyName = "KeyBytes")]
-		public byte[] KeyBytes { get; set; } = InitKeyBytes();
+		[JsonProperty(PropertyName = "Key")]
+		public string Key { get; set; } = InitKey();
 
-		private static byte[] InitKeyBytes()
+		private static string InitKey()
 		{
 			using var key = new Key();
-			return key.ToBytes();
+			using var privKey = ECPrivKey.Create(key.ToBytes());
+			return privKey.ToNIP19();
 		}
 	}
 }

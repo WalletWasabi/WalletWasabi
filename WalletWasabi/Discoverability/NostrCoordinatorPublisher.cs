@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using NNostr.Client;
+using NNostr.Client.Protocols;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 
@@ -14,7 +15,7 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 {
 	public NostrCoordinatorPublisher(TimeSpan period, AnnouncerConfig config, Network network) : base(period)
 	{
-		Key = ECPrivKey.Create(config.KeyBytes);
+		Key = config.Key.FromNIP19Nsec();
 		CoordinatorConfiguration = new NostrCoordinatorConfiguration(config.CoordinatorDescription, new Uri(config.CoordinatorUri), network);
 		Client = NostrExtensions.Create(config.RelayUris.Select(x => new Uri(x)).ToArray(), (EndPoint?)null);
 	}
