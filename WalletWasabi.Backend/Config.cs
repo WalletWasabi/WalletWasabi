@@ -84,6 +84,9 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "NostrCoordinatorUri")]
 	public string NostrCoordinatorUri { get; internal set; } = "";
 
+	[JsonProperty(PropertyName = "AnnouncerRelayUris")]
+	public string[] AnnouncerRelayUris { get; internal set; } = [new("wss://relay.primal.net")];
+
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)

@@ -10,13 +10,11 @@ namespace WalletWasabi.Nostr;
 
 public class NostrCoordinatorPublisher : PeriodicRunner
 {
-	private readonly Uri[] _relayUris = [new("wss://relay.primal.net")];
-
-	public NostrCoordinatorPublisher(TimeSpan period, ECPrivKey key, NostrCoordinatorConfiguration coordinatorConfiguration) : base(period)
+	public NostrCoordinatorPublisher(TimeSpan period, ECPrivKey key, NostrCoordinatorConfiguration coordinatorConfiguration, Uri[] relayUris) : base(period)
 	{
-		CoordinatorConfiguration = coordinatorConfiguration;
 		Key = key;
-		Client = NostrExtensions.Create(_relayUris, (EndPoint?)null);
+		CoordinatorConfiguration = coordinatorConfiguration;
+		Client = NostrExtensions.Create(relayUris, (EndPoint?)null);
 	}
 
 	private INostrClient Client { get; }

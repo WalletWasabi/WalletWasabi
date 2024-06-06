@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -42,7 +43,7 @@ public class Global : IDisposable
 		{
 			NostrKeyManager = new(DataDir);
 			var nostrCoordinator = new NostrCoordinatorConfiguration(Config.NostrCoordinatorDescription, new Uri(Config.NostrCoordinatorUri), Config.Network);
-			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), NostrKeyManager.Key, nostrCoordinator), "Coordinator Nostr Publisher");
+			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), NostrKeyManager.Key, nostrCoordinator, Config.AnnouncerRelayUris.Select(x => new Uri(x)).ToArray()), "Coordinator Nostr Publisher");
 		}
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
