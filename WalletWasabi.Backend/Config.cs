@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Net;
 using WalletWasabi.Bases;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -75,17 +76,8 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
 	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
-	[JsonProperty(PropertyName = "EnableNostrCoordinatorPublisher", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool EnableNostrCoordinatorPublisher { get; internal set; }
-
-	[JsonProperty(PropertyName = "NostrCoordinatorDescription")]
-	public string NostrCoordinatorDescription { get; internal set; } = "WabiSabi Coinjoin Coordinator";
-
-	[JsonProperty(PropertyName = "NostrCoordinatorUri")]
-	public string NostrCoordinatorUri { get; internal set; } = "";
-
-	[JsonProperty(PropertyName = "AnnouncerRelayUris")]
-	public string[] AnnouncerRelayUris { get; internal set; } = [new("wss://relay.primal.net")];
+	[JsonProperty(PropertyName = "AnnouncerConfig")]
+	public AnnouncerConfig AnnouncerConfig { get; internal set; } = new();
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
