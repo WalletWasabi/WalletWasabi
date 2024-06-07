@@ -43,6 +43,8 @@
         <TextBox Text="{Binding BitcoinP2PEndPoint}">
           <Interaction.Behaviors>
             <TextBoxAutoSelectTextBehavior />
+            <WhitespacePasteRemovalBehavior />
+            <WhitespaceInputRemovalBehavior />
           </Interaction.Behaviors>
         </TextBox>
       </PrivacyContentControl>
@@ -61,6 +63,8 @@
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />
+          <WhitespacePasteRemovalBehavior />
+          <WhitespaceInputRemovalBehavior />
           <DataTriggerBehavior Binding="{Binding FocusCoordinatorUri}" Value="True">
             <FocusControlActionCustom TargetControl="CoordinatorTextBox" />
           </DataTriggerBehavior>

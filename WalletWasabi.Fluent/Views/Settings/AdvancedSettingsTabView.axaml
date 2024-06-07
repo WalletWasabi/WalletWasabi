@@ -19,6 +19,8 @@
       <TextBox Text="{Binding BackendUri}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />
+          <WhitespacePasteRemovalBehavior />
+          <WhitespaceInputRemovalBehavior />
         </Interaction.Behaviors>
       </TextBox>
     </StackPanel>
