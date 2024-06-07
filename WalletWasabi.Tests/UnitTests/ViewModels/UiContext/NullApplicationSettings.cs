@@ -19,6 +19,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
 	public string BitcoinP2PEndPoint { get; set; } = "";
 	public string MaxCoordinationFeeRate { get; set; } = "";
+	public string MaxCoinJoinMiningFeeRate { get; set; } = "";
 	public string CoordinatorUri { get; set; } = "";
 	public string BackendUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
