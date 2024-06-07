@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Keywords =
 	[
 		"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-			"P2P", "Endpoint", "Dust", "Threshold", "BTC", "Coordinator", "Coordination", "Fee"
+			"P2P", "Endpoint", "Dust", "Threshold", "BTC", "Coordinator", "Coordination", "Fee", "Rate", "Mining"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
@@ -29,6 +29,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
+	[AutoNotify] private string _maxCoinjoinMiningFeeRate;
 	[AutoNotify] private string _dustThreshold;
 
 	[AutoNotify] private bool _focusCoordinatorUri;
@@ -40,11 +41,13 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
 		this.ValidateProperty(x => x.MaxCoordinationFeeRate, ValidateMaxCoordinationFeeRate);
+		this.ValidateProperty(x => x.MaxCoinjoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
 		_coordinatorUri = settings.CoordinatorUri;
 		_maxCoordinationFeeRate = settings.MaxCoordinationFeeRate;
+		_maxCoinjoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 		_dustThreshold = settings.DustThreshold;
 
 		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
@@ -123,6 +126,30 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.MaxCoordinationFeeRate = maxCoordinationFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
+	}
+
+	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
+	{
+		var maxCoinjoinMiningFeeRate = MaxCoinjoinMiningFeeRate;
+
+		if (string.IsNullOrEmpty(maxCoinjoinMiningFeeRate))
+		{
+			return;
+		}
+
+		if (!decimal.TryParse(maxCoinjoinMiningFeeRate, out var maxCoinjoinMiningFeeRateDecimal))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			return;
+		}
+
+		if (maxCoinjoinMiningFeeRateDecimal < 1)
+		{
+			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
+			return;
+		}
+
+		Settings.MaxCoinJoinMiningFeeRate = maxCoinjoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private void ValidateDustThreshold(IValidationErrors errors)

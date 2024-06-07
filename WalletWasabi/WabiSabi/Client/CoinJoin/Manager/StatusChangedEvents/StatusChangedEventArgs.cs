@@ -30,7 +30,8 @@ public enum CoinjoinError
 	OnlyExcludedCoinsAvailable,
 	UneconomicalRound,
 	RandomlySkippedRound,
-	CoordinationFeeRateTooHigh
+	CoordinationFeeRateTooHigh,
+	MiningFeeRateTooHigh,
 }
 
 public class StatusChangedEventArgs : EventArgs
