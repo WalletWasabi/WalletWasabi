@@ -158,7 +158,7 @@ public class CoinJoinClient
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
 				}
-				if (roundParameters.MiningFeeRate > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+				if (roundParameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 				{
 					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
 					currentRoundState.LogInfo(roundSkippedMessage);

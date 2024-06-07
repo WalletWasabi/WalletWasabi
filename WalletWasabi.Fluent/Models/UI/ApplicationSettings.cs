@@ -91,7 +91,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		_coordinatorUri = _startupConfig.GetCoordinatorUri();
 		_maxCoordinationFeeRate = _startupConfig.MaxCoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
-		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture);
+		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
 		_dustThreshold = _startupConfig.DustThreshold.ToString();
 
 		// General
@@ -280,7 +280,7 @@ public partial class ApplicationSettings : ReactiveObject
 					maxCoordinationFeeRate :
 					Constants.DefaultMaxCoordinationFeeRate,
 				MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
-					new FeeRate(maxCoinjoinMiningFeeRate) :
+					maxCoinjoinMiningFeeRate :
 					Constants.DefaultMaxCoinJoinMiningFeeRate
 			};
 		}

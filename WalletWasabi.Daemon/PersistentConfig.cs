@@ -121,8 +121,7 @@ public record PersistentConfig : IConfigNg
 	public decimal MaxCoordinationFeeRate { get; init; } = Constants.DefaultMaxCoordinationFeeRate;
 
 	[JsonPropertyName("MaxCoinJoinMiningFeeRate")]
-	[JsonConverter(typeof(FeeRateSatPerVbJsonConverterNg))]
-	public FeeRate MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
+	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public bool DeepEquals(PersistentConfig other)
 	{

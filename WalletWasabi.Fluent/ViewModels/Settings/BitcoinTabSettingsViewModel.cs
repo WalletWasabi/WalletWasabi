@@ -149,11 +149,6 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (maxCoinjoinMiningFeeRateDecimal > Constants.DefaultMaxCoinJoinMiningFeeRate.SatoshiPerByte)
-		{
-			errors.Add(ErrorSeverity.Error, $"Absolute maximum mining fee rate is {Constants.DefaultMaxCoinJoinMiningFeeRate.SatoshiPerByte}s/vb");
-			return;
-		}
 		Settings.MaxCoinJoinMiningFeeRate = maxCoinjoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
