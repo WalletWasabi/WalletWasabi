@@ -41,7 +41,18 @@
       <MenuItem Header="Speed Up Transaction" IsVisible="{Binding CanBeSpedUp}"
                 Command="{Binding SpeedUpTransactionCommand}">
         <MenuItem.Icon>
-          <PathIcon Data="{StaticResource rocket_regular}" />
+          <PathIcon Classes.AlreadySpedUp="{Binding HasBeenSpedUp}"
+                    Classes.NotSpedUp="{Binding !HasBeenSpedUp}"
+                    Height="16">
+            <PathIcon.Styles>
+              <Style Selector="PathIcon.AlreadySpedUp">
+                <Setter Property="Data" Value="{StaticResource rocket_confirmed}" />
+              </Style>
+              <Style Selector="PathIcon.NotSpedUp">
+                <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+              </Style>
+            </PathIcon.Styles>
+          </PathIcon>
         </MenuItem.Icon>
       </MenuItem>
       <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
