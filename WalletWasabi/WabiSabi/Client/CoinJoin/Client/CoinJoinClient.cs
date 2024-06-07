@@ -858,6 +858,17 @@ public class CoinJoinClient
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
 		}
+		else
+		{
+			// Assert that the effective fee rate is at least what was agreed on.
+			// Otherwise, coordinator could take some of the mining fees for itself.
+			// There is a tolerance because before constructing the transaction only an estimation can be computed.
+			mustSignAllInputs = signingState.EffectiveFeeRate.FeePerK.Satoshi > signingState.Parameters.MiningFeeRate.FeePerK.Satoshi * 0.90;
+			if (!mustSignAllInputs)
+			{
+				roundState.LogInfo($"Effective fee rate of the transaction is lower than expected. A subset of inputs will be signed.");
+			}
+		}
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
