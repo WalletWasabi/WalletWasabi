@@ -16,13 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords =
 	[
-		"Settings", "Bitcoin", "BTC", "Coordinator", "Coordination", "Fee", "Coinjoin"
+		"Settings", "Bitcoin", "BTC", "Coordinator", "Coordination", "Fee", "Coinjoin", "Rate", "Mining"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
+	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 
 	public CoordinatorTabSettingsViewModel(IApplicationSettings settings)
 	{
@@ -30,9 +31,12 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
 		this.ValidateProperty(x => x.MaxCoordinationFeeRate, ValidateMaxCoordinationFeeRate);
+		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
+
 
 		_coordinatorUri = settings.CoordinatorUri;
 		_maxCoordinationFeeRate = settings.MaxCoordinationFeeRate;
+		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 
 		this.WhenAnyValue(x => x.Settings.CoordinatorUri)
 			.Subscribe(x => CoordinatorUri = x);
@@ -88,5 +92,29 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.MaxCoordinationFeeRate = maxCoordinationFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
+	}
+
+	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
+	{
+		var maxCoinJoinMiningFeeRate = MaxCoinJoinMiningFeeRate;
+
+		if (string.IsNullOrEmpty(maxCoinJoinMiningFeeRate))
+		{
+			return;
+		}
+
+		if (!decimal.TryParse(maxCoinJoinMiningFeeRate, out var maxCoinJoinMiningFeeRateDecimal))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			return;
+		}
+
+		if (maxCoinJoinMiningFeeRateDecimal < 1)
+		{
+			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
+			return;
+		}
+
+		Settings.MaxCoinJoinMiningFeeRate = maxCoinJoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 }
