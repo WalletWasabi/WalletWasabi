@@ -76,7 +76,7 @@ public class ConfigManagerNgTests
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "MaxCoordinationFeeRate": 0.0,
-			  "MaxCoinJoinMiningFeeRate": 150
+			  "MaxCoinJoinMiningFeeRate": 150.0
 			}
 			""";
 
