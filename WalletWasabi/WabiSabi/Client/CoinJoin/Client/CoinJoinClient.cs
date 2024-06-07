@@ -41,8 +41,8 @@ public class CoinJoinClient
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
-		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
+		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
@@ -52,8 +52,8 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		OutputProvider = outputProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
+		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
@@ -70,8 +70,8 @@ public class CoinJoinClient
 	private IKeyChain KeyChain { get; }
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
+	public CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -151,6 +151,18 @@ public class CoinJoinClient
 					string roundSkippedMessage = "Uneconomical round skipped.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
+				}
+				if (roundParameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
+				{
+					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate * 100} but max allowed is {CoinJoinConfiguration.MaxCoordinationFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
+				}
+				if (roundParameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+				{
+					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.MiningFeeRateTooHigh, roundSkippedMessage);
 				}
 				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
 				{
@@ -414,7 +426,7 @@ public class CoinJoinClient
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					CoordinatorIdentifier,
+					CoinJoinConfiguration.CoordinatorIdentifier,
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
@@ -587,7 +599,7 @@ public class CoinJoinClient
 			new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
-				CoordinatorIdentifier,
+				CoinJoinConfiguration.CoordinatorIdentifier,
 				arenaRequestHandler));
 	}
 
@@ -845,6 +857,17 @@ public class CoinJoinClient
 		if (!mustSignAllInputs)
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
+		}
+		else
+		{
+			// Assert that the effective fee rate is at least what was agreed on.
+			// Otherwise, coordinator could take some of the mining fees for itself.
+			// There is a tolerance because before constructing the transaction only an estimation can be computed.
+			mustSignAllInputs = signingState.EffectiveFeeRate.FeePerK.Satoshi > signingState.Parameters.MiningFeeRate.FeePerK.Satoshi * 0.90;
+			if (!mustSignAllInputs)
+			{
+				roundState.LogInfo($"Effective fee rate of the transaction is lower than expected. A subset of inputs will be signed.");
+			}
 		}
 
 		// Send signature.

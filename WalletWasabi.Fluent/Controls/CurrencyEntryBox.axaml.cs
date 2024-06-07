@@ -287,6 +287,7 @@ public partial class CurrencyEntryBox : TextBox
 		if (keymap is { } && Match(keymap.Paste))
 		{
 			ModifiedPasteAsync();
+			e.Handled = true;
 		}
 		else
 		{
