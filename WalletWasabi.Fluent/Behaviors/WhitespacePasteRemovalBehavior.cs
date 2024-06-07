@@ -33,11 +33,11 @@ public class WhitespacePasteRemovalBehavior : DisposingBehavior<TextBox>
 	private static void Paste(string text, TextBox tb)
 	{
 		var pasted = text.WithoutWhitespace();
-		var start = tb.SelectionStart;
-		var end = tb.SelectionEnd;
+		var start = Math.Min(tb.SelectionStart,  tb.SelectionEnd);
+		var end = Math.Max(tb.SelectionStart,  tb.SelectionEnd);
 
 		var current = tb.Text ?? "";
 		tb.Text = current[..start] + pasted + current[end..];
-		tb.CaretIndex += pasted.Length;
+		tb.CaretIndex = start + pasted.Length;
 	}
 }
