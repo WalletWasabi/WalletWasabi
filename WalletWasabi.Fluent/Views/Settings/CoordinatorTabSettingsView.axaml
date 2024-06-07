@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="settings:CoordinatorTabSettingsViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.CoordinatorTabSettingsView"
+             x:CompileBindings="True">
+  <StackPanel Classes="settingsLayout">
+
+    <StackPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
+      <TextBlock Text="Coordinator URI" />
+      <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
+    </StackPanel>
+
+    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds charging a coordination fee rate (percentage) higher than the value indicated here.">
+      <TextBlock Text="Max Coordination Fee (percent)" />
+      <CurrencyEntryBox Classes="standalone" Name="CoordinationFeeRateTextBox" Text="{Binding MaxCoordinationFeeRate}" CurrencyCode="%" />
+    </StackPanel>
+
+    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (s/vb) higher than the value indicated here.">
+      <TextBlock Text="Max Coinjoin Mining Fee Rate" />
+      <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="s/vb"/>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

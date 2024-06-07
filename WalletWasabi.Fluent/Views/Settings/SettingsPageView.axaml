@@ -49,6 +49,12 @@
           </ScrollViewer>
         </TabItem>
 
+        <TabItem Header="Coordinator">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <v:CoordinatorTabSettingsView DataContext="{Binding CoordinatorTabSettings}" IsEnabled="{Binding !IsReadOnly}" />
+          </ScrollViewer>
+        </TabItem>
+
         <TabItem Header="Advanced">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />

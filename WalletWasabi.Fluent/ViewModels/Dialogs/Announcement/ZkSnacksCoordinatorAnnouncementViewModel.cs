@@ -20,7 +20,7 @@ public partial class ZkSnacksCoordinatorAnnouncementViewModel : AnnouncementBase
 
 			if (UiContext.MainViewModel is { } mainViewModel)
 			{
-				await mainViewModel.SettingsPage.ActivateBitcoinTabWithFocusOnCoordinatorUri();
+				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
 			}
 		});
 	}
