@@ -20,6 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
+	private readonly RecoverWalletState _state;
 	private readonly List<RecoverWordViewModel> _words;
 	[AutoNotify] private RecoverWordViewModel _currentWord;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
@@ -29,14 +30,14 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _passphraseConfirmed;
 
-	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
+	private RecoverWalletViewModel(RecoverWalletState state)
 	{
-		var suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+		_state = state;
 
+		var suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 		var words = Enumerable
 			.Range(1, 12)
 			.Select(x => new RecoverWordViewModel(x, "", suggestions));
-
 		_words = words.OrderBy(x => x.Index).ToList();
 		_currentWord = _words.First();
 		_currentWord.IsSelected = true;
@@ -50,11 +51,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		var nextCanExecute = this.WhenAnyValue(x => x.IsMnemonicsValid);
 
 		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync(options),
+			async () => await OnNextAsync(state),
 			canExecute: nextCanExecute);
 
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnAdvancedRecoveryOptionsDialogAsync(options));
+			async () => await OnAdvancedRecoveryOptionsDialogAsync(state));
 
 		var canExecuteNextWord = this.WhenAnyValue(x => x.CurrentWord.IsValid);
 
@@ -81,9 +82,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private int MinGapLimit { get; set; } = 114;
 
-	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
+	private async Task OnNextAsync(RecoverWalletState state)
 	{
-		var (walletName, _, _, _, _) = options;
+		var (walletName, _, _, _, _) = state.Options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		var passphrase = Passphrase;
@@ -96,8 +97,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			options = options with { Passphrase = passphrase, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
-			Navigate().To().RecoverWalletSummary(options);
+			state.Options = state.Options with { Passphrase = passphrase, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
+			Navigate().To().RecoverWalletSummary(state);
 		}
 		catch (Exception ex)
 		{
@@ -108,17 +109,17 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		IsBusy = false;
 	}
 
-	private async Task OnAdvancedRecoveryOptionsDialogAsync(WalletCreationOptions.RecoverWallet options)
+	private async Task OnAdvancedRecoveryOptionsDialogAsync(RecoverWalletState state)
 	{
-		var (walletName, _, _, _, _) = options;
+		var (walletName, _, _, _, _) = state.Options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		IsBusy = true;
 
 		try
 		{
-			options = options with { Passphrase = Passphrase, Mnemonic = CurrentMnemonics, MinGapLimit = MinGapLimit };
-			Navigate().To().RecoverWalletSummary(options);
+			state.Options = state.Options with { Passphrase = Passphrase, Mnemonic = CurrentMnemonics, MinGapLimit = MinGapLimit };
+			Navigate().To().RecoverWalletSummary(state);
 		}
 		catch (Exception ex)
 		{
@@ -196,6 +197,23 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		return string.Join(' ', _words.Select(x => x.Word));
 	}
 
+	private void RestoreState()
+	{
+		if (_words.Count == 12 && _state.Options.Mnemonic is not null)
+		{
+			for (var i = 0; i < _words.Count; i++)
+			{
+				var word = _words[i];
+
+				word.Word = _state.Options.Mnemonic.Words.Length >= i + 1
+					? _state.Options.Mnemonic.Words[i]
+					: "";
+			}
+		}
+
+		Passphrase = _state.Options.Passphrase;
+	}
+
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -212,6 +230,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			.Bind(RecoveryWords)
 			.Subscribe()
 			.DisposeWith(disposables);
+
+		RestoreState();
 
 		recoveryWordsSourceList.AddRange(_words);
 

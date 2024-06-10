@@ -18,6 +18,11 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
+public class RecoverWalletState(WalletCreationOptions.RecoverWallet options)
+{
+	public WalletCreationOptions.RecoverWallet Options { get; set; } = options;
+}
+
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 {
@@ -27,17 +32,17 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 	[AutoNotify] private string? _passphrase;
 	[AutoNotify] private string? _minGapLimit;
 
-	private RecoverWalletSummaryViewModel(WalletCreationOptions.RecoverWallet options)
+	private RecoverWalletSummaryViewModel(RecoverWalletState state)
 	{
-		Passphrase = options.Passphrase;
+		Passphrase = state.Options.Passphrase;
 
-		MinGapLimit = options.MinGapLimit.ToString();
+		MinGapLimit = state.Options.MinGapLimit.ToString();
 
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
-		if (options.Mnemonic is not null)
+		if (state.Options.Mnemonic is not null)
 		{
-			Mnemonics.AddRange(options.Mnemonic.Words);
+			Mnemonics.AddRange(state.Options.Mnemonic.Words);
 		}
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
@@ -64,30 +69,47 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 			});
 
 		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync(options),
+			async () => await OnNextAsync(state),
 			canExecute: canExecuteNext);
+
+		var canExecuteBack = this.WhenAnyValue(
+				model => model.IsBusy,
+				model => model.Mnemonics)
+			.Select(x => x is { Item1: false, Item2.Count: <= 12 });
+
+		BackCommand = ReactiveCommand.Create(() =>
+		{
+			state.Options = state.Options with
+			{
+				Passphrase = Passphrase,
+				Mnemonic = CurrentMnemonics,
+				MinGapLimit = int.Parse(MinGapLimit)
+			};
+
+			Navigate().Back();
+		}, canExecuteBack);
 	}
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
-	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
+	private async Task OnNextAsync(RecoverWalletState state)
 	{
-		var (walletName, _, _, _, _) = options;
+		var (walletName, _, _, _, _) = state.Options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		IsBusy = true;
 
 		try
 		{
-			options = options with
+			state.Options = state.Options with
 			{
 				Passphrase = Passphrase,
 				Mnemonic = _currentMnemonics,
 				MinGapLimit = int.Parse(MinGapLimit)
 			};
 
-			var wallet = await UiContext.WalletRepository.NewWalletAsync(options);
-			await Navigate().To().CoinJoinProfiles(wallet, options).GetResultAsync();
+			var wallet = await UiContext.WalletRepository.NewWalletAsync(state.Options);
+			await Navigate().To().CoinJoinProfiles(wallet, state.Options).GetResultAsync();
 		}
 		catch (Exception ex)
 		{
