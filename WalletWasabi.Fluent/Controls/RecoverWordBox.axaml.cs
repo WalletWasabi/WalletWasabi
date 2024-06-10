@@ -244,12 +244,6 @@ public class RecoverWordBox : TemplatedControl
 			.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 			.DisposeWith(_compositeDisposable);
 
-		_autoCompleteBox.WhenAnyValue(x => x.Text)
-			.WhereNotNull()
-			.Where(text => text.Contains(TagSeparator))
-			.Subscribe(_ => RequestAdd = true)
-			.DisposeWith(_compositeDisposable);
-
 		Observable.Merge(
 				this.WhenAnyValue(x => x.RequestAdd).Where(x => x).Throttle(TimeSpan.FromMilliseconds(10)).ToSignal(),
 				this.WhenAnyValue(x => x.ForceAdd).Where(x => x).ToSignal())
@@ -263,8 +257,8 @@ public class RecoverWordBox : TemplatedControl
 					ForceAdd = false;
 				});
 				ClearInputField();
-				var tags = GetFinalTags(currentText, TagSeparator);
-				foreach (string tag in tags)
+				var tag = GetFinalTag(currentText);
+				if (tag is not null)
 				{
 					AddTag(tag);
 				}
@@ -333,19 +327,14 @@ public class RecoverWordBox : TemplatedControl
 		Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
 	}
 
-	private IEnumerable<string> GetFinalTags(string input, char tagSeparator)
+	private string? GetFinalTag(string input)
 	{
-		var tags = input.Split(tagSeparator);
-
-		foreach (string tag in tags)
+		if (!string.IsNullOrEmpty(input))
 		{
-			var correctedTag = tag.ParseLabel();
-
-			if (!string.IsNullOrEmpty(correctedTag))
-			{
-				yield return correctedTag;
-			}
+			return input.ParseLabel();
 		}
+
+		return null;
 	}
 
 	protected override void OnGotFocus(GotFocusEventArgs e)
@@ -457,6 +446,7 @@ public class RecoverWordBox : TemplatedControl
 	{
 		var inputTag = tag;
 
+		/*
 		if (Items is not IList items)
 		{
 			return;
@@ -471,6 +461,7 @@ public class RecoverWordBox : TemplatedControl
 		{
 			return;
 		}
+		*/
 
 		if (Suggestions is { } suggestions)
 		{
@@ -491,7 +482,10 @@ public class RecoverWordBox : TemplatedControl
 			}
 		}
 
-		items.Add(inputTag);
+		//items.Add(inputTag);
+
+		SetCurrentValue(TextProperty, tag);
+
 		CheckIsInputEnabled();
 	}
 }
