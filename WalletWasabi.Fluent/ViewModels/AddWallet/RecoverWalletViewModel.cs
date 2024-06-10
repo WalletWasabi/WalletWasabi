@@ -211,7 +211,10 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			}
 		}
 
-		Passphrase = _state.Options.Passphrase;
+		if (_state.Options.Passphrase is not null)
+		{
+			Passphrase = _state.Options.Passphrase;
+		}
 	}
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
