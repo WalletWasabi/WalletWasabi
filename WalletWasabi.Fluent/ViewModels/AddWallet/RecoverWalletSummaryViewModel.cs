@@ -82,7 +82,7 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 			state.Options = state.Options with
 			{
 				Passphrase = Passphrase,
-				Mnemonic = Mnemonics,
+				Mnemonic = new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()),
 				MinGapLimit = int.Parse(MinGapLimit)
 			};
 
