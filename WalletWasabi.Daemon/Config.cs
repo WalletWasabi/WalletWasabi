@@ -127,6 +127,12 @@ public class Config
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
+			[ nameof(MaxCoordinationFeeRate)] = (
+				"Max coordination fee rate the client is willing to accept to participate into a round",
+				GetDecimalValue("MaxCoordinationFeeRate", PersistentConfig.MaxCoordinationFeeRate, cliArgs)),
+			[ nameof(MaxCoinjoinMiningFeeRate)] = (
+				"Max mining fee rate in s/vb the client is willing to pay to participate into a round",
+				GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -184,6 +190,8 @@ public class Config
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
+	public decimal MaxCoordinationFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxCoordinationFeeRate));
+	public decimal MaxCoinjoinMiningFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxCoinjoinMiningFeeRate));
 	public ServiceConfiguration ServiceConfiguration { get; }
 
 	public static string DataDir { get; } = GetStringValue(
@@ -308,6 +316,21 @@ public class Config
 		}
 
 		return new BoolValue(value, value, ValueSource.Disk);
+	}
+
+	private DecimalValue GetDecimalValue(string key, decimal value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!int.TryParse(overrideValue, out int argsLongValue))
+			{
+				throw new ArgumentException("must be a decimal number.", key);
+			}
+
+			return new DecimalValue(value, argsLongValue, valueSource.Value);
+		}
+
+		return new DecimalValue(value, value, ValueSource.Disk);
 	}
 
 	private IntValue GetLongValue(string key, int value, string[] cliArgs)
@@ -511,6 +534,7 @@ public class Config
 
 	private record BoolValue(bool Value, bool EffectiveValue, ValueSource ValueSource) : ITypedValue<bool>;
 	private record IntValue(int Value, int EffectiveValue, ValueSource ValueSource) : ITypedValue<int>;
+	private record DecimalValue(decimal Value, decimal EffectiveValue, ValueSource ValueSource) : ITypedValue<decimal>;
 	private record StringValue(string Value, string EffectiveValue, ValueSource ValueSource) : ITypedValue<string>;
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;

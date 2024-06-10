@@ -14,7 +14,6 @@ namespace WalletWasabi.Daemon;
 
 public record PersistentConfig : IConfigNg
 {
-	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 	[JsonPropertyName("Network")]
@@ -118,6 +117,12 @@ public record PersistentConfig : IConfigNg
 	[JsonPropertyName("CoordinatorIdentifier")]
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	[JsonPropertyName("MaxCoordinationFeeRate")]
+	public decimal MaxCoordinationFeeRate { get; init; } = Constants.DefaultMaxCoordinationFeeRate;
+
+	[JsonPropertyName("MaxCoinJoinMiningFeeRate")]
+	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
+
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
@@ -145,7 +150,9 @@ public record PersistentConfig : IConfigNg
 			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
-			CoordinatorIdentifier == other.CoordinatorIdentifier;
+			CoordinatorIdentifier == other.CoordinatorIdentifier &&
+			MaxCoordinationFeeRate == other.MaxCoordinationFeeRate &&
+			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
@@ -180,6 +187,26 @@ public record PersistentConfig : IConfigNg
 		if (Network == Network.RegTest)
 		{
 			return RegTestCoordinatorUri;
+		}
+
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public string GetBackendUri()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBackendUri;
+		}
+
+		if (Network == Network.TestNet)
+		{
+			return TestNetBackendUri;
+		}
+
+		if (Network == Network.RegTest)
+		{
+			return RegTestBackendUri;
 		}
 
 		throw new NotSupportedNetworkException(Network);
