@@ -26,30 +26,9 @@
             </Flyout>
           </Button.Flyout>
         </Button>
-        <ToggleButton Theme="{StaticResource DialogButton}" Command="{Binding ToggleSelectionCommand}" IsChecked="{Binding HasSelection}">
-          <ToggleButton.Styles>
-            <Style Selector="ToggleButton[IsChecked=True]">
-              <Setter Property="ToolTip.Tip" Value="Unselect all" />
-              <Setter Property="ContentTemplate">
-                <Setter.Value>
-                  <DataTemplate>
-                    <PathIcon Height="13" Foreground="{DynamicResource AcrylicTrimForeground}" Data="{StaticResource select_none}" />
-                  </DataTemplate>
-                </Setter.Value>
-              </Setter>
-            </Style>
-            <Style Selector="ToggleButton[IsChecked=False]">
-              <Setter Property="ToolTip.Tip" Value="Select all" />
-              <Setter Property="ContentTemplate">
-                <Setter.Value>
-                  <DataTemplate>
-                    <PathIcon Height="13" Foreground="{DynamicResource AcrylicTrimForeground}" Data="{StaticResource select_all}" />
-                  </DataTemplate>
-                </Setter.Value>
-              </Setter>
-            </Style>
-          </ToggleButton.Styles>
-        </ToggleButton>
+        <ToggleButton Theme="{StaticResource DialogSelectAllButton}"
+                      Command="{Binding ToggleSelectionCommand}"
+                      IsChecked="{Binding HasSelection}"/>
       </StackPanel>
     </ContentArea.TopContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
