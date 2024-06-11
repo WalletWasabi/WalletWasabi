@@ -45,8 +45,8 @@
                 <UICommandCollection>
                   <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
                     <UICommand.Icon>
-                      <PathIcon Data="{StaticResource automatic_control}"
-                                Classes="Icon" />
+                      <Image Source="{StaticResource automatic_control}"
+                             Classes="Icon" Opacity=".6" />
                     </UICommand.Icon>
                   </UICommand>
                   <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
