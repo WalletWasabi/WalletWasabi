@@ -74,8 +74,8 @@ public partial class RecoverWalletSummaryViewModel : RoutableViewModel
 
 		var canExecuteBack = this.WhenAnyValue(
 				model => model.IsBusy,
-				model => model.Mnemonics)
-			.Select(x => x is { Item1: false, Item2.Count: <= 12 });
+				model => model.Mnemonics.Count)
+			.Select(x => x is { Item1: false, Item2: <= 12 });
 
 		BackCommand = ReactiveCommand.Create(() =>
 		{
