@@ -13,5 +13,17 @@
       <TextBlock Text="Enable GPU" />
       <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
     </DockPanel>
+
+    <StackPanel>
+      <TextBlock Text="Backend URI" />
+      <TextBox Text="{Binding BackendUri}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+          <WhitespacePasteRemovalBehavior />
+          <WhitespaceInputRemovalBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
+    </StackPanel>
+
   </StackPanel>
 </UserControl>

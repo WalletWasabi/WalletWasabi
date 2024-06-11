@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using static System.Text.RegularExpressions.Regex;
 
 namespace WalletWasabi.Extensions;
 
-public static class StringExtensions
+public static partial class StringExtensions
 {
 	/// <summary>
 	/// Removes one leading occurrence of the specified string
@@ -71,4 +73,12 @@ public static class StringExtensions
 		InternalSplit(text, lineWidth, result);
 		return result.ToArray();
 	}
+	
+	public static string WithoutWhitespace(this string text)
+	{
+		return WhitespaceRegex().Replace(text, "");
+	}
+
+	[GeneratedRegex(@"\s")]
+	private static partial Regex WhitespaceRegex();
 }
