@@ -37,9 +37,9 @@ public partial class WalletCoinsModel : IDisposable
 				.Merge(isCoinjoinRunningChanged)
 				.Publish();
 
-		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
+		Pockets = signals.Fetch(GetPockets, x => x.Labels, new LambdaComparer<Pocket>((a, b) => Equals(a?.Labels, b?.Labels))).DisposeWith(_disposables);
 		List = Pockets.Connect().MergeMany(x => x.Coins.Select(GetCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
-		
+
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
 			.Subscribe()

@@ -53,7 +53,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		Cache =
 			TransactionProcessed
 			.Merge(RequestedUnconfirmedTxChainArrived)
-			.Fetch(BuildSummary, model => model.Id)
+			.Fetch(BuildSummary, model => model.Id, new LambdaComparer<TransactionModel>((a, b) => Equals(a?.Id, b?.Id)))
 								.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
