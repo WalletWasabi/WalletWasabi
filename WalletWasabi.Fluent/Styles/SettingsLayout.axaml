@@ -19,6 +19,10 @@
     <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
 
+  <Style Selector="StackPanel.settingsLayout TextBox">
+    <Setter Property="Width" Value="360" />
+  </Style>
+
   <Style Selector="StackPanel.settingsLayout > DockPanel > TextBlock">
     <Setter Property="Margin" Value="0 8 20 0" />
     <Setter Property="VerticalAlignment" Value="Top" />
