@@ -27,7 +27,7 @@
           <ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
           <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
-            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea" Margin="31 0 31 10">
+            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
               <Button Name="PART_CancelButton"
                       Classes="invisible"
                       IsVisible="{TemplateBinding EnableCancel}"
@@ -66,7 +66,6 @@
               <StackPanel Name="PART_Header" Spacing="10">
                 <DockPanel>
                   <Button Name="PART_BackButton"
-                          Margin="-31,0,0,0"
                           Classes="plain"
                           Command="{Binding BackCommand}"
                           IsVisible="{TemplateBinding EnableBack}">
@@ -117,10 +116,14 @@
       <Setter Property="Margin" Value="31 11 31 21" />
     </Style>
 
-    <Style Selector="^/template/ Panel#PART_ButtonArea">
-      <Setter Property="Margin" Value="31,10" />
+    <Style Selector="^/template/ DockPanel#PART_ButtonArea">
+      <Setter Property="Margin" Value="31 0 31 10" />
     </Style>
 
+    <Style Selector="^/template/ Button#PART_BackButton">
+      <Setter Property="Margin" Value="-31,0,0,0"/>
+    </Style>
+    
     <Style Selector="^/template/ ContentPresenter#PART_TitlePresenter">
       <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
       <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />
