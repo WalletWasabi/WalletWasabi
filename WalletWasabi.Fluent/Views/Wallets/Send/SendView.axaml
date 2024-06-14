@@ -56,7 +56,7 @@
       <!-- Balance -->
       <PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" Classes="h8" Opacity="0.6">
         <StackPanel Orientation="Horizontal" Spacing="5">
-          <TextBlock Text="{Binding BalanceCaption}"/>
+          <TextBlock Text="Max:" Margin="0 1 0 0"/>
           <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
             <Interaction.Behaviors>
               <EventTriggerBehavior EventName="Click">

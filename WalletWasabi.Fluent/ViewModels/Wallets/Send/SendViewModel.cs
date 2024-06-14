@@ -79,11 +79,6 @@ public partial class SendViewModel : RoutableViewModel
 			? Observable.Return(_walletModel.AmountProvider.Create(_parameters.AvailableAmount))
 			: _walletModel.Balances;
 
-		BalanceCaption =
-			_parameters.IsManual
-			? "Max:"
-			: "Balance:";
-
 		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -128,8 +123,6 @@ public partial class SendViewModel : RoutableViewModel
 
 		_clipboardObserver = new ClipboardObserver(Balance);
 	}
-
-	public string BalanceCaption { get; }
 
 	public IObservable<Amount> Balance { get; }
 
