@@ -32,7 +32,7 @@
 
             <Border
               Margin="{TemplateBinding BorderThickness}">
-              <Grid ColumnDefinitions="Auto,*,Auto">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                 <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
                 <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
                   <TextBlock Name="PART_FloatingWatermark"
@@ -76,7 +76,8 @@
                     </ScrollViewer.Styles>
                   </ScrollViewer>
                 </DockPanel>
-                <PathIcon Grid.Column="2" Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
+                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
+                <PathIcon Grid.Column="3" Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
                   <Interaction.Behaviors>
                     <CheckMarkVisibilityBehavior />
                   </Interaction.Behaviors>
