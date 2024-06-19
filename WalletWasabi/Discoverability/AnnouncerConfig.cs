@@ -17,8 +17,17 @@ namespace WalletWasabi.Discoverability
 		[JsonProperty(PropertyName = "CoordinatorUri")]
 		public string CoordinatorUri { get; set; } = "https://api.example.com/";
 
+		[JsonProperty(PropertyName = "CoordinatorFee")]
+		public decimal CoordinatorFee { get; set; } = 0.0m;
+
+		[JsonProperty(PropertyName = "AbsoluteMinInputCount")]
+		public uint AbsoluteMinInputCount { get; set; } = 21;
+
+		[JsonProperty(PropertyName = "ReadMoreUri")]
+		public string ReadMoreUri { get; set; } = "https://api.example.com/";
+
 		[JsonProperty(PropertyName = "RelayUris")]
-		public string[] RelayUris { get; set; } = { "wss://relay.primal.net" };
+		public string[] RelayUris { get; set; } = ["wss://relay.primal.net"];
 
 		[JsonProperty(PropertyName = "Key")]
 		public string Key { get; set; } = InitKey();

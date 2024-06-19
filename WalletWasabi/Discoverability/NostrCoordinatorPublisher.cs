@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -44,9 +45,12 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 			Content = config.CoordinatorDescription,
 			Tags =
 			[
-				CreateTag("endpoint", config.CoordinatorUri),
 				CreateTag("type", "wabisabi"),
-				CreateTag("network", network.ChainName.ToString().ToLower())
+				CreateTag("network", network.ChainName.ToString().ToLower()),
+				CreateTag("endpoint", config.CoordinatorUri),
+				CreateTag("coordinatorfee", config.CoordinatorFee.ToString(CultureInfo.InvariantCulture)),
+				CreateTag("absolutemininputcount", config.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture)),
+				CreateTag("readmore", config.ReadMoreUri)
 			]
 		};
 
