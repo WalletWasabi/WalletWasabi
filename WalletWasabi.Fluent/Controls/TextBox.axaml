@@ -77,11 +77,13 @@
                   </ScrollViewer>
                 </DockPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
-                    <PathIcon Classes="checkMark checkMarkDataValidation" VerticalAlignment="Center">
+                  <Panel x:Name="CheckmarkHost">
+                    <PathIcon  Classes="checkMark" VerticalAlignment="Center">
                       <Interaction.Behaviors>
                         <CheckMarkVisibilityBehavior />
                       </Interaction.Behaviors>
                     </PathIcon>
+                  </Panel>
                     <ContentPresenter Content="{TemplateBinding InnerRightContent}" />
                   </StackPanel>
               </Grid>

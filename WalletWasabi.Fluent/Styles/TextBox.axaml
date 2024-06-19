@@ -5,19 +5,11 @@
     <Setter Property="Theme" Value="{DynamicResource TextBoxTheme}" />
   </Style>
 
-  <Style Selector="TextBox:not(.hasCheckMark) /template/ PathIcon.checkMark.checkMarkDataValidation">
+  <Style Selector="TextBox:not(.hasCheckMark) /template/ Panel#CheckmarkHost">
     <Setter Property="IsVisible" Value="False" />
   </Style>
 
-  <Style Selector="TextBox.hasCheckMark /template/ PathIcon.checkMark.checkMarkDataValidation">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-
-  <Style Selector="TextBox:not(.hasCheckMarkBoolean) /template/ PathIcon.checkMark.checkMarkBoolean">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
-  <Style Selector="TextBox.hasCheckMarkBoolean /template/ PathIcon.checkMark.checkMarkBoolean">
+  <Style Selector="TextBox.hasCheckMark /template/ Panel#CheckmarkHost">
     <Setter Property="IsVisible" Value="True" />
   </Style>
 
