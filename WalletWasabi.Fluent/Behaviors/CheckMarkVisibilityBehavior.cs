@@ -38,11 +38,9 @@ public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon
 				{
 					if (AssociatedObject is { })
 					{
-						AssociatedObject.Opacity =
+						AssociatedObject.IsVisible =
 							!DataValidationErrors.GetHasErrors(ownerTextBox) &&
-							!string.IsNullOrEmpty(ownerTextBox.Text)
-								? 1
-								: 0;
+							!string.IsNullOrEmpty(ownerTextBox.Text);
 					}
 				})
 			.DisposeWith(disposable);
