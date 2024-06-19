@@ -10,7 +10,6 @@ public partial class SpeedUpHistoryItemViewModel : HistoryItemViewModelBase
 	public SpeedUpHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction, HistoryItemViewModelBase? parent) : base(uiContext, transaction)
 	{
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => { }, Observable.Return(false));
 		CancelTransactionCommand = parent?.CancelTransactionCommand;
 	}
 
