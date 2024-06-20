@@ -2,7 +2,7 @@
 
 ## How to be useful for the project
 
-- Any issue labelled as [good first issue](https://github.com/zkSNACKs/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
+- Any issue labelled as [good first issue](https://github.com/WalletWasabi/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
 - Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
 - Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
 - Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
@@ -18,7 +18,7 @@
 **DO** use [CodeMaid](https://www.codemaid.net/), a Visual Studio extension to automatically clean up your code on saving the file.
 CodeMaid is a non-intrusive code cleanup tool.
 
-Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config). They are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
+Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/WalletWasabi/WalletWasabi/blob/master/CodeMaid.config). They are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
 
 **Rider IDE:**
 
@@ -31,7 +31,7 @@ And also enable `Enable EditorConfig support` in `Settings -> Editor -> Code Sty
 
 ## .editorconfig
 
-Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
+Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/WalletWasabi/WalletWasabi/blob/master/.editorconfig) file.
 
 If you are using Visual Studio Code make sure to install "C# Dev Kit" extension and add the following settings to your settings file:
 
@@ -41,13 +41,13 @@ If you are using Visual Studio Code make sure to install "C# Dev Kit" extension 
 
 ## Technologies and scope
 
-- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: [WalletWasabi/global.json](https://github.com/zkSNACKs/WalletWasabi/blob/master/global.json).
+- [.NET SDK](https://dotnet.microsoft.com/en-us/): free, open-source, cross-platform framework for building apps. SDK version path: [WalletWasabi/global.json](https://github.com/WalletWasabi/WalletWasabi/blob/master/global.json).
 - [C#](https://dotnet.microsoft.com/en-us/languages/csharp): open-source programming language.
 - Model-View-ViewModel architecture (MVVM).
 - [Avalonia UI](https://www.avaloniaui.net/): framework to create cross-platform UI.
 - [xUnit](https://xunit.net/): create unit tests.
-- Dependencies path: [WalletWasabi/Directory.Packages.props](https://github.com/zkSNACKs/WalletWasabi/blob/master/Directory.Packages.props).
-- Developer's documentation path: [WalletWasabi/WalletWasabi.Documentation/](https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Documentation).
+- Dependencies path: [WalletWasabi/Directory.Packages.props](https://github.com/WalletWasabi/WalletWasabi/blob/master/Directory.Packages.props).
+- Developer's documentation path: [WalletWasabi/WalletWasabi.Documentation/](https://github.com/WalletWasabi/WalletWasabi/tree/master/WalletWasabi.Documentation).
 
 # Code conventions
 
@@ -177,7 +177,7 @@ myUiControl.Text = result;
 
 ## Never throw AggregateException and Exception in a mixed way
 It causes confusion and awkward catch clauses.
-[Example](https://github.com/zkSNACKs/WalletWasabi/pull/10353/files)
+[Example](https://github.com/WalletWasabi/WalletWasabi/pull/10353/files)
 
 ## Unused return value
 

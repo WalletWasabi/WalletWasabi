@@ -1,13 +1,13 @@
 ## Daily routine
 
 1. Check with your team leader about tasks.
-2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
-3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
-4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
+2. Check [open code review requests waiting for you](https://github.com/WalletWasabi/WalletWasabi/pulls/review-requested/@me).
+3. Check [open priority issues and PRs](https://github.com/WalletWasabi/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
+4. Check your [open PRs](https://github.com/WalletWasabi/WalletWasabi/pulls/@me) and answer if necessary.
    - If you need help use __@mention__.
    - If you need review set __Reviewers__.
-5. Check [open issues assigned to you](https://github.com/zkSNACKs/WalletWasabi/issues/assigned/@me).
-6. Check [open issues and PRs where you are mentioned](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
+5. Check [open issues assigned to you](https://github.com/WalletWasabi/WalletWasabi/issues/assigned/@me).
+6. Check [open issues and PRs where you are mentioned](https://github.com/WalletWasabi/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
 7. Check the [notifications](https://github.com/notifications).
 8. Work on anything you want - assign it to yourself.
 
@@ -59,7 +59,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 - Copy the link
 - Open Git Bash.
 - Change the current working directory to the location where you want the cloned directory.
-- Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/zkSNACKs/WalletWasabi.git"
+- Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/WalletWasabi/WalletWasabi.git"
 - Press Enter. Your local clone will be created.
 - Further reading about this approach or if you get stuck, please read this https://docs.github.com/en/get-started/quickstart/fork-a-repo (or ask the devs)
 
@@ -131,7 +131,7 @@ Developers work with many branches at the same time because during any single da
 First clone your existing repository as a bare repo (a repository without files) and do it in a `.git` directory.
 
 ```
-$ git clone --bare git@github.com:zkSNACKs/WalletWasabi.git .git
+$ git clone --bare git@github.com:WalletWasabi/WalletWasabi.git .git
 ```
 
 ## Working with remote repositories

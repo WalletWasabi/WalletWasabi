@@ -73,7 +73,7 @@ You can force rebuilding the txindex with the `-reindex` command line argument.
 
 ## Setup Wasabi Backend
 
-Here you will have to build from source, follow [these instructions here](https://github.com/zkSNACKs/WalletWasabi#build-from-source-code).
+Here you will have to build from source, follow [these instructions here](https://github.com/WalletWasabi/WalletWasabi#build-from-source-code).
 
 Todo:
 1. Go to `WalletWasabi\WalletWasabi.Backend` folder.

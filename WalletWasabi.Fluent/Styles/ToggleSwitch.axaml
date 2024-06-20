@@ -22,7 +22,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ToggleSwitchStrokeOnDisabled}"/>
   </Style>
 
-  <!-- Fix for https://github.com/zkSNACKs/WalletWasabi/issues/9436 -->
+  <!-- Fix for https://github.com/WalletWasabi/WalletWasabi/issues/9436 -->
   <Style Selector="ToggleSwitch:not(:dragging) /template/ Grid#MovingKnobs">
     <Setter Property="Transitions">
       <Transitions />

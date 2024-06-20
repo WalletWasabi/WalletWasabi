@@ -67,7 +67,7 @@ public class Startup
 					Version = $"v{Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy focused Bitcoin Web API.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
+					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md") }
 				});
 
 			// Set the comments path for the Swagger JSON and UI.

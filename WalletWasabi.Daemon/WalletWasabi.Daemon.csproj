@@ -21,10 +21,10 @@
 		<PackageId>Wasabi Wallet Daemon</PackageId>
 		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;wabisabi;coinjoin;tor</PackageTags>
-		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
-		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/WalletWasabi/WalletWasabi/</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+		<RepositoryUrl>https://github.com/WalletWasabi/WalletWasabi/</RepositoryUrl>
 		<Product>Wasabi Wallet Fluent Daemon</Product>
 	</PropertyGroup>
 

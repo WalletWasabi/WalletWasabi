@@ -4,8 +4,8 @@ contact_links:
     url: https://docs.wasabiwallet.io/
     about: Search for any information about Wasabi.
   - name: 💪 Community support
-    url: https://github.com/zkSNACKs/WalletWasabi/discussions/categories/support
+    url: https://github.com/WalletWasabi/WalletWasabi/discussions/categories/support
     about: Feel free to ask anything.
   - name: ❓ Other issue?
-    url: https://github.com/zkSNACKs/WalletWasabi/discussions/
+    url: https://github.com/WalletWasabi/WalletWasabi/discussions/
     about: Search on the community forum.
