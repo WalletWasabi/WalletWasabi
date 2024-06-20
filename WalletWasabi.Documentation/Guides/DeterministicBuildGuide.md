@@ -6,7 +6,7 @@ The term *deterministic builds* is [defined](https://reproducible-builds.org/) a
 
 This guide describes how to reproduce Wasabi's builds. If you get stuck with these instructions, take a look at [how to build Wasabi from source code](https://docs.wasabiwallet.io/using-wasabi/BuildSource.html).
 
-**Warning:** Reproducible builds were introduced in [1.1.3 release](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.3), you cannot use these instructions for older versions!
+**Warning:** Reproducible builds were introduced in [1.1.3 release](https://github.com/WalletWasabi/WalletWasabi/releases/tag/v1.1.3), you cannot use these instructions for older versions!
 
 ## 1. Assert correct environment
 
@@ -28,11 +28,11 @@ Example of `global.json` that is set to strictly use a specific version:
 
 ## 2. Reproduce builds
 
-You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a git tag assigned, which is useful in the following instructions:
+You can see the list of Wasabi releases here: https://github.com/WalletWasabi/WalletWasabi/releases. Please note that each release has a git tag assigned, which is useful in the following instructions:
 
 ```sh
 # The following command downloads only a single git branch. However, you can clone the whole repository, which is bigger.
-git clone --depth 1 --branch <git-branch-or-tag> https://github.com/zkSNACKs/WalletWasabi.git # where `<git-branch-or-tag>` may be, for example, `v1.1.11.1`.
+git clone --depth 1 --branch <git-branch-or-tag> https://github.com/WalletWasabi/WalletWasabi.git # where `<git-branch-or-tag>` may be, for example, `v1.1.11.1`.
 cd WalletWasabi/WalletWasabi.Packager
 dotnet nuget locals all --clear
 dotnet restore
@@ -95,7 +95,7 @@ According to Apple documentation, the signature that is used to ensure the integ
 
 According to this, it is impossible to have both deterministic build and code signature on macOS. macOS Gatekeeper won't let you run software without it. Thus, Wasabi only applies code signature, but no deterministic build for macOS. 
 
-There is an issue [here](https://github.com/zkSNACKs/WalletWasabi/issues/4110) for further discussion. 
+There is an issue [here](https://github.com/WalletWasabi/WalletWasabi/issues/4110) for further discussion. 
 
 With the following method you can check the differences by yourself:
 

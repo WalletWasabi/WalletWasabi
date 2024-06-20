@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wasabiwallet.io">
-    <img src="https://github.com/zkSNACKs/WalletWasabi/blob/master/ui-ww.png">
+    <img src="https://github.com/WalletWasabi/WalletWasabi/blob/master/ui-ww.png">
   </a>
 </p>
 
@@ -21,7 +21,7 @@
     API
   </a>
   <span> | </span>
-  <a href="https://github.com/zkSNACKs/WalletWasabi/discussions/5185">
+  <a href="https://github.com/WalletWasabi/WalletWasabi/discussions/5185">
     Support
   </a>
   <span> | </span>
@@ -29,7 +29,7 @@
     YouTube
   </a>
   <span> | </span>
-  <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">
+  <a href="https://github.com/WalletWasabi/WalletWasabi/blob/master/PGP.txt">
     PGP
   </a>
 </h3>
@@ -46,10 +46,10 @@
 [4]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=1
 [5]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Osx?branchName=master
 [6]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=2
-[7]: https://img.shields.io/github/license/zkSNACKs/WalletWasabi.svg
-[8]: https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md
-[9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
-[10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
+[7]: https://img.shields.io/github/license/WalletWasabi/WalletWasabi.svg
+[8]: https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md
+[9]: https://www.codefactor.io/repository/github/WalletWasabi/walletwasabi/badge
+[10]: https://www.codefactor.io/repository/github/WalletWasabi/walletwasabi
 [11]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.ContinuousDelivery?branchName=master
 [12]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=12&branchName=master
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
@@ -58,7 +58,7 @@
 </h3>
 <br>
 
-# [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
+# [Download Wasabi](https://github.com/WalletWasabi/WalletWasabi/releases)
 
 <br>
 
@@ -75,7 +75,7 @@
 Clone & Restore & Build
 
 ```sh
-git clone --depth=1 --single-branch --branch=master https://github.com/zkSNACKs/WalletWasabi.git
+git clone --depth=1 --single-branch --branch=master https://github.com/WalletWasabi/WalletWasabi.git
 cd WalletWasabi/WalletWasabi.Fluent.Desktop
 dotnet build
 ```

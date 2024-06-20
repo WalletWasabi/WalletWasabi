@@ -314,7 +314,7 @@ public static class HwiParser
 		const string WinPrefix = "hwi.exe";
 		const string Prefix = "hwi";
 
-		// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
+		// Order matters! https://github.com/WalletWasabi/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
 		string prefixToTrim;
 		if (hwiResponse.StartsWith(WinPrefix))
 		{

@@ -20,7 +20,7 @@ namespace WalletWasabi.Packager;
 /// <item>Build WIX project with Release and x64 configuration.</item>
 /// <item>Sign with Packager, set restore true so the password won't be kept.</item>
 /// </list>
-/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientDeployment.md"/>
+/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientDeployment.md"/>
 /// </summary>
 public static class Program
 {
@@ -463,8 +463,8 @@ public static class Program
 					$"Maintainer: zkSNACKs Ltd <info@zksnacks.com>\n" +
 					$"Version: {VersionPrefix}\n" +
 					$"Homepage: https://wasabiwallet.io\n" +
-					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
-					$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
+					$"Vcs-Git: git://github.com/WalletWasabi/WalletWasabi.git\n" +
+					$"Vcs-Browser: https://github.com/WalletWasabi/WalletWasabi\n" +
 					$"Architecture: amd64\n" +
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +

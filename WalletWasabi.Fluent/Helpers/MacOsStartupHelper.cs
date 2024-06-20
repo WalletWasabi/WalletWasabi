@@ -63,7 +63,7 @@ public static class MacOsStartupHelper
 	private static async Task DeleteLoginItemIfExistsAsync()
 	{
 		// From 2.0.6, we use LaunchAgents instead of Login Items to run Wasabi hidden during startup. We need to delete older existing Login Items.
-		// https://github.com/zkSNACKs/WalletWasabi/pull/12772#pullrequestreview-1984574457
+		// https://github.com/WalletWasabi/WalletWasabi/pull/12772#pullrequestreview-1984574457
 		string result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
 		bool loginItemExists = result.Contains(Constants.AppName);
 		if (loginItemExists)
