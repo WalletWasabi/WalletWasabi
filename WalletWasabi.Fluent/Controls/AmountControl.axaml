@@ -46,6 +46,7 @@
                          Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}"/>
               <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
                          Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdFormatted}}"
+                         IsVisible="{Binding HasUsdBalance^}"
                          Opacity="0.6"/>
             </StackPanel>
           </Border>
