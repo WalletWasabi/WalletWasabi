@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
@@ -34,7 +35,7 @@ public partial class WalletRepository : ReactiveObject
 					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId, new LambdaComparer<Wallet>((a, b) => Equals(a?.WalletId, b?.WalletId)))
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })

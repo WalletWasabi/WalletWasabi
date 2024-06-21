@@ -120,4 +120,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public virtual bool HasChildren() => Children.Count != 0;
 
 	public void Dispose() => _disposables.Dispose();
+
+	public abstract string Key { get; }
 }
