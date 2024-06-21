@@ -14,12 +14,14 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		_wallet = wallet;
 
+		CanBeSpedUp = transaction.CanSpeedUpTransaction && !IsChild;
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(transaction.CanSpeedUpTransaction));
+		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(CanBeSpedUp));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
+		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
-
-	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || Transaction.CanSpeedUpTransaction;
+	
+	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || CanBeSpedUp;
 
 	private void OnSpeedUpTransaction(TransactionModel transaction)
 	{

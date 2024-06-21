@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewmodel="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
-             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="50"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="50"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.ActionsColumnView"
              x:CompileBindings="True"
              x:DataType="viewmodel:HistoryItemViewModelBase">
@@ -24,11 +24,22 @@
     </Classes.transparent>
     <InvalidatingStackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="15 0">
 
-      <!-- SpeedUp -->
+      <!-- SpeedUp button -->
       <Button Classes="plain" ToolTip.Tip="Speed Up Transaction"
               Command="{Binding SpeedUpTransactionCommand}"
-              IsVisible="{Binding Transaction.CanSpeedUpTransaction}">
-        <PathIcon Data="{StaticResource rocket_regular}" Height="16" />
+              IsVisible="{Binding CanBeSpedUp}">
+        <PathIcon Classes.AlreadySpedUp="{Binding HasBeenSpedUp}"
+                  Classes.NotSpedUp="{Binding !HasBeenSpedUp}"
+                  Height="16">
+          <PathIcon.Styles>
+            <Style Selector="PathIcon.AlreadySpedUp">
+              <Setter Property="Data" Value="{StaticResource rocket_confirmed}" />
+            </Style>
+            <Style Selector="PathIcon.NotSpedUp">
+              <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+            </Style>
+          </PathIcon.Styles>
+        </PathIcon>
       </Button>
 
       <!-- Cancel -->
