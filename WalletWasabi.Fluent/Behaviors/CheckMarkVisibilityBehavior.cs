@@ -31,18 +31,15 @@ public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon
 
 		hasErrors.ToSignal()
 			.Merge(text.ToSignal())
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(
-				_ =>
+			.Subscribe(_ =>
+			{
+				if (AssociatedObject is { })
 				{
-					if (AssociatedObject is { })
-					{
-						AssociatedObject.IsVisible =
-							!DataValidationErrors.GetHasErrors(ownerTextBox) &&
-							!string.IsNullOrEmpty(ownerTextBox.Text);
-					}
-				})
+					AssociatedObject.IsVisible =
+						!DataValidationErrors.GetHasErrors(ownerTextBox) &&
+						!string.IsNullOrEmpty(ownerTextBox.Text);
+				}
+			})
 			.DisposeWith(disposable);
 	}
 }
