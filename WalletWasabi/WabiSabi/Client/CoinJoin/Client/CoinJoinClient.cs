@@ -852,7 +852,7 @@ public class CoinJoinClient
 		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
-		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
 		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 		if (!mustSignAllInputs)
 		{

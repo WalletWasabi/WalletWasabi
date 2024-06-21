@@ -11,6 +11,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -171,7 +172,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				return new PocketViewModel(_wallet, pocket, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
-		source.EditDiff(newItems);
+		source.EditDiff(newItems, new LambdaComparer<CoinListItem>((a, b) => Equals(a?.Key, b?.Key)));
 	}
 
 	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)

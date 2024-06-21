@@ -14,7 +14,6 @@
     <!--First icon (Confirmation Status) -->
     <PathIcon Classes.Confirmed="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Confirmed}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
               Classes.Pending="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.Pending}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-              Classes.SpeedUp="{Binding Transaction.Status, ConverterParameter={x:Static model:TransactionStatus.SpeedUp}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
               ToolTip.Tip="{Binding Transaction.ConfirmedTooltip}"
               Opacity="0.6">
       <PathIcon.Styles>
@@ -24,10 +23,6 @@
         </Style>
         <Style Selector="PathIcon.Pending">
           <Setter Property="Data" Value="{StaticResource clock_regular}" />
-          <Setter Property="Height" Value="15" />
-        </Style>
-        <Style Selector="PathIcon.SpeedUp">
-          <Setter Property="Data" Value="{StaticResource rocket_regular}" />
           <Setter Property="Height" Value="15" />
         </Style>
       </PathIcon.Styles>
@@ -47,11 +42,11 @@
         <PathIcon Opacity="0.6"
                   Classes.IncomingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.IncomingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.OutgoingTransaction="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.OutgoingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-                  Classes.SelfTransfer="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.SelfTransferTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.Coinjoin="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Coinjoin}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.Cancellation="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.Cancellation}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
                   Classes.CoinjoinGroup="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CoinjoinGroup}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-                  Classes.CPFP="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CPFP}, Converter={x:Static converters:EnumToBoolConverter.Instance}}">
+                  Classes.CPFP="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.CPFP}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
+                  Classes.SelfTransfer="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.SelfTransferTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}">
           <PathIcon.Styles>
             <Style Selector="PathIcon.IncomingTransaction">
               <Setter Property="Data" Value="{StaticResource wallet_action_receive}" />
@@ -83,7 +78,7 @@
               <Setter Property="ToolTip.Tip" Value="Cancellation" />
             </Style>
             <Style Selector="PathIcon.CPFP">
-              <Setter Property="Data" Value="{StaticResource rocket_regular}" />
+              <Setter Property="Data" Value="{StaticResource rocket_bolt}" />
               <Setter Property="Height" Value="14" />
               <Setter Property="ToolTip.Tip" Value="Accelerator" />
             </Style>

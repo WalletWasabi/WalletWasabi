@@ -23,7 +23,7 @@ public class UiContextAnalyzer : DiagnosticAnalyzer
 	internal static readonly DiagnosticDescriptor Rule1 =
 		new("WW001",
 			"Do not use UiContext or Navigation APIs in ViewModel Constructor",
-			"UiContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead. Alternatively, make the constructor public and explicitly initialize UiContext. See https://github.com/zkSNACKs/WalletWasabi/blob/master/CONTRIBUTING.md#source-generated-viewmodel-constructors for details.",
+			"UiContext cannot be referenced in a ViewModel's constructor because it hasn't been initialized yet when constructor runs. Use OnNavigatedTo() or OnActivated() instead. Alternatively, make the constructor public and explicitly initialize UiContext. See https://github.com/WalletWasabi/WalletWasabi/blob/master/CONTRIBUTING.md#source-generated-viewmodel-constructors for details.",
 			"Wasabi Wallet",
 			DiagnosticSeverity.Error,
 			true);

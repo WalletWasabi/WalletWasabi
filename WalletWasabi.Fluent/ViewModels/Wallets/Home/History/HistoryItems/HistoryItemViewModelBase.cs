@@ -25,6 +25,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 		Transaction = transaction;
 		IsChild = transaction.IsChild;
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
+		HasBeenSpedUp = transaction.HasBeenSpedUp;
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -89,6 +90,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+	
+	public bool HasBeenSpedUp { get; set; }
+
+	public bool CanBeSpedUp { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 

@@ -1416,7 +1416,7 @@ public class TransactionProcessorTests
 		Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
-	// Repro of issue 11101 https://github.com/zkSNACKs/WalletWasabi/issues/11101
+	// Repro of issue 11101 https://github.com/WalletWasabi/WalletWasabi/issues/11101
 	[Fact]
 	public async Task GetPocketsShouldReturnExpectedPocketListAsync()
 	{

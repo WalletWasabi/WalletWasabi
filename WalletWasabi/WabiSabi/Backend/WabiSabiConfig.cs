@@ -295,7 +295,7 @@ public class WabiSabiConfig : ConfigBase
 		}
 
 		// When adding new script types, please see
-		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+		// https://github.com/WalletWasabi/WalletWasabi/issues/5440
 
 		return scriptTypes.ToImmutableSortedSet();
 	}

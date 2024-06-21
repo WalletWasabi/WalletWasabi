@@ -30,7 +30,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	protected CoinListItem()
 	{
 		// Temporarily enable the selection no matter what.
-		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
+		// Should be again restricted once https://github.com/WalletWasabi/WalletWasabi/issues/9972 is implemented.
 		// CanBeSelected = !IsCoinjoining;
 		CanBeSelected = true;
 
@@ -120,4 +120,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public virtual bool HasChildren() => Children.Count != 0;
 
 	public void Dispose() => _disposables.Dispose();
+
+	public abstract string Key { get; }
 }

@@ -372,7 +372,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Sets output's IsSufficientlyDistancedFromExternalKeys property to false if external, or the tx inputs are all external.
 	/// </summary>
-	/// <remarks>Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567</remarks>
+	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/10567</remarks>
 	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartCoin output)
 	{
 		if (output.Transaction.WalletInputs.Count == 0)
