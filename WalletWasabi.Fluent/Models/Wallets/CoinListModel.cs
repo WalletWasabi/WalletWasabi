@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -30,8 +31,8 @@ public abstract partial class CoinListModel : IDisposable
 				.Merge(isCoinjoinRunningChanged)
 				.Publish();
 
-		List = signals.Fetch(GetCoins, x => x.Key).DisposeWith(_disposables);
-		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
+		Pockets = signals.Fetch(GetPockets, x => x.Labels, new LambdaComparer<Pocket>((a, b) => Equals(a?.Labels, b?.Labels))).DisposeWith(_disposables);
+		List = Pockets.Connect().MergeMany(x => x.Coins.Select(GetCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
