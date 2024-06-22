@@ -131,6 +131,17 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
 
+		if (roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
+		{
+			Logger.LogWarning("Coordinator is malicious and tried to tricked client into paying a higher coordination fee rate in the blame round");
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the coordination fee rate is too high");
+		}
+
+		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the mining fee rate is too high");
+		}
+
 		return roundState;
 	}
 
