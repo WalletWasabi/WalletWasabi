@@ -139,7 +139,7 @@ public class CoinJoinClient
 
 		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the mining fee rate is too high");
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the mining fee rate is too high.");
 		}
 
 		return roundState;
