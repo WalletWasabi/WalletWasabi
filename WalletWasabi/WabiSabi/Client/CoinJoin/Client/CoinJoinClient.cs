@@ -133,7 +133,7 @@ public class CoinJoinClient
 
 		if (roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
 		{
-			Logger.LogWarning("Coordinator is malicious and tried to tricked client into paying a higher coordination fee rate in the blame round");
+			Logger.LogWarning("The coordinator is malicious and tried to trick the client into paying a higher coordination fee rate in the blame round.");
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the coordination fee rate is too high");
 		}
 
