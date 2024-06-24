@@ -57,21 +57,6 @@ public static class TransactionFeeHelper
 			return true;
 		}
 
-		if (feeEstimates is not null)
-		{
-			var unconfirmedChain = unconfirmedTxChainProvider.GetUnconfirmedTransactionChain(tx.GetHash());
-
-			if (unconfirmedChain is null || unconfirmedChain.Count == 0)
-			{
-				return false;
-			}
-
-			var feeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
-
-			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
-			return true;
-		}
-
 		return false;
 	}
 

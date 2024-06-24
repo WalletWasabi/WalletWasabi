@@ -120,7 +120,7 @@ public class P2pTests
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
-		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
+		UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
