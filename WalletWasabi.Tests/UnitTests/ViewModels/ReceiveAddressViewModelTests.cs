@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -101,6 +102,11 @@ public class ReceiveAddressViewModelTests
 		}
 
 		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
+
+		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

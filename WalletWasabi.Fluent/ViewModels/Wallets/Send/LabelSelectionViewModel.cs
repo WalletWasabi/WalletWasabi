@@ -35,7 +35,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
 
-	public IEnumerable<LabelViewModel> AllLabelsViewModel { get; set; } = Array.Empty<LabelViewModel>();
+	public IEnumerable<LabelViewModel> AllLabelsViewModel { get; private set; } = Array.Empty<LabelViewModel>();
 
 	public IEnumerable<LabelViewModel> LabelsWhiteList => AllLabelsViewModel.Where(x => !x.IsBlackListed);
 

@@ -105,6 +105,12 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model) => TryEstimateConfirmationTime(model.Id);
 
+	public TimeSpan? TryEstimateConfirmationTime(TransactionInfo info)
+	{
+		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, info.FeeRate, out var estimate);
+		return estimate;
+	}
+
 	public TransactionInfo Create(string address, decimal amount, string label) =>
 		Create(address, amount, new LabelsArray(label));
 

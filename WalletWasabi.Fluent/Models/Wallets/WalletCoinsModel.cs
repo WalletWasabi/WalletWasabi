@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -8,51 +7,15 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletCoinsModel : IDisposable
+public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) : CoinListModel(wallet, walletModel)
 {
-	private readonly Wallet _wallet;
-	private readonly IWalletModel _walletModel;
-	private readonly CompositeDisposable _disposables = new();
-
-	public WalletCoinsModel(Wallet wallet, IWalletModel walletModel)
-	{
-		_wallet = wallet;
-		_walletModel = walletModel;
-		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
-		var anonScoreTargetChanged = this.WhenAnyValue(x => x._walletModel.Settings.AnonScoreTarget).Skip(1).ToSignal();
-		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
-
-		var signals =
-			transactionProcessed
-				.Merge(anonScoreTargetChanged)
-				.Merge(isCoinjoinRunningChanged)
-				.Publish();
-
-		Pockets = signals.Fetch(GetPockets, x => x.Labels, new LambdaComparer<Pocket>((a, b) => Equals(a?.Labels, b?.Labels))).DisposeWith(_disposables);
-		List = Pockets.Connect().MergeMany(x => x.Coins.Select(GetCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
-
-		signals
-			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
-			.Subscribe()
-			.DisposeWith(_disposables);
-
-		signals.Connect()
-			.DisposeWith(_disposables);
-	}
-
-	public IObservableCache<ICoinModel, int> List { get; }
-
-	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
-
 	public async Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
 	{
 		await Task.Run(() =>
@@ -64,7 +27,7 @@ public partial class WalletCoinsModel : IDisposable
 			}
 
 			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
-			_wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
+			Wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
 		});
 	}
 
@@ -74,20 +37,18 @@ public partial class WalletCoinsModel : IDisposable
 		return coins.Select(GetCoinModel).ToList();
 	}
 
-	public ICoinModel GetCoinModel(SmartCoin smartCoin)
-	{
-		return new CoinModel(smartCoin, _walletModel.Settings.AnonScoreTarget);
-	}
-
 	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<ICoinModel> coins)
 	{
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_wallet.KeyManager, transactionInfo, _wallet.Coins, coins.GetSmartCoins(), _wallet.Kitchen.SaltSoup(), out _);
+		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(Wallet.KeyManager, transactionInfo, Wallet.Coins, coins.GetSmartCoins(), Wallet.Kitchen.SaltSoup(), out _);
 	}
 
-	private Pocket[] GetPockets()
+	protected override Pocket[] GetPockets()
 	{
-		return _wallet.GetPockets().ToArray();
+		return Wallet.GetPockets().ToArray();
 	}
 
-	public void Dispose() => _disposables.Dispose();
+	protected override ICoinModel[] GetCoins()
+	{
+		return Wallet.Coins.Select(GetCoinModel).ToArray();
+	}
 }
