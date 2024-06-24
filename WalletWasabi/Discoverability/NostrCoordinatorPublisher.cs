@@ -27,6 +27,11 @@ public class NostrCoordinatorPublisher : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		if (Network == Network.RegTest)
+		{
+			throw new NotSupportedException($"Coordinator publishing on Nostr is not supported on {Network}");
+		}
+
 		using var client = NostrExtensions.Create(Config.RelayUris.Select(x => new Uri(x)).ToArray(), (EndPoint?)null);
 		var discoveryEvent = await CreateCoordinatorDiscoveryEventAsync(Config, Key, Network).ConfigureAwait(false);
 
