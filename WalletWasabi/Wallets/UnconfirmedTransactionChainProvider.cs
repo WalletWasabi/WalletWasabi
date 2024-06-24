@@ -17,25 +17,16 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
-public class UnconfirmedTransactionChainProvider : BackgroundService
+public class UnconfirmedTransactionChainProvider
 {
-	private const int MaximumDelayInSeconds = 120;
-	private const int MaximumRequestsInParallel = 3;
-
 	public UnconfirmedTransactionChainProvider(WasabiHttpClientFactory httpClientFactory)
 	{
-		HttpClient = httpClientFactory.NewHttpClient(httpClientFactory.BackendUriGetter, Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
-
-	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
-
-	public ConcurrentDictionary<uint256, List<UnconfirmedTransactionChainItem>> UnconfirmedChainCache { get; } = new();
 
 	private IHttpClient HttpClient { get; }
 
-	private Channel<uint256> Channel { get; } = System.Threading.Channels.Channel.CreateUnbounded<uint256>();
-
-	private async Task FetchUnconfirmedTransactionChainAsync(uint256 txid, CancellationToken cancellationToken)
+	public async Task<UnconfirmedTransactionChain?> FetchUnconfirmedTransactionChainAsync(uint256 txid, CancellationToken cancellationToken)
 	{
 		const int MaxAttempts = 3;
 
@@ -48,7 +39,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 				var response = await HttpClient.SendAsync(
 					HttpMethod.Get,
-					$"api/v{Helpers.Constants.BackendMajorVersion}/btc/Blockchain/unconfirmed-transaction-chain?transactionId={txid}",
+					$"v1/cpfp/{txid}",
 					null,
 					linkedCts.Token).ConfigureAwait(false);
 
@@ -57,77 +48,18 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChainItem[]>().ConfigureAwait(false);
-
-				if (!UnconfirmedChainCache.TryAdd(txid, unconfirmedChain.ToList()))
-				{
-					throw new InvalidOperationException($"Failed to cache unconfirmed tx chain for {txid}");
-				}
-
-				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
-
-				return;
+				return await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChain>().ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
 			{
 				Logger.LogTrace("Request was cancelled by exiting the app.");
 			}
-			catch (Exception ex)
+			catch (HttpRequestException ex)
 			{
 				Logger.LogWarning($"Attempt: {i}. Failed to fetch transaction fee. {ex}");
 			}
 		}
-	}
 
-	public void CheckAndScheduleRequestIfNeeded(SmartTransaction tx)
-	{
-		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
-		{
-			Channel.Writer.TryWrite(tx.GetHash());
-		}
-	}
-
-	protected override async Task ExecuteAsync(CancellationToken cancel)
-	{
-		List<Task> tasks = [];
-		while (!cancel.IsCancellationRequested)
-		{
-			var txidToFetch = await Channel.Reader.ReadAsync(cancel).ConfigureAwait(false);
-
-			tasks.Add(Task.Run(() => ScheduledTask(txidToFetch), cancel));
-
-			if (tasks.Count >= MaximumRequestsInParallel)
-			{
-				Task completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
-				tasks.Remove(completedTask);
-			}
-		}
-
-		async Task ScheduledTask(uint256 txid)
-		{
-			var random = new Random();
-			var delayInSeconds = random.Next(MaximumDelayInSeconds);
-			var delay = TimeSpan.FromSeconds(delayInSeconds);
-
-			try
-			{
-				await Task.Delay(delay, cancel).ConfigureAwait(false);
-
-				await FetchUnconfirmedTransactionChainAsync(txid, cancel).ConfigureAwait(false);
-			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogTrace("Request was cancelled by exiting the app.");
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning(e);
-			}
-		}
-	}
-
-	public List<UnconfirmedTransactionChainItem> GetUnconfirmedTransactionChain(uint256 txId)
-	{
-		return UnconfirmedChainCache.TryGet(txId);
+		return null;
 	}
 }
