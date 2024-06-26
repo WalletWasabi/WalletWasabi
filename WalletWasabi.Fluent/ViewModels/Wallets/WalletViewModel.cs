@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -12,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -79,7 +79,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !WalletModel.IsWatchOnlyWallet;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(this));
+		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
+		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
 
@@ -163,6 +164,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
+
+	public ICommand SendManualControlCommand { get; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
 

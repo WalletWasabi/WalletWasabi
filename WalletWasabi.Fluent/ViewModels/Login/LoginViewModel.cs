@@ -15,9 +15,8 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _password;
 	[AutoNotify] private bool _isPasswordNeeded;
 	[AutoNotify] private string _errorMessage;
-	[AutoNotify] private bool _isForgotPasswordVisible;
 
-	private LoginViewModel(IWalletModel wallet)
+	public LoginViewModel(IWalletModel wallet)
 	{
 		_password = "";
 		_errorMessage = "";
@@ -29,8 +28,6 @@ public partial class LoginViewModel : RoutableViewModel
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
-		ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
-
 		EnableAutoBusyOn(NextCommand);
 	}
 
@@ -40,15 +37,12 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand OkCommand { get; }
 
-	public ICommand ForgotPasswordCommand { get; }
-
 	private async Task OnNextAsync(IWalletModel walletModel)
 	{
 		var (success, compatibilityPasswordUsed) = await walletModel.Auth.TryLoginAsync(Password);
 
 		if (!success)
 		{
-			IsForgotPasswordVisible = true;
 			ErrorMessage = "The passphrase is incorrect! Please try again.";
 			return;
 		}
@@ -58,26 +52,12 @@ public partial class LoginViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var termsAndConditionsAccepted = await TermsAndConditionsViewModel.TryShowAsync(UiContext, walletModel);
-		if (termsAndConditionsAccepted)
-		{
-			walletModel.Auth.CompleteLogin();
-		}
-		else
-		{
-			walletModel.Auth.Logout();
-			ErrorMessage = "You must accept the Terms and Conditions!";
-		}
+		walletModel.Auth.CompleteLogin();
 	}
 
 	private void OnOk()
 	{
 		Password = "";
 		ErrorMessage = "";
-	}
-
-	private void OnForgotPassword(IWalletModel wallet)
-	{
-		UiContext.Navigate().To().PasswordFinderIntroduce(wallet);
 	}
 }

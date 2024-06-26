@@ -14,6 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 /// <summary>
 /// Tests for <see cref="BlockDownloadService"/>.
 /// </summary>
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class BlockDownloadServiceTests
 {
 	/// <summary>
@@ -104,7 +106,7 @@ public class BlockDownloadServiceTests
 			}
 
 			// Add small delay to make sure that things stabilize.
-			await Task.Delay(100);
+			await Task.Delay(100, testCts.Token);
 
 			// Allow downloading of the block1.
 			{

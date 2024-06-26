@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Reactive.Concurrency;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -81,7 +80,7 @@ public class App : Application
 
 	private void InitializeTrayIcons()
 	{
-		// TODO: This is temporary workaround until https://github.com/zkSNACKs/WalletWasabi/issues/8151 is fixed.
+		// TODO: This is temporary workaround until https://github.com/WalletWasabi/WalletWasabi/issues/8151 is fixed.
 		var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
 		if (trayIcon is not null)
 		{
@@ -151,7 +150,6 @@ public class App : Application
 			amountProvider,
 			new EditableSearchSourceSource(),
 			torStatusChecker,
-			new LegalDocumentsProvider(),
 			new HealthMonitor(applicationSettings, torStatusChecker));
 	}
 }

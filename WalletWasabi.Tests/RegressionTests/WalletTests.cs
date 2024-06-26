@@ -1,15 +1,11 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -55,8 +51,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		// 2. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
-		HybridFeeProvider feeProvider = new(global.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 3. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);

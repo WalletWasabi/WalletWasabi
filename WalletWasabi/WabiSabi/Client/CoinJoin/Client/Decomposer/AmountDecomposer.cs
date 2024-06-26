@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
@@ -64,7 +63,7 @@ public class AmountDecomposer
 		var currentLength = preFilteredDenoms.Length;
 		foreach (var denom in preFilteredDenoms)
 		{
-			var filterSeverity = 1 + currentLength * increment;
+			var filterSeverity = 1 + (currentLength * increment);
 			if (denoms.Count == 0 || denom.Amount.Satoshi <= (long)(denoms.Last().Amount.Satoshi / filterSeverity))
 			{
 				denoms.Add(denom);

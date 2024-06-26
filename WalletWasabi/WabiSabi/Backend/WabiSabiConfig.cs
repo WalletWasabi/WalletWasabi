@@ -9,7 +9,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
@@ -239,6 +238,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool DelayTransactionSigning { get; set; } = false;
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "IsCoordinationEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoordinationEnabled { get; set; } = true;
+
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
 
 	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs, AllowP2pkhOutputs, AllowP2shOutputs, AllowP2wshOutputs);
@@ -292,7 +295,7 @@ public class WabiSabiConfig : ConfigBase
 		}
 
 		// When adding new script types, please see
-		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+		// https://github.com/WalletWasabi/WalletWasabi/issues/5440
 
 		return scriptTypes.ToImmutableSortedSet();
 	}

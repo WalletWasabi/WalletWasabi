@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -21,7 +20,6 @@ using System.Linq;
 using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
 using WalletWasabi.Wallets;
-using System.Net.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
@@ -41,7 +39,7 @@ public class WalletBuilder : IAsyncDisposable
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
-		Synchronizer = new(period: TimeSpan.FromSeconds(3), BitcoinStore.SmartHeaderChain, HttpClientFactory.SharedWasabiClient, new EventBus());
+		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
 		UnconfirmedTransactionChainProvider = new(HttpClientFactory);
 	}
@@ -68,7 +66,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		HybridFeeProvider feeProvider = new(new EventBus());
+		HybridFeeProvider feeProvider = new(Synchronizer, null);
 
 		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService, UnconfirmedTransactionChainProvider);
 		return walletFactory.CreateAndInitialize(keyManager);

@@ -11,7 +11,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -62,8 +61,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
-		HybridFeeProvider feeProvider = new(global.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
 		// 4. Create key manager service.

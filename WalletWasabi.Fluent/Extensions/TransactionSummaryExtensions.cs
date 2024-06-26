@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Extensions;
 

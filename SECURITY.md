@@ -1,7 +1,7 @@
 # Security Policy
 
-If a vulnerability does not compromise users' privacy or security, open a [regular GitHub issue](https://github.com/zkSNACKs/WalletWasabi/issues/new/choose).
-If it does, then pay great care to responsible disclosure. Report a [private vulnerability on GitHub](https://github.com/zkSNACKs/WalletWasabi/security/advisories/new) or send an email to molnardavid84@gmail.com, preferably using PGP encryption: `F079 0C08 68BD BAB8 EE33 F9CE 50FB 7FEB 00F9 7588`
+If a vulnerability does not compromise users' privacy or security, open a [regular GitHub issue](https://github.com/WalletWasasbi/WalletWasabi/issues/new/choose).
+If it does, then pay great care to responsible disclosure. Report a [private vulnerability on GitHub](https://github.com/WalletWasabi/WalletWasabi/security/advisories/new) or send an email to molnardavid84@gmail.com, preferably using PGP encryption: `F079 0C08 68BD BAB8 EE33 F9CE 50FB 7FEB 00F9 7588`
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----

@@ -1,11 +1,9 @@
-using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Stores;
@@ -46,8 +44,6 @@ public class BitcoinStore
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		var initTasks = new[]
 		{
 			IndexStore.InitializeAsync(cancel),

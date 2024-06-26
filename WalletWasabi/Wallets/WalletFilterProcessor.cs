@@ -22,7 +22,7 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// Service that keeps processing block filters.
 /// </summary>
-/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
+/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
@@ -129,9 +129,9 @@ public class WalletFilterProcessor : BackgroundService
 
 						if (lastHeight == BitcoinStore.SmartHeaderChain.TipHeight)
 						{
-							request.Tcs.SetResult();
 							lock (Lock)
 							{
+								request.Tcs.SetResult();
 								SynchronizationRequests.Dequeue();
 							}
 							continue;
@@ -149,9 +149,9 @@ public class WalletFilterProcessor : BackgroundService
 
 					if (reachedBlockChainTip)
 					{
-						request.Tcs.SetResult();
 						lock (Lock)
 						{
+							request.Tcs.SetResult();
 							SynchronizationRequests.Dequeue();
 						}
 					}
@@ -175,7 +175,7 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					foreach (SyncType syncType in Enum.GetValues<SyncType>())
 					{
-						FilterIteratorsBySyncType[syncType].Clear();
+						await FilterIteratorsBySyncType[syncType].ClearAsync(cancellationToken).ConfigureAwait(false);
 					}
 				}
 			}
@@ -265,13 +265,17 @@ public class WalletFilterProcessor : BackgroundService
 		try
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
+			uint newBestHeight = invalidFilter.Header.Height - 1;
 
 			using (await ReorgLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
-				KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
+				KeyManager.SetMaxBestHeight(new Height(newBestHeight));
 				TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-
+				foreach (SyncType syncType in Enum.GetValues<SyncType>())
+				{
+					await FilterIteratorsBySyncType[syncType].RemoveNewerThanAsync(newBestHeight, CancellationToken.None).ConfigureAwait(false);
+				}
 				await BlockDownloadService.RemoveBlocksAsync(invalidFilter.Header.Height).ConfigureAwait(false);
 			}
 		}

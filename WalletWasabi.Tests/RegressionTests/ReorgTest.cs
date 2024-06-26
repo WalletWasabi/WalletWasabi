@@ -1,22 +1,16 @@
 using NBitcoin;
-using NBitcoin.Protocol;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -74,8 +68,10 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
+		var node = RegTestFixture.BackendRegTestNode;
+
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, setup.Global.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, httpClientFactory);
 
 		try
 		{

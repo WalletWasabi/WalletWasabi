@@ -74,9 +74,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	public async Task GetClientVersionAsync()
 	{
 		WasabiClient client = new(BackendHttpClient);
-		var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
-		Assert.True(uptodate.BackendCompatible);
-		Assert.True(uptodate.ClientUpToDate);
+		var backendCompatible = await client.CheckUpdatesAsync(CancellationToken.None);
+		Assert.True(backendCompatible);
 	}
 
 	[Fact]
@@ -144,8 +143,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
-		HybridFeeProvider feeProvider = new(global.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -247,7 +246,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath, new EventBus());
+
+		IndexBuilderService indexBuilderService = new(IndexType.SegwitTaproot, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
 		try
 		{
 			indexBuilderService.Synchronize();

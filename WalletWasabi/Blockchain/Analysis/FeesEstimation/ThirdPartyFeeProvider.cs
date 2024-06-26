@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.WebClients.BlockstreamInfo;
@@ -24,6 +23,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
 	private object Lock { get; } = new();
+	public bool InError { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
@@ -46,12 +46,12 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
+	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
 	{
 		using (RunningTasks.RememberWith(ProcessingEvents))
 		{
 			// Only go further if we have estimations.
-			if (fees?.Estimations?.Any() is not true)
+			if (fees.Estimations.Count == 0)
 			{
 				return;
 			}
@@ -95,13 +95,15 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
 		// If the backend doesn't work for a period of time, then and only then start using Blockstream.
-		if (Synchronizer.BackendStatus is BackendStatus.NotConnected && Synchronizer.BackendStatusChangedSince > TimeSpan.FromMinutes(1))
+		if (Synchronizer.InError && Synchronizer.BackendStatusChangedSince > TimeSpan.FromMinutes(1))
 		{
 			BlockstreamProvider.IsPaused = false;
+			InError = BlockstreamProvider.InError;
 		}
 		else
 		{
 			BlockstreamProvider.IsPaused = true;
+			InError = false;
 		}
 
 		return Task.CompletedTask;

@@ -1,9 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation;
@@ -214,7 +212,7 @@ public class ArenaClientTests
 		using var destinationKey2 = new Key();
 		var scriptSize = (long)destinationKey1.PubKey.GetScriptPubKey(scriptPubKeyType).EstimateOutputVsize();
 
-		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVirtualSize + 2 * scriptSize), 2 * scriptSize };
+		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVirtualSize + (2 * scriptSize)), 2 * scriptSize };
 
 		// Phase: Input Registration
 		Assert.Equal(Phase.InputRegistration, round.Phase);

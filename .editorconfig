@@ -234,6 +234,9 @@ dotnet_diagnostic.IDE0004.severity = error
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:error
 
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = silent
+
 # IDE0032: Use auto property
 dotnet_style_prefer_auto_properties = true:error
 
@@ -248,6 +251,15 @@ dotnet_style_prefer_simplified_interpolation = true:error
 
 # IDE0130: Warn and provide code fixes for when namespaces do not match the folder structure.
 dotnet_diagnostic.IDE0130.severity = warning
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = silent
+
+# IDE0300: Simplify collection initialization
+dotnet_diagnostic.IDE0300.severity = silent
+
+# IDE0305: Simplify collection initialization
+dotnet_diagnostic.IDE0305.severity = silent
 
 # CA1304: Specify CultureInfo
 dotnet_diagnostic.CA1304.severity = warning
@@ -287,6 +299,11 @@ dotnet_diagnostic.CA1847.severity = warning
 
 # CA1859: Use concrete types when possible for improved performance
 dotnet_diagnostic.CA1859.severity = none
+
+# CA1865-CA1867: Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
+dotnet_diagnostic.CA1865.severity = warning
+dotnet_diagnostic.CA1866.severity = warning
+dotnet_diagnostic.CA1867.severity = warning
 
 # CA1868: Unnecessary call to Set.Contains(item)
 dotnet_diagnostic.CA1868.severity = warning

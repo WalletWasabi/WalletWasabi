@@ -39,9 +39,9 @@
     <!-- any comments -->
     <Property Id='ARPCOMMENTS'>!(loc.Description)</Property>
     <!-- URL for technical support -->
-    <Property Id='ARPHELPLINK'>https://github.com/zkSNACKs/WalletWasabi/discussions/5185</Property>
+    <Property Id='ARPHELPLINK'>https://github.com/WalletWasabi/WalletWasabi/discussions/5185</Property>
     <!-- URL for general info about the product -->
-    <Property Id="ARPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
+    <Property Id="ARPURLINFOABOUT">https://github.com/WalletWasabi/WalletWasabi/</Property>
     <!-- Use the icon.ico icon for this installer. -->
     <Property Id="ARPPRODUCTICON">icon.ico</Property>
     <!-- To suppress the Repair functionality, use: -->

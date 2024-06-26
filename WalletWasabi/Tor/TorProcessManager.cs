@@ -1,11 +1,14 @@
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -20,7 +23,7 @@ public class TorProcessManager : IAsyncDisposable
 	internal const string TorProcessStartedByDifferentUser = "Tor was started by another user and we can't use it nor kill it.";
 
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
-	private volatile TaskCompletionSource<(CancellationToken, TorControlClient)> _tcs = new();
+	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
 	public TorProcessManager(TorSettings settings) :
 		this(settings, new(settings.SocksEndpoint))
@@ -49,14 +52,20 @@ public class TorProcessManager : IAsyncDisposable
 	private TorSettings Settings { get; }
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>
+	/// Only set if <see cref="TorMode.Enabled"/> is not on.
+	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// </remarks>
 	private ProcessAsync? TorProcess { get; set; }
 
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>
+	/// Only set if <see cref="TorMode.Enabled"/> is not on.
+	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// </remarks>
 	private TorControlClient? TorControlClient { get; set; }
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
-	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken)
+	public Task<(CancellationToken, TorControlClient?)> StartAsync(CancellationToken cancellationToken)
 	{
 		return StartAsync(attempts: 1, cancellationToken);
 	}
@@ -67,15 +76,17 @@ public class TorProcessManager : IAsyncDisposable
 	/// <remarks>This method must be called exactly once.</remarks>
 	/// <exception cref="OperationCanceledException">When the operation is cancelled by the user.</exception>
 	/// <exception cref="InvalidOperationException">When all attempts are tried without success.</exception>
-	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken)
+	public async Task<(CancellationToken, TorControlClient?)> StartAsync(int attempts, CancellationToken cancellationToken)
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
+
+		string operation = Settings.TorMode == TorMode.Enabled ? "start" : "connect to";
 
 		for (int i = 0; i < attempts; i++)
 		{
 			try
 			{
-				Logger.LogDebug($"Attempt #{i + 1} to start Tor.");
+				Logger.LogDebug($"Attempt #{i + 1} to {operation} Tor.");
 				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -87,13 +98,13 @@ public class TorProcessManager : IAsyncDisposable
 			}
 		}
 
-		throw new InvalidOperationException("No attempt to start Tor was successful.");
+		throw new InvalidOperationException($"No attempt to {operation} Tor was successful.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
 	/// <returns>Cancellation token which is canceled once Tor process terminates or once <paramref name="cancellationToken"/> is canceled.</returns>
 	/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
-	public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
+	public Task<(CancellationToken, TorControlClient?)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
 	{
 		return _tcs.Task.WaitAsync(cancellationToken);
 	}
@@ -102,7 +113,70 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		if (Settings.TorMode == TorMode.EnabledOnlyRunning)
+		{
+			await RestartingLoopForRunningTorAsync(globalCancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			await RestartingLoopForBundledTorAsync(globalCancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task RestartingLoopForRunningTorAsync(CancellationToken globalCancellationToken)
+	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		CancellationToken cancellationToken = linkedCts.Token;
+
+		bool detectedTorState = false;
+		CancellationTokenSource torStoppedCts = new();
+
+		while (!cancellationToken.IsCancellationRequested)
+		{
+			bool isTorRunning = await TcpConnectionFactory.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+
+			if (detectedTorState && isTorRunning) // Case: Still running.
+			{
+				// No-op.
+			}
+			else if (!detectedTorState && isTorRunning) // Case: Started running.
+			{
+				Logger.LogDebug("Connection to Tor SOCKS5 is established.");
+				_tcs.SetResult((torStoppedCts.Token, null));
+			}
+			else if (!isTorRunning) // Case: Stopped running, or still not running.
+			{
+				if (detectedTorState)
+				{
+					Logger.LogDebug("Connection to Tor SOCKS5 was lost.");
+				}
+
+				bool willWaitForTorRestart = !cancellationToken.IsCancellationRequested;
+				OnTorStop(willWaitForTorRestart, exception: null, torStoppedCts, globalCancellationToken);
+				torStoppedCts = new();
+			}
+
+			detectedTorState = isTorRunning;
+
+			// We don't use Tor Control client with an already running Tor, so we just use a simple sleep mechanism.
+			await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+			if (cancellationToken.IsCancellationRequested)
+			{
+				Logger.LogDebug("User canceled operation.");
+				break;
+			}
+		}
+
+		torStoppedCts.Dispose();
+	}
+
+	/// <summary>
+	/// Keeps starting Tor OS process.
+	/// </summary>
+	private async Task RestartingLoopForBundledTorAsync(CancellationToken globalCancellationToken)
+	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
 		while (!cancellationToken.IsCancellationRequested)
@@ -140,10 +214,36 @@ public class TorProcessManager : IAsyncDisposable
 					{
 						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
 					}
+
+					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
+					if (!clientTransportPluginReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
+					}
+
+					// Check if the bridges in the running Tor instance are the same as user requested.
+					TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
+					if (!bridgeReply.Success)
+					{
+						throw new InvalidOperationException("Tor control failed to report active bridges.");
+					}
+
+					// Compare as two unordered sets.
+					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
+					bool areBridgesAsRequired = currentBridges.SequenceEqual(Settings.Bridges.Order());
+
+					if (!areBridgesAsRequired)
+					{
+						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
+						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
+						continue;
+					}
 				}
 				else
 				{
 					string arguments = Settings.GetCmdArguments();
+					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
+
 					process = StartProcess(arguments);
 
 					bool isRunning = await EnsureRunningAsync(process, cancellationToken).ConfigureAwait(false);
@@ -231,27 +331,7 @@ public class TorProcessManager : IAsyncDisposable
 			}
 			finally
 			{
-				TaskCompletionSource<(CancellationToken, TorControlClient)> originalTcs = _tcs;
-
-				if (setNewTcs)
-				{
-					// (1) and (2) must be in this order. Otherwise, there is a race condition risk of getting invalid CT by clients.
-					TaskCompletionSource<(CancellationToken, TorControlClient)> newTcs = new();
-					originalTcs = Interlocked.Exchange(ref _tcs, newTcs); // (1)
-				}
-
-				cts.Cancel(); // (2)
-
-				if (exception is not null)
-				{
-					originalTcs.TrySetException(exception);
-				}
-				else
-				{
-					originalTcs.TrySetCanceled(globalCancellationToken);
-				}
-
-				cts.Dispose();
+				OnTorStop(setNewTcs, exception, cts, globalCancellationToken);
 
 				if (controlClient is not null)
 				{
@@ -267,6 +347,31 @@ public class TorProcessManager : IAsyncDisposable
 				}
 			}
 		}
+	}
+
+	private void OnTorStop(bool willWaitForTorRestart, Exception? exception, CancellationTokenSource torStoppedCts, CancellationToken globalCancellationToken)
+	{
+		TaskCompletionSource<(CancellationToken, TorControlClient?)> originalTcs = _tcs;
+
+		if (willWaitForTorRestart)
+		{
+			// (1) and (2) must be in this order. Otherwise, there is a race condition risk of getting invalid CT by clients.
+			TaskCompletionSource<(CancellationToken, TorControlClient?)> newTcs = new();
+			originalTcs = Interlocked.Exchange(ref _tcs, newTcs); // (1)
+		}
+
+		torStoppedCts.Cancel(); // (2)
+
+		if (exception is not null)
+		{
+			originalTcs.TrySetException(exception);
+		}
+		else
+		{
+			originalTcs.TrySetCanceled(globalCancellationToken);
+		}
+
+		torStoppedCts.Dispose();
 	}
 
 	internal virtual Process[] GetTorProcesses()
@@ -332,7 +437,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo("Starting Tor process…");
+		Logger.LogInfo(Settings.IsCustomTorFolder ? $"Starting Tor process in folder '{Settings.TorBinaryDir}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 

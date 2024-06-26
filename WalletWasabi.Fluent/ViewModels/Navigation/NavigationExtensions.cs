@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 

@@ -89,6 +89,17 @@ public class TorControlClient : IAsyncDisposable
 	}
 
 	/// <summary>
+	/// Gets the value of zero or more configuration variable(s).
+	/// </summary>
+	/// <remarks>Currently we support only one keyword and not multiple ones.</remarks>
+	/// <seealso href="https://gitlab.torproject.org/tpo/core/torspec/-/blob/main/spec/control-spec/commands.md#getconf"/>
+	public async Task<TorControlReply> GetConfAsync(string keyword, CancellationToken cancellationToken)
+	{
+		// Grammar: "GETCONF" *(SP keyword) CRLF
+		return await SendCommandAsync($"GETCONF {keyword}\r\n", cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Gets protocol info (for version 1).
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.21. PROTOCOLINFO</seealso>

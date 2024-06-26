@@ -21,7 +21,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Events;
-using WalletWasabi.Affiliation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -108,18 +107,7 @@ public partial class Arena : PeriodicRunner
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
-
-			RequestTimeStatista.Instance.Add("arena-period-inside", DateTimeOffset.UtcNow - beforeInside);
 		}
-		RequestTimeStatista.Instance.Add("arena-period", DateTimeOffset.UtcNow - before);
-
-		ThreadPool.GetMaxThreads(out int maxWorkerThreads, out int maxCompletionPortThreads);
-		ThreadPool.GetAvailableThreads(out int availableWorkerThreads, out int availableCompletionPortThreads);
-		RequestTimeStatista.Instance.Add("maxWorker-Threads", maxWorkerThreads);
-		RequestTimeStatista.Instance.Add("availableWorker-Threads", availableWorkerThreads);
-		RequestTimeStatista.Instance.Add("maxCompletionPort-Threads", maxCompletionPortThreads);
-		RequestTimeStatista.Instance.Add("availableCompletionPort-Threads", availableCompletionPortThreads);
-		RequestTimeStatista.Instance.FlushStatisticsToLogsIfTimeElapsed();
 	}
 
 	private void SetRoundStates()
@@ -306,7 +294,7 @@ public partial class Arena : PeriodicRunner
 					if (!allReady && phaseExpired)
 					{
 						// It would be better to end the round and create a blame round here, but older client would not support it.
-						// See https://github.com/zkSNACKs/WalletWasabi/pull/11028.
+						// See https://github.com/WalletWasabi/WalletWasabi/pull/11028.
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 						round.FastSigningPhase = true;
 					}

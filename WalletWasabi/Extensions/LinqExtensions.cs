@@ -183,9 +183,10 @@ public static class LinqExtensions
 	{
 		if (!me.Any())
 		{
-			return 0;
+			throw new ArgumentException("Median of an empty set is not defined.", nameof(me));
 		}
-		var sorted = me.OrderBy(x => x).ToArray();
+
+		var sorted = me.Order().ToArray();
 		return sorted[sorted.Length / 2];
 	}
 

@@ -27,15 +27,21 @@ public static class MainViewModelExtensions
 			return mainViewModel.SettingsPage;
 		});
 
-		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		CoordinatorTabSettingsViewModel.RegisterLazy(() =>
 		{
 			mainViewModel.SettingsPage.SelectedTab = 2;
 			return mainViewModel.SettingsPage;
 		});
 
+
+		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		{
+			mainViewModel.SettingsPage.SelectedTab = 3;
+			return mainViewModel.SettingsPage;
+		});
+
 		AboutViewModel.RegisterLazy(() => new AboutViewModel(uiContext));
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel(uiContext));
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(uiContext));
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel(uiContext));
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel(uiContext));
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel(uiContext));

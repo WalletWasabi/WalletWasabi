@@ -199,7 +199,7 @@ public class CoinJoinAnonScoreTests
 		// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
 		// Since 4 outputs are ours, we divide the increase in anonymity between them
 		// and add that to the inherited anonymity of 4.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + 1 / 4d, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + (1 / 4d), x.HdPubKey.AnonymitySet));
 	}
 
 	[Fact]
@@ -317,7 +317,7 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void InputMergeLargeUniqueDenom()
 	{
-		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
 		var analyzer = new BlockchainAnalyzer();
 
 		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(2.2m), 1) };
@@ -347,7 +347,7 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void InputMergeLargeUniqueDenomReasonablePunishment()
 	{
-		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
 		var analyzer = new BlockchainAnalyzer();
 
 		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };
@@ -376,7 +376,7 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void InputMergeLargeUniqueDenomsReasonablePunishment()
 	{
-		// Input merging and large unique denominations in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/zkSNACKs/WalletWasabi/pull/10699/
+		// Input merging and large unique denominations in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
 		var analyzer = new BlockchainAnalyzer();
 
 		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };

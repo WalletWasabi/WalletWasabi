@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -10,8 +11,10 @@ using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem
+public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem, IDisposable
 {
+	protected readonly CompositeDisposable _disposables = new();
+
 	private bool? _isSelected;
 
 	[AutoNotify] private bool _isParentSelected;
@@ -21,11 +24,13 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 	[AutoNotify] private bool _isCoinjoining;
+	[AutoNotify] private bool _isExcludedFromCoinJoin;
+	[AutoNotify] private bool _canBeSelected;
 
 	protected CoinListItem()
 	{
 		// Temporarily enable the selection no matter what.
-		// Should be again restricted once https://github.com/zkSNACKs/WalletWasabi/issues/9972 is implemented.
+		// Should be again restricted once https://github.com/WalletWasabi/WalletWasabi/issues/9972 is implemented.
 		// CanBeSelected = !IsCoinjoining;
 		CanBeSelected = true;
 
@@ -94,8 +99,6 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 
 	public bool IsLastChild { get; set; }
 
-	public bool CanBeSelected { get; protected set; }
-
 	public bool IgnorePrivacyMode { get; protected set; }
 
 	public bool? IsSelected
@@ -115,4 +118,8 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public ScriptType? ScriptType { get; protected set; }
 
 	public virtual bool HasChildren() => Children.Count != 0;
+
+	public void Dispose() => _disposables.Dispose();
+
+	public abstract string Key { get; }
 }

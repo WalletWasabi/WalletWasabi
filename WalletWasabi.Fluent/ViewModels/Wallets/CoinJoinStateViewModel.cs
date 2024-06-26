@@ -22,6 +22,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
 	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
+	private const string CoordinationFeeRateTooHighMessage = "Coordination fee rate was too high";
+	private const string CoinjoinMiningFeeRateTooHighMessage = "Mining fee rate was too high";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string PressPlayToStartMessage = "Press Play to start";
@@ -165,6 +167,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
+		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
+		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (UiContext.MainViewModel is { } mainViewModel)
+			{
+				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
+			}
+		});
 	}
 
 	private enum State
@@ -194,6 +204,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 
 	public ICommand NavigateToSettingsCommand { get; }
+
+	public ICommand NavigateToExcludedCoinsCommand { get; }
+
+	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
@@ -370,6 +384,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					CoinjoinError.UneconomicalRound => UneconomicalRoundMessage,
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
+					CoinjoinError.CoordinationFeeRateTooHigh => CoordinationFeeRateTooHighMessage,
+					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					_ => GeneralErrorMessage
 				};
 

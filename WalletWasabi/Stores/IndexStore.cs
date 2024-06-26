@@ -52,8 +52,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{NewIndexFilePath}'.");
 
-			// The database file can still be in use, clear all pools to unlock the filter database file.
-			SqliteConnection.ClearAllPools();
 			File.Delete(NewIndexFilePath);
 			throw;
 		}
@@ -93,8 +91,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		try
 		{
 			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -195,7 +191,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		}
 		catch (OperationCanceledException)
 		{
-			SqliteConnection.ClearAllPools();
 			throw;
 		}
 		catch (Exception ex)
@@ -203,7 +198,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			Logger.LogError(ex);
 
 			IndexStorage.Dispose();
-			SqliteConnection.ClearAllPools();
 
 			// Do not run migration code again if it fails.
 			File.Delete(NewIndexFilePath);
@@ -218,8 +212,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
-			using IDisposable _ = BenchmarkLogger.Measure(LogLevel.Debug, "Block filters loading");
-
 			int i = 0;
 
 			// Read last N filters. There is no need to read all of them.
@@ -291,7 +283,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 					}
 
 					processed++;
-					SmartHeaderChain.SetServerTipHeight(Math.Max(SmartHeaderChain.ServerTipHeight, filter.Header.Height));
 				}
 			}
 			finally

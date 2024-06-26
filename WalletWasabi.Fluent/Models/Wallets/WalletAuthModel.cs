@@ -20,8 +20,6 @@ public partial class WalletAuthModel : ReactiveObject
 		_wallet = wallet;
 	}
 
-	public bool IsLegalRequired => Services.LegalChecker.TryGetNewLegalDocs(out _);
-
 	public bool HasPassword => !string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup());
 
 	public async Task LoginAsync(string password)
@@ -50,11 +48,6 @@ public partial class WalletAuthModel : ReactiveObject
 		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password, out _));
 	}
 
-	public async Task AcceptTermsAndConditions()
-	{
-		await Services.LegalChecker.AgreeAsync();
-	}
-
 	public void CompleteLogin()
 	{
 		IsLoggedIn = true;
@@ -64,11 +57,6 @@ public partial class WalletAuthModel : ReactiveObject
 	{
 		_wallet.Logout();
 		IsLoggedIn = false;
-	}
-
-	public IPasswordFinderModel GetPasswordFinder(string password)
-	{
-		return new PasswordFinderModel(_walletModel, _wallet, password);
 	}
 
 	public bool VerifyRecoveryWords(Mnemonic mnemonic)

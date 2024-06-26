@@ -1,3 +1,4 @@
+using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
@@ -25,6 +26,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
+	[AutoNotify] private WalletId? _outputWalletId;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -43,16 +45,21 @@ public partial class WalletSettingsModel : ReactiveObject
 		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
+		if (!isNewWallet)
+		{
+			_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+		}
+
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
-			x => x.AutoCoinjoin,
-			x => x.IsCoinjoinProfileSelected,
-			x => x.PreferPsbtWorkflow,
-			x => x.PlebStopThreshold,
-			x => x.AnonScoreTarget,
-			x => x.RedCoinIsolation,
-			x => x.FeeRateMedianTimeFrameHours)
+				x => x.AutoCoinjoin,
+				x => x.IsCoinjoinProfileSelected,
+				x => x.PreferPsbtWorkflow,
+				x => x.PlebStopThreshold,
+				x => x.AnonScoreTarget,
+				x => x.RedCoinIsolation,
+				x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -83,6 +90,7 @@ public partial class WalletSettingsModel : ReactiveObject
 			{
 				Services.WalletManager.AddWallet(_keyManager);
 				IsNewWallet = false;
+				OutputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 			}
 
 			_isDirty = false;
@@ -101,7 +109,6 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.CoinjoinSkipFactors = CoinjoinSkipFactors;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
-
 		_isDirty = true;
 	}
 }

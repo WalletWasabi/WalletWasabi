@@ -27,12 +27,6 @@ public class CanonicalSerializationTests
 	}
 
 	[Fact]
-	public void IllegalCharacterSerialization()
-	{
-		Assert.Throws<JsonSerializationException>(() => JsonConvert.SerializeObject(new IllegalCharacterSerializationJsonObject(), CanonicalJsonSerializationOptions.Settings));
-	}
-
-	[Fact]
 	public void TransactionSerialization()
 	{
 		var transaction = new Payload(

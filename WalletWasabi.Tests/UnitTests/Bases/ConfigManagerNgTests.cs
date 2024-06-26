@@ -52,8 +52,12 @@ public class ConfigManagerNgTests
 			  "MainNetBackendUri": "https://api.wasabiwallet.io/",
 			  "TestNetClearnetBackendUri": "https://api.wasabiwallet.co/",
 			  "RegTestBackendUri": "http://localhost:37127/",
-			  "UseTor": true,
+			  "MainNetCoordinatorUri": "https://api.wasabiwallet.io/",
+			  "TestNetCoordinatorUri": "https://api.wasabiwallet.co/",
+			  "RegTestCoordinatorUri": "http://localhost:37127/",
+			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
+			  "TorBridges": [],
 			  "DownloadNewVersion": true,
 			  "StartLocalBitcoinCoreOnStartup": false,
 			  "StopLocalBitcoinCoreOnShutdown": true,
@@ -70,7 +74,9 @@ public class ConfigManagerNgTests
 			  ],
 			  "DustThreshold": "0.00005",
 			  "EnableGpu": true,
-			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier"
+			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
+			  "MaxCoordinationFeeRate": 0.0,
+			  "MaxCoinJoinMiningFeeRate": 150.0
 			}
 			""";
 

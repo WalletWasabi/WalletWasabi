@@ -46,8 +46,6 @@ public class CoreNode
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
-		using IDisposable _ = BenchmarkLogger.Measure();
-
 		string configPath = Path.Combine(coreNodeParams.DataDir, "bitcoin.conf");
 		CoreConfig coreConfig = new();
 
@@ -132,7 +130,7 @@ public class CoreNode
 		{
 			$"{configPrefix}.server			= 1",
 			$"{configPrefix}.listen			= 1",
-			$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
+			$"{configPrefix}.daemon			= 0", // https://github.com/WalletWasabi/WalletWasabi/issues/3588
 			$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 			$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 			$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",

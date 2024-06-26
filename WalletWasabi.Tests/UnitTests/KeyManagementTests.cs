@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NBitcoin;
 using System.IO;
 using System.Linq;
@@ -6,12 +5,9 @@ using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Client;
 using Xunit;
 using WalletWasabi.Wallets;
 
@@ -46,7 +42,7 @@ public class KeyManagementTests
 		Assert.NotNull(manager3.SegwitExtPubKey);
 		Assert.NotNull(manager3.TaprootExtPubKey);
 
-		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, true, null, new BlockchainState(Network.Main));
+		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, null, new BlockchainState(Network.Main));
 		var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 		Logger.TurnOff();
 		Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));

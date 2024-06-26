@@ -77,7 +77,7 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 	private void ShowLogin()
 	{
-		CurrentPage = new LoginViewModel(UiContext, WalletModel);
+		CurrentPage = new LoginViewModel(WalletModel);
 	}
 
 	private void ShowWalletLoading()

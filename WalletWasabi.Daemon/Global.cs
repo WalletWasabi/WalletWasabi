@@ -38,6 +38,7 @@ using WalletWasabi.BuyAnything;
 using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -54,13 +55,16 @@ public class Global
 		TorSettings = new TorSettings(
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
-			Config.TerminateTorOnExit,
+			terminateOnExit: Config.TerminateTorOnExit,
+			torMode: Config.UseTor,
 			socksPort: config.TorSocksPort,
 			controlPort: config.TorControlPort,
-			owningProcessId: Environment.ProcessId);
+			torFolder: config.TorFolder,
+			bridges: config.TorBridges,
+			owningProcessId: Environment.ProcessId,
+			log: Config.LogModes.Contains(LogMode.File));
 
 		HostedServices = new HostedServices();
-		EventBus = new EventBus();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
@@ -73,21 +77,15 @@ public class Global
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
 
-		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(15) : TimeSpan.FromSeconds(90);
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient), "Update Manager");
+		UpdateManager = HostedServices.Get<UpdateManager>();
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, BitcoinStore.SmartHeaderChain, HttpClientFactory.SharedWasabiClient, EventBus), "Wasabi Synchronizer");
+		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		var coordinatorUri = config.GetCoordinatorUri();
-		var satoshiUriScheme = coordinatorUri.Scheme == "https" ? "wss" : "ws";
-		var satoshiEndpointUri = new UriBuilder(satoshiUriScheme, coordinatorUri.Host, coordinatorUri.Port, "api/satoshi").Uri;
-		HostedServices.Register<SatoshiSynchronizer>(() => new SatoshiSynchronizer(BitcoinStore, satoshiEndpointUri, Config.UseTor ? TorSettings.SocksEndpoint : null, EventBus), "Satoshi Synchronizer");
-
-		HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromHours(1), wasabiSynchronizer), "Software Update Checker");
-		UpdateChecker updateChecker = HostedServices.Get<UpdateChecker>();
-
-		LegalChecker = new(DataDir, updateChecker);
-		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -104,7 +102,7 @@ public class Global
 				var p2p = new P2pNetwork(
 						Network,
 						Config.GetBitcoinP2pEndPoint(),
-						Config.UseTor ? TorSettings.SocksEndpoint : null,
+						Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
 						Path.Combine(DataDir, "BitcoinP2pNetwork"),
 						BitcoinStore);
 				if (!Config.BlockOnlyMode)
@@ -158,7 +156,6 @@ public class Global
 
 	public WasabiHttpClientFactory CoordinatorHttpClientFactory { get; }
 
-	public LegalChecker LegalChecker { get; private set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -184,12 +181,12 @@ public class Global
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
-	private EventBus EventBus { get; }
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
-			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter);
+			Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
+			backendUriGetter,
+			torControlAvailable: Config.UseTor == TorMode.Enabled);
 
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
@@ -209,8 +206,6 @@ public class Global
 			try
 			{
 				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				await LegalChecker.InitializeAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -235,7 +230,7 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-                await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				RegisterCoinJoinComponents();
 
@@ -314,32 +309,34 @@ public class Global
 
 	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
-		if (Config.UseTor)
+		if (Config.UseTor != TorMode.Disabled)
 		{
-			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-			{
-				TorManager = new TorProcessManager(TorSettings);
-				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+			TorManager = new TorProcessManager(TorSettings);
+			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
-				var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
-				if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+			var (_, torControlClient) = await TorManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+			if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
+			{
+				var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
+				if (!anonymousAccessAllowed)
 				{
-					var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
-					if (!anonymousAccessAllowed)
-					{
-						var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
-						OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
-						Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
-					}
-					else
-					{
-						Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
-					}
+					var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(TorSettings.RpcVirtualPort, TorSettings.RpcOnionPort, cancellationToken).ConfigureAwait(false);
+					OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
+					Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
+				}
+				else
+				{
+					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			// Do not monitor Tor when Tor is an already running service.
+			if (TorSettings.TorMode == TorMode.Enabled)
+			{
+				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+			}
+
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
@@ -382,7 +379,7 @@ public class Global
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>(), EventBus), "RPC Fee Provider");
+		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 		if (!Config.BlockOnlyMode)
 		{
 			HostedServices.Register<MempoolMirror>(
@@ -395,14 +392,16 @@ public class Global
 	{
 		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(EventBus), "Hybrid Fee Provider");
+		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 	}
 
 	private void RegisterCoinJoinComponents()
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), Config.CoordinatorIdentifier, CoinPrison), "CoinJoin Manager");
+
+		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate);
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
@@ -449,9 +448,6 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				UpdateManager.Dispose();
-				Logger.LogInfo($"{nameof(UpdateManager)} is stopped.");
-
 				CoinPrison.Dispose();
 
 				if (RpcServer is { } rpcServer)
@@ -477,12 +473,6 @@ public class Global
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
-				}
-
-				if (LegalChecker is { } legalChecker)
-				{
-					legalChecker.Dispose();
-					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
 
 				if (HostedServices is { } backgroundServices)

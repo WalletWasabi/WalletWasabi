@@ -6,6 +6,6 @@ public static class AmountExtensions
 {
 	public static double Diff(this Amount self, Amount toCompare)
 	{
-		return (double) self.Btc.Satoshi / toCompare.Btc.Satoshi - 1;
+		return ((double)self.Btc.Satoshi / toCompare.Btc.Satoshi) - 1;
 	}
 }

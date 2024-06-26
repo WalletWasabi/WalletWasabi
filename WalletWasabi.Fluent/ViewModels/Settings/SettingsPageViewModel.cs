@@ -39,6 +39,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
+		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext.ApplicationSettings);
 		AdvancedSettingsTab = new AdvancedSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
@@ -65,10 +66,17 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
+	public CoordinatorTabSettingsViewModel CoordinatorTabSettings { get; }
 	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
 
 	public async Task Activate()
 	{
+		await NavigateDialogAsync(this);
+	}
+
+	public async Task ActivateCoordinatorTab()
+	{
+		SelectedTab = 2;
 		await NavigateDialogAsync(this);
 	}
 

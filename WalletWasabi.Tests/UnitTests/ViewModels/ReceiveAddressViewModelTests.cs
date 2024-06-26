@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -42,6 +44,9 @@ public class ReceiveAddressViewModelTests
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public IAddressesModel Addresses => throw new NotSupportedException();
+
+		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
+
 		public WalletId Id => throw new NotSupportedException();
 
 		public string Name
@@ -68,14 +73,22 @@ public class ReceiveAddressViewModelTests
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
+		public bool IsLoaded { get; set; }
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
 		}
 
 		public void Rename(string newWalletName) => throw new NotSupportedException();
+
 		public void Dispose()
 		{
+		}
+
+		public Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
+		{
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
@@ -89,6 +102,11 @@ public class ReceiveAddressViewModelTests
 		}
 
 		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
+
+		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

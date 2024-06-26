@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public static class CoinListDataGridSource
 {
-	public static HierarchicalTreeDataGridSource<CoinListItem> Create(IEnumerable<CoinListItem> source, bool ignorePrivacyMode)
+	public static HierarchicalTreeDataGridSource<CoinListItem> Create(IEnumerable<CoinListItem> source, bool ignorePrivacyMode, bool allowSelection)
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
@@ -21,7 +21,7 @@ public static class CoinListDataGridSource
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			true
 		// Selection		SelectionColumnView		-			Auto		-				-			false
-		return new HierarchicalTreeDataGridSource<CoinListItem>(source)
+		var result = new HierarchicalTreeDataGridSource<CoinListItem>(source)
 		{
 			Columns =
 			{
@@ -29,9 +29,15 @@ public static class CoinListDataGridSource
 				AnonymityScoreColumn(),
 				AmountColumn(ignorePrivacyMode),
 				LabelsColumn(),
-				SelectionColumn(),
 			}
 		};
+
+		if (allowSelection)
+		{
+			result.Columns.Add(SelectionColumn());
+		}
+
+		return result;
 	}
 
 	private static int GetIndicatorPriority(CoinListItem x)
@@ -49,6 +55,11 @@ public static class CoinListDataGridSource
 		if (!x.IsConfirmed)
 		{
 			return 3;
+		}
+
+		if (!x.IsExcludedFromCoinJoin)
+		{
+			return 4;
 		}
 
 		return 0;

@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;

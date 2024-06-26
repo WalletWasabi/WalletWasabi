@@ -6,7 +6,8 @@
 
     <Setter Property="Template">
       <ControlTemplate>
-        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
+        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+                   IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
           <TextBlock.Text>
             <MultiBinding StringFormat="{}{0} {1}">
               <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
@@ -20,7 +21,8 @@
     <Style Selector="^.Fee">
       <Setter Property="Template">
         <ControlTemplate>
-          <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap">
+          <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+                     IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
             <TextBlock.Text>
               <MultiBinding StringFormat="{}{0} {1}">
                 <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToFeeWithUnit}" />
@@ -28,6 +30,26 @@
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="^.Material">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{DynamicResource TileRegionColor}"
+                  Padding="10 5 10 5" CornerRadius="10"
+                  DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
+                  IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
+                         Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}"/>
+              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
+                         Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdFormatted}}"
+                         IsVisible="{Binding HasUsdBalance^}"
+                         Opacity="0.6"/>
+            </StackPanel>
+          </Border>
         </ControlTemplate>
       </Setter>
     </Style>

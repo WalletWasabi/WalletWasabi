@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Events;
 

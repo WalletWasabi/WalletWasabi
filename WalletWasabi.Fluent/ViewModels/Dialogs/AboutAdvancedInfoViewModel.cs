@@ -1,4 +1,3 @@
-using System.Reactive;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi;
@@ -6,7 +5,7 @@ using WalletWasabi.WebClients.Wasabi;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "About", NavigationTarget = NavigationTarget.CompactDialogScreen)]
-public partial class AboutAdvancedInfoViewModel : DialogViewModelBase<Unit>
+public partial class AboutAdvancedInfoViewModel : DialogViewModelBase<System.Reactive.Unit>
 {
 	public AboutAdvancedInfoViewModel()
 	{

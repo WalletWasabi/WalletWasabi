@@ -7,12 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
-using SQLitePCL;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
@@ -344,8 +341,8 @@ public static class WabiSabiFactory
 			keyChain,
 			outputProvider,
 			roundStateUpdater,
-			"CoinJoinCoordinatorIdentifier",
 			coinSelector,
+			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 0.3m, 150.0m),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
 			TimeSpan.Zero,

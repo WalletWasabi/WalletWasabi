@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -17,6 +16,7 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	public BlockstreamInfoClient BlockstreamInfoClient { get; set; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
+	public bool InError { get; private set; } = false;
 	public bool IsPaused { get; set; } = false;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
@@ -25,12 +25,22 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		{
 			return;
 		}
-		var allFeeEstimate = await BlockstreamInfoClient.GetFeeEstimatesAsync(cancel).ConfigureAwait(false);
-		LastAllFeeEstimate = allFeeEstimate;
-
-		if (allFeeEstimate.Estimations.Count != 0)
+		try
 		{
-			AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+			var allFeeEstimate = await BlockstreamInfoClient.GetFeeEstimatesAsync(cancel).ConfigureAwait(false);
+			LastAllFeeEstimate = allFeeEstimate;
+
+			if (allFeeEstimate.Estimations.Count != 0)
+			{
+				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+			}
+
+			InError = false;
+		}
+		catch
+		{
+			InError = true;
+			throw;
 		}
 	}
 }

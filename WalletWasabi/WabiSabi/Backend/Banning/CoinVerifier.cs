@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.Extensions;
-using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;

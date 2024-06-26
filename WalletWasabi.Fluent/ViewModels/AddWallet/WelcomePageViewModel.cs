@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Welcome")]
 public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 {
-	private const int NumberOfPages = 2;
+	private const int NumberOfPages = 1;
 	[AutoNotify] private int _selectedIndex;
 	[AutoNotify] private string? _nextLabel;
 	[AutoNotify] private bool _enableNextKey = true;

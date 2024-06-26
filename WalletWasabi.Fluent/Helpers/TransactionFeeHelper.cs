@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -31,7 +30,12 @@ public static class TransactionFeeHelper
 
 	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		while (!cancellationToken.IsCancellationRequested)
+		var feeProvider = wallet.FeeProvider;
+
+		bool RpcFeeProviderInError() => feeProvider.RpcFeeProvider?.InError ?? true;
+		bool ThirdPartyFeeProviderInError() => feeProvider.ThirdPartyFeeProvider.InError;
+
+		while (!RpcFeeProviderInError() || !ThirdPartyFeeProviderInError())
 		{
 			if (TryGetFeeEstimates(wallet, out var feeEstimates))
 			{
@@ -40,6 +44,7 @@ public static class TransactionFeeHelper
 
 			await Task.Delay(100, cancellationToken);
 		}
+
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
@@ -88,7 +93,7 @@ public static class TransactionFeeHelper
 	{
 		estimates = null;
 
-		if (feeProvider.AllFeeEstimate is null || !feeProvider.AllFeeEstimate.Estimations.Any())
+		if (feeProvider.AllFeeEstimate is null)
 		{
 			return false;
 		}

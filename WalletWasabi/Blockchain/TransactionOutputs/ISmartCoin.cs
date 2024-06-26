@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -21,7 +20,7 @@ public interface ISmartCoin
 
 	/// <returns>False if external, or the tx inputs are all external.</returns>
 	/// <remarks>
-	/// Context: https://github.com/zkSNACKs/WalletWasabi/issues/10567
+	/// Context: https://github.com/WalletWasabi/WalletWasabi/issues/10567
 	/// If you're a lazy dev implementing this interface, you may just return constant true, because it does not make too much of a difference.
 	/// </remarks>
 	bool IsSufficientlyDistancedFromExternalKeys { get; }

@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,9 +5,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -40,8 +41,8 @@ public class CoinJoinClient
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
-		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
+		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
@@ -51,8 +52,8 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		OutputProvider = outputProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
+		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
@@ -69,8 +70,8 @@ public class CoinJoinClient
 	private IKeyChain KeyChain { get; }
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
+	public CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -150,6 +151,18 @@ public class CoinJoinClient
 					string roundSkippedMessage = "Uneconomical round skipped.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
+				}
+				if (roundParameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
+				{
+					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate * 100} but max allowed is {CoinJoinConfiguration.MaxCoordinationFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
+				}
+				if (roundParameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+				{
+					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.MiningFeeRateTooHigh, roundSkippedMessage);
 				}
 				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
 				{
@@ -413,7 +426,7 @@ public class CoinJoinClient
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					CoordinatorIdentifier,
+					CoinJoinConfiguration.CoordinatorIdentifier,
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
@@ -586,7 +599,7 @@ public class CoinJoinClient
 			new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
-				CoordinatorIdentifier,
+				CoinJoinConfiguration.CoordinatorIdentifier,
 				arenaRequestHandler));
 	}
 
@@ -632,10 +645,7 @@ public class CoinJoinClient
 				}
 				try
 				{
-					using (BenchmarkLogger.Measure(LogLevel.Debug, nameof(SignTransactionAsync)))
-					{
-						await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-					}
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
@@ -743,8 +753,8 @@ public class CoinJoinClient
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
-		var outputRegistrationEndTime = now + remainingTime * 0.8; // 80% of the time.
-		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
+		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
+		var readyToSignEndTime = outputRegistrationEndTime + (remainingTime * 0.2); // 20% of the time.
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
@@ -779,8 +789,10 @@ public class CoinJoinClient
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
 			var outputRegistrationScheduledDates = outputRegistrationEndTime.GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, MaximumRequestDelay);
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
+			var registrationResult = await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
+			registrationResult.MatchDo(
+				OnOutputRegistrationSuccess,
+				OnOutputRegistrationErrors);
 		}
 		catch (Exception e)
 		{
@@ -793,6 +805,26 @@ public class CoinJoinClient
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
 		return outputTxOuts;
+
+		void OnOutputRegistrationSuccess(Unit _) =>
+			roundState.LogInfo($"Outputs({outputTxOuts.Length}) were registered.");
+
+		void OnOutputRegistrationErrors(DependencyGraphTaskScheduler.OutputRegistrationError[] errors)
+		{
+			foreach (var e in errors)
+			{
+				switch (e)
+				{
+					case DependencyGraphTaskScheduler.UnknownError s:
+						roundState.LogInfo($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...");
+						break;
+					case DependencyGraphTaskScheduler.AlreadyRegisteredScriptError s:
+						OutputProvider.DestinationProvider.TrySetScriptStates(KeyState.Used, [s.ScriptPubKey]);
+						roundState.LogInfo($"Script ({s.ScriptPubKey}) was already registered. Continuing...");
+						break;
+				}
+			}
+		}
 	}
 
 	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
@@ -820,11 +852,22 @@ public class CoinJoinClient
 		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
-		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
 		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 		if (!mustSignAllInputs)
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
+		}
+		else
+		{
+			// Assert that the effective fee rate is at least what was agreed on.
+			// Otherwise, coordinator could take some of the mining fees for itself.
+			// There is a tolerance because before constructing the transaction only an estimation can be computed.
+			mustSignAllInputs = signingState.EffectiveFeeRate.FeePerK.Satoshi > signingState.Parameters.MiningFeeRate.FeePerK.Satoshi * 0.90;
+			if (!mustSignAllInputs)
+			{
+				roundState.LogInfo($"Effective fee rate of the transaction is lower than expected. A subset of inputs will be signed.");
+			}
 		}
 
 		// Send signature.

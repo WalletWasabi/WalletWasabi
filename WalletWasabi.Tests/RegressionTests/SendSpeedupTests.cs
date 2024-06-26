@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.Protocol;
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -20,11 +17,9 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
-using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.RegressionTests;
@@ -65,8 +60,8 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), bitcoinStore.SmartHeaderChain, httpClientFactory.SharedWasabiClient, global.EventBus);
-		HybridFeeProvider feeProvider = new(global.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
+		HybridFeeProvider feeProvider = new(synchronizer, null);
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
 		// 4. Create key manager service.
@@ -468,7 +463,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region MarnixFoundBug
 
-			// https://github.com/zkSNACKs/WalletWasabi/pull/10976#pullrequestreview-1542077218
+			// https://github.com/WalletWasabi/WalletWasabi/pull/10976#pullrequestreview-1542077218
 			// I speed up a tx which has change, but the additional fee was deducted from the original send amount not from the change utxo?
 			// https://mempool.space/testnet/tx/b0de46a002e6487dac3a3a98841380d4ced7e4e8482217b2758dd53df0760af8
 			// I sent the 0.0004

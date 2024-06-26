@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
