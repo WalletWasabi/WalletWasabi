@@ -32,8 +32,6 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 	{
 		CoinList = new CoinListViewModel(walletModel, walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
-		EnableBack = true;
-
 		var nextCommandCanExecute =
 			CoinList.Selection
 					.ToObservableChangeSet()
