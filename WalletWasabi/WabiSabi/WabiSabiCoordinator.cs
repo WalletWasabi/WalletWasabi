@@ -12,7 +12,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -23,14 +22,13 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory, CoinVerifier? coinVerifier = null)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory)
 	{
 		Parameters = parameters;
 		RpcClient = rpc;
 		Warden = new(parameters.PrisonFilePath, coinJoinIdStore, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
-		CoinVerifier = coinVerifier;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
@@ -48,8 +46,7 @@ public class WabiSabiCoordinator : BackgroundService
 			coinJoinIdStore,
 			roundParameterFactory,
 			transactionArchiver,
-			coinJoinScriptStore,
-			coinVerifier);
+			coinJoinScriptStore);
 		AffiliationManager = new(Arena, Config, httpClientFactory);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
@@ -58,7 +55,6 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public ConfigWatcher ConfigWatcher { get; }
 	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
-	public CoinVerifier? CoinVerifier { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }

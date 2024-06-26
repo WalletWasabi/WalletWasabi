@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -35,8 +34,7 @@ public partial class Arena : PeriodicRunner
 		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
 		CoinJoinTransactionArchiver? archiver = null,
-		CoinJoinScriptStore? coinJoinScriptStore = null,
-		CoinVerifier? coinVerifier = null) : base(period)
+		CoinJoinScriptStore? coinJoinScriptStore = null ) : base(period)
 	{
 		Config = config;
 		Rpc = rpc;
@@ -45,13 +43,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
-		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
-
-		if (CoinVerifier is not null)
-		{
-			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
-		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -75,7 +67,6 @@ public partial class Arena : PeriodicRunner
 	private Prison Prison { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	public CoinVerifier? CoinVerifier { get; private set; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -136,28 +127,6 @@ public partial class Arena : PeriodicRunner
 					if (offendingAlices.Length != 0)
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
-					}
-				}
-
-				if (round is not BlameRound && CoinVerifier is not null)
-				{
-					try
-					{
-						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice, CoinEqualityComparer.Default);
-						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
-						{
-							if (coinVerifyInfo.ShouldRemove)
-							{
-								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
-								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
-							}
-						}
-					}
-					catch (Exception exc)
-					{
-						// This should never happen.
-						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
-						throw;
 					}
 				}
 
@@ -653,7 +622,6 @@ public partial class Arena : PeriodicRunner
 			foreach (var alice in alicesToRemove)
 			{
 				round.Alices.Remove(alice);
-				CoinVerifier?.CancelSchedule(alice.Coin);
 			}
 
 			var removedAliceCount = alicesToRemove.Length;
@@ -776,10 +744,6 @@ public partial class Arena : PeriodicRunner
 
 	public override void Dispose()
 	{
-		if (CoinVerifier is not null)
-		{
-			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
-		}
 		base.Dispose();
 	}
 
