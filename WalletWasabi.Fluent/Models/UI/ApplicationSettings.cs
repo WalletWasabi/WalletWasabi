@@ -50,7 +50,6 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
-	[AutoNotify] private string _readMoreUri;
 
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
