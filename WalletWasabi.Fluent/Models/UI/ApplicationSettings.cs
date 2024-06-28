@@ -43,10 +43,14 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
+	[AutoNotify] private string _dustThreshold;
+
+	// Coordinator
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
-	[AutoNotify] private string _dustThreshold;
+	[AutoNotify] private string _absoluteMinInputCount;
+	[AutoNotify] private string _readMoreUri;
 
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
@@ -89,10 +93,13 @@ public partial class ApplicationSettings : ReactiveObject
 		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
 		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
 		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		_dustThreshold = _startupConfig.DustThreshold.ToString();
+
+		// Coordinator
 		_coordinatorUri = _startupConfig.GetCoordinatorUri();
 		_maxCoordinationFeeRate = _startupConfig.MaxCoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
 		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
-		_dustThreshold = _startupConfig.DustThreshold.ToString();
+		_absoluteMinInputCount = _startupConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
@@ -138,10 +145,11 @@ public partial class ApplicationSettings : ReactiveObject
 			.Subscribe();
 
 		// Save on change - continuation. WhenAnyValue cannot have more than 12 arguments.
-		this.WhenAnyValue(x =>
-				x.MaxCoordinationFeeRate,
+		this.WhenAnyValue(
+				x => x.MaxCoordinationFeeRate,
 				x => x.MaxCoinJoinMiningFeeRate,
-				(_, _) => Unit.Default)
+				x => x.AbsoluteMinInputCount,
+				(_, _, _) => Unit.Default)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -281,7 +289,10 @@ public partial class ApplicationSettings : ReactiveObject
 					Constants.DefaultMaxCoordinationFeeRate,
 				MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
 					maxCoinjoinMiningFeeRate :
-					Constants.DefaultMaxCoinJoinMiningFeeRate
+					Constants.DefaultMaxCoinJoinMiningFeeRate,
+				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
+					absoluteMinInputCount :
+					Constants.DefaultAbsoluteMinInputCount
 			};
 		}
 		else

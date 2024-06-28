@@ -24,6 +24,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
+	[AutoNotify] private string _absoluteMinInputCount;
 
 	public CoordinatorTabSettingsViewModel(IApplicationSettings settings)
 	{
@@ -32,11 +33,13 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
 		this.ValidateProperty(x => x.MaxCoordinationFeeRate, ValidateMaxCoordinationFeeRate);
 		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
+		this.ValidateProperty(x => x.AbsoluteMinInputCount, ValidateAbsoluteMinInputCount);
 
 
 		_coordinatorUri = settings.CoordinatorUri;
 		_maxCoordinationFeeRate = settings.MaxCoordinationFeeRate;
 		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
+		_absoluteMinInputCount = settings.AbsoluteMinInputCount;
 
 		this.WhenAnyValue(x => x.Settings.CoordinatorUri)
 			.Subscribe(x => CoordinatorUri = x);
@@ -116,5 +119,29 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.MaxCoinJoinMiningFeeRate = maxCoinJoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
+	}
+
+	private void ValidateAbsoluteMinInputCount(IValidationErrors errors)
+	{
+		var absoluteMinInputCount = AbsoluteMinInputCount;
+
+		if (string.IsNullOrEmpty(absoluteMinInputCount))
+		{
+			return;
+		}
+
+		if (!int.TryParse(absoluteMinInputCount, out var absoluteMinInputCountInt))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			return;
+		}
+
+		if (absoluteMinInputCountInt < 2)
+		{
+			errors.Add(ErrorSeverity.Error, "Absolute min input count should be at least 2");
+			return;
+		}
+
+		Settings.AbsoluteMinInputCount = absoluteMinInputCountInt.ToString(CultureInfo.InvariantCulture);
 	}
 }
