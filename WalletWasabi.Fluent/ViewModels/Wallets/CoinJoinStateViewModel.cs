@@ -24,6 +24,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
 	private const string CoordinationFeeRateTooHighMessage = "Coordination fee rate was too high";
 	private const string CoinjoinMiningFeeRateTooHighMessage = "Mining fee rate was too high";
+	private const string MinInputCountTooLowMessage = "Min input count was too low";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin has stopped";
 	private const string PressPlayToStartMessage = "Press Play to start";
@@ -386,6 +387,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					CoinjoinError.CoordinationFeeRateTooHigh => CoordinationFeeRateTooHighMessage,
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
+					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					_ => GeneralErrorMessage
 				};
 
