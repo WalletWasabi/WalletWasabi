@@ -1,42 +1,25 @@
 using NBitcoin;
 using NBitcoin.Secp256k1;
-using Newtonsoft.Json;
 using NNostr.Client.Protocols;
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
-namespace WalletWasabi.Discoverability
+namespace WalletWasabi.Discoverability;
+
+public record AnnouncerConfig
 {
-	[JsonObject(MemberSerialization.OptIn)]
-	public class AnnouncerConfig
+	public bool IsEnabled { get; init; } = true;
+	public string CoordinatorDescription { get; init; } = "WabiSabi Coinjoin Coordinator";
+	public string CoordinatorUri { get; init; } = "https://api.example.com/";
+	public decimal CoordinationFee { get; init; } = 0.0m;
+	public uint AbsoluteMinInputCount { get; init; } = 21;
+	public string ReadMoreUri { get; init; } = "https://api.example.com/";
+	public string[] RelayUris { get; init;  } = ["wss://relay.primal.net"];
+	public string Key { get; init; } = InitKey();
+
+	private static string InitKey()
 	{
-		[JsonProperty(PropertyName = "IsEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool IsEnabled { get; set; }
-
-		[JsonProperty(PropertyName = "CoordinatorDescription")]
-		public string CoordinatorDescription { get; set; } = "WabiSabi Coinjoin Coordinator";
-
-		[JsonProperty(PropertyName = "CoordinatorUri")]
-		public string CoordinatorUri { get; set; } = "https://api.example.com/";
-
-		[JsonProperty(PropertyName = "CoordinatorFee")]
-		public decimal CoordinatorFee { get; set; } = 0.0m;
-
-		[JsonProperty(PropertyName = "AbsoluteMinInputCount")]
-		public uint AbsoluteMinInputCount { get; set; } = 21;
-
-		[JsonProperty(PropertyName = "ReadMoreUri")]
-		public string ReadMoreUri { get; set; } = "https://api.example.com/";
-
-		[JsonProperty(PropertyName = "RelayUris")]
-		public string[] RelayUris { get; set; } = ["wss://relay.primal.net"];
-
-		[JsonProperty(PropertyName = "Key")]
-		public string Key { get; set; } = InitKey();
-
-		private static string InitKey()
-		{
-			using var key = new Key();
-			using var privKey = ECPrivKey.Create(key.ToBytes());
-			return privKey.ToNIP19();
-		}
+		using var key = new Key();
+		using var privKey = ECPrivKey.Create(key.ToBytes());
+		return privKey.ToNIP19();
 	}
 }

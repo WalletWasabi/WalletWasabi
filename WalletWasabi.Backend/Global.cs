@@ -38,9 +38,10 @@ public class Global : IDisposable
 		CoinJoinIdStore = CoinJoinIdStore.Create(CoordinatorParameters.CoinJoinIdStoreFilePath);
 
 		// Add Nostr publisher if enabled
-		if (Config.AnnouncerConfig.IsEnabled)
+		if (Config.AnnouncerConfig.IsEnabled && config.Network != Network.RegTest)
 		{
-			HostedServices.Register<NostrCoordinatorPublisher>(() => new NostrCoordinatorPublisher(TimeSpan.FromMinutes(15), Config.AnnouncerConfig, Config.Network), "Nostr Coordinator Publisher");
+			HostedServices.Register<CoordinatorAnnouncer>(
+				() => new CoordinatorAnnouncer(TimeSpan.FromMinutes(15), Config.AnnouncerConfig, Config.Network), "Nostr Coordinator Publisher");
 		}
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
