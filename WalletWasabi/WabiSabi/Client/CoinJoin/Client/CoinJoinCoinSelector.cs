@@ -210,40 +210,8 @@ public class CoinJoinCoinSelector
 		}
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
-		// Let's remove some coins coming from the same tx in the final candidate:
-		// The smaller our balance is the more privacy we gain and the more the user cares about the costs, so more interconnectedness allowance makes sense.
-		var toRegister = finalCandidate.Sum(x => x.Amount);
-		int percent;
-		if (toRegister < 10_000)
-		{
-			percent = 20;
-		}
-		else if (toRegister < 100_000)
-		{
-			percent = 30;
-		}
-		else if (toRegister < 1_000_000)
-		{
-			percent = 40;
-		}
-		else if (toRegister < 10_000_000)
-		{
-			percent = 50;
-		}
-		else if (toRegister < 100_000_000) // 1 BTC
-		{
-			percent = 60;
-		}
-		else if (toRegister < 1_000_000_000)
-		{
-			percent = 70;
-		}
-		else
-		{
-			percent = 80;
-		}
-
-		int sameTxAllowance = Generator.GetRandomBiasedSameTxAllowance(percent);
+		// Let's remove some coins coming from the same tx in the final candidate, allow 2 on average.
+		int sameTxAllowance = Generator.GetRandomBiasedSameTxAllowance(67);
 
 		List<TCoin> winner = new()
 		{
