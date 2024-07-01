@@ -193,7 +193,7 @@ public static class TransactionModifierWalletExtensions
 		var allowedInputs = transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint);
 
 		BuildTransactionResult rbf = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
+			password: wallet.Password,
 			payments: new PaymentIntent(payments),
 			feeStrategy: FeeStrategy.CreateFromFeeRate(rbfFeeRate),
 			allowUnconfirmed: true,

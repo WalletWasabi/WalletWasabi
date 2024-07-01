@@ -85,7 +85,7 @@ public static class TransactionBuilderWalletExtensions
 			label);
 
 		var txRes = wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
+			wallet.Password,
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
@@ -119,7 +119,7 @@ public static class TransactionBuilderWalletExtensions
 			label: label);
 
 		var txRes = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
+			password: wallet.Password,
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
@@ -172,7 +172,7 @@ public static class TransactionBuilderWalletExtensions
 			label: label);
 
 		var txRes = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
+			password: wallet.Password,
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromConfirmationTarget(2),
 			allowUnconfirmed: true,

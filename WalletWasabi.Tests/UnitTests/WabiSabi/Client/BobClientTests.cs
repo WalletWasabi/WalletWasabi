@@ -68,7 +68,7 @@ public class BobClientTests
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 		await roundStateUpdater.StartAsync(token);
 
-		var keyChain = new KeyChain(km, new Kitchen(""));
+		var keyChain = new KeyChain(km,"");
 		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
 
 		do

@@ -372,7 +372,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.Kitchen.Cook(password);
+		activeWallet.TryLogin(password, out _);
 		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
 		{
@@ -389,7 +389,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.Kitchen.Cook(password);
+		activeWallet.TryLogin(password, out _);
 		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
 		{
