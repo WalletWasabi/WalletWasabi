@@ -1,27 +1,29 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-	  <AvaloniaVersion>11.0.999-cibuild0044755-beta</AvaloniaVersion>
+    <AvaloniaVersion>11.0.999-cibuild0044755-beta</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
-	<!-- AspNetCore. -->
-	<PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
-	<PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
-	<PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
-	<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-	<PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
-	<PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <!-- AspNetCore. -->
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="NNostr.Client" Version="0.0.49" />
+    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <!-- JSON. -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
     <!-- SQLite. -->
-	<PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
-    <PackageVersion Include="System.Private.Uri" Version="4.3.2" /> <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
+    <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
+    <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
     <PackageVersion Include="NBitcoin" Version="7.0.27" />
