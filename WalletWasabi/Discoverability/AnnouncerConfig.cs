@@ -7,6 +7,7 @@ namespace WalletWasabi.Discoverability;
 
 public record AnnouncerConfig
 {
+	public string CoordinatorName { get; init; } = "Coordinator";
 	public bool IsEnabled { get; init; } = true;
 	public string CoordinatorDescription { get; init; } = "WabiSabi Coinjoin Coordinator";
 	public string CoordinatorUri { get; init; } = "https://api.example.com/";

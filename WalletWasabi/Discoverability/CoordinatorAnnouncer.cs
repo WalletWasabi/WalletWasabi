@@ -21,6 +21,7 @@ public class CoordinatorAnnouncer(TimeSpan period, AnnouncerConfig config, Netwo
 			Content = config.CoordinatorDescription,
 			Tags =
 			[
+				CreateTag("name", config.CoordinatorName),
 				CreateTag("type", "wabisabi"),
 				CreateTag("network", network.ChainName.ToString().ToLower()),
 				CreateTag("endpoint", config.CoordinatorUri),
