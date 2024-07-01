@@ -15,7 +15,7 @@ public class KeyChainTests
 	{
 		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
 		var destinationProvider = new InternalDestinationProvider(keyManager);
-		var keyChain = new KeyChain(keyManager, new Kitchen(""));
+		var keyChain = new KeyChain(keyManager,"");
 
 		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));

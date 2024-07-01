@@ -82,7 +82,7 @@ public class ArenaClientTests
 		var password = "satoshi";
 
 		var km = ServiceFactory.CreateKeyManager(password);
-		var keyChain = new KeyChain(km, new Kitchen(password));
+		var keyChain = new KeyChain(km, password);
 		var destinationProvider = new InternalDestinationProvider(km);
 
 		var coins = destinationProvider.GetNextDestinations(2, false)
