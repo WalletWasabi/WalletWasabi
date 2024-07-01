@@ -19,7 +19,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Events;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -47,16 +46,6 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
-
-	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
-
-	public event EventHandler<CoinJoinTransactionCreatedEventArgs>? CoinJoinTransactionCreated;
-
-	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
-
-	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
-
-	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
@@ -98,6 +87,7 @@ public partial class Arena : PeriodicRunner
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
+
 		}
 	}
 
@@ -263,7 +253,7 @@ public partial class Arena : PeriodicRunner
 					if (!allReady && phaseExpired)
 					{
 						// It would be better to end the round and create a blame round here, but older client would not support it.
-						// See https://github.com/WalletWasabi/WalletWasabi/pull/11028.
+						// See https://github.com/zkSNACKs/WalletWasabi/pull/11028.
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 						round.FastSigningPhase = true;
 					}
@@ -670,20 +660,9 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
-	{
-		// For logging reason Prison needs the roundId.
-		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
-
-		// Could be a coin from WW1.
-		var roundId = roundState?.Id ?? uint256.Zero;
-		Prison.FailedVerification(coin.Outpoint, roundId);
-	}
-
 	private void AddRound(Round round)
 	{
 		Rounds.Add(round);
-		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
 	}
 
 	public void AbortRound(uint256 roundId)
@@ -707,38 +686,16 @@ public partial class Arena : PeriodicRunner
 	private void SetRoundPhase(Round round, Phase phase)
 	{
 		round.SetPhase(phase);
-
-		if (phase == Phase.OutputRegistration)
-		{
-			foreach (Alice alice in round.Alices)
-			{
-				NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
-			}
-		}
-
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
 	internal void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
-	}
-
-	private void NotifyInput(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
-	{
-		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isCoordinationFeeExempted));
-	}
-
-	private void NotifyAffiliation(uint256 roundId, Coin coin, string affiliationId)
-	{
-		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationId));
 	}
 
 	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)
 	{
 		SigningState signingState = constructionState.Finalize();
-		CoinJoinTransactionCreated?.SafeInvoke(this, new CoinJoinTransactionCreatedEventArgs(roundId, signingState.CreateTransaction()));
 		return signingState;
 	}
 
