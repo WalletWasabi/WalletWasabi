@@ -121,26 +121,6 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public string GetCoordinatorUri()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetCoordinatorUri;
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return TestNetCoordinatorUri;
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return RegTestCoordinatorUri;
-		}
-
-		throw new NotSupportedNetworkException(Network);
-	}
-
 	public string GetBackendUri()
 	{
 		if (Network == Network.Main)
