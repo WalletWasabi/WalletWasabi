@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models;
 
@@ -8,7 +9,7 @@ public readonly struct CoordinationFeeRate
 
 	public CoordinationFeeRate(decimal rate)
 	{
-		Rate = rate >= 0 ? rate : throw new ArgumentOutOfRangeException(nameof(rate));
+		Rate = Guard.InRangeAndNotNull(nameof(rate), rate, 0m, Constants.AbsoluteMaxCoordinationFeeRate);
 	}
 
 	public decimal Rate { get; }
