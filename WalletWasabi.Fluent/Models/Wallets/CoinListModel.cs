@@ -24,11 +24,13 @@ public abstract partial class CoinListModel : IDisposable
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
 		var anonScoreTargetChanged = this.WhenAnyValue(x => x.WalletModel.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
+		var isSelected = this.WhenAnyValue(x => x.WalletModel.IsSelected).Skip(1).ToSignal();
 
 		var signals =
 			transactionProcessed
 				.Merge(anonScoreTargetChanged)
 				.Merge(isCoinjoinRunningChanged)
+				.Merge(isSelected)
 				.Publish();
 
 		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
