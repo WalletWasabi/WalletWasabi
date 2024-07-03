@@ -6,7 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -32,7 +31,7 @@ public abstract partial class CoinListModel : IDisposable
 				.Publish();
 
 		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
-		List = Pockets.Connect().MergeMany(x => x.Coins.Select(GetCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
+		List = Pockets.Connect().MergeMany(x => x.Coins.Select(CreateCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
@@ -51,6 +50,11 @@ public abstract partial class CoinListModel : IDisposable
 	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
 
 	public ICoinModel GetCoinModel(SmartCoin smartCoin)
+	{
+		return List.Items.First(coinModel => coinModel.Key == smartCoin.Outpoint.GetHashCode());
+	}
+
+	private ICoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
 		return new CoinModel(smartCoin, WalletModel.Settings.AnonScoreTarget);
 	}
