@@ -33,17 +33,6 @@
     PGP
   </a>
 </h3>
-
-<h3>
-
-| License                   |
-| :-------------------------|
-| [![GitHub license][1]][2] |
-
-[1]: https://img.shields.io/github/license/WalletWasabi/WalletWasabi.svg
-[2]: https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md
-
-</h3>
 <br>
 
 # [Download Wasabi](https://github.com/WalletWasabi/WalletWasabi/releases)
