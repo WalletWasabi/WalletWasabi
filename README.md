@@ -36,24 +36,12 @@
 
 <h3>
 
-| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
-| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
-| [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![Build Status][11]][12] | [![Build Status][13]][14] | [![GitHub license][7]][8] |
+| License                   |
+| :-------------------------|
+| [![GitHub license][1]][2] |
 
-[1]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Windows?branchName=master
-[2]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=3
-[3]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Linux?branchName=master
-[4]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=1
-[5]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Osx?branchName=master
-[6]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=2
-[7]: https://img.shields.io/github/license/WalletWasabi/WalletWasabi.svg
-[8]: https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md
-[9]: https://www.codefactor.io/repository/github/WalletWasabi/walletwasabi/badge
-[10]: https://www.codefactor.io/repository/github/WalletWasabi/walletwasabi
-[11]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.ContinuousDelivery?branchName=master
-[12]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=12&branchName=master
-[13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
-[14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
+[1]: https://img.shields.io/github/license/WalletWasabi/WalletWasabi.svg
+[2]: https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md
 
 </h3>
 <br>
