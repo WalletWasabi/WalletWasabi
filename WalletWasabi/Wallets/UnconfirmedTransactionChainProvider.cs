@@ -87,6 +87,18 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
+	public async Task<UnconfirmedTransactionChain?> RequestUpdatedUnconfirmedTransactionChainAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	{
+		if (tx.Confirmed)
+		{
+			return null;
+		}
+
+		var txHash = tx.GetHash();
+		await FetchUnconfirmedTransactionChainAsync(txHash, cancellationToken).ConfigureAwait(false);
+		return UnconfirmedChainCache[txHash];
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
 		List<Task> tasks = [];

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
@@ -280,6 +282,24 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
+		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+		UnconfirmedTransactionChain? unconfirmedTransactionChain = null;
+		try
+		{
+			wallet.UnconfirmedTransactionChainProvider
+				.RequestUpdatedUnconfirmedTransactionChainAsync(transactionToCpfp, cts.Token)
+				.GetAwaiter()
+				.GetResult();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning($"Error while trying to get the unconfirmed transaction chain of tx {transactionToCpfp.GetHash()}: {ex}");
+		}
+
+		var ancestorsSizeBytes = unconfirmedTransactionChain is null ? 0 : (long)Math.Ceiling(unconfirmedTransactionChain.ancestors.Sum(x => x.weight) / 4.0);
+		var feePaidByAncestorsAndTx = unconfirmedTransactionChain is null ? 0 : unconfirmedTransactionChain.ancestors.Sum(x => x.fee) + (decimal)unconfirmedTransactionChain.adjustedVsize;
+
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
 			destination,
@@ -289,10 +309,10 @@ public static class TransactionModifierWalletExtensions
 			tryToSign: true);
 		var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
-		// Let's increase the fee rate of CPFP transaction.
-		// Let's assume the transaction we want to CPFP pays 0 fees.
-		var cpfpFee = (long)((txSizeBytes + tempTxSizeBytes) * bestFeeRate.SatoshiPerByte) + 1;
-		var cpfpFeeRate = new FeeRate((decimal)(cpfpFee / tempTxSizeBytes));
+		var totalSizeOfTheChain = ancestorsSizeBytes + txSizeBytes + tempTxSizeBytes;
+
+		var missingFeeForBestFeeRate = (totalSizeOfTheChain * bestFeeRate.SatoshiPerByte) - feePaidByAncestorsAndTx;
+		var cpfpFeeRate = new FeeRate(missingFeeForBestFeeRate / tempTxSizeBytes);
 
 		var cpfp = wallet.BuildChangelessTransaction(
 			destination,
