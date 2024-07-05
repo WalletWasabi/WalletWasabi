@@ -22,6 +22,7 @@ public partial class WalletModel : ReactiveObject
 
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isLoaded;
+	[AutoNotify] private bool _isSelected;
 
 	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{

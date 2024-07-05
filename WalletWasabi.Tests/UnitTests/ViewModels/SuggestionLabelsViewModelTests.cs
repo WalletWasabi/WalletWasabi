@@ -207,6 +207,8 @@ public class SuggestionLabelsViewModelTests
 
 		public bool IsLoaded { get; set; }
 
+		public bool IsSelected { get; set; }
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
