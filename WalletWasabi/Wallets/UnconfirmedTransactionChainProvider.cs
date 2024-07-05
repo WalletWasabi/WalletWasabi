@@ -21,6 +21,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 {
 	private const int MaximumDelayInSeconds = 120;
 	private const int MaximumRequestsInParallel = 3;
+	private static readonly TimeSpan MinimumBetweenUpdateRequests = TimeSpan.FromMinutes(2);
 
 	public UnconfirmedTransactionChainProvider(WasabiHttpClientFactory httpClientFactory)
 	{
@@ -29,15 +30,20 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
 
-	public ConcurrentDictionary<uint256, UnconfirmedTransactionChain> UnconfirmedChainCache { get; } = new();
+	private ConcurrentDictionary<uint256, CachedUnconfirmedTransactionChain> UnconfirmedChainCache { get; } = new();
 
 	private IHttpClient HttpClient { get; }
 
-	private Channel<uint256> Channel { get; } = System.Threading.Channels.Channel.CreateUnbounded<uint256>();
+	private Channel<SmartTransaction> Channel { get; } = System.Threading.Channels.Channel.CreateUnbounded<SmartTransaction>();
 
-	private async Task FetchUnconfirmedTransactionChainAsync(uint256 txid, CancellationToken cancellationToken)
+	private DateTime LastUpdateRequest { get; set; } = DateTime.MinValue;
+	private List<uint256> UpdateRequested { get; } = [];
+
+	private async Task FetchUnconfirmedTransactionChainAsync(SmartTransaction transaction, CancellationToken cancellationToken)
 	{
 		const int MaxAttempts = 3;
+
+		var txid = transaction.GetHash();
 
 		for (int i = 0; i < MaxAttempts; i++)
 		{
@@ -59,10 +65,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 				var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChain>().ConfigureAwait(false);
 
-				if (!UnconfirmedChainCache.TryAdd(txid, unconfirmedChain))
-				{
-					throw new InvalidOperationException($"Failed to cache unconfirmed tx chain for {txid}");
-				}
+				UnconfirmedChainCache.AddOrReplace(txid, new CachedUnconfirmedTransactionChain(unconfirmedChain, transaction));
 
 				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
 
@@ -101,7 +104,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		{
 			return;
 		}
-		Channel.Writer.TryWrite(tx.GetHash());
+		Channel.Writer.TryWrite(tx);
 	}
 
 	public async Task<UnconfirmedTransactionChain?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
@@ -111,9 +114,8 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 			return null;
 		}
 
-		var txHash = tx.GetHash();
-		await FetchUnconfirmedTransactionChainAsync(txHash, cancellationToken).ConfigureAwait(false);
-		return UnconfirmedChainCache[txHash];
+		await FetchUnconfirmedTransactionChainAsync(tx, cancellationToken).ConfigureAwait(false);
+		return UnconfirmedChainCache[tx.GetHash()].Chain;
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
@@ -132,7 +134,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 			}
 		}
 
-		async Task ScheduledTask(uint256 txid)
+		async Task ScheduledTask(SmartTransaction transaction)
 		{
 			var random = new Random();
 			var delayInSeconds = random.Next(MaximumDelayInSeconds);
@@ -142,7 +144,10 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 			{
 				await Task.Delay(delay, cancel).ConfigureAwait(false);
 
-				await FetchUnconfirmedTransactionChainAsync(txid, cancel).ConfigureAwait(false);
+				await FetchUnconfirmedTransactionChainAsync(transaction, cancel).ConfigureAwait(false);
+
+				var txid = transaction.GetHash();
+				UpdateRequested.Remove(txid);
 			}
 			catch (OperationCanceledException)
 			{
@@ -155,8 +160,27 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
+	public void UpdateCache()
+	{
+		if (LastUpdateRequest + MinimumBetweenUpdateRequests > DateTime.UtcNow)
+		{
+			return;
+		}
+
+		LastUpdateRequest = DateTime.UtcNow;
+
+		var snapshot = UnconfirmedChainCache.ToList();
+		foreach (var cachedChain in snapshot.Where(cachedChain => !UpdateRequested.Contains(cachedChain.Key)))
+		{
+			UpdateRequested.Add(cachedChain.Key);
+			ScheduleRequest(cachedChain.Value.Transaction);
+		}
+	}
+
 	public UnconfirmedTransactionChain? GetUnconfirmedTransactionChain(uint256 txId)
 	{
-		return UnconfirmedChainCache.TryGet(txId);
+		return UnconfirmedChainCache.TryGet(txId).Chain;
 	}
+
+	private record CachedUnconfirmedTransactionChain(UnconfirmedTransactionChain Chain, SmartTransaction Transaction);
 }
