@@ -83,14 +83,14 @@ public class CpfpInfoProvider : BackgroundService
 		}
 	}
 
-	private bool ShouldRequest(SmartTransaction tx, bool useCache = true)
+	private bool ShouldRequest(SmartTransaction tx, bool ignoreCache = false)
 	{
 		if (tx.Confirmed || (tx.ForeignInputs.Count == 0 && tx.GetInputs().All(x => x.Confirmed.GetValueOrDefault())))
 		{
 			return false;
 		}
 
-		if (!useCache)
+		if (ignoreCache)
 		{
 			return true;
 		}
@@ -98,9 +98,9 @@ public class CpfpInfoProvider : BackgroundService
 		return !CpfpInfoCache.ContainsKey(tx.GetHash());
 	}
 
-	public void ScheduleRequest(SmartTransaction tx)
+	public void ScheduleRequest(SmartTransaction tx, bool ignoreCache = false)
 	{
-		if (!ShouldRequest(tx))
+		if (!ShouldRequest(tx, ignoreCache))
 		{
 			return;
 		}
@@ -109,7 +109,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	public async Task<CpfpInfo> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		if (!ShouldRequest(tx))
+		if (!ShouldRequest(tx, ignoreCache: true))
 		{
 			throw new InvalidOperationException($"There is no need to request cpfp info for transaction {tx.GetHash()}");
 		}
@@ -172,7 +172,7 @@ public class CpfpInfoProvider : BackgroundService
 		foreach (var cachedCpfpInfo in snapshot.Where(x => !UpdateRequested.Contains(x.Key)))
 		{
 			UpdateRequested.Add(cachedCpfpInfo.Key);
-			ScheduleRequest(cachedCpfpInfo.Value.Transaction);
+			ScheduleRequest(cachedCpfpInfo.Value.Transaction, ignoreCache: true);
 		}
 	}
 

@@ -422,9 +422,6 @@ public class Wallet : BackgroundService, IWallet
 
 	private async void IndexDownloader_NewFiltersAsync(object? sender, IEnumerable<FilterModel> filters)
 	{
-		// CpfpInfoCache can be updated before block is even downloaded because nothing is done client side.
-		CpfpInfoProvider?.UpdateCache();
-
 		try
 		{
 			var filterModels = filters as FilterModel[] ?? filters.ToArray();
@@ -447,6 +444,7 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
+			CpfpInfoProvider?.UpdateCache();
 			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
