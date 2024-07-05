@@ -398,7 +398,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			UnconfirmedTransactionChainProvider.CheckAndScheduleRequestIfNeeded(e.Transaction);
+			UnconfirmedTransactionChainProvider.ScheduleRequest(e.Transaction);
 		}
 		catch (Exception ex)
 		{

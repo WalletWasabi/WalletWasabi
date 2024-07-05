@@ -288,7 +288,7 @@ public static class TransactionModifierWalletExtensions
 		try
 		{
 			wallet.UnconfirmedTransactionChainProvider
-				.RequestUpdatedUnconfirmedTransactionChainAsync(transactionToCpfp, cts.Token)
+				.ImmediateRequestAsync(transactionToCpfp, cts.Token)
 				.GetAwaiter()
 				.GetResult();
 		}

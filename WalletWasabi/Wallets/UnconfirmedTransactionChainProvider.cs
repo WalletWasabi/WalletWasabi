@@ -79,17 +79,34 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
-	public void CheckAndScheduleRequestIfNeeded(SmartTransaction tx)
+	private bool ShouldRequest(SmartTransaction tx, bool useCache = true)
 	{
-		if (!tx.Confirmed && tx.ForeignInputs.Count != 0 && !UnconfirmedChainCache.ContainsKey(tx.GetHash()))
+		if (tx.Confirmed ||
+		    (tx.ForeignInputs.Count == 0 && tx.GetInputs().All(x => x.Confirmed.GetValueOrDefault())))
 		{
-			Channel.Writer.TryWrite(tx.GetHash());
+			return false;
 		}
+
+		if (!useCache)
+		{
+			return true;
+		}
+
+		return !UnconfirmedChainCache.ContainsKey(tx.GetHash());
 	}
 
-	public async Task<UnconfirmedTransactionChain?> RequestUpdatedUnconfirmedTransactionChainAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	public void ScheduleRequest(SmartTransaction tx)
 	{
-		if (tx.Confirmed)
+		if (!ShouldRequest(tx))
+		{
+			return;
+		}
+		Channel.Writer.TryWrite(tx.GetHash());
+	}
+
+	public async Task<UnconfirmedTransactionChain?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	{
+		if(!ShouldRequest(tx, false))
 		{
 			return null;
 		}

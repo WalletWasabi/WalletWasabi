@@ -28,7 +28,7 @@ public static class SmartTransactionExtensions
 	public static IEnumerable<IInput> GetInputs(this SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs
-			.Select(x => new KnownInput(x.Amount))
+			.Select(x => new KnownInput(x.Amount, x.Confirmed))
 			.OfType<IInput>();
 
 		var unknown = transaction.ForeignInputs
