@@ -284,7 +284,7 @@ public static class TransactionModifierWalletExtensions
 
 		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-		UnconfirmedTransactionChain? unconfirmedTransactionChain = null;
+		EffectiveTransactionStatus? unconfirmedTransactionChain = null;
 		try
 		{
 			wallet.UnconfirmedTransactionChainProvider

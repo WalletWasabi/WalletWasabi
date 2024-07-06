@@ -59,9 +59,7 @@ public static class TransactionFeeHelper
 
 		if (feeEstimates is not null)
 		{
-			var unconfirmedChain = unconfirmedTxChainProvider.GetUnconfirmedTransactionChain(tx.GetHash());
-
-			if (unconfirmedChain is null)
+			if (!unconfirmedTxChainProvider.TryGetUnconfirmedTransactionChain(tx.GetHash(), out var unconfirmedChain))
 			{
 				return false;
 			}

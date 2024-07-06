@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -30,7 +31,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
 
-	private ConcurrentDictionary<uint256, CachedUnconfirmedTransactionChain> UnconfirmedChainCache { get; } = new();
+	private ConcurrentDictionary<uint256, CachedEffectiveTransactionStatus> UnconfirmedChainCache { get; } = new();
 
 	private IHttpClient HttpClient { get; }
 
@@ -63,9 +64,9 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				var unconfirmedChain = await response.Content.ReadAsJsonAsync<UnconfirmedTransactionChain>().ConfigureAwait(false);
+				var unconfirmedChain = await response.Content.ReadAsJsonAsync<EffectiveTransactionStatus>().ConfigureAwait(false);
 
-				UnconfirmedChainCache.AddOrReplace(txid, new CachedUnconfirmedTransactionChain(unconfirmedChain, transaction));
+				UnconfirmedChainCache.AddOrReplace(txid, new CachedEffectiveTransactionStatus(unconfirmedChain, transaction));
 
 				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
 
@@ -107,11 +108,10 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		Channel.Writer.TryWrite(tx);
 	}
 
-	public async Task<UnconfirmedTransactionChain?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	public async Task<EffectiveTransactionStatus?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		if(!ShouldRequest(tx, false))
 		{
-			return null;
 		}
 
 		await FetchUnconfirmedTransactionChainAsync(tx, cancellationToken).ConfigureAwait(false);
@@ -177,10 +177,17 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		}
 	}
 
-	public UnconfirmedTransactionChain? GetUnconfirmedTransactionChain(uint256 txId)
+	public bool TryGetUnconfirmedTransactionChain(uint256 txId, [NotNullWhen(true)] out EffectiveTransactionStatus? chain)
 	{
-		return UnconfirmedChainCache.TryGet(txId).Chain;
+		if (UnconfirmedChainCache.TryGetValue(txId, out var cachedChain))
+		{
+			chain = cachedChain.Chain;
+			return true;
+		}
+
+		chain = null;
+		return false;
 	}
 
-	private record CachedUnconfirmedTransactionChain(UnconfirmedTransactionChain Chain, SmartTransaction Transaction);
+	private record CachedEffectiveTransactionStatus(EffectiveTransactionStatus Chain, SmartTransaction Transaction);
 }
