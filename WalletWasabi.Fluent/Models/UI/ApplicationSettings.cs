@@ -282,7 +282,7 @@ public partial class ApplicationSettings : ReactiveObject
 				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
 				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
 					Money.Coins(threshold) :
-					PersistentConfig.DefaultDustThreshold,
+					Money.Coins(Constants.DefaultDustThreshold),
 				MaxCoordinationFeeRate = decimal.TryParse(MaxCoordinationFeeRate, out var maxCoordinationFeeRate) ?
 					maxCoordinationFeeRate :
 					Constants.DefaultMaxCoordinationFeeRate,

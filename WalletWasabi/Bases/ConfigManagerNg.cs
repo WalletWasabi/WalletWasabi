@@ -10,7 +10,18 @@ namespace WalletWasabi.Bases;
 
 public static class ConfigManagerNg
 {
-	public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
+	public static readonly JsonSerializerOptions DefaultOptions = new()
+	{
+		WriteIndented = true,
+		Converters =
+		{
+			new NetworkJsonConverterNg(),
+			new MainNetBitcoinP2pEndPointConverterNg(),
+			new TestNetBitcoinP2pEndPointConverterNg(),
+			new RegTestBitcoinP2pEndPointConverterNg(),
+			new MoneyBtcJsonConverterNg()
+		}
+	};
 
 	public static string ToFile<T>(string filePath, T obj, JsonSerializerOptions? options = null)
 	{
