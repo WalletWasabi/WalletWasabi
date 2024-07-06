@@ -16,9 +16,7 @@ public static class ConfigManagerNg
 		Converters =
 		{
 			new NetworkJsonConverterNg(),
-			new MainNetBitcoinP2pEndPointConverterNg(),
-			new TestNetBitcoinP2pEndPointConverterNg(),
-			new RegTestBitcoinP2pEndPointConverterNg(),
+			new EndPointJsonConverterNg(),
 			new MoneyBtcJsonConverterNg()
 		}
 	};

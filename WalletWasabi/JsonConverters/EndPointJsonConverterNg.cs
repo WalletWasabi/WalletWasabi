@@ -7,39 +7,25 @@ namespace WalletWasabi.JsonConverters;
 
 public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 {
-	public EndPointJsonConverterNg(int defaultPort)
-	{
-		if (defaultPort == 0)
-		{
-			throw new ArgumentException("Default port not specified.", nameof(defaultPort));
-		}
-
-		DefaultPort = defaultPort;
-	}
-
-	/// <inheritdoc/>
 	public override bool HandleNull => true;
 
-	private int DefaultPort { get; }
-
-	/// <inheritdoc />
 	public override EndPoint? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		string? endPointString;
-
 		if (reader.TokenType != JsonTokenType.String && reader.TokenType != JsonTokenType.Null)
 		{
 			throw new JsonException("Expected a JSON string value.");
 		}
 
-		endPointString = reader.GetString();
-
-		if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint? endPoint))
+		if (reader.GetString() is not { } endPointString)
 		{
-			return endPoint;
-		}
+			throw new FormatException("endpoint is null");
+		};
 
-		throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
+		return EndPointParser
+			.Parse(endPointString)
+			.Match(
+				success: endPoint => endPoint,
+				failure: error => throw new FormatException(error));
 	}
 
 	/// <inheritdoc />
@@ -51,7 +37,7 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 		}
 		else
 		{
-			string endPointString = value.ToString(DefaultPort);
+			var endPointString = value.ToString();
 			writer.WriteStringValue(endPointString);
 		}
 	}
