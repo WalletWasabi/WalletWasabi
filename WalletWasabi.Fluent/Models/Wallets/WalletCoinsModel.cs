@@ -20,12 +20,6 @@ public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) :
 	{
 		await Task.Run(() =>
 		{
-			// TODO: To keep models in sync with business objects. Should be automatic.
-			foreach (var coinModel in List.Items)
-			{
-				coinModel.IsExcludedFromCoinJoin = coinsToExclude.Any(x => x.IsSame(coinModel));
-			}
-
 			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
 			Wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
 		});
@@ -39,7 +33,7 @@ public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) :
 
 	public bool AreEnoughToCreateTransaction(TransactionInfo transactionInfo, IEnumerable<ICoinModel> coins)
 	{
-		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(Wallet.KeyManager, transactionInfo, Wallet.Coins, coins.GetSmartCoins(), Wallet.Kitchen.SaltSoup(), out _);
+		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(Wallet.KeyManager, transactionInfo, Wallet.Coins, coins.GetSmartCoins(), Wallet.Password, out _);
 	}
 
 	protected override Pocket[] GetPockets()

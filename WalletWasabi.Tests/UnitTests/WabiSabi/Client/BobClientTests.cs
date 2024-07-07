@@ -3,7 +3,6 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -48,10 +47,9 @@ public class BobClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
 		using var mempoolMirror = new MempoolMirror(TimeSpan.Zero, null!, null!);
 		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), mempoolMirror);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, coinJoinMempoolManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
@@ -70,7 +68,7 @@ public class BobClientTests
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 		await roundStateUpdater.StartAsync(token);
 
-		var keyChain = new KeyChain(km, new Kitchen(""));
+		var keyChain = new KeyChain(km,"");
 		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
 
 		do

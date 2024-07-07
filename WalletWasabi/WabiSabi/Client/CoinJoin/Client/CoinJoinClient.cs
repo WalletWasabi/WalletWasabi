@@ -71,7 +71,7 @@ public class CoinJoinClient
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
-	public CoinJoinConfiguration CoinJoinConfiguration { get; }
+	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -121,9 +121,26 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
+		if (roundState.CoinjoinState.Parameters.MinInputCountByRound < CoinJoinConfiguration.AbsoluteMinInputCount)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum input count was too low.");
+		}
+
 		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, FeeRateMedianTimeFrame))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
+		}
+
+		if (roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate * 100 > CoinJoinConfiguration.MaxCoordinationFeeRate)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
+			                                    $"the coordinator is malicious and tried to trick the client into paying a coordination fee rate of {roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate * 100}% for the blame round");
+		}
+
+		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
+			                                    $"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sats/vb but maximum allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
 		}
 
 		return roundState;
@@ -163,6 +180,12 @@ public class CoinJoinClient
 					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.MiningFeeRateTooHigh, roundSkippedMessage);
+				}
+				if (roundParameters.MinInputCountByRound < CoinJoinConfiguration.AbsoluteMinInputCount)
+				{
+					string roundSkippedMessage = $"Min input count for the round was {roundParameters.MinInputCountByRound} but min allowed is {CoinJoinConfiguration.AbsoluteMinInputCount}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.MinInputCountTooLow, roundSkippedMessage);
 				}
 				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
 				{
@@ -708,7 +731,7 @@ public class CoinJoinClient
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsCoordinationFeeExempted).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
 		string[] summary = new string[]
 		{

@@ -108,7 +108,7 @@ public static class ObservableExtensions
 	public static IObservable<(T1, T2, T3)> Flatten<T1, T2, T3>(this IObservable<((T1, T2), T3)> source) =>
 		source.Select(t => (t.Item1.Item1, t.Item1.Item2, t.Item2));
 
-	public static IObservableCache<TObject, TKey> Fetch<TObject, TKey>(this IObservable<Unit> signal, Func<IEnumerable<TObject>> source, Func<TObject, TKey> keySelector, IEqualityComparer<TObject> equalityComparer)
+	public static IObservableCache<TObject, TKey> Fetch<TObject, TKey>(this IObservable<Unit> signal, Func<IEnumerable<TObject>> source, Func<TObject, TKey> keySelector, IEqualityComparer<TObject>? equalityComparer = null)
 		where TKey : notnull where TObject : notnull
 	{
 		return signal.Select(_ => source())

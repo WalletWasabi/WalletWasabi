@@ -20,7 +20,7 @@ public partial class WalletAuthModel : ReactiveObject
 		_wallet = wallet;
 	}
 
-	public bool HasPassword => !string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup());
+	public bool HasPassword => !string.IsNullOrEmpty(_wallet.Password);
 
 	public async Task LoginAsync(string password)
 	{
@@ -61,7 +61,7 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public bool VerifyRecoveryWords(Mnemonic mnemonic)
 	{
-		var saltSoup = _wallet.Kitchen.SaltSoup();
+		var saltSoup = _wallet.Password;
 
 		var recovered = KeyManager.Recover(
 			mnemonic,

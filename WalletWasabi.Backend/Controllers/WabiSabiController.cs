@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Backend;
@@ -22,12 +21,11 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, AffiliationManager affiliationManager, CoinJoinMempoolManager coinJoinMempoolManager)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, CoinJoinMempoolManager coinJoinMempoolManager)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
-		AffiliationManager = affiliationManager;
 		CoinJoinMempoolManager = coinJoinMempoolManager;
 	}
 
@@ -35,7 +33,6 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
-	private AffiliationManager AffiliationManager { get; }
 	public CoinJoinMempoolManager CoinJoinMempoolManager { get; }
 
 	[HttpPost("status")]
@@ -43,8 +40,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
 		var response = await Arena.GetStatusAsync(request, cancellationToken);
 		var medians = CoinJoinFeeRateStatStore.GetDefaultMedians();
-		var affiliateInformation = AffiliationManager.GetAffiliateInformation();
-		return new RoundStateResponse(response.RoundStates, medians, affiliateInformation);
+		return response with {CoinJoinFeeRateMedians = medians};
 	}
 
 	[HttpPost("connection-confirmation")]

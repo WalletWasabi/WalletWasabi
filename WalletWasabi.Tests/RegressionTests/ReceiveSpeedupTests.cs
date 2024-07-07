@@ -97,7 +97,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-			wallet.Kitchen.Cook(password);
+			wallet.Password = password;
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 			broadcaster.Initialize(nodes, rpc);

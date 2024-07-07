@@ -441,7 +441,7 @@ public partial class PrivacySuggestionsModel
 
 	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
 	{
-		return $"{Math.Abs(btcDifference).FormattedBtc()} BTC {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}";
+		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}";
 	}
 
 	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);

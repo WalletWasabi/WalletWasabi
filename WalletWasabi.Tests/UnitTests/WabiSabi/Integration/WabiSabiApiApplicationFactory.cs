@@ -13,7 +13,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Affiliation;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -66,7 +65,6 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 			services.AddHttpClient();
-			services.AddSingleton<AffiliationManager>();
 			services.AddSingleton<CoinJoinMempoolManager>();
 			services.AddSingleton(s => new MempoolMirror(TimeSpan.Zero, null!, null!));
 		});

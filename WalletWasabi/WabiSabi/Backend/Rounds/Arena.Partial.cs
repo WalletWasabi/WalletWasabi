@@ -3,7 +3,6 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -120,13 +119,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			int currentBlockHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-
-			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, confirmations, oneHop: oneHop, currentBlockHeight, cancellationToken);
 			return new(alice.Id,
 				commitAmountCredentialResponse,
-				commitVsizeCredentialResponse,
-				alice.IsCoordinationFeeExempted);
+				commitVsizeCredentialResponse);
 		}
 	}
 
@@ -134,16 +129,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var beforeInside = DateTimeOffset.UtcNow;
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
-			if (alice.IsCoordinationFeeExempted && request.AffiliationId != AffiliationConstants.DefaultAffiliationId)
-			{
-				throw new AffiliationException(
-					"Input is exempted from paying coordination fee and can only use default affiliation id.");
-			}
 			alice.ReadyToSign = true;
-			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationId);
 		}
 	}
 
@@ -388,7 +376,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		if (Config.IsCoordinationEnabled is false)
 		{
-			return Task.FromResult(new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
+			return Task.FromResult(new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
 		}
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
 		var responseRoundStates = RoundStates.Select(x =>
@@ -400,7 +388,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return x;
 		}).ToArray();
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>(), Affiliation.Models.AffiliateInformation.Empty));
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 	}
 
 	public (uint256 RoundId, FeeRate MiningFeeRate)[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>

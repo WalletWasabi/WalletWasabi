@@ -68,6 +68,10 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 			.BindTo(this, x => x.Title)
 			.DisposeWith(_disposables);
 
+		this.WhenAnyValue(x => x.IsSelected)
+			.Do(value => WalletModel.IsSelected = value)
+			.Subscribe();
+
 		SetIcon();
 	}
 

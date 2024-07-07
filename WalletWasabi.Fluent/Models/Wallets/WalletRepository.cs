@@ -35,7 +35,7 @@ public partial class WalletRepository : ReactiveObject
 					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId, new LambdaComparer<Wallet>((a, b) => Equals(a?.WalletId, b?.WalletId)))
+			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })

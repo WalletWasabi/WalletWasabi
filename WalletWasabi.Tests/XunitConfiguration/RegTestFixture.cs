@@ -60,7 +60,6 @@ public class RegTestFixture : IDisposable
 				.ConfigureWebHostDefaults(webBuilder => webBuilder
 						.UseStartup<Startup>()
 						.UseConfiguration(conf)
-						.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 						.UseUrls(BackendEndPoint))
 				.Build();
 
