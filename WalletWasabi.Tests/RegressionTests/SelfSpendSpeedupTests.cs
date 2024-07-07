@@ -129,7 +129,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, txToSpeedUp.Transaction);
 
-			var rbf = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
+			var rbf = await wallet.SpeedUpTransactionAsync(txToSpeedUp.Transaction);
 
 			// Spender is not updated until broadcast:
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, txToSpeedUp.Transaction);
@@ -187,7 +187,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region CanDoTwice
 
-			var rbf2 = wallet.SpeedUpTransaction(rbf.Transaction);
+			var rbf2 = await wallet.SpeedUpTransactionAsync(rbf.Transaction);
 
 			// Spender is not updated until broadcast:
 			Assert.Equal(Assert.Single(txToSpeedUp.SpentCoins).SpenderTransaction, rbf.Transaction);
@@ -255,7 +255,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 				Assert.Equal(coin.SpenderTransaction, txToSpeedUp.Transaction);
 			}
 
-			rbf = wallet.SpeedUpTransaction(txToSpeedUp.Transaction);
+			rbf = await wallet.SpeedUpTransactionAsync(txToSpeedUp.Transaction);
 
 			// Spender is not updated until broadcast:
 			foreach (var coin in txToSpeedUp.SpentCoins)
@@ -340,7 +340,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 			txToSpeedUp = wallet.BuildTransaction(password, new PaymentIntent(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, MoneyRequest.CreateAllRemaining()), FeeStrategy.CreateFromFeeRate(200), allowedInputs: receiveTx.WalletOutputs.Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
-			Assert.Throws<TransactionFeeOverpaymentException>(() => wallet.SpeedUpTransaction(txToSpeedUp.Transaction));
+			await Assert.ThrowsAsync<TransactionFeeOverpaymentException>(async () => await wallet.SpeedUpTransactionAsync(txToSpeedUp.Transaction));
 
 			#endregion TooSmall
 		}

@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -78,7 +79,7 @@ public static class TransactionModifierWalletExtensions
 		return cancelTransaction;
 	}
 
-	public static BuildTransactionResult SpeedUpTransaction(
+	public static async Task<BuildTransactionResult> SpeedUpTransactionAsync(
 		this Wallet wallet,
 		SmartTransaction transactionToSpeedUp,
 		FeeRate? preferredFeeRate = null)
@@ -101,7 +102,7 @@ public static class TransactionModifierWalletExtensions
 			{
 				try
 				{
-					return wallet.CpfpTransaction(transactionToSpeedUp, preferredFeeRate);
+					return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate).ConfigureAwait(false);
 				}
 				catch
 				{
@@ -112,7 +113,7 @@ public static class TransactionModifierWalletExtensions
 		}
 		else if (transactionToSpeedUp.IsCpfpable(keyManager))
 		{
-			return wallet.CpfpTransaction(transactionToSpeedUp, preferredFeeRate);
+			return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate).ConfigureAwait(false);
 		}
 		else
 		{
@@ -232,7 +233,7 @@ public static class TransactionModifierWalletExtensions
 		return rbf;
 	}
 
-	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate = null)
+	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
@@ -243,7 +244,7 @@ public static class TransactionModifierWalletExtensions
 
 		try
 		{
-			return wallet.CpfpTransaction(transactionToCpfp, allowedInputs, preferredFeeRate);
+			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -261,14 +262,14 @@ public static class TransactionModifierWalletExtensions
 
 				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, SecureRandom.Instance)!);
 
-				return wallet.CpfpTransaction(transactionToCpfp, allowedInputs, preferredFeeRate);
+				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate).ConfigureAwait(false);
 			}
 
 			throw;
 		}
 	}
 
-	public static BuildTransactionResult CpfpTransaction(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate = null)
+	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -287,10 +288,7 @@ public static class TransactionModifierWalletExtensions
 		CpfpInfo? cpfpInfo = null;
 		try
 		{
-			wallet.CpfpInfoProvider
-				.ImmediateRequestAsync(transactionToCpfp, cts.Token)
-				.GetAwaiter()
-				.GetResult();
+			cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

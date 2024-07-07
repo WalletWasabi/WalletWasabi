@@ -126,7 +126,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return transactionInfo;
 	}
 
-	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
+	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -139,7 +139,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = _wallet.SpeedUpTransaction(targetTransaction);
+		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction);
 
 		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
 
