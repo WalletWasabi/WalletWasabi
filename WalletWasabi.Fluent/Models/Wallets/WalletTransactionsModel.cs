@@ -46,13 +46,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedUnconfirmedTxChainArrived =
-			Observable.FromEventPattern<EventArgs>(wallet.UnconfirmedTransactionChainProvider, nameof(wallet.UnconfirmedTransactionChainProvider.RequestedUnconfirmedChainArrived)).ToSignal()
+		RequestedCpfpInfoArrived =
+			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache =
 			TransactionProcessed
-			.Merge(RequestedUnconfirmedTxChainArrived)
+			.Merge(RequestedCpfpInfoArrived)
 			.Fetch(BuildSummary, model => model.Id, new LambdaComparer<TransactionModel>((a, b) => Equals(a?.Id, b?.Id)))
 								.DisposeWith(_disposable);
 
@@ -66,7 +66,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-	public IObservable<Unit> RequestedUnconfirmedTxChainArrived { get; }
+	public IObservable<Unit> RequestedCpfpInfoArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -98,7 +98,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		}
 
 		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, out var estimate)
 				? estimate
 				: null;
 	}

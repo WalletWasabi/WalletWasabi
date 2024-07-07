@@ -284,10 +284,10 @@ public static class TransactionModifierWalletExtensions
 
 		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-		EffectiveTransactionStatus? unconfirmedTransactionChain = null;
+		CpfpInfo? cpfpInfo = null;
 		try
 		{
-			wallet.UnconfirmedTransactionChainProvider
+			wallet.CpfpInfoProvider
 				.ImmediateRequestAsync(transactionToCpfp, cts.Token)
 				.GetAwaiter()
 				.GetResult();
@@ -297,8 +297,8 @@ public static class TransactionModifierWalletExtensions
 			Logger.LogWarning($"Error while trying to get the unconfirmed transaction chain of tx {transactionToCpfp.GetHash()}: {ex}");
 		}
 
-		var ancestorsSizeBytes = unconfirmedTransactionChain is null ? 0 : (long)Math.Ceiling(unconfirmedTransactionChain.ancestors.Sum(x => x.weight) / 4.0);
-		var feePaidByAncestorsAndTx = unconfirmedTransactionChain is null ? 0 : unconfirmedTransactionChain.ancestors.Sum(x => x.fee) + (decimal)unconfirmedTransactionChain.adjustedVsize;
+		var ancestorsSizeBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
+		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : cpfpInfo.Ancestors.Sum(x => x.Fee) + (decimal)cpfpInfo.AdjustedVSize;
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(

@@ -41,7 +41,7 @@ public class Wallet : BackgroundService, IWallet
 		HybridFeeProvider feeProvider,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
-		UnconfirmedTransactionChainProvider unconfirmedTransactionChainProvider)
+		CpfpInfoProvider cpfpInfoProvider)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -50,7 +50,7 @@ public class Wallet : BackgroundService, IWallet
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeProvider = feeProvider;
-		UnconfirmedTransactionChainProvider = unconfirmedTransactionChainProvider;
+		CpfpInfoProvider = cpfpInfoProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
 
@@ -107,7 +107,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; }
 
 	public HybridFeeProvider FeeProvider { get; }
-	public UnconfirmedTransactionChainProvider UnconfirmedTransactionChainProvider { get; }
+	public CpfpInfoProvider CpfpInfoProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 
@@ -156,7 +156,7 @@ public class Wallet : BackgroundService, IWallet
 		foreach (SmartCoin coin in GetAllCoins())
 		{
 
-			UnconfirmedTransactionChainProvider.ImmediateRequestAsync(coin.Transaction, CancellationToken.None).GetAwaiter().GetResult();
+			CpfpInfoProvider.ImmediateRequestAsync(coin.Transaction, CancellationToken.None).GetAwaiter().GetResult();
 			walletTransactions.Add(coin.Transaction);
 			if (coin.SpenderTransaction is not null)
 			{
@@ -185,9 +185,9 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if(UnconfirmedTransactionChainProvider.TryGetUnconfirmedTransactionChain(coin.TransactionId, out var unconfTransactionChainOfCoin))
+				if(CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
 				{
-					effectiveFeeRate = new FeeRate((decimal)unconfTransactionChainOfCoin.effectiveFeePerVsize);
+					effectiveFeeRate = new FeeRate((decimal)cpfpInfo.EffectiveFeePerVSize);
 				}
 
 				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
@@ -204,9 +204,9 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if(UnconfirmedTransactionChainProvider.TryGetUnconfirmedTransactionChain(coin.TransactionId, out var unconfTransactionChainOfCoin))
+					if(CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
 					{
-						effectiveFeeRate = new FeeRate((decimal)unconfTransactionChainOfCoin.effectiveFeePerVsize);
+						effectiveFeeRate = new FeeRate((decimal)cpfpInfo.EffectiveFeePerVSize);
 					}
 
 					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
@@ -406,7 +406,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			UnconfirmedTransactionChainProvider.ScheduleRequest(e.Transaction);
+			CpfpInfoProvider.ScheduleRequest(e.Transaction);
 		}
 		catch (Exception ex)
 		{
@@ -431,8 +431,8 @@ public class Wallet : BackgroundService, IWallet
 
 	private async void IndexDownloader_NewFiltersAsync(object? sender, IEnumerable<FilterModel> filters)
 	{
-		// UnconfirmedChainCache can be updated before block is even downloaded because nothing is done client side.
-		UnconfirmedTransactionChainProvider.UpdateCache();
+		// CpfpInfoCache can be updated before block is even downloaded because nothing is done client side.
+		CpfpInfoProvider.UpdateCache();
 
 		try
 		{

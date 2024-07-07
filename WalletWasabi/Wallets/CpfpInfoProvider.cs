@@ -18,20 +18,20 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
-public class UnconfirmedTransactionChainProvider : BackgroundService
+public class CpfpInfoProvider : BackgroundService
 {
 	private const int MaximumDelayInSeconds = 120;
 	private const int MaximumRequestsInParallel = 3;
 	private static readonly TimeSpan MinimumBetweenUpdateRequests = TimeSpan.FromMinutes(2);
 
-	public UnconfirmedTransactionChainProvider(WasabiHttpClientFactory httpClientFactory)
+	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory)
 	{
 		HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
-	public event EventHandler<EventArgs>? RequestedUnconfirmedChainArrived;
+	public event EventHandler<EventArgs>? RequestedCpfpInfoArrived;
 
-	private ConcurrentDictionary<uint256, CachedEffectiveTransactionStatus> UnconfirmedChainCache { get; } = new();
+	private ConcurrentDictionary<uint256, CachedCpfpInfo> CpfpInfoCache { get; } = new();
 
 	private IHttpClient HttpClient { get; }
 
@@ -40,7 +40,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 	private DateTime LastUpdateRequest { get; set; } = DateTime.MinValue;
 	private List<uint256> UpdateRequested { get; } = [];
 
-	private async Task FetchUnconfirmedTransactionChainAsync(SmartTransaction transaction, CancellationToken cancellationToken)
+	private async Task FetchCpfpInfoAsync(SmartTransaction transaction, CancellationToken cancellationToken)
 	{
 		const int MaxAttempts = 3;
 
@@ -64,11 +64,11 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				var unconfirmedChain = await response.Content.ReadAsJsonAsync<EffectiveTransactionStatus>().ConfigureAwait(false);
+				var cpfpInfo = await response.Content.ReadAsJsonAsync<CpfpInfo>().ConfigureAwait(false);
 
-				UnconfirmedChainCache.AddOrReplace(txid, new CachedEffectiveTransactionStatus(unconfirmedChain, transaction));
+				CpfpInfoCache.AddOrReplace(txid, new CachedCpfpInfo(cpfpInfo, transaction));
 
-				RequestedUnconfirmedChainArrived?.Invoke(this, EventArgs.Empty);
+				RequestedCpfpInfoArrived?.Invoke(this, EventArgs.Empty);
 
 				return;
 			}
@@ -96,7 +96,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 			return true;
 		}
 
-		return !UnconfirmedChainCache.ContainsKey(tx.GetHash());
+		return !CpfpInfoCache.ContainsKey(tx.GetHash());
 	}
 
 	public void ScheduleRequest(SmartTransaction tx)
@@ -108,14 +108,15 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 		Channel.Writer.TryWrite(tx);
 	}
 
-	public async Task<EffectiveTransactionStatus?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	public async Task<CpfpInfo?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		if(!ShouldRequest(tx, false))
 		{
+			return null;
 		}
 
-		await FetchUnconfirmedTransactionChainAsync(tx, cancellationToken).ConfigureAwait(false);
-		return UnconfirmedChainCache[tx.GetHash()].Chain;
+		await FetchCpfpInfoAsync(tx, cancellationToken).ConfigureAwait(false);
+		return CpfpInfoCache[tx.GetHash()].CpfpInfo;
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken cancel)
@@ -144,7 +145,7 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 			{
 				await Task.Delay(delay, cancel).ConfigureAwait(false);
 
-				await FetchUnconfirmedTransactionChainAsync(transaction, cancel).ConfigureAwait(false);
+				await FetchCpfpInfoAsync(transaction, cancel).ConfigureAwait(false);
 
 				var txid = transaction.GetHash();
 				UpdateRequested.Remove(txid);
@@ -169,25 +170,25 @@ public class UnconfirmedTransactionChainProvider : BackgroundService
 
 		LastUpdateRequest = DateTime.UtcNow;
 
-		var snapshot = UnconfirmedChainCache.ToList();
-		foreach (var cachedChain in snapshot.Where(cachedChain => !UpdateRequested.Contains(cachedChain.Key)))
+		var snapshot = CpfpInfoCache.ToList();
+		foreach (var cachedCpfpInfo in snapshot.Where(x => !UpdateRequested.Contains(x.Key)))
 		{
-			UpdateRequested.Add(cachedChain.Key);
-			ScheduleRequest(cachedChain.Value.Transaction);
+			UpdateRequested.Add(cachedCpfpInfo.Key);
+			ScheduleRequest(cachedCpfpInfo.Value.Transaction);
 		}
 	}
 
-	public bool TryGetUnconfirmedTransactionChain(uint256 txId, [NotNullWhen(true)] out EffectiveTransactionStatus? chain)
+	public bool TryGetCpfpInfo(uint256 txid, [NotNullWhen(true)] out CpfpInfo? cpfpInfo)
 	{
-		if (UnconfirmedChainCache.TryGetValue(txId, out var cachedChain))
+		if (CpfpInfoCache.TryGetValue(txid, out var cached))
 		{
-			chain = cachedChain.Chain;
+			cpfpInfo = cached.CpfpInfo;
 			return true;
 		}
 
-		chain = null;
+		cpfpInfo = null;
 		return false;
 	}
 
-	private record CachedEffectiveTransactionStatus(EffectiveTransactionStatus Chain, SmartTransaction Transaction);
+	private record CachedCpfpInfo(CpfpInfo CpfpInfo, SmartTransaction Transaction);
 }
