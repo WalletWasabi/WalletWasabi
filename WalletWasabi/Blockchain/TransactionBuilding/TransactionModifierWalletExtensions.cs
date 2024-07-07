@@ -275,7 +275,7 @@ public static class TransactionModifierWalletExtensions
 		var network = wallet.Network;
 
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
-		var txSizeBytes = transactionToCpfp.Transaction.GetVirtualSize();
+		var txSizeVBytes = transactionToCpfp.Transaction.GetVirtualSize();
 
 		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
@@ -295,7 +295,7 @@ public static class TransactionModifierWalletExtensions
 			Logger.LogWarning($"Error while trying to get the unconfirmed transaction chain of tx {transactionToCpfp.GetHash()}: {ex}");
 		}
 
-		var ancestorsSizeBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
+		var ancestorsSizeVBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
 		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : cpfpInfo.Ancestors.Sum(x => x.Fee) + (decimal)cpfpInfo.AdjustedVSize;
 
 		// Let's build a CPFP with best fee rate temporarily.
@@ -305,12 +305,12 @@ public static class TransactionModifierWalletExtensions
 			bestFeeRate,
 			allowedInputs,
 			tryToSign: true);
-		var tempTxSizeBytes = tempTx.Transaction.Transaction.GetVirtualSize();
+		var tempTxSizeVBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
-		var totalSizeOfTheChain = ancestorsSizeBytes + txSizeBytes + tempTxSizeBytes;
+		var totalSizeOfTheChain = ancestorsSizeVBytes + txSizeVBytes + tempTxSizeVBytes;
 
 		var missingFeeForBestFeeRate = (totalSizeOfTheChain * bestFeeRate.SatoshiPerByte) - feePaidByAncestorsAndTx;
-		var cpfpFeeRate = new FeeRate(missingFeeForBestFeeRate / tempTxSizeBytes);
+		var cpfpFeeRate = new FeeRate(missingFeeForBestFeeRate / tempTxSizeVBytes);
 
 		var cpfp = wallet.BuildChangelessTransaction(
 			destination,
