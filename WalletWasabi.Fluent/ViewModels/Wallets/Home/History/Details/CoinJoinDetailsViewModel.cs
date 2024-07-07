@@ -55,7 +55,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transaction.Id);
 			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 			FeeRate = transaction.FeeRate;
-			FeeRateVisible = FeeRate != FeeRate.Zero;
+			FeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
 		}
 	}
 }
