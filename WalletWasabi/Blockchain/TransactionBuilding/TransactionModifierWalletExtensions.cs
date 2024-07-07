@@ -296,7 +296,7 @@ public static class TransactionModifierWalletExtensions
 		}
 
 		var ancestorsSizeVBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
-		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : cpfpInfo.Ancestors.Sum(x => x.Fee) + (decimal)cpfpInfo.AdjustedVSize;
+		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : (long)Math.Floor(cpfpInfo.EffectiveFeePerVSize * cpfpInfo.AdjustedVSize);
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
