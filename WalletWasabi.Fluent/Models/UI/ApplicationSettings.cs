@@ -325,15 +325,15 @@ public partial class ApplicationSettings : ReactiveObject
 	public bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString)
 	{
 		// Sanity checks
-		if (coordinatorConnectionString.CoordinationFeeRate > 0.01m)
+		if (coordinatorConnectionString.CoordinationFeeRate > Constants.AbsoluteMaxCoordinationFeeRate)
 		{
-			Logger.LogWarning($"New intended coordinator fee rate was {coordinatorConnectionString.CoordinationFeeRate}, but absolute max is 0.01.");
+			Logger.LogWarning($"New intended coordinator fee rate was {coordinatorConnectionString.CoordinationFeeRate}, but absolute max is {Constants.AbsoluteMaxCoordinationFeeRate}.");
 			return false;
 		}
 
-		if (coordinatorConnectionString.AbsoluteMinInputCount < 2)
+		if (coordinatorConnectionString.AbsoluteMinInputCount < Constants.AbsoluteMinInputCount)
 		{
-			Logger.LogWarning($"New intended absolute min input count was {coordinatorConnectionString.AbsoluteMinInputCount}, but absolute min is 2");
+			Logger.LogWarning($"New intended absolute min input count was {coordinatorConnectionString.AbsoluteMinInputCount}, but absolute min is {Constants.AbsoluteMinInputCount}");
 			return false;
 		}
 
