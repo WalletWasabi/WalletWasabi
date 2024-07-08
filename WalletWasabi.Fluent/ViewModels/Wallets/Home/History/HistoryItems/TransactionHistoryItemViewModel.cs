@@ -17,7 +17,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		CanBeSpedUp = transaction.CanSpeedUpTransaction && !IsChild;
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
-		SpeedUpTransactionCommand = ReactiveCommand.Create(async () => await OnSpeedUpTransactionAsync(transaction), Observable.Return(CanBeSpedUp));
+		SpeedUpTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnSpeedUpTransactionAsync(transaction), Observable.Return(CanBeSpedUp));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
 		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
