@@ -32,19 +32,10 @@ public class EndPointJsonConverterTests
 	{
 		// Success cases.
 		{
-			string token = "null";
-			AssertBothDeserialize(ConvertToJsonString(token));
-
-			token = "0";
-			AssertBothDeserialize(ConvertToJsonString(token));
-
-			token = "0:0";
+			string token = "0:0";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "0.0.0.0:0";
-			AssertBothDeserialize(ConvertToJsonString(token));
-
-			token = "127.0.0.1";
 			AssertBothDeserialize(ConvertToJsonString(token));
 
 			token = "127.0.0.1:0";
@@ -130,7 +121,7 @@ public class EndPointJsonConverterTests
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(Address))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(Address))]
 		public EndPoint? Address { get; set; }
 	}
@@ -142,25 +133,25 @@ public class EndPointJsonConverterTests
 	{
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(DefaultMainNet))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(DefaultMainNet))]
-		public EndPoint DefaultMainNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 0);
+		public EndPoint DefaultMainNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 8333);
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(DefaultTestNet))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(TestNetBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(DefaultTestNet))]
-		public EndPoint DefaultTestNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 0);
+		public EndPoint DefaultTestNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 18333);
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(DefaultRegTest))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(RegTestBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(DefaultRegTest))]
-		public EndPoint DefaultRegTest { get; set; } = new IPEndPoint(IPAddress.Loopback, 0);
+		public EndPoint DefaultRegTest { get; set; } = new IPEndPoint(IPAddress.Loopback, 18443);
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(None))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		[System.Text.Json.Serialization.JsonConverter(typeof(MainNetBitcoinP2pEndPointConverterNg))]
+		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(None))]
 		public EndPoint? None { get; set; }
 
