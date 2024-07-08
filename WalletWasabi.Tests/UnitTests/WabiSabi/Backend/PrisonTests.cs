@@ -140,24 +140,14 @@ public class PrisonTests
 
 		// Big amounts are not banned the first time
 		var ftcOutpointBig = BitcoinFactory.CreateOutPoint();
-		prison.FailedToConfirm(ftcOutpointBig, Money.Coins(2m), roundId);
+		prison.FailedToConfirm(ftcOutpointBig, Money.Coins(1.3m), roundId);
 		var banningPeriodBigCoin = prison.GetBanTimePeriod(ftcOutpointBig, cfg);
 		Assert.Equal(TimeSpan.Zero, banningPeriodBigCoin.Duration);
 
 		// ... however, second attempts could be punished
-		prison.FailedToConfirm(ftcOutpointBig, Money.Coins(2m), roundId);
+		prison.FailedToConfirm(ftcOutpointBig, Money.Coins(1.3m), roundId);
 		banningPeriodBigCoin = prison.GetBanTimePeriod(ftcOutpointBig, cfg);
 		Assert.NotEqual(TimeSpan.Zero, banningPeriodBigCoin.Duration);
-
-		// ... except if they come from previous coinjoins
-		var ftcOutpointBigPaid = new OutPoint(uint256.One, 1); // tx 0000....0000001 is a coinjoin
-		prison.FailedToConfirm(ftcOutpointBigPaid, Money.Coins(2m), roundId);
-		var banningPeriodBigPaidCoin = prison.GetBanTimePeriod(ftcOutpointBigPaid, cfg);
-		Assert.Equal(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it is not banned first time
-
-		prison.FailedToConfirm(ftcOutpointBigPaid, Money.Coins(2m), roundId);
-		banningPeriodBigPaidCoin = prison.GetBanTimePeriod(ftcOutpointBigPaid, cfg);
-		Assert.NotEqual(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it IS banned second time
 
 		// coins inherit the punishments from their ancestors
 		var ftcFailedToSign = BitcoinFactory.CreateOutPoint();
