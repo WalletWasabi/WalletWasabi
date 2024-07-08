@@ -2,11 +2,10 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Coordinator detected")]
+[NavigationMetaData(Title = "Coordinator detected", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class NewCoordinatorConfirmationDialogViewModel : DialogViewModelBase<bool>
 {
 	private NewCoordinatorConfirmationDialogViewModel(CoordinatorConnectionString coordinatorConnection)

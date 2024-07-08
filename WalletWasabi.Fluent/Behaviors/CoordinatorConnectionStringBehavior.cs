@@ -39,7 +39,8 @@ public class CoordinatorConnectionStringBehavior : DisposingBehavior<Window>
 
 				await uiContext.Clipboard.ClearAsync();
 
-				if (uiContext.Navigate().DialogScreen.CurrentPage is NewCoordinatorConfirmationDialogViewModel currentDialog)
+				var navigationTarget = NewCoordinatorConfirmationDialogViewModel.MetaData.NavigationTarget;
+				if (uiContext.Navigate(navigationTarget).CurrentPage is NewCoordinatorConfirmationDialogViewModel currentDialog)
 				{
 					if (currentDialog.CoordinatorConnection.ToString() == coordinatorConnectionString.ToString())
 					{
