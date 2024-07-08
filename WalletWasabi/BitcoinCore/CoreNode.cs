@@ -36,7 +36,7 @@ public class CoreNode
 	public EndPoint P2pEndPoint { get; }
 	public EndPoint RpcEndPoint { get; }
 	public IRPCClient RpcClient { get; }
-	private BitcoindRpcProcessBridge Bridge { get; set; }
+	private BitcoindRpcProcessBridge? Bridge { get; set; }
 	public string DataDir { get; }
 	public Network Network { get; }
 	public MempoolService MempoolService { get; }
