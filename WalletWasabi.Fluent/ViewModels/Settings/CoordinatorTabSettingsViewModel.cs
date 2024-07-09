@@ -90,13 +90,13 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		if (maxCoordinationFeeRateDecimal < 0)
 		{
-			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0%");
+			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0");
 			return;
 		}
 
-		if (maxCoordinationFeeRateDecimal > 1)
+		if (maxCoordinationFeeRateDecimal > 0.005m)
 		{
-			errors.Add(ErrorSeverity.Error, "Absolute maximum coordination fee rate is 1%");
+			errors.Add(ErrorSeverity.Error, "Absolute maximum coordination fee rate is 0.005");
 			return;
 		}
 
@@ -142,9 +142,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (absoluteMinInputCountInt < 2)
+		if (absoluteMinInputCountInt < 5)
 		{
-			errors.Add(ErrorSeverity.Error, "Absolute min input count should be at least 2");
+			errors.Add(ErrorSeverity.Error, "Absolute min input count should be at least 5");
 			return;
 		}
 
