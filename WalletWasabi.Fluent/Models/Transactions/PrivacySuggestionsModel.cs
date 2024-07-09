@@ -190,7 +190,8 @@ public partial class PrivacySuggestionsModel
 				var (differenceBtc, differenceFiat) = GetDifference(parameters.TransactionInfo, newTransaction, usdExchangeRate);
 				var differenceText = GetDifferenceText(differenceBtc);
 				var differenceAmountText = GetDifferenceAmountText(differenceBtc, differenceFiat);
-				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceText, differenceAmountText, allPrivateCoin, isChangeless);
+				var fullPrivacyCoins = allPrivateCoin.Union(onlyKnownByTheRecipientCoins);
+				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceText, differenceAmountText, fullPrivacyCoins, isChangeless);
 				yield return fullPrivacySuggestion;
 			}
 		}
