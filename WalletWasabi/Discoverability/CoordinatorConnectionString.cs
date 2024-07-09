@@ -53,7 +53,7 @@ public record CoordinatorConnectionString(
 			return false;
 		}
 
-		if (!decimal.TryParse(queryString["coordinationFeeRate"], NumberStyles.Any, CultureInfo.InvariantCulture, out var coordinationFeeRate))
+		if (!decimal.TryParse(queryString["coordinationFeeRate"], NumberStyles.Any, CultureInfo.InvariantCulture, out var coordinationFeeRate) || coordinationFeeRate < 0)
 		{
 			return false;
 		}
