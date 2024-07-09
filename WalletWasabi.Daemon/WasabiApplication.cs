@@ -105,7 +105,8 @@ public class WasabiApplication
 	{
 		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
-		if (persistentConfig.MigrateOldDefaultBackendUris(out PersistentConfig? newConfig))
+		var newConfig = persistentConfig.Migrate();
+		if (!persistentConfig.DeepEquals(newConfig))
 		{
 			persistentConfig = newConfig;
 			ConfigManagerNg.ToFile(ConfigFilePath, persistentConfig);

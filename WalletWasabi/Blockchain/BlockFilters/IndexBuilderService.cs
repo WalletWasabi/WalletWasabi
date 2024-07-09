@@ -29,16 +29,13 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IndexType indexType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
-		IndexType = indexType;
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
-		PubKeyTypes = IndexTypeConverter.ToRpcPubKeyTypes(IndexType);
-
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network, IndexType).Height;
+		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
 
 		_serviceStatus = NotStarted;
 
@@ -85,9 +82,8 @@ public class IndexBuilderService
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
-	private IndexType IndexType { get; }
 
-	private RpcPubkeyType[] PubKeyTypes { get; }
+	private RpcPubkeyType[] PubKeyTypes { get; } = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -215,11 +211,11 @@ public class IndexBuilderService
 							// If not close to the tip, just log debug.
 							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 							{
-								Logger.LogInfo($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
+								Logger.LogInfo($"Created filter for block: {nextHeight}.");
 							}
 							else
 							{
-								Logger.LogDebug($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
+								Logger.LogDebug($"Created filter for block: {nextHeight}.");
 							}
 							LastFilterBuildTime = DateTimeOffset.UtcNow;
 						}
