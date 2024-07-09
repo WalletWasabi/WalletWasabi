@@ -783,4 +783,4 @@ public class CoinJoinManager : BackgroundService
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 }
 
-public record CoinJoinConfiguration(string CoordinatorIdentifier, decimal MaxCoordinationFeeRate, decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount);
+public record CoinJoinConfiguration(string CoordinatorIdentifier, decimal MaxCoordinationFeeRate, decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);
