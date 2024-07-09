@@ -176,8 +176,6 @@ public record PersistentConfig
 		return this;
 	}
 
-
-
 	private PersistentConfig MigrateMaxCoordinationFeeRate()
 	{
 		return this with
