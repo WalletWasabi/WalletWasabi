@@ -17,19 +17,15 @@ public record CoordinatorConnectionString(
 {
 	public override string ToString()
 	{
-		var builder = new UriBuilder
-		{
-			Query = new NameValueCollection
-			{
-				["name"] = Uri.EscapeDataString(Name),
-				["network"] = Network.Name,
-				["coordinatorUri"] = Uri.EscapeDataString(CoordinatorUri.ToString()),
-				["coordinationFeeRate"] = CoordinationFeeRate.ToString(CultureInfo.InvariantCulture),
-				["absoluteMinInputCount"] = AbsoluteMinInputCount.ToString(),
-				["readMore"] = Uri.EscapeDataString(ReadMore.ToString())
-			}.ToString()
-		};
-		return builder.ToString();
+		return string.Join("&",
+		[
+			$"name={Uri.EscapeDataString(Name)}",
+			$"network={Network.Name}",
+			$"coordinatorUri={Uri.EscapeDataString(CoordinatorUri.ToString())}",
+			$"coordinationFeeRate={CoordinationFeeRate.ToString(CultureInfo.InvariantCulture)}",
+			$"readMore={Uri.EscapeDataString(ReadMore.ToString())}",
+			$"absoluteMinInputCount={AbsoluteMinInputCount.ToString()}",
+		]);
 	}
 
 	public static bool TryParse(string s, [NotNullWhen(true)] out CoordinatorConnectionString? coordinatorConnectionString)
@@ -57,7 +53,7 @@ public record CoordinatorConnectionString(
 			return false;
 		}
 
-		if (!decimal.TryParse(queryString["coordinationFeeRate"], NumberStyles.Any, CultureInfo.InvariantCulture, out var coordinationFeeRate))
+		if (!decimal.TryParse(queryString["coordinationFeeRate"], NumberStyles.Any, CultureInfo.InvariantCulture, out var coordinationFeeRate) || coordinationFeeRate < 0)
 		{
 			return false;
 		}
