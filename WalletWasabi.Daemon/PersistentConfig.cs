@@ -163,23 +163,27 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public PersistentConfig Migrate() =>
-		MigrateMaxCoordinationFeeRate()
-		.MigrateOldDefaultBackendUris();
-
-
-	private PersistentConfig MigrateMaxCoordinationFeeRate()
+	public PersistentConfig Migrate()
 	{
 		if (ConfigVersion == 0)
 		{
-			return this with
+			return MigrateMaxCoordinationFeeRate().MigrateOldDefaultBackendUris() with
 			{
-				ConfigVersion = 1,
-				MaxCoordinationFeeRate = MaxCoordinationFeeRate / 100.0m
+				ConfigVersion = 1
 			};
 		}
 
 		return this;
+	}
+
+
+
+	private PersistentConfig MigrateMaxCoordinationFeeRate()
+	{
+		return this with
+		{
+			MaxCoordinationFeeRate = MaxCoordinationFeeRate / 100.0m
+		};
 	}
 
 	private PersistentConfig MigrateOldDefaultBackendUris()
