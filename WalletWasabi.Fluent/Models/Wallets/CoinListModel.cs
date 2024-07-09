@@ -33,7 +33,7 @@ public abstract partial class CoinListModel : IDisposable
 				.Publish();
 
 		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
-		List = Pockets.Connect().MergeMany(x => x.Coins.Select(CreateCoinModel).AsObservableChangeSet()).AddKey(x => x.Key).AsObservableCache();
+		List = signals.Fetch(() => Wallet.Coins.Select(CreateCoinModel), x => x.Key).DisposeWith(_disposables);
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
