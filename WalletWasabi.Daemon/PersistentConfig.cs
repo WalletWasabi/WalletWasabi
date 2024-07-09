@@ -29,13 +29,13 @@ public record PersistentConfig
 	/// </remarks>
 	public object UseTor { get; init; } = "Enabled";
 
-	public bool TerminateTorOnExit { get; init; } = false;
+	public bool TerminateTorOnExit { get; init; }
 
 	public string[] TorBridges { get; init; } = [];
 
 	public bool DownloadNewVersion { get; init; } = true;
 
-	public bool StartLocalBitcoinCoreOnStartup { get; init; } = false;
+	public bool StartLocalBitcoinCoreOnStartup { get; init; }
 
 	public bool StopLocalBitcoinCoreOnShutdown { get; init; } = true;
 
@@ -53,11 +53,11 @@ public record PersistentConfig
 
 	public string JsonRpcPassword { get; init; } = "";
 
-	public string[] JsonRpcServerPrefixes { get; init; } = new[]
-	{
+	public string[] JsonRpcServerPrefixes { get; init; } =
+	[
 		"http://127.0.0.1:37128/",
 		"http://localhost:37128/"
-	};
+	];
 
 	public Money DustThreshold { get; init; } = Money.Coins(Constants.DefaultDustThreshold);
 
@@ -70,12 +70,14 @@ public record PersistentConfig
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
+	public int ConfigVersion { get; init; }
 
 	public bool DeepEquals(PersistentConfig other)
 	{
 		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
 
 		return
+			ConfigVersion == other.ConfigVersion &&
 			Network == other.Network &&
 			MainNetBackendUri == other.MainNetBackendUri &&
 			TestNetBackendUri == other.TestNetBackendUri &&
@@ -161,21 +163,38 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public bool MigrateOldDefaultBackendUris([NotNullWhen(true)] out PersistentConfig? newConfig)
+	public PersistentConfig Migrate()
 	{
-		bool hasChanged = false;
-		newConfig = null;
+		if (ConfigVersion == 0)
+		{
+			return MigrateMaxCoordinationFeeRate().MigrateOldDefaultBackendUris() with
+			{
+				ConfigVersion = 1
+			};
+		}
 
+		return this;
+	}
+
+	private PersistentConfig MigrateMaxCoordinationFeeRate()
+	{
+		return this with
+		{
+			MaxCoordinationFeeRate = MaxCoordinationFeeRate / 100.0m
+		};
+	}
+
+	private PersistentConfig MigrateOldDefaultBackendUris()
+	{
 		if (MainNetBackendUri == "https://wasabiwallet.io/" || TestNetBackendUri == "https://wasabiwallet.co/")
 		{
-			hasChanged = true;
-			newConfig = this with
+			return this with
 			{
 				MainNetBackendUri = "https://api.wasabiwallet.io/",
 				TestNetBackendUri = "https://api.wasabiwallet.co/",
 			};
 		}
 
-		return hasChanged;
+		return this;
 	}
 }
