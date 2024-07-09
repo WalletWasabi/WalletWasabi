@@ -10,7 +10,7 @@ namespace WalletWasabi.Discoverability;
 public record CoordinatorConnectionString(
 	string Name,
 	Network Network,
-	Uri Endpoint,
+	Uri CoordinatorUri,
 	decimal CoordinationFeeRate,
 	int AbsoluteMinInputCount,
 	Uri ReadMore)
@@ -23,7 +23,7 @@ public record CoordinatorConnectionString(
 			{
 				["name"] = Uri.EscapeDataString(Name),
 				["network"] = Network.Name,
-				["endpoint"] = Uri.EscapeDataString(Endpoint.ToString()),
+				["coordinatorUri"] = Uri.EscapeDataString(CoordinatorUri.ToString()),
 				["coordinationFeeRate"] = CoordinationFeeRate.ToString(CultureInfo.InvariantCulture),
 				["absoluteMinInputCount"] = AbsoluteMinInputCount.ToString(),
 				["readMore"] = Uri.EscapeDataString(ReadMore.ToString())
@@ -37,7 +37,7 @@ public record CoordinatorConnectionString(
 		coordinatorConnectionString = null;
 
 		var queryString = HttpUtility.ParseQueryString(s);
-		string[] requiredParams = ["name", "network", "endpoint", "coordinationFeeRate", "absoluteMinInputCount", "readMore"];
+		string[] requiredParams = ["name", "network", "CoordinatorUri", "coordinationFeeRate", "absoluteMinInputCount", "readMore"];
 
 		if (requiredParams.Any(param => string.IsNullOrEmpty(queryString[param])))
 		{
@@ -52,7 +52,7 @@ public record CoordinatorConnectionString(
 			return false;
 		}
 
-		if (!Uri.TryCreate(queryString["endpoint"], UriKind.Absolute, out var endpoint))
+		if (!Uri.TryCreate(queryString["coordinatorUri"], UriKind.Absolute, out var coordinatorUri))
 		{
 			return false;
 		}
@@ -75,7 +75,7 @@ public record CoordinatorConnectionString(
 		coordinatorConnectionString = new CoordinatorConnectionString(
 			name,
 			network,
-			endpoint,
+			coordinatorUri,
 			coordinationFeeRate,
 			absoluteMinInputCount,
 			readMore);

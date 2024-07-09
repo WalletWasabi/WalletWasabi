@@ -337,7 +337,7 @@ public partial class ApplicationSettings : ReactiveObject
 			return false;
 		}
 
-		if (!TrySetCoordinatorUri(coordinatorConnectionString.Endpoint.ToString(), coordinatorConnectionString.Network))
+		if (!TrySetCoordinatorUri(coordinatorConnectionString.CoordinatorUri.ToString(), coordinatorConnectionString.Network))
 		{
 			return false;
 		}

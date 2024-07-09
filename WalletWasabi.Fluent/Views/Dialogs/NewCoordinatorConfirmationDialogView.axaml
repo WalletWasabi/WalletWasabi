@@ -34,11 +34,11 @@
             </PreviewItem>
             <Separator />
 
-            <!-- Endpoint -->
-            <PreviewItem Label="Endpoint"
+            <!-- CoordinatorUri -->
+            <PreviewItem Label="Coordinator URI"
                          Icon="{StaticResource coordinator}"
-                         CopyableContent="{Binding CoordinatorConnection.Endpoint}">
-              <TextBlock Text="{Binding CoordinatorConnection.Endpoint, FallbackValue=https://api.example.com/}" />
+                         CopyableContent="{Binding CoordinatorConnection.CoordinatorUri}">
+              <TextBlock Text="{Binding CoordinatorConnection.CoordinatorUri, FallbackValue=https://api.example.com/}" />
             </PreviewItem>
             <Separator />
 
