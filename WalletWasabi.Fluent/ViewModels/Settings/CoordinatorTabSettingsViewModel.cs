@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -90,13 +91,13 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		if (maxCoordinationFeeRateDecimal < 0)
 		{
-			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0%");
+			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0");
 			return;
 		}
 
-		if (maxCoordinationFeeRateDecimal > 1)
+		if (maxCoordinationFeeRateDecimal > Constants.AbsoluteMaxCoordinationFeeRate)
 		{
-			errors.Add(ErrorSeverity.Error, "Absolute maximum coordination fee rate is 1%");
+			errors.Add(ErrorSeverity.Error, $"Absolute maximum coordination fee rate is {Constants.AbsoluteMaxCoordinationFeeRate}");
 			return;
 		}
 
@@ -142,9 +143,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (absoluteMinInputCountInt < 2)
+		if (absoluteMinInputCountInt < Constants.AbsoluteMinInputCount)
 		{
-			errors.Add(ErrorSeverity.Error, "Absolute min input count should be at least 2");
+			errors.Add(ErrorSeverity.Error, $"Absolute min input count should be at least {Constants.AbsoluteMinInputCount}");
 			return;
 		}
 
