@@ -7,10 +7,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@v20
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
-      - run: nix build --print-build-logs .#all
-      - run: echo OK
+      - name: Configure Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: Build Projects
+        run: |
+          nix build --print-build-logs .#all
+          echo OK
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-without-markdown
+          path: |
+            result
+          retention-days: 3
+          compression-level: 3
