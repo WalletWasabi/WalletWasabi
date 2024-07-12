@@ -36,6 +36,9 @@ BUILD_DIR="./build"
 # Executable name
 EXECUTABLE_NAME="wassabee"
 
+# Directory where to save the generated packages
+PACKAGES_DIR="packages"
+
 # Common name for all packages
 PACKAGE_FILE_NAME_PREFIX="Wasabi-$VERSION"
 
@@ -99,11 +102,12 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   fi
 
   # Create compressed package files (.zip and .tar.gz)
+  mkdir -p "$PACKAGES_DIR"
   PACKAGE_FILE_NAME=$PACKAGE_FILE_NAME_PREFIX-$ALTER_PLATFORM
   if [[ "${PLATFORM_PREFIX}" == "lin" ]]; then
-    tar -pczvf $PACKAGE_FILE_NAME.tar.gz $OUTPUT_DIR
+    tar -pczvf $PACKAGES_DIR/$PACKAGE_FILE_NAME.tar.gz $OUTPUT_DIR
   else
-    zip -r $PACKAGE_FILE_NAME.zip $OUTPUT_DIR
+    zip -r $PACKAGES_DIR/$PACKAGE_FILE_NAME.zip $OUTPUT_DIR
   fi
 done
 
@@ -175,7 +179,7 @@ Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;"
 # Write the content to the file
 DEBIAN_DESKTOP="${DEBIAN_USR}/share/applications/${EXECUTABLE_NAME}.desktop"
 echo "${DEBIAN_DESKTOP_CONTENT}" > $DEBIAN_DESKTOP
-chmod 0644 $DEBIAN_DESKTOP
+#chmod 0644 $DEBIAN_DESKTOP
 
 # Copy the build to into the debian package structure
 cp -r $BUILD_DIR/linux-x64 $DEBIAN_BIN/wasabiwallet
@@ -193,7 +197,7 @@ chmod 0775 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
 chmod 0775 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 
 # Build the .deb package
-dpkg --build "${DEBIAN_PACKAGE_DIR}" "${PACKAGE_FILE_NAME_PREFIX}.deb"
+dpkg --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
 
 
 # Unstash changes if there were any
