@@ -1,0 +1,45 @@
+name: Build and Upload packages for release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags that start with 'v'
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run bash script
+        run: ./Contrib/release.sh
+        env:
+          ENV_VAR: value
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: packages
+          path: ./packages/*  # Adjust the path to your generated files
+
+#      - name: Create GitHub Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
+#
+#      - name: Upload Release Asset
+#        uses: actions/upload-release-asset@v1
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: path/to/generated/files/yourfile.ext  # Adjust the path and filename
+#          asset_name: yourfile.ext
+#          asset_content_type: application/octet-stream
+#
