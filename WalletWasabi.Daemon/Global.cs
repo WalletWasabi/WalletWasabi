@@ -129,8 +129,21 @@ public class Global
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
 			new P2PBlockProvider(P2PNodesManager));
 
-        HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(HttpClientFactory), friendlyName: "Cpfp Info Provider");
-        WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<CpfpInfoProvider>());
+		if (Network != Network.RegTest)
+		{
+			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(HttpClientFactory, Network), friendlyName: "Cpfp Info Provider");
+		}
+
+		WalletFactory walletFactory = new(
+			DataDir,
+			config.Network,
+			BitcoinStore,
+			wasabiSynchronizer,
+			config.ServiceConfiguration,
+			HostedServices.Get<HybridFeeProvider>(),
+			BlockDownloadService,
+			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
+
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 

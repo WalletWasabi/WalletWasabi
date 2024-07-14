@@ -284,12 +284,17 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
-		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-		CpfpInfo? cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
+		long ancestorsSizeVBytes = 0;
+		long feePaidByAncestorsAndTx = 0;
+		if (wallet.CpfpInfoProvider is not null)
+		{
+			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 
-		var ancestorsSizeVBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
-		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : (long)Math.Floor(cpfpInfo.EffectiveFeePerVSize * cpfpInfo.AdjustedVSize);
+			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
+			ancestorsSizeVBytes = (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
+			feePaidByAncestorsAndTx = (long)Math.Floor(cpfpInfo.EffectiveFeePerVSize * cpfpInfo.AdjustedVSize);
+		}
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(

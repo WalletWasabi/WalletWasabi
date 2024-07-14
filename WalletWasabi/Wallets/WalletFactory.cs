@@ -20,7 +20,7 @@ public record WalletFactory(
 	ServiceConfiguration ServiceConfiguration,
 	HybridFeeProvider FeeProvider,
 	BlockDownloadService BlockDownloadService,
-    CpfpInfoProvider CpfpInfoProvider)
+    CpfpInfoProvider? CpfpInfoProvider)
 {
 	public Wallet Create(KeyManager keyManager)
 	{

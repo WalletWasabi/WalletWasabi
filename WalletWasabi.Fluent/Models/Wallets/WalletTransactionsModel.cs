@@ -46,13 +46,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived =
+		RequestedCpfpInfoArrived = wallet.CpfpInfoProvider is null ? null :
 			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache =
-			TransactionProcessed
-			.Merge(RequestedCpfpInfoArrived)
+		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))
 			.Fetch(BuildSummary, model => model.Id)
 			.DisposeWith(_disposable);
 
@@ -66,7 +64,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-	public IObservable<Unit> RequestedCpfpInfoArrived { get; }
+	public IObservable<Unit>? RequestedCpfpInfoArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{

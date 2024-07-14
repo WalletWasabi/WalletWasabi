@@ -24,9 +24,20 @@ public class CpfpInfoProvider : BackgroundService
 	private const int MaximumRequestsInParallel = 3;
 	private static readonly TimeSpan MinimumBetweenUpdateRequests = TimeSpan.FromMinutes(2);
 
-	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory)
+	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory, Network network)
 	{
-		HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempoule.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		if (network == Network.Main)
+		{
+			HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		}
+		else if(network == Network.TestNet)
+		{
+			HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/testnet/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		}
+		else
+		{
+			throw new InvalidOperationException("CpfpInfoProvider is only operational on Main or TestNet");
+		}
 	}
 
 	public event EventHandler<EventArgs>? RequestedCpfpInfoArrived;
@@ -42,8 +53,6 @@ public class CpfpInfoProvider : BackgroundService
 
 	private async Task FetchCpfpInfoAsync(SmartTransaction transaction, CancellationToken cancellationToken)
 	{
-		const int MaxAttempts = 3;
-
 		var txid = transaction.GetHash();
 
 		try
@@ -76,8 +85,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	private bool ShouldRequest(SmartTransaction tx, bool useCache = true)
 	{
-		if (tx.Confirmed ||
-		    (tx.ForeignInputs.Count == 0 && tx.GetInputs().All(x => x.Confirmed.GetValueOrDefault())))
+		if (tx.Confirmed || (tx.ForeignInputs.Count == 0 && tx.GetInputs().All(x => x.Confirmed.GetValueOrDefault())))
 		{
 			return false;
 		}
@@ -99,7 +107,7 @@ public class CpfpInfoProvider : BackgroundService
 		Channel.Writer.TryWrite(tx);
 	}
 
-	public async Task<CpfpInfo?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	public async Task<CpfpInfo> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		await FetchCpfpInfoAsync(tx, cancellationToken).ConfigureAwait(false);
 		return CpfpInfoCache[tx.GetHash()].CpfpInfo;

@@ -41,7 +41,7 @@ public class Wallet : BackgroundService, IWallet
 		HybridFeeProvider feeProvider,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
-		CpfpInfoProvider cpfpInfoProvider)
+		CpfpInfoProvider? cpfpInfoProvider)
 	{
 		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
@@ -102,7 +102,7 @@ public class Wallet : BackgroundService, IWallet
 	public TransactionProcessor TransactionProcessor { get; }
 
 	public HybridFeeProvider FeeProvider { get; }
-	public CpfpInfoProvider CpfpInfoProvider { get; }
+	public CpfpInfoProvider? CpfpInfoProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 
@@ -176,9 +176,9 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if(CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
+				if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
 				{
-					effectiveFeeRate = new FeeRate((decimal)cpfpInfo.EffectiveFeePerVSize);
+					effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 				}
 
 				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
@@ -195,9 +195,9 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if(CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
+					if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
 					{
-						effectiveFeeRate = new FeeRate((decimal)cpfpInfo.EffectiveFeePerVSize);
+						effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 					}
 
 					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
@@ -397,7 +397,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			CpfpInfoProvider.ScheduleRequest(e.Transaction);
+			CpfpInfoProvider?.ScheduleRequest(e.Transaction);
 		}
 		catch (Exception ex)
 		{
@@ -423,7 +423,7 @@ public class Wallet : BackgroundService, IWallet
 	private async void IndexDownloader_NewFiltersAsync(object? sender, IEnumerable<FilterModel> filters)
 	{
 		// CpfpInfoCache can be updated before block is even downloaded because nothing is done client side.
-		CpfpInfoProvider.UpdateCache();
+		CpfpInfoProvider?.UpdateCache();
 
 		try
 		{
