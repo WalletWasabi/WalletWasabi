@@ -148,8 +148,6 @@ public class Wallet : BackgroundService, IWallet
 
 		foreach (SmartCoin coin in GetAllCoins())
 		{
-
-			CpfpInfoProvider.ImmediateRequestAsync(coin.Transaction, CancellationToken.None).GetAwaiter().GetResult();
 			walletTransactions.Add(coin.Transaction);
 			if (coin.SpenderTransaction is not null)
 			{
