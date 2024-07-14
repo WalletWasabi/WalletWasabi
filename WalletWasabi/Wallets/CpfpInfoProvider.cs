@@ -26,7 +26,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory)
 	{
-		HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
+		HttpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempoule.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
 	}
 
 	public event EventHandler<EventArgs>? RequestedCpfpInfoArrived;
@@ -46,40 +46,31 @@ public class CpfpInfoProvider : BackgroundService
 
 		var txid = transaction.GetHash();
 
-		for (int i = 0; i < MaxAttempts; i++)
+		try
 		{
-			try
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+			var response = await HttpClient.SendAsync(
+				HttpMethod.Get,
+				$"v1/cpfp/{txid}",
+				null,
+				linkedCts.Token).ConfigureAwait(false);
+
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-				var response = await HttpClient.SendAsync(
-					HttpMethod.Get,
-					$"v1/cpfp/{txid}",
-					null,
-					linkedCts.Token).ConfigureAwait(false);
-
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
-				}
-
-				var cpfpInfo = await response.Content.ReadAsJsonAsync<CpfpInfo>().ConfigureAwait(false);
-
-				CpfpInfoCache.AddOrReplace(txid, new CachedCpfpInfo(cpfpInfo, transaction));
-
-				RequestedCpfpInfoArrived?.Invoke(this, EventArgs.Empty);
-
-				return;
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogTrace("Request was cancelled by exiting the app.");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning($"Attempt: {i}. Failed to fetch transaction fee. {ex}");
-			}
+
+			var cpfpInfo = await response.Content.ReadAsJsonAsync<CpfpInfo>().ConfigureAwait(false);
+
+			CpfpInfoCache.AddOrReplace(txid, new CachedCpfpInfo(cpfpInfo, transaction));
+
+			RequestedCpfpInfoArrived?.Invoke(this, EventArgs.Empty);
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogTrace("Request was cancelled by exiting the app.");
 		}
 	}
 
@@ -110,11 +101,6 @@ public class CpfpInfoProvider : BackgroundService
 
 	public async Task<CpfpInfo?> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		if(!ShouldRequest(tx, false))
-		{
-			return null;
-		}
-
 		await FetchCpfpInfoAsync(tx, cancellationToken).ConfigureAwait(false);
 		return CpfpInfoCache[tx.GetHash()].CpfpInfo;
 	}

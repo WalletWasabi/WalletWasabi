@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
@@ -246,7 +247,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate).ConfigureAwait(false);
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is not HttpRequestException)
 		{
 			// It might be that the change is too small to CPFP, so we try to add another input.
 			// Let's only do this once, because the more we try to merge the more problematic it'll get from privacy point of view.
@@ -285,15 +286,7 @@ public static class TransactionModifierWalletExtensions
 
 		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-		CpfpInfo? cpfpInfo = null;
-		try
-		{
-			cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning($"Error while trying to get the unconfirmed transaction chain of tx {transactionToCpfp.GetHash()}: {ex}");
-		}
+		CpfpInfo? cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
 
 		var ancestorsSizeVBytes = cpfpInfo is null ? 0 : (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
 		var feePaidByAncestorsAndTx = cpfpInfo is null ? 0 : (long)Math.Floor(cpfpInfo.EffectiveFeePerVSize * cpfpInfo.AdjustedVSize);
