@@ -276,7 +276,7 @@ public static class TransactionModifierWalletExtensions
 		var network = wallet.Network;
 
 		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
-		var txSizeVBytes = transactionToCpfp.Transaction.GetVirtualSize();
+		var txSizeVBytes = (decimal)transactionToCpfp.Transaction.GetVirtualSize();
 
 		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
@@ -284,16 +284,30 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
-		long ancestorsSizeVBytes = 0;
-		long feePaidByAncestorsAndTx = 0;
+		decimal ancestorsSizeVBytes = 0.0m;
+		decimal feePaidByAncestorsAndTx = 0.0m;
 		if (wallet.CpfpInfoProvider is not null)
 		{
 			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 
 			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
-			ancestorsSizeVBytes = (long)Math.Ceiling(cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0);
-			feePaidByAncestorsAndTx = (long)Math.Floor(cpfpInfo.EffectiveFeePerVSize * cpfpInfo.AdjustedVSize);
+
+			// If it already exists a descendant that pays a higher fee rate that the one we are going to pay, then there is no need to CPFP.
+			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
+			{
+				throw new InvalidOperationException(
+					$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} s/vb, more than current priotity fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
+			}
+
+			ancestorsSizeVBytes = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
+			txSizeVBytes = cpfpInfo.AdjustedVSize;
+
+			// We need to know fee paid by ancestors and tx only. For this, we need to ignore the fee paid by best descendant that is accounted by mempool.space
+			var bestDescendant = cpfpInfo.Descendants.MaxBy(x => x.Fee / x.Weight);
+			var bestDescendantSizeVBytes = bestDescendant is null ? 0 : bestDescendant.Weight / 4.0m;
+			var bestDescendantFee = bestDescendant?.Fee ?? 0;
+			feePaidByAncestorsAndTx = cpfpInfo.EffectiveFeePerVSize * (ancestorsSizeVBytes + txSizeVBytes + bestDescendantSizeVBytes) - bestDescendantFee;
 		}
 
 		// Let's build a CPFP with best fee rate temporarily.

@@ -3,5 +3,5 @@ using NBitcoin;
 
 namespace WalletWasabi.Models;
 
-public record AncestorCpfpInfo(uint256 TxId, long Fee, long Weight);
-public record CpfpInfo(List<AncestorCpfpInfo> Ancestors, decimal EffectiveFeePerVSize, decimal AdjustedVSize);
+public record RelativeCpfpInfo(uint256 TxId, long Fee, long Weight);
+public record CpfpInfo(List<RelativeCpfpInfo> Ancestors, List<RelativeCpfpInfo> Descendants, decimal EffectiveFeePerVSize, decimal AdjustedVSize);
