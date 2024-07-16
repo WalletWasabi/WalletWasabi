@@ -109,6 +109,10 @@ public class CpfpInfoProvider : BackgroundService
 
 	public async Task<CpfpInfo> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
+		if (!ShouldRequest(tx))
+		{
+			throw new InvalidOperationException($"There is no need to request cpfp info for transaction {tx.GetHash()}");
+		}
 		await FetchCpfpInfoAsync(tx, cancellationToken).ConfigureAwait(false);
 		return CpfpInfoCache[tx.GetHash()].CpfpInfo;
 	}
