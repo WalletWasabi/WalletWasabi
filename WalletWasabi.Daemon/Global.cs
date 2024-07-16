@@ -237,7 +237,7 @@ public class Global
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
 					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
 					throw;
 				}
 
@@ -413,7 +413,7 @@ public class Global
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 
-		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount);
+		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 

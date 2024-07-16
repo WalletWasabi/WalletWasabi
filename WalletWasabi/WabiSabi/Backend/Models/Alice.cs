@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models;
 
 public class Alice
 {
-	public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id, bool isCoordinationFeeExempted)
+	public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id)
 	{
 		// TODO init syntax?
 		Round = round;

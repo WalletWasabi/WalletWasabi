@@ -42,7 +42,7 @@ public class ConfigManagerTests
 		// Change coordination fee rate.
 		{
 			// Double coordination fee rate.
-			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.006m);
+			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.005m);
 
 			// Change should be detected.
 			Assert.True(ConfigManager.CheckFileChange(configPath, config));
@@ -50,7 +50,7 @@ public class ConfigManagerTests
 			// Now store and check that JSON is as expected.
 			config.ToFile();
 
-			string expectedFileContents = GetVanillaConfigString(coordinationFeeRate: 0.006m);
+			string expectedFileContents = GetVanillaConfigString(coordinationFeeRate: 0.005m);
 			string actualFileContents = ReadAllTextAndNormalize(configPath);
 
 			Assert.Equal(expectedFileContents, actualFileContents);

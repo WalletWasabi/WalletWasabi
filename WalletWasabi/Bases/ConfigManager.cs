@@ -54,7 +54,7 @@ public class ConfigManager
 	}
 
 	public static TResponse LoadFile<TResponse>(string filePath, bool createIfMissing = false)
-		where TResponse : IConfigNg, new()
+		where TResponse : new()
 	{
 		TResponse result;
 

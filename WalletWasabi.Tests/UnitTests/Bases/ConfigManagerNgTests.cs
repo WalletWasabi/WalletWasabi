@@ -50,7 +50,7 @@ public class ConfigManagerNgTests
 			{
 			  "Network": "Main",
 			  "MainNetBackendUri": "https://api.wasabiwallet.io/",
-			  "TestNetClearnetBackendUri": "https://api.wasabiwallet.co/",
+			  "TestNetBackendUri": "https://api.wasabiwallet.co/",
 			  "RegTestBackendUri": "http://localhost:37127/",
 			  "MainNetCoordinatorUri": "https://api.wasabiwallet.io/",
 			  "TestNetCoordinatorUri": "https://api.wasabiwallet.co/",
@@ -77,7 +77,8 @@ public class ConfigManagerNgTests
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "MaxCoordinationFeeRate": 0.0,
 			  "MaxCoinJoinMiningFeeRate": 150.0,
-			  "AbsoluteMinInputCount": 21
+			  "AbsoluteMinInputCount": 21,
+			  "ConfigVersion": 0
 			}
 			""";
 

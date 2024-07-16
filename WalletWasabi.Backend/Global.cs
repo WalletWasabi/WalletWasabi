@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -14,8 +13,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend;
@@ -32,7 +29,6 @@ public class Global : IDisposable
 		HostedServices = new();
 
 		CoordinatorParameters = new(DataDir);
-		CoinJoinIdStore = CoinJoinIdStore.Create(CoordinatorParameters.CoinJoinIdStoreFilePath);
 
 		// Add Nostr publisher if enabled
 		if (Config.AnnouncerConfig.IsEnabled && config.Network != Network.RegTest)
@@ -48,10 +44,9 @@ public class Global : IDisposable
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-		IndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
+		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 
 		MempoolMirror = new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode);
-		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, MempoolMirror);
 	}
 
 	public string DataDir { get; }
@@ -68,10 +63,8 @@ public class Global : IDisposable
 
 	private CoordinatorParameters CoordinatorParameters { get; }
 
-	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 	public MempoolMirror MempoolMirror { get; }
-	public CoinJoinMempoolManager CoinJoinMempoolManager { get; private set; }
 
 	public async Task InitializeAsync(CancellationToken cancel)
 	{
@@ -85,10 +78,9 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		var wabiSabiConfig = CoordinatorParameters.RuntimeCoordinatorConfig;
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, coinJoinScriptStore);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;
@@ -162,8 +154,6 @@ public class Global : IDisposable
 					blockNotifier.OnBlock -= wabiSabiCoordinator.BanDescendant;
 					P2pNode.OnTransactionArrived -= wabiSabiCoordinator.BanDoubleSpenders;
 				}
-
-				CoinJoinMempoolManager.Dispose();
 
 				var stoppingTask = Task.Run(DisposeAsync);
 

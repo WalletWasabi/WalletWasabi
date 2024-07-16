@@ -2,13 +2,24 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
 
 public static class ConfigManagerNg
 {
-	public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true };
+	public static readonly JsonSerializerOptions DefaultOptions = new()
+	{
+		WriteIndented = true,
+		Converters =
+		{
+			new NetworkJsonConverterNg(),
+			new EndPointJsonConverterNg(),
+			new MoneyBtcJsonConverterNg()
+		}
+	};
 
 	public static string ToFile<T>(string filePath, T obj, JsonSerializerOptions? options = null)
 	{
@@ -37,7 +48,7 @@ public static class ConfigManagerNg
 	}
 
 	public static TResponse LoadFile<TResponse>(string filePath, bool createIfMissing = false, JsonSerializerOptions? options = null)
-		where TResponse : IConfigNg, new()
+		where TResponse : new()
 	{
 		options ??= DefaultOptions;
 

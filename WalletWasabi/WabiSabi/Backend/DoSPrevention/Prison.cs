@@ -4,20 +4,17 @@ using System.Linq;
 using System.Threading.Channels;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public class Prison
 {
-	public Prison(ICoinJoinIdStore coinJoinIdStore, IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
+	public Prison(IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
-		CoinJoinIdStore = coinJoinIdStore;
 		OffendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
 		NotificationChannelWriter = channelWriterWriter;
 	}
 
-	private ICoinJoinIdStore CoinJoinIdStore { get; }
 	private ChannelWriter<Offender> NotificationChannelWriter { get; }
 	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
 	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
@@ -90,9 +87,7 @@ public class Prison
 				});
 
 			var repetitions = offenderHistory.Count;
-			var repetitionFactor = CoinJoinIdStore.Contains(offender.OutPoint.Hash)
-				? repetitions                   // Linear punishment
-				: Math.Pow(2, repetitions - 1); // Exponential punishment
+			var repetitionFactor = Math.Pow(1.3, repetitions - 1); // Exponential punishment
 
 			var prisonTime = basePunishmentInHours * maxOffense * (decimal)repetitionFactor;
 			return TimeSpan.FromHours((double)prisonTime);

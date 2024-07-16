@@ -21,7 +21,6 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
@@ -132,7 +131,7 @@ public static class WabiSabiFactory
 	}
 
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(key, round.Id, scriptPubKeyType), round);
@@ -342,7 +341,7 @@ public static class WabiSabiFactory
 			outputProvider,
 			roundStateUpdater,
 			coinSelector,
-			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 0.3m, 150.0m, 1),
+			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 0.3m, 150.0m, 1, AllowSoloCoinjoining: true),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
 			TimeSpan.Zero,
@@ -378,10 +377,8 @@ public static class WabiSabiFactory
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
 	{
-		var coinjoinIdStore = CreateCoinJoinIdStore();
 		var channel = Channel.CreateUnbounded<Offender>();
 		var prison = new Prison(
-			coinjoinIdStore,
 			Enumerable.Empty<Offender>(),
 			channel.Writer);
 		return (prison, channel.Reader);
@@ -410,12 +407,5 @@ public static class WabiSabiFactory
 			DoSPenaltyFactorForDisruptingSigning = 1.5d,
 			DoSPenaltyFactorForDisruptingByDoubleSpending = 3.0d
 		};
-	}
-
-	internal static ICoinJoinIdStore CreateCoinJoinIdStore()
-	{
-		var coinjoinIdStore = new Mock<ICoinJoinIdStore>();
-		coinjoinIdStore.Setup(x => x.Contains(uint256.One)).Returns(true);
-		return coinjoinIdStore.Object;
 	}
 }

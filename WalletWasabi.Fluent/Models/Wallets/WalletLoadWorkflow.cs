@@ -123,7 +123,7 @@ public partial class WalletLoadWorkflow
 		uint clientTipHeight = Services.SmartHeaderChain.TipHeight;
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
+		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
 		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight(SyncType.Complete).Value;
 		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
