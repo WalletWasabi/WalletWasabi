@@ -1,12 +1,19 @@
-name: "Build"
+name: "Build (test monitoring)"
 on:
   push:
     branches: [ "*" ]
   pull_request:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Monitor workflow with listen.dev
+        uses: listendev/action@feat/issue-65
+        with:
+          ci: only
+          jwt: ${{ secrets.LSTN_API_KEY }}
+          argus_version: v0.0
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v20
         with:
