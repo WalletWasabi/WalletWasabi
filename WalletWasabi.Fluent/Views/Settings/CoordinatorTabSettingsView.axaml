@@ -32,7 +32,11 @@
 
     <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a minimum input count lower than the value indicated here.">
       <TextBlock Text="Min Input Count" />
-      <TextBox Classes="standalone" Name="AbsoluteMinInputCountTextBox" Text="{Binding AbsoluteMinInputCount}"/>
+      <TextBox Classes="standalone" Name="AbsoluteMinInputCountTextBox" Text="{Binding AbsoluteMinInputCount}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
     </StackPanel>
   </StackPanel>
 </UserControl>
