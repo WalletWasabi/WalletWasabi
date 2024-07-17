@@ -1,0 +1,146 @@
+name: Build and Upload packages for release (test monitoring)
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags that start with 'v'
+  pull_request:
+    branches: 
+      - master
+jobs:
+  debian-package-and-zips:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Monitor workflow with listen.dev
+        uses: listendev/action@feat/issue-65
+        with:
+          ci: only
+          jwt: ${{ secrets.LSTN_API_KEY }}
+          argus_version: v0.0
+          
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run bash script
+        run: sudo bash -x ./Contrib/release.sh
+        env:
+          ENV_VAR: value
+
+      - name: Upload debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-for-debian
+          path: ./packages/*.deb  # Adjust the path to your generated files
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload zip & tar package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-zip-tar
+          path: |
+            ./packages/*
+            !./packages/*.deb
+          compression-level: 0
+          if-no-files-found: error
+
+  installer-for-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+
+    - name: Install WiX Toolset
+      run: |
+        choco install wixtoolset --version=3.14.1 --force
+        choco install 7zip.commandline
+
+    - name: Install Windows SDK
+      run: |
+        choco install windows-sdk-10-version-1903-all
+
+#    - name: Set up environment
+#      run: |
+#        echo "${{ secrets.SIGNING_CERTIFICATE }}" | base64 -d >Certificate.pfx
+
+    - name: Build Windows Installer
+      shell: bash
+      run: |
+        set -x
+        ./Contrib/release.sh wininstaller
+      env:
+        CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+
+    - name: Upload windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: packages-for-windows
+        path: ./packages/*  # Adjust the path to your generated files
+        compression-level: 0
+        if-no-files-found: error
+
+  sign-all-packages:
+    runs-on: ubuntu-latest
+    needs: [debian-package-and-zips, installer-for-windows]
+    steps:
+      - name: Download package for Debian
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-for-debian|
+          path: ./packages
+      - name: Download compressed packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-zip-tar
+          path: ./packages
+      - name: Download windows packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-for-windows
+          path: ./packages
+
+      - name: List downloaded files
+        run: ls -l ./packages
+
+      - name: PGP signing
+        shell: bash
+        run: |
+          set -x
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+          gpg --import private.key
+          rm private.key
+          echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
+          export GPG_TTY=$(tty)
+
+          for FILE in "./packages/*"; do
+            sha256sum $FILE >> SHA256SUMS
+            gpg --armor --detach-sign $FILE
+          done
+
+#  create-release:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Create GitHub Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
+#
+#      - name: Upload Release Asset
+#        uses: actions/upload-release-asset@v1
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: path/to/generated/files/yourfile.ext  # Adjust the path and filename
+#          asset_name: yourfile.ext
+#          asset_content_type: application/octet-stream
+#
