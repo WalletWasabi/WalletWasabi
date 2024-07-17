@@ -2,11 +2,9 @@ name: Build and Upload packages for release (test monitoring)
 
 on:
   push:
-    tags:
-      - 'v*'  # Triggers on tags that start with 'v'
+    branches: [ "*" ]
   pull_request:
-    branches: 
-      - master
+  
 jobs:
   debian-package-and-zips:
     runs-on: ubuntu-latest
