@@ -303,11 +303,30 @@ public static class TransactionModifierWalletExtensions
 			ancestorsSizeVBytes = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
 			txSizeVBytes = cpfpInfo.AdjustedVSize;
 
-			// We need to know fee paid by ancestors and tx only. For this, we need to ignore the fee paid by best descendant that is accounted by mempool.space
+			// We need to know fee paid by ancestors and tx only. For this, we need to ignore the fee paid by best descendant if it is a CPFP.
 			var bestDescendant = cpfpInfo.Descendants.MaxBy(x => x.Fee / x.Weight);
-			var bestDescendantSizeVBytes = bestDescendant is null ? 0 : bestDescendant.Weight / 4.0m;
-			var bestDescendantFee = bestDescendant?.Fee ?? 0;
-			feePaidByAncestorsAndTx = cpfpInfo.EffectiveFeePerVSize * (ancestorsSizeVBytes + txSizeVBytes + bestDescendantSizeVBytes) - bestDescendantFee;
+			if (bestDescendant is not null)
+			{
+				var bestDescendantSizeVBytes = bestDescendant.Weight / 4.0m;
+				var bestDescendantFee = bestDescendant.Fee;
+
+				//TODO: This is not correct, we should compare to the FeeRate, not EffectiveFeeRate. For this we need mempool.space to add tx.Fee to the result
+				if (bestDescendantFee / bestDescendantSizeVBytes <= cpfpInfo.EffectiveFeePerVSize)
+				{
+					// Best descendant is a CPFP
+					feePaidByAncestorsAndTx = cpfpInfo.EffectiveFeePerVSize * (ancestorsSizeVBytes + txSizeVBytes + bestDescendantSizeVBytes) - bestDescendantFee;
+				}
+				else
+				{
+					// The best descendant is not a CPFP, it is ignored by mempool.space and so we don't have to account for it
+					feePaidByAncestorsAndTx = cpfpInfo.EffectiveFeePerVSize * (ancestorsSizeVBytes + txSizeVBytes);
+				}
+			}
+			else
+			{
+				// There is no descendant.
+				feePaidByAncestorsAndTx = cpfpInfo.EffectiveFeePerVSize * (ancestorsSizeVBytes + txSizeVBytes);
+			}
 		}
 
 		// Let's build a CPFP with best fee rate temporarily.
