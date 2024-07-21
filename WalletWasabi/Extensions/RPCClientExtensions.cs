@@ -164,7 +164,9 @@ public static class RPCClientExtensions
 		// then we don't want our estimations to be affected by those rare cases.
 		var relevantFeeGroups = mempoolInfo.Histogram
 			.OrderByDescending(x => x.Group)
-			.SkipWhile(x => x.Count < mempoolInfo.Size / 1_000);
+			.SkipWhile((_, index) => mempoolInfo.Histogram.Take(index + 1).Sum(g => g.Count) < mempoolInfo.Size / 1_000)
+			.ToList();
+
 
 		// Splits multi-megabyte fee rate groups in 1mb chunk
 		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
