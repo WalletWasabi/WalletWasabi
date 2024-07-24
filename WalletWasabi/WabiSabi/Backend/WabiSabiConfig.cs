@@ -10,7 +10,6 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend;
@@ -132,9 +131,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "RoundDestroyerThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int RoundDestroyerThreshold { get; set; } = 375;
 
-	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
+	[DefaultValueCoordinationFeeRate(0.0)]
 	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
+	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new(0.0m);
 
 	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
 	public ExtPubKey CoordinatorExtPubKey { get; private set; } = NBitcoinHelpers.BetterParseExtPubKey(Constants.WabiSabiFallBackCoordinatorExtPubKey);
@@ -147,40 +146,6 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
-
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool IsCoinVerifierEnabled { get; set; } = false;
-
-	[DefaultValueIntegerArray("")]
-	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(IntegerArrayJsonConverter))]
-	public IEnumerable<int> RiskFlags { get; set; } = Enumerable.Empty<int>();
-
-	[DefaultValue("")]
-	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoinVerifierApiUrl { get; set; } = "";
-
-	[DefaultValue("")]
-	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoinVerifierApiAuthToken { get; set; } = "";
-
-	[DefaultValueTimeSpan("0d 0h 2m 0s")]
-	[JsonProperty(PropertyName = "CoinVerifierStartBefore", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan CoinVerifierStartBefore { get; set; } = TimeSpan.FromMinutes(2);
-
-	[DefaultValue(3)]
-	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmations", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int CoinVerifierRequiredConfirmations { get; set; } = 3;
-
-	[DefaultValueMoneyBtc("1")]
-	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmationAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money CoinVerifierRequiredConfirmationAmount { get; set; } = Money.Coins(1m);
-
-	[DefaultValueTimeSpan("31d 0h 0m 0s")]
-	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan ReleaseFromWhitelistAfter { get; set; } = TimeSpan.FromDays(31);
 
 	[DefaultValue(1)]
 	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -225,14 +190,6 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "AllowP2wshOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wshOutputs { get; set; } = false;
-
-	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
-	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string AffiliationMessageSignerKey { get; set; } = Constants.FallbackAffiliationMessageSignerKey;
-
-	[DefaultAffiliateServers]
-	[JsonProperty(PropertyName = "AffiliateServers", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public ImmutableDictionary<string, string> AffiliateServers { get; set; } = ImmutableDictionary<string, string>.Empty;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -295,7 +252,7 @@ public class WabiSabiConfig : ConfigBase
 		}
 
 		// When adding new script types, please see
-		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+		// https://github.com/WalletWasabi/WalletWasabi/issues/5440
 
 		return scriptTypes.ToImmutableSortedSet();
 	}

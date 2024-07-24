@@ -21,6 +21,16 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
+      "LinqKit.Core": {
+        "type": "Transitive",
+        "resolved": "1.2.5",
+        "contentHash": "+5UKyagtVX33TSeOGorYzDXus/ypAISfM7HFfrix4BEmuuGF+nhSjf8P9csejLQ79ny5ms33M5/lQ2SkwC0Jxw=="
+      },
+      "Microsoft.Bcl.AsyncInterfaces": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "UcSjPsst+DfAdJGVDsu346FX0ci0ah+lw3WRtn18NUwEqRt70HaOQ7lI72vy3+1LxtqI3T5GWwV39rQSrCzAeg=="
+      },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
         "resolved": "8.0.0",
@@ -149,8 +159,8 @@
       },
       "NBitcoin.Secp256k1": {
         "type": "Transitive",
-        "resolved": "3.1.0",
-        "contentHash": "DVJbhT1plnBqPNnl5MNW1Aw5DCdfQ7MwlcL6PKcBIWPlQUO4T1FZRC4g2Axp9fd40eDKkyhq9MHlN9EeO09sGw=="
+        "resolved": "3.1.4",
+        "contentHash": "23N1DCusSRCx1hoNiIMl3JnMZrdY78a/WcsiN1LIAg6sq8MiC7mszDiUgHKD6txm+m9PxJBigBLH7MPBQCRCDQ=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
@@ -192,10 +202,44 @@
         "resolved": "8.0.0",
         "contentHash": "c9xLpVz6PL9lp/djOWtk5KPDZq3cSYpmXoJQY524EOtuFl5z9ZtsotpsyrDW40U1DRnQSYvcPKEUV0X//u6gkQ=="
       },
+      "System.Interactive.Async": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "f8H1O4ZWDQo344y5NQU76G4SIjWMuKDVXL9OM1dg6K5YZnLkc8iCdQDybBvMcC6ufk61jzXGVAX6UCDu0qDSjA==",
+        "dependencies": {
+          "System.Linq.Async": "6.0.1"
+        }
+      },
+      "System.Linq.Async": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "0YhHcaroWpQ9UCot3Pizah7ryAzQhNvobLMSxeDIGmnXfkQn8u5owvpOH0K6EVB+z9L7u6Cc4W17Br/+jyttEQ==",
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
+        }
+      },
       "System.Memory": {
         "type": "Transitive",
         "resolved": "4.5.3",
         "contentHash": "3oDzvc/zzetpTKWMShs1AADwZjQ/36HnsufHRPcOjyRAAMLDlu2iD33MBI2opxnezcVUtXyqDXXjoFMOU9c7SA=="
+      },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+      },
+      "System.Text.Json": {
+        "type": "Transitive",
+        "resolved": "8.0.3",
+        "contentHash": "hpagS9joOwv6efWfrMmV9MjQXpiXZH72PgN067Ysfr6AWMSD1/1hEcvh/U5mUpPLezEWsOJSuVrmqDIVD958iA==",
+        "dependencies": {
+          "System.Text.Encodings.Web": "8.0.0"
+        }
+      },
+      "System.Threading.Channels": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA=="
       },
       "walletwasabi": {
         "type": "Project",
@@ -207,6 +251,7 @@
           "Microsoft.Extensions.Http": "[8.0.0, )",
           "Microsoft.Win32.SystemEvents": "[8.0.0, )",
           "NBitcoin": "[7.0.27, )",
+          "NNostr.Client": "[0.0.49, )",
           "System.IO.Pipelines": "[8.0.0, )",
           "WabiSabi": "[1.0.1.2, )"
         }
@@ -283,6 +328,19 @@
           "Newtonsoft.Json": "13.0.1"
         }
       },
+      "NNostr.Client": {
+        "type": "CentralTransitive",
+        "requested": "[0.0.49, )",
+        "resolved": "0.0.49",
+        "contentHash": "UqmOBSCuUxw6qTk5+3TTWWtlyetx1btEuBJIS9beidviV45iMjlgOMK0ThB1CrYuPfg4DDzMu5rpzRYnM8eHWA==",
+        "dependencies": {
+          "LinqKit.Core": "1.2.5",
+          "NBitcoin.Secp256k1": "3.1.4",
+          "System.Interactive.Async": "6.0.1",
+          "System.Text.Json": "8.0.3",
+          "System.Threading.Channels": "8.0.0"
+        }
+      },
       "System.IO.Pipelines": {
         "type": "CentralTransitive",
         "requested": "[8.0.0, )",
@@ -305,6 +363,11 @@
         "resolved": "2.1.6",
         "contentHash": "2ObJJLkIUIxRpOUlZNGuD4rICpBnrBR5anjyfUFQep4hMOIeqW+XGQYzrNmHSVz5xSWZ3klSbh7sFR6UyDj68Q=="
       },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+      },
       "Microsoft.Win32.SystemEvents": {
         "type": "CentralTransitive",
         "requested": "[8.0.0, )",
@@ -317,6 +380,11 @@
         "type": "Transitive",
         "resolved": "2.1.6",
         "contentHash": "2ObJJLkIUIxRpOUlZNGuD4rICpBnrBR5anjyfUFQep4hMOIeqW+XGQYzrNmHSVz5xSWZ3klSbh7sFR6UyDj68Q=="
+      },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "CentralTransitive",
@@ -331,6 +399,11 @@
         "resolved": "2.1.6",
         "contentHash": "2ObJJLkIUIxRpOUlZNGuD4rICpBnrBR5anjyfUFQep4hMOIeqW+XGQYzrNmHSVz5xSWZ3klSbh7sFR6UyDj68Q=="
       },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+      },
       "Microsoft.Win32.SystemEvents": {
         "type": "CentralTransitive",
         "requested": "[8.0.0, )",
@@ -344,6 +417,11 @@
         "resolved": "2.1.6",
         "contentHash": "2ObJJLkIUIxRpOUlZNGuD4rICpBnrBR5anjyfUFQep4hMOIeqW+XGQYzrNmHSVz5xSWZ3klSbh7sFR6UyDj68Q=="
       },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+      },
       "Microsoft.Win32.SystemEvents": {
         "type": "CentralTransitive",
         "requested": "[8.0.0, )",
@@ -356,6 +434,11 @@
         "type": "Transitive",
         "resolved": "2.1.6",
         "contentHash": "2ObJJLkIUIxRpOUlZNGuD4rICpBnrBR5anjyfUFQep4hMOIeqW+XGQYzrNmHSVz5xSWZ3klSbh7sFR6UyDj68Q=="
+      },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "CentralTransitive",

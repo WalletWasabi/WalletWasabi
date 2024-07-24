@@ -15,9 +15,7 @@
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled"
-               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-               SkipContent="Send selected coins"
-               EnableSkip="{Binding IsAnySelected^}">
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <ContentArea.TopContent>
       <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}"  ToolTip.Tip="Sorting">
         <Button.Flyout>

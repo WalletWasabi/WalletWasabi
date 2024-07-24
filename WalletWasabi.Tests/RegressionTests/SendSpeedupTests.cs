@@ -102,7 +102,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			// Wait until the filter our previous transaction is present.
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-			wallet.Kitchen.Cook(password);
+			wallet.Password = password;
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 			broadcaster.Initialize(nodes, rpc);
@@ -463,7 +463,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region MarnixFoundBug
 
-			// https://github.com/zkSNACKs/WalletWasabi/pull/10976#pullrequestreview-1542077218
+			// https://github.com/WalletWasabi/WalletWasabi/pull/10976#pullrequestreview-1542077218
 			// I speed up a tx which has change, but the additional fee was deducted from the original send amount not from the change utxo?
 			// https://mempool.space/testnet/tx/b0de46a002e6487dac3a3a98841380d4ced7e4e8482217b2758dd53df0760af8
 			// I sent the 0.0004

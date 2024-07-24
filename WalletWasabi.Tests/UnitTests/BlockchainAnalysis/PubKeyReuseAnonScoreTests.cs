@@ -223,7 +223,7 @@ public class PubKeyReuseAnonScoreTests
 	public void OutputSideAddressReuseBySomeoneElse()
 	{
 		// If there's reuse in output side by another participant, then we should not gain anonsets by them.
-		// https://github.com/zkSNACKs/WalletWasabi/pull/4724/commits/6f5893ca57e35eadb6e20f164bdf0696bb14eea1#r530847724
+		// https://github.com/WalletWasabi/WalletWasabi/pull/4724/commits/6f5893ca57e35eadb6e20f164bdf0696bb14eea1#r530847724
 		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var equalOutputAmount = Money.Coins(1m);

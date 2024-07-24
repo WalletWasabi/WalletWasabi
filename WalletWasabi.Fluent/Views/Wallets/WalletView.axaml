@@ -36,14 +36,29 @@
                 <TextBlock Text="Broadcast" />
               </StackPanel>
             </Button>
-            <Button Classes="function"
-                    IsVisible="{Binding IsSendButtonVisible}"
-                    Command="{Binding SendCommand}">
-              <StackPanel Orientation="Horizontal">
-                <PathIcon Data="{StaticResource wallet_action_send}" />
-                <TextBlock Text="Send" />
-              </StackPanel>
-            </Button>
+
+            <SubActionButton Content="Send"
+                             Icon="{StaticResource wallet_action_send}"
+                             Command="{Binding SendCommand}"
+                             IsVisible="{Binding IsSendButtonVisible}">
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource automatic_control}"
+                                Classes="Icon"/>
+                    </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource manual_control}"
+                                Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
+            </SubActionButton>
+
             <Button Classes="function"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal">

@@ -13,7 +13,7 @@ using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
-using WalletWasabi.Affiliation;
+using Microsoft.AspNetCore.Http.Timeouts;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -67,7 +67,7 @@ public class Startup
 					Version = $"v{Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy focused Bitcoin Web API.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
+					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md") }
 				});
 
 			// Set the comments path for the Swagger JSON and UI.
@@ -88,7 +88,7 @@ public class Startup
 		});
 
 		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddHttpClient(AffiliationConstants.LogicalHttpClientName).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+		services.AddHttpClient("no-name").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 		{
 			// See https://github.com/dotnet/runtime/issues/18348#issuecomment-415845645
 			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
@@ -107,7 +107,7 @@ public class Startup
 			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
 
-			return new Global(dataDir, cachedRpc, config, httpClientFactory);
+			return new Global(dataDir, cachedRpc, config);
 		});
 		services.AddSingleton(serviceProvider =>
 		{
@@ -121,20 +121,15 @@ public class Startup
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.CoinJoinFeeRateStatStore;
 		});
-		services.AddSingleton(serviceProvider =>
-		{
-			var global = serviceProvider.GetRequiredService<Global>();
-			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-			return coordinator.AffiliationManager;
-		});
-		services.AddSingleton(serviceProvider =>
-		{
-			var global = serviceProvider.GetRequiredService<Global>();
-			return global.CoinJoinMempoolManager;
-		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
 		services.AddResponseCompression();
+		services.AddRequestTimeouts(options =>
+			options.DefaultPolicy =
+				new RequestTimeoutPolicy
+				{
+					Timeout = TimeSpan.FromSeconds(5)
+				});
 	}
 
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
@@ -156,6 +151,7 @@ public class Startup
 		app.UseResponseCompression();
 
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
+		app.UseRequestTimeouts();
 
 		var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
 		applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown

@@ -1,12 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
 using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -21,7 +19,6 @@ public class UtxoPrisonWardenTests
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using var w = new Warden(
 			coordinatorParameters.PrisonFilePath,
-			WabiSabiFactory.CreateCoinJoinIdStore(),
 			coordinatorParameters.RuntimeCoordinatorConfig);
 		await w.StartAsync(CancellationToken.None);
 		await w.StopAsync(CancellationToken.None);
@@ -37,7 +34,6 @@ public class UtxoPrisonWardenTests
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using var w = new Warden(
 			coordinatorParameters.PrisonFilePath,
-			WabiSabiFactory.CreateCoinJoinIdStore(),
 			coordinatorParameters.RuntimeCoordinatorConfig);
 		await w.StartAsync(CancellationToken.None);
 		var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -57,9 +53,7 @@ public class UtxoPrisonWardenTests
 
 		// See if prev UTXOs are loaded.
 		CoordinatorParameters coordinatorParameters2 = new(workDir);
-		var coinjoinIdStoreMock = new Mock<ICoinJoinIdStore>();
-		coinjoinIdStoreMock.Setup(x => x.Contains(It.IsAny<uint256>())).Returns(true);
-		using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coinjoinIdStoreMock.Object, coordinatorParameters2.RuntimeCoordinatorConfig);
+		using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coordinatorParameters2.RuntimeCoordinatorConfig);
 		await w2.StartAsync(CancellationToken.None);
 
 		var dosConfig = coordinatorParameters2.RuntimeCoordinatorConfig.GetDoSConfiguration();

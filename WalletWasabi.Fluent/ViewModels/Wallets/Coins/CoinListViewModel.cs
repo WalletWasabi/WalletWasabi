@@ -11,6 +11,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -26,7 +27,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly bool _allowCoinjoiningCoinSelection;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, IList<ICoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode)
+	public CoinListViewModel(IWalletModel wallet, ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode, bool allowSelection = true)
 	{
 		_wallet = wallet;
 		_ignorePrivacyMode = ignorePrivacyMode;
@@ -75,7 +76,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 
 		Selection = selection;
 
-		wallet.Coins.Pockets
+		availableCoins.Pockets
 			.Connect(suppressEmptyChangeSets: false)
 			.ToCollection()
 			.Do(
@@ -90,7 +91,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode);
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode, allowSelection);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
@@ -112,7 +113,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[2], ListSortDirection.Descending)) },
 			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => TreeDataGridSource.SortBy(TreeDataGridSource.Columns[3], ListSortDirection.Descending)) },
 		];
-		
+
 		SetInitialSelection(initialCoinSelection);
 	}
 
@@ -171,7 +172,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				return new PocketViewModel(_wallet, pocket, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
-		source.EditDiff(newItems);
+		source.EditDiff(newItems, new LambdaComparer<CoinListItem>((a, b) => Equals(a?.Key, b?.Key)));
 	}
 
 	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)

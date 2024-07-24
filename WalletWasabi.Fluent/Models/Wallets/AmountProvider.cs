@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using System.Reactive.Linq;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -13,7 +14,9 @@ public partial class AmountProvider : ReactiveObject
 	public AmountProvider(WasabiSynchronizer synchronizer)
 	{
 		_synchronizer = synchronizer;
-		BtcToUsdExchangeRates = this.WhenAnyValue(provider => provider._synchronizer.UsdExchangeRate);
+		BtcToUsdExchangeRates =
+			this.WhenAnyValue(provider => provider._synchronizer.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler);
 
 		BtcToUsdExchangeRates.BindTo(this, x => x.UsdExchangeRate);
 	}

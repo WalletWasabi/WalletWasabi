@@ -68,10 +68,10 @@ public class P2pNetwork : BackgroundService
 			}
 			catch (Exception ex) when (ex is OverflowException || ex is FormatException || ex is ArgumentException || ex is EndOfStreamException)
 			{
-				// https://github.com/zkSNACKs/WalletWasabi/issues/712
-				// https://github.com/zkSNACKs/WalletWasabi/issues/880
+				// https://github.com/WalletWasabi/WalletWasabi/issues/712
+				// https://github.com/WalletWasabi/WalletWasabi/issues/880
 				// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
-				// https://github.com/zkSNACKs/WalletWasabi/issues/5255
+				// https://github.com/WalletWasabi/WalletWasabi/issues/5255
 				Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
 				File.Delete(AddressManagerFilePath);
 				Logger.LogTrace(ex);

@@ -231,7 +231,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		foreach (var child in children)
 		{
-			viewModel.Children.Add(CreateViewModel(child, viewModel));
+			var historyItemViewModelBase = CreateViewModel(child, viewModel);
+			viewModel.Children.Add(historyItemViewModelBase);
 		}
 
 		return viewModel;

@@ -22,7 +22,7 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// Service that keeps processing block filters.
 /// </summary>
-/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/issues/10219">TurboSync specification.</seealso>
+/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>

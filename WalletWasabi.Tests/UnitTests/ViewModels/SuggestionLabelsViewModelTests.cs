@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using NBitcoin;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -206,6 +207,8 @@ public class SuggestionLabelsViewModelTests
 
 		public bool IsLoaded { get; set; }
 
+		public bool IsSelected { get; set; }
+
 		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
 		{
 			throw new NotSupportedException();
@@ -228,6 +231,11 @@ public class SuggestionLabelsViewModelTests
 		}
 
 		public IWalletStatsModel GetWalletStats()
+		{
+			throw new NotImplementedException();
+		}
+
+		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

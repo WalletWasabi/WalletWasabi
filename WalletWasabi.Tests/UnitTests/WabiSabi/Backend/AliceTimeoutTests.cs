@@ -8,7 +8,6 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -35,7 +34,7 @@ public class AliceTimeoutTests
 		await roundStateUpdater.StartAsync(testDeadlineCts.Token);
 
 		// Register Alices.
-		KeyChain keyChain = new(km, new Kitchen(ingredients: ""));
+		KeyChain keyChain = new(km, "");
 
 		using CancellationTokenSource registrationCts = new();
 		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);

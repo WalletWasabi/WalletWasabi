@@ -126,4 +126,6 @@ public class PocketViewModel : CoinListItem
 
 		return commonItem;
 	}
+
+	public override string Key => Labels.ToString();
 }

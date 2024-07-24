@@ -6,13 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 {
-	private readonly PrivacySuggestionsModel _privacySuggestionsModel;
+	private readonly IPrivacySuggestionsModel _privacySuggestionsModel;
 	private readonly Subject<IEnumerable<PrivacyWarning>> _previewWarnings = new();
 
 	[AutoNotify] private PrivacySuggestion? _previewSuggestion;
@@ -24,9 +25,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
 
-	public PrivacySuggestionsFlyoutViewModel(Wallet wallet)
+	public PrivacySuggestionsFlyoutViewModel(IWalletModel wallet, SendFlowModel sendParameters)
 	{
-		_privacySuggestionsModel = new PrivacySuggestionsModel(wallet);
+		_privacySuggestionsModel = wallet.GetPrivacySuggestionsModel(sendParameters);
 	}
 
 	public ObservableCollection<PrivacyWarning> Warnings { get; } = new();

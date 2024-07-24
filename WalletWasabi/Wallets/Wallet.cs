@@ -54,11 +54,6 @@ public class Wallet : BackgroundService, IWallet
 
 		RuntimeParams.SetDataDir(dataDir);
 
-		if (!KeyManager.IsWatchOnly)
-		{
-			KeyChain = new KeyChain(KeyManager, Kitchen);
-		}
-
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
 		TransactionProcessor = transactionProcessor;
@@ -112,10 +107,9 @@ public class Wallet : BackgroundService, IWallet
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
 
 	public bool IsLoggedIn { get; private set; }
+	public string Password { get; set; }
 
-	public Kitchen Kitchen { get; } = new();
-
-	public IKeyChain? KeyChain { get; }
+	public IKeyChain? KeyChain { get; private set; }
 
 	public IDestinationProvider DestinationProvider { get; }
 
@@ -127,8 +121,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
-		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
-		&& Kitchen.HasIngredients;
+		&& !KeyManager.IsWatchOnly; // that are not watch-only wallets
 
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
@@ -253,12 +246,13 @@ public class Wallet : BackgroundService, IWallet
 		if (KeyManager.IsWatchOnly)
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook("");
+			Password = "";
 		}
 		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
+			Password = compatibilityPasswordUsed ?? Guard.Correct(password);
+			KeyChain = new KeyChain(KeyManager, Password);
 		}
 
 		return IsLoggedIn;
@@ -266,7 +260,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public void Logout()
 	{
-		Kitchen.CleanUp();
 		IsLoggedIn = false;
 	}
 
@@ -593,7 +586,7 @@ public class Wallet : BackgroundService, IWallet
 
 	private void EnsureHeightsAreAtLeastSegWitActivation()
 	{
-		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network, IndexType.SegwitTaproot).Height);
+		var startingSegwitHeight = new Height(SmartHeader.GetStartingHeader(Network).Height);
 		if (startingSegwitHeight > KeyManager.GetBestHeight(SyncType.Complete))
 		{
 			KeyManager.SetBestHeight(startingSegwitHeight);

@@ -31,7 +31,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
-	private readonly WalletViewModel _walletViewModel;
+	private readonly IWalletModel _walletModel;
+	private readonly SendFlowModel _sendFlow;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
@@ -41,27 +42,29 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(UiContext uiContext, WalletViewModel walletViewModel, TransactionInfo info)
+	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel sendFlow)
 	{
 		_undoHistory = new();
-		_wallet = walletViewModel.Wallet;
-		_walletViewModel = walletViewModel;
-		_info = info;
-		_currentTransactionInfo = info.Clone();
+		_wallet = sendFlow.Wallet;
+		_walletModel = walletModel;
+		_sendFlow = sendFlow;
+
+		_info = _sendFlow.TransactionInfo ?? throw new InvalidOperationException($"Missing required TransactionInfo.");
+		_currentTransactionInfo = _info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(_wallet);
-		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, _wallet, _info, true);
+		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel(walletModel, _sendFlow);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(uiContext, this, walletModel, _info, true);
 
-		TransactionSummaries = new List<TransactionSummaryViewModel>
-		{
+		TransactionSummaries =
+		[
 			CurrentTransactionSummary,
 			PreviewTransactionSummary
-		};
+		];
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
-		
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
@@ -103,7 +106,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
 
-	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
+	public bool PreferPsbtWorkflow => _walletModel.Settings.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
 
@@ -180,9 +183,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnChangeCoinsAsync()
 	{
-		var currentCoins = _walletViewModel.WalletModel.Coins.GetSpentCoins(Transaction);
+		var currentCoins = _walletModel.Coins.GetSpentCoins(Transaction);
 
-		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletViewModel.WalletModel, currentCoins, _info).GetResultAsync();
+		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletModel, currentCoins, _sendFlow).GetResultAsync();
 
 		if (selectedCoins is { })
 		{
@@ -214,7 +217,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: true));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, Transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
 				privacyControlDialogResult.Result is { } coins)
 			{
@@ -258,12 +261,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException)
 		{
-			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
+			var canSelectMoreCoins = _sendFlow.AvailableCoins.Any(coin => !_info.Coins.Contains(coin));
 
 			if (canSelectMoreCoins)
 			{
 				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
 
 				if (selectPocketsDialog.Result is { } newCoins)
 				{
@@ -420,13 +423,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
-		if (!_wallet.KeyManager.IsHardwareWallet &&
-			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show authentication dialog when password is empty
+		if (!_walletModel.IsHardwareWallet && !_walletModel.Auth.HasPassword) // Do not show authentication dialog when password is empty
 		{
 			return true;
 		}
 
-		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletViewModel.WalletModel, transactionAuthorizationInfo);
+		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_walletModel, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 		return authDialogResult.Result;
@@ -476,8 +478,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
-		var pockets = _wallet.GetPockets().ToArray();
-		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
+		var pockets = _sendFlow.GetPockets();
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Password, _info, isSilent: true);
 		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
@@ -490,7 +492,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			case LabelManagementSuggestion:
 				{
 					var selectPocketsDialog =
-						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+						await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _sendFlow, _info, Transaction?.SpentCoins, false));
 
 					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 					{

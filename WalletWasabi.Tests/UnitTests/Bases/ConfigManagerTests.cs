@@ -42,7 +42,7 @@ public class ConfigManagerTests
 		// Change coordination fee rate.
 		{
 			// Double coordination fee rate.
-			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.006m, plebsDontPayThreshold: Money.Coins(0.01m));
+			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.005m);
 
 			// Change should be detected.
 			Assert.True(ConfigManager.CheckFileChange(configPath, config));
@@ -50,13 +50,13 @@ public class ConfigManagerTests
 			// Now store and check that JSON is as expected.
 			config.ToFile();
 
-			string expectedFileContents = GetVanillaConfigString(coordinationFeeRate: 0.006m);
+			string expectedFileContents = GetVanillaConfigString(coordinationFeeRate: 0.005m);
 			string actualFileContents = ReadAllTextAndNormalize(configPath);
 
 			Assert.Equal(expectedFileContents, actualFileContents);
 		}
 
-		static string GetVanillaConfigString(decimal coordinationFeeRate = 0.003m)
+		static string GetVanillaConfigString(decimal coordinationFeeRate = 0.0m)
 				=> $$"""
 			{
 			  "ConfirmationTarget": 108,
@@ -84,20 +84,11 @@ public class ConfigManagerTests
 			  "MinInputCountByBlameRoundMultiplier": 0.4,
 			  "RoundDestroyerThreshold": 375,
 			  "CoordinationFeeRate": {
-			    "Rate": {{coordinationFeeRate}},
-			    "PlebsDontPayThreshold": 1000000
+			    "Rate": {{coordinationFeeRate}}
 			  },
 			  "CoordinatorExtPubKey": "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC",
 			  "CoordinatorExtPubKeyCurrentDepth": 1,
 			  "MaxSuggestedAmountBase": "0.10",
-			  "IsCoinVerifierEnabled": false,
-			  "RiskFlags": "",
-			  "CoinVerifierApiUrl": "",
-			  "CoinVerifierApiAuthToken": "",
-			  "CoinVerifierStartBefore": "0d 0h 2m 0s",
-			  "CoinVerifierRequiredConfirmations": 3,
-			  "CoinVerifierRequiredConfirmationAmount": "1.00",
-			  "ReleaseFromWhitelistAfter": "31d 0h 0m 0s",
 			  "RoundParallelization": 1,
 			  "WW200CompatibleLoadBalancing": false,
 			  "WW200CompatibleLoadBalancingInputSplit": 0.75,
@@ -109,8 +100,6 @@ public class ConfigManagerTests
 			  "AllowP2pkhOutputs": false,
 			  "AllowP2shOutputs": false,
 			  "AllowP2wshOutputs": false,
-			  "AffiliationMessageSignerKey": "30770201010420686710a86f0cdf425e3bc9781f51e45b9440aec1215002402d5cdee713066623a00a06082a8648ce3d030107a14403420004f267804052bd863a1644233b8bfb5b8652ab99bcbfa0fb9c36113a571eb5c0cb7c733dbcf1777c2745c782f96e218bb71d67d15da1a77d37fa3cb96f423e53ba",
-			  "AffiliateServers": {},
 			  "DelayTransactionSigning": false,
 			  "IsCoordinationEnabled": true
 			}

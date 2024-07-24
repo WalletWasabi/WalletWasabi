@@ -4,7 +4,6 @@ using NBitcoin.RPC;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Affiliation;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Backend.Controllers;
@@ -24,7 +23,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -54,7 +52,7 @@ public class ArenaClientTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 		var coin = fundingTx.WalletOutputs.First().Coin;
-		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
+		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
 		round.Alices.Add(alice);
 
 		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
@@ -62,9 +60,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		var apiClient = new ArenaClient(null!, null!, config.CoordinatorIdentifier, wabiSabiApi);
 
@@ -82,7 +78,7 @@ public class ArenaClientTests
 		var password = "satoshi";
 
 		var km = ServiceFactory.CreateKeyManager(password);
-		var keyChain = new KeyChain(km, new Kitchen(password));
+		var keyChain = new KeyChain(km, password);
 		var destinationProvider = new InternalDestinationProvider(km);
 
 		var coins = destinationProvider.GetNextDestinations(2, false)
@@ -103,9 +99,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		InsecureRandom rnd = InsecureRandom.Instance;
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
@@ -187,9 +181,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		using AffiliationManager affiliationManager = new(arena, config, new MockHttpClientFactory());
-		using CoinJoinMempoolManager coinJoinMempoolManager = new(new CoinJoinIdStore(), DummyMempoolMirror);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager, coinJoinMempoolManager);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
@@ -199,7 +191,7 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
 
-		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+		var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 		var aliceId = inputRegistrationResponse.Value;
 
 		var amountsToRequest = new[]
@@ -289,6 +281,6 @@ public class ArenaClientTests
 
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Single(tx.Inputs);
-		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
+		Assert.Equal(2, tx.Outputs.Count);
 	}
 }

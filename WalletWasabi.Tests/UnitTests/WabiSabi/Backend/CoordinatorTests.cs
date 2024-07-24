@@ -10,7 +10,6 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using Xunit;
 
@@ -76,9 +75,8 @@ public class CoordinatorTests
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		WabiSabiConfig cfg = coordinatorParameters.RuntimeCoordinatorConfig;
 		DoSConfiguration dosConfig = cfg.GetDoSConfiguration() with { MinTimeInPrison = TimeSpan.Zero };
-		var coinJoinIdStore = new InMemoryCoinJoinIdStore();
 		var mockRpcClient = new MockRpcClient { Network = Network.Main };
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, coinJoinIdStore, new CoinJoinScriptStore(), new MockHttpClientFactory());
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, new CoinJoinScriptStore());
 
 		// Receive a tx that is not spending coins registered in any round.
 		{
@@ -117,20 +115,6 @@ public class CoordinatorTests
 			Assert.True(isOutputBanned); // Banned.
 			Assert.Contains(round.Id, coordinator.Arena.DisruptedRounds);
 		}
-
-		// Receive a tx that is spending coins registered in a round but the tx is a Wasabi coinjoin
-		{
-			tx2.Outputs[0].ScriptPubKey = BitcoinFactory.CreateScript(); // Make it a completely different tx.
-
-			// Make the transaction look like a Wasabi coinjoin tx.
-			Assert.True(coinJoinIdStore.TryAdd(tx2.GetHash()));
-
-			// Attempt to ban Wasabi coinjoin tx.
-			coordinator.BanDoubleSpenders(this, tx2);
-
-			var isOutputBanned = coordinator.Warden.Prison.IsBanned(new OutPoint(tx2, 0), dosConfig, DateTimeOffset.UtcNow);
-			Assert.False(isOutputBanned); // Not banned.
-		}
 	}
 
 	private static Transaction CreateTransaction(Money amount, OutPoint? outPoint = default)
@@ -155,5 +139,5 @@ public class CoordinatorTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore(), new CoinJoinScriptStore(), new MockHttpClientFactory());
+		=> new(coordinatorParameters, NewMockRpcClient(),  new CoinJoinScriptStore());
 }

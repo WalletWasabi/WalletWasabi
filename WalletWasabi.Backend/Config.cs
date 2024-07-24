@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Net;
 using WalletWasabi.Bases;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -74,6 +75,9 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
 	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
+
+	[JsonProperty(PropertyName = "AnnouncerConfig")]
+	public AnnouncerConfig AnnouncerConfig { get; internal set; } = new();
 
 	public EndPoint GetBitcoinP2pEndPoint()
 	{

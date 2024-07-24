@@ -67,6 +67,29 @@
     </Setter>
   </ControlTheme>
 
+  <ControlTheme x:Key="DialogSelectAllButton" TargetType="ToggleButton" BasedOn="{StaticResource DialogButton}">
+    <Style Selector="^[IsChecked=True]">
+      <Setter Property="ToolTip.Tip" Value="Unselect all" />
+      <Setter Property="ContentTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <PathIcon Height="13" Foreground="{DynamicResource AcrylicTrimForeground}" Data="{StaticResource select_all}" />
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style Selector="^[IsChecked=False]">
+      <Setter Property="ToolTip.Tip" Value="Select all" />
+      <Setter Property="ContentTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <PathIcon Height="13" Foreground="{DynamicResource AcrylicTrimForeground}" Data="{StaticResource select_none}" />
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </ControlTheme>
+
   <ControlTheme x:Key="FunctionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />

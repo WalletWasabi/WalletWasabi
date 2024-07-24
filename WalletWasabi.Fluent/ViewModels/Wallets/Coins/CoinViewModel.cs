@@ -31,7 +31,7 @@ public class CoinViewModel : CoinListItem
 			.Where(b => !b)
 			.Do(_ => IsSelected = false)
 			.Subscribe();
-		
+
         if (!canSelectWhenCoinjoining)
         {
             this.WhenAnyValue(x => x.Coin.IsCoinJoinInProgress, b => !b).BindTo(this, x => x.CanBeSelected).DisposeWith(_disposables);
@@ -39,4 +39,5 @@ public class CoinViewModel : CoinListItem
 	}
 
 	public ICoinModel Coin { get; }
+	public override string Key => Coin.Key.ToString();
 }

@@ -56,6 +56,8 @@ public partial class TransactionModel : ReactiveObject
 	public bool IsCancellation => Type == TransactionType.Cancellation;
 
 	public FeeRate? FeeRate { get; set; }
+	
+	public bool HasBeenSpedUp { get; set; }
 
 	private Money GetAmount()
 	{

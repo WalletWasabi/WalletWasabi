@@ -41,8 +41,8 @@ public class CoinJoinClient
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
-		string coordinatorIdentifier,
 		CoinJoinCoinSelector coinJoinCoinSelector,
+		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
@@ -52,8 +52,8 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		OutputProvider = outputProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
+		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinJoinCoinSelector = coinJoinCoinSelector;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SkipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
@@ -70,8 +70,8 @@ public class CoinJoinClient
 	private IKeyChain KeyChain { get; }
 	private OutputProvider OutputProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	private string CoordinatorIdentifier { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
+	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CoinJoinCoinSelector CoinJoinCoinSelector { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -121,9 +121,26 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
+		if (roundState.CoinjoinState.Parameters.MinInputCountByRound < CoinJoinConfiguration.AbsoluteMinInputCount)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum input count was too low.");
+		}
+
 		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, FeeRateMedianTimeFrame))
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
+		}
+
+		if (roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate > CoinJoinConfiguration.MaxCoordinationFeeRate)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
+			                                    $"the coordinator is malicious and tried to trick the client into paying a coordination fee rate of {roundState.CoinjoinState.Parameters.CoordinationFeeRate.Rate} for the blame round");
+		}
+
+		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
+			                                    $"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sats/vb but maximum allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
 		}
 
 		return roundState;
@@ -151,6 +168,24 @@ public class CoinJoinClient
 					string roundSkippedMessage = "Uneconomical round skipped.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
+				}
+				if (roundParameters.CoordinationFeeRate.Rate > CoinJoinConfiguration.MaxCoordinationFeeRate)
+				{
+					string roundSkippedMessage = $"Coordination fee rate was {roundParameters.CoordinationFeeRate.Rate} but max allowed is {CoinJoinConfiguration.MaxCoordinationFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.CoordinationFeeRateTooHigh, roundSkippedMessage);
+				}
+				if (roundParameters.MiningFeeRate.SatoshiPerByte > CoinJoinConfiguration.MaxCoinJoinMiningFeeRate)
+				{
+					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {CoinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.MiningFeeRateTooHigh, roundSkippedMessage);
+				}
+				if (roundParameters.MinInputCountByRound < CoinJoinConfiguration.AbsoluteMinInputCount)
+				{
+					string roundSkippedMessage = $"Min input count for the round was {roundParameters.MinInputCountByRound} but min allowed is {CoinJoinConfiguration.AbsoluteMinInputCount}.";
+					currentRoundState.LogInfo(roundSkippedMessage);
+					throw new CoinJoinClientException(CoinjoinError.MinInputCountTooLow, roundSkippedMessage);
 				}
 				if (SkipFactors.ShouldSkipRoundRandomly(SecureRandom, roundParameters.MiningFeeRate, RoundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
 				{
@@ -414,7 +449,7 @@ public class CoinJoinClient
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					CoordinatorIdentifier,
+					CoinJoinConfiguration.CoordinatorIdentifier,
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
@@ -587,7 +622,7 @@ public class CoinJoinClient
 			new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
-				CoordinatorIdentifier,
+				CoinJoinConfiguration.CoordinatorIdentifier,
 				arenaRequestHandler));
 	}
 
@@ -696,7 +731,7 @@ public class CoinJoinClient
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsCoordinationFeeExempted).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
 		string[] summary = new string[]
 		{
@@ -840,11 +875,33 @@ public class CoinJoinClient
 		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
-		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
-		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
+		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
+		var isItSoloCoinjoin =  signingState.Inputs.Count() == registeredAliceClients.Length;
+		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !CoinJoinConfiguration.AllowSoloCoinjoining;
+		if (isItForbiddenSoloCoinjoining)
+		{
+			roundState.LogInfo($"I am the only one in that coinjoin.");
+		}
+		bool allMyOutputsArePresent = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
+
+		if (!allMyOutputsArePresent)
+		{
+			roundState.LogInfo($"There are missing outputs.");
+		}
+
+		// Assert that the effective fee rate is at least what was agreed on.
+		// Otherwise, coordinator could take some of the mining fees for itself.
+		// There is a tolerance because before constructing the transaction only an estimation can be computed.
+		var isCoordinatorTakingExtraFees = signingState.EffectiveFeeRate.FeePerK.Satoshi <= signingState.Parameters.MiningFeeRate.FeePerK.Satoshi * 0.90;
+		if (isCoordinatorTakingExtraFees)
+		{
+			roundState.LogInfo($"Effective fee rate of the transaction is lower than expected.");
+		}
+
+		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
-			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
+			roundState.LogInfo($"A subset of inputs will be signed.	");
 		}
 
 		// Send signature.

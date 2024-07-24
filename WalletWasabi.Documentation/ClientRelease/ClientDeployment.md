@@ -1,9 +1,9 @@
 # Final tests
 
 - Check the exact **date** of the last release and the **name** of the last PR.
-- List the PR-s in order, open the [link and (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
-- Go through all PR, create the Final Test issue. Create test cases according to PR-s and write a list - [Final Test format](https://github.com/zkSNACKs/WalletWasabi/issues/2227).
-- Go through all issues and pick the [important ones (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Final Tests if required.
+- List the PR-s in order, open the [link and (adjust date!)](https://github.com/WalletWasabi/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
+- Go through all PR, create the Final Test issue. Create test cases according to PR-s and write a list - [Final Test format](https://github.com/WalletWasabi/WalletWasabi/issues/2227).
+- Go through all issues and pick the [important ones (adjust date!)](https://github.com/WalletWasabi/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Final Tests if required.
 - Check Tor status. Never release during a Tor network disruption: https://status.torproject.org/
 - At the end there will be a Final Test document.
 - Do testing contribution game if needed. 
@@ -31,17 +31,17 @@ Make sure to run a virus detection scan on one of the Release candidate's .msi i
 - Run tests.
 - MAKE SURE YOU ARE ON THE RIGHT BRANCH AND UP TO DATE in GitHub Desktop on the release machine!
 - Discard packages.lock changes if there are. Inserted USB drive name must contain the string USB! 
-- Run the [script file](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/Wasabi_release.ps1) on the **Windows Release Laptop** and follow the instructions.
-- At some point you will need to run [this script](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/WasabiNoratize.scpt) file on Mac. Don't forget to open the script file on Mac and insert your Apple dev username and password. Guide how to setup it: [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md).
+- Run the [script file](https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/Wasabi_release.ps1) on the **Windows Release Laptop** and follow the instructions.
+- At some point you will need to run [this script](https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Packager/scripts/WasabiNoratize.scpt) file on Mac. Don't forget to open the script file on Mac and insert your Apple dev username and password. Guide how to setup it: [macOS release environment](https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md).
 - Finish the script on Windows. Now a folder should pop up with all the files that need to be uploaded to GitHub.
 - Test asc file for `.msi`.
 - Final `.msi` test on own computer. Check the About dialog and optionally the BUILDINFO.json next to the wasabi executable, the commit ID should match with the one on GitHub. 
 
 # Final release
 
-- Draft a [new release at the main repo](https://github.com/zkSNACKs/WalletWasabi/releases/new).
+- Draft a [new release at the main repo](https://github.com/WalletWasabi/WalletWasabi/releases/new).
 - Bump client version. (WalletWasabi/Helpers/Constants.cs) - maybe you already did this.
-- Create the release notes by using [the template](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientRelease/ReleaseNotesTemplate.md). Make sure the the recent changes are in the What's new section. 
+- Create the release notes by using [the template](https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientRelease/ReleaseNotesTemplate.md). Make sure the the recent changes are in the What's new section. 
 - Run tests.
 - Do Packaging (see above).
 - Upload the files to the main repo!
@@ -52,7 +52,7 @@ Make sure to run a virus detection scan on one of the Release candidate's .msi i
 # Notify
 
 - Refresh website download and signature links.
-- [Deploy testnet and mainnet backend](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/HowToDeploy.md). Make sure the client version number is bumped here as well. If it is a hotfix you do not need to update the backend, but you need to update the website!
+- [Deploy testnet and mainnet backend](https://github.com/WalletWasabi/WalletWasabi/blob/master/WalletWasabi.Documentation/HowToDeploy.md). Make sure the client version number is bumped here as well. If it is a hotfix you do not need to update the backend, but you need to update the website!
 
 # Announce
 

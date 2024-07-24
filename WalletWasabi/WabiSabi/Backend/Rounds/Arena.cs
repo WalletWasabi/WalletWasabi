@@ -10,18 +10,14 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Events;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -32,39 +28,18 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
-		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
-		CoinJoinTransactionArchiver? archiver = null,
-		CoinJoinScriptStore? coinJoinScriptStore = null,
-		CoinVerifier? coinVerifier = null) : base(period)
+		CoinJoinScriptStore? coinJoinScriptStore = null ) : base(period)
 	{
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		TransactionArchiver = archiver;
-		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
-		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
-
-		if (CoinVerifier is not null)
-		{
-			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
-		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
-
-	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
-
-	public event EventHandler<CoinJoinTransactionCreatedEventArgs>? CoinJoinTransactionCreated;
-
-	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
-
-	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
-
-	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
@@ -73,10 +48,7 @@ public partial class Arena : PeriodicRunner
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
-	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	public CoinVerifier? CoinVerifier { get; private set; }
-	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
@@ -107,6 +79,7 @@ public partial class Arena : PeriodicRunner
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
+
 		}
 	}
 
@@ -136,28 +109,6 @@ public partial class Arena : PeriodicRunner
 					if (offendingAlices.Length != 0)
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
-					}
-				}
-
-				if (round is not BlameRound && CoinVerifier is not null)
-				{
-					try
-					{
-						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice, CoinEqualityComparer.Default);
-						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
-						{
-							if (coinVerifyInfo.ShouldRemove)
-							{
-								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
-								CoinVerifier.VerifierAuditArchiver.LogRoundEvent(round.Id, $"{coinVerifyInfo.Coin.Outpoint} got removed from round");
-							}
-						}
-					}
-					catch (Exception exc)
-					{
-						// This should never happen.
-						CoinVerifier.VerifierAuditArchiver.LogException(round.Id, exc);
-						throw;
 					}
 				}
 
@@ -355,12 +306,6 @@ public partial class Arena : PeriodicRunner
 
 					round.LogInfo(
 						$"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
-
-					// Store transaction.
-					if (TransactionArchiver is not null)
-					{
-						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
-					}
 
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
@@ -653,7 +598,6 @@ public partial class Arena : PeriodicRunner
 			foreach (var alice in alicesToRemove)
 			{
 				round.Alices.Remove(alice);
-				CoinVerifier?.CancelSchedule(alice.Coin);
 			}
 
 			var removedAliceCount = alicesToRemove.Length;
@@ -669,7 +613,7 @@ public partial class Arena : PeriodicRunner
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
 
-		var expectedCoordinationFee = round.Alices.Where(a => !a.IsCoordinationFeeExempted).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var expectedCoordinationFee = round.Alices.Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		var availableCoordinationFee = coinjoin.Balance - miningFee;
 
 		round.LogInfo($"Expected coordination fee: {expectedCoordinationFee} - Available coordination: {availableCoordinationFee}.");
@@ -702,20 +646,9 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
-	{
-		// For logging reason Prison needs the roundId.
-		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
-
-		// Could be a coin from WW1.
-		var roundId = roundState?.Id ?? uint256.Zero;
-		Prison.FailedVerification(coin.Outpoint, roundId);
-	}
-
 	private void AddRound(Round round)
 	{
 		Rounds.Add(round);
-		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
 	}
 
 	public void AbortRound(uint256 roundId)
@@ -739,48 +672,17 @@ public partial class Arena : PeriodicRunner
 	private void SetRoundPhase(Round round, Phase phase)
 	{
 		round.SetPhase(phase);
-
-		if (phase == Phase.OutputRegistration)
-		{
-			foreach (Alice alice in round.Alices)
-			{
-				NotifyInput(round.Id, alice.Coin, alice.IsCoordinationFeeExempted);
-			}
-		}
-
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
 	internal void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
-		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
-	}
-
-	private void NotifyInput(uint256 roundId, Coin coin, bool isCoordinationFeeExempted)
-	{
-		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isCoordinationFeeExempted));
-	}
-
-	private void NotifyAffiliation(uint256 roundId, Coin coin, string affiliationId)
-	{
-		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationId));
 	}
 
 	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)
 	{
 		SigningState signingState = constructionState.Finalize();
-		CoinJoinTransactionCreated?.SafeInvoke(this, new CoinJoinTransactionCreatedEventArgs(roundId, signingState.CreateTransaction()));
 		return signingState;
-	}
-
-	public override void Dispose()
-	{
-		if (CoinVerifier is not null)
-		{
-			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
-		}
-		base.Dispose();
 	}
 
 	/// <summary>

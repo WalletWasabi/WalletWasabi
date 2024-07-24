@@ -26,7 +26,7 @@ public static class Decomposer
 		{
 			throw new ArgumentException("Too many denominations. Maximum number is 255.", nameof(target));
 		}
-		return denoms.SelectMany(_ => InternalCombinations(target, tolerance: tolerance, maxCount, denoms)).Take(10_000).ToList();
+		return InternalCombinations(target, tolerance: tolerance, maxCount, denoms).Take(10_000).ToList();
 	}
 
 	private static IEnumerable<(long Sum, int Count, ulong Decomposition)> InternalCombinations(long target, long tolerance, int maxLength, long[] denoms)

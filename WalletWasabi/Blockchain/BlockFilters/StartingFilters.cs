@@ -9,7 +9,7 @@ public static class StartingFilters
 {
 	public static FilterModel GetStartingFilter(Network network)
 	{
-		var startingHeader = SmartHeader.GetStartingHeader(network, IndexType.SegwitTaproot);
+		var startingHeader = SmartHeader.GetStartingHeader(network);
 		if (network == Network.Main)
 		{
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:02832810ec08a0:{startingHeader.PrevHash}:{startingHeader.EpochBlockTime}");

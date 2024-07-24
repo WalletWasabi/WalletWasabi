@@ -35,9 +35,9 @@
 
 ## Source
 
-- https://github.com/zkSNACKs/WalletWasabi/pull/2886
+- https://github.com/WalletWasabi/WalletWasabi/pull/2886
 - https://github.com/btcpayserver/BTCPayServer.Vault/blob/master/Build/travis/applesign.sh
-- https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6#diff-fcfcbe3692989568120c615d76ece2b2
+- https://github.com/WalletWasabi/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6#diff-fcfcbe3692989568120c615d76ece2b2
 - https://developer.apple.com/library/archive/technotes/tn2206/_index.html
 - https://developer.apple.com/developer-id/
 
@@ -49,7 +49,7 @@
   - 1024x1024 size
   - 98px padding
   - BoxShadow params: x:0, y:5, Blur:25, Spread:0, Color:000000, Transparency:50%
-- https://github.com/zkSNACKs/WalletWasabi/issues/2951
+- https://github.com/WalletWasabi/WalletWasabi/issues/2951
 
 ## Changing the background of dmg installer
 
