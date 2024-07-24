@@ -397,7 +397,7 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			CpfpInfoProvider?.ScheduleRequest(e.Transaction);
+			CpfpInfoProvider?.ScheduleRequestIfRequired(e.Transaction, requestIfForeignOutput: false, ignoreCache: false);
 		}
 		catch (Exception ex)
 		{

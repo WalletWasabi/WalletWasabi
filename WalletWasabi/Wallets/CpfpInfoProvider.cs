@@ -83,33 +83,37 @@ public class CpfpInfoProvider : BackgroundService
 		}
 	}
 
-	private bool ShouldRequest(SmartTransaction tx, bool ignoreCache = false)
+	private bool ShouldRequest(SmartTransaction tx, bool requestIfForeignOutput, bool ignoreCache)
 	{
-		if (tx.Confirmed || (tx.ForeignInputs.Count == 0 && tx.GetInputs().All(x => x.Confirmed.GetValueOrDefault())))
+		if (tx.Confirmed)
 		{
+			// Don't request if the transaction is already confirmed.
 			return false;
 		}
-
+		if (tx.ForeignInputs.Count == 0 &&
+		    (!requestIfForeignOutput || tx.ForeignOutputs.Count == 0))
+		{
+			// Don't request if there are no foreign inputs and whether no foreign output whether we don't want to request in that case.
+			return false;
+		}
 		if (ignoreCache)
 		{
+			// It makes sense to request the CpfpInfo and we don't want to look at the cache, so request.
 			return true;
 		}
 
+		// Whether we should request depends on the presence of the tx in the cache.
 		return !CpfpInfoCache.ContainsKey(tx.GetHash());
 	}
 
-	public void ScheduleRequest(SmartTransaction tx, bool ignoreCache = false)
+	public bool ScheduleRequestIfRequired(SmartTransaction tx, bool requestIfForeignOutput, bool ignoreCache)
 	{
-		if (!ShouldRequest(tx, ignoreCache))
-		{
-			return;
-		}
-		Channel.Writer.TryWrite(tx);
+		return ShouldRequest(tx, requestIfForeignOutput, ignoreCache) && Channel.Writer.TryWrite(tx);
 	}
 
-	public async Task<CpfpInfo> ImmediateRequestAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	public async Task<CpfpInfo> ImmediateRequestAsync(SmartTransaction tx, bool requestIfForeignOutput, bool ignoreCache, CancellationToken cancellationToken)
 	{
-		if (!ShouldRequest(tx, ignoreCache: true))
+		if (!ShouldRequest(tx, requestIfForeignOutput, ignoreCache))
 		{
 			throw new InvalidOperationException($"There is no need to request cpfp info for transaction {tx.GetHash()}");
 		}
@@ -168,11 +172,16 @@ public class CpfpInfoProvider : BackgroundService
 
 		LastUpdateRequest = DateTime.UtcNow;
 
-		var snapshot = CpfpInfoCache.ToList();
-		foreach (var cachedCpfpInfo in snapshot.Where(x => !UpdateRequested.Contains(x.Key)))
+		foreach (var cachedCpfpInfo in CpfpInfoCache.Where(x => !UpdateRequested.Contains(x.Key)))
 		{
-			UpdateRequested.Add(cachedCpfpInfo.Key);
-			ScheduleRequest(cachedCpfpInfo.Value.Transaction, ignoreCache: true);
+			if (ScheduleRequestIfRequired(cachedCpfpInfo.Value.Transaction, requestIfForeignOutput: false, ignoreCache: true))
+			{
+				UpdateRequested.Add(cachedCpfpInfo.Key);
+			}
+			else
+			{
+				CpfpInfoCache.TryRemove(cachedCpfpInfo.Key, out _);
+			}
 		}
 	}
 

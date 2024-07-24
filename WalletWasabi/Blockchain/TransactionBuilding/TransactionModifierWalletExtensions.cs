@@ -290,7 +290,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
+			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, requestIfForeignOutput: true, ignoreCache: true, cts.Token).ConfigureAwait(false);
 
 			// If it already exists a descendant that pays a higher fee rate that the one we are going to pay, then there is no need to CPFP.
 			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
