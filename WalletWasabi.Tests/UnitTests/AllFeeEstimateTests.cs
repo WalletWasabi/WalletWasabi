@@ -235,19 +235,22 @@ public class AllFeeEstimateTests
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 
+		var histogram = MempoolInfoGenerator.FeeRanges.Reverse().Select((x, i) => new FeeRateGroup
+		{
+			Count = (uint) (100 * Math.Pow(i + 1, 2)),
+			Sizes = (uint) (40 * 100 * (i + 1)),
+			From = new FeeRate((decimal) x.from),
+			To = new FeeRate((decimal) x.to),
+			Fees = Money.Zero,
+			Group = x.from
+		}).ToArray();
+
 		mockRpc.OnGetMempoolInfoAsync = () =>
 			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-				Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
-				{
-					Count = (uint)(200 * (i + 1)),
-					Sizes = (uint)(40 * 100 * (i + 1)),
-					From = new FeeRate((decimal)x.from),
-					To = new FeeRate((decimal)x.to),
-					Fees = Money.Zero,
-					Group = x.from
-				}).ToArray()
+				Histogram = histogram,
+				Size = (int)histogram.Sum(x => x.Count)
 			});
 
 		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
@@ -263,10 +266,11 @@ public class AllFeeEstimateTests
 			};
 
 		var allFee = await mockRpc.EstimateAllFeeAsync();
-		Assert.Equal(3_000, allFee.Estimations[2]);
-		Assert.True(allFee.Estimations[3] > 500);
+		Assert.Equal(140, allFee.Estimations[2]);
+		Assert.Equal(124, allFee.Estimations[144]);
 		Assert.True(allFee.Estimations[1008] > 1);
 	}
+
 
 	[Fact]
 	public async Task WorksWithBitcoinCoreEstimationsAsync()
