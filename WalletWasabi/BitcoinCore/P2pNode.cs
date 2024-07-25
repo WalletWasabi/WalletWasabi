@@ -64,7 +64,7 @@ public class P2pNode
 
 		if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
 		{
-			throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
+			Logger.LogWarning("The local node because it does not provide blocks.");
 		}
 
 		if (!Node.IsConnected)
