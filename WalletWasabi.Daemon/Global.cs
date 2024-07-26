@@ -131,7 +131,7 @@ public class Global
 
 		if (Network != Network.RegTest)
 		{
-			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(HttpClientFactory, Network), friendlyName: "Cpfp Info Provider");
+			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(HttpClientFactory, Network), friendlyName: "CPFP Info Provider");
 		}
 
 		WalletFactory walletFactory = new(
