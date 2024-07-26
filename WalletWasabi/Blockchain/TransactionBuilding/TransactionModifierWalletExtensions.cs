@@ -292,7 +292,7 @@ public static class TransactionModifierWalletExtensions
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, requestIfForeignOutput: true, ignoreCache: true, cts.Token).ConfigureAwait(false);
 
-			// If it already exists a descendant that pays a higher fee rate that the one we are going to pay, then there is no need to CPFP.
+			// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
 			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
 			{
 				throw new InvalidOperationException(
