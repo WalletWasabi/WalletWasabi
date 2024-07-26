@@ -93,7 +93,7 @@ public class CpfpInfoProvider : BackgroundService
 		if (tx.ForeignInputs.Count == 0 &&
 		    (!requestIfForeignOutput || tx.ForeignOutputs.Count == 0))
 		{
-			// Don't request if there are no foreign inputs and whether no foreign output whether we don't want to request in that case.
+			// Don't request if there are no foreign inputs and either no foreign outputs or in case we don't want to request.
 			return false;
 		}
 		if (ignoreCache)
