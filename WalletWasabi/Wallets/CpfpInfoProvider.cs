@@ -115,7 +115,7 @@ public class CpfpInfoProvider : BackgroundService
 	{
 		if (!ShouldRequest(tx, requestIfForeignOutput, ignoreCache))
 		{
-			throw new InvalidOperationException($"There is no need to request cpfp info for transaction {tx.GetHash()}");
+			throw new InvalidOperationException($"There is no need to request CPFP info for transaction {tx.GetHash()}");
 		}
 		await FetchCpfpInfoAsync(tx, cancellationToken).ConfigureAwait(false);
 		return CpfpInfoCache[tx.GetHash()].CpfpInfo;
