@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822;NU1903</NoWarn>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -38,6 +38,7 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />
+		<PackageReference Include="System.Text.Json" />
 		<PackageReference Include="WabiSabi" />
 	</ItemGroup>
 
