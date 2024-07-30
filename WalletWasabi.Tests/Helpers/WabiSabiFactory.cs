@@ -74,7 +74,6 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new FeeRate(100m),
-			cfg.CoordinationFeeRate,
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
@@ -220,7 +219,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -254,7 +253,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
 		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice);
@@ -290,7 +289,6 @@ public static class WabiSabiFactory
 				cfg,
 				round.Parameters.Network,
 				round.Parameters.MiningFeeRate,
-				round.Parameters.CoordinationFeeRate,
 				round.Parameters.MaxSuggestedAmount) with
 		{
 			MinInputCountByRound = cfg.MinInputCountByBlameRound
@@ -341,7 +339,7 @@ public static class WabiSabiFactory
 			outputProvider,
 			roundStateUpdater,
 			coinSelector,
-			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 0.3m, 150.0m, 1, AllowSoloCoinjoining: true),
+			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
 			TimeSpan.Zero,
