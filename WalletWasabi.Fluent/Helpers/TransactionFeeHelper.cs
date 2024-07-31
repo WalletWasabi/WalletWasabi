@@ -59,7 +59,7 @@ public static class TransactionFeeHelper
 
 		if (feeEstimates is not null)
 		{
-			if (cpfpInfoProvider is null || !cpfpInfoProvider.TryGetCpfpInfo(tx.GetHash(), out var cpfpInfo))
+			if (cpfpInfoProvider is null || !cpfpInfoProvider.TryGetCpfpInfoUnsafe(tx.GetHash(), out var cpfpInfo))
 			{
 				return false;
 			}

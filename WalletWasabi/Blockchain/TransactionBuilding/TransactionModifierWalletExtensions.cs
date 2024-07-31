@@ -272,6 +272,11 @@ public static class TransactionModifierWalletExtensions
 
 	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate = null)
 	{
+		if (!CpfpInfoProvider.ShouldRequest(transactionToCpfp))
+		{
+			throw new InvalidOperationException($"There is no need to request CPFP info for transaction {transactionToCpfp.GetHash()}");
+		}
+
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
@@ -290,7 +295,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, requestIfForeignOutput: true, ignoreCache: true, cts.Token).ConfigureAwait(false);
+			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
 
 			// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
 			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)

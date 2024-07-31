@@ -176,7 +176,7 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
+				if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfoUnsafe(coin.TransactionId, out var cpfpInfo))
 				{
 					effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 				}
@@ -195,7 +195,7 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfo(coin.TransactionId, out var cpfpInfo))
+					if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfoUnsafe(coin.TransactionId, out var cpfpInfo))
 					{
 						effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 					}
@@ -397,7 +397,12 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-			CpfpInfoProvider?.ScheduleRequestIfRequired(e.Transaction, requestIfForeignOutput: false, ignoreCache: false);
+
+
+			if (CpfpInfoProvider.ShouldRequest(e.Transaction))
+			{
+				CpfpInfoProvider?.ScheduleRequest(e.Transaction);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -444,7 +449,11 @@ public class Wallet : BackgroundService, IWallet
 				return;
 			}
 
-			CpfpInfoProvider?.UpdateCache();
+			if (CpfpInfoProvider is not null)
+			{
+				await CpfpInfoProvider.UpdateCacheAsync(CancellationToken.None).ConfigureAwait(false);
+			}
+
 			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
