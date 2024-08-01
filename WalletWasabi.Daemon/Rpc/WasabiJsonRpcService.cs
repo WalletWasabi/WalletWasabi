@@ -396,7 +396,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			throw new NotSupportedException($"Unknown transaction {txId}");
 		}
 
-		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp).ConfigureAwait(false);
+		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
 		var speedUpSmartTransaction = speedUpResult.Transaction;
 		return speedUpSmartTransaction.Transaction.ToHex();
 	}

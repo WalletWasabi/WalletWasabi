@@ -42,9 +42,7 @@ public class CpfpInfoProvider : BackgroundService
 		}
 	}
 
-
 	private readonly IHttpClient _httpClient;
-
 
 	private readonly Channel<SmartTransaction> _transactionsChannel = Channel.CreateUnbounded<SmartTransaction>();
 	private readonly Dictionary<uint256, CachedCpfpInfo> _cpfpInfoCache = new();
@@ -54,13 +52,21 @@ public class CpfpInfoProvider : BackgroundService
 
 	public event EventHandler<EventArgs>? RequestedCpfpInfoArrived;
 
-
 	protected override async Task ExecuteAsync(CancellationToken cancel)
 	{
 		List<uint256> scheduledRequests = [];
 		List<Task> tasks = [];
 		while (!cancel.IsCancellationRequested)
 		{
+
+			tasks.RemoveAll(t => t.IsCompleted);
+
+			while (tasks.Count >= MaximumScheduledRequestsInParallel)
+			{
+				var completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+				tasks.Remove(completedTask);
+			}
+
 			var txToFetch = await _transactionsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 			var txid = txToFetch.GetHash();
 
@@ -78,14 +84,6 @@ public class CpfpInfoProvider : BackgroundService
 
 			scheduledRequests.Add(txid);
 			tasks.Add(Task.Run(() => ScheduleTask(txToFetch), cancel));
-
-			if (tasks.Count <= MaximumScheduledRequestsInParallel)
-			{
-				continue;
-			}
-
-			Task completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
-			tasks.Remove(completedTask);
 		}
 
 		async Task ScheduleTask(SmartTransaction transaction)
@@ -107,7 +105,6 @@ public class CpfpInfoProvider : BackgroundService
 			try
 			{
 				await FetchCpfpInfoAsync(transaction, cancel).ConfigureAwait(false);
-				scheduledRequests.Remove(transaction.GetHash());
 			}
 			catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
 			{
@@ -122,6 +119,10 @@ public class CpfpInfoProvider : BackgroundService
 				{
 					await ScheduleTask(transaction).ConfigureAwait(false);
 				}
+			}
+			finally
+			{
+				scheduledRequests.Remove(transaction.GetHash());
 			}
 
 		}
@@ -214,5 +215,6 @@ public class CpfpInfoProvider : BackgroundService
 
 		return await response.Content.ReadAsJsonAsync<CpfpInfo>().ConfigureAwait(false);
 	}
+
 	private record CachedCpfpInfo(CpfpInfo CpfpInfo, SmartTransaction Transaction, DateTimeOffset TimeLastUpdate);
 }

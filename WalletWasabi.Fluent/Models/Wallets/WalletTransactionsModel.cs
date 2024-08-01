@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
@@ -124,7 +125,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return transactionInfo;
 	}
 
-	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction)
+	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -137,7 +138,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction);
+		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 
 		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
 

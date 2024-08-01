@@ -83,7 +83,8 @@ public static class TransactionModifierWalletExtensions
 	public static async Task<BuildTransactionResult> SpeedUpTransactionAsync(
 		this Wallet wallet,
 		SmartTransaction transactionToSpeedUp,
-		FeeRate? preferredFeeRate = null)
+		FeeRate? preferredFeeRate,
+		CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
 
@@ -103,7 +104,7 @@ public static class TransactionModifierWalletExtensions
 			{
 				try
 				{
-					return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate).ConfigureAwait(false);
+					return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 				}
 				catch
 				{
@@ -114,7 +115,7 @@ public static class TransactionModifierWalletExtensions
 		}
 		else if (transactionToSpeedUp.IsCpfpable(keyManager))
 		{
-			return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate).ConfigureAwait(false);
+			return await wallet.CpfpTransactionAsync(transactionToSpeedUp, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
@@ -234,7 +235,7 @@ public static class TransactionModifierWalletExtensions
 		return rbf;
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate = null)
+	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
 		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
@@ -245,7 +246,7 @@ public static class TransactionModifierWalletExtensions
 
 		try
 		{
-			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate).ConfigureAwait(false);
+			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not HttpRequestException)
 		{
@@ -263,14 +264,14 @@ public static class TransactionModifierWalletExtensions
 
 				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, SecureRandom.Instance)!);
 
-				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate).ConfigureAwait(false);
+				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}
 
 			throw;
 		}
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate = null)
+	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		if (!CpfpInfoProvider.ShouldRequest(transactionToCpfp))
 		{
@@ -295,7 +296,8 @@ public static class TransactionModifierWalletExtensions
 		{
 			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, cts.Token).ConfigureAwait(false);
+			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
 
 			// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
 			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)

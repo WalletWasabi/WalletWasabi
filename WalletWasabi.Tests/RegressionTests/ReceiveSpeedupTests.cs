@@ -121,7 +121,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			#region CanSpeedUp
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txId, out var txToSpeedUp));
-			var cpfp = await wallet.SpeedUpTransactionAsync(txToSpeedUp);
+			var cpfp = await wallet.SpeedUpTransactionAsync(txToSpeedUp, null, CancellationToken.None);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
 
 			Assert.Equal("foo", txToSpeedUp.Labels.Single());
@@ -170,7 +170,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region CanSpeedUpTwice
 
-			var rbf = await wallet.SpeedUpTransactionAsync(cpfp.Transaction);
+			var rbf = await wallet.SpeedUpTransactionAsync(cpfp.Transaction, null, CancellationToken.None);
 			await broadcaster.SendTransactionAsync(rbf.Transaction);
 			Assert.False(wallet.BitcoinStore.TransactionStore.TryGetTransaction(cpfp.Transaction.GetHash(), out _));
 
@@ -211,7 +211,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region CanSpeedUpCPFPd
 
-			var rbf2 = await wallet.SpeedUpTransactionAsync(txToSpeedUp);
+			var rbf2 = await wallet.SpeedUpTransactionAsync(txToSpeedUp, null, CancellationToken.None);
 
 			// Before broadcast, it's still the old one.
 			Assert.Equal(rbf.Transaction, Assert.Single(txToSpeedUp.ChildrenPayForThisTx));
@@ -283,14 +283,14 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txIdJustEnoughToSpeedUp, out var txJustEnoughToSpeedUp));
 
 			// Can only speed up not too small, but not too large transaction once.
-			cpfp = await wallet.SpeedUpTransactionAsync(txJustEnoughToSpeedUp);
+			cpfp = await wallet.SpeedUpTransactionAsync(txJustEnoughToSpeedUp, null, CancellationToken.None);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
-			await Assert.ThrowsAsync<TransactionFeeOverpaymentException>(async () => await wallet.SpeedUpTransactionAsync(cpfp.Transaction));
+			await Assert.ThrowsAsync<TransactionFeeOverpaymentException>(async () => await wallet.SpeedUpTransactionAsync(cpfp.Transaction, null, CancellationToken.None));
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txIdTooSmallToSpeedUp, out var txTooSmallToSpeedUp));
 
 			// Can't speed too small transaction.
-			await Assert.ThrowsAsync<TransactionFeeOverpaymentException>(async () => await wallet.SpeedUpTransactionAsync(txTooSmallToSpeedUp));
+			await Assert.ThrowsAsync<TransactionFeeOverpaymentException>(async () => await wallet.SpeedUpTransactionAsync(txTooSmallToSpeedUp, null, CancellationToken.None));
 
 			#endregion CantSpeedUpTooSmall
 		}
