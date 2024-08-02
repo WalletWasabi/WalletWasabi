@@ -116,4 +116,26 @@ public static class ObservableExtensions
 					 .DisposeMany()
 					 .AsObservableCache();
 	}
+
+	public static (IObservableCache<TObject1, TKey1>, IObservableCache<TObject2, TKey2>) Fetch<TObject1, TKey1, TObject2, TKey2>(
+		this IObservable<Unit> signal,
+		(Func<IEnumerable<TObject1>> Source, Func<TObject1, TKey1> KeySelector, IEqualityComparer<TObject1>? EqualityComparer) first,
+		(Func<IEnumerable<TObject2>> Source, Func<TObject2, TKey2> KeySelector, IEqualityComparer<TObject2>? EqualityComparer) second)
+		where TKey1 : notnull
+		where TKey2 : notnull
+		where TObject1 : notnull
+		where TObject2 : notnull
+	{
+		var cache1 = signal.Select(_ => first.Source())
+			.EditDiff(first.KeySelector, first.EqualityComparer)
+			.DisposeMany()
+			.AsObservableCache();
+
+		var cache2 = signal.Select(_ => second.Source())
+			.EditDiff(second.KeySelector, second.EqualityComparer)
+			.DisposeMany()
+			.AsObservableCache();
+
+		return (cache1, cache2);
+	}
 }
