@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NBitcoin;
+
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public record ScriptType(string Name, string ShortName)
@@ -5,6 +8,31 @@ public record ScriptType(string Name, string ShortName)
 	public static readonly ScriptType Unknown = new("Unknown", "?");
 	public static ScriptType SegWit = new("SegWit", "SW");
 	public static ScriptType Taproot = new("Taproot", "TR");
+
+	public static ScriptPubKeyType ToScriptPubKeyType(ScriptType scriptType)
+	{
+		if (scriptType == SegWit)
+		{
+			return ScriptPubKeyType.Segwit;
+		}
+
+		if (scriptType == Taproot)
+		{
+			return ScriptPubKeyType.TaprootBIP86;
+		}
+
+		throw new InvalidOperationException($"Cannot cast the ScriptType {scriptType.Name} to a ScriptPubKeyType");
+	}
+
+	public static ScriptType FromString(string str)
+	{
+		return str switch
+		{
+			"SegWit" => SegWit,
+			"Taproot" => Taproot,
+			_ => throw new InvalidOperationException($"Cannot cast the string {str} to a ScriptType")
+		};
+	}
 
 	public static ScriptType FromEnum(NBitcoin.ScriptType type)
 	{

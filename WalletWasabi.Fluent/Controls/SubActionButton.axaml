@@ -8,7 +8,11 @@
 
           <SplitButton>Split button</SplitButton>
 
-          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
+          <SubActionButton Content="Subaction Button">
+            <SubActionButton.Icon>
+              <PathIcon Data="{StaticResource wallet_action_buy}"
+                        Classes="Icon" />
+            </SubActionButton.Icon>
             <SubActionButton.SubCommands>
               <UICommandCollection>
                 <UICommandDesign Name="Command 2">
@@ -61,7 +65,7 @@
             <SplitButton.ContentTemplate>
               <DataTemplate>
                 <DockPanel>
-                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 10 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" />
+                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 10 0" Data="{Binding $parent[SubActionButton].Icon.Data}" IsVisible="{Binding !!$parent[SubActionButton].Icon.Data}" />
                   <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
                 </DockPanel>
               </DataTemplate>

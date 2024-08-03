@@ -9,13 +9,15 @@ public class TestAddress : ReactiveObject, IAddress
 {
 	private bool _isUsed;
 
-	public TestAddress(string address)
+	public TestAddress(string address, ScriptType scriptType)
 	{
 		Text = address;
+		ScriptType = scriptType;
 	}
 
 	public string Text { get; }
 	public LabelsArray Labels { get; private set; }
+	public ScriptType ScriptType { get; }
 
 	public bool IsUsed
 	{

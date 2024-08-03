@@ -17,19 +17,22 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private string _addressText;
+	[AutoNotify] private ScriptType _scriptType;
 	[AutoNotify] private LabelsArray _labels;
 
 	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
 		UiContext = context;
 		Address = address;
-		_addressText = address.Text;
+		_addressText = ShortenAddress(address.Text);
+
+		_scriptType = address.ScriptType;
 
 		this.WhenAnyValue(x => x.Address.Labels)
 			.BindTo(this, viewModel => viewModel.Labels)
 			.DisposeWith(_disposables);
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(Address.Text));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
 		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
 		NavigateCommand = ReactiveCommand.Create(() => onShow(address));
@@ -62,6 +65,17 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 		{
 			await UiContext.Clipboard.ClearAsync();
 		}
+	}
+
+	private static string ShortenAddress(string input)
+	{
+		// Don't shorten SegWit addresses
+		if (input.Length <= 47)
+		{
+			return input;
+		}
+
+		return $"{input[..21]}...{input[^20..]}";
 	}
 
 	public void Dispose()

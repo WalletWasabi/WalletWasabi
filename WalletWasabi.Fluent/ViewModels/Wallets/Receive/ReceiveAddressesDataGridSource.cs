@@ -9,16 +9,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public static class ReceiveAddressesDataGridSource
 {
-	// [Column]		[View]				[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-	// Address		AddressColumnView	Address		Auto		-				-			true
-	// Labels		LabelsColumnView	Labels		1*			-				-			false
-	// Actions		ActionsColumnView	-			Auto		-				-			false
+	// [Column]		[View]				  [Header]  	  [Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+	// ScriptType   ScriptTypeColumnView  Type            Auto          -               -           true
+	// Address		AddressColumnView	  Address		  Auto		    -				-			true
+	// Labels		LabelsColumnView	  Labels		  1*			-				-			false
+	// Actions		ActionsColumnView	  -			      Auto		    -				-			false
 	public static FlatTreeDataGridSource<AddressViewModel> Create(IEnumerable<AddressViewModel> addresses)
 	{
 		return new FlatTreeDataGridSource<AddressViewModel>(addresses)
 		{
 			Columns =
 			{
+				ScriptTypeColumn(),
 				AddressColumn(),
 				LabelsColumn(),
 				ActionsColumn(),
@@ -70,5 +72,21 @@ public static class ReceiveAddressesDataGridSource
 				CompareDescending = Sort<AddressViewModel>.Descending(x => x.Labels)
 			},
 			width: new GridLength(1, GridUnitType.Star));
+	}
+
+	private static IColumn<AddressViewModel> ScriptTypeColumn()
+	{
+		return new TemplateColumn<AddressViewModel>(
+			"Type",
+			new FuncDataTemplate<AddressViewModel>((_, _) => new ScriptTypeView(), true),
+			null,
+			options: new TemplateColumnOptions<AddressViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.ScriptType.Name),
+				CompareDescending = Sort<AddressViewModel>.Descending(x => x.ScriptType.Name)
+			},
+			width: new GridLength(0, GridUnitType.Auto));
 	}
 }

@@ -23,17 +23,17 @@
                      FontWeight="Normal" />
         </DockPanel>
         <TagsBox x:Name="LabelsTbx"
-                   DataContext="{Binding SuggestionLabels}"
-                   Items="{Binding Labels}"
-                   TopItems="{Binding TopSuggestions}"
-                   TagSeparator=","
-                   SuggestionsAreCaseSensitive="True"
-                   RestrictInputToSuggestions="False"
-                   Watermark="{StaticResource LabelsWatermarkText}"
-                   Suggestions="{Binding Suggestions}"
-                   MaxTextLength="{StaticResource MaxLabelLength}"
-                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
-                   ForceAdd="{Binding ForceAdd}">
+                 DataContext="{Binding SuggestionLabels}"
+                 Items="{Binding Labels}"
+                 TopItems="{Binding TopSuggestions}"
+                 TagSeparator=","
+                 SuggestionsAreCaseSensitive="True"
+                 RestrictInputToSuggestions="False"
+                 Watermark="{StaticResource LabelsWatermarkText}"
+                 Suggestions="{Binding Suggestions}"
+                 MaxTextLength="{StaticResource MaxLabelLength}"
+                 IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
+                 ForceAdd="{Binding ForceAdd}">
           <TagsBox.Styles>
             <Style Selector="TagsBox AutoCompleteBox">
               <Setter Property="MinimumPrefixLength" Value="0" />

@@ -4,6 +4,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
@@ -12,7 +13,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public class Address : ReactiveObject, IAddress
 {
 	private readonly Action<Address> _onHide;
-	
+
 	public Address(KeyManager keyManager, HdPubKey hdPubKey, Action<Address> onHide)
 	{
 		KeyManager = keyManager;
@@ -32,6 +33,7 @@ public class Address : ReactiveObject, IAddress
 	public PubKey PubKey => HdPubKey.PubKey;
 	public KeyPath FullKeyPath => HdPubKey.FullKeyPath;
 	public string Text => BitcoinAddress.ToString();
+	public ScriptType ScriptType => ScriptType.FromEnum(BitcoinAddress.ScriptPubKey.GetScriptType());
 
 	public void Hide()
 	{
@@ -80,6 +82,6 @@ public class Address : ReactiveObject, IAddress
 	{
 		return obj is IAddress address && Equals(address);
 	}
-	
+
 	protected bool Equals(IAddress other) => Text.Equals(other.Text);
 }

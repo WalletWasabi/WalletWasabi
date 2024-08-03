@@ -7,6 +7,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent;
 
@@ -28,6 +29,7 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
+	private string _receiveScriptType = ScriptType.SegWit.Name;
 
 	public UiConfig() : base()
 	{
@@ -66,6 +68,12 @@ public class UiConfig : ConfigBase
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(x => x.ReceiveScriptType)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -186,6 +194,13 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	[JsonProperty(PropertyName = "ReceiveScriptType")]
+	public string ReceiveScriptType
+	{
+		get => _receiveScriptType;
+		internal set => RaiseAndSetIfChanged(ref _receiveScriptType, value);
 	}
 
 	[OnDeserialized]

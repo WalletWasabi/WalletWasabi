@@ -14,6 +14,8 @@ public interface IAddress : IReactiveObject
 
 	LabelsArray Labels { get; }
 
+	ScriptType ScriptType { get; }
+
 	void Hide();
 
 	void SetLabels(LabelsArray labels);

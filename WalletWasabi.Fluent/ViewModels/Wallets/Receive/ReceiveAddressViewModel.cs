@@ -24,7 +24,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		UiContext = uiContext;
 		Model = model;
 		Address = model.Text;
+		FriendlyAddress = ShortenAddress(model.Text);
 		Labels = model.Labels;
+		ScriptType = model.ScriptType;
 		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
@@ -53,8 +55,11 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	public ICommand ShowOnHwWalletCommand { get; }
 
 	public string Address { get; }
+	public string FriendlyAddress { get; }
 
 	public LabelsArray Labels { get; }
+
+	public ScriptType ScriptType { get; }
 
 	public bool IsHardwareWallet { get; }
 
@@ -79,6 +84,17 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private static string ShortenAddress(string input)
+	{
+		// Don't shorten SegWit addresses
+		if (input.Length <= 47)
+		{
+			return input;
+		}
+
+		return $"{input[..21]}...{input[^20..]}";
 	}
 
 	private async Task ShowOnHwWalletAsync()
