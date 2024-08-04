@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 public static class ReceiveAddressesDataGridSource
 {
 	// [Column]		[View]				  [Header]  	  [Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-	// ScriptType   ScriptTypeColumnView  Type            Auto          -               -           true
+	// ScriptType   ScriptTypeColumnView  Type            Auto          -               -           false
 	// Address		AddressColumnView	  Address		  Auto		    -				-			true
 	// Labels		LabelsColumnView	  Labels		  1*			-				-			false
 	// Actions		ActionsColumnView	  -			      Auto		    -				-			false
@@ -83,9 +83,7 @@ public static class ReceiveAddressesDataGridSource
 			options: new TemplateColumnOptions<AddressViewModel>
 			{
 				CanUserResizeColumn = false,
-				CanUserSortColumn = true,
-				CompareAscending = Sort<AddressViewModel>.Ascending(x => x.ScriptType.Name),
-				CompareDescending = Sort<AddressViewModel>.Descending(x => x.ScriptType.Name)
+				CanUserSortColumn = false
 			},
 			width: new GridLength(0, GridUnitType.Auto));
 	}

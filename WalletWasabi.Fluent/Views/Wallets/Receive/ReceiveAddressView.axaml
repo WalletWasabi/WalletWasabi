@@ -16,11 +16,16 @@
 
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="20">
         <DockPanel HorizontalAlignment="Center">
-          <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="2" Margin="0 0 10 0">
-            <ScriptTypePresenter ScriptType="{Binding ScriptType}" />
-          </StackPanel>
           <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
-            <TextBlock Classes="monoSpaced" Text="{Binding FriendlyAddress}" />
+            <TextBlock ToolTip.Tip="{Binding Address}"
+                       Classes="monoSpaced"
+                       Text="{Binding ShortenedAddress}"
+                       IsVisible="{Binding AddressHasBeenShortened}"/>
+          </PrivacyContentControl>
+          <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
+            <TextBlock Classes="monoSpaced"
+                       Text="{Binding ShortenedAddress}"
+                       IsVisible="{Binding Path=AddressHasBeenShortened, Converter={x:Static BoolConverters.Not}}"/>
           </PrivacyContentControl>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
             <AnimatedButton ToolTip.Tip="Show on the hardware wallet"

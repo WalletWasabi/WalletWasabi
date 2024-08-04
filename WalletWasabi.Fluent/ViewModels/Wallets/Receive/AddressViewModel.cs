@@ -24,7 +24,7 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	{
 		UiContext = context;
 		Address = address;
-		_addressText = ShortenAddress(address.Text);
+		_addressText = address.ShortenedText;
 
 		_scriptType = address.ScriptType;
 
@@ -39,6 +39,7 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	}
 
 	private IAddress Address { get; }
+	private bool AddressHasBeenShortened => Address.Text != AddressText;
 
 	public ICommand CopyAddressCommand { get; }
 
@@ -65,17 +66,6 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 		{
 			await UiContext.Clipboard.ClearAsync();
 		}
-	}
-
-	private static string ShortenAddress(string input)
-	{
-		// Don't shorten SegWit addresses
-		if (input.Length <= 47)
-		{
-			return input;
-		}
-
-		return $"{input[..21]}...{input[^20..]}";
 	}
 
 	public void Dispose()
