@@ -49,6 +49,7 @@ public class ReceiveAddressViewModelTests
 		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
 
 		public WalletId Id => throw new NotSupportedException();
+		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
 
 		public string Name
 		{

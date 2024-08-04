@@ -93,11 +93,13 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			_uiConfig.ReceiveScriptType = ScriptType.SegWit.Name;
 			Navigate().To().Receive(WalletModel, ScriptType.SegWit);
 		});
-		TaprootReceiveCommand = ReactiveCommand.Create(() =>
+		TaprootReceiveCommand = DifferentReceivingScriptType ?
+			ReactiveCommand.Create(() =>
 		{
 			_uiConfig.ReceiveScriptType = ScriptType.Taproot.Name;
 			Navigate().To().Receive(WalletModel, ScriptType.Taproot);
-		});
+		}) :
+			null;
 
 		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
 
@@ -165,7 +167,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool IsLoggedIn => WalletModel.Auth.IsLoggedIn;
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
-	public ScriptType ReceiveScriptType => ScriptType.FromString(_uiConfig.ReceiveScriptType);
+
+	public bool DifferentReceivingScriptType => WalletModel.AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
+	public ScriptType ReceiveScriptType => DifferentReceivingScriptType ?
+		ScriptType.FromString(_uiConfig.ReceiveScriptType) :
+		ScriptType.SegWit;
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -191,7 +197,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand DefaultReceiveCommand { get; private set; }
 	public ICommand SegwitReceiveCommand { get; private set; }
-	public ICommand TaprootReceiveCommand { get; private set; }
+	public ICommand? TaprootReceiveCommand { get; private set; }
 
 	public ICommand WalletInfoCommand { get; private set; }
 

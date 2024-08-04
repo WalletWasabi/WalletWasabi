@@ -40,11 +40,8 @@
 
             <SubActionButton Content="Send"
                              Command="{Binding SendCommand}"
-                             IsVisible="{Binding IsSendButtonVisible}">
-              <SubActionButton.Icon>
-                <PathIcon Data="{StaticResource wallet_action_send}"
-                          Classes="Icon" />
-              </SubActionButton.Icon>
+                             IsVisible="{Binding IsSendButtonVisible}"
+                             Icon="{StaticResource wallet_action_send}">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
                   <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
@@ -64,26 +61,27 @@
             </SubActionButton>
 
 
+            <!-- TODO: Improve this shameful code -->
+            <Button Classes="function"
+                    Command="{Binding DefaultReceiveCommand}"
+                    IsVisible="{Binding Path=DifferentReceivingScriptType, Converter={x:Static BoolConverters.Not}}">
+              <StackPanel Orientation="Horizontal">
+                <PathIcon Data="{StaticResource segwit_short}" />
+                <TextBlock Text="Receive" />
+              </StackPanel>
+            </Button>
+
             <SubActionButton Content="Receive"
-                             Command="{Binding DefaultReceiveCommand}"
+                             Command="{Binding SegwitReceiveCommand}"
                              VerticalAlignment="Bottom"
-                             HorizontalAlignment="Right">
-              <SubActionButton.PanelIcon>
-                <Panel>
-                  <PathIcon Data="{StaticResource segwit_short}"
-                            Classes="Icon">
-                    <PathIcon.IsVisible>
-                      <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsSegwit}" />
-                    </PathIcon.IsVisible>
-                  </PathIcon>
-                  <PathIcon Data="{StaticResource taproot_short}"
-                            Classes="Icon">
-                    <PathIcon.IsVisible>
-                      <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsTaproot}" />
-                    </PathIcon.IsVisible>
-                  </PathIcon>
-                </Panel>
-              </SubActionButton.PanelIcon>
+                             HorizontalAlignment="Right"
+                             Icon="{StaticResource segwit_short}">
+              <SubActionButton.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="DifferentReceivingScriptType" />
+                  <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsSegwit}" />
+                </MultiBinding>
+              </SubActionButton.IsVisible>
               <SubActionButton.SubCommands>
                 <UICommandCollection>
                   <UICommand Name="SegWit Address" Command="{Binding SegwitReceiveCommand}">
@@ -107,6 +105,42 @@
                 </UICommandCollection>
               </SubActionButton.SubCommands>
             </SubActionButton>
+
+            <SubActionButton Content="Receive"
+                             Command="{Binding TaprootReceiveCommand}"
+                             VerticalAlignment="Bottom"
+                             HorizontalAlignment="Right"
+                             Icon="{StaticResource taproot_short}">
+              <SubActionButton.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="DifferentReceivingScriptType" />
+                  <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsTaproot}" />
+                </MultiBinding>
+              </SubActionButton.IsVisible>
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="SegWit Address" Command="{Binding SegwitReceiveCommand}">
+                    <UICommand.IsDefault>
+                      <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsSegwit}" />
+                    </UICommand.IsDefault>
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource segwit_short}"
+                                Classes="Icon"/>
+                    </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Taproot Address" Command="{Binding TaprootReceiveCommand}">
+                    <UICommand.IsDefault>
+                      <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsTaproot}" />
+                    </UICommand.IsDefault>
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource taproot_short}"
+                                Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
+            </SubActionButton>
+
             <Panel>
               <Button Classes="function"
                       IsVisible="{Binding CanBuy^}"
