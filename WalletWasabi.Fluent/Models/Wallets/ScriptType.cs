@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NBitcoin;
 
 namespace WalletWasabi.Fluent.Models.Wallets;

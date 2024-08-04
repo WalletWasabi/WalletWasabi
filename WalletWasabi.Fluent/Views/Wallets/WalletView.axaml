@@ -64,7 +64,7 @@
             <!-- TODO: Improve this shameful code -->
             <Button Classes="function"
                     Command="{Binding DefaultReceiveCommand}"
-                    IsVisible="{Binding Path=DifferentReceivingScriptType, Converter={x:Static BoolConverters.Not}}">
+                    IsVisible="{Binding Path=SeveralReceivingScriptTypes, Converter={x:Static BoolConverters.Not}}">
               <StackPanel Orientation="Horizontal">
                 <PathIcon Data="{StaticResource segwit_short}" />
                 <TextBlock Text="Receive" />
@@ -78,7 +78,7 @@
                              Icon="{StaticResource segwit_short}">
               <SubActionButton.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding Path="DifferentReceivingScriptType" />
+                  <Binding Path="SeveralReceivingScriptTypes" />
                   <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsSegwit}" />
                 </MultiBinding>
               </SubActionButton.IsVisible>
@@ -113,7 +113,7 @@
                              Icon="{StaticResource taproot_short}">
               <SubActionButton.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding Path="DifferentReceivingScriptType" />
+                  <Binding Path="SeveralReceivingScriptTypes" />
                   <Binding Path="ReceiveScriptType" Converter="{x:Static converters:ScriptTypeConverters.IsTaproot}" />
                 </MultiBinding>
               </SubActionButton.IsVisible>

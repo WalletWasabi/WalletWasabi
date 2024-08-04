@@ -93,7 +93,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			_uiConfig.ReceiveScriptType = ScriptType.SegWit.Name;
 			Navigate().To().Receive(WalletModel, ScriptType.SegWit);
 		});
-		TaprootReceiveCommand = DifferentReceivingScriptType ?
+		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
 			ReactiveCommand.Create(() =>
 		{
 			_uiConfig.ReceiveScriptType = ScriptType.Taproot.Name;
@@ -168,8 +168,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
 
-	public bool DifferentReceivingScriptType => WalletModel.AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
-	public ScriptType ReceiveScriptType => DifferentReceivingScriptType ?
+	public bool SeveralReceivingScriptTypes => WalletModel.AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
+	public ScriptType ReceiveScriptType => SeveralReceivingScriptTypes ?
 		ScriptType.FromString(_uiConfig.ReceiveScriptType) :
 		ScriptType.SegWit;
 
