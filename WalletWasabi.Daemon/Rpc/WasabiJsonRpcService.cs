@@ -171,13 +171,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getnewaddress")]
-	public JsonRpcResult GenerateReceiveAddress(string label)
+	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = false)
 	{
 		AssertWalletIsLoaded();
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdKey = activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label));
+		var hdKey = taproot
+			? activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label), ScriptPubKeyType.TaprootBIP86)
+			: activeWallet.KeyManager.GetNextReceiveKey(new LabelsArray(label));
 
 		return new JsonRpcResult
 		{
