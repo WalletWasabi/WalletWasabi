@@ -87,18 +87,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
-		DefaultReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ReceiveScriptType));
-		SegwitReceiveCommand = ReactiveCommand.Create(() =>
-		{
-			_uiConfig.ReceiveScriptType = ScriptType.SegWit.Name;
-			Navigate().To().Receive(WalletModel, ScriptType.SegWit);
-		});
+		SegwitReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.SegWit));
 		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
-			ReactiveCommand.Create(() =>
-		{
-			_uiConfig.ReceiveScriptType = ScriptType.Taproot.Name;
-			Navigate().To().Receive(WalletModel, ScriptType.Taproot);
-		}) :
+			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
 			null;
 
 		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
@@ -150,10 +141,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 
-		this.WhenAnyValue(x => x._uiConfig.ReceiveScriptType)
-			.Do(x => this.RaisePropertyChanged(nameof(ReceiveScriptType)))
-			.Subscribe();
-
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
 
@@ -169,9 +156,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
 
 	public bool SeveralReceivingScriptTypes => WalletModel.AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
-	public ScriptType ReceiveScriptType => SeveralReceivingScriptTypes ?
-		ScriptType.FromString(_uiConfig.ReceiveScriptType) :
-		ScriptType.SegWit;
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -194,8 +178,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand SendManualControlCommand { get; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
-
-	public ICommand DefaultReceiveCommand { get; private set; }
 	public ICommand SegwitReceiveCommand { get; private set; }
 	public ICommand? TaprootReceiveCommand { get; private set; }
 
@@ -265,7 +247,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return new ISearchItem[]
 		{
-			new ActionableItem("Receive", "Display wallet receive dialog", () => { DefaultReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem("Receive", "Display wallet receive dialog", () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
 			new ActionableItem("Exclude Coins", "Display exclude coins", () => { CoinJoinStateViewModel.NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
