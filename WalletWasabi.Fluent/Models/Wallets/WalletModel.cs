@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Linq;
@@ -84,6 +85,8 @@ public partial class WalletModel : ReactiveObject
 	public string Name => Wallet.WalletName;
 
 	public Network Network => Wallet.Network;
+
+	public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => Wallet.KeyManager.AvailableScriptPubKeyTypes;
 
 	public IWalletTransactionsModel Transactions { get; }
 
