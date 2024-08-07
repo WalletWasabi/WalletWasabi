@@ -16,12 +16,12 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-    Title = "Manual Control",
-    IconName = "wallet_action_send",
-    NavBarPosition = NavBarPosition.None,
-    Searchable = false,
-    NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerable<SmartCoin>>
+	Title = "Manual Control",
+	IconName = "wallet_action_send",
+	NavBarPosition = NavBarPosition.None,
+	Searchable = false,
+	NavigationTarget = NavigationTarget.DialogScreen)]
+public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	[AutoNotify] private bool _hasSelection;
 
@@ -30,7 +30,7 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 
 	private ManualControlDialogViewModel(IWalletModel walletModel, Wallet wallet)
 	{
-		CoinList = new CoinListViewModel(walletModel, walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
+		CoinList = new CoinListViewModel(walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
 		var nextCommandCanExecute =
 			CoinList.Selection
@@ -42,9 +42,9 @@ public partial class ManualControlDialogViewModel: DialogViewModelBase<IEnumerab
 
 		SelectedAmount =
 			CoinList.Selection
-				    .ToObservableChangeSet()
-			        .ToCollection()
-			        .Select(c => c.Any() ? walletModel.AmountProvider.Create(c.TotalAmount()) : null);
+					.ToObservableChangeSet()
+					.ToCollection()
+					.Select(c => c.Any() ? walletModel.AmountProvider.Create(c.TotalAmount()) : null);
 
 		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()));
 
