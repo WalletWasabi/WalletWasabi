@@ -83,7 +83,8 @@ public static class WabiSabiFactory
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
 		{
-			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
+			MaxVsizeAllocationPerAlice =
+				Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize // enough vsize for one input and one output
 		});
 
 	public static MockRpcClient CreatePreconfiguredRpcClient(params Coin[] coins)
