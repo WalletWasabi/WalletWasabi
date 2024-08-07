@@ -14,9 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run bash script
-        run: sudo bash -x ./Contrib/release.sh
-        env:
-          ENV_VAR: value
+        run: sudo bash -x ./Contrib/release.sh debian
 
       - name: Upload debian package
         uses: actions/upload-artifact@v4
@@ -40,49 +38,54 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
 
-    - name: Install WiX Toolset
-      run: |
-        choco install wixtoolset --version=3.14.1 --force
-        choco install 7zip.commandline
+      - name: Install WiX Toolset
+        run: |
+          choco install wixtoolset --version=3.14.1 --force
+          choco install 7zip.commandline
 
-    - name: Install Windows SDK
-      run: |
-        choco install windows-sdk-10-version-1903-all
+      - name: Install Windows SDK
+        run: |
+          choco install windows-sdk-10-version-1903-all
 
-#    - name: Set up environment
-#      run: |
-#        echo "${{ secrets.SIGNING_CERTIFICATE }}" | base64 -d >Certificate.pfx
+      - name: Set up environment
+        shell: bash
+        env:
+          SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+        run: |
+          echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
 
-    - name: Build Windows Installer
-      shell: bash
-      run: |
-        set -x
-        ./Contrib/release.sh wininstaller
-      env:
-        CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      - name: Build Windows Installer
+        shell: bash
+        run: |
+          set -x
+          ./Contrib/release.sh wininstaller
+        env:
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
 
-    - name: Upload windows installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: packages-for-windows
-        path: ./packages/*  # Adjust the path to your generated files
-        compression-level: 0
-        if-no-files-found: error
+      - name: Upload windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-for-windows
+          path: ./packages/*  # Adjust the path to your generated files
+          compression-level: 0
+          if-no-files-found: error
 
   sign-all-packages:
     runs-on: ubuntu-latest
     needs: [debian-package-and-zips, installer-for-windows]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Download package for Debian
         uses: actions/download-artifact@v4
         with:
-          name: packages-for-debian|
+          name: packages-for-debian
           path: ./packages
       - name: Download compressed packages
         uses: actions/download-artifact@v4
@@ -94,44 +97,25 @@ jobs:
         with:
           name: packages-for-windows
           path: ./packages
-
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.SIGNING_PGP_KEY }}
+          passphrase: ${{ secrets.SIGNING_PGP_PASSPHRASE }}
+      - name: PGP and Wasabi signing
+        shell: bash
+        env:
+          SIGNING_WASABI_KEY: ${{ secrets.SIGNING_WASABI_KEY }}
+        run: bash -x ./Contrib/release.sh gpgsign
       - name: List downloaded files
         run: ls -l ./packages
-
-      - name: PGP signing
-        shell: bash
-        run: |
-          set -x
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
-          gpg --import private.key
-          rm private.key
-          echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
-          export GPG_TTY=$(tty)
-
-          for FILE in "./packages/*"; do
-            sha256sum $FILE >> SHA256SUMS
-            gpg --armor --detach-sign $FILE
-          done
-
-#  create-release:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Create GitHub Release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          release_name: Release ${{ github.ref }}
-#          draft: false
-#          prerelease: false
-#
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: path/to/generated/files/yourfile.ext  # Adjust the path and filename
-#          asset_name: yourfile.ext
-#          asset_content_type: application/octet-stream
-#
+      - name: Create release note
+        run: bash -x ./Contrib/release.sh releasenote > ReleaseNote.md
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Wasabi Wallet ${{ github.ref_name }}
+          files: ./packages/*
+          body_path: ReleaseNote.md
+          generate_release_notes: true
+          draft: true
