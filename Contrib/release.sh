@@ -403,10 +403,10 @@ EXECUTABLES=("${OTHER_EXECUTABLES[@]}" "${WASABI_EXECUTABLES[@]}")
 sudo chmod u+x "${EXECUTABLES[@]}"
 
 # Signing all files in order (wassabee at the end)
-SIGN_ARGUMENTS="--sign \"L233B2JQ68\" --verbose --force --options runtime --timestamp ---entitlements $ENTITLEMENTS_PATH"
+SIGN_ARGUMENTS="--sign L233B2JQ68 --verbose --force --options runtime --timestamp --entitlements $ENTITLEMENTS_PATH"
 ALL_FILES=("${NON_EXECUTABLES[@]}" "${EXECUTABLES[@]}")
 for file in "${ALL_FILES[@]}"; do
-  codesign "$SIGN_ARGUMENTS" "$file"
+  codesign $SIGN_ARGUMENTS "$file"
 done
 
 # Notarization
