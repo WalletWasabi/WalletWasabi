@@ -134,7 +134,9 @@ public class Global
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
-		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
+		var prisonForCoordinator = Path.Combine(DataDir, config.GetCoordinatorUri().Host);
+		CoinPrison.DeleteOldPrison(Path.Combine(DataDir, "PrisonedCoins.json"));
+		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
