@@ -34,17 +34,7 @@ public record RoundState(uint256 Id,
 			);
 
 	public RoundState GetSubState(int skipFromBaseState) =>
-		new(
-			Id,
-			BlameOf,
-			AmountCredentialIssuerParameters,
-			VsizeCredentialIssuerParameters,
-			Phase,
-			EndRoundState,
-			InputRegistrationStart,
-			InputRegistrationTimeout,
-			CoinjoinState.GetStateFrom(skipFromBaseState)
-			);
+		this with {CoinjoinState = CoinjoinState.GetStateFrom(skipFromBaseState)};
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch

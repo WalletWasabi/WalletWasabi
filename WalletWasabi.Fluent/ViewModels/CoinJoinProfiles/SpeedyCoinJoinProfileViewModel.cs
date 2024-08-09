@@ -10,5 +10,5 @@ internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours => 0;
 
-	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.SpeedMaximizing;
+	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.NoSkip;
 }

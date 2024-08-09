@@ -201,7 +201,7 @@ public class KeyManager
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
 	[JsonProperty(PropertyName = "CoinjoinSkipFactors")]
-	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.SpeedMaximizing;
+	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.NoSkip;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private List<HdPubKey> HdPubKeys { get; } = new();

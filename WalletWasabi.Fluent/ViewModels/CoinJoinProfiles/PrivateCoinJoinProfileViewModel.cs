@@ -27,7 +27,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;
 
-	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.PrivacyMaximizing;
+	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.NoSkip;
 
 	public override int FeeRateMedianTimeFrameHours => 0;
 

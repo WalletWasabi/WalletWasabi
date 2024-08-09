@@ -214,7 +214,7 @@ public class RoundStateUpdaterTests
 	}
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
-		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+		() => Ok(new RoundStateResponse(roundStates));
 
 	private static HttpResponseMessage Ok<T>(T obj)
 	{

@@ -12,7 +12,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual bool RedCoinIsolation { get; } = false;
 
-	public virtual CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.SpeedMaximizing;
+	public virtual CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.NoSkip;
 
 	public virtual int FeeRateMedianTimeFrameHours { get; }
 

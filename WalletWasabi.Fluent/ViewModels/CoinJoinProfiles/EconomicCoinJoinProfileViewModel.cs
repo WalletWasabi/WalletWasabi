@@ -10,5 +10,5 @@ internal class EconomicCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours => 168; // One week median.
 
-	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.CostMinimizing;
+	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.NoSkip;
 }
