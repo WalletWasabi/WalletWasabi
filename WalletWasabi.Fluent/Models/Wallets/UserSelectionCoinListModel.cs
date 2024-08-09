@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class UserSelectionCoinListModel(Wallet wallet, IWalletModel walletModel, SmartCoin[] selectedCoins) : CoinListModel(wallet, walletModel)
 {
-	protected override ICoinModel[] CreateCoinModels()
+	protected override ICoinModel[] GetCoins()
 	{
-		return selectedCoins.Select(CreateCoinModel).ToArray();
+		return selectedCoins.Select(GetCoinModel).ToArray();
 	}
 
 	protected override Pocket[] GetPockets()

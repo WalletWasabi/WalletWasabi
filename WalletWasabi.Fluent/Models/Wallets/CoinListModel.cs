@@ -16,8 +16,6 @@ public abstract partial class CoinListModel : IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	private object Lock { get; } = new();
-
 	public CoinListModel(Wallet wallet, IWalletModel walletModel)
 	{
 		Wallet = wallet;
@@ -34,13 +32,8 @@ public abstract partial class CoinListModel : IDisposable
 				.Merge(isSelected)
 				.Publish();
 
-		(List, Pockets) = signals.Fetch(
-			first: (Source: CreateCoinModels, KeySelector: x => x.Key, EqualityComparer: null),
-			second: (Source: GetPockets, KeySelector: x => x.Labels, EqualityComparer: null)
-		);
-
-		List.DisposeWith(_disposables);
-		Pockets.DisposeWith(_disposables);
+		Pockets = signals.Fetch(GetPockets, x => x.Labels).DisposeWith(_disposables);
+		List = signals.Fetch(() => Wallet.Coins.Select(CreateCoinModel), x => x.Key).DisposeWith(_disposables);
 
 		signals
 			.Do(_ => Logger.LogDebug($"Refresh signal emitted in {walletModel.Name}"))
@@ -63,14 +56,14 @@ public abstract partial class CoinListModel : IDisposable
 		return List.Items.First(coinModel => coinModel.Key == smartCoin.Outpoint.GetHashCode());
 	}
 
-	protected ICoinModel CreateCoinModel(SmartCoin smartCoin)
+	private ICoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
 		return new CoinModel(smartCoin, WalletModel.Settings.AnonScoreTarget);
 	}
 
 	protected abstract Pocket[] GetPockets();
 
-	protected abstract ICoinModel[] CreateCoinModels();
+	protected abstract ICoinModel[] GetCoins();
 
 	public void Dispose() => _disposables.Dispose();
 }
