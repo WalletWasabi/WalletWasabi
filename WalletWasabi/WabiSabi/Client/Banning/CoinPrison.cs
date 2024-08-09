@@ -115,7 +115,7 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 		}
 
 		IoHelpers.EnsureFileExists(filePath);
-		string json = JsonConvert.SerializeObject(bannedCoins, Formatting.Indented);
+		string json = JsonConvert.SerializeObject(bannedCoins.Values, Formatting.Indented);
 		File.WriteAllText(filePath, json);
 	}
 
