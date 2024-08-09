@@ -75,7 +75,6 @@ public class ConfigManagerNgTests
 			  "DustThreshold": "0.00005",
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
-			  "MaxCoordinationFeeRate": 0.0,
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
 			  "ConfigVersion": 0

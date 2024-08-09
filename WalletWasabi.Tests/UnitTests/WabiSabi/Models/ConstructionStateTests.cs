@@ -19,7 +19,6 @@ public class ConstructionStateTests
 				cfg,
 				Network.Main,
 				miningFeeRate,
-				cfg.CoordinationFeeRate,
 				Money.Coins(10));
 
 		var round = WabiSabiFactory.CreateRound(roundParameters);

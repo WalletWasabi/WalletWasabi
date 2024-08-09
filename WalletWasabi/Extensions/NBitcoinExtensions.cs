@@ -362,28 +362,17 @@ public static class NBitcoinExtensions
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
-	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate, coordinationFeeRate);
+	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate)
+		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate);
 
-	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate, coordinationFeeRate);
+	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate)
+		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate);
 
-	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate)
 	{
 		var networkFee = feeRate.GetFee(virtualSize);
-		var coordinationFee = coordinationFeeRate.GetFee(amount);
-
-		return amount - networkFee - coordinationFee;
+		return amount - networkFee;
 	}
-
-	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
-		EffectiveValue(coin.Coin, feeRate, coordinationFeeRate);
-
-	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
-		EffectiveValue(coin.Coin, feeRate, CoordinationFeeRate.Zero);
-
-	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate) =>
-		EffectiveValue(coin, feeRate, CoordinationFeeRate.Zero);
 
 	public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 	{

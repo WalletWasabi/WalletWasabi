@@ -50,7 +50,6 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _mainNetCoordinatorUri;
 	[AutoNotify] private string _testNetCoordinatorUri;
 	[AutoNotify] private string _regTestCoordinatorUri;
-	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
@@ -100,7 +99,6 @@ public partial class ApplicationSettings : ReactiveObject
 		_mainNetCoordinatorUri = _startupConfig.MainNetCoordinatorUri;
 		_testNetCoordinatorUri = _startupConfig.TestNetCoordinatorUri;
 		_regTestCoordinatorUri = _startupConfig.RegTestCoordinatorUri;
-		_maxCoordinationFeeRate = _startupConfig.MaxCoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
 		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
 		_absoluteMinInputCount = _startupConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
@@ -142,13 +140,12 @@ public partial class ApplicationSettings : ReactiveObject
 				.Skip(1);
 		var configSaveTrigger2 =
 			this.WhenAnyValue(
-					x => x.MaxCoordinationFeeRate,
 					x => x.MaxCoinJoinMiningFeeRate,
 					x => x.AbsoluteMinInputCount,
 					x => x.MainNetCoordinatorUri,
 					x => x.TestNetCoordinatorUri,
 					x => x.RegTestCoordinatorUri,
-					(_, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -286,9 +283,6 @@ public partial class ApplicationSettings : ReactiveObject
 				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
 					Money.Coins(threshold) :
 					Money.Coins(Constants.DefaultDustThreshold),
-				MaxCoordinationFeeRate = decimal.TryParse(MaxCoordinationFeeRate, out var maxCoordinationFeeRate) ?
-					maxCoordinationFeeRate :
-					Constants.DefaultMaxCoordinationFeeRate,
 				MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
 					maxCoinjoinMiningFeeRate :
 					Constants.DefaultMaxCoinJoinMiningFeeRate,
@@ -322,12 +316,6 @@ public partial class ApplicationSettings : ReactiveObject
 	public bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString)
 	{
 		// Sanity checks
-		if (coordinatorConnectionString.CoordinationFeeRate > Constants.AbsoluteMaxCoordinationFeeRate)
-		{
-			Logger.LogWarning($"New intended coordinator fee rate was {coordinatorConnectionString.CoordinationFeeRate}, but absolute max is {Constants.AbsoluteMaxCoordinationFeeRate}.");
-			return false;
-		}
-
 		if (coordinatorConnectionString.AbsoluteMinInputCount < Constants.AbsoluteMinInputCount)
 		{
 			Logger.LogWarning($"New intended absolute min input count was {coordinatorConnectionString.AbsoluteMinInputCount}, but absolute min is {Constants.AbsoluteMinInputCount}");
@@ -339,7 +327,6 @@ public partial class ApplicationSettings : ReactiveObject
 			return false;
 		}
 
-		MaxCoordinationFeeRate = coordinatorConnectionString.CoordinationFeeRate.ToString(CultureInfo.InvariantCulture);
 		AbsoluteMinInputCount = coordinatorConnectionString.AbsoluteMinInputCount.ToString();
 
 		// TODO: Save Name and ReadMoreUri to display it after.

@@ -13,7 +13,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public record UtxoSelectionParameters(
 	MoneyRange AllowedInputAmounts,
 	Money MinAllowedOutputAmount,
-	CoordinationFeeRate CoordinationFeeRate,
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
@@ -35,7 +34,6 @@ public record UtxoSelectionParameters(
 		return new(
 			roundParameters.AllowedInputAmounts,
 			smallestReasonableEffectiveDenomination,
-			roundParameters.CoordinationFeeRate,
 			roundParameters.MiningFeeRate,
 			roundParameters.AllowedInputTypes);
 	}

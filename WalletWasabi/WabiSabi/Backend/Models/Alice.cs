@@ -30,8 +30,8 @@ public class Alice
 
 	public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
-	public Money CalculateRemainingAmountCredentials(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
-		Coin.EffectiveValue(feeRate, coordinationFeeRate);
+	public Money CalculateRemainingAmountCredentials(FeeRate feeRate) =>
+		Coin.EffectiveValue(feeRate);
 
 	public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 	{

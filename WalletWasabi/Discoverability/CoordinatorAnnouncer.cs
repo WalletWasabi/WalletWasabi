@@ -25,7 +25,6 @@ public class CoordinatorAnnouncer(TimeSpan period, AnnouncerConfig config, Netwo
 				CreateTag("type", "wabisabi"),
 				CreateTag("network", network.ChainName.ToString().ToLower()),
 				CreateTag("endpoint", config.CoordinatorUri),
-				CreateTag("coordinationfee", config.CoordinationFee.ToString(CultureInfo.InvariantCulture)),
 				CreateTag("absolutemininputcount", config.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture)),
 				CreateTag("readmore", config.ReadMoreUri)
 			]

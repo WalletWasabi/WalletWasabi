@@ -32,7 +32,6 @@ public class AliceClient
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
 		FeeRate = roundParameters.MiningFeeRate;
-		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
 		IssuedVsizeCredentials = issuedVsizeCredentials;
 		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
@@ -44,7 +43,6 @@ public class AliceClient
 	private ArenaClient ArenaClient { get; }
 	public SmartCoin SmartCoin { get; }
 	private FeeRate FeeRate { get; }
-	private CoordinationFeeRate CoordinationFeeRate { get; }
 	public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 	private long MaxVsizeAllocationPerAlice { get; }
@@ -216,5 +214,5 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 	}
 
-	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate, CoordinationFeeRate);
+	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate);
 }

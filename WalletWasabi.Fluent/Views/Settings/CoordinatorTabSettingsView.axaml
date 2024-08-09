@@ -20,11 +20,6 @@
       </TextBox>
     </StackPanel>
 
-    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds charging a coordination fee rate higher than the value indicated here.">
-      <TextBlock Text="Max Coordination Fee Rate" />
-      <CurrencyEntryBox Classes="standalone" Name="CoordinationFeeRateTextBox" Text="{Binding MaxCoordinationFeeRate}"/>
-    </StackPanel>
-
     <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (s/vb) higher than the value indicated here.">
       <TextBlock Text="Max Coinjoin Mining Fee Rate" />
       <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="s/vb"/>

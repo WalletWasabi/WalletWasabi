@@ -71,7 +71,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var alice = new Alice(coin, request.OwnershipProof, round, id);
 
-			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
+			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate) <= Money.Zero)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput);
 			}
@@ -169,7 +169,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 			}
 
-			var remaining = alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate);
+			var remaining = alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate);
 			if (realAmountCredentialRequests.Delta != remaining)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");

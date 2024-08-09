@@ -336,7 +336,7 @@ public class CoinJoinCoinSelector
 	private static bool TryAddGroup<TCoin>(UtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
 		where TCoin : ISmartCoin
 	{
-		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate));
 		if (effectiveInputSum >= parameters.MinAllowedOutputAmount)
 		{
 			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));

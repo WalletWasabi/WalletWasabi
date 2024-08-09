@@ -82,7 +82,6 @@ public class StepOutputRegistrationTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
 			OutputRegistrationTimeout = TimeSpan.Zero,
-			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -124,7 +123,6 @@ public class StepOutputRegistrationTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
 			OutputRegistrationTimeout = TimeSpan.Zero,
-			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -257,7 +255,6 @@ public class StepOutputRegistrationTests
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
-			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 
 		var keyManager1 = ServiceFactory.CreateKeyManager("");
