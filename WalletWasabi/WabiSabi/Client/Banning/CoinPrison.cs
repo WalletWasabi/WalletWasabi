@@ -64,7 +64,7 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 			var prisonedCoinRecords = JsonConvert.DeserializeObject<HashSet<PrisonedCoinRecord>>(data)
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 
-			return new(prisonFilePath, prisonedCoinRecords.ToDictionary(x=> x.Outpoint, x=>x));
+			return new(prisonFilePath, prisonedCoinRecords.ToDictionary(x=> x.Outpoint, x => x));
 		}
 		catch (Exception exc)
 		{
@@ -87,6 +87,24 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 			}
 
 			ToFile();
+		}
+	}
+
+	public static void DeleteOldPrison(string path)
+	{
+		try
+		{
+			if (!File.Exists(path))
+			{
+				return;
+			}
+
+			File.Delete(path);
+			Logger.LogInfo("Deleted old PrisonedCoins.json.");
+		}
+		catch (Exception)
+		{
+			Logger.LogWarning("Failed to delete old PrisonedCoins.json");
 		}
 	}
 
