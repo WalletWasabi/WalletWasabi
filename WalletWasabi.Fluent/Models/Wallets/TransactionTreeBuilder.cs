@@ -324,7 +324,7 @@ public class TransactionTreeBuilder
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
+		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, out var estimate)
 			? TextHelpers.TimeSpanToFriendlyString(estimate.Value)
 			: "";
 

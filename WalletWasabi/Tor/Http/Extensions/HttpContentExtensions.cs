@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tor.Http.Extensions;
 

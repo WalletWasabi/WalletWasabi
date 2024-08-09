@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using NBitcoin;
@@ -46,13 +47,11 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedUnconfirmedTxChainArrived =
-			Observable.FromEventPattern<EventArgs>(wallet.UnconfirmedTransactionChainProvider, nameof(wallet.UnconfirmedTransactionChainProvider.RequestedUnconfirmedChainArrived)).ToSignal()
+		RequestedCpfpInfoArrived = wallet.CpfpInfoProvider is null ? null :
+			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache =
-			TransactionProcessed
-			.Merge(RequestedUnconfirmedTxChainArrived)
+		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))
 			.Fetch(BuildSummary, model => model.Id)
 			.DisposeWith(_disposable);
 
@@ -66,7 +65,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-	public IObservable<Unit> RequestedUnconfirmedTxChainArrived { get; }
+	public IObservable<Unit>? RequestedCpfpInfoArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -98,7 +97,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		}
 
 		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
+			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, out var estimate)
 				? estimate
 				: null;
 	}
@@ -126,7 +125,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return transactionInfo;
 	}
 
-	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
+	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -139,7 +138,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = _wallet.SpeedUpTransaction(targetTransaction);
+		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 
 		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
 

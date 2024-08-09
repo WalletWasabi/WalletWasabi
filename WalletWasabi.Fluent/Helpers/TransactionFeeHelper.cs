@@ -48,7 +48,7 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, UnconfirmedTransactionChainProvider unconfirmedTxChainProvider, [NotNullWhen(true)] out TimeSpan? estimate)
+	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
 		estimate = null;
 
@@ -59,14 +59,12 @@ public static class TransactionFeeHelper
 
 		if (feeEstimates is not null)
 		{
-			var unconfirmedChain = unconfirmedTxChainProvider.GetUnconfirmedTransactionChain(tx.GetHash());
-
-			if (unconfirmedChain is null || unconfirmedChain.Count == 0)
+			if (cpfpInfoProvider is null || !cpfpInfoProvider.TryGetCpfpInfoUnsafe(tx.GetHash(), out var cpfpInfo))
 			{
 				return false;
 			}
 
-			var feeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
+			var feeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 
 			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
 			return true;
