@@ -148,8 +148,17 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
 			IsBusy = false;
+			var isNewWallet = walletSettings.IsNewWallet;
+			if (isNewWallet)
+			{
+				Navigate().To().AddedWalletPage(walletSettings, _options!);
+			}
+			else
+			{
+				UiContext.WalletRepository.SaveWallet(walletSettings);
+				//Close(DialogResultKind.Normal, true);
+			}
 
-			await Navigate().To().CoinJoinProfiles(walletSettings, options).GetResultAsync();
 		}
 	}
 
