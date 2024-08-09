@@ -24,7 +24,6 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _redCoinIsolation;
-	[AutoNotify] private CoinjoinSkipFactors _coinjoinSkipFactors;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 	[AutoNotify] private WalletId? _outputWalletId;
 
@@ -42,7 +41,6 @@ public partial class WalletSettingsModel : ReactiveObject
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
 		_redCoinIsolation = _keyManager.RedCoinIsolation;
-		_coinjoinSkipFactors = _keyManager.CoinjoinSkipFactors;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
 		if (!isNewWallet)
@@ -60,13 +58,6 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.AnonScoreTarget,
 				x => x.RedCoinIsolation,
 				x => x.FeeRateMedianTimeFrameHours)
-			.Skip(1)
-			.Do(_ => SetValues())
-			.Subscribe();
-
-		// This should go to the previous WhenAnyValue, it's just that it's not working for some reason.
-		this.WhenAnyValue(
-			x => x.CoinjoinSkipFactors)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -107,7 +98,6 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
-		_keyManager.CoinjoinSkipFactors = CoinjoinSkipFactors;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 		_isDirty = true;
 	}

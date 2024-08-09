@@ -8,7 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 {
 	[AutoNotify] private bool _redCoinIsolation;
-	[AutoNotify] private CoinjoinSkipFactors _skipFactors;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
@@ -16,7 +15,6 @@ public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 	public ManualCoinJoinSettingsViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_redCoinIsolation = current.RedCoinIsolation;
-		_skipFactors = current.SkipFactors;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -28,7 +26,7 @@ public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 			new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
 		};
 
-		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
+		_selectedTimeFrame = _timeFrames.First();
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)

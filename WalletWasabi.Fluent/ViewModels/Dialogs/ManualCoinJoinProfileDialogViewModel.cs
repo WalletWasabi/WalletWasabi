@@ -20,10 +20,8 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			{
 				var isolateRed = CoinjoinAdvancedSettings.RedCoinIsolation;
 				var target = CoinjoinAdvancedSettings.AnonScoreTarget;
-				var hours = (int)Math.Floor(CoinjoinAdvancedSettings.SelectedTimeFrame.TimeFrame.TotalHours);
-				var skipFactors = CoinjoinAdvancedSettings.SkipFactors;
 
-				Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors)));
+				Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, isolateRed)));
 			});
 	}
 

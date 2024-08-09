@@ -12,10 +12,6 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual bool RedCoinIsolation { get; } = false;
 
-	public virtual CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.NoSkip;
-
-	public virtual int FeeRateMedianTimeFrameHours { get; }
-
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
 	{
 		if (x is null)
@@ -46,13 +42,11 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 		}
 
 		return profile.AnonScoreTarget == AnonScoreTarget
-			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
-			&& profile.RedCoinIsolation == RedCoinIsolation
-			&& profile.SkipFactors == SkipFactors;
+		       && profile.RedCoinIsolation == RedCoinIsolation;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, SkipFactors);
+		return HashCode.Combine(AnonScoreTarget);
 	}
 }
