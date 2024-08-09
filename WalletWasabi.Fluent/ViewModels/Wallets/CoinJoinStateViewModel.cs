@@ -110,11 +110,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!wallet.Settings.IsCoinjoinProfileSelected)
-			{
-				await UiContext.Navigate().To().CoinJoinProfiles(wallet.Settings).GetResultAsync();
-			}
-
 			if (wallet.Settings.IsCoinjoinProfileSelected)
 			{
 				var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);

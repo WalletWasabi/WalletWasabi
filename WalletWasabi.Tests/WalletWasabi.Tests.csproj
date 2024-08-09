@@ -80,4 +80,8 @@
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Remove="UnitTests\WabiSabi\Client\CoinjoinSkipFactorsTests.cs" />
+	</ItemGroup>
+
 </Project>

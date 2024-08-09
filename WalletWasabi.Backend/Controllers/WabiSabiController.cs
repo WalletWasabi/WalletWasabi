@@ -33,9 +33,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		var response = await Arena.GetStatusAsync(request, cancellationToken);
-		var medians = CoinJoinFeeRateStatStore.GetDefaultMedians();
-		return response with {CoinJoinFeeRateMedians = medians};
+		return await Arena.GetStatusAsync(request, cancellationToken);
 	}
 
 	[HttpPost("connection-confirmation")]

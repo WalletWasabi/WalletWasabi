@@ -361,7 +361,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		if (Config.IsCoordinationEnabled is false)
 		{
-			return Task.FromResult(new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
+			return Task.FromResult(new RoundStateResponse([]));
 		}
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
 		var responseRoundStates = RoundStates.Select(x =>
@@ -373,7 +373,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return x;
 		}).ToArray();
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+		return Task.FromResult(new RoundStateResponse(responseRoundStates));
 	}
 
 	public (uint256 RoundId, FeeRate MiningFeeRate)[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
