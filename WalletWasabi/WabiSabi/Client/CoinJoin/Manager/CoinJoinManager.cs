@@ -186,6 +186,11 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
+				if (!walletToStart.HasCoordinatorConfigured)
+				{
+					throw new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured);
+				}
+
 				if (WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);

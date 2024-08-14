@@ -46,6 +46,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
+	private const string NoCoordinatorConfiguredMessage = "A coordinator must be configured";
 
 	private readonly IWalletModel _wallet;
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -166,6 +167,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			},
 			Observable.Return(!_wallet.IsWatchOnlyWallet));
 
+		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/"));
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
@@ -204,12 +206,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 
+	public ICommand OpenFindCoordinatorLinkCommand { get; }
 	public ICommand NavigateToSettingsCommand { get; }
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
+	public bool NoCoordinatorConfigured => !_wallet.HasCoordinatorConfigured;
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
@@ -388,6 +392,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.CoordinationFeeRateTooHigh => CoordinationFeeRateTooHighMessage,
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
+					CoinjoinError.NoCoordinatorConfigured => NoCoordinatorConfiguredMessage,
 					_ => GeneralErrorMessage
 				};
 

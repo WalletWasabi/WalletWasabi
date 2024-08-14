@@ -64,7 +64,7 @@ public class WalletBuilder : IAsyncDisposable
 		var keyManager = KeyManager.CreateNewWatchOnly(wallet.GetSegwitAccountExtPubKey(), null!, null, minGapLimit);
 		keyManager.GetKeys(_ => true); // Make sure keys are asserted.
 
-		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
+		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold), new Uri(WalletWasabi.Helpers.Constants.DefaultRegtestCoordinatorUri));
 
 		HybridFeeProvider feeProvider = new(Synchronizer, null);
 

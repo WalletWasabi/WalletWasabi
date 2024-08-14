@@ -154,7 +154,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold, GetCoordinatorUri());
 	}
 
 	private Dictionary<string, (string Hint, IValue Value)> Data { get; }

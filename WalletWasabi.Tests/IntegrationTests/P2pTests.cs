@@ -104,7 +104,7 @@ public class P2pTests
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
-		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold), new Uri(Constants.DefaultRegtestCoordinatorUri));
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
@@ -122,7 +122,7 @@ public class P2pTests
 
 		using UnconfirmedTransactionChainProvider unconfirmedChainProvider = new(httpClientFactory);
 
-		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold), new Uri(Constants.DefaultRegtestCoordinatorUri));
 		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService, unconfirmedChainProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
