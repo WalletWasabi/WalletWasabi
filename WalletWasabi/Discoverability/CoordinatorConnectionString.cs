@@ -1,6 +1,4 @@
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Web;
 using NBitcoin;
@@ -21,6 +19,7 @@ public record CoordinatorConnectionString(
 			$"name={Uri.EscapeDataString(Name)}",
 			$"network={Network.Name}",
 			$"coordinatorUri={Uri.EscapeDataString(CoordinatorUri.ToString())}",
+			$"coordinationFeeRate=0",
 			$"readMore={Uri.EscapeDataString(ReadMore.ToString())}",
 			$"absoluteMinInputCount={AbsoluteMinInputCount.ToString()}",
 		]);
