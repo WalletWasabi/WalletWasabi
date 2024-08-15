@@ -1,6 +1,4 @@
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Web;
 using NBitcoin;
@@ -11,7 +9,6 @@ public record CoordinatorConnectionString(
 	string Name,
 	Network Network,
 	Uri CoordinatorUri,
-	decimal CoordinationFeeRate,
 	int AbsoluteMinInputCount,
 	Uri ReadMore)
 {
@@ -22,7 +19,7 @@ public record CoordinatorConnectionString(
 			$"name={Uri.EscapeDataString(Name)}",
 			$"network={Network.Name}",
 			$"coordinatorUri={Uri.EscapeDataString(CoordinatorUri.ToString())}",
-			$"coordinationFeeRate={CoordinationFeeRate.ToString(CultureInfo.InvariantCulture)}",
+			$"coordinationFeeRate=0",
 			$"readMore={Uri.EscapeDataString(ReadMore.ToString())}",
 			$"absoluteMinInputCount={AbsoluteMinInputCount.ToString()}",
 		]);
@@ -33,7 +30,7 @@ public record CoordinatorConnectionString(
 		coordinatorConnectionString = null;
 
 		var queryString = HttpUtility.ParseQueryString(s);
-		string[] requiredParams = ["name", "network", "CoordinatorUri", "coordinationFeeRate", "absoluteMinInputCount", "readMore"];
+		string[] requiredParams = ["name", "network", "CoordinatorUri", "absoluteMinInputCount", "readMore"];
 
 		if (requiredParams.Any(param => string.IsNullOrEmpty(queryString[param])))
 		{
@@ -53,11 +50,6 @@ public record CoordinatorConnectionString(
 			return false;
 		}
 
-		if (!decimal.TryParse(queryString["coordinationFeeRate"], NumberStyles.Any, CultureInfo.InvariantCulture, out var coordinationFeeRate) || coordinationFeeRate < 0)
-		{
-			return false;
-		}
-
 		if (!int.TryParse(queryString["absoluteMinInputCount"], out var absoluteMinInputCount))
 		{
 			return false;
@@ -72,7 +64,6 @@ public record CoordinatorConnectionString(
 			name,
 			network,
 			coordinatorUri,
-			coordinationFeeRate,
 			absoluteMinInputCount,
 			readMore);
 

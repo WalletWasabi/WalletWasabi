@@ -39,6 +39,7 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -401,7 +402,7 @@ public class Global
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 
-		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
+		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 
