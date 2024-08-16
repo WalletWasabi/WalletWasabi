@@ -5,6 +5,7 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
@@ -38,9 +39,9 @@
             </Button>
 
             <SubActionButton Content="Send"
-                             Icon="{StaticResource wallet_action_send}"
                              Command="{Binding SendCommand}"
-                             IsVisible="{Binding IsSendButtonVisible}">
+                             IsVisible="{Binding IsSendButtonVisible}"
+                             Icon="{StaticResource wallet_action_send}">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
                   <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
@@ -60,12 +61,38 @@
             </SubActionButton>
 
             <Button Classes="function"
-                    Command="{Binding ReceiveCommand}">
+                    Command="{Binding SegwitReceiveCommand}"
+                    IsVisible="{Binding Path=SeveralReceivingScriptTypes, Converter={x:Static BoolConverters.Not}}">
               <StackPanel Orientation="Horizontal">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />
                 <TextBlock Text="Receive" />
               </StackPanel>
             </Button>
+
+            <SubActionButton Content="Receive"
+                             Command="{Binding SegwitReceiveCommand}"
+                             VerticalAlignment="Bottom"
+                             HorizontalAlignment="Right"
+                             Icon="{StaticResource wallet_action_receive}"
+                             IsVisible="{Binding SeveralReceivingScriptTypes}">
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="SegWit Address" Command="{Binding SegwitReceiveCommand}" IsDefault="True">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource segwit_short}"
+                                Classes="Icon"/>
+                    </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Taproot Address" Command="{Binding TaprootReceiveCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource taproot_short}"
+                                Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
+            </SubActionButton>
+
             <Panel>
               <Button Classes="function"
                       IsVisible="{Binding CanBuy^}"

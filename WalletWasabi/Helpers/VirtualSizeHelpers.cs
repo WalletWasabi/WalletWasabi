@@ -7,7 +7,7 @@ public static class VirtualSizeHelpers
 	public const int VirtualByteInWeightUnits = 4;
 
 	public static int WeightUnitsToVirtualSize(int weightUnits) =>
-		(weightUnits / VirtualByteInWeightUnits) + ((weightUnits % VirtualByteInWeightUnits) == 0 ? 0 : 1); // ceiling(VirtualSize / VirtualByteInWeightUnits)
+		(weightUnits + VirtualByteInWeightUnits - 1) / VirtualByteInWeightUnits;
 
 	public static int VirtualSize(int nonSegwitBytes, int segwitBytes) =>
 		WeightUnitsToVirtualSize(WeightUnits(nonSegwitBytes, segwitBytes));

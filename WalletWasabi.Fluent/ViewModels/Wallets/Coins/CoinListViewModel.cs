@@ -22,14 +22,12 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<CoinListItem> _itemsCollection;
-	private readonly IWalletModel _wallet;
 	private readonly bool _ignorePrivacyMode;
 	private readonly bool _allowCoinjoiningCoinSelection;
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(IWalletModel wallet, ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode, bool allowSelection = true)
+	public CoinListViewModel(ICoinListModel availableCoins, IList<ICoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode, bool allowSelection = true)
 	{
-		_wallet = wallet;
 		_ignorePrivacyMode = ignorePrivacyMode;
 		_allowCoinjoiningCoinSelection = allowCoinjoiningCoinSelection;
 
@@ -84,7 +82,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				{
 					IList<ICoinModel> oldSelection = Selection.ToArray();
 					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
-					Rebuild(viewModels, pockets);
+					Rebuild(viewModels, pockets, availableCoins);
 					UpdateSelection(coinItemsCollection, oldSelection);
 					RestoreExpandedRows(oldExpandedItemsLabel);
 				})
@@ -94,8 +92,6 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode, allowSelection);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
-
-		_wallet = wallet;
 
 		ExpandAllCommand = ReactiveCommand.Create(
 			() =>
@@ -155,7 +151,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	private void Rebuild(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets)
+	private void Rebuild(ISourceList<CoinListItem> source, IEnumerable<Pocket> pockets, ICoinListModel availableCoins)
 	{
 		var newItems =
 			pockets.Select(pocket =>
@@ -164,12 +160,12 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				if (pocket.Coins.Count() == 1)
 				{
 					var coin = pocket.Coins.First();
-					var coinModel = _wallet.Coins.GetCoinModel(coin);
+					var coinModel = availableCoins.GetCoinModel(coin);
 
 					return (CoinListItem)new CoinViewModel(pocket.Labels, coinModel, _ignorePrivacyMode, _allowCoinjoiningCoinSelection);
 				}
 
-				return new PocketViewModel(_wallet, pocket, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
+				return new PocketViewModel(pocket, availableCoins, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
 		source.EditDiff(newItems, new LambdaComparer<CoinListItem>((a, b) => Equals(a?.Key, b?.Key)));

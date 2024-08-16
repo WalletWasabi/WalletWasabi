@@ -39,7 +39,7 @@ internal class Participant
 	{
 		var feeRate = new FeeRate(4.0m);
 		var (splitTx, spendingCoin) = Wallet.CreateTemplateTransaction();
-		var availableAmount = spendingCoin.EffectiveValue(feeRate, CoordinationFeeRate.Zero);
+		var availableAmount = spendingCoin.EffectiveValue(feeRate);
 
 		var rnd = new Random(seed);
 		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);

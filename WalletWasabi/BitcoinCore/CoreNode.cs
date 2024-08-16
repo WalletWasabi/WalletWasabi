@@ -36,7 +36,7 @@ public class CoreNode
 	public EndPoint P2pEndPoint { get; }
 	public EndPoint RpcEndPoint { get; }
 	public IRPCClient RpcClient { get; }
-	private BitcoindRpcProcessBridge Bridge { get; set; }
+	private BitcoindRpcProcessBridge? Bridge { get; set; }
 	public string DataDir { get; }
 	public Network Network { get; }
 	public MempoolService MempoolService { get; }
@@ -251,7 +251,7 @@ public class CoreNode
 			Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 		}
 
-		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
+		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService);
 		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
 		return coreNode;

@@ -65,8 +65,6 @@ public record PersistentConfig
 
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
-	public decimal MaxCoordinationFeeRate { get; init; } = Constants.DefaultMaxCoordinationFeeRate;
-
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
@@ -101,7 +99,6 @@ public record PersistentConfig
 			DustThreshold == other.DustThreshold &&
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
-			MaxCoordinationFeeRate == other.MaxCoordinationFeeRate &&
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
 			AbsoluteMinInputCount == other.AbsoluteMinInputCount;
 	}
@@ -156,13 +153,7 @@ public record PersistentConfig
 		return this;
 	}
 
-	private PersistentConfig MigrateMaxCoordinationFeeRate()
-	{
-		return this with
-		{
-			MaxCoordinationFeeRate = MaxCoordinationFeeRate / 100.0m
-		};
-	}
+	private PersistentConfig MigrateMaxCoordinationFeeRate() => this;
 
 	private PersistentConfig MigrateOldDefaultBackendUris()
 	{

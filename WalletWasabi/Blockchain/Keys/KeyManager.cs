@@ -218,6 +218,10 @@ public class KeyManager
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
+	public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => TaprootExtPubKey is null
+		? [ScriptPubKeyType.Segwit]
+		: [ScriptPubKeyType.Segwit, ScriptPubKeyType.TaprootBIP86];
+
 	private HdPubKeyCache HdPubKeyCache { get; } = new();
 
 	// `CriticalStateLock` is aimed to synchronize read/write access to the "critical" properties:

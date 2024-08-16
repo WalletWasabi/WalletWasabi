@@ -24,7 +24,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		UiContext = uiContext;
 		Model = model;
 		Address = model.Text;
+		ShortenedAddress = model.ShortenedText;
 		Labels = model.Labels;
+		ScriptType = model.ScriptType;
 		IsHardwareWallet = wallet.IsHardwareWallet;
 		IsAutoCopyEnabled = isAutoCopyEnabled;
 
@@ -53,8 +55,12 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	public ICommand ShowOnHwWalletCommand { get; }
 
 	public string Address { get; }
+	public string ShortenedAddress { get; }
+	public bool AddressHasBeenShortened => Address != ShortenedAddress;
 
 	public LabelsArray Labels { get; }
+
+	public ScriptType ScriptType { get; }
 
 	public bool IsHardwareWallet { get; }
 

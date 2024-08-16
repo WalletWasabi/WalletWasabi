@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class UserSelectionCoinListModel(Wallet wallet, IWalletModel walletModel, SmartCoin[] selectedCoins) : CoinListModel(wallet, walletModel)
 {
-	protected override ICoinModel[] GetCoins()
+	protected override ICoinModel[] CreateCoinModels()
 	{
-		return selectedCoins.Select(GetCoinModel).ToArray();
+		return selectedCoins.Select(CreateCoinModel).ToArray();
 	}
 
 	protected override Pocket[] GetPockets()

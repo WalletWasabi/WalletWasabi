@@ -9,69 +9,64 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 /// </summary>
 public static class Decomposer
 {
-	public static IEnumerable<(long Sum, int Count, ulong Decomposition)> Decompose(long target, long tolerance, int maxCount, long[] stdDenoms)
+	public static IEnumerable<IDecomposition> Decompose(long target, long tolerance, int maxCount, long[] denoms)
 	{
-		if (maxCount is <= 1 or > 8)
-		{
-			throw new ArgumentOutOfRangeException(nameof(maxCount), "The maximum decomposition length cannot be greater than 8 or smaller than 2.");
-		}
 		if (target <= 0)
 		{
 			throw new ArgumentException("Only positive numbers can be decomposed.", nameof(target));
 		}
 
-		var denoms = stdDenoms.SkipWhile(x => x > target).ToArray();
-
-		if (denoms.Length > 255)
+		if (tolerance <= 0 || tolerance >= target)
 		{
-			throw new ArgumentException("Too many denominations. Maximum number is 255.", nameof(target));
-		}
-		return denoms.SelectMany(_ => InternalCombinations(target, tolerance: tolerance, maxCount, denoms)).Take(10_000).ToList();
-	}
-
-	private static IEnumerable<(long Sum, int Count, ulong Decomposition)> InternalCombinations(long target, long tolerance, int maxLength, long[] denoms)
-	{
-		IEnumerable<(long Sum, int Count, ulong Decomposition)> Combinations(
-			int currentDenominationIdx,
-			ulong accumulator,
-			long sum,
-			int k)
-		{
-			accumulator = accumulator << 8 | (ulong)currentDenominationIdx & 0xff;
-			var currentDenomination = denoms[currentDenominationIdx];
-			sum += currentDenomination;
-			var remaining = target - sum;
-			if (k == 0 || remaining < tolerance)
-			{
-				return new[] { (sum, maxLength - k, accumulator) };
-			}
-
-			currentDenominationIdx = Search(remaining, denoms, currentDenominationIdx);
-
-			return Enumerable.Range(0, denoms.Length - currentDenominationIdx)
-				.TakeWhile(i => k * denoms[currentDenominationIdx + i] >= remaining - tolerance)
-				.SelectMany((_, i) =>
-					Combinations(currentDenominationIdx + i, accumulator, sum, k - 1)
-					.TakeUntil(x => x.Sum == target));
+			throw new ArgumentException("Tolerance must be greater than zero and less than the target.",
+				nameof(tolerance));
 		}
 
-		return denoms.SelectMany((_, i) => Combinations(i, 0ul, 0, maxLength - 1)).Take(5_000).ToList();
+		if (maxCount < 0)
+		{
+			throw new ArgumentException("MaxCount must be greater than or equal to zero.", nameof(maxCount));
+		}
+
+		return InternalCombinations(new NullDecomposition(), 0, target, tolerance: tolerance, maxCount, denoms).Take(10_000).ToList();
 	}
 
-	private static int Search(long value, long[] denoms, int offset)
+	private static IEnumerable<IDecomposition> InternalCombinations(IDecomposition head, long sum, long target, long tolerance, int k, long[] denoms)
 	{
-		var startingIndex = Array.BinarySearch(denoms, offset, denoms.Length - offset, value, ReverseComparer.Default);
+		var remaining = target - sum;
+		if (k == 0 || remaining < tolerance)
+		{
+			return [head];
+		}
+
+		var newDenoms = denoms[Search(remaining, denoms)..];
+		return newDenoms
+			.TakeWhile(d => k * d >= remaining - tolerance)
+			.SelectMany((d, i) => InternalCombinations(new Decomposition(d, head), sum + d, target, tolerance, k - 1, newDenoms[i..])
+				.TakeUntil(x => x.Sum == target));
+	}
+
+	static int Search(long value, long[] denoms)
+	{
+		var startingIndex = Array.BinarySearch(denoms, 0, denoms.Length, value, ReverseComparer.Default);
 		return startingIndex < 0 ? ~startingIndex : startingIndex;
 	}
 
-	public static IEnumerable<long> ToRealValuesArray(ulong decomposition, int count, long[] denoms)
+	public interface IDecomposition
 	{
-		var list = new long[count];
-		for (var i = 0; i < count; i++)
-		{
-			var index = (decomposition >> (i * 8)) & 0xff;
-			list[count - i - 1] = denoms[index];
-		}
-		return list;
+		long Sum { get; }
+		IEnumerable<long> AsEnumerable();
+	}
+
+	private record Decomposition(long V, IDecomposition Next) : IDecomposition
+	{
+		public long Sum => V + Next.Sum;
+		public IEnumerable<long> AsEnumerable() => Next.AsEnumerable().Append(V);
+	}
+
+	private record NullDecomposition : IDecomposition
+	{
+		public long Sum => 0;
+		public IEnumerable<long> AsEnumerable() => Array.Empty<long>();
 	}
 }
+

@@ -14,25 +14,34 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
-      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="20">
         <DockPanel HorizontalAlignment="Center">
+          <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
+            <TextBlock ToolTip.Tip="{Binding Address}"
+                       Classes="monoSpaced"
+                       Text="{Binding ShortenedAddress}"
+                       IsVisible="{Binding AddressHasBeenShortened}"/>
+          </PrivacyContentControl>
+          <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
+            <TextBlock Classes="monoSpaced"
+                       Text="{Binding ShortenedAddress}"
+                       IsVisible="{Binding Path=AddressHasBeenShortened, Converter={x:Static BoolConverters.Not}}"/>
+          </PrivacyContentControl>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
             <AnimatedButton ToolTip.Tip="Show on the hardware wallet"
-                              IsVisible="{Binding IsHardwareWallet}"
-                              Command="{Binding ShowOnHwWalletCommand}"
-                              NormalIcon="{StaticResource share_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}" />
+                            IsVisible="{Binding IsHardwareWallet}"
+                            Command="{Binding ShowOnHwWalletCommand}"
+                            NormalIcon="{StaticResource share_regular}"
+                            ClickIcon="{StaticResource copy_confirmed}" />
 
             <AnimatedButton ToolTip.Tip="Copy"
-                              Command="{Binding CopyAddressCommand}"
-                              NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"
-                              AnimateIcon="{Binding IsAutoCopyEnabled}" />
+                            Command="{Binding CopyAddressCommand}"
+                            NormalIcon="{StaticResource copy_regular}"
+                            ClickIcon="{StaticResource copy_confirmed}"
+                            AnimateIcon="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
-            <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
-          </PrivacyContentControl>
         </DockPanel>
+
         <PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
           <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </PrivacyContentControl>

@@ -156,7 +156,6 @@ public class Round
 				Parameters.AllowedOutputTypes,
 				Parameters.Network,
 				Parameters.MiningFeeRate.FeePerK,
-				Parameters.CoordinationFeeRate,
 				Parameters.MaxTransactionSize,
 				Parameters.MinRelayTxFee.FeePerK,
 				Parameters.MaxAmountCredentialValue,

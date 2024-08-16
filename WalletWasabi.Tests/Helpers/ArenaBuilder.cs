@@ -2,10 +2,10 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -33,7 +33,7 @@ public class ArenaBuilder
 		Network network = Network ?? Network.Main;
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, config, rpc, prison, roundParameterFactory);
+		Arena arena = new(config, rpc, prison, roundParameterFactory, period:period);
 
 		foreach (var round in rounds)
 		{
@@ -83,5 +83,5 @@ public class ArenaBuilder
 	public static ArenaBuilder From(WabiSabiConfig cfg, IRPCClient mockRpc, Prison prison) => new() { Config = cfg, Rpc = mockRpc, Prison = prison };
 
 	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
-		WabiSabiFactory.CreateRoundParametersFactory(cfg, network, maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);
+		WabiSabiFactory.CreateRoundParametersFactory(cfg, network, Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize);
 }

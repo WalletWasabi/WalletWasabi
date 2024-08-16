@@ -24,12 +24,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 public partial class Arena : PeriodicRunner
 {
 	public Arena(
-		TimeSpan period,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
-		CoinJoinScriptStore? coinJoinScriptStore = null ) : base(period)
+		CoinJoinScriptStore? coinJoinScriptStore = null,
+		TimeSpan? period = null
+		) : base(period ?? TimeSpan.FromSeconds(2))
 	{
 		Config = config;
 		Rpc = rpc;
@@ -613,10 +614,9 @@ public partial class Arena : PeriodicRunner
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
 
-		var expectedCoordinationFee = round.Alices.Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		var availableCoordinationFee = coinjoin.Balance - miningFee;
 
-		round.LogInfo($"Expected coordination fee: {expectedCoordinationFee} - Available coordination: {availableCoordinationFee}.");
+		round.LogInfo($"Available coordination: {availableCoordinationFee}.");
 
 		if (availableCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 		{

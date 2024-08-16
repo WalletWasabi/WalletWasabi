@@ -310,7 +310,7 @@ public class CoinJoinManager : BackgroundService
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 		}
 
-		var bannedCoins = coinCandidates.Where(x => CoinPrison.TryGetOrRemoveBannedCoin(x, out _)).ToArray();
+		var bannedCoins = coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray();
 		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
@@ -783,4 +783,4 @@ public class CoinJoinManager : BackgroundService
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 }
 
-public record CoinJoinConfiguration(string CoordinatorIdentifier, decimal MaxCoordinationFeeRate, decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount);
+public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);

@@ -62,7 +62,8 @@ public class UpdateManager : PeriodicRunner
 				return;
 			}
 
-			UpdateStatus updateStatus = new();
+			UpdateStatus updateStatus = new()
+				{ClientVersion = availableMajorVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
 
 			if (DownloadNewVersion)
 			{

@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -23,7 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _coordinatorUri;
-	[AutoNotify] private string _maxCoordinationFeeRate;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
@@ -32,13 +32,11 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		Settings = settings;
 
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
-		this.ValidateProperty(x => x.MaxCoordinationFeeRate, ValidateMaxCoordinationFeeRate);
 		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.AbsoluteMinInputCount, ValidateAbsoluteMinInputCount);
 
 
 		_coordinatorUri = settings.GetCoordinatorUri();
-		_maxCoordinationFeeRate = settings.MaxCoordinationFeeRate;
 		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 		_absoluteMinInputCount = settings.AbsoluteMinInputCount;
 
@@ -71,36 +69,6 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.TrySetCoordinatorUri(coordinatorUri);
-	}
-
-	private void ValidateMaxCoordinationFeeRate(IValidationErrors errors)
-	{
-		var maxCoordinationFeeRate = MaxCoordinationFeeRate;
-
-		if (string.IsNullOrEmpty(maxCoordinationFeeRate))
-		{
-			return;
-		}
-
-		if (!decimal.TryParse(maxCoordinationFeeRate, out var maxCoordinationFeeRateDecimal))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid number.");
-			return;
-		}
-
-		if (maxCoordinationFeeRateDecimal < 0)
-		{
-			errors.Add(ErrorSeverity.Error, "Cannot be lower than 0.0%");
-			return;
-		}
-
-		if (maxCoordinationFeeRateDecimal > 1)
-		{
-			errors.Add(ErrorSeverity.Error, "Absolute maximum coordination fee rate is 1%");
-			return;
-		}
-
-		Settings.MaxCoordinationFeeRate = maxCoordinationFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
@@ -142,9 +110,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (absoluteMinInputCountInt < 2)
+		if (absoluteMinInputCountInt < Constants.AbsoluteMinInputCount)
 		{
-			errors.Add(ErrorSeverity.Error, "Absolute min input count should be at least 2");
+			errors.Add(ErrorSeverity.Error, $"Absolute min input count should be at least {Constants.AbsoluteMinInputCount}");
 			return;
 		}
 

@@ -11,8 +11,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public interface IAddress : IReactiveObject
 {
 	string Text { get; }
+	string ShortenedText { get; }
 
 	LabelsArray Labels { get; }
+
+	ScriptType ScriptType { get; }
 
 	void Hide();
 

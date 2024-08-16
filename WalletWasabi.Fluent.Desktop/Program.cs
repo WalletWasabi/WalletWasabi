@@ -66,9 +66,9 @@ public class Program
 				throw app.TerminateService.GracefulCrashException;
 			}
 
-			if (exitCode == ExitCode.Ok && Services.UpdateManager.DoUpdateOnClose)
+			if (Services.UpdateManager is {} updateManager && exitCode == ExitCode.Ok && updateManager.DoUpdateOnClose)
 			{
-				Services.UpdateManager.StartInstallingNewVersion();
+				updateManager.StartInstallingNewVersion();
 			}
 
 			return (int)exitCode;

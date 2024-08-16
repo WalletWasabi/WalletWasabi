@@ -39,24 +39,7 @@ public class ConfigManagerTests
 			Assert.False(ConfigManager.CheckFileChange(configPath, config));
 		}
 
-		// Change coordination fee rate.
-		{
-			// Double coordination fee rate.
-			config.CoordinationFeeRate = new CoordinationFeeRate(rate: 0.006m);
-
-			// Change should be detected.
-			Assert.True(ConfigManager.CheckFileChange(configPath, config));
-
-			// Now store and check that JSON is as expected.
-			config.ToFile();
-
-			string expectedFileContents = GetVanillaConfigString(coordinationFeeRate: 0.006m);
-			string actualFileContents = ReadAllTextAndNormalize(configPath);
-
-			Assert.Equal(expectedFileContents, actualFileContents);
-		}
-
-		static string GetVanillaConfigString(decimal coordinationFeeRate = 0.0m)
+		static string GetVanillaConfigString()
 				=> $$"""
 			{
 			  "ConfirmationTarget": 108,
@@ -83,9 +66,6 @@ public class ConfigManagerTests
 			  "MinInputCountByRoundMultiplier": 0.5,
 			  "MinInputCountByBlameRoundMultiplier": 0.4,
 			  "RoundDestroyerThreshold": 375,
-			  "CoordinationFeeRate": {
-			    "Rate": {{coordinationFeeRate}}
-			  },
 			  "CoordinatorExtPubKey": "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC",
 			  "CoordinatorExtPubKeyCurrentDepth": 1,
 			  "MaxSuggestedAmountBase": "0.10",
