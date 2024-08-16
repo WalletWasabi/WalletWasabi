@@ -9,7 +9,7 @@ public static class DateTimeExtensions
 
 	public static string ToUserFacingFriendlyString(this DateTime value)
 	{
-		var time = value.ToString("hh:mm");
+		var time = value.ToString("HH:mm");
 
 		if (value.Date == DateTime.Today)
 		{
