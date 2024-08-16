@@ -5,6 +5,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
@@ -233,6 +234,6 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	public IActionResult GetUnconfirmedTransactionChain([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
-		return BadRequest("Deprecated, please update.");
+		return Ok(Array.Empty<uint256>());
 	}
 }
