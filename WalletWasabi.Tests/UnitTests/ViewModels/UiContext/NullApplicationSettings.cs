@@ -20,10 +20,8 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
 	public string BitcoinP2PEndPoint { get; set; } = "";
 	public string RegTestCoordinatorUri { get; set; } = "";
-	public string MaxCoordinationFeeRate { get; set; } = "";
 	public string MaxCoinJoinMiningFeeRate { get; set; } = "";
 	public string AbsoluteMinInputCount { get; set; } = "";
-	public string CoordinatorUri { get; set; } = "";
 	public string BackendUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
 	public string MainNetCoordinatorUri { get; set; } = "";
@@ -40,7 +38,6 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool DownloadNewVersion { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
-	public bool ShowCoordinatorAnnouncement { get; set; }
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
 

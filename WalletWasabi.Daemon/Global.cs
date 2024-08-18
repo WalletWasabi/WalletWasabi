@@ -39,6 +39,7 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -137,7 +138,8 @@ public class Global
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
-		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
+		var prisonForCoordinator = Path.Combine(DataDir, config.GetCoordinatorUri().Host);
+		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
@@ -406,7 +408,7 @@ public class Global
 			HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 		}
 
-		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
+		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, CoordinatorHttpClientFactory is null ? null : HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 

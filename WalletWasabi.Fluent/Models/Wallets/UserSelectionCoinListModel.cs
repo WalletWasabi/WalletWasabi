@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
