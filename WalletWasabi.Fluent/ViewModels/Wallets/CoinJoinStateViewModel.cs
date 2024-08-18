@@ -166,7 +166,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			},
 			Observable.Return(!_wallet.IsWatchOnlyWallet));
 
-		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/"));
+		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator"));
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
