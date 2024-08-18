@@ -34,8 +34,8 @@ public class MempoolMirror : PeriodicRunner
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		var sw = Stopwatch.StartNew();
-		int added = await MirrorMempoolAsync(stoppingToken).ConfigureAwait(false);
-		Logger.LogInfo($"{added} transactions were copied from the full node to the in-memory mempool within {sw.Elapsed.TotalSeconds} seconds.");
+		var changes = await MirrorMempoolAsync(stoppingToken).ConfigureAwait(false);
+		Logger.LogInfo($"{changes.Added} transactions were copied from the full node to the in-memory mempool and {changes.Removed} transactions were removed from the in-memory mempool within {sw.Elapsed.TotalSeconds} seconds.");
 
 		await base.ExecuteAsync(stoppingToken).ConfigureAwait(false);
 	}
@@ -60,54 +60,33 @@ public class MempoolMirror : PeriodicRunner
 	{
 		lock (MempoolLock)
 		{
-			return Mempool.AddMissingTransactions(txs);
+			return Mempool.AddMissingTransactions(txs.Select(x => x.GetHash()));
 		}
 	}
 
-	private async Task<int> MirrorMempoolAsync(CancellationToken cancel)
+	private async Task<(int Added, int Removed)> MirrorMempoolAsync(CancellationToken cancel)
 	{
 		// Get all TXIDs in the up-to-date mempool.
-		uint256[]? newTxids = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
+		uint256[] txidsNodeMempool = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
+		ISet<uint256> txidInMemoryMempool = Mempool.GetMempoolTxids();
 
-		Mempool newMempool;
+		var addedHashes = txidsNodeMempool.Except(txidInMemoryMempool).ToList();
+		var removedHashes = txidInMemoryMempool.Except(txidsNodeMempool).ToList();
 
 		lock (MempoolLock)
 		{
-			newMempool = Mempool.Clone();
-		}
-
-		ISet<uint256> oldTxids = newMempool.GetMempoolTxids();
-
-		// Those TXIDs that are in the new mempool snapshot but not in the old one, are the ones
-		// for which we want to download the corresponding transactions via RPC.
-		IEnumerable<uint256> missingTxids = newTxids.Except(oldTxids);
-
-		// Remove those transactions that are not present in the new mempool snapshot.
-		foreach (uint256 txid in oldTxids.Except(newTxids).ToHashSet())
-		{
-			if (!newMempool.TryRemoveTransaction(txid))
+			foreach (var addedHash in addedHashes)
 			{
-				Logger.LogError($"Failed to remove transaction '{txid}'.");
+				Mempool.AddTransaction(addedHash);
+			}
+
+			foreach (var removedHash in removedHashes)
+			{
+				Mempool.RemoveTransaction(removedHash);
 			}
 		}
 
-		IEnumerable<Transaction> missingTxs = await Rpc.GetRawTransactionsAsync(missingTxids, cancel).ConfigureAwait(false);
-		int added = newMempool.AddMissingTransactions(missingTxs);
-
-		lock (MempoolLock)
-		{
-			Mempool = newMempool;
-		}
-
-		return added;
-	}
-
-	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
-	{
-		lock (MempoolLock)
-		{
-			return Mempool.GetSpenderTransactions(txOuts);
-		}
+		return (addedHashes.Count, removedHashes.Count);
 	}
 
 	public ISet<uint256> GetMempoolHashes()
