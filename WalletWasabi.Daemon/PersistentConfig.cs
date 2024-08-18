@@ -17,11 +17,11 @@ public record PersistentConfig
 
 	public string RegTestBackendUri { get; init; } = Constants.DefaultRegtestBackendUri;
 
-	public string MainNetCoordinatorUri { get; init; } = Constants.DefaultCoordinatorUri;
+	public string? MainNetCoordinatorUri { get; init; } = Constants.DefaultCoordinatorUri;
 
-	public string TestNetCoordinatorUri { get; init; } = Constants.DefaultTestnetCoordinatorUri;
+	public string? TestNetCoordinatorUri { get; init; } = Constants.DefaultTestnetCoordinatorUri;
 
-	public string RegTestCoordinatorUri { get; init; } = Constants.DefaultRegtestCoordinatorUri;
+	public string? RegTestCoordinatorUri { get; init; } = Constants.DefaultRegtestCoordinatorUri;
 
 	/// <remarks>
 	/// For backward compatibility this was changed to an object.

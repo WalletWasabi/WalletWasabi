@@ -28,8 +28,8 @@ public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(
 		IWalletProvider walletProvider,
-		RoundStateUpdater roundStatusUpdater,
-		IWasabiHttpClientFactory coordinatorHttpClientFactory,
+		RoundStateUpdater? roundStatusUpdater,
+		IWasabiHttpClientFactory? coordinatorHttpClientFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison)
@@ -48,8 +48,8 @@ public class CoinJoinManager : BackgroundService
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	public IWalletProvider WalletProvider { get; }
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
-	public RoundStateUpdater RoundStatusUpdater { get; }
+	public IWasabiHttpClientFactory? HttpClientFactory { get; }
+	public RoundStateUpdater? RoundStatusUpdater { get; }
 	public CoinPrison CoinPrison { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
@@ -119,7 +119,7 @@ public class CoinJoinManager : BackgroundService
 		var trackedWallets = new Dictionary<WalletId, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			var mixableWallets = RoundStatusUpdater.AnyRound
+			var mixableWallets = RoundStatusUpdater is not null && RoundStatusUpdater.AnyRound
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
 				: ImmutableDictionary<WalletId, IWallet>.Empty;
 
@@ -166,6 +166,13 @@ public class CoinJoinManager : BackgroundService
 		{
 			var walletToStart = startCommand.Wallet;
 
+			if (HttpClientFactory is null || RoundStatusUpdater is null)
+			{
+				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, stoppingToken);
+				NotifyCoinJoinStartError(walletToStart, new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured).CoinjoinError);
+				return;
+			}
+
 			if (trackedCoinJoins.TryGetValue(walletToStart.WalletId, out var tracker))
 			{
 				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
@@ -186,11 +193,6 @@ public class CoinJoinManager : BackgroundService
 
 			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
 			{
-				if (!walletToStart.HasCoordinatorConfigured)
-				{
-					throw new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured);
-				}
-
 				if (WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
 				{
 					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
@@ -449,7 +451,7 @@ public class CoinJoinManager : BackgroundService
 
 			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets, trackedCoinJoins);
-			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
+			RoundStatusUpdater!.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
