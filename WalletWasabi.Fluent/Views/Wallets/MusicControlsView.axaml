@@ -109,7 +109,7 @@
           <Button Classes="plain" IsVisible="{Binding CanNavigateToCoinjoinSettings^}">
             <Button.Flyout>
               <MenuFlyout Placement="Top">
-                <MenuItem Classes="hyperLinkMenuItem" Header="Find a Coordinator" Command="{Binding OpenFindCoordinatorLinkCommand}" IsVisible="{Binding NoCoordinatorConfigured}">
+                <MenuItem ToolTip.Tip="{Binding FindCoordinatorLink}" Classes="hyperLinkMenuItem" Header="Find a Coordinator" Command="{Binding OpenFindCoordinatorLinkCommand}" IsVisible="{Binding NoCoordinatorConfigured}">
                   <MenuItem.Icon>
                     <PathIcon Data="{StaticResource book_question_mark_regular}" />
                   </MenuItem.Icon>

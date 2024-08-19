@@ -18,8 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [AppLifetime]
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	public const string FindCoordinatorLink = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
-
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
@@ -47,7 +45,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
-	private const string NoCoordinatorConfiguredMessage = "A coordinator must be configured";
+	private const string NoCoordinatorConfiguredMessage = "Configure a coordinator to start coinjoin";
 
 	private readonly IWalletModel _wallet;
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -204,6 +202,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoCoinJoinOff,
 		AreAllCoinsPrivateChanged
 	}
+
+	public static string FindCoordinatorLink { get; } = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
 
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 

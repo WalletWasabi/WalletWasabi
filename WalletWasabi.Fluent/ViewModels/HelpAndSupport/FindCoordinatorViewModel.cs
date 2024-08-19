@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "Find a Coordinator",
-	Caption = "Open help to find a coordinator",
+	Caption = "Open Wasabi's documentation website",
 	Order = 2,
 	Category = "Help & Support",
 	Keywords =
