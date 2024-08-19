@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -19,6 +18,8 @@ using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
+using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -71,7 +72,7 @@ public class RegTestSetup : IAsyncDisposable
 
 	public async Task AssertFiltersInitializedAsync()
 	{
-		uint256 firstHash = await Global.RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
+		uint256 firstHash = await RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
 
 		while (true)
 		{

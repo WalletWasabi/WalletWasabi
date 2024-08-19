@@ -14,21 +14,18 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.Extensions.Options;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Cache;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -129,8 +126,10 @@ public class Startup
 		services.AddSingleton<CoinJoinFeeRateStatStore>();
 		services.AddSingleton<RoundParameterFactory>();
 		services.AddBackgroundService<Arena>();
-		services.AddBackgroundService<MempoolMirror>();
 		services.AddBackgroundService<BlockNotifier>();
+
+		services.AddSingleton<AnnouncerConfig>(_ => config.AnnouncerConfig);
+		services.AddBackgroundService<CoordinatorAnnouncer>();
 
 		services.AddSingleton<MempoolService>();
 		services.AddSingleton<P2pNode>(provider =>

@@ -118,12 +118,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		using Backend.Global global = setup.Global;
-
-		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), "filters.txt");
+		using var blockNotifier = new BlockNotifier(rpc);
+		IndexBuilderService indexBuilderService = new(rpc, blockNotifier, "filters.txt");
 		try
 		{
 			indexBuilderService.Synchronize();
