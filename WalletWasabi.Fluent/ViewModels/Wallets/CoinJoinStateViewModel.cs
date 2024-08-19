@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [AppLifetime]
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
+	public const string FindCoordinatorLink = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
+
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
@@ -166,7 +168,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			},
 			Observable.Return(!_wallet.IsWatchOnlyWallet));
 
-		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator"));
+		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(FindCoordinatorLink));
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));

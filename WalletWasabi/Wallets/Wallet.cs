@@ -98,7 +98,8 @@ public class Wallet : BackgroundService, IWallet
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 	public CoinjoinSkipFactors CoinjoinSkipFactors => KeyManager.CoinjoinSkipFactors;
 
-	public bool HasCoordinatorConfigured => ServiceConfiguration.CoordinatorUri.AbsoluteUri != "https://api.example.com/" &&
+	public bool HasCoordinatorConfigured => ServiceConfiguration.CoordinatorUri is not null &&
+											ServiceConfiguration.CoordinatorUri.AbsoluteUri != "https://api.example.com/" &&
 	                                        ServiceConfiguration.CoordinatorUri.AbsoluteUri != "https://api.wasabiwallet.io/" &&
 	                                        ServiceConfiguration.CoordinatorUri.AbsoluteUri != "https://api.wasabiwallet.co/";
 	public Network Network { get; }

@@ -166,7 +166,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			var walletToStart = startCommand.Wallet;
 
-			if (HttpClientFactory is null || RoundStatusUpdater is null)
+			if (HttpClientFactory is null || RoundStatusUpdater is null || !walletToStart.HasCoordinatorConfigured)
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, stoppingToken);
 				NotifyCoinJoinStartError(walletToStart, new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured).CoinjoinError);
