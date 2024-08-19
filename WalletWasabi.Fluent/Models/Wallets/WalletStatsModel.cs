@@ -23,7 +23,6 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 	[AutoNotify] private int _generatedKeyCount;
 	[AutoNotify] private int _generatedCleanKeyCount;
 	[AutoNotify] private int _generatedUsedKeyCount;
-
 	[AutoNotify] private int _totalTransactionCount;
 	[AutoNotify] private int _nonCoinjointransactionCount;
 	[AutoNotify] private int _coinjoinTransactionCount;
