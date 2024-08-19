@@ -10,7 +10,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend;
 
-public class StartupTask : IStartupTask
+public class StartupTask
 {
 	private readonly ILogger<StartupTask> _logger;
 	private P2pNode P2PNode { get; }
