@@ -15,123 +15,27 @@ public static class DenominationBuilder
 		IEnumerable<ScriptType> allowedOutputTypes,
 		WasabiRandom random)
 	{
-		var denominations = new HashSet<Output>();
+		Output CreateDenom(decimal sats) =>
+			Output.FromDenomination(Money.Satoshis((ulong)sats), allowedOutputTypes.RandomElement(random), feeRate);
 
-		Output CreateDenom(double sats)
-		{
-			var scriptType = allowedOutputTypes.RandomElement(random);
-			return Output.FromDenomination(Money.Satoshis((ulong)sats), scriptType, feeRate);
-		}
+		IEnumerable<decimal> Times(int times, IEnumerable<decimal> values) =>
+			values
+				.Select(value => times * value)
+				.SkipWhile(denom => denom < minAllowedOutputAmount.Satoshi)
+				.TakeWhile(denom => denom <= maxAllowedOutputAmount.Satoshi);
 
-		// Powers of 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(2, i));
+		IEnumerable<decimal> PowersOf(double baseValue) =>
+			Enumerable.Range(0, short.MaxValue)
+				.Select(i => (decimal)Math.Pow(baseValue, i));
 
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i));
-
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 3 * 2
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(3, i) * 2);
-
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i));
-
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 2 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 2);
-
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Powers of 10 * 5 (1-2-5 series)
-		for (int i = 0; i < int.MaxValue; i++)
-		{
-			var denom = CreateDenom(Math.Pow(10, i) * 5);
-
-			if (denom.Amount < minAllowedOutputAmount)
-			{
-				continue;
-			}
-
-			if (denom.Amount > maxAllowedOutputAmount)
-			{
-				break;
-			}
-
-			denominations.Add(denom);
-		}
-
-		// Greedy decomposer will take the higher values first. Order in a way to prioritize cheaper denominations, this only matters in case of equality.
-		return denominations.OrderByDescending(x => x.EffectiveAmount);
+		return Times(1, PowersOf(2))
+			.Concat(Times(1, PowersOf(3)))
+			.Concat(Times(2, PowersOf(3)))
+			.Concat(Times(1, PowersOf(10)))
+			.Concat(Times(2, PowersOf(10)))
+			.Concat(Times(5, PowersOf(10)))
+			.ToHashSet()
+			.Select(CreateDenom)
+			.OrderByDescending(x => x.EffectiveAmount);
 	}
 }
