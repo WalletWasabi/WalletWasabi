@@ -152,7 +152,6 @@ public class ApplicationStateManager : IMainWindowService
 	{
 		switch (e.Kind)
 		{
-			case ActivationKind.Background:
 			case ActivationKind.Reopen:
 				if (this is IMainWindowService service)
 				{
