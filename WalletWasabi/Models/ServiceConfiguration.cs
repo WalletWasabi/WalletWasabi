@@ -8,15 +8,12 @@ public class ServiceConfiguration
 {
 	public ServiceConfiguration(
 		EndPoint bitcoinCoreEndPoint,
-		Money dustThreshold,
-		Uri? coordinatorUri)
+		Money dustThreshold)
 	{
 		BitcoinCoreEndPoint = Guard.NotNull(nameof(bitcoinCoreEndPoint), bitcoinCoreEndPoint);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-		CoordinatorUri = coordinatorUri;
 	}
 
 	public EndPoint BitcoinCoreEndPoint { get; set; }
 	public Money DustThreshold { get; set; }
-	public Uri? CoordinatorUri { get; set; }
 }

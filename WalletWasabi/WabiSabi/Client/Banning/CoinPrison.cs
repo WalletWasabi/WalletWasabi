@@ -50,7 +50,7 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
 	{
-		string prisonFilePath = containingDirectory is "" ? "PrisonedCoins.json" : Path.Combine(containingDirectory, "PrisonedCoins.json");
+		string prisonFilePath = Path.Combine(containingDirectory, "PrisonedCoins.json");
 		try
 		{
 			IoHelpers.EnsureFileExists(prisonFilePath);

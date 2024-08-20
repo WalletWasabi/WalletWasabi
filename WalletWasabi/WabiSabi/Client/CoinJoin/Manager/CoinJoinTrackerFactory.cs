@@ -13,8 +13,8 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinTrackerFactory
 {
 	public CoinJoinTrackerFactory(
-		IWasabiHttpClientFactory? httpClientFactory,
-		RoundStateUpdater? roundStatusUpdater,
+		IWasabiHttpClientFactory httpClientFactory,
+		RoundStateUpdater roundStatusUpdater,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CancellationToken cancellationToken)
 	{
@@ -25,19 +25,14 @@ public class CoinJoinTrackerFactory
 		LiquidityClueProvider = new LiquidityClueProvider();
 	}
 
-	private IWasabiHttpClientFactory? HttpClientFactory { get; }
-	private RoundStateUpdater? RoundStatusUpdater { get; }
+	private IWasabiHttpClientFactory HttpClientFactory { get; }
+	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CancellationToken CancellationToken { get; }
 	private LiquidityClueProvider LiquidityClueProvider { get; }
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		if (HttpClientFactory is null || RoundStatusUpdater is null)
-		{
-			throw new NotSupportedException("A coordinator must be configured.");
-		}
-
 		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
 		if (wallet.KeyChain is null)

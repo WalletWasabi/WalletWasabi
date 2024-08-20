@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
@@ -214,7 +215,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
-	public bool NoCoordinatorConfigured => !_wallet.HasCoordinatorConfigured;
+	public bool NoCoordinatorConfigured => !Services.HostedServices.Get<CoinJoinManager>().HasCoordinatorConfigured;
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }

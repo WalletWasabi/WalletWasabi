@@ -116,8 +116,6 @@ public partial class WalletModel : ReactiveObject
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 
-	public bool HasCoordinatorConfigured => Wallet.HasCoordinatorConfigured;
-
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent);

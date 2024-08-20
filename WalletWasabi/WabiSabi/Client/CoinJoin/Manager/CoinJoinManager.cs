@@ -13,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -28,16 +29,16 @@ public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(
 		IWalletProvider walletProvider,
-		RoundStateUpdater? roundStatusUpdater,
-		IWasabiHttpClientFactory? coordinatorHttpClientFactory,
+		WasabiHttpClientFactory? coordinatorHttpClientFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
-		CoinPrison coinPrison)
+		CoinPrison? coinPrison)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = coordinatorHttpClientFactory;
-		RoundStatusUpdater = roundStatusUpdater;
+		RoundStateUpdaterCircuit = new PersonCircuit();
+		RoundStatusUpdater = CreateRoundStateUpdater();
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinPrison = coinPrison;
 	}
@@ -48,9 +49,16 @@ public class CoinJoinManager : BackgroundService
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	public IWalletProvider WalletProvider { get; }
-	public IWasabiHttpClientFactory? HttpClientFactory { get; }
+	public WasabiHttpClientFactory? HttpClientFactory { get; }
 	public RoundStateUpdater? RoundStatusUpdater { get; }
-	public CoinPrison CoinPrison { get; }
+	public PersonCircuit? RoundStateUpdaterCircuit { get; }
+	public CoinPrison? CoinPrison { get; }
+
+	// A coordinator is configured if the backend URI is set to something other than the deprecated zkSNACKs' API endpoints.
+	public bool HasCoordinatorConfigured => HttpClientFactory is not null &&
+	                                        !(HttpClientFactory.BackendUriGetter is null ||
+												HttpClientFactory.BackendUriGetter().AbsoluteUri == "https://api.wasabiwallet.io/" ||
+												HttpClientFactory.BackendUriGetter().AbsoluteUri == "https://api.wasabiwallet.co/");
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 
@@ -160,15 +168,21 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoinJoinConfiguration, stoppingToken);
+		CoinJoinTrackerFactory? coinJoinTrackerFactory = null;
+		if (!HasCoordinatorConfigured)
+		{
+			coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory!, RoundStatusUpdater!, CoinJoinConfiguration, stoppingToken);
+		}
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
 
-			if (HttpClientFactory is null || RoundStatusUpdater is null || !walletToStart.HasCoordinatorConfigured)
+			if (!HasCoordinatorConfigured)
 			{
+				// Scheduling the restart is useless but it improves the UX without having to refactor the MusicBox.
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, stoppingToken);
+
 				NotifyCoinJoinStartError(walletToStart, new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured).CoinjoinError);
 				return;
 			}
@@ -236,7 +250,7 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory!.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
 			{
@@ -317,7 +331,9 @@ public class CoinJoinManager : BackgroundService
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 		}
 
-		var bannedCoins = coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray();
+		var bannedCoins = CoinPrison is not null
+			? coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray()
+			: [];
 		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
@@ -573,7 +589,7 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		// If any coins were marked for banning, store them to file
-		if (finishedCoinJoin.BannedCoins.Count != 0)
+		if (CoinPrison is not null && finishedCoinJoin.BannedCoins.Count != 0)
 		{
 			foreach (var info in finishedCoinJoin.BannedCoins)
 			{
@@ -779,6 +795,24 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		NotifyCoinJoinStatusChanged(wallet, e);
+	}
+
+	private RoundStateUpdater? CreateRoundStateUpdater()
+	{
+		if (HttpClientFactory is null)
+		{
+			return null;
+		}
+
+		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
+		return new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient));
+	}
+
+	public override void Dispose()
+	{
+		RoundStateUpdaterCircuit?.Dispose();
+		RoundStatusUpdater?.Dispose();
+		base.Dispose();
 	}
 
 	private record CoinJoinCommand(IWallet Wallet);
