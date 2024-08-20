@@ -65,12 +65,6 @@
                                Content="{Binding Model.GeneratedCleanKeyCount}" />
       </PreviewItem>
       <Separator />
-      <PreviewItem Label="Number of locked addresses"
-                   CopyableContent="{Binding Model.GeneratedLockedKeyCount}">
-        <PrivacyContentControl Classes="monoSpaced"
-                               Content="{Binding Model.GeneratedLockedKeyCount}" />
-      </PreviewItem>
-      <Separator />
       <PreviewItem Label="Number of used addresses"
                    CopyableContent="{Binding Model.GeneratedUsedKeyCount}">
         <PrivacyContentControl Classes="monoSpaced"
