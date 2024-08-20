@@ -160,7 +160,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			[specificNodeBlockProvider],
 			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
 
-		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService, null));
+		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), new WalletFactory(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService));
 		walletManager.Initialize();
 
 		nodes.Connect(); // Start connection service.

@@ -66,7 +66,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		HybridFeeProvider feeProvider = new(Synchronizer, null);
 
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService, null);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
