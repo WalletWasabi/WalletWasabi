@@ -41,8 +41,8 @@ public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) :
 		return Wallet.GetPockets().ToArray();
 	}
 
-	protected override ICoinModel[] GetCoins()
+	protected override ICoinModel[] CreateCoinModels()
 	{
-		return Wallet.Coins.Select(GetCoinModel).ToArray();
+		return Wallet.Coins.Select(CreateCoinModel).ToArray();
 	}
 }

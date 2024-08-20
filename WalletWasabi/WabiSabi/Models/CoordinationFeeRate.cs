@@ -1,21 +1,16 @@
 using NBitcoin;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models;
 
 public readonly struct CoordinationFeeRate
 {
-	public static readonly CoordinationFeeRate Zero = new(0);
+	public static readonly CoordinationFeeRate Zero = new();
 
-	public CoordinationFeeRate(decimal rate)
-	{
-		Rate = Guard.InRangeAndNotNull(nameof(rate), rate, 0m, Constants.AbsoluteMaxCoordinationFeeRate);
-	}
-
-	public decimal Rate { get; }
+	public decimal Rate => 0m;
+	public Money PlebsDontPayThreshold => Money.Zero;
 
 	public Money GetFee(Money amount)
 	{
-		return Money.Satoshis(Math.Floor(amount.Satoshi * Rate));
+		return Money.Zero;
 	}
 }

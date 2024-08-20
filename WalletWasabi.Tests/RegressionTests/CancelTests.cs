@@ -260,7 +260,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
 
 			// Nonsense to cancel self spend.
-			txToCancel = wallet.BuildChangelessTransaction(wallet.GetNextReceiveAddress(new[] { "foo " }).GetAssumedScriptPubKey().GetDestination()!, "foo", new FeeRate(1m), wallet.Coins.Select(x => x.Outpoint));
+			txToCancel = wallet.BuildChangelessTransaction(wallet.GetNextReceiveAddress(new[] { "foo " }, ScriptPubKeyType.Segwit).GetAssumedScriptPubKey().GetDestination()!, "foo", new FeeRate(1m), wallet.Coins.Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
 
 			Assert.Equal("Transaction is not cancellable.", Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction)).Message);

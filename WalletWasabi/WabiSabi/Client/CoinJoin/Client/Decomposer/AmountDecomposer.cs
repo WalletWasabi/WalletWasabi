@@ -193,16 +193,13 @@ public class AmountDecomposer
 
 		if (maxNumberOfOutputsAllowed > 1)
 		{
-			foreach (var (sum, count, decomp) in Decomposer.Decompose(
+			foreach (var decomposition in Decomposer.Decompose(
 				target: (long)myInputSum,
 				tolerance: MinAllowedOutputAmount + ChangeFee,
 				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8), // Decomposer doesn't do more than 8.
-				stdDenoms: stdDenoms))
+				denoms: stdDenoms))
 			{
-				var currentSet = Decomposer.ToRealValuesArray(
-					decomp,
-					count,
-					stdDenoms).Select(Money.Satoshis).ToList();
+				var currentSet = decomposition.AsEnumerable().Select(Money.Satoshis).ToList();
 
 				// Translate back to denominations.
 				List<Output> finalDenoms = new();

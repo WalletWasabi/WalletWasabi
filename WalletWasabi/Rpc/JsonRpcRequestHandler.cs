@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -119,7 +120,16 @@ public class JsonRpcRequestHandler<TService>
 							$"A value for the '{parameter.name}' is missing.",
 							jsonRpcRequest.Id);
 					}
-					parameters.Add(jObj[parameter.name].ToObject(parameter.type, DefaultSerializer));
+
+					var parameterValue = jObj[parameter.name]!;
+					if (parameterValue.ToObject(parameter.type, DefaultSerializer) is not { } parameterTypedValue)
+					{
+						return Error(
+							JsonRpcErrorCodes.InvalidParams,
+							$"A value for the '{parameter.name}' is not of the expected type.",
+							jsonRpcRequest.Id);
+					}
+					parameters.Add(parameterTypedValue);
 				}
 			}
 
@@ -156,17 +166,17 @@ public class JsonRpcRequestHandler<TService>
 				return "";
 			}
 
-			JsonRpcResponse? response = null;
+			JsonRpcResponse? response;
 			if (procedureMetadata.MethodInfo.IsAsync())
 			{
 				if (!procedureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
-					await ((Task)result).ConfigureAwait(false);
+					await ((Task)result!).ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id);
 				}
 				else
 				{
-					var ret = await ((dynamic)result).ConfigureAwait(false);
+					var ret = await ((dynamic)result!).ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
 				}
 			}

@@ -42,14 +42,6 @@
             </PreviewItem>
             <Separator />
 
-            <!-- CoordinationFee -->
-            <PreviewItem Label="Coordination fee rate"
-                         Icon="{StaticResource money_24_regular}"
-                         CopyableContent="{Binding CoordinatorConnection.CoordinationFeeRate}">
-              <TextBlock Text="{Binding CoordinatorConnection.CoordinationFeeRate, FallbackValue=0, StringFormat={}{0}}" />
-            </PreviewItem>
-            <Separator />
-
             <!-- AbsoluteMinInputCount -->
             <PreviewItem Label="Absolute minimum input count"
                          Icon="{StaticResource input_count}"

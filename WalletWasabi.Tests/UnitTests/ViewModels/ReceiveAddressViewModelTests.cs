@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
 using Xunit;
+using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -21,7 +22,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
-		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), false);
+		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress", ScriptType.SegWit), false);
 
 		sut.CopyAddressCommand.Execute(null);
 
@@ -34,7 +35,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
-		new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress"), true);
+		new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress", ScriptType.SegWit), true);
 		var mock = Mock.Get(clipboard);
 		mock.Verify(x => x.SetTextAsync("SomeAddress"));
 	}
@@ -48,6 +49,7 @@ public class ReceiveAddressViewModelTests
 		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
 
 		public WalletId Id => throw new NotSupportedException();
+		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
 
 		public string Name
 		{

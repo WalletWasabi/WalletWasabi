@@ -4,12 +4,10 @@
 
 - Any issue labelled as [good first issue](https://github.com/WalletWasabi/WalletWasabi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is good to start contributing to Wasabi.
 - Always focus on a specific issue in your pull request and avoid unrelated/unnecessary changes.
-- Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on Github or asking to contributors.
-- Avoid working on a UI or UX feature without first seeing a conclusion from a UX meeting.
+- Avoid working on complex problems (fees, amount decomposition, coin selection...) without extensive research on the context, either on GitHub or asking to contributors.
 - Consider filing a new issue or explaining in an opened issue the change that you want to make, and wait for concept ACKs to work on the implementation.
-- For backend, the [Relevance Realization Buffet](https://github.com/orgs/zkSNACKs/projects/18/views/48) view is a list of tasks that has to be investigated or tackled. You can assign yourself to an issue or just make the pull request.
-- Feel free to join the [zkSNACKs Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors. 
-- [Status calls](meet.zksnacks.com/research) are held on Mondays at 15:00 UTC to discuss what we did, and [peer programming calls](https://meet.zksnacks.com/code) on Thursdays at 13:30 UTC for coding together.
+- Feel free to join the [Wasabi Slack Server](https://join.slack.com/t/tumblebit/shared_invite/enQtNjQ1MTQ2NzQ1ODI0LWIzOTg5YTM3YmNkOTg1NjZmZTQ3NmM1OTAzYmQyYzk1M2M0MTdlZDk2OTQwNzFiNTg1ZmExNzM0NjgzY2M0Yzg) to discuss with other contributors. 
+- [Community calls](https://meet.fulmo.org/community) are held on Mondays at 14:00 UTC, they can be used to ask questions, report a problem or just listen.
 
 ## Automatic code clean up
 

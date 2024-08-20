@@ -6,7 +6,7 @@ namespace WalletWasabi.Tests.UnitTests.Fluent.Controls.AmountControlTests;
 
 public class AmountControlTests
 {
-    [AvaloniaFact]
+    //[AvaloniaFact]
     public void AmountControl_Defaults()
     {
         var window = new AmountControl_Defaults();

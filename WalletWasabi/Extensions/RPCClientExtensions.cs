@@ -162,9 +162,13 @@ public static class RPCClientExtensions
 		// Filter those groups with very high fee transactions (less than 0.1%).
 		// This is because in case a few transactions pay unreasonably high fees
 		// then we don't want our estimations to be affected by those rare cases.
-		var relevantFeeGroups = mempoolInfo.Histogram
-			.OrderByDescending(x => x.Group)
-			.SkipWhile(x => x.Count < mempoolInfo.Size / 1_000);
+		var histogram = mempoolInfo.Histogram.OrderByDescending(x => x.Group).ToArray();
+		var relevantFeeGroups = histogram
+			.Scan(0u, (acc, g) => acc + g.Count)
+			.Zip(histogram, (x, y) => (AccumulativeCount: x, Group: y))
+			.SkipWhile(x => x.AccumulativeCount < mempoolInfo.Size / 1_000)
+			.Select(x => x.Group)
+			.ToList();
 
 		// Splits multi-megabyte fee rate groups in 1mb chunk
 		// We need to count blocks (or 1MvB transaction chunks) so, in case fee
