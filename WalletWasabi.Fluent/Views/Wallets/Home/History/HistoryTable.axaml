@@ -162,7 +162,6 @@
             <Setter Property="Margin" Value="20 0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="ToolTip.Tip" Value="{Binding Transaction.DateToolTipString}" />
           </Style>
           <Style Selector="PathIcon">
             <Setter Property="Height" Value="13" />
