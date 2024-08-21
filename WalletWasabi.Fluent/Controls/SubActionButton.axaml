@@ -45,6 +45,7 @@
   <ControlTheme x:Key="{x:Type SubActionButton}"
                 TargetType="SubActionButton">
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="MinHeight" Value="33" />
     <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
     <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
