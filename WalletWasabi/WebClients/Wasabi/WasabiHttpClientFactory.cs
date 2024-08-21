@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -15,6 +16,7 @@ public class HttpClientFactory : IHttpClientFactory
 	{
 		protected override void Dispose(bool disposing)
 		{
+			Logger.LogInfo("disposing httpclient handler");
 			base.Dispose(disposing);
 			disposedCallback(name);
 		}
@@ -30,7 +32,8 @@ public class HttpClientFactory : IHttpClientFactory
 
 	protected virtual HttpClientHandler CreateHttpClientHandler(string name)
 	{
-		return new NotifyingHttpClientHandler(name, handlerName => _httpClientHandlers.TryRemove(handlerName, out _));
+		return new NotifyingHttpClientHandler(name,
+			handlerName => { } /*_httpClientHandlers.TryRemove(handlerName, out _)*/);
 	}
 }
 

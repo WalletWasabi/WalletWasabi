@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -38,6 +39,8 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -85,7 +88,6 @@ public class Global
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
-		RoundStateUpdaterCircuit = new PersonCircuit();
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -175,8 +177,7 @@ public class Global
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
 	public WasabiHttpClientFactory HttpClientFactory { get; }
 
-	public WasabiHttpClientFactory? CoordinatorHttpClientFactory { get; private set; }
-
+	private IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -199,7 +200,6 @@ public class Global
 
 	public Uri? OnionServiceUri { get; private set; }
 
-	private PersonCircuit RoundStateUpdaterCircuit { get; }
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
@@ -210,6 +210,12 @@ public class Global
 			backendUriGetter,
 			torControlAvailable: Config.UseTor == TorMode.Enabled);
 
+	private IHttpClientFactory BuildHttpClientFactory2(Func<Uri> backendUriGetter) =>
+		new CoordinatorHttpClientFactory(
+			backendUriGetter(),
+			Config.UseTor != TorMode.Disabled
+				? new OnionHttpClientFactory(new Uri($"socks5://{TorSettings.SocksEndpoint.ToEndpointString()}"))
+				: new HttpClientFactory());
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
@@ -418,13 +424,14 @@ public class Global
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
+		CoordinatorHttpClientFactory = BuildHttpClientFactory2(() => coordinatorUri);
 
-		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
-		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
+		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi", CoordinatorHttpClientFactory);
+		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");
 
+		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, CoordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
@@ -509,19 +516,10 @@ public class Global
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				RoundStateUpdaterCircuit.Dispose();
-				Logger.LogInfo($"Disposed {nameof(RoundStateUpdaterCircuit)}.");
-
 				if (HttpClientFactory is { } httpClientFactory)
 				{
 					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
-				}
-
-				if (CoordinatorHttpClientFactory is { } coordinatorHttpClientFactory)
-				{
-					await coordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
 				}
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)

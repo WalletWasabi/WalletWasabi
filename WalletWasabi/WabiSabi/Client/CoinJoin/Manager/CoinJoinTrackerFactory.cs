@@ -1,31 +1,31 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinTrackerFactory
 {
 	public CoinJoinTrackerFactory(
-		IWasabiHttpClientFactory httpClientFactory,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		RoundStateUpdater roundStatusUpdater,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CancellationToken cancellationToken)
 	{
-		HttpClientFactory = httpClientFactory;
+		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CancellationToken = cancellationToken;
 		LiquidityClueProvider = new LiquidityClueProvider();
 	}
 
-	private IWasabiHttpClientFactory HttpClientFactory { get; }
+	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 	private CancellationToken CancellationToken { get; }
@@ -45,7 +45,7 @@ public class CoinJoinTrackerFactory
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
-			HttpClientFactory,
+			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
 			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
 			RoundStatusUpdater,
