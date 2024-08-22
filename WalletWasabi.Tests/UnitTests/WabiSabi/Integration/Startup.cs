@@ -1,9 +1,12 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
@@ -35,7 +38,24 @@ public class Startup
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 			})
 			.AddApplicationPart(backendAssembly)
-			.AddControllersAsServices()
+			.ConfigureApplicationPartManager(manager =>
+			{
+				manager.FeatureProviders.Add(new ControllerProvider(Configuration));
+			})
 			.AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 	}
+}
+public class ControllerProvider : ControllerFeatureProvider
+{
+    public readonly IConfiguration _configuration;
+
+    public ControllerProvider(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    protected override bool IsController(TypeInfo typeInfo)
+    {
+          return typeInfo.Name.Contains(nameof(WabiSabiController));
+    }
 }

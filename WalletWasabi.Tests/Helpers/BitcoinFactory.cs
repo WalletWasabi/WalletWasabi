@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -191,9 +192,50 @@ public static class BitcoinFactory
 		// We don't use the result, but we need not to throw NotImplementedException.
 		mockRpc.OnGetBlockCountAsync = () => Task.FromResult(0);
 		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(365));
-		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
+		mockRpc.OnGetTxOutAsync = (txId, i, arg3) =>
+		{
+			var tx = GetTransaction(txId);
+			return tx?.Outputs.Count > i
+				? new GetTxOutResponse {Confirmations = 100, TxOut = tx.Outputs[i] }
+				: null;
+		};
+		mockRpc.OnGetBlockAsync = blockHash => Task.FromResult(mockRpc.Blockchain.First(x => x.GetHash() == blockHash));
+		mockRpc.OnSendRawTransactionAsync = transaction =>
+		{
+			mockRpc.Mempool.Add(transaction);
+			return transaction.GetHash();
+		};
+		mockRpc.OnGetRawTransactionAsync = (txId, _) => Task.FromResult(GetTransaction(txId));
+		mockRpc.OnGetRawMempoolAsync = () => Task.FromResult(mockRpc.Mempool.Select(x => x.GetHash()).ToArray());
+		mockRpc.OnGenerateToAddressAsync = (n, address) =>
+		{
+			var prevBlock = mockRpc.Blockchain.LastOrDefault();
+			var prevBlockHash = prevBlock?.GetHash() ?? uint256.Zero;
+			var consensusFactory = mockRpc.Network.Consensus.ConsensusFactory;
+			for (var i = 0; i < n; i++)
+			{
+				var block = consensusFactory.CreateBlock();
+				block.Header.HashPrevBlock = prevBlockHash;
+				var coinbaseTx = consensusFactory.CreateTransaction();
+				coinbaseTx.Outputs.Add(Money.Coins(50), address);
+				block.Transactions.Add(coinbaseTx);
+				block.Transactions.AddRange(mockRpc.Mempool);
+				mockRpc.Mempool.Clear();
+				mockRpc.Blockchain.Add(block);
+				prevBlockHash = block.GetHash();
+			}
+
+			var txIds = mockRpc.Blockchain.TakeLast(n).Select(x => x.GetHash()).ToArray();
+			return Task.FromResult(txIds);
+		};
 
 		return mockRpc;
+
+		Transaction? GetTransaction(uint256 txId) =>
+			mockRpc.Blockchain.SelectMany(x => x.Transactions)
+				.Concat(mockRpc.Mempool)
+				.FirstOrDefault(tx => tx.GetHash() == txId);
+
 	}
 
 	public static BitcoinAddress CreateBitcoinAddress(Network network, Key? key = null)
