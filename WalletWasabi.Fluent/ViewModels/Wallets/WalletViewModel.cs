@@ -22,6 +22,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
+using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -40,6 +41,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
+	private UiConfig _uiConfig { get; }
+
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
 		UiContext = uiContext;
@@ -49,6 +52,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
 		BuyViewModel = new BuyViewModel(UiContext, WalletModel);
+
+		_uiConfig = Services.UiConfig;
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -82,7 +87,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel));
+		SegwitReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.SegWit));
+		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
+			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
+			null;
 
 		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
 
@@ -147,6 +155,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
 
+	public bool SeveralReceivingScriptTypes => WalletModel.AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
+
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
@@ -168,8 +178,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand SendManualControlCommand { get; }
 
 	public ICommand? BroadcastPsbtCommand { get; set; }
-
-	public ICommand ReceiveCommand { get; private set; }
+	public ICommand SegwitReceiveCommand { get; private set; }
+	public ICommand? TaprootReceiveCommand { get; private set; }
 
 	public ICommand WalletInfoCommand { get; private set; }
 
@@ -237,7 +247,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return new ISearchItem[]
 		{
-			new ActionableItem("Receive", "Display wallet receive dialog", () => { ReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem("Receive", "Display wallet receive dialog", () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
 			new ActionableItem("Exclude Coins", "Display exclude coins", () => { CoinJoinStateViewModel.NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },

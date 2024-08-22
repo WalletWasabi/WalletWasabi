@@ -41,6 +41,12 @@ public class CoinJoinProcessor : IDisposable
 		{
 			using (await ProcessLock.LockAsync())
 			{
+				// This feature is only available for users that have a full node connected
+				if (RpcClient is null)
+				{
+					return;
+				}
+
 				var unconfirmedCoinJoinHashes = response.UnconfirmedCoinJoins;
 				if (!unconfirmedCoinJoinHashes.Any())
 				{
@@ -48,14 +54,11 @@ public class CoinJoinProcessor : IDisposable
 				}
 
 				var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
-
-				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
-				var unconfirmedCoinJoins = await client.GetTransactionsAsync(Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
+				var unconfirmedCoinJoins = await RpcClient.GetRawTransactionsAsync(txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
 				foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
 				{
-					if (RpcClient is null
-						|| await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
+					if (await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
 						|| (await RpcClient.TestAsync().ConfigureAwait(false)) is { }) // If the test throws exception then I believe it, because RPC is down and the backend is the god.
 					{
 						WalletManager.ProcessCoinJoin(tx);

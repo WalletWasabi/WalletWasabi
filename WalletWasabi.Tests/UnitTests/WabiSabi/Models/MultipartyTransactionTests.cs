@@ -415,7 +415,6 @@ public class MultipartyTransactionTests
 		Random random = new(12345);
 
 		FeeRate feeRate = new(satoshiPerByte: decimal.Parse(feeRateString));
-		CoordinationFeeRate coordinatorFeeRate = CoordinationFeeRate.Zero;
 
 		var parameters = WabiSabiFactory.CreateRoundParameters(new()
 		{
@@ -436,7 +435,7 @@ public class MultipartyTransactionTests
 			coinjoin = coinjoin.AddInput(aliceCoin, aliceOwnershipProof, CommitmentData);
 		}
 
-		var totalInputEffSum = Money.Satoshis(coinjoin.Inputs.Sum(c => c.EffectiveValue(feeRate, coordinatorFeeRate)));
+		var totalInputEffSum = Money.Satoshis(coinjoin.Inputs.Sum(c => c.EffectiveValue(feeRate)));
 
 		// Threshold for stop adding outputs. This will emulate missing outputs in the CJ so blame script will be added.
 		var tenPercent = Money.Satoshis((long)(totalInputEffSum.Satoshi * 0.1));

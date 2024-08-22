@@ -17,25 +17,29 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private string _addressText;
+	[AutoNotify] private ScriptType _scriptType;
 	[AutoNotify] private LabelsArray _labels;
 
 	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
 	{
 		UiContext = context;
 		Address = address;
-		_addressText = address.Text;
+		_addressText = address.ShortenedText;
+
+		_scriptType = address.ScriptType;
 
 		this.WhenAnyValue(x => x.Address.Labels)
 			.BindTo(this, viewModel => viewModel.Labels)
 			.DisposeWith(_disposables);
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(AddressText));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(Address.Text));
 		HideAddressCommand = ReactiveCommand.CreateFromTask(PromptHideAddressAsync);
 		EditLabelCommand = ReactiveCommand.CreateFromTask(() => onEdit(address));
 		NavigateCommand = ReactiveCommand.Create(() => onShow(address));
 	}
 
 	private IAddress Address { get; }
+	private bool AddressHasBeenShortened => Address.Text != AddressText;
 
 	public ICommand CopyAddressCommand { get; }
 

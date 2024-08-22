@@ -5,6 +5,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
@@ -15,7 +16,6 @@ using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -129,141 +129,6 @@ public class BlockchainController : ControllerBase
 	}
 
 	/// <summary>
-	/// Attempts to get transactions.
-	/// </summary>
-	/// <param name="transactionIds">The transactions the client is interested in.</param>
-	/// <returns>200 Ok on with the list of found transactions. This list can be empty if none of the transactions are found.</returns>
-	/// <response code="200">Returns the list of transactions hexes. The list can be empty.</response>
-	/// <response code="400">Something went wrong.</response>
-	[HttpGet("transaction-hexes")]
-	[ProducesResponseType(200)]
-	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
-	{
-		const int MaxTxToRequest = 10;
-		int requestCount = transactionIds.Count();
-
-		if (requestCount > MaxTxToRequest)
-		{
-			return BadRequest($"Maximum {MaxTxToRequest} transactions can be requested.");
-		}
-
-		uint256[] parsedTxIds;
-
-		// Make sure TXIDs are not malformed.
-		try
-		{
-			parsedTxIds = transactionIds.Select(x => new uint256(x)).ToArray();
-		}
-		catch
-		{
-			return BadRequest("Invalid transaction Ids.");
-		}
-
-		try
-		{
-			Transaction[] txs = await FetchTransactionsAsync(parsedTxIds, cancellationToken).ConfigureAwait(false);
-			string[] hexes = txs.Select(x => x.ToHex()).ToArray();
-
-			return Ok(hexes);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			return BadRequest(ex.Message);
-		}
-	}
-
-	/// <summary>
-	/// Fetches transactions from cache if possible and missing transactions are fetched using RPC.
-	/// </summary>
-	/// <exception cref="AggregateException">If RPC client succeeds in getting some transactions but not all.</exception>
-	private async Task<Transaction[]> FetchTransactionsAsync(uint256[] txIds, CancellationToken cancellationToken)
-	{
-		int requestCount = txIds.Length;
-		Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve = [];
-		TaskCompletionSource<Transaction>[] txsCompletionSources = new TaskCompletionSource<Transaction>[requestCount];
-
-		try
-		{
-			// Get task completion sources for transactions. They are either new (no one else is getting that transaction right now) or existing
-			// and then some other caller needs the same transaction so we can use the existing task completion source.
-			for (int i = 0; i < requestCount; i++)
-			{
-				uint256 txId = txIds[i];
-				string cacheKey = $"{nameof(GetTransactionsAsync)}#{txId}";
-
-				if (Cache.TryAddKey(cacheKey, TransactionCacheOptions, out TaskCompletionSource<Transaction> tcs))
-				{
-					txIdsRetrieve.Add(txId, tcs);
-				}
-
-				txsCompletionSources[i] = tcs;
-			}
-
-			if (txIdsRetrieve.Count > 0)
-			{
-				// Ask to get missing transactions over RPC.
-				IEnumerable<Transaction> txs = await RpcClient.GetRawTransactionsAsync(txIdsRetrieve.Keys, cancellationToken).ConfigureAwait(false);
-
-				Dictionary<uint256, Transaction> rpcBatch = txs.ToDictionary(x => x.GetHash(), x => x);
-
-				foreach (KeyValuePair<uint256, Transaction> kvp in rpcBatch)
-				{
-					txIdsRetrieve[kvp.Key].TrySetResult(kvp.Value);
-				}
-
-				// RPC client does not throw if a transaction is missing, so we need to account for this case.
-				if (rpcBatch.Count < txIdsRetrieve.Count)
-				{
-					IReadOnlyList<Exception> exceptions = MarkNotFinishedTasksAsFailed(txIdsRetrieve);
-					throw new AggregateException(exceptions);
-				}
-			}
-
-			Transaction[] result = new Transaction[requestCount];
-
-			// Add missing transactions to the result array.
-			for (int i = 0; i < requestCount; i++)
-			{
-				Transaction tx = await txsCompletionSources[i].Task.ConfigureAwait(false);
-				result[i] = tx;
-			}
-
-			return result;
-		}
-		finally
-		{
-			if (txIdsRetrieve.Count > 0)
-			{
-				MarkNotFinishedTasksAsFailed(txIdsRetrieve);
-			}
-		}
-
-		IReadOnlyList<Exception> MarkNotFinishedTasksAsFailed(Dictionary<uint256, TaskCompletionSource<Transaction>> txIdsRetrieve)
-		{
-			List<Exception>? exceptions = null;
-
-			// It's necessary to always set a result to the task completion sources. Otherwise, cache can get corrupted.
-			foreach ((uint256 txid, TaskCompletionSource<Transaction> tcs) in txIdsRetrieve)
-			{
-				if (!tcs.Task.IsCompleted)
-				{
-					exceptions ??= new();
-
-					// Prefer new cache requests to try again rather than getting the exception. The window is small though.
-					Exception e = new InvalidOperationException($"Failed to get the transaction '{txid}'.");
-					exceptions.Add(e);
-					Cache.Remove($"{nameof(GetTransactionsAsync)}#{txid}");
-					tcs.SetException(e);
-				}
-			}
-
-			return exceptions ?? [];
-		}
-	}
-
-	/// <summary>
 	/// Attempts to broadcast a transaction.
 	/// </summary>
 	/// <remarks>
@@ -304,8 +169,7 @@ public class BlockchainController : ControllerBase
 		catch (RPCException ex)
 		{
 			Logger.LogDebug(ex);
-			var spenders = Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(transaction.Inputs.Select(x => x.PrevOut));
-			return BadRequest($"{ex.Message}:::{string.Join(":::", spenders.Select(x => x.ToHex()))}");
+			return BadRequest($"{ex.Message}");
 		}
 
 		return Ok("Transaction is successfully broadcasted.");
@@ -365,193 +229,11 @@ public class BlockchainController : ControllerBase
 		return Ok(response);
 	}
 
-	[HttpGet("status")]
-	[ProducesResponseType(typeof(StatusResponse), 200)]
-	public async Task<StatusResponse> GetStatusAsync(CancellationToken cancellationToken)
-	{
-		try
-		{
-			var cacheKey = $"{nameof(GetStatusAsync)}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
-
-			return await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (string request, CancellationToken token) => FetchStatusAsync(token),
-				options: cacheOptions,
-				cancellationToken);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			throw;
-		}
-	}
-
-	private async Task<StatusResponse> FetchStatusAsync(CancellationToken cancellationToken = default)
-	{
-		StatusResponse status = new();
-
-		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
-		{
-			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
-			var lastFilterHash = lastFilter.Header.BlockHash;
-			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
-			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
-			var prevHash = lastBlockHeader.HashPrevBlock;
-
-			if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-			{
-				status.FilterCreationActive = true;
-			}
-		}
-		else
-		{
-			status.FilterCreationActive = true;
-		}
-
-		// Updating the status of WabiSabi coinjoin.
-		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
-		{
-			var ww2CjDownAfter = TimeSpan.FromHours(3);
-			var wabiSabiValidInterval = wabiSabiCoordinator.Config.StandardInputRegistrationTimeout * 2;
-			if (wabiSabiValidInterval < ww2CjDownAfter)
-			{
-				wabiSabiValidInterval = ww2CjDownAfter;
-			}
-			if (DateTimeOffset.UtcNow - wabiSabiCoordinator.LastSuccessfulCoinJoinTime < wabiSabiValidInterval)
-			{
-				status.WabiSabiCoinJoinCreationActive = true;
-			}
-		}
-
-		return status;
-	}
-
 	[HttpGet("unconfirmed-transaction-chain")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetUnconfirmedTransactionChainAsync([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
+	public IActionResult GetUnconfirmedTransactionChain([FromQuery, Required] string transactionId, CancellationToken cancellationToken)
 	{
-		try
-		{
-			uint256 txId = new(transactionId);
-
-			var cacheKey = $"{nameof(GetUnconfirmedTransactionChainAsync)}_{txId}";
-			var ret = await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (request, token) => GetUnconfirmedTransactionChainNoCacheAsync(txId, token),
-				options: UnconfirmedTransactionChainCacheEntryOptions,
-				cancellationToken);
-			return ret;
-		}
-		catch (OperationCanceledException)
-		{
-			return BadRequest("Operation took more than 10 seconds. Aborting.");
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug($"Failed to compute unconfirmed chain for {transactionId}. {ex}");
-			return BadRequest($"Failed to compute unconfirmed chain for {transactionId}");
-		}
-	}
-
-	private async Task<IActionResult> GetUnconfirmedTransactionChainNoCacheAsync(uint256 txId, CancellationToken cancellationToken)
-	{
-		var mempoolHashes = Mempool.GetMempoolHashes();
-		if (!mempoolHashes.Contains(txId))
-		{
-			return BadRequest("Requested transaction is not present in the mempool, probably confirmed.");
-		}
-
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-		var linkedCancellationToken = linkedCts.Token;
-
-		var unconfirmedTxsChainById = await BuildUnconfirmedTransactionChainAsync(txId, mempoolHashes, linkedCancellationToken);
-		return Ok(unconfirmedTxsChainById.Values.ToList());
-	}
-
-	private async Task<Dictionary<uint256, UnconfirmedTransactionChainItem>> BuildUnconfirmedTransactionChainAsync(uint256 requestedTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
-	{
-		var unconfirmedTxsChainById = new Dictionary<uint256, UnconfirmedTransactionChainItem>();
-		var toFetchFeeList = new List<uint256> { requestedTxId };
-
-		while (toFetchFeeList.Count > 0)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			var currentTxId = toFetchFeeList.First();
-
-			// Check if we just computed the item.
-			var cacheKey = $"{nameof(ComputeUnconfirmedTransactionChainItemAsync)}_{currentTxId}";
-
-			var currentTxChainItem = await Cache.GetCachedResponseAsync(
-				cacheKey,
-				action: (request, token) => ComputeUnconfirmedTransactionChainItemAsync(currentTxId, mempoolHashes, token),
-				options: UnconfirmedTransactionChainItemCacheEntryOptions,
-				cancellationToken);
-
-			toFetchFeeList.Remove(currentTxId);
-
-			var discoveredTxsToFetchFee = currentTxChainItem.Parents
-				.Union(currentTxChainItem.Children)
-				.Where(x => !unconfirmedTxsChainById.ContainsKey(x) && !toFetchFeeList.Contains(x));
-
-			toFetchFeeList.AddRange(discoveredTxsToFetchFee);
-
-			unconfirmedTxsChainById.Add(currentTxId, currentTxChainItem);
-		}
-
-		return unconfirmedTxsChainById;
-	}
-
-	private async Task<UnconfirmedTransactionChainItem> ComputeUnconfirmedTransactionChainItemAsync(uint256 currentTxId, IEnumerable<uint256> mempoolHashes, CancellationToken cancellationToken)
-	{
-		var currentTx = (await FetchTransactionsAsync([currentTxId], cancellationToken).ConfigureAwait(false)).First();
-
-		var txsToFetch = currentTx.Inputs.Select(input => input.PrevOut.Hash).Distinct().ToArray();
-
-		Transaction[] parentTxs;
-		try
-		{
-			parentTxs = await FetchTransactionsAsync(txsToFetch, cancellationToken).ConfigureAwait(false);
-		}
-		catch(AggregateException ex)
-		{
-			throw new InvalidOperationException($"Some transactions part of the chain were not found: {ex}");
-		}
-
-		// Get unconfirmed parents and children
-		var unconfirmedParents = parentTxs.Where(x => mempoolHashes.Contains(x.GetHash())).ToHashSet();
-		var unconfirmedChildrenTxs = Mempool.GetSpenderTransactions(currentTx.Outputs.Select((txo, index) => new OutPoint(currentTx, index))).ToHashSet();
-
-		return new UnconfirmedTransactionChainItem(
-			TxId: currentTxId,
-			Size: currentTx.GetVirtualSize(),
-			Fee: ComputeFee(currentTx, parentTxs, cancellationToken),
-			Parents: unconfirmedParents.Select(x => x.GetHash()).ToHashSet(),
-			Children: unconfirmedChildrenTxs.Select(x => x.GetHash()).ToHashSet());
-	}
-
-	private Money ComputeFee(Transaction currentTx, IEnumerable<Transaction> parentTxs, CancellationToken cancellationToken)
-	{
-		cancellationToken.ThrowIfCancellationRequested();
-
-		var inputs = new List<Coin>();
-
-		var prevOutsForCurrentTx = currentTx.Inputs
-			.Select(input => input.PrevOut)
-			.ToList();
-
-		foreach (var prevOut in prevOutsForCurrentTx)
-		{
-			var parentTx = parentTxs.First(x => x.GetHash() == prevOut.Hash);
-			var txOut = parentTx.Outputs[prevOut.N];
-			inputs.Add(new Coin(prevOut, txOut));
-		}
-
-		return currentTx.GetFee(inputs.ToArray());
+		return Ok(Array.Empty<uint256>());
 	}
 }

@@ -39,6 +39,7 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -147,7 +148,8 @@ public class Global
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
-		CoinPrison = CoinPrison.CreateOrLoadFromFile(DataDir);
+		var prisonForCoordinator = Path.Combine(DataDir, config.GetCoordinatorUri().Host);
+		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
@@ -390,13 +392,13 @@ public class Global
 
 	private void RegisterLocalNodeDependentComponents(CoreNode coreNode)
 	{
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
 		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 		if (!Config.BlockOnlyMode)
 		{
 			HostedServices.Register<MempoolMirror>(
-				() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode),
+				() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode),
 				"Full Node Mempool Mirror");
 		}
 	}
@@ -413,7 +415,7 @@ public class Global
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 
-		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
+		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
 	}
 

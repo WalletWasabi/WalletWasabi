@@ -47,8 +47,8 @@ public class AmountDecomposerTests
 		var availableVsize = maxAvailableOutputs * outputVirtualSize;
 		var feeRate = new FeeRate(feeRateDecimal);
 		var feePerOutput = feeRate.GetFee(outputVirtualSize);
-		var registeredCoinEffectiveValues = GenerateRandomCoins().Take(3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
-		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
+		var registeredCoinEffectiveValues = GenerateRandomCoins().Take(3).Select(c => c.EffectiveValue(feeRate)).ToList();
+		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 		var allowedOutputTypes = isTaprootEnabled ? new List<ScriptType>() { ScriptType.Taproot, ScriptType.P2WPKH } : new List<ScriptType>() { ScriptType.P2WPKH };
 
@@ -102,12 +102,9 @@ public class AmountDecomposerTests
 	[InlineData(39, 728551029, 4999, 8, new long[] { 6973569112, 4294967606, 2324523244, 1162261777, 774841288, 536871222, 268435766, 134218038, 86093752, 50000310, 33554742, 20000310, 14349217, 10000310, 5000310, 3188956, 2097462, 1594633, 1063192, 531751, 354604, 262454, 200310, 131382, 100310, 65846, 50310, 39676, 33078, 20310, 16694, 13432, 10310 })]
 	public void DecomposeTests(int expectedResultCount, long target, long tolerance, int maxCount, long[] stdDenoms)
 	{
-		var denoms = stdDenoms.SkipWhile(x => x > target).ToArray();
-		var res = Decomposer.Decompose(target, tolerance, maxCount, denoms);
+		var res = Decomposer.Decompose(target, tolerance, maxCount, stdDenoms);
 
-		Assert.True(res.Count() == res.ToHashSet().Count);
-		Assert.True(expectedResultCount < 0 || res.Count() == expectedResultCount);
-		Assert.All(res, x => Assert.True(x.Sum == Decomposer.ToRealValuesArray(x.Decomposition, x.Count, denoms).Sum()));
-		Assert.All(res, x => Assert.True(target - x.Sum < tolerance));
+		Assert.Equal(expectedResultCount, res.Count());
+		Assert.All(res, x => Assert.True(x.Sum <= target && x.Sum >= target - tolerance));
 	}
 }

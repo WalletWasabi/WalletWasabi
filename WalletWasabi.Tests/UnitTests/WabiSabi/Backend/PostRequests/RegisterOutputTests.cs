@@ -105,19 +105,21 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task ScriptNotAllowedAsync()
 	{
+		using Key key = new();
+		var outputScript = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ScriptPubKey;
+
 		WabiSabiConfig cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
-		{ MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead };
+		{ MaxVsizeAllocationPerAlice = Constants.P2wpkhInputVirtualSize + outputScript.EstimateOutputVsize() };
 		var round = WabiSabiFactory.CreateRound(parameters);
 
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
-		using Key key = new();
 
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
 
-		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ScriptPubKey);
+		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, outputScript);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 
@@ -127,17 +129,17 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task NonStandardOutputAsync()
 	{
+		var sha256Bounty = Script.FromHex("aa20000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f87");
 		WabiSabiConfig cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
-		{ MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead + 13 };
+		{ MaxVsizeAllocationPerAlice =  Constants.P2wpkhInputVirtualSize + sha256Bounty.EstimateOutputVsize() };
 		var round = WabiSabiFactory.CreateRound(parameters);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
 
-		var sha256Bounty = Script.FromHex("aa20000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f87");
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, sha256Bounty);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 

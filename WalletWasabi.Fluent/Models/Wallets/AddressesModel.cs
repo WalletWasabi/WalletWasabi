@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using DynamicData;
+using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Infrastructure;
@@ -45,9 +46,9 @@ public partial class AddressesModel
 
 	private IEnumerable<HdPubKey> GetUnusedKeys() => _wallet.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 });
 
-	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels)
+	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels, ScriptPubKeyType scriptPubKeyType)
 	{
-		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels);
+		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels, scriptPubKeyType);
 		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, Hide);
 		_newAddressGenerated.OnNext(pubKey);
 

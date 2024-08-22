@@ -9,14 +9,16 @@ public static class DateTimeExtensions
 
 	public static string ToUserFacingFriendlyString(this DateTime value)
 	{
+		var time = value.ToString("HH:mm");
+
 		if (value.Date == DateTime.Today)
 		{
-			return "Today";
+			return $"Today, {time}";
 		}
 
 		if (value.Date == DateTime.Today.AddDays(-1))
 		{
-			return "Yesterday";
+			return $"Yesterday, {time}";
 		}
 
 		return value.ToString("MMM d, yyyy");
