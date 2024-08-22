@@ -22,7 +22,6 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 	[AutoNotify] private Amount _unconfirmedBalance;
 	[AutoNotify] private int _generatedKeyCount;
 	[AutoNotify] private int _generatedCleanKeyCount;
-	[AutoNotify] private int _generatedLockedKeyCount;
 	[AutoNotify] private int _generatedUsedKeyCount;
 	[AutoNotify] private int _totalTransactionCount;
 	[AutoNotify] private int _nonCoinjointransactionCount;
@@ -61,7 +60,6 @@ public partial class WalletStatsModel : ReactiveObject, IDisposable
 
 		GeneratedKeyCount = wallet.KeyManager.GetKeys().Count();
 		GeneratedCleanKeyCount = wallet.KeyManager.GetKeys(KeyState.Clean).Count();
-		GeneratedLockedKeyCount = wallet.KeyManager.GetKeys(KeyState.Locked).Count();
 		GeneratedUsedKeyCount = wallet.KeyManager.GetKeys(KeyState.Used).Count();
 
 		var singleCoinjoins =
