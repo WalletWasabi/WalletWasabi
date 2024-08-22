@@ -44,7 +44,7 @@ public static class IWebHostBuilderExtensions
 
 			// Instruct the coordinator DI container to use these two scoped
 			// services to build everything (WabiSabi controller, arena, etc)
-			services.AddScoped<IRPCClient>(s => rpc));
+			services.AddSingleton<IRPCClient>(s => rpc));
 		return builder;
 	}
 }
