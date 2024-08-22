@@ -273,16 +273,18 @@ public static class TransactionModifierWalletExtensions
 
 	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
-		if (!CpfpInfoProvider.ShouldRequest(transactionToCpfp))
+		if (wallet.CpfpInfoProvider is null)
 		{
-			throw new InvalidOperationException($"There is no need to request CPFP info for transaction {transactionToCpfp.GetHash()}");
+			throw new InvalidOperationException("No third-party available to get the information required to perform a CPFP.");
+		}
+
+		if (transactionToCpfp.Confirmed)
+		{
+			throw new InvalidOperationException("Transaction is already confirmed.");
 		}
 
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
-
-		// Take the largest unspent own output and if we have it that's what we will want to CPFP.
-		var txSizeVBytes = (decimal)transactionToCpfp.Transaction.GetVirtualSize();
 
 		var bestFeeRate = preferredFeeRate ?? wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
@@ -290,28 +292,22 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
-		decimal ancestorsSizeVBytes = 0.0m;
-		decimal feePaidByAncestorsAndTx = 0.0m;
-		if (wallet.CpfpInfoProvider is not null)
+		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+		using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+		CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
+
+		// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
+		if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
 		{
-			// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-			CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
-
-			// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
-			if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
-			{
-				throw new InvalidOperationException(
-					$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} s/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
-			}
-
-			// mempool.space gives a more precise value for VSize in an effective fee rate context as it's adjusted with sigops.
-			txSizeVBytes = cpfpInfo.AdjustedVSize;
-
-			ancestorsSizeVBytes = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
-			feePaidByAncestorsAndTx = cpfpInfo.Ancestors.Sum(x => x.Fee) + cpfpInfo.Fee;
+			throw new InvalidOperationException(
+				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} s/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
 		}
+
+		// mempool.space gives a more precise value for VSize in an effective fee rate context as it's adjusted with sigops.
+		var txSizeVBytes = cpfpInfo.AdjustedVSize;
+		var ancestorsSizeVBytes = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
+		var feePaidByAncestorsAndTx = cpfpInfo.Ancestors.Sum(x => x.Fee) + cpfpInfo.Fee;
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
