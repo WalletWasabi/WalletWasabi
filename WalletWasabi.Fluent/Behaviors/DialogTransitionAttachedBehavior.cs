@@ -72,7 +72,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 
 		var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
 		scaleAnimation.Target = "Scale";
-		if (enableScale)
+		if (enableScale && false) // TODO: Remove when Avalonia fixes
 		{
 			scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
 			scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(0.96+(1.0-0.96)*this.Target.Opacity, 0.96+(1.0-0.96)*this.Target.Opacity, 0)", fluentEasing);
