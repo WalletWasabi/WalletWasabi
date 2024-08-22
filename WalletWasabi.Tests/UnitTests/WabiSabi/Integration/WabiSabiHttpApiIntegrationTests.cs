@@ -25,6 +25,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
@@ -147,10 +148,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				});
 			})).CreateClient();
@@ -202,10 +203,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		_output.WriteLine("Coins were created successfully");
 
-		keyManager.AssertLockedInternalKeysIndexed(14, false);
-		var outputScriptCandidates = keyManager
-			.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked)
-			.Select(x => x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))
+		keyManager.AssertLockedInternalKeysIndexed(21, false);
+		var outputScriptCandidates = keyManager.GetNextCoinJoinKeys()
+			.SelectMany(x => new[] {x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)})
 			.ToImmutableArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -218,10 +218,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				});
 
@@ -239,7 +239,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
@@ -248,38 +248,24 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
 
-		bool failedBecauseNotAllAlicesSigned = false;
-		void HandleCoinJoinProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgress)
-		{
-			if (coinJoinProgress is RoundEnded roundEnded)
-			{
-				if (roundEnded.LastRoundState.EndRoundState is EndRoundState.NotAllAlicesSign)
-				{
-					failedBecauseNotAllAlicesSigned = true;
-				}
-				cts.Cancel(); // this is what we were waiting for so, end the test.
-			}
-		}
+		Logger.SetModes(LogMode.File); Logger.TurnOn(); Logger.SetMinimumLevel(LogLevel.Trace);
+		// Run the coinjoin client task.
+		var coinjoinResultTask = coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
 
-		try
-		{
-			coinJoinClient.CoinJoinClientProgress += HandleCoinJoinProgress;
+		// If we see a blame round that means that the original round failed
+		var blameRoundWaiterTask = roundStateUpdater.CreateRoundAwaiterAsync(r => r.IsBlame, cts.Token);
 
-			// Run the coinjoin client task.
-			var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
-			if (coinjoinResult is SuccessfulCoinJoinResult)
+		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
+		if (finishedTask == coinjoinResultTask)
+		{
+			var coinjoinResult = await coinjoinResultTask;
+			if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
 			{
+				var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
+				var common = outputScriptCandidates.Intersect(scripts);
+				Assert.Empty(common);
 				throw new Exception("Coinjoin should have never finished successfully.");
 			}
-		}
-		catch (OperationCanceledException)
-		{
-			Assert.True(failedBecauseNotAllAlicesSigned);
-		}
-		finally
-		{
-			coinJoinClient.CoinJoinClientProgress -= HandleCoinJoinProgress;
-			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 	}
 
@@ -332,10 +318,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				AllowP2trInputs = true,
 				AllowP2trOutputs = true,
 				MaxInputCountByRound = 2 * inputCount,
-				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
-				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
-				OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
+				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
 				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
 				MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 			}))).CreateClient();
