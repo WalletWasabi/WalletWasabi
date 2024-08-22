@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -16,6 +17,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
@@ -106,7 +108,7 @@ public class CpfpInfoProvider : BackgroundService
 			{
 				await FetchCpfpInfoAsync(transaction, cancel).ConfigureAwait(false);
 			}
-			catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
+			catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
 			{
 				if (cancel.IsCancellationRequested)
 				{
@@ -213,7 +215,10 @@ public class CpfpInfoProvider : BackgroundService
 			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		return await response.Content.ReadAsJsonAsync<CpfpInfo>().ConfigureAwait(false);
+		var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+		return JsonConvert.DeserializeObject<CpfpInfo>(stringResponse, JsonSerializationOptions.Default.Settings) ??
+		       throw new JsonException("Deserialization error");;
 	}
 
 	private record CachedCpfpInfo(CpfpInfo CpfpInfo, SmartTransaction Transaction, DateTimeOffset TimeLastUpdate);
