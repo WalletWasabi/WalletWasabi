@@ -15,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -38,7 +39,13 @@ public class CoinJoinManager : BackgroundService
 		WalletProvider = walletProvider;
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStateUpdaterCircuit = new PersonCircuit();
-		RoundStatusUpdater = CreateRoundStateUpdater();
+
+		IWabiSabiStatusApiRequestHandler handler = coordinatorHttpClientFactory switch
+		{
+			null => new NullWabiSabiStatusApiRequestHandler(),
+			not null => new WabiSabiHttpApiClient(coordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit))
+		};
+		RoundStatusUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(10), handler);
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinPrison = coinPrison;
 	}
@@ -50,8 +57,8 @@ public class CoinJoinManager : BackgroundService
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	public IWalletProvider WalletProvider { get; }
 	public WasabiHttpClientFactory? HttpClientFactory { get; }
-	public RoundStateUpdater? RoundStatusUpdater { get; }
-	public PersonCircuit? RoundStateUpdaterCircuit { get; }
+	public RoundStateUpdater RoundStatusUpdater { get; }
+	public PersonCircuit RoundStateUpdaterCircuit { get; }
 	public CoinPrison? CoinPrison { get; }
 
 	// A coordinator is configured if the backend URI is set to something other than the deprecated zkSNACKs' API endpoints.
@@ -88,6 +95,8 @@ public class CoinJoinManager : BackgroundService
 			overridePlebStop = false;
 			wallet.LogDebug("Do not override PlebStop anymore we are above the threshold.");
 		}
+
+		await RoundStatusUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
 		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
 	}
@@ -127,7 +136,7 @@ public class CoinJoinManager : BackgroundService
 		var trackedWallets = new Dictionary<WalletId, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			var mixableWallets = RoundStatusUpdater is not null && RoundStatusUpdater.AnyRound
+			var mixableWallets = RoundStatusUpdater.AnyRound
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
 				: ImmutableDictionary<WalletId, IWallet>.Empty;
 
@@ -168,11 +177,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		CoinJoinTrackerFactory? coinJoinTrackerFactory = null;
-		if (!HasCoordinatorConfigured)
-		{
-			coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory!, RoundStatusUpdater!, CoinJoinConfiguration, stoppingToken);
-		}
+		CoinJoinTrackerFactory coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoinJoinConfiguration, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -467,7 +472,7 @@ public class CoinJoinManager : BackgroundService
 
 			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets, trackedCoinJoins);
-			RoundStatusUpdater!.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
+			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
@@ -810,8 +815,8 @@ public class CoinJoinManager : BackgroundService
 
 	public override void Dispose()
 	{
-		RoundStateUpdaterCircuit?.Dispose();
-		RoundStatusUpdater?.Dispose();
+		RoundStateUpdaterCircuit.Dispose();
+		RoundStatusUpdater.Dispose();
 		base.Dispose();
 	}
 
