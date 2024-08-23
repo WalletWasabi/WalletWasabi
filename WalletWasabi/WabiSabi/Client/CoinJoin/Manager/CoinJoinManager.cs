@@ -40,11 +40,10 @@ public class CoinJoinManager : BackgroundService
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
-		IWabiSabiStatusApiRequestHandler handler = coordinatorHttpClientFactory switch
-		{
-			null => new NullWabiSabiStatusApiRequestHandler(),
-			not null => new WabiSabiHttpApiClient(coordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit))
-		};
+		IWabiSabiStatusApiRequestHandler handler = HasCoordinatorConfigured ?
+			new WabiSabiHttpApiClient(coordinatorHttpClientFactory!.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit)) :
+			new NullWabiSabiStatusApiRequestHandler();
+
 		RoundStatusUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(10), handler);
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinPrison = coinPrison;
