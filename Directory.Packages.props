@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-	  <AvaloniaVersion>11.2.0-beta1</AvaloniaVersion>
+    <AvaloniaVersion>11.0.999-cibuild0044755-beta</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
@@ -34,9 +34,9 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.10" />
+    <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.2" />
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.1.0" />
+    <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.0.5" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />

@@ -17,8 +17,16 @@
       <Grid.Styles>
         <Style Selector="TileButton">
           <Setter Property="Cursor" Value="Hand" />
-          <Setter Property="Width">NaN</Setter>
-          <Setter Property="Height">NaN</Setter>
+          <Setter Property="Width">
+            <Setter.Value>
+              <system:Double>NaN</system:Double>
+            </Setter.Value>
+          </Setter>
+          <Setter Property="Height">
+            <Setter.Value>
+              <system:Double>NaN</system:Double>
+            </Setter.Value>
+          </Setter>
           <Setter Property="Margin" Value="10" />
           <Setter Property="Template">
             <ControlTemplate>

@@ -13,12 +13,12 @@ public static class DateTimeExtensions
 
 		if (value.Date == DateTime.Today)
 		{
-			return $"Today, {time}";
+			return $"Today at {time}";
 		}
 
 		if (value.Date == DateTime.Today.AddDays(-1))
 		{
-			return $"Yesterday, {time}";
+			return $"Yesterday at {time}";
 		}
 
 		return value.ToString("MMM d, yyyy");
