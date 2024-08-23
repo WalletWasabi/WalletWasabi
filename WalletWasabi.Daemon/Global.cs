@@ -142,6 +142,10 @@ public class Global
 		{
 			CoinPrison = CoinPrison.CreateOrLoadFromFile(Path.Combine(DataDir, coordinatorUri.Host));
 		}
+		else
+		{
+			CoinPrison = CoinPrison.CreateDummyPrison();
+		}
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
@@ -181,7 +185,7 @@ public class Global
 	public Network Network => Config.Network;
 
 	public IMemoryCache Cache { get; private set; }
-	private CoinPrison? CoinPrison { get; }
+	private CoinPrison CoinPrison { get; }
 	public JsonRpcServer? RpcServer { get; private set; }
 
 	public Uri? OnionServiceUri { get; private set; }
@@ -419,7 +423,7 @@ public class Global
 		}
 
 		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
-		CoinPrison?.UpdateWallet(wallet);
+		CoinPrison.UpdateWallet(wallet);
 	}
 
 	public async Task DisposeAsync()
@@ -453,7 +457,7 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				CoinPrison?.Dispose();
+				CoinPrison.Dispose();
 
 				if (RpcServer is { } rpcServer)
 				{

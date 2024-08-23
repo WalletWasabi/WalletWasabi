@@ -10,7 +10,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
-public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord> bannedCoins) : IDisposable
+public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecord> bannedCoins) : IDisposable
 {
 	enum BanningStatus
 	{
@@ -46,6 +46,11 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 		{
 			return GetBanningStatus(outpoint) == BanningStatus.Banned;
 		}
+	}
+
+	public static CoinPrison CreateDummyPrison()
+	{
+		return new(null, []);
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)

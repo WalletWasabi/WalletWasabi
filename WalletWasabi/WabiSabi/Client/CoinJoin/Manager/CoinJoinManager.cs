@@ -33,7 +33,7 @@ public class CoinJoinManager : BackgroundService
 		WasabiHttpClientFactory? coordinatorHttpClientFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
-		CoinPrison? coinPrison)
+		CoinPrison coinPrison)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
@@ -59,7 +59,7 @@ public class CoinJoinManager : BackgroundService
 	public WasabiHttpClientFactory? HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public PersonCircuit RoundStateUpdaterCircuit { get; }
-	public CoinPrison? CoinPrison { get; }
+	public CoinPrison CoinPrison { get; }
 
 	// A coordinator is configured if the backend URI is set to something other than the deprecated zkSNACKs' API endpoints.
 	public bool HasCoordinatorConfigured => HttpClientFactory is not null &&
@@ -336,9 +336,7 @@ public class CoinJoinManager : BackgroundService
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 		}
 
-		var bannedCoins = CoinPrison is not null
-			? coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray()
-			: [];
+		var bannedCoins = coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray();
 		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
@@ -594,7 +592,7 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		// If any coins were marked for banning, store them to file
-		if (CoinPrison is not null && finishedCoinJoin.BannedCoins.Count != 0)
+		if (finishedCoinJoin.BannedCoins.Count != 0)
 		{
 			foreach (var info in finishedCoinJoin.BannedCoins)
 			{
