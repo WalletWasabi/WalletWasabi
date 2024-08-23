@@ -42,7 +42,7 @@
                    x:Name="DockPanel">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding #DockPanel.IsVisible}" Value="True">
-              <FocusControlAction TargetControl="Password" />
+              <FocusControlActionCustom TargetControl="Password" />
             </DataTriggerBehavior>
           </Interaction.Behaviors>
 
