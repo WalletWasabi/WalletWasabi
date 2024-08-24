@@ -193,7 +193,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		keyManager.AssertLockedInternalKeysIndexed(21, false);
 		keyManager.AssertLockedInternalKeysIndexed(21, true);
-		var outputScriptCandidates = keyManager.GetNextCoinJoinKeys()
+
+		var keysCandidates = keyManager.GetNextCoinJoinKeys().ToArray();
+		var outputScriptCandidates = keysCandidates
 			.SelectMany(x => new[] {x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)})
 			.ToImmutableArray();
 

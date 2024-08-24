@@ -61,14 +61,14 @@ public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
 	}
 }
 
-public class BackendBroadcaster(IWasabiHttpClientFactory wasabiHttpClientFactory) : IBroadcaster
+public class BackendBroadcaster(IHttpClientFactory httpClientFactory) : IBroadcaster
 {
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx)
 	{
 		Logger.LogInfo($"Trying to broadcast transaction via backend API:{tx.GetHash()}.");
 		try
 		{
-			var wasabiClient = new WasabiClient(wasabiHttpClientFactory.NewHttpClientWithCircuitPerRequest());
+			var wasabiClient = new WasabiClient(httpClientFactory.CreateClient($"satoshi-broadcast-{tx.GetHash()}"));
 			await wasabiClient.BroadcastAsync(tx).ConfigureAwait(false);
 			return BroadcastingResult.Ok(new BroadcastOk.BroadcastedByBackend());
 		}

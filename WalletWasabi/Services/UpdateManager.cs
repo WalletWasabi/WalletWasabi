@@ -21,12 +21,11 @@ public class UpdateManager : PeriodicRunner
 {
 	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
 
-	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, IHttpClient githubHttpClient, WasabiClient sharedWasabiClient)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient)
 		: base(period)
 	{
 		InstallerDir = Path.Combine(dataDir, "Installer");
 		GithubHttpClient = githubHttpClient;
-		WasabiClient = sharedWasabiClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		DownloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 	}
@@ -36,15 +35,13 @@ public class UpdateManager : PeriodicRunner
 	private string InstallerPath { get; set; } = "";
 
 	private string InstallerDir { get; }
-	private IHttpClient GithubHttpClient { get; }
+	private HttpClient GithubHttpClient { get; }
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private bool DownloadNewVersion { get; }
 
 	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
-
-	private WasabiClient WasabiClient { get; }
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{

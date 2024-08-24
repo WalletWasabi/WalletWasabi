@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -213,7 +214,8 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
-			IHttpClient httpClient = Services.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
+			HttpClient httpClient = Services.HttpClientFactory.CreateClient(endPoint);
+			httpClient.BaseAddress = new Uri(endPoint);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 

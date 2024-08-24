@@ -21,7 +21,7 @@ namespace WalletWasabi.WebClients.ShopWare;
 
 public class ShopWareApiClient : IShopWareApiClient
 {
-	private IHttpClient _client;
+	private HttpClient _client;
 	private string _apiKey;
 
 	// Initializes a new instance of the ShopWareApiClient class.
@@ -32,9 +32,10 @@ public class ShopWareApiClient : IShopWareApiClient
 	//
 	//   apiKey:
 	//     The API key to authenticate the requests.
-	public ShopWareApiClient(IHttpClient client, string apiKey)
+	public ShopWareApiClient(HttpClient client, Uri apiUri, string apiKey)
 	{
 		_client = client;
+		_client.BaseAddress = apiUri;
 		_apiKey = apiKey;
 	}
 
@@ -88,7 +89,7 @@ public class ShopWareApiClient : IShopWareApiClient
 	{
 		try
 		{
-			using var httpRequest = new HttpRequestMessage(httpMethod, _client.BaseUriGetter is null ? path : Path.Combine(_client.BaseUriGetter().AbsoluteUri, path));
+			using var httpRequest = new HttpRequestMessage(httpMethod, path);
 
 			httpRequest.Headers.Add("sw-context-token", ctxToken);
 			httpRequest.Headers.Add("Accept", "application/json");

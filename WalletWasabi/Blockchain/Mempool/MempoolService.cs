@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -76,7 +77,7 @@ public class MempoolService
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
 	/// </summary>
-	public async Task<bool> TryPerformMempoolCleanupAsync(WasabiHttpClientFactory httpClientFactory)
+	public async Task<bool> TryPerformMempoolCleanupAsync(HttpClient httpClient)
 	{
 		// If already cleaning, then no need to run it that often.
 		if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -99,7 +100,8 @@ public class MempoolService
 			Logger.LogInfo("Start cleaning out mempool...");
 			{
 				var compactness = 10;
-				var allMempoolHashes = await httpClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+				var wasabiClient = new WasabiClient(httpClient);
+				var allMempoolHashes = await wasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 				int removedTxCount;
 

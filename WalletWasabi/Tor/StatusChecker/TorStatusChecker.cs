@@ -16,7 +16,7 @@ public class TorStatusChecker : PeriodicRunner
 	private readonly XmlIssueListParser _parser;
 	private static readonly Uri TorStatusUri = new("https://status.torproject.org/index.xml");
 
-	public TorStatusChecker(TimeSpan period, IHttpClient httpClient, XmlIssueListParser parser)
+	public TorStatusChecker(TimeSpan period, HttpClient httpClient, XmlIssueListParser parser)
 		: base(period)
 	{
 		_parser = parser;
@@ -25,7 +25,7 @@ public class TorStatusChecker : PeriodicRunner
 
 	public event EventHandler<Issue[]>? StatusEvent;
 
-	private IHttpClient HttpClient { get; }
+	private HttpClient HttpClient { get; }
 
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken cancellationToken)

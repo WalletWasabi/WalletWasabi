@@ -24,27 +24,24 @@ namespace WalletWasabi.Wallets;
 
 public class CpfpInfoProvider : BackgroundService
 {
+	private readonly IHttpClientFactory _httpClientFactory;
 	private const int MaximumDelayInSeconds = 120;
 	private const int MaximumScheduledRequestsInParallel = 15;
 	private static readonly TimeSpan MinimumBetweenUpdateRequests = TimeSpan.FromSeconds(MaximumDelayInSeconds);
 
-	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory, Network network)
+
+	public CpfpInfoProvider(IHttpClientFactory httpClientFactory, Network network)
 	{
-		if (network == Network.Main)
-		{
-			_httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
-		}
-		else if(network == Network.TestNet)
-		{
-			_httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/testnet/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
-		}
-		else
-		{
-			throw new InvalidOperationException("CpfpInfoProvider is only operational on Main or TestNet");
-		}
+		_httpClientFactory = httpClientFactory;
+
+		_uri = network == Network.Main
+			? new Uri("https://mempool.space/api/")
+			: network == Network.TestNet
+				? new Uri("https://mempool.space/testnet/api/")
+				: throw new InvalidOperationException("CpfpInfoProvider is only operational on Main or TestNet");
 	}
 
-	private readonly IHttpClient _httpClient;
+	private readonly Uri _uri;
 
 	private readonly Channel<SmartTransaction> _transactionsChannel = Channel.CreateUnbounded<SmartTransaction>();
 	private readonly Dictionary<uint256, CachedCpfpInfo> _cpfpInfoCache = new();
@@ -198,11 +195,8 @@ public class CpfpInfoProvider : BackgroundService
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-		var response = await _httpClient.SendAsync(
-			HttpMethod.Get,
-			$"v1/cpfp/{txid}",
-			null,
-			linkedCts.Token).ConfigureAwait(false);
+		var httpClient = _httpClientFactory.CreateClient($"mempool.space-{txid}");
+		var response = await httpClient.GetAsync( $"v1/cpfp/{txid}", linkedCts.Token).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{

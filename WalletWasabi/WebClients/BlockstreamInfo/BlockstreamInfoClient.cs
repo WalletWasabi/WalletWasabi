@@ -14,11 +14,13 @@ namespace WalletWasabi.WebClients.BlockstreamInfo;
 
 public class BlockstreamInfoClient
 {
-	public BlockstreamInfoClient(Network network, WasabiHttpClientFactory httpClientFactory)
-	{
-		string uriString;
+	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly string uriString;
 
-		if (httpClientFactory.IsTorEnabled)
+	public BlockstreamInfoClient(Network network, IHttpClientFactory httpClientFactory)
+	{
+		_httpClientFactory = httpClientFactory;
+		if (httpClientFactory is OnionHttpClientFactory)
 		{
 			uriString = network == Network.TestNet
 				? "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet"
@@ -30,15 +32,13 @@ public class BlockstreamInfoClient
 				? "https://blockstream.info/testnet"
 				: "https://blockstream.info";
 		}
-
-		HttpClient = httpClientFactory.NewHttpClient(() => new Uri(uriString), Mode.DefaultCircuit);
 	}
-
-	private IHttpClient HttpClient { get; }
 
 	public async Task<AllFeeEstimate> GetFeeEstimatesAsync(CancellationToken cancel)
 	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "api/fee-estimates", null, cancel).ConfigureAwait(false);
+		var httpClient = _httpClientFactory.CreateClient("blockstream.info");
+		httpClient.BaseAddress = new Uri(uriString);
+		using HttpResponseMessage response = await httpClient.GetAsync("api/fee-estimates", cancel).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
 		{

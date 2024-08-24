@@ -10,6 +10,7 @@ using Xunit;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Tor.Http;
+using Uri = System.Uri;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -18,7 +19,7 @@ public class ShopWareApiClientTests
 	[Fact]
 	public async Task CanFetchCountriesAndStatesAsync()
 	{
-		await using TestSetup testSetup = TestSetup.ForClearnet();
+		TestSetup testSetup = TestSetup.ForClearnet();
 		ShopWareApiClient shopWareApiClient = testSetup.ShopWareApiClient;
 
 		var toSerialize = new List<CachedCountry>();
@@ -55,21 +56,19 @@ public class ShopWareApiClientTests
 		// await File.WriteAllTextAsync(Path.Combine(outputFolder.FullName, "Countries.json"), JsonSerializer.Serialize(toSerialize));
 	}
 
-	private class TestSetup : IAsyncDisposable
+	private class TestSetup
 	{
 		private TestSetup(bool useTor)
 		{
-			EndPoint? torEndpoint = useTor ? Common.TorSocks5Endpoint : null;
-			HttpClientFactory = new(torEndpoint, null);
+			var apiEndpoint = new Uri("https://shopinbit.solution360.dev/store-api/");
+			var httpClientFactory = useTor
+				? new OnionHttpClientFactory(new Uri($"socks5://{Common.TorSocks5Endpoint}"))
+				: new HttpClientFactory();
 
-			IHttpClient httpClient = useTor
-				? HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit, () => new Uri("https://shopinbit.solution360.dev/store-api/"))
-				: HttpClientFactory.NewHttpClient(() => new Uri("https://shopinbit.solution360.dev/store-api/"), Mode.DefaultCircuit);
-
-			ShopWareApiClient = new(httpClient, "SWSCVTGZRHJOZWF0MTJFTK9ZSG");
+			var httpClient = httpClientFactory.CreateClient("carol");
+			ShopWareApiClient = new(httpClient, apiEndpoint, "SWSCVTGZRHJOZWF0MTJFTK9ZSG");
 		}
 
-		private WasabiHttpClientFactory HttpClientFactory { get; }
 		public ShopWareApiClient ShopWareApiClient { get; }
 
 		public static TestSetup ForClearnet()
@@ -77,10 +76,5 @@ public class ShopWareApiClientTests
 
 		public static TestSetup ForTor()
 			=> new(useTor: true);
-
-		public async ValueTask DisposeAsync()
-		{
-			await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
-		}
 	}
 }

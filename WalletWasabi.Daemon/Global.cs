@@ -76,18 +76,20 @@ public class Global
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
-		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient), "Update Manager");
+		ExternalSourcesHttpClientFactory = BuildHttpClientFactory(() => new Uri(""));
+		BackendHttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
+
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("github.com")), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, HttpClientFactory), "Wasabi Synchronizer");
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("torproject"), new XmlIssueListParser());
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -117,8 +119,8 @@ public class Global
 		RegisterFeeRateProviders();
 
 		// Block providers.
-		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, HttpClientFactory.TorEndpoint);
-		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes, HttpClientFactory.IsTorEnabled);
+		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, TorSettings.SocksEndpoint);
+		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
 
 		IBlockProvider[] trustedFullNodeBlockProviders = BitcoinCoreNode?.RpcClient is null
 			? [SpecificNodeBlockProvider]
@@ -131,7 +133,7 @@ public class Global
 
 		if (Network != Network.RegTest)
 		{
-			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(HttpClientFactory, Network), friendlyName: "CPFP Info Provider");
+			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(ExternalSourcesHttpClientFactory, Network), friendlyName: "CPFP Info Provider");
 		}
 
 		WalletFactory walletFactory = new(
@@ -153,7 +155,7 @@ public class Global
 		}
 		broadcasters.AddRange([
 			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
-			new BackendBroadcaster(HttpClientFactory)
+			new BackendBroadcaster(BackendHttpClientFactory)
 		]);
 
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
@@ -174,10 +176,10 @@ public class Global
 	public TorSettings TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
 
-	/// <summary>HTTP client factory for sending HTTP requests.</summary>
-	public WasabiHttpClientFactory HttpClientFactory { get; }
+	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
+	public IHttpClientFactory BackendHttpClientFactory { get; }
+	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 
-	private IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -203,14 +205,7 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
-
-	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new(
-			Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-			backendUriGetter,
-			torControlAvailable: Config.UseTor == TorMode.Enabled);
-
-	private IHttpClientFactory BuildHttpClientFactory2(Func<Uri> backendUriGetter) =>
+	private IHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new CoordinatorHttpClientFactory(
 			backendUriGetter(),
 			Config.UseTor != TorMode.Disabled
@@ -273,7 +268,7 @@ public class Global
 				bool useTestApi = Network != Network.Main;
 				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
 				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
-				ShopWareApiClient shopWareApiClient = new(HttpClientFactory.NewHttpClient(() => uri, Mode.DefaultCircuit), apiKey);
+				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("shopinbit"), uri, apiKey);
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
 				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
@@ -364,7 +359,8 @@ public class Global
 			// Do not monitor Tor when Tor is an already running service.
 			if (TorSettings.TorMode == TorMode.Enabled)
 			{
-				HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
+				// TODO: what to do with this?
+				//HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
 			}
 
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
@@ -414,7 +410,7 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
+		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalSourcesHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 	}
@@ -424,7 +420,7 @@ public class Global
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-		CoordinatorHttpClientFactory = BuildHttpClientFactory2(() => coordinatorUri);
+		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi", CoordinatorHttpClientFactory);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");
@@ -514,12 +510,6 @@ public class Global
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
-				}
-
-				if (HttpClientFactory is { } httpClientFactory)
-				{
-					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
