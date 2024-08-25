@@ -1,12 +1,7 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
@@ -56,6 +51,8 @@ public class CoordinatorHttpClientFactory(Uri baseAddress, IHttpClientFactory in
 	{
 		var httpClient = internalHttpClientFactory.CreateClient(name);
 		httpClient.BaseAddress = baseAddress;
+		httpClient.DefaultRequestVersion = HttpVersion.Version11;
+		httpClient.DefaultRequestHeaders.UserAgent.Clear();
 		return httpClient;
 	}
 }
@@ -66,6 +63,8 @@ public class BackendHttpClientFactory(Uri baseAddress, IHttpClientFactory intern
 	public HttpClient CreateClient(string name)
 	{
 		var httpClient = internalHttpClientFactory.CreateClient(name);
+		httpClient.DefaultRequestVersion = HttpVersion.Version11;
+		httpClient.DefaultRequestHeaders.UserAgent.Clear();
 		httpClient.BaseAddress = baseAddress;
 		return httpClient;
 	}

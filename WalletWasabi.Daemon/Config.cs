@@ -250,7 +250,7 @@ public class Config
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	private Uri GetCoordinatorUri()
+	public Uri GetCoordinatorUri()
 	{
 		var result = Network switch
 		{

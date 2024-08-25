@@ -77,8 +77,8 @@ public class Global
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 
-		ExternalSourcesHttpClientFactory = BuildHttpClientFactory(() => new Uri(""));
-		BackendHttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
+		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
+		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("github.com")), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
@@ -205,12 +205,10 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
-	private IHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
-		new CoordinatorHttpClientFactory(
-			backendUriGetter(),
-			Config.UseTor != TorMode.Disabled
-				? new OnionHttpClientFactory(new Uri($"socks5://{TorSettings.SocksEndpoint.ToEndpointString()}"))
-				: new HttpClientFactory());
+	private IHttpClientFactory BuildHttpClientFactory() =>
+		Config.UseTor != TorMode.Disabled
+			? new OnionHttpClientFactory(new Uri($"socks5://{TorSettings.SocksEndpoint.ToEndpointString()}"))
+			: new HttpClientFactory();
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
@@ -420,7 +418,7 @@ public class Global
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
+		CoordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory());
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi", CoordinatorHttpClientFactory);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");

@@ -306,15 +306,6 @@ public class TransactionFactory
 
 			Logger.LogInfo("Payjoin payment was negotiated successfully.");
 		}
-		catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
-		{
-			if (innerEx.Message.Contains("HostUnreachable"))
-			{
-				Logger.LogWarning("Payjoin server is not reachable. Ignoring...");
-			}
-
-			// Ignore.
-		}
 		catch (HttpRequestException e)
 		{
 			Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");

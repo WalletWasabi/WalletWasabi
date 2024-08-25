@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,7 +101,8 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var wasabiClient = new WasabiClient(HttpClientFactory.CreateClient("satoshi"));
+		var httpClient = HttpClientFactory.CreateClient("satoshi");
+		var wasabiClient = new WasabiClient(httpClient);
 		try
 		{
 			SynchronizeResponse response;
@@ -123,9 +125,12 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				TorStatus = TorStatus.Running;
 				OnSynchronizeRequestFinished();
 			}
-			catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
+			catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 			{
-				TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
+				//TODO: check the source is the proxy
+				TorStatus = innerEx.SocketErrorCode == SocketError.ConnectionRefused
+					? TorStatus.NotRunning
+					: TorStatus.Running;
 				BackendStatus = BackendStatus.NotConnected;
 				OnSynchronizeRequestFinished();
 				throw;
