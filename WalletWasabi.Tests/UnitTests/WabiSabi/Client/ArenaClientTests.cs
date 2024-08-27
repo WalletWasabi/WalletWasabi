@@ -21,9 +21,7 @@ using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using Xunit;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;

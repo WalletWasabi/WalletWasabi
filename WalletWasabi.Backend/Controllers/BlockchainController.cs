@@ -5,11 +5,9 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Cache;
@@ -40,7 +38,6 @@ public class BlockchainController : ControllerBase
 
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
-	private MempoolMirror Mempool => Global.MempoolMirror;
 
 	public IdempotencyRequestCache Cache { get; }
 
