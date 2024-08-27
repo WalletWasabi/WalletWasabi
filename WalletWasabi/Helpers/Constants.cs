@@ -13,9 +13,9 @@ public static class Constants
 	public const string DefaultTestnetBackendUri = "https://api.wasabiwallet.co/";
 	public const string DefaultRegtestBackendUri = "http://localhost:37127/";
 
-	public const string? DefaultCoordinatorUri = null;
-	public const string? DefaultTestnetCoordinatorUri = null;
-	public const string? DefaultRegtestCoordinatorUri = "http://localhost:37127/";
+	public const string DefaultCoordinatorUri = "";
+	public const string DefaultTestnetCoordinatorUri = "";
+	public const string DefaultRegtestCoordinatorUri = "http://localhost:37127/";
 
 	public const string BackendMajorVersion = "4";
 
