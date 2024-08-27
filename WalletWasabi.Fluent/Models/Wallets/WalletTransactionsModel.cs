@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -46,14 +48,12 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedUnconfirmedTxChainArrived =
-			Observable.FromEventPattern<EventArgs>(wallet.UnconfirmedTransactionChainProvider, nameof(wallet.UnconfirmedTransactionChainProvider.RequestedUnconfirmedChainArrived)).ToSignal()
+		RequestedCpfpInfoArrived = wallet.CpfpInfoProvider is null ? null :
+			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache =
-			TransactionProcessed
-			.Merge(RequestedUnconfirmedTxChainArrived)
-			.Fetch(BuildSummary, model => model.Id)
+		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))
+			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)
 			.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
@@ -66,7 +66,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-	public IObservable<Unit> RequestedUnconfirmedTxChainArrived { get; }
+	public IObservable<Unit>? RequestedCpfpInfoArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{
@@ -90,20 +90,17 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return txn;
 	}
 
-	public TimeSpan? TryEstimateConfirmationTime(uint256 id)
+	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(uint256 id, CancellationToken cancellationToken)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
 
-		return
-			TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.UnconfirmedTransactionChainProvider, out var estimate)
-				? estimate
-				: null;
+		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
 	}
 
-	public TimeSpan? TryEstimateConfirmationTime(TransactionModel model) => TryEstimateConfirmationTime(model.Id);
+	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(TransactionModel model, CancellationToken cancellationToken) => await TryEstimateConfirmationTimeAsync(model.Id, cancellationToken);
 
 	public TimeSpan? TryEstimateConfirmationTime(TransactionInfo info)
 	{
@@ -126,7 +123,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		return transactionInfo;
 	}
 
-	public SpeedupTransaction CreateSpeedUpTransaction(TransactionModel transaction)
+	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
 		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -139,7 +136,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = _wallet.SpeedUpTransaction(targetTransaction);
+		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 
 		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
 
@@ -206,10 +203,10 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 	}
 
-	private IEnumerable<TransactionModel> BuildSummary()
+	private async Task<IEnumerable<TransactionModel>> BuildSummaryAsync(CancellationToken cancellationToken)
 	{
-		var orderedRawHistoryList = _wallet.BuildHistorySummary(sortForUi: true);
-		var transactionModels = _treeBuilder.Build(orderedRawHistoryList);
+		var orderedRawHistoryList = await _wallet.BuildHistorySummaryAsync(sortForUi: true, cancellationToken: cancellationToken);
+		var transactionModels = await _treeBuilder.BuildAsync(orderedRawHistoryList, cancellationToken);
 		return transactionModels;
 	}
 

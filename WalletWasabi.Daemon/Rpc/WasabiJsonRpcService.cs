@@ -387,7 +387,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("speeduptransaction")]
-	public string SpeedUpTransaction(uint256 txId, string password = "")
+	public async Task<string> SpeedUpTransactionAsync(uint256 txId, string password = "")
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
@@ -398,7 +398,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			throw new NotSupportedException($"Unknown transaction {txId}");
 		}
 
-		var speedUpResult = activeWallet.SpeedUpTransaction(smartTransactionToSpeedUp);
+		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
 		var speedUpSmartTransaction = speedUpResult.Transaction;
 		return speedUpSmartTransaction.Transaction.ToHex();
 	}
@@ -417,12 +417,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("gethistory")]
-	public JsonRpcResultList GetHistory()
+	public async Task<JsonRpcResultList> GetHistoryAsync()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var summary = activeWallet.BuildHistorySummary();
+		var summary = await activeWallet.BuildHistorySummaryAsync();
 		return summary.Select(
 			x => new JsonRpcResult
 			{

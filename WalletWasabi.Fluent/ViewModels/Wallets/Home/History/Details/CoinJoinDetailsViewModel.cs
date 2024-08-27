@@ -1,5 +1,8 @@
 using System.Reactive.Disposables;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -39,11 +42,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 		_wallet.Transactions.Cache
 							.Connect()
-							.Subscribe(_ => Update())
+							.SubscribeAsync(async _ => await UpdateAsync(CancellationToken.None))
 							.DisposeWith(disposables);
 	}
 
-	private void Update()
+	private async Task UpdateAsync(CancellationToken cancellationToken)
 	{
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
@@ -52,10 +55,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;
-			ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(transaction.Id);
+			ConfirmationTime = await _wallet.Transactions.TryEstimateConfirmationTimeAsync(transaction.Id, cancellationToken);
 			IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 			FeeRate = transaction.FeeRate;
-			FeeRateVisible = FeeRate != FeeRate.Zero;
+			FeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
 		}
 	}
 }

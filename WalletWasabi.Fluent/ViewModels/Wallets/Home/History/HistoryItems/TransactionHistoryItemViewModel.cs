@@ -1,4 +1,6 @@
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -16,18 +18,18 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		CanBeSpedUp = transaction.CanSpeedUpTransaction && !IsChild;
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() => OnSpeedUpTransaction(transaction), Observable.Return(CanBeSpedUp));
+		SpeedUpTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnSpeedUpTransactionAsync(transaction, CancellationToken.None), Observable.Return(CanBeSpedUp));
 		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
 		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
-	
+
 	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || CanBeSpedUp;
 
-	private void OnSpeedUpTransaction(TransactionModel transaction)
+	private async Task OnSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var speedupTransaction = _wallet.Transactions.CreateSpeedUpTransaction(transaction);
+			var speedupTransaction = await _wallet.Transactions.CreateSpeedUpTransactionAsync(transaction, cancellationToken);
 			UiContext.Navigate().To().SpeedUpTransactionDialog(_wallet, speedupTransaction);
 		}
 		catch (Exception ex)

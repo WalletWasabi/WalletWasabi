@@ -48,31 +48,25 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static bool TryEstimateConfirmationTime(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, UnconfirmedTransactionChainProvider unconfirmedTxChainProvider, [NotNullWhen(true)] out TimeSpan? estimate)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
 	{
-		estimate = null;
-
-		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out estimate))
+		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
 		{
-			return true;
+			return estimate;
 		}
 
-		if (feeEstimates is not null)
+		if (feeEstimates is null)
 		{
-			var unconfirmedChain = unconfirmedTxChainProvider.GetUnconfirmedTransactionChain(tx.GetHash());
-
-			if (unconfirmedChain is null || unconfirmedChain.Count == 0)
-			{
-				return false;
-			}
-
-			var feeRate = FeeHelpers.CalculateEffectiveFeeRateOfUnconfirmedChain(unconfirmedChain);
-
-			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
-			return true;
+			return null;
 		}
 
-		return false;
+		if (cpfpInfoProvider is null || await cpfpInfoProvider.GetCachedCpfpInfoAsync(tx.GetHash(), cancellationToken).ConfigureAwait(false) is not { } cpfpInfo)
+		{
+			return null;
+		}
+
+		var feeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+		return feeEstimates.EstimateConfirmationTime(feeRate);;
 	}
 
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)

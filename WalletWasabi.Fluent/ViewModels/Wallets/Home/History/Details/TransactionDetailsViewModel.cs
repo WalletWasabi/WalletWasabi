@@ -2,9 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -44,7 +47,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		UpdateValues(model);
+		Task.Run(() => UpdateValuesAsync(model, CancellationToken.None));
 	}
 
 	public BitcoinAddress? SingleAddress { get; set; }
@@ -57,7 +60,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public bool IsFeeVisible { get; }
 
-	private void UpdateValues(TransactionModel model)
+	private async Task UpdateValuesAsync(TransactionModel model, CancellationToken cancellationToken)
 	{
 		DateString = model.DateToolTipString;
 		Labels = model.Labels;
@@ -66,7 +69,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		FeeRate = model.FeeRate;
 		IsFeeRateVisible = FeeRate != FeeRate.Zero;
 
-		var confirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(model);
+		var confirmationTime = await _wallet.Transactions.TryEstimateConfirmationTimeAsync(model, cancellationToken);
 		if (confirmationTime is { })
 		{
 			ConfirmationTime = confirmationTime;
@@ -102,16 +105,16 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		_wallet.Transactions.Cache
 							.Connect()
-							.Do(_ => UpdateCurrentTransaction())
+							.DoAsync(async _=> await UpdateCurrentTransactionAsync(CancellationToken.None))
 							.Subscribe()
 							.DisposeWith(disposables);
 	}
 
-	private void UpdateCurrentTransaction()
+	private async Task UpdateCurrentTransactionAsync(CancellationToken cancellationToken)
 	{
 		if (_wallet.Transactions.TryGetById(TransactionId, false, out var transaction))
 		{
-			UpdateValues(transaction);
+			await UpdateValuesAsync(transaction, cancellationToken);
 		}
 	}
 }
