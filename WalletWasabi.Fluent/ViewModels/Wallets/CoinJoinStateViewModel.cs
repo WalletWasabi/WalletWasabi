@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
@@ -45,6 +46,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
+	private const string NoCoordinatorConfiguredMessage = "Configure a coordinator to start coinjoin";
 
 	private readonly IWalletModel _wallet;
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -165,6 +167,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			},
 			Observable.Return(!_wallet.IsWatchOnlyWallet));
 
+		OpenFindCoordinatorLinkCommand =  ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(FindCoordinatorLink));
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(_wallet));
@@ -201,14 +204,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AreAllCoinsPrivateChanged
 	}
 
+	public static string FindCoordinatorLink { get; } = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
+
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
 
+	public ICommand OpenFindCoordinatorLinkCommand { get; }
 	public ICommand NavigateToSettingsCommand { get; }
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
+	public bool NoCoordinatorConfigured => !Services.HostedServices.Get<CoinJoinManager>().HasCoordinatorConfigured;
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
@@ -386,6 +393,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
+					CoinjoinError.NoCoordinatorConfigured => NoCoordinatorConfiguredMessage,
 					_ => GeneralErrorMessage
 				};
 
