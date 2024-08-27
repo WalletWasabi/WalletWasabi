@@ -116,4 +116,17 @@ public static class ObservableExtensions
 					 .DisposeMany()
 					 .AsObservableCache();
 	}
+
+	public static IObservableCache<TObject, TKey> FetchAsync<TObject, TKey>(
+		this IObservable<Unit> signal,
+		Func<Task<IEnumerable<TObject>>> source,
+		Func<TObject, TKey> keySelector,
+		IEqualityComparer<TObject>? equalityComparer = null)
+		where TKey : notnull where TObject : notnull
+	{
+		return signal.SelectMany(_ => Observable.FromAsync(source))
+			.EditDiff(keySelector, equalityComparer)
+			.DisposeMany()
+			.AsObservableCache();
+	}
 }

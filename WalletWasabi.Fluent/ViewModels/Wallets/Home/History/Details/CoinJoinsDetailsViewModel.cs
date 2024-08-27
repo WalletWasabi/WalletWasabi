@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
@@ -34,7 +36,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		ConfirmationTime = wallet.Transactions.TryEstimateConfirmationTime(transaction);
+		ConfirmationTime = Task.Run(() => wallet.Transactions.TryEstimateConfirmationTimeAsync(transaction, CancellationToken.None)).Result;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
 

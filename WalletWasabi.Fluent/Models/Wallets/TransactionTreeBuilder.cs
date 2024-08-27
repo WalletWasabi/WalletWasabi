@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -21,7 +24,7 @@ public class TransactionTreeBuilder
 		_wallet = wallet;
 	}
 
-	public IEnumerable<TransactionModel> Build(List<TransactionSummary> summaries)
+	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
 	{
 		TransactionModel? coinJoinGroup = default;
 
@@ -33,14 +36,14 @@ public class TransactionTreeBuilder
 
 			if (!item.IsOwnCoinjoin())
 			{
-				result.Add(CreateRegular(i, item));
+				result.Add(await CreateRegularAsync(i, item, cancellationToken));
 			}
 
 			if (item.IsOwnCoinjoin())
 			{
-				coinJoinGroup ??= CreateCoinjoinGroup(i, item);
+				coinJoinGroup ??= await CreateCoinjoinGroupAsync(i, item, cancellationToken);
 
-				coinJoinGroup.Add(CreateCoinjoinTransaction(i, item));
+				coinJoinGroup.Add(await CreateCoinjoinTransactionAsync(i, item, cancellationToken));
 			}
 
 			if (coinJoinGroup is { } cjg &&
@@ -112,7 +115,7 @@ public class TransactionTreeBuilder
 		return found is not null;
 	}
 
-	private TransactionModel CreateRegular(int index, TransactionSummary transactionSummary)
+	private async Task<TransactionModel> CreateRegularAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
@@ -138,11 +141,11 @@ public class TransactionTreeBuilder
 			BlockHash = transactionSummary.BlockHash,
 			Fee = transactionSummary.GetFee(),
 			FeeRate = transactionSummary.FeeRate(),
-			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
+			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 		};
 	}
 
-	private TransactionModel CreateCoinjoinGroup(int index, TransactionSummary transactionSummary)
+	private async Task<TransactionModel> CreateCoinjoinGroupAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
@@ -153,7 +156,7 @@ public class TransactionTreeBuilder
 			Amount = Money.Zero,
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
-			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
+			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Id = transactionSummary.GetHash(),
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
@@ -255,7 +258,7 @@ public class TransactionTreeBuilder
 		}
 	}
 
-	private TransactionModel CreateCoinjoinTransaction(int index, TransactionSummary transactionSummary)
+	private async Task<TransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
@@ -275,7 +278,7 @@ public class TransactionTreeBuilder
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
 			BlockHash = transactionSummary.BlockHash,
-			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, transactionSummary.Transaction),
+			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Fee = transactionSummary.GetFee(),
 			FeeRate = transactionSummary.FeeRate()
 		};
@@ -317,15 +320,15 @@ public class TransactionTreeBuilder
 		return transactionSummary.IsConfirmed() ? TransactionStatus.Confirmed : TransactionStatus.Pending;
 	}
 
-	private string GetConfirmationToolTip(TransactionStatus status, int confirmations, SmartTransaction smartTransaction)
+	private async Task<string> GetConfirmationToolTipAsync(TransactionStatus status, int confirmations, SmartTransaction smartTransaction, CancellationToken cancellationToken)
 	{
 		if (status == TransactionStatus.Confirmed)
 		{
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = TransactionFeeHelper.TryEstimateConfirmationTime(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, out var estimate)
-			? TextHelpers.TimeSpanToFriendlyString(estimate.Value)
+		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeProvider, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
+			? TextHelpers.TimeSpanToFriendlyString(estimate)
 			: "";
 
 		return (status, friendlyString != "") switch

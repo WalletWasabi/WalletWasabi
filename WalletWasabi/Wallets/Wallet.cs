@@ -163,7 +163,7 @@ public class Wallet : BackgroundService, IWallet
 	/// </summary>
 	/// <param name="sortForUi"><c>true</c> to sort by "first seen", "height", and "block index", <c>false</c> to sort by "height", "block index", and "first seen".</param>
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
-	public List<TransactionSummary> BuildHistorySummary(bool sortForUi = false)
+	public async Task<List<TransactionSummary>> BuildHistorySummaryAsync(bool sortForUi = false, CancellationToken cancellationToken = default)
 	{
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
@@ -176,7 +176,7 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfoUnsafe(coin.TransactionId, out var cpfpInfo))
+				if(CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
 				{
 					effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 				}
@@ -195,7 +195,7 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if(CpfpInfoProvider is not null && CpfpInfoProvider.TryGetCpfpInfoUnsafe(coin.TransactionId, out var cpfpInfo))
+					if(CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
 					{
 						effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 					}

@@ -417,12 +417,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("gethistory")]
-	public JsonRpcResultList GetHistory()
+	public async Task<JsonRpcResultList> GetHistoryAsync()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var summary = activeWallet.BuildHistorySummary();
+		var summary = await activeWallet.BuildHistorySummaryAsync();
 		return summary.Select(
 			x => new JsonRpcResult
 			{

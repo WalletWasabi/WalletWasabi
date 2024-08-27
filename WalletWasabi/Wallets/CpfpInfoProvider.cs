@@ -176,18 +176,12 @@ public class CpfpInfoProvider : BackgroundService
 		}
 	}
 
-	public bool TryGetCpfpInfoUnsafe(uint256 txid, [NotNullWhen(true)] out CpfpInfo? cpfpInfo)
+	public async Task<CpfpInfo?> GetCachedCpfpInfoAsync(uint256 txid, CancellationToken cancel)
 	{
-		// CpfpInfoCache is not locked here because it is called from a sync context.
-		// It doesn't really matter because collection is not updated but this is called only after RequestedCpfpInfoArrived has been invoked.
-		if (_cpfpInfoCache.TryGetValue(txid, out var cached))
+		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			cpfpInfo = cached.CpfpInfo;
-			return true;
+			return _cpfpInfoCache.TryGetValue(txid, out var cached) ? cached.CpfpInfo : null;
 		}
-
-		cpfpInfo = null;
-		return false;
 	}
 
 	private async Task FetchCpfpInfoAsync(SmartTransaction transaction, CancellationToken cancellationToken)
