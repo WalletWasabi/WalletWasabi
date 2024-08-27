@@ -76,9 +76,15 @@ public class Global
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
-		if (Config.GetCoordinatorUri() is { } uri)
+
+		if (Config.GetCoordinatorUri() is { } coordinatorUri)
 		{
-			CoordinatorHttpClientFactory = BuildHttpClientFactory(() => uri);
+			CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
+			CoinPrison = CoinPrison.CreateOrLoadFromFile(Path.Combine(DataDir, coordinatorUri.Host));
+		}
+		else
+		{
+			CoinPrison = CoinPrison.CreateDummyPrison();
 		}
 
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient), "Update Manager");
@@ -137,15 +143,6 @@ public class Global
         WalletFactory walletFactory = new(DataDir, config.Network, BitcoinStore, wasabiSynchronizer, config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), BlockDownloadService, HostedServices.Get<UnconfirmedTransactionChainProvider>());
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
-
-		if (config.GetCoordinatorUri() is { } coordinatorUri)
-		{
-			CoinPrison = CoinPrison.CreateOrLoadFromFile(Path.Combine(DataDir, coordinatorUri.Host));
-		}
-		else
-		{
-			CoinPrison = CoinPrison.CreateDummyPrison();
-		}
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
