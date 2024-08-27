@@ -28,19 +28,15 @@ public partial class Arena : PeriodicRunner
 		IRPCClient rpc,
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
-		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(2))
 	{
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
 		MaxSuggestedAmountProvider = new(Config);
 	}
-
-	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
 	public HashSet<Round> Rounds { get; } = new();
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
@@ -49,16 +45,13 @@ public partial class Arena : PeriodicRunner
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
-	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var before = DateTimeOffset.UtcNow;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			var beforeInside = DateTimeOffset.UtcNow;
 			TimeoutRounds();
 
 			TimeoutAlices();
@@ -318,24 +311,6 @@ public partial class Arena : PeriodicRunner
 					{
 						Config.MakeNextCoordinatorScriptDirty();
 					}
-
-					foreach (var address in coinjoin.Outputs
-						.Select(x => x.ScriptPubKey)
-						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
-					{
-						if (address == round.CoordinatorScript)
-						{
-							round.LogError(
-								$"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}");
-						}
-						else
-						{
-							round.LogError($"Output script pub key reuse detected: {address.ToHex()}");
-						}
-					}
-
-					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
-					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{

@@ -76,7 +76,7 @@ public class CoordinatorTests
 		WabiSabiConfig cfg = coordinatorParameters.RuntimeCoordinatorConfig;
 		DoSConfiguration dosConfig = cfg.GetDoSConfiguration() with { MinTimeInPrison = TimeSpan.Zero };
 		var mockRpcClient = new MockRpcClient { Network = Network.Main };
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient, new CoinJoinScriptStore());
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, mockRpcClient);
 
 		// Receive a tx that is not spending coins registered in any round.
 		{
@@ -139,5 +139,5 @@ public class CoordinatorTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(),  new CoinJoinScriptStore());
+		=> new(coordinatorParameters, NewMockRpcClient());
 }

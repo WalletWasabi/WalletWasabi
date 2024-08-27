@@ -19,7 +19,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc,  CoinJoinScriptStore coinJoinScriptStore)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
 	{
 		Parameters = parameters;
 		RpcClient = rpc;
@@ -37,11 +37,9 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			roundParameterFactory,
-			coinJoinScriptStore);
+			roundParameterFactory);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
-		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }
@@ -56,21 +54,6 @@ public class WabiSabiCoordinator : BackgroundService
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
 	private IRPCClient RpcClient { get; }
-
-	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
-	{
-		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
-
-		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
-		try
-		{
-			File.AppendAllLines(coinJoinScriptStoreFilePath, transaction.Outputs.Select(x => x.ScriptPubKey.ToHex()));
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"Could not write file {coinJoinScriptStoreFilePath}.", ex);
-		}
-	}
 
 	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStat feeRateStat)
 	{
@@ -223,7 +206,6 @@ public class WabiSabiCoordinator : BackgroundService
 	public override void Dispose()
 	{
 		CoinJoinFeeRateStatStore.NewStat -= FeeRateStatStore_NewStat;
-		Arena.CoinJoinBroadcast -= Arena_CoinJoinBroadcast;
 		ConfigWatcher.Dispose();
 		Warden.Dispose();
 		base.Dispose();

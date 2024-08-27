@@ -72,9 +72,7 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
-
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, coinJoinScriptStore);
+		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;

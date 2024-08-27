@@ -59,7 +59,6 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<WabiSabiConfig>();
 			services.AddSingleton<RoundParameterFactory>();
 			services.AddSingleton(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-			services.AddSingleton(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 			services.AddHttpClient();
 		});

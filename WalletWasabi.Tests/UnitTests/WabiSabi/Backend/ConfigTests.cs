@@ -143,5 +143,5 @@ public class ConfigTests
 	}
 
 	private static WabiSabiCoordinator CreateWabiSabiCoordinator(CoordinatorParameters coordinatorParameters)
-		=> new(coordinatorParameters, NewMockRpcClient(),  new CoinJoinScriptStore());
+		=> new(coordinatorParameters, NewMockRpcClient());
 }
