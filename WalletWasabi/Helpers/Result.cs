@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Helpers;
 
@@ -91,6 +92,9 @@ public record Result<TError> : Result<Unit, TError>
 			.Match(
 				_ => Result<TError[]>.Ok(),
 				es => Result<TError[]>.Fail(es));
+
+	public Result<T> ThenError<T>(Func<TError, T> f) =>
+		Match(_=> Result<T>.Ok(), e => Result<T>.Fail(f(e)));
 }
 
 public static class ResultExtensions

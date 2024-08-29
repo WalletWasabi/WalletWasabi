@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -12,12 +13,16 @@ public class TransactionBroadcastEntry
 		Broadcasted = false;
 		PropagationConfirmations = 0;
 		NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
+		BroadcastCompleted = new TaskCompletionSource();
+		PropagationConfirmed = new TaskCompletionSource();
 	}
 
 	public SmartTransaction Transaction { get; }
 	public uint256 TransactionId { get; }
 	public string NodeRemoteSocketEndpoint { get; }
 
+	public TaskCompletionSource BroadcastCompleted { get; }
+	public TaskCompletionSource PropagationConfirmed { get; }
 	private bool Broadcasted { get; set; }
 	private int PropagationConfirmations { get; set; }
 
@@ -28,6 +33,7 @@ public class TransactionBroadcastEntry
 		lock (Lock)
 		{
 			Broadcasted = true;
+			BroadcastCompleted.TrySetResult();
 		}
 	}
 
@@ -45,6 +51,10 @@ public class TransactionBroadcastEntry
 		{
 			Broadcasted = true;
 			PropagationConfirmations++;
+			if (PropagationConfirmations == 2)
+			{
+				PropagationConfirmed.SetResult();
+			}
 		}
 	}
 

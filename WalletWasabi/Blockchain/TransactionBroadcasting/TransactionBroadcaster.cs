@@ -1,131 +1,214 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WabiSabi.Crypto.Randomness;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
-public class TransactionBroadcaster
+using BroadcastingResult = Result<BroadcastError>;
+
+public abstract record BroadcastError
 {
-	public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory, WalletManager walletManager)
-	{
-		Network = network;
-		BitcoinStore = bitcoinStore;
-		HttpClientFactory = httpClientFactory;
-		WalletManager = walletManager;
-	}
+	public record SpentError : BroadcastError;
+	public record SpentInputError(OutPoint spentOutpoint) : BroadcastError;
+	public record RpcError(string rpcErrorMessage) : BroadcastError;
+	public record Unknown(string message) : BroadcastError;
+	public record NotEnoughP2pNodes : BroadcastError;
+	public record AggregatedErrors(BroadcastError[] errors) : BroadcastError;
+}
 
-	private BitcoinStore BitcoinStore { get; }
-	private IWasabiHttpClientFactory HttpClientFactory { get; }
-	private Network Network { get; }
-	private NodesGroup? Nodes { get; set; }
-	private IRPCClient? RpcClient { get; set; }
-	private WalletManager WalletManager { get; }
-	private WasabiRandom Random { get; } = SecureRandom.Instance;
+public interface IBroadcaster
+{
+	Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx);
+}
 
-	public void Initialize(NodesGroup nodes, IRPCClient? rpcClient)
+public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
+{
+	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx)
 	{
-		Nodes = nodes;
-		RpcClient = rpcClient;
-	}
-
-	private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
-	{
-		Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-		if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+		Logger.LogInfo($"Trying to broadcast transaction via RPC:{tx.GetHash()}.");
+		try
 		{
-			Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
+			await rpcClient.SendRawTransactionAsync(tx.Transaction).ConfigureAwait(false);
+			return BroadcastingResult.Ok();
 		}
-		var invPayload = new InvPayload(transaction.Transaction);
+		catch (RPCException ex)
+		{
+			return BroadcastingResult.Fail(new BroadcastError.RpcError(ex.RPCCodeMessage));
+		}
+	}
+}
+
+public class BackendBroadcaster(IWasabiHttpClientFactory wasabiHttpClientFactory) : IBroadcaster
+{
+	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx)
+	{
+		Logger.LogInfo($"Trying to broadcast transaction backend API:{tx.GetHash()}.");
+		try
+		{
+			var wasabiClient = new WasabiClient(wasabiHttpClientFactory.NewHttpClientWithCircuitPerRequest());
+			await wasabiClient.BroadcastAsync(tx).ConfigureAwait(false);
+			return BroadcastingResult.Ok();
+		}
+		catch (HttpRequestException ex)
+		{
+			if (RpcErrorTools.IsSpentError(ex.Message))
+			{
+				// If there is only one coin then that's the one that is already spent (what about full-RBF?).
+				if (tx.Transaction.Inputs.Count == 1)
+				{
+					OutPoint input = tx.Transaction.Inputs[0].PrevOut;
+					return BroadcastingResult.Fail(new BroadcastError.SpentInputError(input));
+				}
+
+				return BroadcastingResult.Fail(new BroadcastError.SpentError());
+			}
+			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
+		}
+	}
+}
+
+public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes) : IBroadcaster
+{
+	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx)
+	{
+		if (nodes.ConnectedNodes.Count < 2)
+		{
+			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
+		}
+		var connectedNodeCount = nodes.ConnectedNodes.Count;
+		var broadcastToNodes = nodes.ConnectedNodes
+			.Where(n => n.IsConnected)
+			.OrderBy(_ => Guid.NewGuid())
+			.Take(1 + connectedNodeCount / 3)
+			.Select(n => BroadcastCoreAsync(tx, n))
+			.ToArray();
+
+		var results = await Task.WhenAll(broadcastToNodes).ConfigureAwait(false);
+		return results.SequenceResults().ThenError<BroadcastError>(e => new BroadcastError.AggregatedErrors(e));
+	}
+
+	private async Task<BroadcastingResult> BroadcastCoreAsync(SmartTransaction tx, Node node)
+	{
+		Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{tx.GetHash()}.");
+		var txId = tx.GetHash();
+		if (!mempoolService.TryAddToBroadcastStore(tx, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+		{
+			Logger.LogInfo($"Transaction {txId} was already present in the broadcast store.");
+		}
+		var invPayload = new InvPayload(tx.Transaction);
 
 		// Give 7 seconds to send the inv payload.
-		await node.SendMessageAsync(invPayload).WaitAsync(TimeSpan.FromSeconds(7)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
+		await node.SendMessageAsync(invPayload).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
-		if (BitcoinStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry? entry))
+		if (mempoolService.TryGetFromBroadcastStore(txId, out TransactionBroadcastEntry? entry))
 		{
-			// Give 7 seconds for serving.
-			var timeout = 0;
-			while (!entry.IsBroadcasted())
+			var broadcastTimeoutTask = Task.Delay(7000);
+			var broadcastFinishedTask = await Task.WhenAny([broadcastTimeoutTask, entry.BroadcastCompleted.Task]).ConfigureAwait(false);
+
+			if (broadcastFinishedTask == broadcastTimeoutTask)
 			{
-				if (timeout > 7)
-				{
-					throw new TimeoutException("Did not serve the transaction.");
-				}
-				await Task.Delay(1_000).ConfigureAwait(false);
-				timeout++;
+				return BroadcastingResult.Fail(new BroadcastError.Unknown($"Timed out to broadcast to {node.RemoteSocketEndpoint} node"));
 			}
 			node.DisconnectAsync("Thank you!");
-			Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
+			Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {txId}.");
 
-			// Give 21 seconds for propagation.
-			timeout = 0;
-			while (entry.GetPropagationConfirmations() < 2)
+			var propagationTimeoutTask = Task.Delay(7000);
+			var propagationFinishedTask = await Task.WhenAny([ broadcastTimeoutTask, entry.PropagationConfirmed.Task]).ConfigureAwait(false);
+
+			if (propagationFinishedTask == propagationTimeoutTask)
 			{
-				if (timeout > 21)
-				{
-					throw new TimeoutException("Did not serve the transaction.");
-				}
-				await Task.Delay(1_000).ConfigureAwait(false);
-				timeout++;
+				return BroadcastingResult.Fail(new BroadcastError.Unknown("Timed out to verify propagation."));
 			}
-			Logger.LogInfo($"Transaction is successfully propagated: {transaction.GetHash()}.");
 		}
 		else
 		{
-			Logger.LogWarning($"Expected transaction {transaction.GetHash()} was not found in the broadcast store.");
+			Logger.LogWarning($"Expected transaction {txId} was not found in the broadcast store.");
 		}
+
+		return BroadcastingResult.Ok();
+	}
+}
+
+public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService mempoolService, WalletManager walletManager)
+{
+	public async Task SendTransactionAsync(SmartTransaction tx)
+	{
+		var broadcastedSuccessfully = false;
+		await broadcasters
+			.ToAsyncEnumerable()
+			.SelectAwait(async x => await x.BroadcastAsync(tx).ConfigureAwait(false))
+			.TakeUntil(x => x.Match(_ => true, _ => false))
+			.ForEachAsync(b => b.MatchDo(
+				BroadcastSuccess(tx),
+				BroadcastError
+				))
+			.ConfigureAwait(false);
+
+		if (!broadcastedSuccessfully)
+		{
+			throw new InvalidOperationException("Error while sending transaction.");
+		}
+
+		return;
+
+		Action<Unit> BroadcastSuccess(SmartTransaction tx) =>
+			_ =>
+			{
+				broadcastedSuccessfully = true;
+				BroadcastSuccessfully(tx);
+			};
 	}
 
-	private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
+	private void BroadcastError(BroadcastError broadcastError)
 	{
-		Logger.LogInfo("Broadcasting with backend...");
-		IHttpClient httpClient = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
-
-		WasabiClient client = new(httpClient);
-
-		try
+		switch (broadcastError)
 		{
-			await client.BroadcastAsync(transaction).ConfigureAwait(false);
-		}
-		catch (HttpRequestException ex2) when (RpcErrorTools.IsSpentError(ex2.Message))
-		{
-			if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
-			{
-				OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-				foreach (var coin in WalletManager.CoinsByOutPoint(input))
+			case BroadcastError.RpcError rpcError:
+				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.rpcErrorMessage}.");
+				break;
+			case BroadcastError.SpentError _:
+				Logger.LogError("Failed to broadcast transaction. There are spent inputs.");
+				break;
+			case BroadcastError.SpentInputError spentInputError:
+				Logger.LogError($"Failed to broadcast transaction. {spentInputError.spentOutpoint} is spent inputs.");
+				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.spentOutpoint))
 				{
 					coin.SpentAccordingToBackend = true;
 				}
-			}
-
-			// Exception message is in form: 'message:::tx1:::tx2:::etc.' where txs are encoded in HEX.
-			IEnumerable<SmartTransaction> txs = ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries)
-				.Skip(1) // Skip the exception message.
-				.Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool));
-
-			foreach (var tx in txs)
-			{
-				WalletManager.Process(tx);
-			}
-
-			throw;
+				break;
+			case BroadcastError.NotEnoughP2pNodes _:
+				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
+				break;
+			case BroadcastError.Unknown unknown:
+				Logger.LogInfo($"Failed to broadcast transaction: {unknown.message}.");
+				break;
+			case BroadcastError.AggregatedErrors aggregatedErrors:
+				foreach (var error in aggregatedErrors.errors)
+				{
+					BroadcastError(error);
+				}
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(broadcastError));
 		}
+	}
 
-		BelieveTransaction(transaction);
-
-		Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
+	private void BroadcastSuccessfully(SmartTransaction tx)
+	{
+		BelieveTransaction(tx);
+		Logger.LogInfo($"Transaction is successfully broadcasted: {tx.GetHash()}.");
 	}
 
 	private void BelieveTransaction(SmartTransaction transaction)
@@ -135,78 +218,8 @@ public class TransactionBroadcaster
 			transaction.SetUnconfirmed();
 		}
 
-		BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, "N/A");
+		mempoolService.TryAddToBroadcastStore(transaction, "N/A");
 
-		WalletManager.Process(transaction);
-	}
-
-	public async Task SendTransactionAsync(SmartTransaction transaction)
-	{
-		try
-		{
-			// Broadcast to a random node.
-			// Wait until it arrives to at least two other nodes.
-			// If something's wrong, fall back broadcasting with rpc, then backend.
-
-			if (Network == Network.RegTest)
-			{
-				throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {Network.RegTest}.");
-			}
-
-			if (Nodes is null)
-			{
-				throw new InvalidOperationException($"Nodes are not yet initialized.");
-			}
-
-			Node? node = Nodes.ConnectedNodes.RandomElement(Random);
-			while (node is null || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
-			{
-				// As long as we are connected to at least 4 nodes, we can always try again.
-				// 3 should be enough, but make it 5 so 2 nodes could disconnect in the meantime.
-				if (Nodes.ConnectedNodes.Count < 5)
-				{
-					throw new InvalidOperationException("We are not connected to enough nodes.");
-				}
-				await Task.Delay(100).ConfigureAwait(false);
-				node = Nodes.ConnectedNodes.RandomElement(Random);
-			}
-			await BroadcastTransactionToNetworkNodeAsync(transaction, node).ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogInfo($"Random node could not broadcast transaction. Reason: {ex.Message}.");
-			Logger.LogDebug(ex);
-
-			if (RpcClient is { })
-			{
-				try
-				{
-					await BroadcastTransactionWithRpcAsync(transaction).ConfigureAwait(false);
-				}
-				catch (Exception ex2)
-				{
-					Logger.LogInfo($"RPC could not broadcast transaction. Reason: {ex2.Message}.");
-					Logger.LogDebug(ex2);
-
-					await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
-				}
-			}
-			else
-			{
-				await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
-			}
-		}
-	}
-
-	private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
-	{
-		if (RpcClient is null)
-		{
-			throw new InvalidOperationException("Trying to broadcast on RPC but it is not initialized.");
-		}
-
-		await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
-		BelieveTransaction(transaction);
-		Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
+		walletManager.Process(transaction);
 	}
 }

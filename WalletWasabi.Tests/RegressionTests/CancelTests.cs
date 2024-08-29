@@ -101,9 +101,6 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 			wallet.Password = password;
 
-			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
-			broadcaster.Initialize(nodes, rpc);
-
 			var waitCount = 0;
 			while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
 			{
@@ -123,6 +120,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 			SetHighInputAnonsets(txToCancel);
 
+			TransactionBroadcaster broadcaster = new([new RpcBroadcaster(rpc)], bitcoinStore.MempoolService, walletManager);
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
 
 			AssertAllAnonsets1(txToCancel);

@@ -166,6 +166,17 @@ public static class LinqExtensions
 		}
 	}
 
+	public static async IAsyncEnumerable<T> TakeUntil<T>(this IAsyncEnumerable<T> list, Func<T, bool> predicate)
+	{
+		await foreach (T el in list)
+		{
+			yield return el;
+			if (predicate(el))
+			{
+				yield break;
+			}
+		}
+	}
 	public static IEnumerable<T> Singleton<T>(this T item)
 	{
 		yield return item;
