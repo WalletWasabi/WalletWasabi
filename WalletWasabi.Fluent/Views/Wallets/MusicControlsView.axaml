@@ -114,14 +114,14 @@
                     <PathIcon Data="{StaticResource book_question_mark_regular}" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
-                  <MenuItem.Icon>
-                    <PathIcon Data="{StaticResource settings_general_regular}" />
-                  </MenuItem.Icon>
-                </MenuItem>
                 <MenuItem Header="Coordinator Settings" Command="{Binding NavigateToCoordinatorSettingsCommand}">
                   <MenuItem.Icon>
                     <PathIcon Data="{StaticResource coordinator}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource settings_general_regular}" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Exclude Coins" Command="{Binding NavigateToExcludedCoinsCommand}">
