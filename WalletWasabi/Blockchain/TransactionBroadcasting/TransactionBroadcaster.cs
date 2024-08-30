@@ -21,11 +21,11 @@ using BroadcastingResult = Result<BroadcastError>;
 public abstract record BroadcastError
 {
 	public record SpentError : BroadcastError;
-	public record SpentInputError(OutPoint spentOutpoint) : BroadcastError;
-	public record RpcError(string rpcErrorMessage) : BroadcastError;
-	public record Unknown(string message) : BroadcastError;
+	public record SpentInputError(OutPoint SpentOutpoint) : BroadcastError;
+	public record RpcError(string RpcErrorMessage) : BroadcastError;
+	public record Unknown(string Message) : BroadcastError;
 	public record NotEnoughP2pNodes : BroadcastError;
-	public record AggregatedErrors(BroadcastError[] errors) : BroadcastError;
+	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -54,7 +54,7 @@ public class BackendBroadcaster(IWasabiHttpClientFactory wasabiHttpClientFactory
 {
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx)
 	{
-		Logger.LogInfo($"Trying to broadcast transaction backend API:{tx.GetHash()}.");
+		Logger.LogInfo($"Trying to broadcast transaction via backend API:{tx.GetHash()}.");
 		try
 		{
 			var wasabiClient = new WasabiClient(wasabiHttpClientFactory.NewHttpClientWithCircuitPerRequest());
@@ -176,14 +176,14 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 		switch (broadcastError)
 		{
 			case BroadcastError.RpcError rpcError:
-				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.rpcErrorMessage}.");
+				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.RpcErrorMessage}.");
 				break;
 			case BroadcastError.SpentError _:
 				Logger.LogError("Failed to broadcast transaction. There are spent inputs.");
 				break;
 			case BroadcastError.SpentInputError spentInputError:
-				Logger.LogError($"Failed to broadcast transaction. {spentInputError.spentOutpoint} is spent inputs.");
-				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.spentOutpoint))
+				Logger.LogError($"Failed to broadcast transaction. Input {spentInputError.SpentOutpoint} is already spent.");
+				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.SpentOutpoint))
 				{
 					coin.SpentAccordingToBackend = true;
 				}
@@ -192,10 +192,10 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
 				break;
 			case BroadcastError.Unknown unknown:
-				Logger.LogInfo($"Failed to broadcast transaction: {unknown.message}.");
+				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");
 				break;
 			case BroadcastError.AggregatedErrors aggregatedErrors:
-				foreach (var error in aggregatedErrors.errors)
+				foreach (var error in aggregatedErrors.Errors)
 				{
 					BroadcastError(error);
 				}
