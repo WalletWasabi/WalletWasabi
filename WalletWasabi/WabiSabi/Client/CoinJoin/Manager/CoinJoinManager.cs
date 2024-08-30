@@ -33,7 +33,8 @@ public class CoinJoinManager : BackgroundService
 		WasabiHttpClientFactory? coordinatorHttpClientFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
-		CoinPrison coinPrison)
+		CoinPrison coinPrison,
+		bool hasCoordinatorConfigured = true)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
@@ -47,6 +48,7 @@ public class CoinJoinManager : BackgroundService
 		RoundStatusUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(10), handler);
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinPrison = coinPrison;
+		HasCoordinatorConfigured = hasCoordinatorConfigured;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -54,17 +56,15 @@ public class CoinJoinManager : BackgroundService
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
-	public IWalletProvider WalletProvider { get; }
-	public WasabiHttpClientFactory? HttpClientFactory { get; }
-	public RoundStateUpdater RoundStatusUpdater { get; }
-	public PersonCircuit RoundStateUpdaterCircuit { get; }
-	public CoinPrison CoinPrison { get; }
+	private IWalletProvider WalletProvider { get; }
+	private WasabiHttpClientFactory? HttpClientFactory { get; }
+	private RoundStateUpdater RoundStatusUpdater { get; }
+	private PersonCircuit RoundStateUpdaterCircuit { get; }
+	private CoinPrison CoinPrison { get; }
 
 	// A coordinator is configured if the backend URI is set to something other than the deprecated zkSNACKs' API endpoints.
-	public bool HasCoordinatorConfigured => HttpClientFactory is not null &&
-	                                        !(HttpClientFactory.BackendUriGetter is null ||
-												HttpClientFactory.BackendUriGetter().AbsoluteUri == "https://api.wasabiwallet.io/" ||
-												HttpClientFactory.BackendUriGetter().AbsoluteUri == "https://api.wasabiwallet.co/");
+	public bool HasCoordinatorConfigured { get; }
+
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 
