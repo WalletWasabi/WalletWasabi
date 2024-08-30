@@ -88,14 +88,27 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
 		var connectedNodeCount = nodes.ConnectedNodes.Count;
-		var broadcastToNodes = nodes.ConnectedNodes
+		var broadcastToNodeTasks = nodes.ConnectedNodes
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
 			.Take(1 + connectedNodeCount / 3)
 			.Select(n => BroadcastCoreAsync(tx, n))
-			.ToArray();
+			.ToList();
 
-		var results = await Task.WhenAll(broadcastToNodes).ConfigureAwait(false);
+		var tasksToWaitFor = broadcastToNodeTasks.ToList();
+		Task<Result<BroadcastError>> completedTask;
+		do
+		{
+			completedTask = await Task.WhenAny(tasksToWaitFor).ConfigureAwait(false);
+			tasksToWaitFor.Remove(completedTask);
+			var result = await completedTask.ConfigureAwait(false);
+			if (result.IsOk)
+			{
+				return result;
+			}
+		} while (completedTask.IsFaulted && tasksToWaitFor.Count > 0);
+
+		var results = await Task.WhenAll(broadcastToNodeTasks).ConfigureAwait(false);
 		return results.SequenceResults().ThenError<BroadcastError>(e => new BroadcastError.AggregatedErrors(e));
 	}
 
@@ -112,7 +125,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 		// Give 7 seconds to send the inv payload.
 		await node.SendMessageAsync(invPayload).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
-		if (mempoolService.TryGetFromBroadcastStore(txId, out TransactionBroadcastEntry? entry))
+		if (mempoolService.TryGetFromBroadcastStore(txId, node.RemoteSocketEndpoint.ToString(), out TransactionBroadcastEntry? entry))
 		{
 			var broadcastTimeoutTask = Task.Delay(7000);
 			var broadcastFinishedTask = await Task.WhenAny([broadcastTimeoutTask, entry.BroadcastCompleted.Task]).ConfigureAwait(false);

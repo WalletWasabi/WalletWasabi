@@ -55,6 +55,8 @@ public record Result<TValue,TError>
 		}
 	}
 
+	public bool IsOk => _isSuccess;
+
 	public Result<T, TError> Then<T>(Func<TValue, T> f) =>
 		Match(v => Result<T, TError>.Ok(f(v)), e => e);
 

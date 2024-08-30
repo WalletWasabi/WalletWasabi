@@ -7,11 +7,8 @@ public class TransactionBroadcastEntry
 {
 	public TransactionBroadcastEntry(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
 	{
-		Lock = new object();
 		Transaction = transaction;
 		TransactionId = Transaction.GetHash();
-		Broadcasted = false;
-		PropagationConfirmations = 0;
 		NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
 		BroadcastCompleted = new TaskCompletionSource();
 		PropagationConfirmed = new TaskCompletionSource();
@@ -23,55 +20,19 @@ public class TransactionBroadcastEntry
 
 	public TaskCompletionSource BroadcastCompleted { get; }
 	public TaskCompletionSource PropagationConfirmed { get; }
-	private bool Broadcasted { get; set; }
-	private int PropagationConfirmations { get; set; }
-
-	private object Lock { get; }
 
 	public void MakeBroadcasted()
 	{
-		lock (Lock)
-		{
-			Broadcasted = true;
-			BroadcastCompleted.TrySetResult();
-		}
-	}
-
-	public bool IsBroadcasted()
-	{
-		lock (Lock)
-		{
-			return Broadcasted;
-		}
+		BroadcastCompleted.TrySetResult();
 	}
 
 	public void ConfirmPropagationOnce()
 	{
-		lock (Lock)
-		{
-			Broadcasted = true;
-			PropagationConfirmations++;
-			if (PropagationConfirmations == 2)
-			{
-				PropagationConfirmed.SetResult();
-			}
-		}
+		PropagationConfirmed.TrySetResult();
 	}
 
 	public void ConfirmPropagationForGood()
 	{
-		lock (Lock)
-		{
-			Broadcasted = true;
-			PropagationConfirmations = 21;
-		}
-	}
-
-	public int GetPropagationConfirmations()
-	{
-		lock (Lock)
-		{
-			return PropagationConfirmations;
-		}
+		PropagationConfirmed.TrySetResult();
 	}
 }
