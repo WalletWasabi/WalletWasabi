@@ -90,13 +90,8 @@ public abstract class P2pBehavior : NodeBehavior
 
 		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_WTX)))
 		{
-			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, node.RemoteSocketEndpoint.ToString(),  out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
 			{
-				if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
-				{
-					continue; // Would be strange. It could be some kind of attack.
-				}
-
 				try
 				{
 					var txPayload = new TxPayload(entry.Transaction.Transaction);

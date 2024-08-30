@@ -42,24 +42,22 @@ public class MempoolService
 	{
 		lock (BroadcastStoreLock)
 		{
-			if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash()))
+			if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash() && x.NodeRemoteSocketEndpoint == nodeRemoteSocketEndpoint))
 			{
 				return false;
 			}
-			else
-			{
-				var entry = new TransactionBroadcastEntry(transaction, nodeRemoteSocketEndpoint);
-				BroadcastStore.Add(entry);
-				return true;
-			}
+
+			var entry = new TransactionBroadcastEntry(transaction, nodeRemoteSocketEndpoint);
+			BroadcastStore.Add(entry);
+			return true;
 		}
 	}
 
-	public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
+	public bool TryGetFromBroadcastStore(uint256 transactionHash, string? nodeRemoteSocketEndpoint, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 	{
 		lock (BroadcastStoreLock)
 		{
-			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash && (nodeRemoteSocketEndpoint is null || nodeRemoteSocketEndpoint == x.NodeRemoteSocketEndpoint));
 			return entry is not null;
 		}
 	}
@@ -67,7 +65,7 @@ public class MempoolService
 	public LabelsArray TryGetLabel(uint256 txid)
 	{
 		var label = LabelsArray.Empty;
-		if (TryGetFromBroadcastStore(txid, out var entry))
+		if (TryGetFromBroadcastStore(txid, null, out var entry))
 		{
 			label = entry.Transaction.Labels;
 		}

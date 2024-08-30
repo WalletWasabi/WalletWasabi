@@ -98,9 +98,6 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			wallet.Password = password;
 
-			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
-			broadcaster.Initialize(nodes, rpc);
-
 			// Get some money.
 			var key = keyManager.GetNextReceiveKey("foo");
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
@@ -122,6 +119,8 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 			Assert.True(bitcoinStore.TransactionStore.TryGetTransaction(txId, out var txToSpeedUp));
 			var cpfp = await wallet.SpeedUpTransactionAsync(txToSpeedUp, null, CancellationToken.None);
+
+			TransactionBroadcaster broadcaster = new([new RpcBroadcaster(rpc)], bitcoinStore.MempoolService, walletManager);
 			await broadcaster.SendTransactionAsync(cpfp.Transaction);
 
 			Assert.Equal("foo", txToSpeedUp.Labels.Single());

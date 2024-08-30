@@ -114,9 +114,6 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 			Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 			Assert.Single(wallet.Coins);
 
-			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
-			broadcaster.Initialize(nodes, rpc);
-
 			using Key key2 = new();
 			using Key key3 = new();
 			var destination1 = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
@@ -135,6 +132,8 @@ public class SpendUnconfirmedTxTests : IClassFixture<RegTestFixture>
 			eventAwaiter = new EventAwaiter<ProcessedResult>(
 				h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 				h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
+
+			TransactionBroadcaster broadcaster = new([new RpcBroadcaster(rpc)], bitcoinStore.MempoolService, walletManager);
 			await broadcaster.SendTransactionAsync(tx1Res.Transaction);
 			eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(tx0Id, eventArgs.NewlySpentCoins.Single().TransactionId);

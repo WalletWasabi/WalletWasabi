@@ -111,8 +111,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 
 			var coin = Assert.Single(wallet.Coins);
 			Assert.True(coin.Confirmed);
-			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
-			broadcaster.Initialize(nodes, rpc);
+			TransactionBroadcaster broadcaster = new([], bitcoinStore.MempoolService, walletManager);
 
 			// Send money before reorg.
 			PaymentIntent operations = new(scp, Money.Coins(0.011m));

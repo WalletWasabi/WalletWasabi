@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -37,7 +38,6 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
@@ -153,7 +153,18 @@ public class Global
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
-		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+		var p2p = HostedServices.Get<P2pNetwork>();
+		var broadcasters = new List<IBroadcaster>();
+		if (BitcoinCoreNode?.RpcClient is not null)
+		{
+			broadcasters.Add(new RpcBroadcaster(BitcoinCoreNode.RpcClient));
+		}
+		broadcasters.AddRange([
+			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
+			new BackendBroadcaster(HttpClientFactory)
+		]);
+
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
@@ -274,7 +285,6 @@ public class Global
 
 				Logger.LogInfo("Start synchronizing filters...");
 
-				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, HostedServices.Get<WasabiSynchronizer>(), WalletManager, BitcoinCoreNode?.RpcClient);
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);

@@ -23,7 +23,7 @@ public class UntrustedP2pBehavior : P2pBehavior
 	{
 		if (inv.Type.HasFlag(InventoryType.MSG_TX))
 		{
-			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, remoteSocketEndpoint.ToString(), out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
 			{
 				if (entry.NodeRemoteSocketEndpoint == remoteSocketEndpoint.ToString())
 				{
