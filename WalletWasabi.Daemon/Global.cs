@@ -421,8 +421,10 @@ public class Global
 
 	private void RegisterCoinJoinComponents()
 	{
+		var coordinatorUri = CoordinatorHttpClientFactory?.BackendUriGetter?.Invoke().AbsoluteUri;
+		var hasCoordinatorConfigured = !(coordinatorUri is null or "https://api.wasabiwallet.io/" or "https://api.wasabiwallet.co/");
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison, hasCoordinatorConfigured), "CoinJoin Manager");
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
