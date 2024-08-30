@@ -122,7 +122,6 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 		}
 		var invPayload = new InvPayload(tx.Transaction);
 
-		// Give 7 seconds to send the inv payload.
 		await node.SendMessageAsync(invPayload).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
 		if (mempoolService.TryGetFromBroadcastStore(txId, node.RemoteSocketEndpoint.ToString(), out TransactionBroadcastEntry? entry))
@@ -164,7 +163,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 			.SelectAwait(async x => await x.BroadcastAsync(tx).ConfigureAwait(false))
 			.TakeUntil(x => x.Match(_ => true, _ => false))
 			.ForEachAsync(b => b.MatchDo(
-				BroadcastSuccess(tx),
+				BroadcastSuccess,
 				BroadcastError
 				))
 			.ConfigureAwait(false);
@@ -176,12 +175,11 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 
 		return;
 
-		Action<Unit> BroadcastSuccess(SmartTransaction tx) =>
-			_ =>
-			{
-				broadcastedSuccessfully = true;
-				BroadcastSuccessfully(tx);
-			};
+		void BroadcastSuccess(Unit _)
+		{
+			broadcastedSuccessfully = true;
+			BroadcastSuccessfully(tx);
+		}
 	}
 
 	private void BroadcastError(BroadcastError broadcastError)
