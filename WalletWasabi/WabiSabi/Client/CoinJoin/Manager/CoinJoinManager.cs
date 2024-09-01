@@ -41,7 +41,7 @@ public class CoinJoinManager : BackgroundService
 		HttpClientFactory = coordinatorHttpClientFactory;
 		RoundStateUpdaterCircuit = new PersonCircuit();
 
-		IWabiSabiStatusApiRequestHandler handler = HasCoordinatorConfigured ?
+		IWabiSabiStatusApiRequestHandler handler = hasCoordinatorConfigured ?
 			new WabiSabiHttpApiClient(coordinatorHttpClientFactory!.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit)) :
 			new NullWabiSabiStatusApiRequestHandler();
 
