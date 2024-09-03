@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -14,14 +15,8 @@ public static class DependencyGraphExtensions
 
 		foreach (var v in g.Vertices)
 		{
-			if (v.InitialBalance(CredentialType.Amount) == 0 && v.InitialBalance(CredentialType.Vsize) == 0)
-			{
-				output += $"  {id(v)} [label=\"\"];\n";
-			}
-			else
-			{
-				output += $"  {id(v)} [label=\"{v.InitialBalance(CredentialType.Amount)}s {v.InitialBalance(CredentialType.Vsize)}b\"];\n";
-			}
+			var value = (v is {Amount: 0, Vsize: 0}) ? "" : $"{v.Amount}s {v.Vsize}b";
+			output += $"  {id(v)} [label=\"{value}\"];\n";
 		}
 
 		foreach (var credentialType in DependencyGraph.CredentialTypes)
@@ -32,7 +27,7 @@ public static class DependencyGraphExtensions
 			output += "  {\n";
 			output += $"    edge [color={color}, fontcolor={color}];\n";
 
-			foreach (var e in g.EdgeSets[credentialType].Predecessors.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
+			foreach (var e in g.EdgeSets[(int)credentialType].InEdges.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
 			{
 				output += $"    {id(e.From)} -> {id(e.To)} [label=\"{e.Value}{unit}\"{(e.Value == 0 ? ", style=dashed" : "")}];\n";
 			}
@@ -43,4 +38,14 @@ public static class DependencyGraphExtensions
 		output += "}\n";
 		return output;
 	}
+
+	// The input nodes, in the order they were added
+	public static IEnumerable<InputNode> GetInputs(this DependencyGraph me) => me.Vertices.OfType<InputNode>();
+	// The output nodes, in the order they were added
+	public static  IEnumerable<OutputNode> GetOutputs(this DependencyGraph me) => me.Vertices.OfType<OutputNode>();
+	// The reissuance nodes, unsorted
+	public static IEnumerable<ReissuanceNode> GetReissuances(this DependencyGraph me) => me.Vertices.OfType<ReissuanceNode>();
+
+	public static IEnumerable<CredentialDependency> InEdges(this DependencyGraph me, RequestNode node, CredentialType credentialType) => me.EdgeSets[(int)credentialType].InEdges[node].OrderByDescending(e => e.Value);
+	public static IEnumerable<CredentialDependency> OutEdges(this DependencyGraph me, RequestNode node, CredentialType credentialType) => me.EdgeSets[(int)credentialType].OutEdges[node].OrderByDescending(e => e.Value);
 }

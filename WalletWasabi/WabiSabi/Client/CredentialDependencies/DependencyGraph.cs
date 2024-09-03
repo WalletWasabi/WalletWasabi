@@ -5,42 +5,23 @@ using System.Diagnostics;
 using System.Linq;
 using WalletWasabi.Extensions;
 
+using AmountVsizePair = (long Amount, long Vsize);
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
+using AmountVsizePairArray = AmountVsizePair[];
+using RequestNodeList = IEnumerable<RequestNode>;
 
 [DebuggerDisplay("{AsGraphviz(),nq}")]
 public record DependencyGraph
 {
 	public const int K = ProtocolConstants.CredentialNumber;
 
-	public static IEnumerable<CredentialType> CredentialTypes { get; } = Enum.GetValues<CredentialType>();
+	public static ImmutableArray<CredentialType> CredentialTypes { get; } = [CredentialType.Amount, CredentialType.Vsize];
 
-	public ImmutableList<RequestNode> Vertices { get; init; } = ImmutableList<RequestNode>.Empty;
-
-	// The input nodes, in the order they were added
-	public ImmutableList<InputNode> Inputs { get; init; } = ImmutableList<InputNode>.Empty;
-
-	// The output nodes, in the order they were added
-	public ImmutableList<OutputNode> Outputs { get; init; } = ImmutableList<OutputNode>.Empty;
-
-	// The reissuance nodes, unsorted
-	public ImmutableList<ReissuanceNode> Reissuances { get; init; } = ImmutableList<ReissuanceNode>.Empty;
+	public ImmutableList<RequestNode> Vertices { get; init; } = [];
 
 	// Internal properties used to keep track of effective values and edges
-	public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> EdgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
-		.Add(CredentialType.Amount, new() { CredentialType = CredentialType.Amount, MaxCredentialValue = ProtocolConstants.MaxAmountPerAlice })
-		.Add(CredentialType.Vsize, new() { CredentialType = CredentialType.Vsize, MaxCredentialValue = ProtocolConstants.MaxVsizeCredentialValue });
+	public ImmutableList<CredentialEdgeSet> EdgeSets { get; init; } = [ new AmountCredentialEdgeSet(), new VsizeCredentialEdgeSet() ];
 
-	public long Balance(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].Balance(node);
-
-	public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node).OrderByDescending(e => e.Value);
-
-	public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node).OrderByDescending(e => e.Value);
-
-	public int InDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InDegree(node);
-
-	public int OutDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutDegree(node);
-
-	private string AsGraphviz() => DependencyGraphExtensions.AsGraphviz(this);
 
 	/// <summary>Construct a graph from amounts, and resolve the
 	/// credential dependencies.</summary>
@@ -52,66 +33,62 @@ public record DependencyGraph
 	///
 	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
 	{
-		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
-		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
+		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue.Satoshi);
+		var inputSizes = effectiveValuesAndSizes.Select(x => vsizeAllocationPerInput - x.InputSize);
 
 		if (effectiveValues.Any(x => x <= Money.Zero))
 		{
 			throw new InvalidOperationException($"Not enough funds to pay for the fees.");
 		}
 
-		var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feeRate));
+		var outputSizes = outputs.Select(x => (long)x.ScriptPubKey.EstimateOutputVsize());
+		var effectiveCosts = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
 
 		return ResolveCredentialDependencies(
-			Enumerable.Zip(effectiveValues.Select(a => a.Satoshi), inputSizes.Select(i => (vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<long>>(),
-			Enumerable.Zip(effectiveCosts.Select(a => a.Satoshi), outputSizes.Select(i => (long)i), ImmutableArray.Create).Cast<IEnumerable<long>>()
+			effectiveValues.Zip(inputSizes).ToArray(),
+			effectiveCosts.Zip(outputSizes).ToArray()
 		);
 	}
 
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
+	public static DependencyGraph ResolveCredentialDependencies(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues)
 		=> FromValues(inputValues, outputValues).ResolveCredentials();
 
-	public static DependencyGraph FromValues(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
+	public static DependencyGraph FromValues(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues)
 	{
 		var allValues = Enumerable.Concat(inputValues, outputValues);
-		if (allValues.SelectMany(x => x).Any(x => x < 0))
+		if (allValues.Any(x => x.Amount < 0 || x.Vsize < 0))
 		{
-			throw new ArgumentException($"All values must be positive.");
-		}
-
-		if (allValues.Any(x => x.Count() != CredentialTypes.Count()))
-		{
-			throw new ArgumentException($"Number of credential values must be {CredentialTypes.Count()}");
+			throw new ArgumentException("All values must be positive.");
 		}
 
 		foreach (var credentialType in CredentialTypes)
 		{
-			long CredentialTypeValue(IEnumerable<long> x) => x.ElementAt((int)credentialType);
-			var inputValuesSum = inputValues.Sum(CredentialTypeValue);
-			var outputValuesSum = outputValues.Sum(CredentialTypeValue);
+			long ValueExtractor(AmountVsizePair x) => credentialType is CredentialType.Amount ? x.Amount : x.Vsize;
+			var inputValuesSum = inputValues.Sum(ValueExtractor);
+			var outputValuesSum = outputValues.Sum(ValueExtractor);
 			if (inputValuesSum < outputValuesSum)
 			{
 				throw new ArgumentException("Overall balance must not be negative.");
 			}
 		}
 
-		return new DependencyGraph().AddInputs(inputValues).AddOutputs(outputValues);
+		return new DependencyGraph()
+			.AddNodes(inputValues, v => new InputNode(v.Amount, v.Vsize))
+			.AddNodes(outputValues, v => new OutputNode(-v.Amount, -v.Vsize));
 	}
 
-	public DependencyGraph AddNode(RequestNode node)
+	private DependencyGraph AddNode(RequestNode node)
 		=> this with
 		{
 			Vertices = Vertices.Add(node),
-			EdgeSets = EdgeSets.ToImmutableSortedDictionary(
-				kvp => kvp.Key,
-				kvp => kvp.Value with
+			EdgeSets = EdgeSets.Select(
+				x => x with
 				{
-					EdgeBalances = kvp.Value.EdgeBalances.Add(node, 0),
-					Predecessors = kvp.Value.Predecessors.Add(node, ImmutableHashSet<CredentialDependency>.Empty),
-					Successors = kvp.Value.Successors.Add(node, ImmutableHashSet<CredentialDependency>.Empty)
+					EdgeBalances = x.EdgeBalances.Add(node, 0),
+					InEdges = x.InEdges.Add(node, ImmutableHashSet<CredentialDependency>.Empty),
+					OutEdges = x.OutEdges.Add(node, ImmutableHashSet<CredentialDependency>.Empty)
 				}
-			),
+			).ToImmutableList(),
 		};
 
 	// Input nodes represent a combination of an input registration and
@@ -120,26 +97,9 @@ public record DependencyGraph
 	// early but using it implies connection confirmations may have
 	// dependencies, posing some complexity for a privacy preserving
 	// approach.
-	private DependencyGraph AddInput(IEnumerable<long> values)
-	{
-		var node = new InputNode(values.Select(y => y));
-		return (this with { Inputs = Inputs.Add(node) }).AddNode(node);
-	}
+	private DependencyGraph AddNodes(AmountVsizePairArray values, Func<AmountVsizePair, RequestNode> builder) =>
+		values.Aggregate(this, (g, v) => g.AddNode(builder(v)));
 
-	private DependencyGraph AddOutput(IEnumerable<long> values)
-	{
-		var node = new OutputNode(values.Select(y => -1 * y));
-		return (this with { Outputs = Outputs.Add(node) }).AddNode(node);
-	}
-	private DependencyGraph AddInputs(IEnumerable<IEnumerable<long>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
-
-	private DependencyGraph AddOutputs(IEnumerable<IEnumerable<long>> values) => values.Aggregate(this, (g, v) => g.AddOutput(v));
-
-	private (DependencyGraph, RequestNode) AddReissuance()
-	{
-		var node = new ReissuanceNode();
-		return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node);
-	}
 
 	/// <summary>Resolve edges for all credential types</summary>
 	///
@@ -218,7 +178,7 @@ public record DependencyGraph
 	{
 		var g = ResolveUniformInputSpecialCases(credentialType);
 
-		var edgeSet = g.EdgeSets[credentialType];
+		var edgeSet = g.EdgeSets[(int)credentialType];
 
 		var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0);
 		var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0);
@@ -228,9 +188,11 @@ public record DependencyGraph
 			return g;
 		}
 
-		(var largestMagnitudeNode, var smallMagnitudeNodes, var fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
+		var (largestMagnitudeNode, smallMagnitudeNodes, fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
 
-		var maxCount = (fanIn ? edgeSet.RemainingInDegree(largestMagnitudeNode) : edgeSet.RemainingOutDegree(largestMagnitudeNode));
+		var maxCount = fanIn
+			? edgeSet.RemainingInDegree(largestMagnitudeNode)
+			: edgeSet.RemainingOutDegree(largestMagnitudeNode);
 
 		switch (Math.Abs(edgeSet.Balance(largestMagnitudeNode)).CompareTo(Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x)))))
 		{
@@ -254,7 +216,7 @@ public record DependencyGraph
 					// otherwise, drain the largest magnitude node into a new
 					// reissuance node which will have room for an unused edge
 					// in its out edge set.
-					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new[] { largestMagnitudeNode }, credentialType);
 				}
 				break;
 
@@ -300,10 +262,10 @@ public record DependencyGraph
 
 	private DependencyGraph ResolveUniformInputSpecialCases(CredentialType credentialType)
 	{
-		var edgeSet = EdgeSets[credentialType];
+		var edgeSet = EdgeSets[(int)credentialType];
 
 		// Evaluate the linq query eagerly since edgeSet is reassigned
-		IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
+		RequestNodeList negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
 
 		if (!negative.Any())
 		{
@@ -339,7 +301,7 @@ public record DependencyGraph
 			}
 		}
 
-		edgeSet = g.EdgeSets[credentialType];
+		edgeSet = g.EdgeSets[(int)credentialType];
 
 		// Second special case, more general than the previous one.
 		// If negative nodes are all strictly smaller than the corresponding
@@ -355,7 +317,7 @@ public record DependencyGraph
 
 	// Build a k-ary tree bottom up to reduce a list of nodes to discharge
 	// to at most maxCount elements.
-	private (DependencyGraph, IEnumerable<RequestNode>) ReduceNodes(IEnumerable<RequestNode> nodes, int maxCount, CredentialType credentialType)
+	private (DependencyGraph, RequestNodeList) ReduceNodes(RequestNodeList nodes, int maxCount, CredentialType credentialType)
 	{
 		if (nodes.Count() <= maxCount)
 		{
@@ -373,14 +335,15 @@ public record DependencyGraph
 		// tree in the order given by the enumerable, but this can create an
 		// imbalance if a small magnitude node is a reissuance node left
 		// over from a previous iteration.
-		(var g, var reissuance) = AggregateIntoReissuanceNode(nodes.Take(take), credentialType);
+		var (g, reissuance) = AggregateIntoReissuanceNode(nodes.Take(take), credentialType);
 
 		return g.ReduceNodes(nodes.Skip(take).Append(reissuance), maxCount, credentialType);
 	}
 
-	private (DependencyGraph, RequestNode) AggregateIntoReissuanceNode(IEnumerable<RequestNode> nodes, CredentialType credentialType)
+	private (DependencyGraph, RequestNode) AggregateIntoReissuanceNode(RequestNodeList nodes, CredentialType credentialType)
 	{
-		(var g, var reissuance) = AddReissuance();
+		var reissuance = new ReissuanceNode();
+		var g = AddNode(reissuance);
 
 		g = g.DrainReissuance(reissuance, nodes, credentialType);
 
@@ -399,11 +362,11 @@ public record DependencyGraph
 		return (g, reissuance);
 	}
 
-	private DependencyGraph DrainReissuance(RequestNode reissuance, IEnumerable<RequestNode> nodes, CredentialType credentialType)
+	private DependencyGraph DrainReissuance(RequestNode reissuance, RequestNodeList nodes, CredentialType credentialType)
 	{
-		var drainedEdgeSet = EdgeSets[credentialType].DrainReissuance(reissuance, nodes);
+		var drainedEdgeSet = EdgeSets[(int)credentialType].DrainReissuance(reissuance, nodes);
 
-		var g = this with { EdgeSets = EdgeSets.SetItem(credentialType, drainedEdgeSet) };
+		var g = this with { EdgeSets = EdgeSets.SetItem((int)credentialType, drainedEdgeSet) };
 
 		// Also drain all subsequent credential types, to minimize
 		// dependencies between different requests, weight credentials
@@ -419,17 +382,15 @@ public record DependencyGraph
 			// now.
 			return g.DrainReissuance(reissuance, nodes, credentialType + 1);
 		}
-		else
-		{
-			return g;
-		}
+
+		return g;
 	}
 
-	private DependencyGraph DrainTerminal(RequestNode node, IEnumerable<RequestNode> nodes, CredentialType credentialType)
+	private DependencyGraph DrainTerminal(RequestNode node, RequestNodeList nodes, CredentialType credentialType)
 		// Here we avoid opportunistically adding edges of other types as it
 		// provides no benefit with K=2. Stable sorting prevents edge
 		// crossing to a limited degree, but could be much better.
-		=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].DrainTerminal(node, nodes)) };
+		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainTerminal(node, nodes)) };
 
 	private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
 	{
@@ -441,7 +402,7 @@ public record DependencyGraph
 		// - discharge to direct descendants even if a net reduction in zero creds because of available zero out degree of 0
 		// - discharge all remaining in degree >0 nodes by topological order
 
-		var edgeSet = EdgeSets[credentialType];
+		var edgeSet = EdgeSets[(int)credentialType];
 		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
 		if (!unresolvedNodes.Any())
@@ -469,7 +430,7 @@ public record DependencyGraph
 		// This termination condition is guaranteed to be possible because
 		// connection confirmation and reissuance requests both have an out
 		// degree of K^2 when accounting for their extra zero credentials.
-		var edgeSet = EdgeSets[credentialType];
+		var edgeSet = EdgeSets[(int)credentialType];
 		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
 		if (!unresolvedNodes.Any())
@@ -490,8 +451,10 @@ public record DependencyGraph
 	}
 
 	private DependencyGraph DrainZeroCredentials(RequestNode from, RequestNode to, CredentialType credentialType)
-		=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].DrainZeroCredentials(from, to)) };
+		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainZeroCredentials(from, to)) };
 
 	private DependencyGraph AddZeroCredential(RequestNode from, RequestNode to, CredentialType credentialType)
-		=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].AddZeroEdge(from, to)) };
+		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].AddZeroEdge(from, to)) };
+
+	private string AsGraphviz() => DependencyGraphExtensions.AsGraphviz(this);
 }
