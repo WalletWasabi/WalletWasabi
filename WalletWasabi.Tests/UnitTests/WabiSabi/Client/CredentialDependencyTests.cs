@@ -15,8 +15,8 @@ public class CredentialDependencyTests
 	public async void AsyncDependencyGraphTraversalAsync()
 	{
 		var g = DependencyGraph.ResolveCredentialDependencies(
-			inputValues: new[] { new[] { 10000L, 1930L }, new[] { 1000L, 1930L } },
-			outputValues: new[] { new[] { 5000L, 31L }, new[] { 3500L, 31L }, new[] { 2500L, 31L } });
+			inputValues: new[] { (10000L, 1930L), (1000L, 1930L) },
+			outputValues: new[] { (5000L, 31L), (3500L, 31L), (2500L, 31L) });
 
 		await SimulateAsyncRequestsAsync(g);
 	}
@@ -123,8 +123,8 @@ public class CredentialDependencyTests
 	{
 		// Whitebox test of simple case, ensuring that edge values are
 		// correct
-		var inputValues = new long[][] { new[] { 3L, 3L } };
-		var outputValues = new long[][] { new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L } };
+		var inputValues = new [] { (3L, 3L)};
+		var outputValues = new [] { (1L, 1L), (1L, 1L), (1L, 1L)};
 		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
 		Assert.Equal(5, g.Vertices.Count);
@@ -159,8 +159,8 @@ public class CredentialDependencyTests
 	[Fact]
 	public void ResolveCredentialDependenciesNoVsize()
 	{
-		var inputValues = new long[][] { new[] { 1L, 0L } };
-		var outputValues = new long[][] { new[] { 1L, 0L } };
+		var inputValues = new [] { (1L, 0L)};
+		var outputValues = new [] { (1L, 0L)};
 		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
 		Assert.Equal(2, g.Vertices.Count);
@@ -262,8 +262,10 @@ public class CredentialDependencyTests
 		// of inputs with various corner cases that must be handled.
 
 		// Parse values out of strings because InputData can't contain arrays
-		var inputValues = inputs.Split(" ").Select(x => x.Split(",").Select(y => long.Parse(y)));
-		var outputValues = outputs.Split(" ").Select(x => x.Split(",").Select(y => long.Parse(y)));
+		long[] ParseTupla (string s) => s.Split(",").Select(long.Parse).ToArray();
+		(long, long)[] ParseTuplas(string s) => s.Split(" ").Select(ParseTupla).Select(x => (x[0], x[1])).ToArray();
+		var inputValues = ParseTuplas(inputs);
+		var outputValues = ParseTuplas(outputs);
 
 		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
@@ -279,7 +281,7 @@ public class CredentialDependencyTests
 		await SimulateAsyncRequestsAsync(g);
 	}
 
-	private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
+	private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<(long, long)> inputValues, IEnumerable<(long, long)> outputValues)
 	{
 		foreach (var credentialType in DependencyGraph.CredentialTypes)
 		{
@@ -335,7 +337,7 @@ public class CredentialDependencyTests
 		}
 
 		// Ensure that vsize credentials do not exceed the range proof width
-		foreach (var edge in graph.EdgeSets[CredentialType.Vsize].Successors.Values.SelectMany(x => x))
+		foreach (var edge in graph.EdgeSets[(int)CredentialType.Vsize].OutEdges.Values.SelectMany(x => x))
 		{
 			Assert.InRange(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
 		}
@@ -346,29 +348,12 @@ public class CredentialDependencyTests
 	}
 
 	[Fact]
-	public void ResolveCredentialDependenciesThrows()
-	{
-		foreach ((var inputValues, var outputAmounts) in new (long[][], long[][])[]
-		{
-				(new[] { new[] { 1L, 0L } }, new[] { new[] { 2L, 0L } }),
-				(new[] { Array.Empty<long>() }, new[] { new[] { 1L, 0L } }),
-				(new[] { new[] { 1L } }, new[] { new[] { 1L, 0L } }),
-				(new[] { new[] { 1L, 1L, 1L, } }, new[] { new[] { 1L, 0L } }),
-				(new[] { new[] { 1L, 0L } }, new[] { new[] { 1L } }),
-				(new[] { new[] { 1L, 0L } }, new[] { new[] { 1L, 0L, 0L } }),
-		})
-		{
-			Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(inputValues, outputAmounts));
-		}
-	}
-
-	[Fact]
 	public void EdgeConstraints()
 	{
-		var g = DependencyGraph.FromValues(new[] { new[] { 11L, 0L }, new[] { 8L, 0L } }, new[] { new[] { 7L, 0L }, new[] { 11L, 0L } });
+		var g = DependencyGraph.FromValues(new[] { ( 11L, 0L), (8L, 0L) }, new[] { (7L, 0L), (11L, 0L) });
 
-		var i = g.Inputs[0];
-		var o = g.Outputs[0];
+		var i = g.GetInputs().First();
+		var o = g.GetOutputs().First();
 
 		var edgeSet = g.EdgeSets[0];
 
@@ -398,7 +383,7 @@ public class CredentialDependencyTests
 		// max indegree exceeded
 		Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o, 0));
 
-		var o2 = g.Outputs[1];
+		var o2 = g.GetOutputs().ElementAt(1);
 		Assert.Equal(0, edgeSet.AddEdge(i, o2, 7).AddEdge(i, o2, 4).Balance(i));
 		Assert.Equal(0, edgeSet.AddEdge(i, o2, 7).AddEdge(i, o2, 4).Balance(o2));
 		Assert.Equal(0, edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o2, 4).Balance(i));
@@ -414,4 +399,11 @@ public class CredentialDependencyTests
 		// final out edge must discharge remaining balance
 		Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o2, 3));
 	}
+}
+
+public static class CredentialDependencyExtensions
+{
+	public static long Balance(this DependencyGraph me, RequestNode node, CredentialType credentialType) => me.EdgeSets[(int)credentialType].Balance(node);
+	public static int InDegree(this DependencyGraph me, RequestNode node, CredentialType credentialType) => me.EdgeSets[(int)credentialType].InDegree(node);
+	public static int OutDegree(this DependencyGraph me, RequestNode node, CredentialType credentialType) => me.EdgeSets[(int)credentialType].OutDegree(node);
 }

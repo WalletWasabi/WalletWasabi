@@ -1,31 +1,38 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using NBitcoin.Protocol;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
-public record CredentialEdgeSet
+public record AmountCredentialEdgeSet : CredentialEdgeSet
 {
-	public CredentialType CredentialType { get; init; }
+	public override long MaxCredentialValue => ProtocolConstants.MaxAmountPerAlice;
+	public override long Balance(RequestNode node) => node.Amount + EdgeBalances[node];
+}
 
-	public long MaxCredentialValue { get; init; }
+public record VsizeCredentialEdgeSet : CredentialEdgeSet
+{
+	public override long MaxCredentialValue => ProtocolConstants.MaxVsizeCredentialValue;
+	public override long Balance(RequestNode node) => node.Vsize + EdgeBalances[node];
+}
 
-	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> Predecessors { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
-	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> Successors { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
+public abstract record CredentialEdgeSet
+{
+
+	public abstract long MaxCredentialValue { get; }
+	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> InEdges { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
+	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> OutEdges { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
 	public ImmutableDictionary<RequestNode, long> EdgeBalances { get; init; } = ImmutableDictionary.Create<RequestNode, long>();
 
-	public long Balance(RequestNode node) => node.InitialBalance(CredentialType) + EdgeBalances[node];
+	public abstract long Balance(RequestNode node);
 
-	public ImmutableHashSet<CredentialDependency> InEdges(RequestNode node) => Predecessors[node];
+	public int InDegree(RequestNode node) => InEdges[node].Count;
 
-	public ImmutableHashSet<CredentialDependency> OutEdges(RequestNode node) => Successors[node];
+	public int OutDegree(RequestNode node) => OutEdges[node].Count(x => x.Value != 0);
 
-	public int InDegree(RequestNode node) => InEdges(node).Count;
-
-	public int OutDegree(RequestNode node) => OutEdges(node).Count(x => x.Value != 0);
-
-	public int ZeroOnlyOutDegree(RequestNode node) => OutEdges(node).Count(x => x.Value == 0);
+	public int ZeroOnlyOutDegree(RequestNode node) => OutEdges[node].Count(x => x.Value == 0);
 
 	public int RemainingInDegree(RequestNode node) => node.MaxInDegree - InDegree(node);
 
@@ -37,7 +44,7 @@ public record CredentialEdgeSet
 
 	public CredentialEdgeSet AddEdge(RequestNode from, RequestNode to, long value)
 	{
-		var edge = new CredentialDependency(from, to, CredentialType, Guard.MinimumAndNotNull(nameof(value), value, 0));
+		var edge = new CredentialDependency(Guid.NewGuid(), from, to, Guard.MinimumAndNotNull(nameof(value), value, 0));
 
 		// Maintain degree invariant (subset of K-regular graph, sort of)
 		if (RemainingInDegree(edge.To) == 0)
@@ -51,7 +58,8 @@ public record CredentialEdgeSet
 			{
 				throw new InvalidOperationException("Can't add more than k non-zero out edges per node.");
 			}
-			else if (RemainingOutDegree(edge.From) == 1)
+
+			if (RemainingOutDegree(edge.From) == 1)
 			{
 				// This is the final out edge for the node edge.From
 				if (Balance(edge.From) - edge.Value > 0)
@@ -101,13 +109,10 @@ public record CredentialEdgeSet
 			}
 		}
 
-		var predecessors = InEdges(edge.To);
-		var successors = OutEdges(edge.From);
-
 		return this with
 		{
-			Predecessors = Predecessors.SetItem(edge.To, predecessors.Add(edge)),
-			Successors = Successors.SetItem(edge.From, successors.Add(edge)),
+			InEdges = InEdges.SetItem(edge.To, InEdges[edge.To].Add(edge)),
+			OutEdges = OutEdges.SetItem(edge.From, OutEdges[edge.From].Add(edge)),
 			EdgeBalances = EdgeBalances.SetItems(
 				new KeyValuePair<RequestNode, long>[]
 				{
@@ -190,15 +195,18 @@ public record CredentialEdgeSet
 			// requests overall.
 			return this;
 		}
-		else if (value > 0)
+
+		if (value > 0)
 		{
 			return AddEdge(node, reissuance, value);
 		}
-		else if (value < 0)
+
+		if (value < 0)
 		{
 			return AddEdge(reissuance, node, (-1 * value)).AddZeroEdges(reissuance, node);
 		}
-		else if (InDegree(reissuance) == 0)
+
+		if (InDegree(reissuance) == 0)
 		{
 			// Due to opportunistic draining of lower priority credential
 			// types when defining a reissuance node for higher priority
@@ -209,10 +217,8 @@ public record CredentialEdgeSet
 			// even if there's no balance to discharge.
 			return AddZeroEdges(reissuance, node);
 		}
-		else
-		{
-			return this;
-		}
+
+		return this;
 	}
 
 	public CredentialEdgeSet AddZeroEdges(RequestNode src, RequestNode dst)
@@ -241,7 +247,8 @@ public record CredentialEdgeSet
 			// received an input edge in a previous pass).
 			return AddEdge(node, dischargeNode, Math.Min(Balance(node), -1 * value));
 		}
-		else if (value > 0)
+
+		if (value > 0)
 		{
 			// Fan in, draining zero credentials is never necessary.
 			var edgeValue = Math.Min(-1 * Balance(node), value);
@@ -249,22 +256,18 @@ public record CredentialEdgeSet
 			{
 				return AddEdge(dischargeNode, node, edgeValue);
 			}
-			else
-			{
-				// Sometimes the last dischargeNode can't be handled in this
-				// iteration because the amount requires a change value but
-				// its remaining out degree is already 1, requiring the
-				// exact value to be used.
-				// Just skip it here and it will eventually become the
-				// largest magnitude node if it's required, and get handled
-				// by the negative node discharging loop.
-				return this;
-			}
-		}
-		else
-		{
+
+			// Sometimes the last dischargeNode can't be handled in this
+			// iteration because the amount requires a change value but
+			// its remaining out degree is already 1, requiring the
+			// exact value to be used.
+			// Just skip it here and it will eventually become the
+			// largest magnitude node if it's required, and get handled
+			// by the negative node discharging loop.
 			return this;
 		}
+
+		return this;
 	}
 
 	public CredentialEdgeSet DrainZeroCredentials(RequestNode src, RequestNode dst)
