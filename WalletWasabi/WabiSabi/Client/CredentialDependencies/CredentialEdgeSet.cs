@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using NBitcoin.Protocol;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -122,54 +122,49 @@ public abstract record CredentialEdgeSet
 		};
 	}
 
+
 	// Find the largest negative or positive balance node for the given
 	// credential type, and one or more smaller nodes with a combined total
 	// magnitude exceeding that of the largest magnitude node when possible.
 	public (RequestNode largestMagnitudeNode, IEnumerable<RequestNode> smallMagnitudeNodes, bool fanIn) MatchNodesToDischarge(IEnumerable<RequestNode> nodesWithRemainingOutDegree, IEnumerable<RequestNode> nodesWithRemainingInDegree)
 	{
-		ImmutableArray<RequestNode> sources = nodesWithRemainingOutDegree
+		var sources = nodesWithRemainingOutDegree
 			.OrderByDescending(v => Balance(v))
 			.ThenByDescending(v => RemainingOutDegree(v))
 			.ThenByDescending(v => AvailableZeroOutDegree(v))
 			.ToImmutableArray();
 
-		ImmutableArray<RequestNode> sinks = nodesWithRemainingInDegree
+		var sinks = nodesWithRemainingInDegree
 			.OrderBy(v => Balance(v))
 			.ThenByDescending(v => RemainingInDegree(v))
 			.ToImmutableArray();
 
-		var nSources = 1;
-		var nSinks = 1;
-
-		long SourcesSum() => sources.Take(nSources).Sum(v => Balance(v));
-		long SinksSum() => sinks.Take(nSinks).Sum(v => Balance(v));
-		long CompareSums() => SourcesSum().CompareTo(-1 * SinksSum());
+		int BalanceSign(int possitiveCount, int negativeCount) =>
+			sources.Take(possitiveCount).Sum(x => Balance(x)).CompareTo(
+			sinks.Take(negativeCount).Sum(x => -Balance(x)));
 
 		// We want to fully discharge the larger (in absolute magnitude) of
 		// the two nodes, so we will add more nodes to the smaller one until
 		// we can fully cover. At each step of the iteration we fully
 		// discharge at least 2 nodes from the queue.
-		var initialComparison = CompareSums();
-		var fanIn = initialComparison == -1;
-
-		if (initialComparison != 0 && SinksSum() != 0)
+		(int, int, bool) EvaluateCombination(int prevSign, int p, int n, int availablePossitives, int availableNegatives)
 		{
-			Action takeOneMore = fanIn ? () => nSources++ : () => nSinks++;
-
-			// Take more nodes until the comparison sign changes or
-			// we run out.
-			while (initialComparison == CompareSums()
-				   && (fanIn ? sources.Length - nSources > 0
-							 : sinks.Length - nSinks > 0))
+			var sign = BalanceSign(p, n);
+			return (sign == prevSign, sign, availablePossitives, availableNegatives) switch
 			{
-				takeOneMore();
-			}
+				(true, < 0, > 0, _) => EvaluateCombination(sign, ++p, n, --availablePossitives, availableNegatives),
+				(true, > 0, _, > 0) => EvaluateCombination(sign, p, ++n, availablePossitives, --availableNegatives),
+				_ => (p, n, prevSign < 0)
+			};
 		}
+		var initialSign = BalanceSign(1, 1);
+		var (p, n, isFanIn) = EvaluateCombination(initialSign, 1, 1, sources.Count(), sinks.Count());
 
-		var largestMagnitudeNode = (fanIn ? sinks.First() : sources.First());
-		var smallMagnitudeNodes = (fanIn ? sources.Take(nSources).Reverse() : sinks.Take(nSinks)); // reverse positive values so we always proceed in order of increasing magnitude
+		var (largestMagnitudeNode, smallMagnitudeNodes) = isFanIn
+			? (sinks.First(), sources.Take(p).Reverse())
+			: (sources.First(), sinks.Take(n));
 
-		return (largestMagnitudeNode, smallMagnitudeNodes, fanIn);
+		return (largestMagnitudeNode, smallMagnitudeNodes, isFanIn);
 	}
 
 	// Drain values into a reissuance request (towards the center of the graph).
