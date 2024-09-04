@@ -772,8 +772,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
-		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
-		var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
+		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y=>y.Value > 0)).Select(x => x.Value);
 
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
@@ -782,9 +781,9 @@ public class CoinJoinClient
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate));
 
-		var outputTxOuts = OutputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsize).ToArray();
+		var outputTxOuts = OutputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
 
-		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
+		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoinEffectiveValues, outputTxOuts, roundParameters.MiningFeeRate, availableVsizes);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 		var combinedToken = linkedCts.Token;

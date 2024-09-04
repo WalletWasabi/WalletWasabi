@@ -31,22 +31,20 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Money> effectiveValues, IEnumerable<TxOut> outputs, FeeRate feeRate, IEnumerable<long> availableVSizes)
 	{
-		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue.Satoshi);
-		var inputSizes = effectiveValuesAndSizes.Select(x => vsizeAllocationPerInput - x.InputSize);
+		var effectiveValuesInSats = effectiveValues.Select(x => x.Satoshi);
 
 		if (effectiveValues.Any(x => x <= Money.Zero))
 		{
-			throw new InvalidOperationException($"Not enough funds to pay for the fees.");
+			throw new InvalidOperationException("Not enough funds to pay for the fees.");
 		}
 
 		var outputSizes = outputs.Select(x => (long)x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCosts = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
-
+		var effectiveCostsInSats = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
 		return ResolveCredentialDependencies(
-			effectiveValues.Zip(inputSizes).ToArray(),
-			effectiveCosts.Zip(outputSizes).ToArray()
+			effectiveValuesInSats.Zip(availableVSizes).ToArray(),
+			effectiveCostsInSats.Zip(outputSizes).ToArray()
 		);
 	}
 
