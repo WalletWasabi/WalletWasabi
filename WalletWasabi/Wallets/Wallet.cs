@@ -97,6 +97,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 	public CoinjoinSkipFactors CoinjoinSkipFactors => KeyManager.CoinjoinSkipFactors;
+
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 

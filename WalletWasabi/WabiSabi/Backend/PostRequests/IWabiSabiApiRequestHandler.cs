@@ -4,12 +4,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests;
 
-public interface IWabiSabiStatusApiRequestHandler
-{
-	Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken);
-}
-
-public interface IWabiSabiApiRequestHandler : IWabiSabiStatusApiRequestHandler
+public interface IWabiSabiApiRequestHandler
 {
 	Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken);
 
@@ -23,13 +18,7 @@ public interface IWabiSabiApiRequestHandler : IWabiSabiStatusApiRequestHandler
 
 	Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken);
 
-	Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
-}
+	Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken);
 
-public class NullWabiSabiStatusApiRequestHandler : IWabiSabiStatusApiRequestHandler
-{
-	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
-	{
-		return Task.FromResult(new RoundStateResponse([], []));
-	}
+	Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
 }

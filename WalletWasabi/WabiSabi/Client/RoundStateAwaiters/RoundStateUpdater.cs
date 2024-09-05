@@ -14,12 +14,12 @@ namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class RoundStateUpdater : PeriodicRunner
 {
-	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiStatusApiRequestHandler statusProvider) : base(requestInterval)
+	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 	{
-		StatusProvider = statusProvider;
+		ArenaRequestHandler = arenaRequestHandler;
 	}
 
-	private IWabiSabiStatusApiRequestHandler StatusProvider { get; }
+	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
@@ -51,7 +51,7 @@ public class RoundStateUpdater : PeriodicRunner
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-		var response = await StatusProvider.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
+		var response = await ArenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
 		RoundState[] roundStates = response.RoundStates;
 
 		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
