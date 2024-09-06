@@ -58,17 +58,10 @@ public static class WabiSabiFactory
 		=> new(CoordinatorIdentifier, roundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
-		=> OwnershipProof.GenerateCoinJoinInputProof(
+		=> OwnershipProof.Generate(
 			key,
-			GetOwnershipIdentifier(key.PubKey.GetScriptPubKey(scriptPubKeyType)),
-			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()),
-			scriptPubKeyType);
-
-	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
-	{
-		using var identificationKey = Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main);
-		return new OwnershipIdentifier(identificationKey, scriptPubKey);
-	}
+			scriptPubKeyType,
+			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()));
 
 	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
 		RoundParameters.Create(

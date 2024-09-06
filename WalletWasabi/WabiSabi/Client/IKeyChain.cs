@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using NBitcoin;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client;

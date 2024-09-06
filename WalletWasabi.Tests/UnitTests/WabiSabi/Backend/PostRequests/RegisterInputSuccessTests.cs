@@ -66,7 +66,7 @@ public class RegisterInputSuccessTests
 			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			"test",
 			arena);
-		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", round.Id), ScriptPubKeyType.Segwit);
+		var ownershipProof = OwnershipProof.Generate(key, ScriptPubKeyType.Segwit,new CoinJoinInputCommitmentData("test", round.Id));
 
 		var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
