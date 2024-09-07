@@ -244,7 +244,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>());
+		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), "filters.txt");
 		try
 		{
 			indexBuilderService.Synchronize();
