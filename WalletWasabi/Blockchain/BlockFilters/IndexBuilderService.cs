@@ -339,33 +339,33 @@ public class IndexBuilderService
 			currentIndex = Index;
 		}
 
-		foreach (var filter in currentIndex)
-		{
-			if (found)
-			{
-				filters.Add(filter);
-				if (filters.Count >= count)
-				{
-					break;
-				}
-			}
-			else
-			{
-				if (filter.Header.BlockHash == bestKnownBlockHash)
-				{
-					found = true;
-				}
-			}
-		}
-
 		if (currentIndex.Count == 0)
 		{
-			return (Height.Unknown, Enumerable.Empty<FilterModel>());
+			return (Height.Unknown, []);
 		}
-		else
+
+		// Search for bestKnownBlockHash from last to first
+		var i = currentIndex.Count - 1;
+		for (; i >= 0; i--)
 		{
-			return ((int)currentIndex[^1].Header.Height, filters);
+			if (!currentIndex[i].Header.BlockHash.Equals(bestKnownBlockHash))
+			{
+				continue;
+			}
+
+			found = true;
+			break;
 		}
+
+		if (found && i < currentIndex.Count - 1)
+		{
+			// Populate filters starting from the found index + 1
+			var startIndex = i + 1;
+			var filtersCount = Math.Min(count, currentIndex.Count - startIndex);
+			filters.AddRange(currentIndex.GetRange(startIndex, filtersCount));
+		}
+
+		return (new Height(currentIndex[^1].Header.Height), filters);
 	}
 
 	public FilterModel GetLastFilter()
