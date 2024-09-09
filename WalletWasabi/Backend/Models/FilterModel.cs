@@ -21,12 +21,15 @@ public class FilterModel
 		Header = header;
 		FilterData = filterData;
 		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		_line = new Lazy<string>(ToLineInternal);
 	}
 
 	public SmartHeader Header { get; }
 
 	public byte[] FilterData { get; }
 	public GolombRiceFilter Filter => _filter.Value;
+
+	private readonly Lazy<string> _line;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
 	// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter
@@ -71,6 +74,11 @@ public class FilterModel
 	}
 
 	public string ToLine()
+	{
+		return _line.Value;
+	}
+
+	private string ToLineInternal()
 	{
 		StringBuilder builder = new(capacity: 160);
 		builder.Append(Header.Height);
