@@ -159,7 +159,7 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 	}
 
-	[DefaultValue(true)]
+	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool HideOnClose
 	{
