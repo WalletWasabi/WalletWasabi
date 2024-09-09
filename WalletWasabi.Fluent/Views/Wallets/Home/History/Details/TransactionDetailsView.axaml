@@ -80,10 +80,11 @@
 
       <!-- Status -->
       <PreviewItem Icon="{StaticResource copy_confirmed}"
-                     Label="Status">
+                   Label="Status"
+                   CopyableContent="{Binding BlockHeight}">
         <StackPanel Orientation="Horizontal">
           <Panel>
-            <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+            <TextBlock Text="{Binding BlockHeight, StringFormat='Confirmed at block height {0}'}" IsVisible="{Binding IsConfirmed}" />
             <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
           </Panel>
           <TextBlock IsVisible="{Binding IsConfirmed}" Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
@@ -111,25 +112,6 @@
         <PrivacyContentControl>
           <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
         </PrivacyContentControl>
-      </PreviewItem>
-
-      <Separator IsVisible="{Binding IsConfirmed}" />
-
-      <!-- Block hash -->
-      <PreviewItem Icon="{StaticResource block_id}"
-                     Label="Block hash"
-                     CopyableContent="{Binding BlockHash}"
-                     IsVisible="{Binding IsConfirmed}">
-        <TextBlock Text="{Binding BlockHash}" />
-      </PreviewItem>
-      <Separator IsVisible="{Binding IsConfirmed}" />
-
-      <!-- Block height -->
-      <PreviewItem Icon="{StaticResource block_height}"
-                     Label="Block height"
-                     CopyableContent="{Binding BlockHeight}"
-                     IsVisible="{Binding IsConfirmed}">
-        <TextBlock Text="{Binding BlockHeight}" />
       </PreviewItem>
 
       <!-- Labels -->
