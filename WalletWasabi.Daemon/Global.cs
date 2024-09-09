@@ -256,11 +256,16 @@ public class Global
 
 				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
-				RegisterCoinJoinComponents();
 
-				if (initializeSleepInhibitor)
+				var hasCoordinator = true;
+				if (hasCoordinator)
 				{
-					await CreateSleepInhibitorAsync().ConfigureAwait(false);
+					RegisterCoinJoinComponents();
+
+					if (initializeSleepInhibitor)
+					{
+						await CreateSleepInhibitorAsync().ConfigureAwait(false);
+					}
 				}
 
 				bool useTestApi = Network != Network.Main;

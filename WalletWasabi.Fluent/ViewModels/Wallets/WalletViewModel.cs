@@ -21,6 +21,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -69,7 +70,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Select(x => !x)
 			.BindTo(this, x => x.IsWalletBalanceZero);
 
-		walletModel.Coinjoin.IsRunning
+		walletModel.IsCoinjoinRunning
 			.BindTo(this, x => x.IsCoinJoining);
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
@@ -120,7 +121,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(uiContext, WalletModel, Settings);
+		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
+			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
+			: new NoCoordinatorConfiguredViewModel();
 
 		Tiles = GetTiles().ToList();
 
@@ -161,7 +164,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
-	public CoinJoinStateViewModel CoinJoinStateViewModel { get; private set; }
+	public CoinJoinStateViewModelBase CoinJoinStateViewModel { get; private set; }
 
 	public WalletSettingsViewModel Settings { get; private set; }
 
@@ -250,7 +253,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			new ActionableItem("Receive", "Display wallet receive dialog", () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
-			new ActionableItem("Exclude Coins", "Display exclude coins", () => { CoinJoinStateViewModel.NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
+//			new ActionableItem("Exclude Coins", "Display exclude coins", () => { CoinJoinStateViewModel.NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
 			new ActionableItem("Wallet Coins", "Display wallet coins", () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 6 },
 			new ActionableItem("Wallet Stats", "Display wallet stats", () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 7 },
 			new ActionableItem("Wallet Info", "Display wallet info", () => { WalletInfoCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 8 },

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
@@ -44,6 +45,9 @@ public class ReceiveAddressViewModelTests
 	{
 		public event PropertyChangedEventHandler? PropertyChanged;
 
+		public IObservable<bool> IsCoinjoinRunning { get; } = Observable.Return(true);
+		public IObservable<bool> IsCoinjoinStarted { get; } = Observable.Return(true);
+		public bool IsCoinJoinEnabled { get; } = true;
 		public IAddressesModel Addresses => throw new NotSupportedException();
 
 		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();

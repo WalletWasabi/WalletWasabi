@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -18,14 +19,14 @@ public partial interface IWalletModel : INotifyPropertyChanged;
 [AutoInterface]
 public partial class WalletModel : ReactiveObject
 {
-	private readonly Lazy<IWalletCoinjoinModel> _coinjoin;
+	private readonly Lazy<IWalletCoinjoinModel?> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isLoaded;
 	[AutoNotify] private bool _isSelected;
 
-	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
+	public WalletModel(Wallet wallet,  IAmountProvider amountProvider)
 	{
 		Wallet = wallet;
 		AmountProvider = amountProvider;
@@ -34,7 +35,14 @@ public partial class WalletModel : ReactiveObject
 		Loader = new WalletLoadWorkflow(Wallet);
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
-		_coinjoin = new(() => new WalletCoinjoinModel(Wallet, Settings));
+		_coinjoin = new(() =>
+		{
+			var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+			return coinJoinManager is not null
+				? new WalletCoinjoinModel(Wallet, coinJoinManager, Settings)
+				: null;
+		});
+
 		_coins = new(() => new WalletCoinsModel(wallet, this));
 
 		Transactions = new WalletTransactionsModel(this, wallet);
@@ -76,6 +84,12 @@ public partial class WalletModel : ReactiveObject
 			.BindTo(this, x => x.IsLoaded);
 	}
 
+	public IObservable<bool> IsCoinjoinRunning => _coinjoin.Value?.IsRunning ?? Observable.Return(false);
+
+	public IObservable<bool> IsCoinjoinStarted => _coinjoin.Value?.IsStarted ?? Observable.Return(false);
+
+	public bool IsCoinJoinEnabled => _coinjoin.Value is not null;
+
 	public IAddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }
@@ -104,7 +118,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletPrivacyModel Privacy { get; }
 
-	public IWalletCoinjoinModel Coinjoin => _coinjoin.Value;
+	public IWalletCoinjoinModel? Coinjoin => _coinjoin.Value;
 
 	public IObservable<WalletState> State { get; }
 

@@ -15,8 +15,18 @@ using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+public partial class CoinJoinStateViewModelBase : ViewModelBase
+{
+	[AutoNotify] private bool _isInCriticalPhase;
+	[AutoNotify] private bool _areAllCoinsPrivate;
+}
+
+public partial class NoCoordinatorConfiguredViewModel : CoinJoinStateViewModelBase
+{
+}
+
 [AppLifetime]
-public partial class CoinJoinStateViewModel : ViewModelBase
+public partial class CoinJoinStateViewModel : CoinJoinStateViewModelBase
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
@@ -61,19 +71,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _leftText = "";
 	[AutoNotify] private string _rightText = "";
-	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
-	[AutoNotify] private bool _areAllCoinsPrivate;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, WalletSettingsViewModel settings)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, IWalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
 
-		wallet.Coinjoin.StatusUpdated
+		walletCoinjoinModel.StatusUpdated
 					   .Do(ProcessStatusChange)
 					   .Subscribe();
 
@@ -117,7 +125,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			if (wallet.Settings.IsCoinjoinProfileSelected)
 			{
 				var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
-				await wallet.Coinjoin.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
+				await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
 			}
 		});
 
@@ -127,7 +135,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				x => x.PauseSpreading,
 				(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
-		StopPauseCommand = ReactiveCommand.CreateFromTask(wallet.Coinjoin.StopAsync, stopPauseCommandCanExecute);
+		StopPauseCommand = ReactiveCommand.CreateFromTask(walletCoinjoinModel.StopAsync, stopPauseCommandCanExecute);
 
 		AutoCoinJoinObservable = wallet.Settings.WhenAnyValue(x => x.AutoCoinjoin);
 
@@ -148,7 +156,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(Random.Shared.Next(5, 16)) };
 		_autoCoinJoinStartTimer.Tick += async (_, _) =>
 		{
-			await wallet.Coinjoin.StartAsync(stopWhenAllMixed: false, false);
+			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: false, false);
+
 			_autoCoinJoinStartTimer.Stop();
 		};
 

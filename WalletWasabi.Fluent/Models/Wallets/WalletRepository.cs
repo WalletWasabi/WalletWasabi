@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
