@@ -90,20 +90,20 @@ public abstract class P2pBehavior : NodeBehavior
 
 		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_WTX)))
 		{
-			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, node.RemoteSocketEndpoint.ToString(),  out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
 			{
 				try
 				{
 					var txPayload = new TxPayload(entry.Transaction.Transaction);
 					if (!node.IsConnected)
 					{
-						Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+						Logger.LogDebug($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 					}
 					else
 					{
 						await node.SendMessageAsync(txPayload).ConfigureAwait(false);
-						entry.MakeBroadcasted();
-						Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
+						entry.BroadcastedTo(node.RemoteSocketEndpoint);
+						Logger.LogDebug($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 					}
 				}
 				catch (Exception ex)
