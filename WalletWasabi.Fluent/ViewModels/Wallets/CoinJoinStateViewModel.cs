@@ -15,18 +15,8 @@ using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class CoinJoinStateViewModelBase : ViewModelBase
-{
-	[AutoNotify] private bool _isInCriticalPhase;
-	[AutoNotify] private bool _areAllCoinsPrivate;
-}
-
-public partial class NoCoordinatorConfiguredViewModel : CoinJoinStateViewModelBase
-{
-}
-
 [AppLifetime]
-public partial class CoinJoinStateViewModel : CoinJoinStateViewModelBase
+public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
@@ -71,7 +61,9 @@ public partial class CoinJoinStateViewModel : CoinJoinStateViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _leftText = "";
 	[AutoNotify] private string _rightText = "";
+	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
+	[AutoNotify] private bool _areAllCoinsPrivate;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;

@@ -5,7 +5,7 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
@@ -135,6 +135,9 @@
         </DockPanel>
       </StackPanel>
     </ContentArea.TopContent>
+    <ContentArea.BottomContent>
+      <shell:NoCoordinatorNoticeView DockPanel.Dock="Bottom" HorizontalAlignment="Center" IsVisible="{Binding !IsCoinjoinSupported}" />
+    </ContentArea.BottomContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" Margin="-6 -6 0 0" />
       <history:HistoryTable Name="HistoryTable"

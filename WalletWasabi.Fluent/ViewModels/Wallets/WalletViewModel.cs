@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -21,7 +22,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -38,6 +38,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinjoinSupported;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
 
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
@@ -76,14 +78,28 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
+		this.WhenAnyValue(model => model.CoinJoinStateViewModel).Select(r => r != null)
+			.BindTo(this, x => x.IsCoinjoinSupported);
+
+		this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
+			.BindTo(this, x => x.AreAllCoinsPrivate);
+
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
-				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-				.Select(tuple =>
-				{
-					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
-					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !WalletModel.IsWatchOnlyWallet;
-				});
+			this.WhenAnyValue(
+					x => x.IsSelected,
+					x => x.IsWalletBalanceZero,
+					x => x.AreAllCoinsPrivate,
+					x => x.IsCoinjoinSupported,
+					x => x.IsPointerOver,
+					(isSelected, hasNoBalance, areAllCoinsPrivate, supportsCoinjoin, isPointerOver) =>
+					{
+						return isSelected &&
+						       !hasNoBalance &&
+						       (!areAllCoinsPrivate || isPointerOver) &&
+						       !WalletModel.IsWatchOnlyWallet &&
+						       supportsCoinjoin;
+					})
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler);
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
@@ -123,7 +139,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
 			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
-			: new NoCoordinatorConfiguredViewModel();
+			: null;
 
 		Tiles = GetTiles().ToList();
 
@@ -145,7 +161,20 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
+
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://www.google.com"));
+
+		CoordinatorSettingsCommand = ReactiveCommand.Create(
+			() =>
+			{
+				MainViewModel.Instance.SettingsPage.SelectedTab = 2;
+				Navigate(NavigationTarget.DialogScreen).To(MainViewModel.Instance.SettingsPage);
+			});
 	}
+
+	public ICommand CoordinatorSettingsCommand { get; }
+
+	public ICommand CoordinatorHelpCommand { get; }
 
 	public ICommand BuyCommand { get; set; }
 
@@ -164,7 +193,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
-	public CoinJoinStateViewModelBase CoinJoinStateViewModel { get; private set; }
+	public CoinJoinStateViewModel? CoinJoinStateViewModel { get; private set; }
 
 	public WalletSettingsViewModel Settings { get; private set; }
 

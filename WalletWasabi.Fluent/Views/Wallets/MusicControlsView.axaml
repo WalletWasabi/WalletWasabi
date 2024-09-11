@@ -42,6 +42,7 @@
     </Style>
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
+          IsVisible="{Binding IsCoinjoinSupported}"
           Classes.IsActive="{Binding IsMusicBoxVisible^}"
           TextElement.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
