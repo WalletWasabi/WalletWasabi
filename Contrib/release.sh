@@ -17,8 +17,7 @@ STASH_MESSAGE="Stashed changes for script execution"
 # Check if there are any uncommitted changes
 if [[ -n $(git status --porcelain) ]]; then
   # Stash the changes
-  git stash push -m "$STASH_MESSAGE"
-  echo "Changes stashed."
+  git stash push -m "$STASH_MESSAGE" --quiet
 fi
 
 # Get the latest Git tag
@@ -61,14 +60,14 @@ if [ "$1" = "wininstaller" ]; then
   CREATE_OSX_DMG="no"
 elif [ "$1" = "debian" ]; then
   # Supported platforms
-  PLATFORMS=("linux-x64" "osx-x64" "osx-arm64")
+  PLATFORMS=("linux-x64")
   CREATE_WINDOWS_INSTALLER="no"
   CREATE_DEBIAN_PACKAGE="yes"
   RELEASE_NOTE="no"
   SIGN_PGP="no"
   CREATE_OSX_DMG="no"
 elif [ "$1" = "dmg" ]; then
-  PLATFORMS=("osx-x64")
+  PLATFORMS=("osx-x64" "osx-arm64")
   CREATE_WINDOWS_INSTALLER="no"
   CREATE_DEBIAN_PACKAGE="no"
   RELEASE_NOTE="no"
@@ -157,11 +156,12 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   PACKAGE_FILE_NAME=$PACKAGE_FILE_NAME_PREFIX-$ALTER_PLATFORM
   if [[ "${PLATFORM_PREFIX}" == "lin" ]]; then
     tar -pczvf $PACKAGES_DIR/$PACKAGE_FILE_NAME.tar.gz $OUTPUT_DIR
-  else
-    pushd "$OUTPUT_DIR" || exit
-    $ZIP "$PACKAGES_DIR/$PACKAGE_FILE_NAME.zip" .
-    popd || exit
   fi
+
+  pushd "$OUTPUT_DIR" || exit
+  $ZIP "$PACKAGES_DIR/$PACKAGE_FILE_NAME.zip" .
+  popd || exit
+  
 done
 
 
@@ -181,7 +181,7 @@ mkdir -p $DEBIAN_BIN
 mkdir -p $DEBIAN_USR/share/{applications,icons/hicolor}
 
 # Copy icon files
-for ICON_FILE in "$DESKTOP"/Assets/WasabiLogo*.png; do
+for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
   SIZE=$(echo "$ICON_FILE" | grep -oP '\d+')
   ICON_DIR="$DEBIAN_USR/share/icons/hicolor/${SIZE}x${SIZE}/app"
   mkdir -p "$ICON_DIR"
@@ -305,6 +305,7 @@ if [ "$CREATE_OSX_DMG" = "yes" ]; then
 
 for OSX_ZIP_PACKAGE in $PACKAGES_DIR/Wasabi*macOS*.zip; do
 # Combine paths
+CURRENT_ARCH=$(echo "$OSX_ZIP_PACKAGE" | grep -o 'arm64\|x64')
 ZIP_PACKAGE=$(basename "$OSX_ZIP_PACKAGE")
 OSX_BUILD_DIR="$BUILD_DIR/$ZIP_PACKAGE/osx"
 DMG_PATH="$OSX_BUILD_DIR/dmg"
@@ -318,7 +319,14 @@ APP_NOTARIZE_FILE_PATH="$OSX_ZIP_PACKAGE"
 
 mkdir -p "$APP_RES_PATH"
 
-unzip "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX-macOS-x64.zip" -d "$APP_MACOS_PATH"
+unzip "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX-macOS-$CURRENT_ARCH.zip" -d "$APP_MACOS_PATH"
+
+# Convert x64 to x86_64 for LSArchitecturePriority
+if [ "$CURRENT_ARCH" = "x64" ]; then
+    PLIST_ARCHITECTURE="x86_64"
+else
+    PLIST_ARCHITECTURE="$CURRENT_ARCH"
+fi
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -326,7 +334,7 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <dict>
 	<key>LSArchitecturePriority</key>
 	<array>
-		<string>x86_64</string>
+		<string>$PLIST_ARCHITECTURE</string>
 	</array>
 	<key>CFBundleIconFile</key>
 	<string>WasabiLogo.icns</string>
@@ -382,37 +390,134 @@ echo '
 </dict>
 </plist>' > "$ENTITLEMENTS_PATH"
 
+#Add logo
+cp ./Contrib/Assets/WasabiLogo.icns "$APP_RES_PATH/WasabiLogo.icns"
+cp -r ./Contrib/Assets/.background "$DMG_PATH/.background"
+cp ./Contrib/Assets/.DS_Store.dat "$DMG_PATH/.DS_Store"
+
 # Separate files in wasabi executables, non-wasabi executables (tor, bitcoin and so on) and the rest
 NON_EXECUTABLES=()
 OTHER_EXECUTABLES=()
-WASABI_EXECUTABLES=()
+WASSABEE_EXECUTABLE=()
+WASSABEED_EXECUTABLE=()
 while IFS= read -r -d '' file; do
   # Check if the file is a Mach-O executable
   if file "$file" | grep -q 'Mach-O.* executable'; then
-    if [[ "$file" == *"wassabee"* ]]; then
-      WASABI_EXECUTABLES+=("$file")
-    else
-      OTHER_EXECUTABLES+=("$file")
-    fi
+    case "$(basename "$file")" in
+      "wassabee")
+        WASSABEE_EXECUTABLE+=("$file")
+        ;;
+      "wassabeed")
+        WASSABEED_EXECUTABLE+=("$file")
+        ;;
+      *)
+        OTHER_EXECUTABLES+=("$file")
+        ;;
+    esac
   else
     NON_EXECUTABLES+=("$file")
   fi
 done < <(find "$APP_PATH" -type f -print0)
 
-EXECUTABLES=("${OTHER_EXECUTABLES[@]}" "${WASABI_EXECUTABLES[@]}")
+EXECUTABLES=("${OTHER_EXECUTABLES[@]}" "${WASSABEED_EXECUTABLE[@]}" "${WASSABEE_EXECUTABLE[@]}")
 sudo chmod u+x "${EXECUTABLES[@]}"
 
+CERT_PATH="MacCertificate.cer"
+P12_PATH="MacP12.p12"
+PROFILE_NAME="WasabiNotarize"
+
+KEYCHAIN_NAME="build.keychain-db"
+KEYCHAIN_PATH="$HOME/Library/Keychains/$KEYCHAIN_NAME"
+KEYCHAIN_PASSWORD="hello123"
+
+# Create temporary keychain
+security create-keychain -p ${KEYCHAIN_PASSWORD} ${KEYCHAIN_NAME}
+security set-keychain-settings ${KEYCHAIN_NAME}
+security unlock-keychain -p ${KEYCHAIN_PASSWORD} ${KEYCHAIN_NAME}
+security list-keychains -s ${KEYCHAIN_NAME}
+
+# Import the certificate and private key into the temporary keychain
+security import ${CERT_PATH} -k ${KEYCHAIN_PATH} -T /usr/bin/codesign
+security import ${P12_PATH} -k ${KEYCHAIN_PATH} -P ${MAC_P12_PASSWORD} -T /usr/bin/codesign
+
+# Grant access to the certificate and private key without a prompt
+security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+# Create notary profile
+xcrun notarytool store-credentials ${PROFILE_NAME} --apple-id ${MAC_APPLEID} --team-id ${MAC_TEAMID} --password ${MAC_APPLEPSSWD}
+
 # Signing all files in order (wassabee at the end)
-SIGN_ARGUMENTS="--sign L233B2JQ68 --verbose --force --options runtime --timestamp --entitlements $ENTITLEMENTS_PATH"
+SIGN_ARGUMENTS="--sign ${MAC_TEAMID} --verbose --force --options runtime --timestamp --entitlements $ENTITLEMENTS_PATH"
 ALL_FILES=("${NON_EXECUTABLES[@]}" "${EXECUTABLES[@]}")
 for file in "${ALL_FILES[@]}"; do
   codesign $SIGN_ARGUMENTS "$file"
 done
 
+if ! codesign -dv --verbose=4 "$APP_PATH" 2>&1 | grep -q 'Authority=Developer ID Application: zkSNACKs Ltd.'; then
+    echo "App signing verification failed"
+    security delete-keychain ${KEYCHAIN_NAME}
+    exit 1
+fi
+
 # Notarization
 ditto -c -k --keepParent "$APP_PATH" "$APP_NOTARIZE_FILE_PATH"
 
-xcrun notarytool submit --wait --apple-id "$APPLE_ID" -p "WasabiNotarize" "$APP_NOTARIZE_FILE_PATH"
+xcrun notarytool submit --wait --apple-id "${MAC_APPLEID}" -p "WasabiNotarize" "$APP_NOTARIZE_FILE_PATH"
+
+# Stapling
+spctl -a -t exec -vv "$APP_PATH"
+
+# Verification
+if [ $? -ne 0 ]; then
+  echo "App stapling verification failed"
+  security delete-keychain ${KEYCHAIN_NAME}
+  exit 1
+fi
+
+DMG_ARCH_NAME=""
+if [ "$CURRENT_ARCH" = "arm64" ]; then
+  DMG_ARCH_NAME="-arm64"
+fi
+
+DMG_UNZIPPED_FILE_PATH="$OSX_BUILD_DIR/Wasabi.tmp.dmg"
+DMG_FILE_PATH="$DMG_PATH/$PACKAGE_FILE_NAME_PREFIX$DMG_ARCH_NAME.dmg"
+
+# Create the dmg
+ln -s /Applications "$DMG_PATH"
+hdiutil create "$DMG_UNZIPPED_FILE_PATH" -ov -volname "Wasabi Wallet" -fs HFS+ -srcfolder "$DMG_PATH"
+hdiutil convert "$DMG_UNZIPPED_FILE_PATH" -format UDZO -o "$DMG_FILE_PATH"
+
+codesign $SIGN_ARGUMENTS "$DMG_FILE_PATH"
+
+if ! codesign -dv --verbose=4 "$DMG_FILE_PATH" 2>&1 | grep -q 'Authority=Developer ID Application: zkSNACKs Ltd.'; then
+    echo "DMG signing verification failed"
+    security delete-keychain ${KEYCHAIN_NAME}
+    exit 1
+fi
+
+# Notarization and verification
+if ! xcrun notarytool submit --wait --apple-id "${MAC_APPLEID}" -p "WasabiNotarize" "$DMG_FILE_PATH" | grep -q "Accepted"; then
+    echo "DMG notarization failed"
+    security delete-keychain ${KEYCHAIN_NAME}
+    exit 1
+fi
+
+# Stapling
+xcrun stapler staple "$DMG_FILE_PATH"
+
+# Verify stapling
+xcrun stapler validate "$DMG_FILE_PATH"
+
+if [ $? -ne 0 ]; then
+    echo "DMG stapling verification failed"
+    security delete-keychain ${KEYCHAIN_NAME}
+    exit 1
+fi
+
+security delete-keychain ${KEYCHAIN_NAME}
+
+mv "$DMG_FILE_PATH" "$PACKAGES_DIR"
+
 done
 fi
 

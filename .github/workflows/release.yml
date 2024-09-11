@@ -38,47 +38,81 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+
+    - name: Install WiX Toolset
+      run: |
+        choco install wixtoolset --version=3.14.1 --force
+        choco install 7zip.commandline
+
+    - name: Install Windows SDK
+      run: |
+        choco install windows-sdk-10-version-1903-all
+
+    - name: Set up environment
+      shell: bash
+      env:
+        SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+      run: |
+        echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
+
+    - name: Build Windows Installer
+      shell: bash
+      run: |
+        set -x
+        ./Contrib/release.sh wininstaller
+      env:
+        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+
+    - name: Upload windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: packages-for-windows
+        path: ./packages/*  # Adjust the path to your generated files
+        compression-level: 0
+        if-no-files-found: error
+  macos-packages-and-zips:
+    runs-on: macos-latest
+
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-
-      - name: Install WiX Toolset
-        run: |
-          choco install wixtoolset --version=3.14.1 --force
-          choco install 7zip.commandline
-
-      - name: Install Windows SDK
-        run: |
-          choco install windows-sdk-10-version-1903-all
 
       - name: Set up environment
         shell: bash
         env:
-          SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+          MAC_CER: ${{ secrets.MAC_CER }}
+          MAC_P12: ${{ secrets.MAC_P12 }}
         run: |
-          echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
+          echo "$MAC_CER" | base64 -d > MacCertificate.cer
+          echo "$MAC_P12" | base64 -d > MacP12.p12
 
-      - name: Build Windows Installer
+      - name: Build dmg and zip
         shell: bash
         run: |
           set -x
-          ./Contrib/release.sh wininstaller
+          ./Contrib/release.sh dmg
         env:
-          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+          MAC_TEAMID: ${{ secrets.MAC_TEAMID }}
+          MAC_APPLEID: ${{ secrets.MAC_APPLEID }}
+          MAC_APPLEPSSWD: ${{ secrets.MAC_APPLEPSSWD }}
+          MAC_P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
 
-      - name: Upload windows installer
+      - name: Upload zip & dmg package
         uses: actions/upload-artifact@v4
         with:
-          name: packages-for-windows
-          path: ./packages/*  # Adjust the path to your generated files
+          name: packages-zip-dmg
+          path: ./packages/*
           compression-level: 0
           if-no-files-found: error
 
   sign-all-packages:
     runs-on: ubuntu-latest
-    needs: [debian-package-and-zips, installer-for-windows]
+    needs: [debian-package-and-zips, installer-for-windows, macos-packages-and-zips]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -96,6 +130,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: packages-for-windows
+          path: ./packages
+      - name: Download zip & dmg packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-zip-dmg
           path: ./packages
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
