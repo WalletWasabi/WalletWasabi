@@ -145,7 +145,8 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.MainNetCoordinatorUri,
 					x => x.TestNetCoordinatorUri,
 					x => x.RegTestCoordinatorUri,
-					(_, _, _, _, _) => Unit.Default)
+					x => x.BackendUri,
+					(_, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
