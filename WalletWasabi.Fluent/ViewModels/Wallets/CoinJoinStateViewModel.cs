@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
@@ -64,6 +65,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
 	[AutoNotify] private bool _areAllCoinsPrivate;
+	[AutoNotify] private bool _isCoinjoinSupported;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -176,6 +178,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
 			}
 		});
+
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://www.google.com"));
+
+		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
 
 	private enum State
@@ -208,8 +214,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
 
-	public ICommand NavigateToCoordinatorSettingsCommand { get; }
-
 	public bool IsAutoCoinJoinEnabled => _wallet.Settings.AutoCoinjoin;
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
@@ -221,6 +225,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand PlayCommand { get; }
 
 	public ICommand StopPauseCommand { get; }
+	public ICommand NavigateToCoordinatorSettingsCommand { get; }
+
+	public ICommand CoordinatorHelpCommand { get; }
 
 	private void ConfigureStateMachine()
 	{

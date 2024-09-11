@@ -75,29 +75,31 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		walletModel.IsCoinjoinRunning
 			.BindTo(this, x => x.IsCoinJoining);
 
-		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+		// this.WhenAnyValue(x => x.IsWalletBalanceZero)
+		// 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
 		this.WhenAnyValue(model => model.CoinJoinStateViewModel).Select(r => r != null)
 			.BindTo(this, x => x.IsCoinjoinSupported);
 
-		this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
-			.BindTo(this, x => x.AreAllCoinsPrivate);
+		// this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
+		// 	.BindTo(this, x => x.AreAllCoinsPrivate);
+
+		AreAllCoinsPrivate = false;
+		IsWalletBalanceZero = false;
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(
 					x => x.IsSelected,
 					x => x.IsWalletBalanceZero,
 					x => x.AreAllCoinsPrivate,
-					x => x.IsCoinjoinSupported,
 					x => x.IsPointerOver,
-					(isSelected, hasNoBalance, areAllCoinsPrivate, supportsCoinjoin, isPointerOver) =>
+					(isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver) =>
 					{
+						return true;
 						return isSelected &&
 						       !hasNoBalance &&
 						       (!areAllCoinsPrivate || isPointerOver) &&
-						       !WalletModel.IsWatchOnlyWallet &&
-						       supportsCoinjoin;
+						       !WalletModel.IsWatchOnlyWallet;
 					})
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler);
 
@@ -161,20 +163,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
-
-		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://www.google.com"));
-
-		CoordinatorSettingsCommand = ReactiveCommand.Create(
-			() =>
-			{
-				MainViewModel.Instance.SettingsPage.SelectedTab = 2;
-				Navigate(NavigationTarget.DialogScreen).To(MainViewModel.Instance.SettingsPage);
-			});
 	}
-
-	public ICommand CoordinatorSettingsCommand { get; }
-
-	public ICommand CoordinatorHelpCommand { get; }
 
 	public ICommand BuyCommand { get; set; }
 

@@ -135,9 +135,6 @@
         </DockPanel>
       </StackPanel>
     </ContentArea.TopContent>
-    <ContentArea.BottomContent>
-      <shell:NoCoordinatorNoticeView DockPanel.Dock="Bottom" HorizontalAlignment="Center" IsVisible="{Binding !IsCoinjoinSupported}" />
-    </ContentArea.BottomContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" Margin="-6 -6 0 0" />
       <history:HistoryTable Name="HistoryTable"
