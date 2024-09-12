@@ -121,7 +121,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 
 		var results = await Task.WhenAll(broadcastToNodeTasks).ConfigureAwait(false);
 		var errors = results
-			.Select(r => r.Match(_ => (IsError: false, Error: null), e => (IsError: true, Error: e)))
+			.Select(r => r.Match(_ => (IsError: false, Error: null)!, e => (IsError: true, Error: e)))
 			.Where(x => x.IsError)
 			.Select(x => x.Error)
 			.ToArray();
@@ -154,7 +154,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 
 			var propagationTimeoutTask = Task.Delay(7000);
 			var propagationTask = entry.PropagationConfirmed.Task;
-			var propagationFinishedTask = await Task.WhenAny([ broadcastTimeoutTask, propagationTask]).ConfigureAwait(false);
+			var propagationFinishedTask = await Task.WhenAny([ propagationTimeoutTask, propagationTask]).ConfigureAwait(false);
 
 			if (propagationFinishedTask == propagationTimeoutTask)
 			{
