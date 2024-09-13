@@ -111,6 +111,8 @@ jobs:
           if-no-files-found: error
 
   sign-all-packages:
+    permissions:
+      contents: write # to create GitHub release (softprops/action-gh-release)
     runs-on: ubuntu-latest
     needs: [debian-package-and-zips, installer-for-windows, macos-packages-and-zips]
     steps:
