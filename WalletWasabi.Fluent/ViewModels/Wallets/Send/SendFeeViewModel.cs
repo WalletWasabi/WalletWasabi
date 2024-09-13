@@ -41,29 +41,16 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
-
-		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(ShowAdvancedOptionsAsync);
 	}
 
 	public FeeChartViewModel FeeChart { get; }
-
-	public ICommand AdvancedOptionsCommand { get; }
 
 	private void OnNext()
 	{
 		var blockTarget = FeeChart.CurrentConfirmationTarget;
 		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
 		Services.UiConfig.FeeTarget = (int)blockTarget;
-		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
-	}
-
-	private async Task ShowAdvancedOptionsAsync()
-	{
-		var result = await ShowCustomFeeRateDialogAsync();
-		if (result is { } feeRate && feeRate != FeeRate.Zero)
-		{
-			Close(DialogResultKind.Normal, feeRate);
-		}
+		Close(DialogResultKind.Normal, new FeeRate(FeeChart.CurrentSatoshiPerByte));
 	}
 
 	private async Task<FeeRate?> ShowCustomFeeRateDialogAsync()
