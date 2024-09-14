@@ -42,7 +42,7 @@ public class Global : IDisposable
 
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.sqlite");
 		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 	}
 
