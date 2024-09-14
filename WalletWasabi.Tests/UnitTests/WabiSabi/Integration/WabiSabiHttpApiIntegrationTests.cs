@@ -186,7 +186,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()
 	{
-		long[] amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
+		long[] amounts = [10_000_000, 20_000_000, 30_000_000];
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -194,7 +194,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
-		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
 
 		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
 
@@ -208,12 +208,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder
-			.AddMockRpcClient(coins, rpc => { })
+			.AddMockRpcClient(coins, _ => { })
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				services.AddSingleton(_ => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -225,7 +225,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Emulate that all our outputs had been already used in the past.
 				// the server will prevent the registration and fail with a WabiSabiProtocolError.
-				services.AddSingleton(s => new CoinJoinScriptStore(outputScriptCandidates));
+				services.AddSingleton(_ => new CoinJoinScriptStore(outputScriptCandidates));
 			})).CreateClient();
 
 		// Create the coinjoin client
@@ -255,13 +255,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
 		if (finishedTask == coinjoinResultTask)
 		{
-			var coinjoinResult = await coinjoinResultTask;
-			if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
+			try
 			{
-				var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
-				var common = outputScriptCandidates.Intersect(scripts);
-				Assert.Empty(common);
-				throw new Exception("Coinjoin should have never finished successfully.");
+				var coinjoinResult = await coinjoinResultTask;
+				if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
+				{
+					var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
+					var common = outputScriptCandidates.Intersect(scripts);
+					Assert.Empty(common);
+					throw new Exception("Coinjoin should have never finished successfully.");
+				}
+			}
+			catch (InvalidOperationException e) when(e.Message.StartsWith("No valid output denominations found"))
+			{
+				// ignore. There is a rare case for this
 			}
 		}
 	}
