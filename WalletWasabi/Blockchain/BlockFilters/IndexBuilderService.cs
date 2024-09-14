@@ -317,8 +317,24 @@ public class IndexBuilderService
 		lock (IndexLock)
 		{
 			var filterModels = IndexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
-			var bestHeight = IndexStorage.GetBestHeight();
-			found = filterModels.Count > 0;
+			uint bestHeight;
+			if (filterModels.Count > 0)
+			{
+				bestHeight = (uint)IndexStorage.GetBestHeight();
+				found = true;
+			}
+			else
+			{
+				var lastFilter = GetLastFilter();
+				if (lastFilter is null)
+				{
+					found = false;
+					return (new Height(HeightType.Unknown), []);
+				}
+
+				found = lastFilter.Header.BlockHash == bestKnownBlockHash;
+				bestHeight = lastFilter.Header.Height;
+			}
 			return (new Height(bestHeight), filterModels);
 		}
 	}
