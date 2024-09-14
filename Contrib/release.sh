@@ -296,7 +296,7 @@ rm $PACKAGES_DIR/*.wixpdb
 
 # Sign the installer
 SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/signtool.exe"
-"$SIGNTOOL" sign /debug /d "Wasabi Wallet" /f Certificate.pfx  /p "$SIGNING_CERTIFICATE_PASSWORD" /t http://timestamp.digicert.com /v "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+"$SIGNTOOL" Sign -d 'Wasabi Wallet' -f 'Certificate.pfx'  -p "$SIGNING_CERTIFICATE_PASSWORD" -t 'http://timestamp.digicert.com' -v "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 fi
 
 #------------------------------------------------------------------------------------#
