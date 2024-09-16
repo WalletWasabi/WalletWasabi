@@ -7,8 +7,9 @@ open System
 open System.IO
 open Microsoft.Data.Sqlite
 
-let inputFilePath = "IndexMain.dat"
-let outputDbPath = "IndexMain.sqlite"
+let indexServiceDirectory = Path.Combine (Environment.GetEnvironmentVariable("HOME"), ".walletwasabi/backend/IndexBuilderService")
+let inputFilePath = Path.Combine(indexServiceDirectory, "IndexMain.dat")
+let outputDbPath = Path.Combine(indexServiceDirectory, "IndexMain.sqlite");
 let batchSize = 1000
 
 type Filter = { Height: int; BlockHash: byte[]; Filter: byte[]; BlockTime: int64; PrevBlockHash: byte[] }
@@ -110,10 +111,12 @@ while not reader.EndOfStream do
     totalProcessed <- totalProcessed + 1
 
     if batch.Length = batchSize || reader.EndOfStream then
+        if totalProcessed % 10_000 = 0 then
+            printf "."
         let inserted = insertFiltersBatch conn batch
         totalInserted <- totalInserted + inserted
         batch <- []
 
-printfn $"Completed. Total processed: %d{totalProcessed}, Total inserted: %d{totalInserted}"
+printfn $"\nCompleted. Total processed: %d{totalProcessed}, Total inserted: %d{totalInserted}"
 let maxHeight = getMaxBlockHeight conn
 printfn $"Max Block Height in DB: %d{maxHeight}"

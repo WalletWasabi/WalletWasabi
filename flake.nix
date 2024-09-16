@@ -99,10 +99,18 @@
              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
            '';
         };
+        migrateBackendFilters = {
+           type = "app";
+           program = "${(pkgs.writeShellScript "migrateBackendFilters" ''
+              ${pkgs.dotnetCorePackages.sdk_8_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateBackendFilters.fsx;
+              '')}";
+        };
     in
     {
       packages.x86_64-linux.default = buildBackend;
       packages.x86_64-linux.all = buildEverything;
       devShells.x86_64-linux.default = wasabi-shell;
+
+      apps.x86_64-linux.migrateFilters = migrateBackendFilters;
     };
 }
