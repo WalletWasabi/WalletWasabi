@@ -108,7 +108,7 @@ public class MultipartyTransactionStateTests
 		}
 
 		// Check the distribution of MaxSuggestedAmounts.
-		Assert.Equal(1, histogram[Money.Coins(10_000)]);
+		Assert.Equal(1, histogram[Money.Coins(1_343.75m)]);
 		Assert.Equal(2, histogram[Money.Coins(1000)]);
 		Assert.Equal(4, histogram[Money.Coins(100)]);
 		Assert.Equal(8, histogram[Money.Coins(10)]);
