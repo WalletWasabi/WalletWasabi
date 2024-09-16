@@ -183,7 +183,7 @@ mkdir -p $DEBIAN_USR/share/{applications,icons/hicolor}
 # Copy icon files
 for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
   SIZE=$(echo "$ICON_FILE" | grep -oP '\d+')
-  ICON_DIR="$DEBIAN_USR/share/icons/hicolor/${SIZE}x${SIZE}/app"
+  ICON_DIR="$DEBIAN_USR/share/icons/hicolor/${SIZE}x${SIZE}/apps"
   mkdir -p "$ICON_DIR"
   cp "$ICON_FILE" "$ICON_DIR/$EXECUTABLE_NAME.png"
 done
