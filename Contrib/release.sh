@@ -247,9 +247,9 @@ echo "#!/usr/bin/env sh
 ${INSTALL_DIR}/${EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
 
 # Remove execution to everything except for executables and their wrapper scripts
-sudo chmod -R 0644 ${DEBIAN_BIN}/wasabiwallet
-sudo chmod 0775 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
-sudo chmod 0775 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
+sudo chmod -R 0655 ${DEBIAN_BIN}/wasabiwallet
+sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
+sudo chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 
 # Build the .deb package
 dpkg --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
