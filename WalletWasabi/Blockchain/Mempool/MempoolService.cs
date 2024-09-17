@@ -38,26 +38,26 @@ public class MempoolService
 
 	public bool TrustedNodeMode { get; set; }
 
-	public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
+	public bool TryAddToBroadcastStore(SmartTransaction transaction)
 	{
 		lock (BroadcastStoreLock)
 		{
-			if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash() && x.NodeRemoteSocketEndpoint == nodeRemoteSocketEndpoint))
+			if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash()))
 			{
 				return false;
 			}
 
-			var entry = new TransactionBroadcastEntry(transaction, nodeRemoteSocketEndpoint);
+			var entry = new TransactionBroadcastEntry(transaction);
 			BroadcastStore.Add(entry);
 			return true;
 		}
 	}
 
-	public bool TryGetFromBroadcastStore(uint256 transactionHash, string? nodeRemoteSocketEndpoint, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
+	public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 	{
 		lock (BroadcastStoreLock)
 		{
-			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash && (nodeRemoteSocketEndpoint is null || nodeRemoteSocketEndpoint == x.NodeRemoteSocketEndpoint));
+			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 			return entry is not null;
 		}
 	}
@@ -65,7 +65,7 @@ public class MempoolService
 	public LabelsArray TryGetLabel(uint256 txid)
 	{
 		var label = LabelsArray.Empty;
-		if (TryGetFromBroadcastStore(txid, null, out var entry))
+		if (TryGetFromBroadcastStore(txid, out var entry))
 		{
 			label = entry.Transaction.Labels;
 		}
