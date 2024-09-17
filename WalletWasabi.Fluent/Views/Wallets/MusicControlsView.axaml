@@ -109,11 +109,6 @@
           <Button Classes="plain" IsVisible="{Binding CanNavigateToCoinjoinSettings^}">
             <Button.Flyout>
               <MenuFlyout Placement="Top">
-                <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
-                  <MenuItem.Icon>
-                    <PathIcon Data="{StaticResource settings_general_regular}" />
-                  </MenuItem.Icon>
-                </MenuItem>
                 <MenuItem Header="Coordinator Settings" Command="{Binding NavigateToCoordinatorSettingsCommand}">
                   <MenuItem.Icon>
                     <PathIcon Data="{StaticResource coordinator}" />
