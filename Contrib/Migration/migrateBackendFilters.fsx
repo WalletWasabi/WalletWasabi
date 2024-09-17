@@ -14,7 +14,8 @@ let batchSize = 1000
 
 type Filter = { Height: int; BlockHash: byte[]; Filter: byte[]; BlockTime: int64; PrevBlockHash: byte[] }
 
-let from_str (s: string) = Convert.FromHexString(s) |> Array.rev
+let from_big_endian_str (s: string) = Convert.FromHexString(s) |> Array.rev
+let from_little_endian_str (s: string) = Convert.FromHexString(s)
 
 let createDatabaseIfNotExists (path: string) =
     if not (File.Exists(path)) then
@@ -82,9 +83,9 @@ let processLine (line: string) =
     let parts = line.Split(':')
     {
         Height = int parts.[0]
-        BlockHash = from_str parts.[1]
-        Filter = from_str parts.[2]
-        PrevBlockHash = from_str parts.[3]
+        BlockHash = from_big_endian_str parts.[1]
+        Filter = from_little_endian_str parts.[2]
+        PrevBlockHash = from_big_endian_str parts.[3]
         BlockTime = int64 parts.[4]
     }
 
