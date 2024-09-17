@@ -243,6 +243,28 @@ public class BlockFilterSqliteStorage : IDisposable
 		return true;
 	}
 
+	/// <summary>
+	/// Removes the filters with higher height than <paramref name="height"/>.
+	/// </summary>
+	/// <param name="height">Minimum block height of the last block to remove (exclusive).</param>
+	public IEnumerable<FilterModel> RemoveNewerThan(uint height)
+	{
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = "DELETE FROM filter WHERE block_height > $block_height RETURNING *";
+		command.Parameters.AddWithValue("$block_height", height);
+
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		List<FilterModel> removedFilters = [];
+
+		while (reader.Read())
+		{
+			removedFilters.Add(ReadRow(reader));
+		}
+
+		return removedFilters;
+	}
+
 	private FilterModel ReadRow(SqliteDataReader reader)
 	{
 		uint blockHeight = (uint)reader.GetInt64(ordinal: 0);
