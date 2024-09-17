@@ -366,10 +366,10 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			return;
 		}
 
-		uint batchSize = 25;
+		uint deleteAllUnderHeight = 550000;
+		uint batchSize = 100;
 		byte referenceByte = 253;
 		uint lastHeightPotentiallyAffected = 861657;
-		var deleteAllUnderHeight = 550000;
 		var falsePositives = new Dictionary<uint, byte[]>()
 		{
 			#region falsePositives
@@ -441,31 +441,36 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			#endregion
 		};
 
-		// If corrupted it must be before 861657.
-		uint lastBatchToTest = (uint) Math.Min(IndexStorage.GetBestHeight(), lastHeightPotentiallyAffected) - batchSize + 1;
-		uint currentHeight = StartingFilters.GetStartingFilter(Network.Main).Header.Height;
+		var bestHeight = IndexStorage.GetBestHeight();
 
-		if (lastBatchToTest < currentHeight)
+		if(bestHeight == StartingFilters.GetStartingFilter(Network.Main).Header.Height)
 		{
-			// Index is fresh.
+			// Empty filters
 			return;
 		}
+
+		if(bestHeight <= deleteAllUnderHeight)
+		{
+			// It is not worth it to try to estimate when there are that few filters, just delete them.
+			// This will be really few users and those filters almost have no data anyway.
+			Logger.LogWarning("Refreshing filters because they are potentially corrupted (wrong endian).");
+			DeleteIndex(NewIndexFilePath);
+			IndexStorage = CreateBlockFilterSqliteStorage();
+			return;
+		}
+
+		uint lastBatchToTest = (uint) Math.Min(bestHeight, lastHeightPotentiallyAffected) - batchSize + 1;
+		uint currentHeight = StartingFilters.GetStartingFilter(Network.Main).Header.Height;
 
 		while (true)
 		{
 			var batch = IndexStorage.Fetch(currentHeight, (int)batchSize).ToList();
 
-			// Almost all correct filters starts with byte "253".
-			// So a filter is affected if it doesn't start with "253" but ends with "253", so that the endian was reversed, except
-			// for one of the 183 false positives that either have "253" at both start and end either have naturally "253" at the end.
-			// For some reason, a natural filter with byte "253" at the end is extremely rare, ~30 occurences.
 			var foundInvalid = batch.Any(x => x.FilterData[^1] == referenceByte &&
-			                                  x.FilterData[0] != referenceByte &&
 			                                  !falsePositives.ContainsKey(x.Header.Height));
 
 			if (!foundInvalid)
 			{
-				// No invalid filter in this batch, continue or stop if it's the end.
 				if (currentHeight == lastBatchToTest)
 				{
 					break;
@@ -475,42 +480,20 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			}
 
 			var firstInvalidHeight = batch.Min(x => x.Header.Height);
-			if (firstInvalidHeight <= deleteAllUnderHeight)
+
+			if(firstInvalidHeight <= deleteAllUnderHeight)
 			{
-				// Very old filters rarely with byte "253" so we have to delete everything if we find a really old invalid filter.
-				// It seems risky but it's not, because some old filters are end with "253" so it ensures correctness of the algo.
-				// The rule is followed starting height ~510.000, so 550.000 is more than required
-				Logger.LogWarning($"Old filter ({firstInvalidHeight}) corrupted (wrong endian), deleting all the Index.");
+				// A really old filter is invalid, better to delete everything
+				Logger.LogWarning($"A really old filter is corrupted ({firstInvalidHeight}), better to delete the index.");
 				DeleteIndex(NewIndexFilePath);
 				IndexStorage = CreateBlockFilterSqliteStorage();
 				return;
 			}
+			Logger.LogWarning($"Filter ({firstInvalidHeight}) corrupted (wrong endian), deleting Index from {firstInvalidHeight - batchSize}.");
 
-			Logger.LogWarning($"Filter ({firstInvalidHeight}) corrupted (wrong endian), deleting Index from there.");
-			IndexStorage.RemoveNewerThan(batch.Min(x => x.Header.Height));
+			// batchSize is an extra probabilistic security.
+			IndexStorage.RemoveNewerThan(firstInvalidHeight - batchSize);
 			break;
-		}
-
-		// This loop handles the case where a false positive filter is invalid, as we don't test them in the first loop.
-		// Because some filters have byte 253 both at start and at the end, we have to check a few bytes.
-		foreach (var falsePositiveReal in falsePositives)
-		{
-			var falsePositiveLocalList = IndexStorage.Fetch(falsePositiveReal.Key, 1).ToList();
-			if (falsePositiveLocalList.Count == 0)
-			{
-				// Nothing higher.
-				break;
-			}
-
-			var falsePositiveLocal = falsePositiveLocalList.First();
-			for (int i = 1; i < falsePositiveReal.Value.Length; i++)
-			{
-				if (falsePositiveLocal.FilterData[i + 1] != falsePositiveReal.Value[i])
-				{
-					Logger.LogWarning($"Filter ({falsePositiveLocal.Header.Height}) corrupted (wrong endian), deleting Index from there.");
-					IndexStorage.RemoveNewerThan(falsePositiveLocal.Header.Height);
-				}
-			}
 		}
 	}
 
