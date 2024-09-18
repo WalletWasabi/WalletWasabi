@@ -1,31 +1,32 @@
 ## Release Highlights
-🔒 Set minimum coinjoin input count
-🔒 Stricter absolute limits for maximum coinjoin mining fee rate and minimum coinjoin input count
-🔒 Prevent solo coinjoining
-👀 Coordinator Connection String
-👀 Advanced send Workflow
+
+🥕 Taproot receive addresses
+🚀 Faster transaction broadcasting
+⏫ More accurate CPFP fee estimation
+📉 Safer protocol
+
 ## Release Summary
 
-Wasabi Wallet v2.1.0.0 adds safeguards for coinjoin participants.
-Clients can now set their own policies regarding minimum input count and maximum coordination fee to protect from malicious coordinators which tries to charge more than they announce.
+Wasabi Wallet v2.2.0.0 release
 
-### Apply coinjoin coordination policies to all rounds:
+This version of Wasabi is full of extra features, improvements, and fixes. Here’s what got updated in today’s release:
 
-It was possible for a malicious coordinator to bypass the client policies for blame round and set different coordination fees for those.
-v2.1.0.0 fixes this issue by enforcing the policies to blame rounds too.
+🥕 Taproot receive addresses
 
-### Stricter safeguards:
+Users can now choose taproot when generating a new receiving address. Spending a taproot input is 16% cheaper compared to spending a native segwit input. Users aren’t the only ones that benefit - Bitcoin nodes can verify taproot’s signatures faster than legacy ones, so the entire network gets a little speed boost.
 
-Wasabi clients use more restrictive policies that guarantee that even in presence of a malicious coordinator, the risk of losing money is mitigated. These are: absolute maximum coordination fee rate changed from 0.01 to 0.005, absolute minimum input count changed from 2 to 5.
+🚀 Faster transaction broadcasting
 
-### Prevent signing coinjoin where there is only one participant:
+Spending your coins is not only cheaper in this release, it’s also faster! Transactions are now broadcast to multiple nodes in parallel (through the Tor network) and fail more quickly if the transaction is invalid. Users who upgrade will notice it now takes half as long to send their coins.
 
-A malicious coordinator could set the minimum input count as a very low number to create coinjoins where all the inputs belong to the same user. In v2.1.0.0 clients don't sign transaction where there are no other participants.
+⏫ More accurate CPFP fee estimation
 
-### Coordinator Connection String
+The CPFP feature now takes into account the fee paid by the parent transaction. In previous releases, the child transaction assumed the parent paid 0 sats in fees. This improvement will be especially significant in high-fee environments, where the CPFP feature is most useful!
 
-Changing coordinator has never been easier! Coordinators can create a connection string that once in the clipboard will be recognized by Wasabi and allow the client to be quickly configured to coinjoin with it.
+📉 Safer protocol
 
-### Advanced send Workflow
+In order to avoid introducing unknown incentives and to limit risk to users, the coordination fee concept has been removed. Free to use coinjoin coordinators are supported.
 
-The sending whole coin feature has been replaced by a new Manual Control feature to allow users to specify which coins can be used for sending.
+🪲 Backend optimizations
+
+ Users who run a Wasabi backend can now do so with a pruned node and significant CPU/RAM savings. This makes hosting a backend much cheaper and helps to decentralize this component which Wasabi clients still depend on.
