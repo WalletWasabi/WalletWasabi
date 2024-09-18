@@ -3,37 +3,50 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- Define main product. -->
   <Product
-    Id="*"
-    Name="!(loc.ProductName)"
-    Language="!(loc.Language)"
-    Version="$(var.BuildVersion)"
-    Manufacturer="!(loc.Company)"
-    UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
+          Id="*"
+          Name="!(loc.ProductName)"
+          Language="!(loc.Language)"
+          Version="$(var.BuildVersion)"
+          Manufacturer="!(loc.Company)"
+          UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
 
     <!-- Provide package details. -->
     <Package
-      InstallerVersion="200"
-      Compressed="yes"
-      InstallScope="perMachine"
-      Platform = "x64"
-      Manufacturer="!(loc.Company)"
-      Description="!(loc.Description)"
-      Keywords="!(loc.Keywords)"
-      Comments="!(loc.Comments)"
-      Languages="!(loc.Language)" />
+            InstallerVersion="200"
+            Compressed="yes"
+            InstallScope="perMachine"
+            Platform = "x64"
+            Manufacturer="!(loc.Company)"
+            Description="!(loc.Description)"
+            Keywords="!(loc.Keywords)"
+            Comments="!(loc.Comments)"
+            Languages="!(loc.Language)" />
 
-    <Property Id="REINSTALLMODE" Value="amus" />
     <!-- Downgrade error message. https://wixtoolset.org/documentation/manual/v3/xsd/wix/majorupgrade.html -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." AllowSameVersionUpgrades="yes" />
+    <MajorUpgrade
+            DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+            AllowSameVersionUpgrades="yes"
+            IgnoreRemoveFailure="yes" />
+
+    <!-- Upgrade: Define version range to be detected for upgrade -->
+    <Upgrade Id="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
+      <UpgradeVersion
+              OnlyDetect="no"
+              Property="PREVIOUSVERSIONSINSTALLED"
+              Minimum="2.0.0.0"
+              IncludeMinimum="yes"
+              Maximum="$(var.BuildVersion)"
+              IncludeMaximum="no" />
+    </Upgrade>
 
     <!-- Include .cab file into the .msi file. -->
     <MediaTemplate
-      EmbedCab="yes" />
+            EmbedCab="yes" />
 
     <!-- Define main app icon. -->
     <Icon
-      Id="icon.ico"
-      SourceFile="$(var.DesktopProjectDir)\Assets\WasabiLogo.ico" />
+            Id="icon.ico"
+            SourceFile="$(var.DesktopProjectDir)\Assets\WasabiLogo.ico" />
 
     <!-- Add/Remove programs: https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/add-or-remove-programs-entries/ -->
     <!-- any comments -->
@@ -51,29 +64,35 @@
     <UI>
       <UIRef Id="WixUI_InstallDir" />
       <Publish Dialog="WelcomeDlg"
-            Control="Next"
-            Event="NewDialog"
-            Value="VerifyReadyDlg"
-            Order="99">1</Publish>
+               Control="Next"
+               Event="NewDialog"
+               Value="VerifyReadyDlg"
+               Order="99">1</Publish>
       <Publish Dialog="VerifyReadyDlg"
-            Control="Back"
-            Event="NewDialog"
-            Value="WelcomeDlg"
-            Order="99">1</Publish>
+               Control="Back"
+               Event="NewDialog"
+               Value="WelcomeDlg"
+               Order="99">1</Publish>
       <Publish Dialog="ExitDialog"
-            Control="Finish"
-            Event="DoAction"
-            Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+               Control="Finish"
+               Event="DoAction"
+               Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
     </UI>
 
     <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for helping the world staying private." />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Wasabi Wallet" />
-    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]wassabee.exe" />
+    <Property Id="WixShellExecTarget" Value="wassabee.exe" />
+
+    <CustomAction Id="SetWixShellExecTarget" Property="WixShellExecTarget" Value="[INSTALLFOLDER]wassabee.exe" />
+
+    <InstallExecuteSequence>
+      <Custom Action="SetWixShellExecTarget" After="CostFinalize" />
+    </InstallExecuteSequence>
 
     <CustomAction Id="LaunchApplication"
-        BinaryKey="WixCA"
-        DllEntry="WixShellExec"
-        Impersonate="yes" />
+                  BinaryKey="WixCA"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes" />
 
     <!-- Define components, shortcuts, files, etc... for installer. -->
     <Feature Id="ProductFeature" Title="Wasabi" Level="1">
