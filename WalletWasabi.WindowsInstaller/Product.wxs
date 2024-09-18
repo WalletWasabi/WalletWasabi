@@ -81,14 +81,8 @@
 
     <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for helping the world staying private." />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Wasabi Wallet" />
-    <Property Id="WixShellExecTarget" Value="wassabee.exe" />
 
-    <CustomAction Id="SetWixShellExecTarget" Property="WixShellExecTarget" Value="[INSTALLFOLDER]wassabee.exe" />
-
-    <InstallExecuteSequence>
-      <Custom Action="SetWixShellExecTarget" After="CostFinalize" />
-    </InstallExecuteSequence>
-
+    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]wassabee.exe" />
     <CustomAction Id="LaunchApplication"
                   BinaryKey="WixCA"
                   DllEntry="WixShellExec"
