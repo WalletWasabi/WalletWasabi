@@ -121,11 +121,6 @@
                         <PathIcon Data="{StaticResource coordinator}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinStateViewModel.NavigateToSettingsCommand}">
-                      <MenuItem.Icon>
-                        <PathIcon Data="{StaticResource settings_general_regular}" />
-                      </MenuItem.Icon>
-                    </MenuItem>
                     <MenuItem Header="Exclude Coins" Command="{Binding CoinJoinStateViewModel.NavigateToExcludedCoinsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource exclude_coins}" />

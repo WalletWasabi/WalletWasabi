@@ -51,14 +51,16 @@ public class BlockFilterSqliteStorage : IDisposable
 			using (SqliteCommand createCommand = connection.CreateCommand())
 			{
 				createCommand.CommandText = """
-					CREATE TABLE IF NOT EXISTS filter (
-						block_height INTEGER NOT NULL PRIMARY KEY,
-						block_hash BLOB NOT NULL,
-						filter_data BLOB NOT NULL,
-						previous_block_hash BLOB NOT NULL,
-						epoch_block_time INTEGER NOT NULL
-					)
-					""";
+				                            CREATE TABLE IF NOT EXISTS filter (
+				                               block_height INTEGER NOT NULL PRIMARY KEY,
+				                               block_hash BLOB NOT NULL,
+				                               filter_data BLOB NOT NULL,
+				                               previous_block_hash BLOB NOT NULL,
+				                               epoch_block_time INTEGER NOT NULL
+				                            );
+				                            CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
+				                            CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
+				                            """;
 				createCommand.ExecuteNonQuery();
 			}
 
@@ -136,6 +138,37 @@ public class BlockFilterSqliteStorage : IDisposable
 	}
 
 	/// <summary>
+	/// Returns <paramref name="n"/> filters after <paramref name="blockHash"/> in height.
+	/// Returns empty enumerable if <paramref name="blockHash"/> is not found
+	/// </summary>
+	public IEnumerable<FilterModel> FetchNewerThanBlockHash(uint256 blockHash, int n)
+	{
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = """
+		                      WITH target_block AS (
+		                          SELECT block_height
+		                          FROM filter
+		                          WHERE block_hash = $blockHash
+		                      )
+		                      SELECT *
+		                      FROM filter
+		                      WHERE block_height > (SELECT block_height FROM target_block)
+		                      ORDER BY block_height ASC
+		                      LIMIT $n;
+		                      """;
+		command.Parameters.AddWithValue("$blockHash", blockHash.ToBytes(lendian: true));
+		command.Parameters.AddWithValue("$n", n);
+
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		while (reader.Read())
+		{
+			FilterModel filter = ReadRow(reader);
+			yield return filter;
+		}
+	}
+
+	/// <summary>
 	/// Returns last <paramref name="n"/> filters from the database table.
 	/// </summary>
 	public IEnumerable<FilterModel> FetchLast(int n)
@@ -152,6 +185,19 @@ public class BlockFilterSqliteStorage : IDisposable
 			yield return filter;
 		}
 	}
+
+
+	public int GetBestHeight()
+	{
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = "SELECT MAX(block_height) FROM filter";
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		return reader.Read() ?
+			reader.GetInt32(0) :
+			0;
+	}
+
 
 	/// <summary>
 	/// Removes the filter with the highest height from the database table.

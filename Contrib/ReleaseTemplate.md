@@ -1,22 +1,20 @@
-### _[Wasabi Wallet](https://WasabiWallet.io) is an easy to use, privacy-focused, open-source, non-custodial, Bitcoin wallet_
+### _[Wasabi Wallet](https://wasabiwallet.io) is an easy to use, privacy-focused, open-source, non-custodial, Bitcoin wallet._
 
 # Download
-:window: [Windows](https://github.com/WalletWasabi/WalletWasabi/releases/download/v2.0.x/Wasabi-2.0.x.msi)
-:green_apple: [Apple M1/M2](https://github.com/WalletWasabi/WalletWasabi/releases/download/v2.0.x/Wasabi-2.0.x-arm64.dmg)
-:apple: [Apple Intel](https://github.com/WalletWasabi/WalletWasabi/releases/download/v2.0.x/Wasabi-2.0.x.dmg)
-:penguin: [Ubuntu / Debian](https://github.com/WalletWasabi/WalletWasabi/releases/download/v2.0.x/Wasabi-2.0.x.deb)
-:penguin: [Other Linux](https://github.com/WalletWasabi/WalletWasabi/releases/download/v2.0.x/Wasabi-2.0.x.tar.gz)
+:window: [Windows](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.msi)
+:green_apple: [Apple M1/M2](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}-arm64.dmg)
+:apple: [Apple Intel](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.dmg)
+:penguin: [Ubuntu / Debian](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.deb)
+:penguin: [Other Linux](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.tar.gz)
 
 ---
-## Release Highlights
 
-## Release Summary
-
-Read the [related blog](https://blog.wasabiwallet.io/) for more information.
+{highlights}
 
 ---
+
 ## Installation Guide
-Download the operating system relevant software package and install Wasabi like you would with any other software on your computer. 
+Download the operating system relevant software package and install Wasabi like you would with any other software on your computer.
 For a detailed installation guide, including **signature verification**, see [the documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html).
 
 ## Documentation
@@ -38,5 +36,3 @@ Wasabi uses [reproducible builds](https://reproducible-builds.org/), which you c
 - Fedora 37+
 - Debian 11+
 ---
-
-## Full Changelog

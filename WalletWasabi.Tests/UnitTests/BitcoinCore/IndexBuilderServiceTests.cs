@@ -28,13 +28,14 @@ public class IndexBuilderServiceTests
 			}),
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 	}
 
 	[Fact]
@@ -55,13 +56,14 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
 	}
 
@@ -94,7 +96,7 @@ public class IndexBuilderServiceTests
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter.Header.Height);
+		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 	}
 
@@ -182,13 +184,14 @@ public class IndexBuilderServiceTests
 			}),
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 	}
 
 	[Fact]
@@ -209,13 +212,14 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
 	}
 
@@ -248,7 +252,7 @@ public class IndexBuilderServiceTests
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter.Header.Height);
+		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 	}
 

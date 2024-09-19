@@ -1,3 +1,4 @@
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -20,6 +21,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
+	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private double? _amountDiff;
 	[AutoNotify] private double? _feeDiff;
 
@@ -53,6 +55,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
+		FeeRate = info.FeeRate;
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

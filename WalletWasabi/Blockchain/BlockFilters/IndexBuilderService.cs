@@ -1,10 +1,10 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
@@ -41,31 +42,12 @@ public class IndexBuilderService
 
 		IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
 
-		// Testing permissions.
-		using (var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+		if (RpcClient.Network == Network.RegTest && File.Exists(IndexFilePath))
 		{
+			File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 		}
 
-		if (File.Exists(IndexFilePath))
-		{
-			if (RpcClient.Network == Network.RegTest)
-			{
-				File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
-			}
-			else
-			{
-				ImmutableList<FilterModel>.Builder builder = ImmutableList.CreateBuilder<FilterModel>();
-
-				foreach (var line in File.ReadAllLines(IndexFilePath))
-				{
-					var filter = FilterModel.FromLine(line);
-					builder.Add(filter);
-				}
-
-				Index = builder.ToImmutableList();
-			}
-		}
-
+		IndexStorage = CreateBlockFilterSqliteStorage();
 		BlockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
@@ -74,7 +56,7 @@ public class IndexBuilderService
 	private IRPCClient RpcClient { get; }
 	private BlockNotifier BlockNotifier { get; }
 	private string IndexFilePath { get; }
-	private ImmutableList<FilterModel> Index { get; set; } = ImmutableList<FilterModel>.Empty;
+	private BlockFilterSqliteStorage IndexStorage { get; set; }
 
 	/// <remarks>Guards <see cref="Index"/>.</remarks>
 	private object IndexLock { get; } = new();
@@ -84,6 +66,21 @@ public class IndexBuilderService
 	public DateTimeOffset LastFilterBuildTime { get; set; }
 
 	private RpcPubkeyType[] PubKeyTypes { get; } = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
+
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
+	{
+		try
+		{
+			return BlockFilterSqliteStorage.FromFile(dataSource: IndexFilePath, startingFilter: StartingFilters.GetStartingFilter(RpcClient.Network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{IndexFilePath}'.");
+
+			File.Delete(IndexFilePath);
+			throw;
+		}
+	}
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -127,14 +124,11 @@ public class IndexBuilderService
 						{
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-							FilterModel? lastIndexFilter = null;
+							FilterModel? lastIndexFilter;
 
 							lock (IndexLock)
 							{
-								if (Index.Count != 0)
-								{
-									lastIndexFilter = Index[^1];
-								}
+								lastIndexFilter = GetLastFilter();
 							}
 
 							uint currentHeight;
@@ -190,7 +184,7 @@ public class IndexBuilderService
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
-								await ReorgOneAsync().ConfigureAwait(false);
+								ReorgOne();
 
 								// Skip the current block.
 								continue;
@@ -201,11 +195,9 @@ public class IndexBuilderService
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
 
-							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
-
 							lock (IndexLock)
 							{
-								Index = Index.Add(filterModel);
+								IndexStorage.TryAppend(filterModel);
 							}
 
 							// If not close to the tip, just log debug.
@@ -289,22 +281,15 @@ public class IndexBuilderService
 		return scripts;
 	}
 
-	private async Task ReorgOneAsync()
+	private void ReorgOne()
 	{
-		// 1. Rollback index.
-		uint256 blockHash;
-
 		lock (IndexLock)
 		{
-			blockHash = Index[^1].Header.BlockHash;
-			Index = Index.RemoveAt(Index.Count - 1);
+			if(IndexStorage.TryRemoveLast(out var removedFilter))
+			{
+				Logger.LogInfo($"REORG invalid block: {removedFilter.Header.BlockHash}");
+			}
 		}
-
-		Logger.LogInfo($"REORG invalid block: {blockHash}");
-
-		// 2. Serialize Index. (Remove last line.)
-		var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
-		await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task<SyncInfo> GetSyncInfoAsync()
@@ -329,50 +314,37 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
-		found = false; // Only build the filter list from when the known hash is found.
-		var filters = new List<FilterModel>();
-
-		ImmutableList<FilterModel> currentIndex;
-
 		lock (IndexLock)
 		{
-			currentIndex = Index;
-		}
-
-		if (currentIndex.Count == 0)
-		{
-			return (Height.Unknown, []);
-		}
-
-		// Search for bestKnownBlockHash from last to first
-		var i = currentIndex.Count - 1;
-		for (; i >= 0; i--)
-		{
-			if (!currentIndex[i].Header.BlockHash.Equals(bestKnownBlockHash))
+			var filterModels = IndexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
+			uint bestHeight;
+			if (filterModels.Count > 0)
 			{
-				continue;
+				bestHeight = (uint)IndexStorage.GetBestHeight();
+				found = true;
 			}
+			else
+			{
+				var lastFilter = GetLastFilter();
+				if (lastFilter is null)
+				{
+					found = false;
+					return (new Height(HeightType.Unknown), []);
+				}
 
-			found = true;
-			break;
+				found = lastFilter.Header.BlockHash == bestKnownBlockHash;
+				bestHeight = lastFilter.Header.Height;
+			}
+			return (new Height(bestHeight), filterModels);
 		}
-
-		if (found && i < currentIndex.Count - 1)
-		{
-			// Populate filters starting from the found index + 1
-			var startIndex = i + 1;
-			var filtersCount = Math.Min(count, currentIndex.Count - startIndex);
-			filters.AddRange(currentIndex.GetRange(startIndex, filtersCount));
-		}
-
-		return (new Height(currentIndex[^1].Header.Height), filters);
 	}
 
-	public FilterModel GetLastFilter()
+	public FilterModel? GetLastFilter()
 	{
 		lock (IndexLock)
 		{
-			return Index[^1];
+			var lastFilterList = IndexStorage.FetchLast(1).ToList();
+			return lastFilterList.Count == 0 ? null : lastFilterList[0];
 		}
 	}
 

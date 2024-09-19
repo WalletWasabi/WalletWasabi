@@ -1,0 +1,162 @@
+name: Build and Upload packages for release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags that start with 'v'
+
+jobs:
+  debian-package-and-zips:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run bash script
+        run: sudo bash -x ./Contrib/release.sh debian
+
+      - name: Upload debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-for-debian
+          path: ./packages/*.deb  # Adjust the path to your generated files
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload zip & tar package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-zip-tar
+          path: |
+            ./packages/*
+            !./packages/*.deb
+          compression-level: 0
+          if-no-files-found: error
+
+  installer-for-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+
+    - name: Install WiX Toolset
+      run: |
+        choco install wixtoolset --version=3.14.1 --force
+        choco install 7zip.commandline
+
+    - name: Install Windows SDK
+      run: |
+        choco install windows-sdk-10-version-1903-all
+
+    - name: Set up environment
+      shell: bash
+      env:
+        SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+      run: |
+        echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
+
+    - name: Build Windows Installer
+      shell: bash
+      run: |
+        set -x
+        ./Contrib/release.sh wininstaller
+      env:
+        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+
+    - name: Upload windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: packages-for-windows
+        path: ./packages/*  # Adjust the path to your generated files
+        compression-level: 0
+        if-no-files-found: error
+  macos-packages-and-zips:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up environment
+        shell: bash
+        env:
+          MAC_CER: ${{ secrets.MAC_CER }}
+          MAC_P12: ${{ secrets.MAC_P12 }}
+        run: |
+          echo "$MAC_CER" | base64 -d > MacCertificate.cer
+          echo "$MAC_P12" | base64 -d > MacP12.p12
+
+      - name: Build dmg and zip
+        shell: bash
+        run: |
+          set -x
+          ./Contrib/release.sh dmg
+        env:
+          MAC_TEAMID: ${{ secrets.MAC_TEAMID }}
+          MAC_APPLEID: ${{ secrets.MAC_APPLEID }}
+          MAC_APPLEPSSWD: ${{ secrets.MAC_APPLEPSSWD }}
+          MAC_P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
+
+      - name: Upload zip & dmg package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-zip-dmg
+          path: ./packages/*
+          compression-level: 0
+          if-no-files-found: error
+
+  sign-all-packages:
+    permissions:
+      contents: write # to create GitHub release (softprops/action-gh-release)
+    runs-on: ubuntu-latest
+    needs: [debian-package-and-zips, installer-for-windows, macos-packages-and-zips]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download package for Debian
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-for-debian
+          path: ./packages
+      - name: Download compressed packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-zip-tar
+          path: ./packages
+      - name: Download windows packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-for-windows
+          path: ./packages
+      - name: Download zip & dmg packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-zip-dmg
+          path: ./packages
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.SIGNING_PGP_KEY }}
+          passphrase: ${{ secrets.SIGNING_PGP_PASSPHRASE }}
+      - name: PGP and Wasabi signing
+        shell: bash
+        env:
+          SIGNING_WASABI_KEY: ${{ secrets.SIGNING_WASABI_KEY }}
+        run: bash -x ./Contrib/release.sh gpgsign
+      - name: List downloaded files
+        run: ls -l ./packages
+      - name: Create release note
+        run: bash -x ./Contrib/release.sh releasenote > ReleaseNote.md
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Wasabi Wallet ${{ github.ref_name }}
+          files: ./packages/*
+          body_path: ReleaseNote.md
+          generate_release_notes: true
+          draft: true
