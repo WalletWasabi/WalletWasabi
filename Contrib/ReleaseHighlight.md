@@ -4,6 +4,7 @@
 🚀 Faster transaction broadcasting
 ⏫ More accurate CPFP fee estimation
 📉 Safer protocol
+🪲 Backend optimizations
 
 ## Release Summary
 
