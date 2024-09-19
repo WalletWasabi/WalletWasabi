@@ -179,7 +179,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://www.google.com"));
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
 
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
