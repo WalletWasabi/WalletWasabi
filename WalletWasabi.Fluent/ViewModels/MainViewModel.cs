@@ -191,7 +191,7 @@ public partial class MainViewModel : ViewModelBase
 	{
 		UiContext.WalletRepository.Wallets
 			.Connect()
-			.FilterOnObservable(x => x.Coinjoin.IsRunning)
+			.FilterOnObservable(x => x.IsCoinjoinRunning)
 			.ToCollection()
 			.Select(x => x.Count != 0)
 			.BindTo(this, x => x.IsCoinJoinActive);

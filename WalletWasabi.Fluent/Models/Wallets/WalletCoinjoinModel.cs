@@ -18,21 +18,24 @@ public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
 	private readonly IWalletSettingsModel _settings;
-	private CoinJoinManager _coinJoinManager;
+	private CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
-	public WalletCoinjoinModel(Wallet wallet, IWalletSettingsModel settings)
+	public WalletCoinjoinModel(Wallet wallet, CoinJoinManager? coinjoinManager, IWalletSettingsModel settings)
 	{
 		_wallet = wallet;
 		_settings = settings;
-		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
+		_coinJoinManager = coinjoinManager;
 
-		StatusUpdated =
-			Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
-					  .Where(x => x.EventArgs.Wallet == wallet)
-					  .Select(x => x.EventArgs)
-					  .Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
-					  .ObserveOn(RxApp.MainThreadScheduler);
+		StatusUpdated = _coinJoinManager is { }
+			? Observable
+				.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
+				.Where(x => x.EventArgs.Wallet == wallet)
+				.Select(x => x.EventArgs)
+				.Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs
+					or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
+				.ObserveOn(RxApp.MainThreadScheduler)
+			: Observable.Return(new StatusChangedEventArgs(wallet));
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
 				.Skip(1) // The first one is triggered at the creation.
