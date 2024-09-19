@@ -89,13 +89,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					x => x.IsWalletBalanceZero,
 					x => x.AreAllCoinsPrivate,
 					x => x.IsPointerOver,
-					(isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver) =>
-					{
-						Logger.LogWarning($"{isSelected}, {!WalletModel.IsCoinJoinEnabled}, {!hasNoBalance}, {!areAllCoinsPrivate}, {isPointerOver}, {!WalletModel.IsWatchOnlyWallet}");
-					return (isSelected &&
-					        (!WalletModel.IsCoinJoinEnabled || !hasNoBalance && (!areAllCoinsPrivate || isPointerOver))
-					        && !WalletModel.IsWatchOnlyWallet);
-					})
+					(isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver) => (isSelected &&
+						(!WalletModel.IsCoinJoinEnabled || !hasNoBalance && (!areAllCoinsPrivate || isPointerOver))
+						&& !WalletModel.IsWatchOnlyWallet))
 		.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler);
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
