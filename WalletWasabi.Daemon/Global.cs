@@ -254,9 +254,9 @@ public class Global
 
 				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
-				if (Config.HasCoordinatorUriConfigured)
+				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
-					RegisterCoinJoinComponents();
+					RegisterCoinJoinComponents(coordinatorUri);
 
 					if (initializeSleepInhibitor)
 					{
@@ -413,12 +413,12 @@ public class Global
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 	}
 
-	private void RegisterCoinJoinComponents()
+	private void RegisterCoinJoinComponents(Uri coordinatorUri)
 	{
-		var prisonForCoordinator = Path.Combine(DataDir, Config.GetCoordinatorUri().Host);
+		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => Config.GetCoordinatorUri());
+		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
 
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");

@@ -250,7 +250,7 @@ public class Config
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public Uri GetCoordinatorUri()
+	private Uri GetCoordinatorUri()
 	{
 		var result = Network switch
 		{
@@ -263,7 +263,7 @@ public class Config
 		return new Uri(result);
 	}
 
-	private bool TryGetCoordinatorUri(out Uri? coordinatorUri)
+	public bool TryGetCoordinatorUri([NotNullWhen(true)] out Uri? coordinatorUri)
 	{
 		try
 		{
@@ -277,9 +277,6 @@ public class Config
 			return false;
 		}
 	}
-
-	public bool HasCoordinatorUriConfigured =>
-		TryGetCoordinatorUri(out _);
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
 		Data.Select(x => (x.Key, x.Value.Hint));
