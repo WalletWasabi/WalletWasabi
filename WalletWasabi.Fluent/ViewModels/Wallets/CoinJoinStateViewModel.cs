@@ -179,8 +179,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://www.google.com"));
-
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
 
@@ -226,8 +224,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public ICommand StopPauseCommand { get; }
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
-
-	public ICommand CoordinatorHelpCommand { get; }
 
 	private void ConfigureStateMachine()
 	{

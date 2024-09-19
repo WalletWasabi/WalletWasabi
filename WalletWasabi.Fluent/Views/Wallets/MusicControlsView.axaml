@@ -143,7 +143,11 @@
                         <PathIcon Data="{StaticResource coordinator}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="How do I setup a coordinator?" Command="{Binding CoordinatorHelpCommand}" />
+                    <MenuItem Header="How do I find and set up a coordinator?" Command="{Binding CoordinatorHelpCommand}" ToolTip.Tip="{Binding FindCoordinatorLink}" >
+                      <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource book_question_mark_regular}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                   </MenuFlyout>
                 </Button.Flyout>
               </Button>
@@ -151,7 +155,7 @@
 
               <StackPanel Spacing="4" HorizontalAlignment="Center">
                 <TextBlock TextAlignment="Center" Text="Coordinator not configured" />
-                <TextBlock TextAlignment="Center" Text="Coinjoins are disabled" />
+                <TextBlock TextAlignment="Center" Text="Coinjoin not available" />
               </StackPanel>
 
             </DockPanel>
