@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -42,6 +42,15 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasMusicBoxBeenDisplayed;
+	[AutoNotify] private bool _isMusicBoxFlyoutDisplayed;
+
+	// This proxy fixes a stack overflow bug in Avalonia
+	public bool IsMusicBoxFlyoutOpenedProxy
+	{
+		get => IsMusicBoxFlyoutDisplayed;
+		set => IsMusicBoxFlyoutDisplayed = value;
+	}
 
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
@@ -80,19 +89,39 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 this.WhenAnyValue(x => x.IsWalletBalanceZero)
 		 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
-		 this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
-		 	.BindTo(this, x => x.AreAllCoinsPrivate);
+		 WalletModel.Privacy.IsWalletPrivate
+			 .BindTo(this, x => x.AreAllCoinsPrivate);
 
-		IsMusicBoxVisible =
-			this.WhenAnyValue(
-					x => x.IsSelected,
-					x => x.IsWalletBalanceZero,
-					x => x.AreAllCoinsPrivate,
-					x => x.IsPointerOver,
-					(isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver) => (isSelected &&
-						(!WalletModel.IsCoinJoinEnabled || !hasNoBalance && (!areAllCoinsPrivate || isPointerOver))
-						&& !WalletModel.IsWatchOnlyWallet))
-		.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler);
+		 IsMusicBoxVisible = this.WhenAnyValue(
+			 x => x.HasMusicBoxBeenDisplayed,
+			 x => x.IsSelected,
+			 x => x.IsWalletBalanceZero,
+			 x => x.AreAllCoinsPrivate,
+			 x => x.IsPointerOver,
+			 x => x.IsMusicBoxFlyoutDisplayed,
+			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
+			 {
+				 Logger.LogWarning($"({hasBeenDisplayed}, {isSelected}, {hasNoBalance}, {areAllCoinsPrivate}, {isPointerOver}, {isMusicBoxFlyoutDisplayed})");
+				 if (!hasBeenDisplayed)
+				 {
+					 if (!WalletModel.IsCoinJoinEnabled)
+					 {
+						 // If there is no coordinator configured and it's the first time, display MusicBox even without pointer over
+						 Task.Run(() => DelaySwitchHasMusicBoxBeenDisplayedAsync(CancellationToken.None));
+						 return isSelected && !WalletModel.IsCoinJoinEnabled;
+					 }
+
+					 HasMusicBoxBeenDisplayed = true;
+				 }
+
+				 if (!WalletModel.IsCoinJoinEnabled)
+				 {
+					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
+				 }
+
+				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || (isPointerOver || isMusicBoxFlyoutDisplayed))) && !WalletModel.IsWatchOnlyWallet;
+			 });
+
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
@@ -312,5 +341,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		}
 
 		return true;
+	}
+
+	private async Task DelaySwitchHasMusicBoxBeenDisplayedAsync(CancellationToken cancellationToken)
+	{
+		await Task.Delay(10000, cancellationToken);
+		HasMusicBoxBeenDisplayed = true;
 	}
 }
