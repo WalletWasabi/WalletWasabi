@@ -110,7 +110,7 @@
 
               <Button Classes="plain" IsVisible="{Binding CoinJoinStateViewModel.CanNavigateToCoinjoinSettings^}">
                 <Button.Flyout>
-                  <MenuFlyout Placement="Top">
+                  <MenuFlyout Placement="Top" IsOpen="{Binding IsMusicBoxFlyoutOpenedProxy, Mode=OneWayToSource}">
                     <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinStateViewModel.NavigateToSettingsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource settings_general_regular}" />
@@ -137,7 +137,7 @@
                   <PathIcon Margin="3 0 0 0" Data="{StaticResource more_regular}" Opacity="0.6" />
                 </Button.Content>
                 <Button.Flyout>
-                  <MenuFlyout>
+                  <MenuFlyout Placement="Top" IsOpen="{Binding IsMusicBoxFlyoutOpenedProxy, Mode=OneWayToSource}">
                     <MenuItem Header="Coordinator Settings" Command="{Binding NavigateToCoordinatorSettingsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource coordinator}" />
