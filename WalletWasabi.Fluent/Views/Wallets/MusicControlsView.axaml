@@ -49,7 +49,7 @@
             CornerRadius="4 4 0 0"
             BorderBrush="{DynamicResource GlassEdgeColor}"
             BorderThickness="1,1,1,0">
-      <Panel DataContext="{Binding CoinJoinStateViewModel}">
+      <Panel>
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <StackPanel.Styles>
@@ -60,9 +60,9 @@
           <ThemeImage Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center"
                       Source="{DynamicResource wasabi_logo_dynamic}" />
           <Panel>
-            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsCoinjoinSupported}">
+            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding WalletModel.IsCoinJoinEnabled}">
               <StackPanel Spacing="5">
-                <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
+                <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CoinJoinStateViewModel.CurrentStatus}">
                   <TransitioningContentControl.PageTransition>
                     <PageSlide Duration="0:0:0.125" Orientation="Vertical" SlideInEasing="0.4,0,0.6,1" SlideOutEasing="0.4,0,0.6,1" />
                   </TransitioningContentControl.PageTransition>
@@ -73,7 +73,7 @@
                   </TransitioningContentControl.DataTemplates>
                 </TransitioningContentControl>
 
-                <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
+                <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding CoinJoinStateViewModel.IsCountDownDelayHappening}" Value="{Binding CoinJoinStateViewModel.ProgressValue}">
                   <ProgressBar.Foreground>
                     <SolidColorBrush Color="{DynamicResource SystemAccentColor}" Opacity="0.4" />
                   </ProgressBar.Foreground>
@@ -83,50 +83,50 @@
                 </ProgressBar>
 
                 <DockPanel LastChildFill="False">
-                  <TextBlock Text="{Binding LeftText}" DockPanel.Dock="Left" />
-                  <TextBlock Text="{Binding RightText}" DockPanel.Dock="Right" />
+                  <TextBlock Text="{Binding CoinJoinStateViewModel.LeftText}" DockPanel.Dock="Left" />
+                  <TextBlock Text="{Binding CoinJoinStateViewModel.RightText}" DockPanel.Dock="Right" />
                 </DockPanel>
               </StackPanel>
 
               <Separator Classes="vertical" />
 
               <Button Classes="plain"
-                      IsVisible="{Binding PlayVisible}"
-                      Command="{Binding PlayCommand}">
+                      IsVisible="{Binding CoinJoinStateViewModel.PlayVisible}"
+                      Command="{Binding CoinJoinStateViewModel.PlayCommand}">
                 <PathIcon Data="{StaticResource play_regular}" />
               </Button>
 
               <Button Classes="plain"
-                      IsVisible="{Binding PauseVisible}"
-                      Command="{Binding StopPauseCommand}">
+                      IsVisible="{Binding CoinJoinStateViewModel.PauseVisible}"
+                      Command="{Binding CoinJoinStateViewModel.StopPauseCommand}">
                 <PathIcon Data="{StaticResource pause_regular}" />
               </Button>
 
               <Button Classes="plain"
-                      IsVisible="{Binding StopVisible}"
-                      Command="{Binding StopPauseCommand}">
+                      IsVisible="{Binding CoinJoinStateViewModel.StopVisible}"
+                      Command="{Binding CoinJoinStateViewModel.StopPauseCommand}">
                 <PathIcon Data="{StaticResource stop_regular}" />
               </Button>
 
-              <Button Classes="plain" IsVisible="{Binding CanNavigateToCoinjoinSettings^}">
+              <Button Classes="plain" IsVisible="{Binding CoinJoinStateViewModel.CanNavigateToCoinjoinSettings^}">
                 <Button.Flyout>
                   <MenuFlyout Placement="Top">
-                    <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
+                    <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinStateViewModel.NavigateToSettingsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource settings_general_regular}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Coordinator Settings" Command="{Binding NavigateToCoordinatorSettingsCommand}">
+                    <MenuItem Header="Coordinator Settings" Command="{Binding CoinJoinStateViewModel.NavigateToCoordinatorSettingsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource coordinator}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Coinjoin Settings" Command="{Binding NavigateToSettingsCommand}">
+                    <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinStateViewModel.NavigateToSettingsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource settings_general_regular}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Exclude Coins" Command="{Binding NavigateToExcludedCoinsCommand}">
+                    <MenuItem Header="Exclude Coins" Command="{Binding CoinJoinStateViewModel.NavigateToExcludedCoinsCommand}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource exclude_coins}" />
                       </MenuItem.Icon>
@@ -136,7 +136,7 @@
                 <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
               </Button>
             </StackPanel>
-            <DockPanel VerticalAlignment="Center" Width="406" IsVisible="{Binding !IsCoinjoinSupported}" >
+            <DockPanel VerticalAlignment="Center" Width="406" IsVisible="{Binding !WalletModel.IsCoinJoinEnabled}" >
               <Button Classes="plain" DockPanel.Dock="Right" Margin="2.5 0">
                 <Button.Content>
                   <PathIcon Margin="3 0 0 0" Data="{StaticResource more_regular}" Opacity="0.6" />

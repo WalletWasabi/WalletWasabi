@@ -206,6 +206,10 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
+	private bool HasCoordinatorConfigured => Config.GetCoordinatorUri() is { } coordinatorUri &&
+												coordinatorUri.AbsoluteUri != "https://api.wasabiwallet.io/" &&
+												coordinatorUri.AbsoluteUri != "https://api.wasabiwallet.co/";
+
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
 			Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
@@ -256,9 +260,7 @@ public class Global
 
 				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
-
-				var hasCoordinator = true;
-				if (hasCoordinator)
+				if (HasCoordinatorConfigured)
 				{
 					RegisterCoinJoinComponents();
 

@@ -30,6 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [AppLifetime]
 public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
+	public static string FindCoordinatorLink { get; } = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
+
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
@@ -38,7 +40,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinjoinSupported;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
 
 	private string _title = "";
@@ -75,17 +76,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		walletModel.IsCoinjoinRunning
 			.BindTo(this, x => x.IsCoinJoining);
 
-		// this.WhenAnyValue(x => x.IsWalletBalanceZero)
-		// 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+		 this.WhenAnyValue(x => x.IsWalletBalanceZero)
+		 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
-		this.WhenAnyValue(model => model.CoinJoinStateViewModel).Select(r => r != null)
-			.BindTo(this, x => x.IsCoinjoinSupported);
-
-		// this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
-		// 	.BindTo(this, x => x.AreAllCoinsPrivate);
-
-		AreAllCoinsPrivate = false;
-		IsWalletBalanceZero = false;
+		 this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
+		 	.BindTo(this, x => x.AreAllCoinsPrivate);
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(
@@ -94,13 +89,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					x => x.AreAllCoinsPrivate,
 					x => x.IsPointerOver,
 					(isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver) =>
-					{
-						return true;
-						return isSelected &&
-						       !hasNoBalance &&
-						       (!areAllCoinsPrivate || isPointerOver) &&
-						       !WalletModel.IsWatchOnlyWallet;
-					})
+						(isSelected &&
+						 !hasNoBalance &&
+						 (!areAllCoinsPrivate || isPointerOver))
+						&& !WalletModel.IsWatchOnlyWallet)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler);
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
@@ -142,6 +134,18 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
 			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
 			: null;
+
+		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (UiContext.MainViewModel is { } mainViewModel)
+			{
+				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
+			}
+		});
+
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator"));
+
+		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(WalletModel));
 
 		Tiles = GetTiles().ToList();
 
@@ -212,6 +216,12 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
 
+	public ICommand NavigateToCoordinatorSettingsCommand { get; }
+
+	public ICommand CoordinatorHelpCommand { get; }
+
+	public ICommand NavigateToExcludedCoinsCommand { get; }
+
 	public override string Title
 	{
 		get => _title;
@@ -271,7 +281,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			new ActionableItem("Receive", "Display wallet receive dialog", () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
 			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
 			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
-//			new ActionableItem("Exclude Coins", "Display exclude coins", () => { CoinJoinStateViewModel.NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
+			new ActionableItem("Exclude Coins", "Display exclude coins", () => { NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
 			new ActionableItem("Wallet Coins", "Display wallet coins", () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 6 },
 			new ActionableItem("Wallet Stats", "Display wallet stats", () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 7 },
 			new ActionableItem("Wallet Info", "Display wallet info", () => { WalletInfoCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 8 },
