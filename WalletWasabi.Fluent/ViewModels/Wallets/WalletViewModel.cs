@@ -80,8 +80,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 this.WhenAnyValue(x => x.IsWalletBalanceZero)
 		 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
-		 this.WhenAnyValue(model => model.CoinJoinStateViewModel!.AreAllCoinsPrivate)
-		 	.BindTo(this, x => x.AreAllCoinsPrivate);
+		 WalletModel.Privacy.IsWalletPrivate
+			 .BindTo(this, x => x.AreAllCoinsPrivate);
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(
