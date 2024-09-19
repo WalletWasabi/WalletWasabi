@@ -155,7 +155,7 @@
 
               <StackPanel Spacing="4" HorizontalAlignment="Center">
                 <TextBlock TextAlignment="Center" Text="Coordinator not configured" />
-                <TextBlock TextAlignment="Center" Text="Coinjoins are disabled" />
+                <TextBlock TextAlignment="Center" Text="Coinjoin not available" />
               </StackPanel>
 
             </DockPanel>
