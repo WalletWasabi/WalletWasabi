@@ -101,7 +101,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			 x => x.IsMusicBoxFlyoutDisplayed,
 			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
 			 {
-				 Logger.LogWarning($"({hasBeenDisplayed}, {isSelected}, {hasNoBalance}, {areAllCoinsPrivate}, {isPointerOver}, {isMusicBoxFlyoutDisplayed})");
 				 if (!hasBeenDisplayed)
 				 {
 					 if (!WalletModel.IsCoinJoinEnabled)
