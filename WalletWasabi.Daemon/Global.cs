@@ -75,17 +75,6 @@ public class Global
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
 		HttpClientFactory = BuildHttpClientFactory(() => Config.GetBackendUri());
 
-		if (Config.GetCoordinatorUri() is { } coordinatorUri)
-		{
-			CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
-			var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
-			CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
-		}
-		else
-		{
-			CoinPrison = CoinPrison.CreateDummyPrison();
-		}
-
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), HttpClientFactory.SharedWasabiClient), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
@@ -186,7 +175,7 @@ public class Global
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
 	public WasabiHttpClientFactory HttpClientFactory { get; }
 
-	public WasabiHttpClientFactory? CoordinatorHttpClientFactory { get; }
+	public WasabiHttpClientFactory? CoordinatorHttpClientFactory { get; private set; }
 
 	public string ConfigFilePath { get; }
 	public Config Config { get; }
@@ -205,7 +194,7 @@ public class Global
 	public Network Network => Config.Network;
 
 	public IMemoryCache Cache { get; private set; }
-	private CoinPrison CoinPrison { get; }
+	public CoinPrison? CoinPrison { get; private set; }
 	public JsonRpcServer? RpcServer { get; private set; }
 
 	public Uri? OnionServiceUri { get; private set; }
@@ -214,9 +203,6 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
-	private bool HasCoordinatorConfigured => Config.GetCoordinatorUri() is { } coordinatorUri &&
-												coordinatorUri.AbsoluteUri != "https://api.wasabiwallet.io/" &&
-												coordinatorUri.AbsoluteUri != "https://api.wasabiwallet.co/";
 
 	private WasabiHttpClientFactory BuildHttpClientFactory(Func<Uri> backendUriGetter) =>
 		new(
@@ -268,9 +254,9 @@ public class Global
 
 				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
-				if (HasCoordinatorConfigured && CoordinatorHttpClientFactory is not null)
+				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
-					RegisterCoinJoinComponents();
+					RegisterCoinJoinComponents(coordinatorUri);
 
 					if (initializeSleepInhibitor)
 					{
@@ -427,12 +413,12 @@ public class Global
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 	}
 
-	private void RegisterCoinJoinComponents()
+	private void RegisterCoinJoinComponents(Uri coordinatorUri)
 	{
-		if (CoordinatorHttpClientFactory is null)
-		{
-			return;
-		}
+		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
+		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
+
+		CoordinatorHttpClientFactory = BuildHttpClientFactory(() => coordinatorUri);
 
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
@@ -451,7 +437,7 @@ public class Global
 		}
 
 		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
-		CoinPrison.UpdateWallet(wallet);
+		CoinPrison?.UpdateWallet(wallet);
 	}
 
 	public async Task DisposeAsync()
@@ -485,7 +471,10 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				CoinPrison.Dispose();
+				if (CoinPrison is { } coinPrison)
+				{
+					coinPrison.Dispose();
+				}
 
 				if (RpcServer is { } rpcServer)
 				{
@@ -529,9 +518,9 @@ public class Global
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
 
-				if (CoordinatorHttpClientFactory is not null)
+				if (CoordinatorHttpClientFactory is { } coordinatorHttpClientFactory)
 				{
-					await CoordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
+					await coordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
 				}
 
