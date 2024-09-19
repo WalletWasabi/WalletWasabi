@@ -17,9 +17,9 @@ public record PersistentConfig
 
 	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
-	public string MainNetCoordinatorUri { get; init; } = Constants.BackendUri;
+	public string MainNetCoordinatorUri { get; init; } = "";
 
-	public string TestNetCoordinatorUri { get; init; } = Constants.TestnetBackendUri;
+	public string TestNetCoordinatorUri { get; init; } = "";
 
 	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37127/";
 
