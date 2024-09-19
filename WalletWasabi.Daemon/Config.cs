@@ -250,7 +250,7 @@ public class Config
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public Uri? GetCoordinatorUri()
+	public Uri GetCoordinatorUri()
 	{
 		var result = Network switch
 		{
@@ -260,8 +260,26 @@ public class Config
 			_ => throw new NotSupportedNetworkException(Network)
 		};
 
-		return result is "" ? null : new Uri(result);
+		return new Uri(result);
 	}
+
+	private bool TryGetCoordinatorUri(out Uri? coordinatorUri)
+	{
+		try
+		{
+			coordinatorUri = GetCoordinatorUri();
+			return coordinatorUri.Host != "api.wasabiwallet.io" &&
+			       coordinatorUri.Host != "api.wasabiwallet.co";
+		}
+		catch (Exception e) when (e is UriFormatException or ArgumentException or NotSupportedNetworkException)
+		{
+			coordinatorUri = null;
+			return false;
+		}
+	}
+
+	public bool HasCoordinatorUriConfigured =>
+		TryGetCoordinatorUri(out _);
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
 		Data.Select(x => (x.Key, x.Value.Hint));

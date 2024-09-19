@@ -74,11 +74,6 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		}
 	}
 
-	public static CoinPrison CreateDummyPrison()
-	{
-		return new CoinPrison(null, []);
-	}
-
 	public void UpdateWallet(Wallet wallet)
 	{
 		lock (_lock)
