@@ -422,6 +422,21 @@ public class BlockFilterSqliteStorage : IDisposable
 		transaction.Commit();
 	}
 
+	public void SetPragmaUserVersion(int newUserVersion)
+	{
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = $"PRAGMA user_version = {newUserVersion};";
+		command.ExecuteNonQuery();
+	}
+
+	public int GetPragmaUserVersion()
+	{
+		using SqliteCommand command = Connection.CreateCommand();
+		command.CommandText = "PRAGMA user_version";
+		var tmp = Convert.ToInt32(command.ExecuteScalar());
+		return tmp;
+	}
+
 	/// <summary>
 	/// Clears the filter table.
 	/// </summary>

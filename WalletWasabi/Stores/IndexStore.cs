@@ -107,7 +107,11 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 				// So check it every time.
 				RemoveOldIndexFilesIfExist();
 
-				SmartResyncIfCorrupted();
+				if (Network == Network.Main && IndexStorage.GetPragmaUserVersion() == 0)
+				{
+					SmartResyncIfCorrupted();
+					IndexStorage.SetPragmaUserVersion(1);
+				}
 
 				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 
@@ -361,11 +365,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	private void SmartResyncIfCorrupted()
 	{
-		if (Network != Network.Main)
-		{
-			return;
-		}
-
 		uint deleteAllUnderHeight = 550000;
 		uint batchSize = 100;
 		byte referenceByte = 253;
