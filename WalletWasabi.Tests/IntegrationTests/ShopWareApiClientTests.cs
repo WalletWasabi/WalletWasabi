@@ -1,15 +1,12 @@
 using System.Linq;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
 using Xunit;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Tor.Http;
 using Uri = System.Uri;
 
 namespace WalletWasabi.Tests.IntegrationTests;

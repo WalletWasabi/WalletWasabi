@@ -2,9 +2,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -12,7 +15,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
-using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor;
 
@@ -25,20 +27,14 @@ public class TorProcessManager : IAsyncDisposable
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
-	public TorProcessManager(TorSettings settings) :
-		this(settings, new(settings.SocksEndpoint))
-	{
-	}
-
 	/// <summary>For tests.</summary>
-	internal TorProcessManager(TorSettings settings, TorTcpConnectionFactory tcpConnectionFactory)
+	public TorProcessManager(TorSettings settings)
 	{
 		TorProcess = null;
 		TorControlClient = null;
 		LoopCts = new();
 		LoopTask = null;
 		Settings = settings;
-		TcpConnectionFactory = tcpConnectionFactory;
 	}
 
 	/// <summary>Guards <see cref="TorProcess"/> and <see cref="TorControlClient"/>.</summary>
@@ -50,7 +46,6 @@ public class TorProcessManager : IAsyncDisposable
 	private CancellationTokenSource LoopCts { get; }
 
 	private TorSettings Settings { get; }
-	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
@@ -133,7 +128,7 @@ public class TorProcessManager : IAsyncDisposable
 
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			bool isTorRunning = await TcpConnectionFactory.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+			bool isTorRunning = await IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
 
 			if (detectedTorState && isTorRunning) // Case: Still running.
 			{
@@ -171,6 +166,35 @@ public class TorProcessManager : IAsyncDisposable
 		torStoppedCts.Dispose();
 	}
 
+	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
+	{
+		// This function connects to the Tor Socks5 proxy and starts the handshaking process
+		if (!Settings.SocksEndpoint.TryGetHostAndPort(out var host, out var port))
+		{
+			throw new InvalidOperationException("The Tor socks5 endpoint is not supported.");
+		}
+
+		try
+		{
+			using var tcp = new TcpClient(Settings.SocksEndpoint.AddressFamily);
+			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
+			byte[] msg =
+			[
+				0x05, // Version
+				0x01, // One method
+				0x00, // No authentication
+			];
+			var response = new byte[2];
+			await tcp.Client.SendAsync(msg, cancellationToken).ConfigureAwait(false);
+			var read = await tcp.Client.ReceiveAsync(response, cancellationToken).ConfigureAwait(false);
+			return read == 2 && response is [0x05, 0x00];
+		}
+		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
+		{
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Keeps starting Tor OS process.
 	/// </summary>
@@ -192,7 +216,7 @@ public class TorProcessManager : IAsyncDisposable
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await TcpConnectionFactory.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+				bool isAlreadyRunning = await IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
@@ -387,7 +411,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			i++;
 
-			bool isRunning = await TcpConnectionFactory.IsTorRunningAsync(token).ConfigureAwait(false);
+			bool isRunning = await IsTorRunningAsync(token).ConfigureAwait(false);
 
 			if (isRunning)
 			{

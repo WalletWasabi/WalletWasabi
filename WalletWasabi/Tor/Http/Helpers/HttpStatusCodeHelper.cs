@@ -19,17 +19,4 @@ public static class HttpStatusCodeHelper
 	{
 		return (int)status >= 200 && (int)status <= 299;
 	}
-
-	public static bool IsValidCode(int codeToValidate)
-	{
-		foreach (var code in Enum.GetValues(typeof(HttpStatusCode)))
-		{
-			if ((int)code == codeToValidate)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
 }

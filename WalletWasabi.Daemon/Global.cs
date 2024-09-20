@@ -26,7 +26,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
@@ -352,13 +351,6 @@ public class Global
 				{
 					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
-			}
-
-			// Do not monitor Tor when Tor is an already running service.
-			if (TorSettings.TorMode == TorMode.Enabled)
-			{
-				// TODO: what to do with this?
-				//HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
 			}
 
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");

@@ -12,9 +12,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5;
-using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
