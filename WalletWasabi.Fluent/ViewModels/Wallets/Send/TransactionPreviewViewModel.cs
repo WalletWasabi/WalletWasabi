@@ -475,12 +475,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return;
 		}
 
-		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _sendFlow.GetPockets();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Password, _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList());
+		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? []);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
