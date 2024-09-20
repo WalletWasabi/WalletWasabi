@@ -67,7 +67,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = model.BlockHeight;
 		Confirmations = model.Confirmations;
 		FeeRate = model.FeeRate;
-		IsFeeRateVisible = FeeRate != FeeRate.Zero;
+		IsFeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
 
 		var confirmationTime = await _wallet.Transactions.TryEstimateConfirmationTimeAsync(model, cancellationToken);
 		if (confirmationTime is { })
