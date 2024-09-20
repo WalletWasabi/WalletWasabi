@@ -32,7 +32,7 @@ public partial class PrivacySuggestionsModel
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	private readonly CoinJoinManager _cjManager;
+	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
 	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
@@ -42,7 +42,7 @@ public partial class PrivacySuggestionsModel
 	{
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
-		_cjManager = Services.HostedServices.Get<CoinJoinManager>();
+		_cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 	}
 
 	/// <summary>
@@ -159,7 +159,7 @@ public partial class PrivacySuggestionsModel
 
 		var availableCoins = _sendFlow.AvailableCoins;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
+		ImmutableList<SmartCoin> coinsToExclude = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
 		bool wasCoinjoiningCoinUsed = parameters.Transaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
@@ -280,7 +280,7 @@ public partial class PrivacySuggestionsModel
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		var coinsInCoinJoin = _cjManager.CoinsInCriticalPhase[_wallet.WalletId];
+		var coinsInCoinJoin = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
 		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
