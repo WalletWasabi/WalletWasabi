@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http;
 
-namespace WalletWasabi.Tor.Http.Extensions;
+namespace WalletWasabi.Extensions;
 
 public static class HttpStatusCodeExtensions
 {

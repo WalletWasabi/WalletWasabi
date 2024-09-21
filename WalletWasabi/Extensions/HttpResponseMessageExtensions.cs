@@ -8,7 +8,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
-namespace WalletWasabi.Tor.Http.Extensions;
+namespace WalletWasabi.Extensions;
 
 public static class HttpResponseMessageExtensions
 {

@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo;

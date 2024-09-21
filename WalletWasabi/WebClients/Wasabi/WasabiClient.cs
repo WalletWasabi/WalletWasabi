@@ -13,7 +13,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
