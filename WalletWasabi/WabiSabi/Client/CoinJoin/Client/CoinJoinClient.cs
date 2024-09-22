@@ -426,7 +426,7 @@ public class CoinJoinClient
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					CoinJoinConfiguration.CoordinatorIdentifier,
-					ArenaRequestHandlerFactory(coin.Outpoint.ToString()));
+					ArenaRequestHandlerFactory($"alice-{coin.Outpoint}"));
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 

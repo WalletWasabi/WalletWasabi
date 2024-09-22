@@ -36,7 +36,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		LastResponse = null;
 		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
 		FilterProcessor = new FilterProcessor(bitcoinStore);
-		HttpClientFactory = httpClientFactory;
+		HttpClient = httpClientFactory.CreateClient("satoshi-backend");
 	}
 
 	#region EventsPropertiesMembers
@@ -53,7 +53,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public IHttpClientFactory HttpClientFactory { get; }
+	public HttpClient HttpClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
@@ -100,8 +100,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var httpClient = HttpClientFactory.CreateClient("satoshi");
-		var wasabiClient = new WasabiClient(httpClient);
+		var wasabiClient = new WasabiClient(HttpClient);
 		try
 		{
 			SynchronizeResponse response;

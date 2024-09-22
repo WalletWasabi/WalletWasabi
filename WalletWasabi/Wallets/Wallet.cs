@@ -456,7 +456,7 @@ public class Wallet : BackgroundService, IWallet
 				await CpfpInfoProvider.UpdateCacheAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
-			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory.CreateClient("satoshi")).ConfigureAwait(false);
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClient).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -514,7 +514,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			try
 			{
-				var client = new WasabiClient(Synchronizer.HttpClientFactory.CreateClient("satoshi"));
+				var client = new WasabiClient(Synchronizer.HttpClient);
 				var compactness = 10;
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

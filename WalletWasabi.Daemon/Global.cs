@@ -204,7 +204,7 @@ public class Global
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
-	private IHttpClientFactory BuildHttpClientFactory() =>
+	private HttpClientFactory BuildHttpClientFactory() =>
 		Config.UseTor != TorMode.Disabled
 			? new OnionHttpClientFactory(new Uri($"socks5://{TorSettings.SocksEndpoint.ToEndpointString()}"))
 			: new HttpClientFactory();
@@ -412,7 +412,7 @@ public class Global
 
 		CoordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory());
 
-		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi", CoordinatorHttpClientFactory);
+		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi-coordination", CoordinatorHttpClientFactory);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, CoordinatorHttpClientFactory!);
