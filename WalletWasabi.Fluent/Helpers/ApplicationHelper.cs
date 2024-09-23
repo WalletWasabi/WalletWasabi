@@ -47,7 +47,17 @@ public class ApplicationHelper
 	{
 		if (GetClipboard() is { } clipboard)
 		{
-			return await Dispatcher.UIThread.InvokeAsync(async () => await clipboard.GetTextAsync() ?? "");
+			return await Dispatcher.UIThread.InvokeAsync(async () =>
+			{
+				try
+				{
+					return await clipboard.GetTextAsync() ?? "";
+				}
+				catch (InvalidCastException)
+				{
+					return "";
+				}
+			});
 		}
 
 		return await Task.FromResult("");
