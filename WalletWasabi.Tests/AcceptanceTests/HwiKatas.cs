@@ -104,8 +104,10 @@ public class HwiKatas
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
 	}
 
-	[Fact]
-	public async Task TrezorSafe3KataAsync()
+	[Theory]
+	[InlineData(HardwareWalletModels.Trezor_Safe_3)]
+	[InlineData(HardwareWalletModels.Trezor_Safe_5)]
+	public async Task TrezorSafeKataAsync(HardwareWalletModels model)
 	{
 		// --- USER INTERACTIONS ---
 		//
@@ -118,6 +120,7 @@ public class HwiKatas
 		// signtx request: refuse 1 time
 		// signtx request: confirm 1 time
 		//
+		// Repeat with your Trezor Safe 5.
 		// --- USER INTERACTIONS ---
 
 		var network = Network.Main;
@@ -128,7 +131,7 @@ public class HwiKatas
 		HwiEnumerateEntry entry = enumerate.Single();
 		Assert.NotNull(entry.Path);
 		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, entry.Path));
-		Assert.Equal(HardwareWalletModels.Trezor_Safe_3, entry.Model);
+		Assert.Equal(model, entry.Model);
 		Assert.NotNull(entry.Fingerprint);
 
 		string devicePath = entry.Path;

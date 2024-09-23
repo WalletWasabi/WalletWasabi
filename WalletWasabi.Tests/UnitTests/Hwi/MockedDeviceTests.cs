@@ -110,16 +110,16 @@ public class MockedDeviceTests
 	}
 
 	[Theory]
-	[MemberData(nameof(GetDifferentNetworkValues))]
-	public async Task TrezorSafe3MockTestsAsync(Network network)
+	[MemberData(nameof(GetDifferentNetworkValuesWithTrezorSafeModels))]
+	public async Task TrezorSafeMockTestsAsync(Network network, HardwareWalletModels model)
 	{
-		var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Trezor_Safe_3));
+		var client = new HwiClient(network, new HwiProcessBridgeMock(model));
 
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 		IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 		Assert.Single(enumerate);
 		HwiEnumerateEntry entry = enumerate.Single();
-		Assert.Equal(HardwareWalletModels.Trezor_Safe_3, entry.Model);
+		Assert.Equal(model, entry.Model);
 		Assert.Equal("webusb: 001:9", entry.Path);
 		Assert.False(entry.NeedsPassphraseSent);
 		Assert.False(entry.NeedsPinSent);
@@ -743,6 +743,17 @@ public class MockedDeviceTests
 		foreach (Network network in networks)
 		{
 			yield return new object[] { network };
+		}
+	}
+
+	public static IEnumerable<object[]> GetDifferentNetworkValuesWithTrezorSafeModels()
+	{
+		foreach (var network in GetDifferentNetworkValues())
+		{
+			foreach (var trezorSafeModel in new List<HardwareWalletModels>() { HardwareWalletModels.Trezor_Safe_3, HardwareWalletModels.Trezor_Safe_5})
+			{
+				yield return new object[] { network.First(), trezorSafeModel };
+			}
 		}
 	}
 
