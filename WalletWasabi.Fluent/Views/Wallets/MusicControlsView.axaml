@@ -60,7 +60,7 @@
           <ThemeImage Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center"
                       Source="{DynamicResource wasabi_logo_dynamic}" />
           <Panel>
-            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding WalletModel.IsCoinJoinEnabled}">
+            <StackPanel Orientation="Horizontal" Spacing="20" IsVisible="{Binding WalletModel.IsCoinJoinEnabled}">
               <StackPanel Spacing="5">
                 <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CoinJoinStateViewModel.CurrentStatus}">
                   <TransitioningContentControl.PageTransition>
