@@ -72,12 +72,10 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 		}
 
-		return AddOutputCore(output);
+		return AddOutputNoMinAmountCheck(output);
 	}
 
-	public ConstructionState AddOutputBypassMinAmount(TxOut output) => AddOutputCore(output);
-
-	private ConstructionState AddOutputCore(TxOut output)
+	public ConstructionState AddOutputNoMinAmountCheck(TxOut output)
 	{
 		if (output.Value > Parameters.AllowedOutputAmounts.Max)
 		{

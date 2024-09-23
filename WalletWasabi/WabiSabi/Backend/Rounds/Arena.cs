@@ -618,14 +618,16 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Available coordination: {availableCoordinationFee}.");
 
-		var minEconomicalOutput = round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateInputVsize() + coordinatorScriptPubKey.EstimateOutputVsize());
+		// The coordinator must pay output creation at round's FeeRate, but then he can wait to spend the output.
+		var minEconomicalOutput = round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize()) +
+		                          new FeeRate(1.0m).GetFee(coordinatorScriptPubKey.EstimateInputVsize());
 
 		if (availableCoordinationFee > minEconomicalOutput)
 		{
 			var txOut = new TxOut(availableCoordinationFee, coordinatorScriptPubKey);
 			if (!txOut.IsDust())
 			{
-				return coinjoin.AddOutputBypassMinAmount(txOut)
+				return coinjoin.AddOutputNoMinAmountCheck(txOut)
 					.AsPayingForSharedOverhead();
 			}
 		}
