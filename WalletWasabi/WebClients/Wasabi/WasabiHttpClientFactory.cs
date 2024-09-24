@@ -77,7 +77,7 @@ public class OnionHttpClientFactory(Uri proxyUri) : HttpClientFactory
 	protected override HttpClientHandler CreateHttpClientHandler(string name)
 	{
 		var credentials = new NetworkCredential(name, name);
-		var webProxy = new WebProxy(proxyUri, BypassOnLocal: true, [], Credentials: credentials);
+		var webProxy = new WebProxy(proxyUri, BypassOnLocal: false, [], Credentials: credentials);
 		var handler = base.CreateHttpClientHandler(name);
 		handler.Proxy = webProxy;
 		return handler;
