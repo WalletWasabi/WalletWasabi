@@ -195,7 +195,7 @@ public class CpfpInfoProvider : BackgroundService
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
 		var httpClient = _httpClientFactory.CreateClient($"mempool.space-{txid}");
-		var response = await httpClient.GetAsync( $"v1/cpfp/{txid}", linkedCts.Token).ConfigureAwait(false);
+		var response = await httpClient.GetAsync( $"https://mempool.space/api/v1/cpfp/{txid}", linkedCts.Token).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
