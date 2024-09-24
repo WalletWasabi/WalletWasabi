@@ -453,8 +453,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			// It is not worth it to try to estimate when there are that few filters, just delete them.
 			// This will be really few users and those filters almost have no data anyway.
 			Logger.LogWarning("Refreshing filters because they are potentially corrupted (wrong endian).");
-			DeleteIndex(NewIndexFilePath);
-			IndexStorage = CreateBlockFilterSqliteStorage();
+			IndexStorage.RemoveNewerThan(StartingFilters.GetStartingFilter(Network.Main).Header.Height);
 			return;
 		}
 
@@ -484,8 +483,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			{
 				// A really old filter is invalid, better to delete everything
 				Logger.LogWarning($"A really old filter is corrupted ({firstInvalidHeight}), better to delete the index.");
-				DeleteIndex(NewIndexFilePath);
-				IndexStorage = CreateBlockFilterSqliteStorage();
+				IndexStorage.RemoveNewerThan(StartingFilters.GetStartingFilter(Network.Main).Header.Height);
 				return;
 			}
 			Logger.LogWarning($"Filter ({firstInvalidHeight}) corrupted (wrong endian), deleting Index from {firstInvalidHeight - batchSize}.");
