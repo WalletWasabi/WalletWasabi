@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
 #                                                                                    #
@@ -11,7 +12,7 @@
 #  and sign the installers for windows (win ci job) and generate and sign the one    #
 #  for macOS (osx job).                                                              #
 #------------------------------------------------------------------------------------#
-set -x
+set -xe
 
 STASH_MESSAGE="Stashed changes for script execution"
 # Check if there are any uncommitted changes
@@ -252,7 +253,7 @@ sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
 sudo chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 
 # Build the .deb package
-dpkg --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
+dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
 fi
 
 #------------------------------------------------------------------------------------#
