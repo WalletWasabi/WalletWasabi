@@ -14,7 +14,7 @@ public class HttpClientFactory : IHttpClientFactory
 	{
 		protected override void Dispose(bool disposing)
 		{
-			Logger.LogInfo($"#### disposing httpclient handler {name}");
+			Logger.LogDebug($"Disposing httpclient handler {name}");
 			base.Dispose(disposing);
 			disposedCallback(name);
 		}
@@ -55,7 +55,7 @@ public class HttpClientFactory : IHttpClientFactory
 
 	protected virtual HttpClientHandler CreateHttpClientHandler(string name)
 	{
-		Logger.LogInfo($"#### Create handler {name}");
+		Logger.LogDebug($"Create handler {name}");
 		SetExpirationDate(name);
 		return new NotifyHttpClientHandler(name,
 			handlerName =>
