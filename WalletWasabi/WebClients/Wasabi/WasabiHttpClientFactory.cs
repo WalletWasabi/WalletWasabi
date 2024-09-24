@@ -6,26 +6,39 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
+public delegate DateTime LifetimeResolver(string identity);
+
 public class HttpClientFactory : IHttpClientFactory
 {
 	class NotifyHttpClientHandler(string name, Action<string> disposedCallback) : HttpClientHandler
 	{
 		protected override void Dispose(bool disposing)
 		{
-			Logger.LogDebug($"disposing httpclient handler {name}");
+			Logger.LogInfo($"#### disposing httpclient handler {name}");
 			base.Dispose(disposing);
 			disposedCallback(name);
 		}
 	}
 
 	private readonly ConcurrentDictionary<string, DateTime> _expirationDatetimes = new();
-    private readonly ConcurrentDictionary<string, HttpClientHandler> _httpClientHandlers = new();
+	private readonly ConcurrentDictionary<string, HttpClientHandler> _httpClientHandlers = new();
+	private readonly ConcurrentBag<LifetimeResolver> _lifetimeResolvers = new();
+
+	public HttpClientFactory()
+	{
+		AddLifetimeResolver(_ => DateTime.UtcNow.AddHours(6));
+	}
 
 	public HttpClient CreateClient(string name)
 	{
 		CheckForExpirations();
 		var httpClientHandler = _httpClientHandlers.GetOrAdd(name, CreateHttpClientHandler);
 		return new HttpClient(httpClientHandler, false);
+	}
+
+	public void AddLifetimeResolver(LifetimeResolver resolver)
+	{
+		_lifetimeResolvers.Add(resolver);
 	}
 
 	private void CheckForExpirations()
@@ -42,7 +55,8 @@ public class HttpClientFactory : IHttpClientFactory
 
 	protected virtual HttpClientHandler CreateHttpClientHandler(string name)
 	{
-		Logger.LogDebug($"Create handler {name}");
+		Logger.LogInfo($"#### Create handler {name}");
+		SetExpirationDate(name);
 		return new NotifyHttpClientHandler(name,
 			handlerName =>
 			{
@@ -51,9 +65,10 @@ public class HttpClientFactory : IHttpClientFactory
 			});
 	}
 
-	internal void SetExpirationDate(string name, DateTime dueDate)
+	private void SetExpirationDate(string name)
 	{
-		_expirationDatetimes.TryAdd(name, dueDate);
+		var expirationTime = _lifetimeResolvers.Min(resolve => resolve(name));
+		_expirationDatetimes.AddOrUpdate(name, expirationTime, (_,_) => expirationTime);
 	}
 }
 
@@ -69,10 +84,28 @@ public class OnionHttpClientFactory(Uri proxyUri) : HttpClientFactory
 	}
 }
 
-public class CoordinatorHttpClientFactory(Uri baseAddress, HttpClientFactory internalHttpClientFactory)
-	: IHttpClientFactory
+public class CoordinatorHttpClientFactory : IHttpClientFactory
 {
+	private readonly Uri _baseAddress;
+	private readonly HttpClientFactory _internalHttpClientFactory;
+
+	public CoordinatorHttpClientFactory(Uri baseAddress, HttpClientFactory internalHttpClientFactory)
+	{
+		_baseAddress = baseAddress;
+		_internalHttpClientFactory = internalHttpClientFactory;
+		_internalHttpClientFactory.AddLifetimeResolver(ResolveLifetimeByIdentity);
+	}
+
 	public HttpClient CreateClient(string name)
+	{
+		var httpClient = _internalHttpClientFactory.CreateClient(name);
+		httpClient.BaseAddress = _baseAddress;
+		httpClient.DefaultRequestVersion = HttpVersion.Version11;
+		httpClient.DefaultRequestHeaders.UserAgent.Clear();
+		return httpClient;
+	}
+
+	private DateTime ResolveLifetimeByIdentity(string name)
 	{
 		var identity = name.Split('-', StringSplitOptions.RemoveEmptyEntries).First();
 		var lifetime = TimeSpan.FromSeconds(identity switch
@@ -80,14 +113,9 @@ public class CoordinatorHttpClientFactory(Uri baseAddress, HttpClientFactory int
 			"bob" => 10,
 			"alice" => 1.5 * 3_600,
 			"satoshi" => int.MaxValue,
-			var other => throw new ArgumentException($"Unknown identity '{other}'.")
+			_ => int.MaxValue,
 		});
-		var httpClient = internalHttpClientFactory.CreateClient(name);
-		internalHttpClientFactory.SetExpirationDate(name, DateTime.UtcNow.Add(lifetime));
-		httpClient.BaseAddress = baseAddress;
-		httpClient.DefaultRequestVersion = HttpVersion.Version11;
-		httpClient.DefaultRequestHeaders.UserAgent.Clear();
-		return httpClient;
+		return DateTime.UtcNow.Add(lifetime);
 	}
 }
 
