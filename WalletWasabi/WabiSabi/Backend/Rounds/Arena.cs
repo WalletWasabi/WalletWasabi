@@ -618,16 +618,21 @@ public partial class Arena : PeriodicRunner
 
 		round.LogInfo($"Available coordination: {availableCoordinationFee}.");
 
-		if (availableCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
+		// The coordinator must pay output creation at round's FeeRate, but then he can wait to spend the output.
+		var minEconomicalOutput = round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize()) +
+		                          new FeeRate(1.0m).GetFee(coordinatorScriptPubKey.EstimateInputVsize());
+
+		if (availableCoordinationFee > minEconomicalOutput)
 		{
-			coinjoin = coinjoin.AddOutput(new TxOut(availableCoordinationFee, coordinatorScriptPubKey))
-				.AsPayingForSharedOverhead();
-		}
-		else
-		{
-			round.LogWarning($"Available coordination fee wasn't taken, because it was too small: {availableCoordinationFee}.");
+			var txOut = new TxOut(availableCoordinationFee, coordinatorScriptPubKey);
+			if (!txOut.IsDust())
+			{
+				return coinjoin.AddOutputNoMinAmountCheck(txOut)
+					.AsPayingForSharedOverhead();
+			}
 		}
 
+		round.LogWarning($"Available coordination fee wasn't taken, because it was too small: {availableCoordinationFee}.");
 		return coinjoin;
 	}
 
