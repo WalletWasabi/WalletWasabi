@@ -60,7 +60,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		await using WasabiHttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
@@ -70,13 +70,12 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		using MemoryCache cache = CreateMemoryCache();
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, httpClientFactory.TorEndpoint);
+		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[specificNodeBlockProvider],
-			new P2PBlockProvider(network, nodes, httpClientFactory.IsTorEnabled));
+			new P2PBlockProvider(network, nodes, false));
 
 		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);

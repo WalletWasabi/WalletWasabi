@@ -9,7 +9,6 @@ using WalletWasabi.Microservices;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Socks5;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
@@ -42,13 +41,10 @@ public class TorProcessManagerTests
 			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
 		mockProcess.Setup(p => p.Dispose());
 
-		// Set TorTcpConnectionFactory.
-		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
-		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(false);
-
 		// Mock TorProcessManager.
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory.Object) { CallBase = true };
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings) { CallBase = true };
+		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(false);
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
 			.Returns(mockProcess.Object);
 		mockTorProcessManager.Setup(c => c.EnsureRunningAsync(It.IsAny<ProcessAsync>(), It.IsAny<CancellationToken>()))
@@ -94,13 +90,9 @@ public class TorProcessManagerTests
 		mockProcess.SetupGet(p => p.Handle).Returns(IntPtr.Zero); // Any value is fine.
 		mockProcess.Setup(p => p.Dispose());
 
-		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
-
-		// Port is a shared resource, so any user can connect to it.
-		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings) { CallBase = true };
+		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
-
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, mockTcpConnectionFactory.Object) { CallBase = true };
 
 		mockTorProcessManager.Setup(c => c.GetTorProcesses())
 			.Returns(runningTorOsProcesses == 0 ? Array.Empty<Process>() : new[] { new Process() /* Dummy process */ });

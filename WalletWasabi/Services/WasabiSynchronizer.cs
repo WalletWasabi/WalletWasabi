@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -29,15 +29,14 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	private BackendStatus _backendStatus;
 	private bool _backendNotCompatible;
 
-	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, WasabiHttpClientFactory httpClientFactory) : base(period)
+	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, IHttpClientFactory httpClientFactory) : base(period)
 	{
 		MaxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
 		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
 		FilterProcessor = new FilterProcessor(bitcoinStore);
-		HttpClientFactory = httpClientFactory;
-		WasabiClient = httpClientFactory.SharedWasabiClient;
+		HttpClient = httpClientFactory.CreateClient("satoshi-backend");
 	}
 
 	#region EventsPropertiesMembers
@@ -54,8 +53,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public WasabiHttpClientFactory HttpClientFactory { get; }
-	private WasabiClient WasabiClient { get; }
+	public HttpClient HttpClient { get; }
 
 	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
@@ -102,6 +100,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		var wasabiClient = new WasabiClient(HttpClient);
 		try
 		{
 			SynchronizeResponse response;
@@ -114,7 +113,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 					return;
 				}
 
-				response = await WasabiClient
+				response = await wasabiClient
 					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
@@ -124,9 +123,12 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				TorStatus = TorStatus.Running;
 				OnSynchronizeRequestFinished();
 			}
-			catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
+			catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 			{
-				TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
+				//TODO: check the source is the proxy
+				TorStatus = innerEx.SocketErrorCode == SocketError.ConnectionRefused
+					? TorStatus.NotRunning
+					: TorStatus.Running;
 				BackendStatus = BackendStatus.NotConnected;
 				OnSynchronizeRequestFinished();
 				throw;
@@ -140,7 +142,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				bool backendCompatible;
 				try
 				{
-					backendCompatible = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+					backendCompatible = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 				}
 				catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
 				{

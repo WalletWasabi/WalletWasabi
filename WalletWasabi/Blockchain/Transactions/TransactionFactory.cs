@@ -12,7 +12,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -305,15 +304,6 @@ public class TransactionFactory
 			builder.SignPSBT(psbt);
 
 			Logger.LogInfo("Payjoin payment was negotiated successfully.");
-		}
-		catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
-		{
-			if (innerEx.Message.Contains("HostUnreachable"))
-			{
-				Logger.LogWarning("Payjoin server is not reachable. Ignoring...");
-			}
-
-			// Ignore.
 		}
 		catch (HttpRequestException e)
 		{

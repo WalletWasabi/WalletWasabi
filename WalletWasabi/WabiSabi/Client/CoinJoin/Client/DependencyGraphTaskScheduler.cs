@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Userfacing.Bip21;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
@@ -87,7 +86,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+	public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, Func<BobClient> bobClientFactory, CancellationToken cancellationToken)
 	{
 		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -99,7 +98,7 @@ public class DependencyGraphTaskScheduler
 			// connection confirmation loop even though they are already known
 			// after the final successful input registration, which may be well
 			// before the connection confirmation phase actually starts.
-			CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken)
+			CompleteConnectionConfirmationAsync(aliceClients, bobClientFactory(), cancellationToken)
 		};
 
 		using CancellationTokenSource ctsOnError = new();
@@ -123,7 +122,7 @@ public class DependencyGraphTaskScheduler
 				outputVsizeEdgeTaskCompSources);
 
 			var task = smartRequestNode
-				.StartReissuanceAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
+				.StartReissuanceAsync(bobClientFactory(), requestedAmounts, requestedVSizes, linkedCts.Token)
 				.ContinueWith(
 				(t) =>
 				{
@@ -155,7 +154,7 @@ public class DependencyGraphTaskScheduler
 	public record UnknownError(Script ScriptPubKey) : OutputRegistrationError;
 	public record AlreadyRegisteredScriptError(Script ScriptPubKey) : OutputRegistrationError;
 
-	public async Task<Result<OutputRegistrationError[]>> StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient,
+	public async Task<Result<OutputRegistrationError[]>> StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, Func<BobClient> bobClientFactory,
 		ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
@@ -186,7 +185,7 @@ public class DependencyGraphTaskScheduler
 					{
 						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 					}
-					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+					await smartRequestNode.StartOutputRegistrationAsync(bobClientFactory(), txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
 					return Result<OutputRegistrationError>.Ok();
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)

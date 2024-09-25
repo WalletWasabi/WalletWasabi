@@ -29,7 +29,7 @@ public class Startup
 
 	public void ConfigureServices(IServiceCollection services)
 	{
-		var backendAssembly = typeof(WalletWasabi.Backend.Controllers.WabiSabiController).Assembly;
+		var backendAssembly = typeof(WabiSabiController).Assembly;
 		services.AddSingleton<IdempotencyRequestCache>();
 		services
 			.AddMvc(options =>
@@ -37,11 +37,11 @@ public class Startup
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 			})
-			.AddApplicationPart(backendAssembly)
 			.ConfigureApplicationPartManager(manager =>
 			{
 				manager.FeatureProviders.Add(new ControllerProvider(Configuration));
 			})
+			.AddApplicationPart(backendAssembly)
 			.AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 	}
 }
@@ -56,6 +56,6 @@ public class ControllerProvider : ControllerFeatureProvider
 
     protected override bool IsController(TypeInfo typeInfo)
     {
-          return typeInfo.Name.Contains(nameof(WabiSabiController));
+	    return typeInfo.Name.Contains(nameof(WabiSabiController));
     }
 }

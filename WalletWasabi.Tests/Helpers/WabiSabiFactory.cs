@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -313,12 +314,12 @@ public static class WabiSabiFactory
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(
-		IWasabiHttpClientFactory httpClientFactory,
+		Func<string, IWabiSabiApiRequestHandler> apiClientFactory,
 		KeyManager keyManager,
 		RoundStateUpdater roundStateUpdater)
 	{
 		return CreateTestCoinJoinClient(
-			httpClientFactory,
+			apiClientFactory,
 			new KeyChain(keyManager,""),
 			new OutputProvider(new InternalDestinationProvider(keyManager)),
 			roundStateUpdater,
@@ -326,7 +327,7 @@ public static class WabiSabiFactory
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(
-		IWasabiHttpClientFactory httpClientFactory,
+		Func<string, IWabiSabiApiRequestHandler> apiClientFactory,
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStateUpdater,
@@ -335,7 +336,7 @@ public static class WabiSabiFactory
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
 		var mock = new Mock<CoinJoinClient>(
-			httpClientFactory,
+			apiClientFactory,
 			keyChain,
 			outputProvider,
 			roundStateUpdater,

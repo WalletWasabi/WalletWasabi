@@ -17,14 +17,14 @@ namespace WalletWasabi.WebClients.PayJoin;
 
 public class PayjoinClient : IPayjoinClient
 {
-	public PayjoinClient(Uri paymentUrl, IHttpClient httpClient)
+	public PayjoinClient(Uri paymentUrl, HttpClient httpClient)
 	{
 		PaymentUrl = paymentUrl;
 		HttpClient = httpClient;
 	}
 
 	public Uri PaymentUrl { get; }
-	private IHttpClient HttpClient { get; }
+	private HttpClient HttpClient { get; }
 
 	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 	{

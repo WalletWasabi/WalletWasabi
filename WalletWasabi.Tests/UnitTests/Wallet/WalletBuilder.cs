@@ -38,8 +38,8 @@ public class WalletBuilder : IAsyncDisposable
 		var blockRepositoryMock = new MockFileSystemBlockRepository(node.BlockChain);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
-		HttpClientFactory = new WasabiHttpClientFactory(torEndPoint: null, backendUriGetter: () => null!);
-		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, HttpClientFactory);
+		var httpClientFactory = new HttpClientFactory();
+		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, httpClientFactory);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
 	}
 
@@ -47,7 +47,6 @@ public class WalletBuilder : IAsyncDisposable
 	private AllTransactionStore TransactionStore { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private MemoryCache Cache { get; }
-	private WasabiHttpClientFactory HttpClientFactory { get; }
 	private WasabiSynchronizer Synchronizer { get; }
 	private BlockDownloadService BlockDownloadService { get; }
 	public IEnumerable<FilterModel> Filters { get; }
@@ -75,7 +74,6 @@ public class WalletBuilder : IAsyncDisposable
 		await IndexStore.DisposeAsync().ConfigureAwait(false);
 		await Synchronizer.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
-		await HttpClientFactory.DisposeAsync().ConfigureAwait(false);
 		BlockDownloadService.Dispose();
 		Cache.Dispose();
 	}

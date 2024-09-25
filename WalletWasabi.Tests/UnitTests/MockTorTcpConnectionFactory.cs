@@ -1,4 +1,6 @@
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -9,3 +11,12 @@ public class MockHttpClientFactory : IHttpClientFactory
 		OnCreateClient?.Invoke(name)
 			?? throw new NotImplementedException($"{nameof(CreateClient)} was invoked but never assigned.");
 }
+
+public class MockHttpClientHandler : HttpClientHandler
+{
+	public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
+
+	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+		OnSendAsync(request, cancellationToken);
+}
+

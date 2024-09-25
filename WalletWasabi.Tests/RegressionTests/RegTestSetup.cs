@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,7 +78,7 @@ public class RegTestSetup : IAsyncDisposable
 
 		while (true)
 		{
-			var client = new WasabiClient(RegTestFixture.BackendHttpClient);
+			var client = new WasabiClient(RegTestFixture.BackendHttpClientFactory.CreateClient("test"));
 			FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
 			Assert.NotNull(filtersResponse);
 

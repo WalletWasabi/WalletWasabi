@@ -14,6 +14,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -29,14 +30,14 @@ public class CoinJoinManager : BackgroundService
 	public CoinJoinManager(
 		IWalletProvider walletProvider,
 		RoundStateUpdater roundStatusUpdater,
-		IWasabiHttpClientFactory coordinatorHttpClientFactory,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
-		HttpClientFactory = coordinatorHttpClientFactory;
+		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoinJoinConfiguration = coinJoinConfiguration;
 		CoinPrison = coinPrison;
@@ -47,10 +48,10 @@ public class CoinJoinManager : BackgroundService
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
-	public IWalletProvider WalletProvider { get; }
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
-	public RoundStateUpdater RoundStatusUpdater { get; }
-	public CoinPrison CoinPrison { get; }
+	private IWalletProvider WalletProvider { get; }
+	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
+	private RoundStateUpdater RoundStatusUpdater { get; }
+	private CoinPrison CoinPrison { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private CoinJoinConfiguration CoinJoinConfiguration { get; }
 
@@ -160,7 +161,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoinJoinConfiguration, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, RoundStatusUpdater, CoinJoinConfiguration, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{

@@ -13,18 +13,17 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
 public class WasabiClient
 {
-	public WasabiClient(IHttpClient httpClient)
+	public WasabiClient(HttpClient httpClient)
 	{
 		HttpClient = httpClient;
 	}
 
-	private IHttpClient HttpClient { get; }
+	private HttpClient HttpClient { get; }
 
 	public static Dictionary<uint256, Transaction> TransactionCache { get; } = new();
 	private static Queue<uint256> TransactionIdQueue { get; } = new();
@@ -44,7 +43,7 @@ public class WasabiClient
 			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 		}
 
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, relativeUri, cancellationToken: cancel).ConfigureAwait(false);
+		using HttpResponseMessage response = await HttpClient.GetAsync(relativeUri, cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -66,8 +65,7 @@ public class WasabiClient
 	/// </remarks>
 	public async Task<FiltersResponse?> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
+		using HttpResponseMessage response = await HttpClient.GetAsync(
 			$"api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
 			cancellationToken: cancel).ConfigureAwait(false);
 
@@ -102,10 +100,10 @@ public class WasabiClient
 		{
 			cancel.ThrowIfCancellationRequested();
 
-			using HttpResponseMessage response = await HttpClient.SendAsync(
+			using HttpRequestMessage request = new(
 				HttpMethod.Get,
-				$"api/v{ApiVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}",
-				cancellationToken: cancel).ConfigureAwait(false);
+				$"api/v{ApiVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}");
+			using HttpResponseMessage response = await HttpClient.SendAsync(request, cancel).ConfigureAwait(false);
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -141,7 +139,7 @@ public class WasabiClient
 	public async Task BroadcastAsync(string hex)
 	{
 		using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Post, $"api/v{ApiVersion}/btc/blockchain/broadcast", content).ConfigureAwait(false);
+		using HttpResponseMessage response = await HttpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -165,8 +163,7 @@ public class WasabiClient
 	/// <param name="compactness">1 to 64</param>
 	public async Task<ISet<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
 	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(
-			HttpMethod.Get,
+		using HttpResponseMessage response = await HttpClient.GetAsync(
 			$"api/v{ApiVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
 			cancellationToken: cancel).ConfigureAwait(false);
 
@@ -187,7 +184,7 @@ public class WasabiClient
 
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
 	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
+		using HttpResponseMessage response = await HttpClient.GetAsync("api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
