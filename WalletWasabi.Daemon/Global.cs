@@ -118,7 +118,8 @@ public class Global
 		RegisterFeeRateProviders();
 
 		// Block providers.
-		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, TorSettings.SocksEndpoint);
+		var torEndpoint = TorSettings.TorMode != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
+		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, torEndpoint);
 		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
 
 		IBlockProvider[] trustedFullNodeBlockProviders = BitcoinCoreNode?.RpcClient is null
