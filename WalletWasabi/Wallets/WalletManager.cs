@@ -18,7 +18,7 @@ namespace WalletWasabi.Wallets;
 
 public class WalletManager : IWalletProvider
 {
-	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
+	/// <remarks>All access must be guarded by <see cref="_lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
 	public WalletManager(
@@ -28,17 +28,17 @@ public class WalletManager : IWalletProvider
 		WalletFactory walletFactory)
 	{
 		Network = network;
-		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-		Directory.CreateDirectory(WorkDir);
+		_workDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		Directory.CreateDirectory(_workDir);
 		WalletDirectories = walletDirectories;
-		WalletFactory = walletFactory;
-		CancelAllTasksToken = CancelAllTasks.Token;
+		_walletFactory = walletFactory;
+		_cancelAllTasksToken = _cancelAllTasks.Token;
 
 		LoadWalletListFromFileSystem();
 	}
 
 	/// <summary>
-	/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
+	/// Triggered if any of the _wallets changes its state. The sender of the event will be the Wallet.
 	/// </summary>
 	public event EventHandler<WalletState>? WalletStateChanged;
 
@@ -48,33 +48,33 @@ public class WalletManager : IWalletProvider
 	public event EventHandler<Wallet>? WalletAdded;
 
 	/// <summary>Cancels initialization of wallets.</summary>
-	private CancellationTokenSource CancelAllTasks { get; } = new();
+	private readonly CancellationTokenSource _cancelAllTasks = new();
 
-	/// <summary>Token from <see cref="CancelAllTasks"/>.</summary>
-	/// <remarks>Accessing the token of <see cref="CancelAllTasks"/> can lead to <see cref="ObjectDisposedException"/>. So we copy the token and no exception can be thrown.</remarks>
-	private CancellationToken CancelAllTasksToken { get; }
+	/// <summary>Token from <see cref="_cancelAllTasks"/>.</summary>
+	/// <remarks>Accessing the token of <see cref="_cancelAllTasks"/> can lead to <see cref="ObjectDisposedException"/>. So we copy the token and no exception can be thrown.</remarks>
+	private readonly CancellationToken _cancelAllTasksToken;
 
-	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
-	private HashSet<Wallet> Wallets { get; } = new();
+	/// <remarks>All access must be guarded by <see cref="_lock"/> object.</remarks>
+	private readonly HashSet<Wallet> _wallets = new();
 
-	private object Lock { get; } = new();
-	private AsyncLock StartStopWalletLock { get; } = new();
+	private readonly object _lock = new();
+	private readonly AsyncLock _startStopWalletLock = new();
 
 	private bool IsInitialized { get; set; }
 
-	private WalletFactory WalletFactory { get; }
+	private readonly WalletFactory _walletFactory;
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private string WorkDir { get; }
+	private readonly string _workDir;
 
 	private void LoadWalletListFromFileSystem()
 	{
 		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
 
 		string[]? walletNamesToLoad = null;
-		lock (Lock)
+		lock (_lock)
 		{
-			walletNamesToLoad = walletFileNames.Where(walletFileName => !Wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
+			walletNamesToLoad = walletFileNames.Where(walletFileName => !_wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
 		}
 
 		if (walletNamesToLoad.Length == 0)
@@ -82,12 +82,12 @@ public class WalletManager : IWalletProvider
 			return;
 		}
 
-		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), CancelAllTasksToken)).ToList();
+		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), _cancelAllTasksToken)).ToList();
 
 		while (walletLoadTasks.Count > 0)
 		{
 			var tasksArray = walletLoadTasks.ToArray();
-			var finishedTaskIndex = Task.WaitAny(tasksArray, CancelAllTasksToken);
+			var finishedTaskIndex = Task.WaitAny(tasksArray, _cancelAllTasksToken);
 			var finishedTask = tasksArray[finishedTaskIndex];
 			walletLoadTasks.Remove(finishedTask);
 			try
@@ -164,23 +164,23 @@ public class WalletManager : IWalletProvider
 
 	public IEnumerable<Wallet> GetWallets()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			return Wallets.ToList();
+			return _wallets.ToList();
 		}
 	}
 
 	public bool HasWallet()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			return Wallets.Count > 0;
+			return _wallets.Count > 0;
 		}
 	}
 
 	public async Task<Wallet> StartWalletAsync(Wallet wallet)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			if (_disposedValue)
 			{
@@ -188,13 +188,13 @@ public class WalletManager : IWalletProvider
 				throw new OperationCanceledException("Object was already disposed.");
 			}
 
-			if (CancelAllTasks.IsCancellationRequested)
+			if (_cancelAllTasks.IsCancellationRequested)
 			{
 				throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 			}
 
 			// Throw an exception if the wallet was not added to the WalletManager.
-			Wallets.Single(x => x == wallet);
+			_wallets.Single(x => x == wallet);
 		}
 
 		wallet.SetWaitingForInitState();
@@ -202,7 +202,7 @@ public class WalletManager : IWalletProvider
 		// Wait for the WalletManager to be initialized.
 		while (!IsInitialized)
 		{
-			await Task.Delay(100, CancelAllTasks.Token).ConfigureAwait(false);
+			await Task.Delay(100, _cancelAllTasks.Token).ConfigureAwait(false);
 		}
 
 		if (wallet.State == WalletState.WaitingForInit)
@@ -210,14 +210,14 @@ public class WalletManager : IWalletProvider
 			wallet.Initialize();
 		}
 
-		using (await StartStopWalletLock.LockAsync(CancelAllTasks.Token).ConfigureAwait(false))
+		using (await _startStopWalletLock.LockAsync(_cancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
 			{
 				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
-				await wallet.StartAsync(CancelAllTasksToken).ConfigureAwait(false);
+				await wallet.StartAsync(_cancelAllTasksToken).ConfigureAwait(false);
 				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
-				CancelAllTasksToken.ThrowIfCancellationRequested();
+				_cancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
 			catch
@@ -236,7 +236,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = WalletFactory.Create(keyManager);
+		Wallet wallet = _walletFactory.Create(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -247,7 +247,7 @@ public class WalletManager : IWalletProvider
 		Wallet wallet;
 		try
 		{
-			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
+			wallet = _walletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -274,7 +274,7 @@ public class WalletManager : IWalletProvider
 			}
 			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = WalletFactory.Create(KeyManager.FromFile(walletFullPath));
+			wallet = _walletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 
 		return wallet;
@@ -282,13 +282,13 @@ public class WalletManager : IWalletProvider
 
 	private void AddWallet(Wallet wallet)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			if (Wallets.Any(w => w.WalletId == wallet.WalletId))
+			if (_wallets.Any(w => w.WalletId == wallet.WalletId))
 			{
 				throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 			}
-			Wallets.Add(wallet);
+			_wallets.Add(wallet);
 		}
 
 		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
@@ -310,7 +310,7 @@ public class WalletManager : IWalletProvider
 
 	public async Task RemoveAndStopAllAsync(CancellationToken cancel)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			// Already disposed.
 			if (_disposedValue)
@@ -321,9 +321,9 @@ public class WalletManager : IWalletProvider
 			_disposedValue = true;
 		}
 
-		CancelAllTasks.Cancel();
+		_cancelAllTasks.Cancel();
 
-		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _startStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			foreach (var wallet in GetWallets())
 			{
@@ -331,9 +331,9 @@ public class WalletManager : IWalletProvider
 
 				wallet.StateChanged -= Wallet_StateChanged;
 
-				lock (Lock)
+				lock (_lock)
 				{
-					if (!Wallets.Remove(wallet))
+					if (!_wallets.Remove(wallet))
 					{
 						throw new InvalidOperationException("Wallet service doesn't exist.");
 					}
@@ -360,14 +360,14 @@ public class WalletManager : IWalletProvider
 			}
 		}
 
-		CancelAllTasks.Dispose();
+		_cancelAllTasks.Dispose();
 	}
 
 	public void ProcessCoinJoin(SmartTransaction tx)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started && !x.TransactionProcessor.IsAware(tx.GetHash())))
+			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started && !x.TransactionProcessor.IsAware(tx.GetHash())))
 			{
 				wallet.TransactionProcessor.Process(tx);
 			}
@@ -376,9 +376,9 @@ public class WalletManager : IWalletProvider
 
 	public void Process(SmartTransaction transaction)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started))
+			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started))
 			{
 				wallet.TransactionProcessor.Process(transaction);
 			}
@@ -387,10 +387,10 @@ public class WalletManager : IWalletProvider
 
 	public IEnumerable<SmartCoin> CoinsByOutPoint(OutPoint input)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var res = new List<SmartCoin>();
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started))
+			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started))
 			{
 				if (wallet.Coins.TryGetByOutPoint(input, out var coin))
 				{
@@ -404,10 +404,10 @@ public class WalletManager : IWalletProvider
 
 	public ISet<uint256> FilterUnknownCoinjoins(IEnumerable<uint256> cjs)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var unknowns = new HashSet<uint256>();
-			foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started))
+			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started))
 			{
 				// If a wallet service doesn't know about the tx, then we add it for processing.
 				foreach (var tx in cjs.Where(x => !wallet.TransactionProcessor.IsAware(x)))
@@ -447,9 +447,9 @@ public class WalletManager : IWalletProvider
 
 	public Wallet GetWalletByName(string walletName)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
+			return _wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
 	}
 }

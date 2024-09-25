@@ -32,30 +32,30 @@ public class TorProcessManager : IAsyncDisposable
 	{
 		TorProcess = null;
 		TorControlClient = null;
-		LoopCts = new();
+		_loopCts = new();
 		LoopTask = null;
-		Settings = settings;
+		_settings = settings;
 	}
 
 	/// <summary>Guards <see cref="TorProcess"/> and <see cref="TorControlClient"/>.</summary>
-	private object StateLock { get; } = new();
+	private readonly object _stateLock = new();
 
 	private Task? LoopTask { get; set; }
 
 	/// <summary>To stop the loop that keeps starting Tor process.</summary>
-	private CancellationTokenSource LoopCts { get; }
+	private readonly CancellationTokenSource _loopCts;
 
-	private TorSettings Settings { get; }
+	private readonly TorSettings _settings;
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
-	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// <para>Guarded by <see cref="_stateLock"/>.</para>
 	/// </remarks>
 	private ProcessAsync? TorProcess { get; set; }
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
-	/// <para>Guarded by <see cref="StateLock"/>.</para>
+	/// <para>Guarded by <see cref="_stateLock"/>.</para>
 	/// </remarks>
 	private TorControlClient? TorControlClient { get; set; }
 
@@ -75,7 +75,7 @@ public class TorProcessManager : IAsyncDisposable
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
 
-		string operation = Settings.TorMode == TorMode.Enabled ? "start" : "connect to";
+		string operation = _settings.TorMode == TorMode.Enabled ? "start" : "connect to";
 
 		for (int i = 0; i < attempts; i++)
 		{
@@ -108,7 +108,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
-		if (Settings.TorMode == TorMode.EnabledOnlyRunning)
+		if (_settings.TorMode == TorMode.EnabledOnlyRunning)
 		{
 			await RestartingLoopForRunningTorAsync(globalCancellationToken).ConfigureAwait(false);
 		}
@@ -120,7 +120,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	private async Task RestartingLoopForRunningTorAsync(CancellationToken globalCancellationToken)
 	{
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, _loopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
 		bool detectedTorState = false;
@@ -169,14 +169,14 @@ public class TorProcessManager : IAsyncDisposable
 	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
 	{
 		// This function connects to the Tor Socks5 proxy and starts the handshaking process
-		if (!Settings.SocksEndpoint.TryGetHostAndPort(out var host, out var port))
+		if (!_settings.SocksEndpoint.TryGetHostAndPort(out var host, out var port))
 		{
 			throw new InvalidOperationException("The Tor socks5 endpoint is not supported.");
 		}
 
 		try
 		{
-			using var tcp = new TcpClient(Settings.SocksEndpoint.AddressFamily);
+			using var tcp = new TcpClient(_settings.SocksEndpoint.AddressFamily);
 			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 			byte[] msg =
 			[
@@ -200,7 +200,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// </summary>
 	private async Task RestartingLoopForBundledTorAsync(CancellationToken globalCancellationToken)
 	{
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, LoopCts.Token);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, _loopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
 		while (!cancellationToken.IsCancellationRequested)
@@ -220,7 +220,7 @@ public class TorProcessManager : IAsyncDisposable
 
 				if (isAlreadyRunning)
 				{
-					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint}");
+					Logger.LogInfo($"Tor is already running on {_settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
 					// Tor process can crash even between these two commands too.
@@ -254,7 +254,7 @@ public class TorProcessManager : IAsyncDisposable
 
 					// Compare as two unordered sets.
 					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
-					bool areBridgesAsRequired = currentBridges.SequenceEqual(Settings.Bridges.Order());
+					bool areBridgesAsRequired = currentBridges.SequenceEqual(_settings.Bridges.Order());
 
 					if (!areBridgesAsRequired)
 					{
@@ -265,7 +265,7 @@ public class TorProcessManager : IAsyncDisposable
 				}
 				else
 				{
-					string arguments = Settings.GetCmdArguments();
+					string arguments = _settings.GetCmdArguments();
 					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
 
 					process = StartProcess(arguments);
@@ -284,7 +284,7 @@ public class TorProcessManager : IAsyncDisposable
 				Logger.LogInfo("Tor is running.");
 
 				// Only now we know that Tor process is fully started.
-				lock (StateLock)
+				lock (_stateLock)
 				{
 					TorProcess = process;
 					TorControlClient = controlClient;
@@ -324,7 +324,7 @@ public class TorProcessManager : IAsyncDisposable
 						try
 						{
 							// This throws if we can't access MainModule of an elevated process from a non elevated one.
-							if (torProcess.MainModule?.FileName == Settings.TorBinaryFilePath)
+							if (torProcess.MainModule?.FileName == _settings.TorBinaryFilePath)
 							{
 								Logger.LogInfo("Kill running Tor process to restart it again.");
 								killAttempt = true;
@@ -364,7 +364,7 @@ public class TorProcessManager : IAsyncDisposable
 
 				process?.Dispose();
 
-				lock (StateLock)
+				lock (_stateLock)
 				{
 					TorProcess = null;
 					TorControlClient = null;
@@ -442,12 +442,12 @@ public class TorProcessManager : IAsyncDisposable
 	{
 		ProcessStartInfo startInfo = new()
 		{
-			FileName = Settings.TorBinaryFilePath,
+			FileName = _settings.TorBinaryFilePath,
 			Arguments = arguments,
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			RedirectStandardOutput = true,
-			WorkingDirectory = Settings.TorBinaryDir
+			WorkingDirectory = _settings.TorBinaryDir
 		};
 
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -455,13 +455,13 @@ public class TorProcessManager : IAsyncDisposable
 			var env = startInfo.EnvironmentVariables;
 
 			env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-				? Settings.TorBinaryDir
-				: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+				? _settings.TorBinaryDir
+				: _settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
 
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo(Settings.IsCustomTorFolder ? $"Starting Tor process in folder '{Settings.TorBinaryDir}'…" : "Starting Tor process…");
+		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
@@ -474,19 +474,19 @@ public class TorProcessManager : IAsyncDisposable
 	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
-		if (!File.Exists(Settings.CookieAuthFilePath))
+		if (!File.Exists(_settings.CookieAuthFilePath))
 		{
 			throw new TorControlException("Cookie file does not exist.");
 		}
 
 		// Get cookie.
-		string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
+		string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(_settings.CookieAuthFilePath));
 
 		// Authenticate.
 		TorControlClientFactory factory = new();
-		TorControlClient client = await factory.ConnectAndAuthenticateAsync(Settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
 
-		if (Settings.TerminateOnExit)
+		if (_settings.TerminateOnExit)
 		{
 			// This is necessary for the scenario when Tor was started by a previous WW instance with TerminateTorOnExit=false configuration option.
 			TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
@@ -509,7 +509,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
-		LoopCts.Cancel();
+		_loopCts.Cancel();
 
 		if (LoopTask is Task t)
 		{
@@ -519,12 +519,12 @@ public class TorProcessManager : IAsyncDisposable
 			}
 		}
 
-		LoopCts.Dispose();
+		_loopCts.Dispose();
 
 		ProcessAsync? process;
 		TorControlClient? torControlClient;
 
-		lock (StateLock)
+		lock (_stateLock)
 		{
 			process = TorProcess;
 			torControlClient = TorControlClient;
@@ -538,7 +538,7 @@ public class TorProcessManager : IAsyncDisposable
 			// > close when shutting down because of an exiting controller. If you
 			// > want to ensure a clean shutdown--and you should!--then send "SIGNAL
 			// > SHUTDOWN" and wait for the Tor process to close.)
-			if (Settings.TerminateOnExit)
+			if (_settings.TerminateOnExit)
 			{
 				await torControlClient.SignalShutdownAsync(CancellationToken.None).ConfigureAwait(false);
 			}

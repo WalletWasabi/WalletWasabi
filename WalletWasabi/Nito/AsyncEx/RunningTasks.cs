@@ -6,11 +6,11 @@ public class RunningTasks : IDisposable
 {
 	public RunningTasks(AbandonedTasks taskCollection)
 	{
-		taskCollection.AddAndClearCompleted(Completion.Task);
+		taskCollection.AddAndClearCompleted(_completion.Task);
 	}
 
 	private bool DisposedValue { get; set; } = false;
-	private TaskCompletionSource Completion { get; } = new();
+	private readonly TaskCompletionSource _completion = new();
 
 	public static IDisposable RememberWith(AbandonedTasks taskCollection) => new RunningTasks(taskCollection);
 
@@ -20,7 +20,7 @@ public class RunningTasks : IDisposable
 		{
 			if (disposing)
 			{
-				Completion.TrySetResult();
+				_completion.TrySetResult();
 			}
 
 			DisposedValue = true;

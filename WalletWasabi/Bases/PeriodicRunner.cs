@@ -19,7 +19,7 @@ public abstract class PeriodicRunner : BackgroundService
 	protected PeriodicRunner(TimeSpan period)
 	{
 		Period = period;
-		ExceptionTracker = new LastExceptionTracker();
+		_exceptionTracker = new LastExceptionTracker();
 	}
 
 	/// <summary>
@@ -29,7 +29,7 @@ public abstract class PeriodicRunner : BackgroundService
 
 	public TimeSpan Period { get; }
 
-	private LastExceptionTracker ExceptionTracker { get; }
+	private readonly LastExceptionTracker _exceptionTracker;
 
 	/// <summary>
 	/// Normally, <see cref="ActionAsync(CancellationToken)"/> user-action is called every time that <see cref="Period"/> elapses.
@@ -84,7 +84,7 @@ public abstract class PeriodicRunner : BackgroundService
 				await ActionAsync(stoppingToken).ConfigureAwait(false);
 				Tick?.Invoke(this, DateTimeOffset.UtcNow - before);
 
-				ExceptionInfo? info = ExceptionTracker.LastException;
+				ExceptionInfo? info = _exceptionTracker.LastException;
 
 				// Log previous exception if any.
 				if (info is { })
@@ -92,7 +92,7 @@ public abstract class PeriodicRunner : BackgroundService
 					Logger.LogInfo($"Exception stopped coming. It came for " +
 						$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
 						$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
-					ExceptionTracker.Reset();
+					_exceptionTracker.Reset();
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
@@ -102,7 +102,7 @@ public abstract class PeriodicRunner : BackgroundService
 			catch (Exception ex)
 			{
 				// Exception encountered, process it.
-				var info = ExceptionTracker.Process(ex);
+				var info = _exceptionTracker.Process(ex);
 				if (info.IsFirst)
 				{
 					if (info.Exception is HttpRequestException)

@@ -8,7 +8,7 @@ public class IdempotencyRequestCache
 {
 	public IdempotencyRequestCache(IMemoryCache cache)
 	{
-		ResponseCache = cache;
+		_responseCache = cache;
 	}
 
 	public delegate Task<TResponse> ProcessRequestDelegateAsync<TRequest, TResponse>(TRequest sender, CancellationToken cancellationToken);
@@ -19,13 +19,13 @@ public class IdempotencyRequestCache
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
 
-	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
+	/// <summary>Guards <see cref="_responseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
 	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
-	private object ResponseCacheLock { get; } = new();
+	private readonly object _responseCacheLock = new();
 
-	/// <remarks>Guarded by <see cref="ResponseCacheLock"/>.</remarks>
-	private IMemoryCache ResponseCache { get; }
+	/// <remarks>Guarded by <see cref="_responseCacheLock"/>.</remarks>
+	private readonly IMemoryCache _responseCache;
 
 	/// <summary>
 	/// Tries to add the cache key to cache to avoid other callers to add such a key in parallel.
@@ -35,12 +35,12 @@ public class IdempotencyRequestCache
 	public bool TryAddKey<TRequest, TResponse>(TRequest cacheKey, MemoryCacheEntryOptions options, out TaskCompletionSource<TResponse> responseTcs)
 		where TRequest : notnull
 	{
-		lock (ResponseCacheLock)
+		lock (_responseCacheLock)
 		{
-			if (!ResponseCache.TryGetValue(cacheKey, out TaskCompletionSource<TResponse>? tcs))
+			if (!_responseCache.TryGetValue(cacheKey, out TaskCompletionSource<TResponse>? tcs))
 			{
 				responseTcs = new();
-				ResponseCache.Set(cacheKey, responseTcs, options);
+				_responseCache.Set(cacheKey, responseTcs, options);
 
 				return true;
 			}
@@ -81,9 +81,9 @@ public class IdempotencyRequestCache
 			}
 			catch (Exception e)
 			{
-				lock (ResponseCacheLock)
+				lock (_responseCacheLock)
 				{
-					ResponseCache.Remove(request);
+					_responseCache.Remove(request);
 				}
 
 				responseTcs!.SetException(e);
@@ -103,9 +103,9 @@ public class IdempotencyRequestCache
 	public void Remove<TRequest>(TRequest cacheKey)
 		where TRequest : notnull
 	{
-		lock (ResponseCacheLock)
+		lock (_responseCacheLock)
 		{
-			ResponseCache.Remove(cacheKey);
+			_responseCache.Remove(cacheKey);
 		}
 	}
 }

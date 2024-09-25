@@ -10,15 +10,15 @@ namespace WalletWasabi.Nito.AsyncEx;
 /// </summary>
 public class AbandonedTasks
 {
-	private HashSet<Task> Tasks { get; } = new();
-	private object Lock { get; } = new();
+	private readonly HashSet<Task> _tasks = new();
+	private readonly object _lock = new();
 
 	/// <summary>
 	/// Adds tasks and clears completed ones atomically.
 	/// </summary>
 	public void AddAndClearCompleted(params Task[] tasks)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			AddNoLock(tasks);
 
@@ -32,10 +32,10 @@ public class AbandonedTasks
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				ClearCompletedNoLock();
-				return Tasks.Count;
+				return _tasks.Count;
 			}
 		}
 	}
@@ -48,11 +48,11 @@ public class AbandonedTasks
 		do
 		{
 			Task[] tasks;
-			lock (Lock)
+			lock (_lock)
 			{
 				// 1. Clear all the completed tasks.
 				ClearCompletedNoLock();
-				tasks = Tasks.ToArray();
+				tasks = _tasks.ToArray();
 
 				// 2. If all tasks cleared, then break.
 				if (tasks.Length == 0)
@@ -88,13 +88,13 @@ public class AbandonedTasks
 	{
 		foreach (var t in tasks)
 		{
-			Tasks.Add(t);
+			_tasks.Add(t);
 		}
 	}
 
 	private void ClearCompletedNoLock()
 	{
-		foreach (var t in Tasks.ToArray())
+		foreach (var t in _tasks.ToArray())
 		{
 			if (t.IsCompleted)
 			{
@@ -103,7 +103,7 @@ public class AbandonedTasks
 					Logger.LogDebug(exc);
 				}
 
-				Tasks.Remove(t);
+				_tasks.Remove(t);
 			}
 		}
 	}

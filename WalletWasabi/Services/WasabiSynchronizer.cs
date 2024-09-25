@@ -31,11 +31,11 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, IHttpClientFactory httpClientFactory) : base(period)
 	{
-		MaxFiltersToSync = maxFiltersToSync;
+		_maxFiltersToSync = maxFiltersToSync;
 
 		LastResponse = null;
-		SmartHeaderChain = bitcoinStore.SmartHeaderChain;
-		FilterProcessor = new FilterProcessor(bitcoinStore);
+		_smartHeaderChain = bitcoinStore.SmartHeaderChain;
+		_filterProcessor = new FilterProcessor(bitcoinStore);
 		HttpClient = httpClientFactory.CreateClient("satoshi-backend");
 	}
 
@@ -88,9 +88,9 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
 	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
-	private int MaxFiltersToSync { get; }
-	private SmartHeaderChain SmartHeaderChain { get; }
-	private FilterProcessor FilterProcessor { get; }
+	private readonly int _maxFiltersToSync;
+	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly FilterProcessor _filterProcessor;
 
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
@@ -108,13 +108,13 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 			try
 			{
-				if (SmartHeaderChain.TipHash is null)
+				if (_smartHeaderChain.TipHash is null)
 				{
 					return;
 				}
 
 				response = await wasabiClient
-					.GetSynchronizeAsync(SmartHeaderChain.TipHash, MaxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+					.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
 				// NOT GenSocksServErr
@@ -171,7 +171,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			}
 
 			// If it's not fully synced or reorg happened.
-			if (response.Filters.Count() == MaxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+			if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
 				TriggerRound();
 			}
@@ -182,7 +182,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				UsdExchangeRate = exchangeRate.Rate;
 			}
 
-			await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
 
 			LastResponse = response;
 			ResponseArrived?.Invoke(this, response);

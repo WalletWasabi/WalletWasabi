@@ -35,12 +35,12 @@ public class JsonRpcRequestHandler<TService>
 
 	public JsonRpcRequestHandler(TService service)
 	{
-		Service = service;
-		MetadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
+		_service = service;
+		_metadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
 	}
 
-	private TService Service { get; }
-	private JsonRpcServiceMetadataProvider MetadataProvider { get; }
+	private readonly TService _service;
+	private readonly JsonRpcServiceMetadataProvider _metadataProvider;
 
 	/// <summary>
 	/// Parses the request and dispatches it to the correct service's method.
@@ -82,7 +82,7 @@ public class JsonRpcRequestHandler<TService>
 	{
 		var methodName = jsonRpcRequest.Method;
 
-		if (!MetadataProvider.TryGetMetadata(methodName, out var procedureMetadata))
+		if (!_metadataProvider.TryGetMetadata(methodName, out var procedureMetadata))
 		{
 			return Error(JsonRpcErrorCodes.MethodNotFound, $"'{methodName}' method not found.", jsonRpcRequest.Id);
 		}
@@ -154,12 +154,12 @@ public class JsonRpcRequestHandler<TService>
 			var missingParameters = methodParameters.Count - parameters.Count;
 			parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
 
-			if (procedureMetadata.RequiresInitialization && MetadataProvider.TryGetInitializer(out var initializer))
+			if (procedureMetadata.RequiresInitialization && _metadataProvider.TryGetInitializer(out var initializer))
 			{
-				initializer.Invoke(Service, new object[] { path, procedureMetadata.RequiresInitialization });
+				initializer.Invoke(_service, new object[] { path, procedureMetadata.RequiresInitialization });
 			}
 
-			var result = procedureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
+			var result = procedureMetadata.MethodInfo.Invoke(_service, parameters.ToArray());
 
 			if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
 			{

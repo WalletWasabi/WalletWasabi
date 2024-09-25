@@ -23,17 +23,17 @@ public class P2pNetwork : BackgroundService
 
 	public P2pNetwork(Network network, EndPoint fullNodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
 	{
-		Network = network;
-		FullNodeP2PEndPoint = fullNodeP2pEndPoint;
-		BitcoinStore = bitcoinStore;
-		AddressManagerFilePath = Path.Combine(workDir, $"AddressManager{Network}.dat");
+		_network = network;
+		_fullNodeP2PEndPoint = fullNodeP2pEndPoint;
+		_bitcoinStore = bitcoinStore;
+		_addressManagerFilePath = Path.Combine(workDir, $"_addressManager{_network}.dat");
 
-		if (Network == Network.RegTest)
+		if (_network == Network.RegTest)
 		{
-			AddressManager = new AddressManager();
-			Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
+			_addressManager = new AddressManager();
+			Logger.LogInfo($"Fake {nameof(_addressManager)} is initialized on the {Network.RegTest}.");
 
-			Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
+			Nodes = new NodesGroup(_network, requirements: Constants.NodeRequirements);
 		}
 		else
 		{
@@ -41,7 +41,7 @@ public class P2pNetwork : BackgroundService
 
 			try
 			{
-				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+				_addressManager = AddressManager.LoadPeerFile(_addressManagerFilePath);
 
 				// Most of the times we do not need to discover new peers. Instead, we can connect to
 				// some of those that we already discovered in the past. In this case we assume that
@@ -51,20 +51,20 @@ public class P2pNetwork : BackgroundService
 				// of course).
 				// On the other side, increasing this number forces users that do not need to discover more peers
 				// to spend resources (CPU/bandwidth) to discover new peers.
-				needsToDiscoverPeers = torSocks5EndPoint is not null || AddressManager.Count < 500;
-				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
+				needsToDiscoverPeers = torSocks5EndPoint is not null || _addressManager.Count < 500;
+				Logger.LogInfo($"Loaded {nameof(_addressManager)} from `{_addressManagerFilePath}`.");
 			}
 			catch (DirectoryNotFoundException ex)
 			{
-				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo($"{nameof(_addressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace(ex);
-				AddressManager = new AddressManager();
+				_addressManager = new AddressManager();
 			}
 			catch (FileNotFoundException ex)
 			{
-				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo($"{nameof(_addressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace(ex);
-				AddressManager = new AddressManager();
+				_addressManager = new AddressManager();
 			}
 			catch (Exception ex) when (ex is OverflowException || ex is FormatException || ex is ArgumentException || ex is EndOfStreamException)
 			{
@@ -72,14 +72,14 @@ public class P2pNetwork : BackgroundService
 				// https://github.com/WalletWasabi/WalletWasabi/issues/880
 				// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
 				// https://github.com/WalletWasabi/WalletWasabi/issues/5255
-				Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
-				File.Delete(AddressManagerFilePath);
+				Logger.LogInfo($"{nameof(_addressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
+				File.Delete(_addressManagerFilePath);
 				Logger.LogTrace(ex);
-				AddressManager = new AddressManager();
-				Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
+				_addressManager = new AddressManager();
+				Logger.LogInfo($"{nameof(_addressManager)} autocorrection is successful.");
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			var addressManagerBehavior = new AddressManagerBehavior(_addressManager)
 			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
@@ -87,7 +87,7 @@ public class P2pNetwork : BackgroundService
 			var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
-			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+			connectionParameters.TemplateBehaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 
@@ -95,7 +95,7 @@ public class P2pNetwork : BackgroundService
 			{
 				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 			}
-			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(_network, connectionParameters, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
 			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
 			nodes.MaximumNodeConnection = MaximumNodeConnections;
@@ -104,28 +104,28 @@ public class P2pNetwork : BackgroundService
 		}
 	}
 
-	private Network Network { get; }
-	private EndPoint FullNodeP2PEndPoint { get; }
-	private BitcoinStore BitcoinStore { get; }
+	private readonly Network _network;
+	private readonly EndPoint _fullNodeP2PEndPoint;
+	private readonly BitcoinStore _bitcoinStore;
 	public NodesGroup Nodes { get; }
 	private Node? RegTestMempoolServingNode { get; set; }
-	private string AddressManagerFilePath { get; }
-	private AddressManager AddressManager { get; }
+	private readonly string _addressManagerFilePath;
+	private readonly AddressManager _addressManager;
 
 	/// <inheritdoc />
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (Network == Network.RegTest)
+		if (_network == Network.RegTest)
 		{
 			try
 			{
-				Node node = await Node.ConnectAsync(Network.RegTest, FullNodeP2PEndPoint).ConfigureAwait(false);
+				Node node = await Node.ConnectAsync(Network.RegTest, _fullNodeP2PEndPoint).ConfigureAwait(false);
 
 				Nodes.ConnectedNodes.Add(node);
 
-				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, FullNodeP2PEndPoint).ConfigureAwait(false);
+				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, _fullNodeP2PEndPoint).ConfigureAwait(false);
 
-				RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+				RegTestMempoolServingNode.Behaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
 			}
 			catch (SocketException ex)
 			{
@@ -154,10 +154,10 @@ public class P2pNetwork : BackgroundService
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(_addressManagerFilePath);
 
-		AddressManager.SavePeerFile(AddressManagerFilePath, Network);
-		Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
+		_addressManager.SavePeerFile(_addressManagerFilePath, _network);
+		Logger.LogInfo($"{nameof(_addressManager)} is saved to `{_addressManagerFilePath}`.");
 
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +180,7 @@ public class P2pNetwork : BackgroundService
 
 	public override void Dispose()
 	{
-		if (Network != Network.RegTest)
+		if (_network != Network.RegTest)
 		{
 			Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
 			Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
