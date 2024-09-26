@@ -22,24 +22,24 @@ public class EventsAwaiter<TEventArgs>
 
 		EventsArrived = eventsArrived;
 		Tasks = EventsArrived.Select(x => x.Task).ToArray();
-		Unsubscribe = unsubscribe;
+		_unsubscribe = unsubscribe;
 
 		subscribe(SubscriptionEventHandler);
 	}
 
 	/// <remarks>Guards <see cref="EventsArrived"/>.</remarks>
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	protected IReadOnlyList<TaskCompletionSource<TEventArgs>> EventsArrived { get; }
 
 	protected IReadOnlyList<Task<TEventArgs>> Tasks { get; }
 
-	private Action<EventHandler<TEventArgs>> Unsubscribe { get; }
+	private readonly Action<EventHandler<TEventArgs>> _unsubscribe;
 
 	private void SubscriptionEventHandler(object? sender, TEventArgs e)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
 			firstUnfinished?.TrySetResult(e);
@@ -47,7 +47,7 @@ public class EventsAwaiter<TEventArgs>
 			// This is guaranteed to happen only once.
 			if (Tasks.All(x => x.IsCompleted))
 			{
-				Unsubscribe(SubscriptionEventHandler);
+				_unsubscribe(SubscriptionEventHandler);
 			}
 		}
 	}

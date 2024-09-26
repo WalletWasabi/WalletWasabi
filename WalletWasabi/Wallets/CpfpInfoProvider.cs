@@ -44,7 +44,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	private readonly Channel<SmartTransaction> _transactionsChannel = Channel.CreateUnbounded<SmartTransaction>();
 	private readonly Dictionary<uint256, CachedCpfpInfo> _cpfpInfoCache = new();
-	private AsyncLock AsyncLock { get; } = new();
+	private readonly AsyncLock _asyncLock = new();
 
 	private DateTimeOffset _lastUpdateCacheLoop = DateTimeOffset.MinValue;
 
@@ -68,7 +68,7 @@ public class CpfpInfoProvider : BackgroundService
 			var txToFetch = await _transactionsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 			var txid = txToFetch.GetHash();
 
-			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				if (scheduledRequests.Contains(txid) ||
 				    !ShouldRequest(txToFetch) ||
@@ -152,7 +152,7 @@ public class CpfpInfoProvider : BackgroundService
 
 		List<uint256> toRemoveFromCache = [];
 
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			foreach (var cachedCpfpInfo in _cpfpInfoCache)
 			{
@@ -174,7 +174,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	public async Task<CpfpInfo?> GetCachedCpfpInfoAsync(uint256 txid, CancellationToken cancel)
 	{
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			return _cpfpInfoCache.TryGetValue(txid, out var cached) ? cached.CpfpInfo : null;
 		}

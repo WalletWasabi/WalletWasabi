@@ -25,7 +25,7 @@ public class CoinJoinProcessor : IDisposable
 		WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 		Network = network;
 		RpcClient = rpc;
-		ProcessLock = new AsyncLock();
+		_processLock = new AsyncLock();
 		Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 	}
 
@@ -33,13 +33,13 @@ public class CoinJoinProcessor : IDisposable
 	public WalletManager WalletManager { get; }
 	public Network Network { get; }
 	public IRPCClient? RpcClient { get; private set; }
-	private AsyncLock ProcessLock { get; }
+	private readonly AsyncLock _processLock;
 
 	private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
 	{
 		try
 		{
-			using (await ProcessLock.LockAsync())
+			using (await _processLock.LockAsync())
 			{
 				// This feature is only available for users that have a full node connected
 				if (RpcClient is null)

@@ -19,13 +19,13 @@ public class TransactionSqliteStorage : IDisposable
 
 	private TransactionSqliteStorage(SqliteConnection connection, Network network)
 	{
-		Connection = connection;
-		Network = network;
+		_connection = connection;
+		_network = network;
 	}
 
-	/// <remarks>Connection cannot be accessed from multiple threads at the same time.</remarks>
-	private SqliteConnection Connection { get; }
-	private Network Network { get; }
+	/// <remarks>_connection cannot be accessed from multiple threads at the same time.</remarks>
+	private readonly SqliteConnection _connection;
+	private readonly Network _network;
 
 	/// <summary>
 	/// Opens a new SQLite connection to the given database file.
@@ -107,8 +107,8 @@ public class TransactionSqliteStorage : IDisposable
 	/// <exception cref="SqliteException">If there is an issue with the operation.</exception>
 	public int BulkInsert(IEnumerable<SmartTransaction> transactions, bool upsert = false)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		string commandText;
 
@@ -221,8 +221,8 @@ public class TransactionSqliteStorage : IDisposable
 	/// <exception cref="SqliteException">If there is an issue with the operation.</exception>
 	public int BulkUpdate(IEnumerable<SmartTransaction> transactions)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		string commandText = """
 			UPDATE "transaction"
@@ -309,8 +309,8 @@ public class TransactionSqliteStorage : IDisposable
 	/// <exception cref="SqliteException">If there is an issue with the operation.</exception>
 	public int BulkRemove(IReadOnlyList<uint256> txids)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		string inParameters = string.Join(",", Enumerable.Range(0, txids.Count).Select(z => "@para" + z));
 		command.CommandText = $$"""DELETE FROM "transaction" WHERE txid IN ({{inParameters}})""";
@@ -340,7 +340,7 @@ public class TransactionSqliteStorage : IDisposable
 
 	public bool TryRemove(uint256 txid, out SmartTransaction? tx)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
 		bool result = TryReadSingleRecord(txid, $$"""DELETE FROM "transaction" WHERE txid = $txid returning *""", out tx);
 		transaction.Commit();
 
@@ -349,7 +349,7 @@ public class TransactionSqliteStorage : IDisposable
 
 	private bool TryReadSingleRecord(uint256 txid, string query, out SmartTransaction? tx)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		command.CommandText = query;
 
@@ -372,10 +372,10 @@ public class TransactionSqliteStorage : IDisposable
 
 	public IEnumerable<SmartTransaction> GetAll(CancellationToken cancellationToken)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
+		using SqliteCommand command = _connection.CreateCommand();
 
-		// Note that a transaction can be in the mempool, so it does not have any specific block height assigned. However, we assign such 
+		// Note that a transaction can be in the mempool, so it does not have any specific block height assigned. However, we assign such
 		// transactions Int32.MaxValue-1 height and as such mempool transactions would be returned first.
 		command.CommandText = $$"""
 			SELECT {{AllColumns}}
@@ -402,8 +402,8 @@ public class TransactionSqliteStorage : IDisposable
 
 	public IEnumerable<uint256> GetAllTxids()
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		command.CommandText = $$"""
 			SELECT txid
@@ -433,7 +433,7 @@ public class TransactionSqliteStorage : IDisposable
 		bool isCancellation = reader.GetInt32(ordinal: 8) == 1;
 		byte[] tx = reader.GetFieldValue<byte[]>(ordinal: 9);
 
-		Transaction transaction = Transaction.Load(tx, Network);
+		Transaction transaction = Transaction.Load(tx, _network);
 
 		Height height = new(blockHeight);
 		LabelsArray labelsArray = new(labelsString);
@@ -452,7 +452,7 @@ public class TransactionSqliteStorage : IDisposable
 	/// <returns>Returns <c>true</c> if there are no records in the transactions table.</returns>
 	public bool IsEmpty()
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = """SELECT EXISTS (SELECT 1 FROM "transaction")""";
 		object? result = command.ExecuteScalar();
 
@@ -468,7 +468,7 @@ public class TransactionSqliteStorage : IDisposable
 	/// <returns>Returns <c>true</c> if there are no records in the transactions table.</returns>
 	public bool Contains(uint256 txid)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = """SELECT EXISTS(SELECT 1 FROM "transaction" WHERE txid=$txid);""";
 
 		SqliteParameter txidParameter = CreateParameter(command, "$txid");
@@ -493,7 +493,7 @@ public class TransactionSqliteStorage : IDisposable
 	/// <returns><c>true</c> if at least one row was deleted, <c>false</c> otherwise.</returns>
 	public bool Clear()
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = """DELETE FROM "transaction";""";
 		int affectedLines = command.ExecuteNonQuery();
 
@@ -506,8 +506,8 @@ public class TransactionSqliteStorage : IDisposable
 		{
 			if (disposing)
 			{
-				Connection.Close();
-				Connection.Dispose();
+				_connection.Close();
+				_connection.Dispose();
 			}
 
 			_disposedValue = true;

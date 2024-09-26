@@ -9,22 +9,22 @@ public class ConfigWatcher : PeriodicRunner
 {
 	public ConfigWatcher(TimeSpan period, WabiSabiConfig config, Action executeWhenChanged) : base(period)
 	{
-		Config = config;
-		ExecuteWhenChanged = executeWhenChanged;
+		_config = config;
+		_executeWhenChanged = executeWhenChanged;
 		config.AssertFilePathSet();
 	}
 
-	private WabiSabiConfig Config { get; }
-	private Action ExecuteWhenChanged { get; }
+	private readonly WabiSabiConfig _config;
+	private readonly Action _executeWhenChanged;
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		if (ConfigManager.CheckFileChange(Config.FilePath, Config))
+		if (ConfigManager.CheckFileChange(_config.FilePath, _config))
 		{
 			cancel.ThrowIfCancellationRequested();
-			Config.LoadFile(createIfMissing: true);
+			_config.LoadFile(createIfMissing: true);
 
-			ExecuteWhenChanged();
+			_executeWhenChanged();
 		}
 
 		return Task.CompletedTask;

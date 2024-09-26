@@ -14,27 +14,27 @@ public class JsonRpcServer : BackgroundService
 {
 	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config, TerminateService terminateService)
 	{
-		Config = config;
-		TerminateService = terminateService;
-		RequestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service);
+		_config = config;
+		_terminateService = terminateService;
+		_requestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service);
 
-		Listener = new HttpListener();
-		Listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
+		_listener = new HttpListener();
+		_listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
 
-		foreach (var prefix in Config.Prefixes)
+		foreach (var prefix in _config.Prefixes)
 		{
-			Listener.Prefixes.Add(prefix);
+			_listener.Prefixes.Add(prefix);
 		}
 	}
 
-	private TerminateService TerminateService { get; }
-	private HttpListener Listener { get; }
-	private JsonRpcRequestHandler<IJsonRpcService> RequestHandler { get; }
-	private JsonRpcServerConfiguration Config { get; }
+	private readonly TerminateService _terminateService;
+	private readonly HttpListener _listener;
+	private readonly JsonRpcRequestHandler<IJsonRpcService> _requestHandler;
+	private readonly JsonRpcServerConfiguration _config;
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		Listener.Start();
+		_listener.Start();
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
@@ -44,7 +44,7 @@ public class JsonRpcServer : BackgroundService
 
 		// HttpListener is disposable but the dispose method is not public.
 		// That's a quirk of the HttpListener implementation.
-		Listener.Stop();
+		_listener.Stop();
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -55,7 +55,7 @@ public class JsonRpcServer : BackgroundService
 		{
 			try
 			{
-				var context = await Listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
+				var context = await _listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
 				var request = context.Request;
 				var response = context.Response;
 
@@ -71,7 +71,7 @@ public class JsonRpcServer : BackgroundService
 
 						if (!JsonRpcRequest.TryParse(body, out var allRpcRequests, out var isBatch))
 						{
-							jsonResponse = RequestHandler.CreateParseErrorResponse();
+							jsonResponse = _requestHandler.CreateParseErrorResponse();
 						}
 						else
 						{
@@ -89,7 +89,7 @@ public class JsonRpcServer : BackgroundService
 
 							if (requestsToProcess.Length > 0)
 							{
-								jsonResponse = await RequestHandler.HandleRequestsAsync(path, requestsToProcess, isBatch, stoppingToken).ConfigureAwait(false);
+								jsonResponse = await _requestHandler.HandleRequestsAsync(path, requestsToProcess, isBatch, stoppingToken).ConfigureAwait(false);
 							}
 						}
 
@@ -133,13 +133,13 @@ public class JsonRpcServer : BackgroundService
 		if (stopRpcRequestReceived)
 		{
 			Logger.LogDebug($"User sent '{IJsonRpcService.StopRpcCommand}' command. Terminating application.");
-			TerminateService.SignalForceTerminate();
+			_terminateService.SignalForceTerminate();
 		}
 	}
 
 	private bool IsAuthorized(HttpListenerContext context)
 	{
-		if (!Config.RequiresCredentials)
+		if (!_config.RequiresCredentials)
 		{
 			return true;
 		}
@@ -156,6 +156,6 @@ public class JsonRpcServer : BackgroundService
 
 	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity)
 	{
-		return identity is { } && (identity.Name == Config.JsonRpcUser && identity.Password == Config.JsonRpcPassword);
+		return identity is { } && (identity.Name == _config.JsonRpcUser && identity.Password == _config.JsonRpcPassword);
 	}
 }

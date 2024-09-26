@@ -22,21 +22,21 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 {
 	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
-		SmartHeaderChain = smartHeaderChain;
-		Network = network;
+		_smartHeaderChain = smartHeaderChain;
+		_network = network;
 
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		// Migration data.
-		OldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
-		OldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
-		NewIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		RunMigration = File.Exists(OldIndexFilePath);
+		_oldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
+		_oldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
+		_newIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+		_runMigration = File.Exists(_oldIndexFilePath);
 
 		if (network == Network.RegTest)
 		{
-			DeleteIndex(NewIndexFilePath);
+			DeleteIndex(_newIndexFilePath);
 		}
 
 		IndexStorage = CreateBlockFilterSqliteStorage();
@@ -46,13 +46,13 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: NewIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(Network));
+			return BlockFilterSqliteStorage.FromFile(dataSource: _newIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(_network));
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{NewIndexFilePath}'.");
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_newIndexFilePath}'.");
 
-			DeleteIndex(NewIndexFilePath);
+			DeleteIndex(_newIndexFilePath);
 			throw;
 		}
 	}
@@ -62,43 +62,43 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	public event EventHandler<IEnumerable<FilterModel>>? NewFilters;
 
 	/// <summary>Mature index path for migration purposes.</summary>
-	private string OldIndexFilePath { get; }
+	private readonly string _oldIndexFilePath;
 
 	/// <summary>Immature index path for migration purposes.</summary>
-	private string OldImmatureIndexFilePath { get; }
+	private readonly string _oldImmatureIndexFilePath;
 
 	/// <summary>SQLite file path for migration purposes.</summary>
-	private string NewIndexFilePath { get; }
+	private readonly string _newIndexFilePath;
 
 	/// <summary>Run migration if SQLite file does not exist.</summary>
-	private bool RunMigration { get; }
+	private readonly bool _runMigration;
 
 	/// <summary>NBitcoin network.</summary>
-	private Network Network { get; }
+	private readonly Network _network;
 
-	private SmartHeaderChain SmartHeaderChain { get; }
+	private readonly SmartHeaderChain _smartHeaderChain;
 
 	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
 	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
 	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
 
 	/// <summary>Filter disk storage.</summary>
-	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
 	private BlockFilterSqliteStorage IndexStorage { get; set; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
-	private AsyncLock IndexLock { get; } = new();
+	private readonly AsyncLock _indexLock = new();
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
-			using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 
 				// Migration code.
-				if (RunMigration)
+				if (_runMigration)
 				{
 					MigrateToSqliteNoLock(cancellationToken);
 				}
@@ -107,7 +107,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 				// So check it every time.
 				RemoveOldIndexFilesIfExist();
 
-				if (Network == Network.Main && IndexStorage.GetPragmaUserVersion() == 0)
+				if (_network == Network.Main && IndexStorage.GetPragmaUserVersion() == 0)
 				{
 					SmartResyncIfCorrupted();
 					IndexStorage.SetPragmaUserVersion(1);
@@ -128,14 +128,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	private void RemoveOldIndexFilesIfExist()
 	{
-		if (File.Exists(OldIndexFilePath))
+		if (File.Exists(_oldIndexFilePath))
 		{
 			try
 			{
-				File.Delete($"{OldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
-				File.Delete(OldImmatureIndexFilePath);
-				File.Delete($"{OldIndexFilePath}.dig");
-				File.Delete(OldIndexFilePath);
+				File.Delete($"{_oldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
+				File.Delete(_oldImmatureIndexFilePath);
+				File.Delete($"{_oldIndexFilePath}.dig");
+				File.Delete(_oldIndexFilePath);
 
 				Logger.LogInfo("Removed old index file data.");
 			}
@@ -159,7 +159,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			IndexStorage.Clear();
 
 			List<string> filters = new(capacity: 10_000);
-			using (FileStream fs = File.Open(OldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (FileStream fs = File.Open(_oldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (BufferedStream bs = new(fs))
 			using (StreamReader sr = new(bs))
 			{
@@ -206,14 +206,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			IndexStorage.Dispose();
 
 			// Do not run migration code again if it fails.
-			File.Delete(NewIndexFilePath);
-			File.Delete(OldIndexFilePath);
+			File.Delete(_newIndexFilePath);
+			File.Delete(_oldIndexFilePath);
 
 			IndexStorage = CreateBlockFilterSqliteStorage();
 		}
 	}
 
-	/// <remarks>Guarded by <see cref="IndexLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
 	private Task InitializeFiltersNoLockAsync(CancellationToken cancellationToken)
 	{
 		try
@@ -247,12 +247,12 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		return Task.CompletedTask;
 	}
 
-	/// <remarks>Requires <see cref="IndexLock"/> lock acquired.</remarks>
+	/// <remarks>Requires <see cref="_indexLock"/> lock acquired.</remarks>
 	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
 	{
 		try
 		{
-			SmartHeaderChain.AppendTip(filter.Header);
+			_smartHeaderChain.AppendTip(filter.Header);
 
 			if (enqueue)
 			{
@@ -273,7 +273,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
 	{
-		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+		using (await _indexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			using SqliteTransaction sqliteTransaction = IndexStorage.BeginTransaction();
 
@@ -305,7 +305,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public async Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken)
 	{
-		using (await IndexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			return IndexStorage.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
 		}
@@ -320,7 +320,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		FilterModel? filter;
 
-		using (await IndexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
+		using (await _indexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			if (height is null)
 			{
@@ -337,12 +337,12 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 				}
 			}
 
-			if (SmartHeaderChain.TipHeight != filter.Header.Height)
+			if (_smartHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(_smartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
 			}
 
-			SmartHeaderChain.RemoveTip();
+			_smartHeaderChain.RemoveTip();
 		}
 
 		Reorged?.Invoke(this, filter);
@@ -496,7 +496,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	private void DeleteIndex(string indexPath)
 	{
-		lock (IndexLock)
+		lock (_indexLock)
 		{
 			if (File.Exists(indexPath))
 			{
