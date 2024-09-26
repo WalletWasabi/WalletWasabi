@@ -1,0 +1,37 @@
+name: Update version in the docs after a release is published
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  trigger-doc-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check if release is a pre-release
+        id: check_prerelease
+        run: |
+          if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            echo "This is a pre-release, exiting."
+            exit 1
+          fi
+
+      - name: Get the published version
+        id: get_version
+        run: |
+          NEW_VERSION=${{ github.event.release.tag_name }}
+          NEW_VERSION=$(echo "${NEW_VERSION}" | sed 's/^v//')
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+
+      - name: Trigger WasabiDoc workflow
+        run: |
+          curl -X POST \
+          -H "Authorization: token ${{ secrets.WASABI_DOC_PAT }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/WalletWasabi/WasabiDoc/dispatches \
+          -d '{"event_type":"update-version","client_payload":{"new_version":"${{ steps.get_version.outputs.NEW_VERSION }}"}}'
