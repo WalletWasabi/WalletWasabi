@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Check if release is a pre-release
         id: check_prerelease
@@ -31,7 +31,7 @@ jobs:
       - name: Trigger WasabiDoc workflow
         run: |
           curl -X POST \
-          -H "Authorization: token ${{ secrets.WASABI_DOC_PAT }}" \
+          -H "Authorization: token ${{ secrets.DOC_UPDATE_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/WalletWasabi/WasabiDoc/dispatches \
           -d '{"event_type":"update-version","client_payload":{"new_version":"${{ steps.get_version.outputs.NEW_VERSION }}"}}'
