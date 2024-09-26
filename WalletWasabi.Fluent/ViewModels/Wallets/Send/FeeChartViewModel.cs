@@ -27,6 +27,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private string _currentConfirmationTargetString;
 	[AutoNotify] private bool _enableCursor = true;
 	private bool _updatingCurrentValue;
+	private readonly Random _rnd = new ();
 
 	public FeeChartViewModel()
 	{
@@ -34,28 +35,45 @@ public partial class FeeChartViewModel : ViewModelBase
 		_sliderMaximum = 9;
 		_currentConfirmationTargetString = "";
 
-		this.WhenAnyValue(x => x.CurrentConfirmationTarget)
-			.Subscribe(x =>
+		this.WhenAnyValue(x => x.CurrentSatoshiPerByte)
+			.Subscribe(feeRate =>
 			{
-				if (x > 0)
-				{
-					SetSliderValue(x);
-				}
+				CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
+				UpdateEstimate(CurrentConfirmationTarget);
+				SetSliderValue(CurrentConfirmationTarget);
 			});
 
 		this.WhenAnyValue(x => x.SliderValue)
 			.Subscribe(SetXAxisCurrentValue);
 
-		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
-		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
+		// Randomness to avoid fingerprinting.
+		MoveSliderLeftCommand = ReactiveCommand.Create(() =>
+		{
+			if (_confirmationTargetValues is not null && _satoshiPerByteValues is not null)
+			{
+				CurrentSatoshiPerByte = Math.Max((decimal)_satoshiPerByteValues.Min(), CurrentSatoshiPerByte - _rnd.Next(1, 11) / 100m);
+			}
+		});
+
+		MoveSliderRightCommand = ReactiveCommand.Create(() =>
+		{
+			if (_confirmationTargetValues is not null && _satoshiPerByteValues is not null)
+			{
+				CurrentSatoshiPerByte = Math.Min((decimal)_satoshiPerByteValues.Max(), CurrentSatoshiPerByte + _rnd.Next(1, 11) / 100m);
+			}
+		});
 	}
 
 	public ICommand MoveSliderRightCommand { get; }
 	public ICommand MoveSliderLeftCommand { get; }
 
-	private void UpdateFeeAndEstimate(double confirmationTarget)
+	private void UpdateFee(double confirmationTarget)
 	{
-		CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
+		CurrentSatoshiPerByte = Math.Round(GetSatoshiPerByte(confirmationTarget), 2);
+	}
+
+	private void UpdateEstimate(double confirmationTarget)
+	{
 		var targetBlock = (int)Math.Ceiling(confirmationTarget);
 		var estimatedTime = TransactionFeeHelper.CalculateConfirmationTime(targetBlock);
 		CurrentConfirmationTargetString = ConfirmationTimeLabel.SliderLabel(estimatedTime);
@@ -69,7 +87,6 @@ public partial class FeeChartViewModel : ViewModelBase
 			if (_confirmationTargetValues is not null)
 			{
 				SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
-				UpdateFeeAndEstimate(confirmationTarget);
 			}
 
 			_updatingCurrentValue = false;
@@ -84,8 +101,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			{
 				_updatingCurrentValue = true;
 				var index = _confirmationTargetValues.Length - sliderValue - 1;
-				CurrentConfirmationTarget = _confirmationTargetValues[index];
-				UpdateFeeAndEstimate(CurrentConfirmationTarget);
+				UpdateFee(_confirmationTargetValues[index]);
 				_updatingCurrentValue = false;
 			}
 		}
@@ -174,6 +190,50 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		return SliderMaximum;
 	}
+
+	public double GetConfirmationTarget(decimal satoshiPerByte)
+	{
+		if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
+		{
+			if ((double)satoshiPerByte >= _satoshiPerByteValues.Max())
+			{
+				return _confirmationTargetValues.Min();
+			}
+			if ((double)satoshiPerByte <= _satoshiPerByteValues.Min())
+			{
+				return _confirmationTargetValues.Max();
+			}
+			var xs = _confirmationTargetValues.ToArray();
+			var ys = _satoshiPerByteValues.ToArray();
+
+			if (ys.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(ys, xs);
+				var interpolated = spline.Interpolate((double)satoshiPerByte);
+				return Math.Clamp(interpolated, xs[^1], xs[0]);
+			}
+
+			if (ys.Length == 2)
+			{
+				if (ys[1] - ys[0] == 0.0)
+				{
+					return xs[^1];
+				}
+
+				var slope = (xs[1] - xs[0]) / (ys[1] - ys[0]);
+				var interpolated = xs[0] + (((double)satoshiPerByte - ys[0]) * slope);
+				return Math.Clamp(interpolated, xs[^1], xs[0]);
+			}
+
+			if (xs.Length == 1)
+			{
+				return xs[0];
+			}
+		}
+
+		return 2;
+	}
+
 
 	public bool TryGetConfirmationTarget(FeeRate feeRate, out double target)
 	{
@@ -279,7 +339,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-		UpdateFeeAndEstimate(CurrentConfirmationTarget);
+		UpdateFee(CurrentConfirmationTarget);
 
 		EnableCursor = enableCursor;
 
