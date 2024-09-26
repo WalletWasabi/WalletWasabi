@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.Wallets;
@@ -72,6 +73,11 @@ public class CoinJoinTracker : IDisposable
 				break;
 
 			case RoundEnded roundEnded:
+				if (roundEnded.LastRoundState.EndRoundState != EndRoundState.TransactionBroadcasted)
+				{
+					Wallet.BatchedPayments.MovePaymentsToPending();
+				}
+
 				roundEnded.IsStopped = IsStopped;
 				break;
 
