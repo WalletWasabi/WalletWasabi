@@ -151,7 +151,7 @@ public class UiConfig : ConfigBase
 	}
 
 	// OnDeserialized changes this default on Linux.
-	[DefaultValue(true)]
+	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool RunOnSystemStartup
 	{
@@ -187,24 +187,5 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
-	}
-
-	[OnDeserialized]
-	internal void OnDeserialized(StreamingContext context)
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // On win this works perfectly. By default Wasabi will run after startup.
-		{
-			return;
-		}
-
-		if (!Oobe) // We do not touch anything if it is not the first run.
-		{
-			return;
-		}
-
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // On Linux we do not start Wasabi with OS by default - because Linux users knows better.
-		{
-			RunOnSystemStartup = false;
-		}
 	}
 }
