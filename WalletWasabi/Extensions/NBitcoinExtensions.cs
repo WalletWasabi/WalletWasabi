@@ -439,24 +439,6 @@ public static class NBitcoinExtensions
 		return privateKey.GetBitcoinSecret(network);
 	}
 
-	public static OwnershipProof GetOwnershipProof(Key masterKey, BitcoinSecret secret, Script scriptPubKey, CoinJoinInputCommitmentData commitmentData)
-	{
-		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
-		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019")
-			.DeriveChild("Ownership identification key").Key;
-
-		var signingKey = secret.PrivateKey;
-		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-			signingKey,
-			new OwnershipIdentifier(identificationKey, scriptPubKey),
-			commitmentData,
-			scriptPubKey.IsScriptType(ScriptType.P2WPKH)
-				? ScriptPubKeyType.Segwit
-				: ScriptPubKeyType.TaprootBIP86);
-
-		return ownershipProof;
-	}
-
 	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
 		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 

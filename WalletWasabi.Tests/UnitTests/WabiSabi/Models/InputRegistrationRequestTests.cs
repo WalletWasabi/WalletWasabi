@@ -123,9 +123,5 @@ public class InputRegistrationRequestTests
 
 	/// <remarks>Each instance represents the same proof but a new object instance.</remarks>
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256 roundHash)
-		=> OwnershipProof.GenerateCoinJoinInputProof(
-			key,
-			new OwnershipIdentifier(Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main), key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)),
-			WabiSabiFactory.CreateCommitmentData(roundHash),
-			ScriptPubKeyType.Segwit);
+		=> OwnershipProof.Generate(key, ScriptPubKeyType.Segwit, WabiSabiFactory.CreateCommitmentData(roundHash));
 }

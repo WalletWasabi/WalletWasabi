@@ -1,79 +1,55 @@
+using System.Text;
 using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using WalletWasabi.Extensions;
+using NBitcoin.BIP322;
 
 namespace WalletWasabi.Crypto;
 
 public record OwnershipProof : IBitcoinSerializable
 {
-	private ProofBody _proofBody;
-	private Bip322Signature _proofSignature;
+	public OwnershipProof() { }
 
-	public OwnershipProof()
-		: this(new ProofBody(), new Bip322Signature())
+	public OwnershipProof(BIP322Signature bip322Signature)
 	{
+		BIP322Signature = bip322Signature;
 	}
-
-	public OwnershipProof(ProofBody proofBody, Bip322Signature proofSignature)
+	public BIP322Signature? BIP322Signature { get; private set; }
+	public void ReadWrite(BitcoinStream stream)
 	{
-		_proofBody = proofBody;
-		_proofSignature = proofSignature;
-	}
-
-	public ProofBody ProofBody => _proofBody;
-
-	public Bip322Signature ProofSignature => _proofSignature;
-
-	public void ReadWrite(BitcoinStream bitcoinStream)
-	{
-		bitcoinStream.ReadWrite(ref _proofBody);
-		bitcoinStream.ReadWrite(ref _proofSignature);
-	}
-
-	public static OwnershipProof Generate(Key key, OwnershipIdentifier ownershipIdentifier, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
-		Generate(key, new[] { ownershipIdentifier }, commitmentData, userConfirmation, scriptPubKeyType);
-
-	public static OwnershipProof Generate(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
-		scriptPubKeyType switch
+		var bytes = BIP322Signature?.ToBytes() ?? [];
+		stream.ReadWrite(bytes);
+		if(stream.Serializing)
 		{
-			ScriptPubKeyType.Segwit or ScriptPubKeyType.TaprootBIP86 => GenerateOwnershipProof(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray()), scriptPubKeyType),
-			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported."),
-		};
-
-	private static OwnershipProof GenerateOwnershipProof(Key key, byte[] commitmentData, ProofBody proofBody, ScriptPubKeyType scriptPubKeyType) =>
-		new(
-			proofBody,
-			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(scriptPubKeyType), commitmentData), scriptPubKeyType));
-
-	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
-		scriptPubKey.TryGetScriptType() switch
-		{
-			ScriptType.P2WPKH or ScriptType.Taproot => VerifyOwnershipProof(scriptPubKey, commitmentData, requireUserConfirmation),
-			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported."),
-		};
-
-	private bool VerifyOwnershipProof(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
-	{
-		if (requireUserConfirmation && !_proofBody.Flags.HasFlag(ProofBodyFlags.UserConfirmation))
-		{
-			return false;
+			BIP322Signature = bytes.Length == 0 ? null : BIP322Signature.TryCreate(bytes, Network.Main, out var sig) ? sig : throw new InvalidOperationException("Invalid BIP322 signature.");
 		}
 
-		var hash = _proofBody.SignatureHash(scriptPubKey, commitmentData);
-
-		return _proofSignature.Verify(hash, scriptPubKey);
 	}
 
-	public static OwnershipProof GenerateCoinJoinInputProof(Key key, OwnershipIdentifier ownershipIdentifier, CoinJoinInputCommitmentData coinJoinInputsCommitmentData, ScriptPubKeyType scriptPubKeyType) =>
-		Generate(key, new[] { ownershipIdentifier }, coinJoinInputsCommitmentData.ToBytes(), true, scriptPubKeyType);
+	public static OwnershipProof FromBytes(byte[] ownershipProofBytes)
+	{
+		if (!BIP322Signature.TryCreate(ownershipProofBytes, Network.Main, out var sig))
+		{
+			throw new InvalidOperationException("Invalid BIP322 signature.");
 
-	public static OwnershipProof GenerateCoinJoinInputProof(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, CoinJoinInputCommitmentData coinJoinInputsCommitmentData, ScriptPubKeyType scriptPubKeyType) =>
-		Generate(key, ownershipIdentifiers, coinJoinInputsCommitmentData.ToBytes(), true, scriptPubKeyType);
+		}
 
-	public static bool VerifyCoinJoinInputProof(OwnershipProof ownershipProofBytes, Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
-		ownershipProofBytes.VerifyOwnership(scriptPubKey, coinJoinInputsCommitmentData.ToBytes(), true);
+		return new OwnershipProof(sig);
+	}
 
-	public static OwnershipProof FromBytes(byte[] ownershipProofBytes) =>
-		NBitcoinExtensions.FromBytes<OwnershipProof>(ownershipProofBytes);
+	public static OwnershipProof Generate(Key signingKey, IDestination address, byte[] data)
+	{
+		var str = Encoding.UTF8.GetString(data);
+		return new OwnershipProof(signingKey.SignBIP322(address.ScriptPubKey.GetDestinationAddress(Network.Main)!, str, SignatureType.Full));
+	}
+	public static OwnershipProof Generate(Key signingKey, IDestination address, CoinJoinInputCommitmentData commitmentData)
+	{
+		return Generate(signingKey, address, commitmentData.ToBytes());
+	}
+	public static OwnershipProof Generate(Key signingKey, ScriptPubKeyType scriptPubKeyType, CoinJoinInputCommitmentData commitmentData)
+	{
+		return Generate(signingKey, signingKey.GetAddress(scriptPubKeyType, Network.Main), commitmentData.ToBytes());
+	}
+	public bool Verify(CoinJoinInputCommitmentData data, Coin coin)
+	{
+		return  BIP322Signature is not null && coin.TxOut.ScriptPubKey.GetDestinationAddress(Network.Main)!.VerifyBIP322(Encoding.UTF8.GetString(data.ToBytes()), BIP322Signature);
+	}
 }

@@ -3,7 +3,6 @@ using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -23,19 +22,12 @@ public class KeyChain : IKeyChain
 	private KeyManager KeyManager { get; }
 	private string Password { get; }
 
-	private Key GetMasterKey()
-	{
-		return KeyManager.GetMasterExtKey(Password).PrivateKey;
-	}
-
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
 		ExtKey hdKey = KeyManager.GetSecrets(Password, destination.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
-		Key masterKey = GetMasterKey();
-		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), destination.ScriptPubKey);
 
-		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
+		return OwnershipProof.Generate(hdKey.PrivateKey,destination, commitmentData);
 	}
 
 	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)

@@ -124,11 +124,10 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		}
 
 		using var identificationKey = new Key();
-		return OwnershipProof.GenerateCoinJoinInputProof(
+		return OwnershipProof.Generate(
 				extKey.PrivateKey,
-				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				committedData,
-				ScriptPubKeyType.Segwit);
+				destination,
+				committedData);
 	}
 
 	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
