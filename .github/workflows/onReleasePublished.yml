@@ -35,3 +35,11 @@ jobs:
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/WalletWasabi/WasabiDoc/dispatches \
           -d '{"event_type":"update-version","client_payload":{"new_version":"${{ steps.get_version.outputs.NEW_VERSION }}"}}'
+
+      - name: Trigger WasabiWalletWebSite workflow
+        run: |
+          curl -X POST \
+          -H "Authorization: token ${{ secrets.WEBSITE_UPDATE_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/WalletWasabi/WasabiWalletWebSite/dispatches \
+          -d '{"event_type":"update-version","client_payload":{"new_version":"${{ steps.get_version.outputs.NEW_VERSION }}"}}'
