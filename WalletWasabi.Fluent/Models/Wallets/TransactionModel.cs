@@ -13,7 +13,8 @@ public partial class TransactionModel : ReactiveObject
 
 	public required uint256 Id { get; init; }
 
-	public required string Hex { get; set; }
+	public required Func<string> HexFunction { get; set; }
+	public Lazy<string> Hex => new(HexFunction());
 
 	public required LabelsArray Labels { get; init; }
 

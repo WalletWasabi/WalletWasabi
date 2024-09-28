@@ -17,7 +17,7 @@ public class TransactionSummary
 	public Money Amount { get; set; }
 	public FeeRate? EffectiveFeeRate { get; }
 
-	public string Hex => Transaction.Transaction.ToHex();
+	public Func<string> Hex => () => Transaction.Transaction.ToHex();
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;
 	public Height Height => Transaction.Height;

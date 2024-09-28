@@ -42,6 +42,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Fee = wallet.AmountProvider.Create(model.Fee);
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
+		TransactionHex = model.Hex.Value;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
 		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
 
@@ -53,6 +54,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	public BitcoinAddress? SingleAddress { get; set; }
 
 	public uint256 TransactionId { get; }
+	public string TransactionHex { get; }
 
 	public Amount? Fee { get; }
 
