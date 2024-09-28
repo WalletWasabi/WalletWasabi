@@ -10,12 +10,15 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionHexCopiedView">
   <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled"
                MinWidth="500"
-               Title="{Binding Title}">
+               Title="{Binding Title}"
+               EnableBack="True"
+               EnableCancel="True" CancelContent="{Binding CancelButtonText}"
+               EnableNext="True" NextContent="{Binding NextButtonText}">
     <DockPanel LastChildFill="True">
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding Caption}"
                  HorizontalAlignment="Center"
-                 VerticalAlignment="Bottom"/>
+                 Margin="0 0 0 40 "/>
       <views:SuccessAnimationView VerticalAlignment="Stretch"/>
     </DockPanel>
   </ContentArea>

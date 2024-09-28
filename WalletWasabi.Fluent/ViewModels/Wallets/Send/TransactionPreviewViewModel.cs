@@ -438,9 +438,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 				var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await UiContext.Clipboard.SetTextAsync(finalTransaction.Transaction.ToHex());
-				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
-				Navigate().To().TransactionHexCopied();
+				Navigate().To().TransactionHexCopied(_wallet, transaction.HdPubKeysWithNewLabels);
 			}
 		}
 		catch (Exception ex)
