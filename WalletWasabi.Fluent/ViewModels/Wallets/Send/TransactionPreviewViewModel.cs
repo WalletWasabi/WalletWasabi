@@ -82,7 +82,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			SkipCommand = ReactiveCommand.CreateFromTask(OnCopyHexAsync);
 			NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
-			_nextButtonText = "Confirm";
+			_nextButtonText = "Send";
 			_skipButtonText = "Copy Hex";
 		}
 
