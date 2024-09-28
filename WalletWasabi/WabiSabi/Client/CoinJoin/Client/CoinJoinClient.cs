@@ -307,7 +307,7 @@ public class CoinJoinClient
 
 			var msg = roundState.EndRoundState switch
 			{
-				EndRoundState.TransactionBroadcasted => $"Broadcasted. Coinjoin TxId: ({hash})",
+				EndRoundState.TransactionBroadcasted => $"Broadcast. Coinjoin TxId: ({hash})",
 				EndRoundState.TransactionBroadcastFailed => $"Failed to broadcast. Coinjoin TxId: ({hash})",
 				EndRoundState.AbortedWithError => "Round abnormally finished.",
 				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
