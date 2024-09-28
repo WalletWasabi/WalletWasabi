@@ -125,6 +125,7 @@ public class TransactionTreeBuilder
 		return new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Hex = transactionSummary.Hex,
 			Amount = transactionSummary.Amount,
 			HasBeenSpedUp = transactionSummary.IsSpeedup,
 			OrderIndex = index,
@@ -158,6 +159,7 @@ public class TransactionTreeBuilder
 			Confirmations = confirmations,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Id = transactionSummary.GetHash(),
+			Hex = transactionSummary.Hex,
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
@@ -174,6 +176,7 @@ public class TransactionTreeBuilder
 		var result = new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Hex = transactionSummary.Hex,
 			Amount = parent.Amount,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
@@ -267,6 +270,7 @@ public class TransactionTreeBuilder
 		return new TransactionModel
 		{
 			Id = transactionSummary.GetHash(),
+			Hex = transactionSummary.Hex,
 			Amount = transactionSummary.Amount,
 			OrderIndex = index,
 			Date = date,
