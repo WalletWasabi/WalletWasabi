@@ -437,9 +437,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				IsBusy = true;
 
 				var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-				await UiContext.Clipboard.SetTextAsync(finalTransaction.Transaction.ToHex());
+				var oldClipboard = await UiContext.Clipboard.GetTextAsync();
+				var hex = finalTransaction.Transaction.ToHex();
+				await UiContext.Clipboard.SetTextAsync(hex);
 				_cancellationTokenSource.Cancel();
-				Navigate().To().TransactionHexCopied(_wallet, transaction.HdPubKeysWithNewLabels);
+				Navigate().To().TransactionHexCopied(_wallet, transaction.HdPubKeysWithNewLabels, oldClipboard, hex);
 			}
 		}
 		catch (Exception ex)
