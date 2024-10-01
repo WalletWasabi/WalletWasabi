@@ -26,7 +26,9 @@ public class HttpClientFactory : IHttpClientFactory
 
 	public HttpClientFactory()
 	{
-		AddLifetimeResolver(_ => DateTime.UtcNow.AddHours(6));
+		AddLifetimeResolver(identity => identity.StartsWith("long-live")
+			? DateTime.MaxValue
+			: DateTime.UtcNow.AddHours(6));
 	}
 
 	public HttpClient CreateClient(string name)

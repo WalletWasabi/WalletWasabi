@@ -268,8 +268,7 @@ public class Config
 		try
 		{
 			coordinatorUri = GetCoordinatorUri();
-			return coordinatorUri.Host != "api.wasabiwallet.io" &&
-			       coordinatorUri.Host != "api.wasabiwallet.co";
+			return coordinatorUri.Host != "api.wasabiwallet.io";
 		}
 		catch (Exception e) when (e is UriFormatException or ArgumentException or NotSupportedNetworkException)
 		{
