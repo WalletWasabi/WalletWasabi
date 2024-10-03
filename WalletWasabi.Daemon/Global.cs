@@ -79,7 +79,7 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("github.com")), "Update Manager");
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com")), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
@@ -88,7 +88,7 @@ public class Global
 		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("torproject"), new XmlIssueListParser());
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser());
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -266,7 +266,7 @@ public class Global
 				bool useTestApi = Network != Network.Main;
 				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
 				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
-				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("shopinbit"), uri, apiKey);
+				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("long-live-shopinbit"), uri, apiKey);
 
 				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
 				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");

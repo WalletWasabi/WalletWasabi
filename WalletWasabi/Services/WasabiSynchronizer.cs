@@ -36,7 +36,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 		LastResponse = null;
 		_smartHeaderChain = bitcoinStore.SmartHeaderChain;
 		_filterProcessor = new FilterProcessor(bitcoinStore);
-		HttpClient = httpClientFactory.CreateClient("satoshi-backend");
+		HttpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 	}
 
 	#region EventsPropertiesMembers
