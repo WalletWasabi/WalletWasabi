@@ -25,7 +25,7 @@ fi
 LATEST_TAG=$(git describe --tags --abbrev=0)
 # Extract the version number (strip the first character)
 VERSION=${LATEST_TAG:1}
-SHORT_VERSION=${VERSION:0:-2}
+SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
