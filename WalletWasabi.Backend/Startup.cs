@@ -25,6 +25,7 @@ using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
@@ -50,6 +51,7 @@ public class Startup
 	public void ConfigureServices(IServiceCollection services)
 	{
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
 		services.AddMemoryCache();
 
@@ -84,8 +86,6 @@ public class Startup
 			c.IncludeXmlComments(xmlPath);
 		});
 
-		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
-
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		string configFilePath = Path.Combine(dataDir, "Config.json");
 		Config config = new(configFilePath);
@@ -114,16 +114,20 @@ public class Startup
 		var network = config.Network;
 
 		services.AddSingleton(_ => network);
-		//services.Configure<DoSConfiguration>(Configuration.GetSection(key: Option2Config(nameof(DoSOptions))));
-        //services.Configure<RpcOptions>(Configuration.GetSection(key: Option2Config(nameof(RpcOptions))));
-        //services.Configure<BitcoinOptions>(Configuration.GetSection(key: Option2Config(nameof(BitcoinOptions))));
-        //services.Configure<WabiSabiConfig>(Configuration.GetSection(Option2Config(nameof(WabiSabiConfig))));
 		WabiSabiConfig wabisabiConfig = new(Path.Combine(dataDir, "WabiSabiConfig.json"));
 		wabisabiConfig.LoadFile(createIfMissing: true);
-        services.AddSingleton(wabisabiConfig);
-		services.AddSingleton<Prison>(provider => provider.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>();
-		services.AddSingleton<CoinJoinFeeRateStatStore>();
+		services.AddSingleton(wabisabiConfig);
+		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
+		services.AddSingleton<Warden>(s =>
+			new Warden(
+				Path.Combine(dataDir, "WabiSabi", "Prison.txt"),
+				s.GetRequiredService<WabiSabiConfig>()));
+		services.AddSingleton<CoinJoinFeeRateStatStore>(s =>
+			CoinJoinFeeRateStatStore.LoadFromFile(
+				Path.Combine(dataDir, "WabiSabi", "CoinJoinFeeRateStatStore.txt"),
+				s.GetRequiredService<WabiSabiConfig>(),
+				s.GetRequiredService<IRPCClient>()
+				));
 		services.AddSingleton<RoundParameterFactory>();
 		services.AddBackgroundService<Arena>();
 		services.AddBackgroundService<BlockNotifier>();
@@ -132,13 +136,18 @@ public class Startup
 		services.AddBackgroundService<CoordinatorAnnouncer>();
 
 		services.AddSingleton<MempoolService>();
-		services.AddSingleton<P2pNode>(provider =>
-		{
-			var mempoolService = provider.GetRequiredService<MempoolService>();
-			return new P2pNode(network, config.GetBitcoinP2pEndPoint(), mempoolService);
-		});
+		services.AddSingleton<P2pNode>(s =>
+			new P2pNode(
+				network,
+				config.GetBitcoinP2pEndPoint(),
+				s.GetRequiredService<MempoolService>()));
 		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddSingleton<IndexBuilderService>();
+		services.AddSingleton<IndexBuilderService>(s =>
+			new IndexBuilderService(
+				s.GetRequiredService<IRPCClient>(),
+				s.GetRequiredService<BlockNotifier>(),
+				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite")
+				));
 		services.AddStartupTask<StartupTask>();
 		services.AddResponseCompression();
 		services.AddRequestTimeouts(options =>
