@@ -14,20 +14,22 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
+	private readonly string _filePath;
+
+	public CoinJoinFeeRateStatStore(string filePath, WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
 		: base(TimeSpan.FromMinutes(10))
 	{
+		_filePath = filePath;
 		_config = config;
 		_rpc = rpc;
 		_coinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
 	}
 
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc)
-		: this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
+	public CoinJoinFeeRateStatStore(string filePath, WabiSabiConfig config, IRPCClient rpc)
+		: this(filePath, config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
 	{
 	}
 
-	public event EventHandler<CoinJoinFeeRateStat>? NewStat;
 
 	private static TimeSpan[] TimeFrames { get; } = Constants.CoinJoinFeeRateMedianTimeFrames.Select(tf => TimeSpan.FromHours(tf)).ToArray();
 
@@ -35,7 +37,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private readonly List<CoinJoinFeeRateStat> _coinJoinFeeRateStats;
 
-	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = Array.Empty<CoinJoinFeeRateMedian>();
+	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = [];
 
 	private readonly WabiSabiConfig _config;
 	private readonly IRPCClient _rpc;
@@ -46,7 +48,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, _config.ConfirmationTarget, feeRate);
 		Add(feeRateStat);
-		NewStat?.Invoke(this, feeRateStat);
+		await File.AppendAllLinesAsync(_filePath, [feeRateStat.ToLine()], cancel).ConfigureAwait(false);
 	}
 
 	private void Add(CoinJoinFeeRateStat feeRateStat)
@@ -97,7 +99,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 				.Select(x => CoinJoinFeeRateStat.FromLine(x))
 				.Where(x => x.DateTimeOffset >= from);
 
-		var store = new CoinJoinFeeRateStatStore(config, rpc, stats);
+		var store = new CoinJoinFeeRateStatStore(filePath, config, rpc, stats);
 
 		return store;
 	}
