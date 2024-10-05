@@ -46,7 +46,7 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 			var file = await FileDialogHelper.OpenFileAsync("Import Transaction", new[] { "psbt", "txn", "*" });
 			if (file is { })
 			{
-				var filePath = file.Path.AbsolutePath;
+				var filePath = file.Path.LocalPath;
 				FinalTransaction = await UiContext.TransactionBroadcaster.LoadFromFileAsync(filePath);
 			}
 		}
