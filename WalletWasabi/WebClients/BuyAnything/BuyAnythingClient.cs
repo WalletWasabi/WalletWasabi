@@ -46,10 +46,10 @@ public class BuyAnythingClient
 
 	public BuyAnythingClient(IShopWareApiClient apiClient, bool useTestApi = false)
 	{
-		ApiClient = apiClient;
+		_apiClient = apiClient;
 		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
-		SalutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
-		StorefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
+		_salutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
+		_storefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
 	}
 
 	// Services provided by Concierge
@@ -68,11 +68,11 @@ public class BuyAnythingClient
 	// Product Id mapping for Concierge services
 	private Dictionary<Product, string> ProductIds { get; }
 
-	private string SalutationId { get; }
-	private string StorefrontUrl { get; }
+	private readonly string _salutationId;
+	private readonly string _storefrontUrl;
 
-	private IShopWareApiClient ApiClient { get; }
-	private AsyncLock ContextTokenCacheLock { get; } = new();
+	private readonly IShopWareApiClient _apiClient;
+	private readonly AsyncLock _contextTokenCacheLock = new();
 
 	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();
 
@@ -85,13 +85,13 @@ public class BuyAnythingClient
 	{
 		// Messages to use
 		var customerRegistrationRequest = ShopWareRequestFactory.CustomerRegistrationRequest(
-			SalutationId, FirstName, LastName, emailAddress, password, countryId, comment, StorefrontUrl);
+			_salutationId, FirstName, LastName, emailAddress, password, countryId, comment, _storefrontUrl);
 		var shoppingCartCreationRequest = ShopWareRequestFactory.ShoppingCartCreationRequest("My shopping cart");
 		var shoppingCartItemAdditionRequest = ShopWareRequestFactory.ShoppingCartItemsRequest(ProductIds[product]);
 		var orderGenerationRequest = ShopWareRequestFactory.OrderGenerationRequest();
 
 		// Create the conversation
-		var customerRegistrationResponse = await ApiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
+		var customerRegistrationResponse = await _apiClient.RegisterCustomerAsync("new-context", customerRegistrationRequest, cancellationToken).ConfigureAwait(false);
 
 		// Get the context token (session identifier) for the created user. In same cases, as customer registration,
 		// we can get two context tokens. The first one is for the recently created user and the second one is for the
@@ -102,9 +102,9 @@ public class BuyAnythingClient
 		// used to create it so, I don't know whether it makes any sense to use it or not. Here we use the same context
 		// token.
 
-		await ApiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
-		await ApiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
-		var orderGenerationResponse = await ApiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
+		await _apiClient.GetOrCreateShoppingCartAsync(ctxToken, shoppingCartCreationRequest, cancellationToken).ConfigureAwait(false);
+		await _apiClient.AddItemToShoppingCartAsync(ctxToken, shoppingCartItemAdditionRequest, cancellationToken).ConfigureAwait(false);
+		var orderGenerationResponse = await _apiClient.GenerateOrderAsync(ctxToken, orderGenerationRequest, cancellationToken).ConfigureAwait(false);
 
 		return (orderGenerationResponse.Id, orderGenerationResponse.OrderNumber);
 	}
@@ -112,28 +112,28 @@ public class BuyAnythingClient
 	public async Task UpdateConversationAsync(NetworkCredential credential, string rawText, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		await ApiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), cancellationToken).ConfigureAwait(false);
+		await _apiClient.UpdateCustomerProfileAsync(ctxToken, ShopWareRequestFactory.CustomerProfileUpdateRequest(FirstName, LastName, rawText), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task SetBillingAddressAsync(NetworkCredential credential, string firstName, string lastName, string address, string houseNumber, string zipCode, string city, string stateId, string countryId, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.BillingAddressRequest(firstName, lastName, address, houseNumber, zipCode, city, stateId, countryId);
-		await ApiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
+		await _apiClient.UpdateCustomerBillingAddressAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Order[]> GetOrdersUpdateAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.GetOrderListRequest();
-		var orderList = await ApiClient.GetOrderListAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
+		var orderList = await _apiClient.GetOrderListAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 		return orderList.Orders.Elements;
 	}
 
 	public async Task<CustomerProfileResponse> GetCustomerProfileAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
-		var customerProfileResponse = await ApiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
+		var customerProfileResponse = await _apiClient.GetCustomerProfileAsync(ctxToken, cancellationToken).ConfigureAwait(false);
 		return customerProfileResponse;
 	}
 
@@ -141,7 +141,7 @@ public class BuyAnythingClient
 	{
 		var ctxToken = await LoginAsync(credential, cancellationToken).ConfigureAwait(false);
 		var request = ShopWareRequestFactory.PaymentRequest(orderId);
-		await ApiClient.HandlePaymentAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
+		await _apiClient.HandlePaymentAsync(ctxToken, request, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Country[]> GetCountriesAsync(CancellationToken cancellationToken)
@@ -152,7 +152,7 @@ public class BuyAnythingClient
 		{
 			currentPage++;
 
-			var countryResponse = await ApiClient.GetCountriesAsync("none", ShopWareRequestFactory.GetPage(currentPage, 100), cancellationToken).ConfigureAwait(false);
+			var countryResponse = await _apiClient.GetCountriesAsync("none", ShopWareRequestFactory.GetPage(currentPage, 100), cancellationToken).ConfigureAwait(false);
 			var cachedCountries = countryResponse.Elements
 				.Where(x => x.Active)
 				.Select(x => new Country(
@@ -172,7 +172,7 @@ public class BuyAnythingClient
 
 	public async Task<State[]> GetStatesByCountryIdAsync(string countryId, CancellationToken cancellationToken)
 	{
-		var stateResponse = await ApiClient.GetStatesByCountryIdAsync("", countryId, cancellationToken).ConfigureAwait(false);
+		var stateResponse = await _apiClient.GetStatesByCountryIdAsync("", countryId, cancellationToken).ConfigureAwait(false);
 		return stateResponse.Elements.ToArray();
 	}
 
@@ -180,7 +180,7 @@ public class BuyAnythingClient
 	// This method implements a caching mechanism to avoid multiple login requests.
 	private async Task<string> LoginAsync(NetworkCredential credential, CancellationToken cancellationToken)
 	{
-		using (await ContextTokenCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _contextTokenCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			if (ContextTokenCache.TryGetValue(credential.UserName, out (string token, DateTime expriresAt) cacheEntry))
 			{
@@ -190,7 +190,7 @@ public class BuyAnythingClient
 				}
 			}
 			var request = ShopWareRequestFactory.CustomerLoginRequest(credential.UserName, credential.Password);
-			var response = await ApiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
+			var response = await _apiClient.LoginCustomerAsync("new-context", request, cancellationToken).ConfigureAwait(false);
 			ContextTokenCache[credential.UserName] = (response.ContextToken, DateTime.UtcNow.AddMinutes(10));
 			return response.ContextToken;
 		}

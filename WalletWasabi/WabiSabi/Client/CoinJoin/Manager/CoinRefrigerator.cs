@@ -6,7 +6,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinRefrigerator
 {
 	private Dictionary<SmartCoin, DateTimeOffset> FrozenCoins { get; } = new();
-	private TimeSpan FreezeTime { get; } = TimeSpan.FromSeconds(90);
+	private readonly TimeSpan _freezeTime = TimeSpan.FromSeconds(90);
 
 	public void Freeze(IEnumerable<SmartCoin> coins)
 	{
@@ -23,7 +23,7 @@ public class CoinRefrigerator
 			return false;
 		}
 
-		if (startTime.Add(FreezeTime) > DateTimeOffset.UtcNow)
+		if (startTime.Add(_freezeTime) > DateTimeOffset.UtcNow)
 		{
 			return true;
 		}

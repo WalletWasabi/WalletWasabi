@@ -18,19 +18,19 @@ public class DependencyGraphTaskScheduler
 {
 	public DependencyGraphTaskScheduler(DependencyGraph graph)
 	{
-		Graph = graph;
+		_graph = graph;
 		var allInEdges = Enum.GetValues<CredentialType>()
-			.SelectMany(type => Graph.GetReissuances().Concat<RequestNode>(Graph.GetOutputs())
-			.SelectMany(node => Graph.EdgeSets[(int)type].InEdges[node]));
+			.SelectMany(type => _graph.GetReissuances().Concat<RequestNode>(_graph.GetOutputs())
+			.SelectMany(node => _graph.EdgeSets[(int)type].InEdges[node]));
 		DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
 	}
 
-	private DependencyGraph Graph { get; }
+	private readonly DependencyGraph _graph;
 	private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
 	private async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 	{
-		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
+		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, _graph);
 
 		List<Task> connectionConfirmationTasks = new();
 
@@ -39,16 +39,16 @@ public class DependencyGraphTaskScheduler
 
 		foreach ((var aliceClient, var node) in aliceNodePairs)
 		{
-			var amountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
-			var vsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
+			var amountEdgeTaskCompSources = _graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
+			var vsizeEdgeTaskCompSources = _graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 			SmartRequestNode smartRequestNode = new(
 				aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
 				aliceClient.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
 				amountEdgeTaskCompSources,
 				vsizeEdgeTaskCompSources);
 
-			var amountsToRequest = Graph.OutEdges(node, CredentialType.Amount).Select(e => e.Value);
-			var vsizesToRequest = Graph.OutEdges(node, CredentialType.Vsize).Select(e => e.Value);
+			var amountsToRequest = _graph.OutEdges(node, CredentialType.Amount).Select(e => e.Value);
+			var vsizesToRequest = _graph.OutEdges(node, CredentialType.Vsize).Select(e => e.Value);
 
 			// Although connection confirmation requests support k
 			// credential requests, for now we only know which amounts to
@@ -76,8 +76,8 @@ public class DependencyGraphTaskScheduler
 
 		await Task.WhenAll(connectionConfirmationTasks).ConfigureAwait(false);
 
-		var amountEdges = Graph.GetInputs().SelectMany(node => Graph.OutEdges(node, CredentialType.Amount));
-		var vsizeEdges = Graph.GetInputs().SelectMany(node => Graph.OutEdges(node, CredentialType.Vsize));
+		var amountEdges = _graph.GetInputs().SelectMany(node => _graph.OutEdges(node, CredentialType.Amount));
+		var vsizeEdges = _graph.GetInputs().SelectMany(node => _graph.OutEdges(node, CredentialType.Vsize));
 
 		// Check if all tasks were finished, otherwise Task.Result will block.
 		if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
@@ -88,7 +88,7 @@ public class DependencyGraphTaskScheduler
 
 	public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, Func<BobClient> bobClientFactory, CancellationToken cancellationToken)
 	{
-		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
+		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, _graph);
 
 		// Build tasks and link them together.
 		List<Task> allTasks = new()
@@ -104,16 +104,16 @@ public class DependencyGraphTaskScheduler
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
-		foreach (var node in Graph.GetReissuances())
+		foreach (var node in _graph.GetReissuances())
 		{
-			var inputAmountEdgeTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
-			var inputVsizeEdgeTasks = Graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
+			var inputAmountEdgeTasks = _graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
+			var inputVsizeEdgeTasks = _graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
 
-			var outputAmountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
-			var outputVsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
+			var outputAmountEdgeTaskCompSources = _graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
+			var outputVsizeEdgeTaskCompSources = _graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 
-			var requestedAmounts = Graph.OutEdges(node, CredentialType.Amount).Select(edge => edge.Value);
-			var requestedVSizes = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => edge.Value);
+			var requestedAmounts = _graph.OutEdges(node, CredentialType.Amount).Select(edge => edge.Value);
+			var requestedVSizes = _graph.OutEdges(node, CredentialType.Vsize).Select(edge => edge.Value);
 
 			SmartRequestNode smartRequestNode = new(
 				inputAmountEdgeTasks,
@@ -140,8 +140,8 @@ public class DependencyGraphTaskScheduler
 
 		await Task.WhenAll(allTasks).ConfigureAwait(false);
 
-		var amountEdges = Graph.GetOutputs().SelectMany(node => Graph.InEdges(node, CredentialType.Amount));
-		var vsizeEdges = Graph.GetOutputs().SelectMany(node => Graph.InEdges(node, CredentialType.Vsize));
+		var amountEdges = _graph.GetOutputs().SelectMany(node => _graph.InEdges(node, CredentialType.Amount));
+		var vsizeEdges = _graph.GetOutputs().SelectMany(node => _graph.InEdges(node, CredentialType.Vsize));
 
 		// Check if all tasks were finished, otherwise Task.Result will block.
 		if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
@@ -160,10 +160,10 @@ public class DependencyGraphTaskScheduler
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
-		var nodes = Graph.GetOutputs().Select(node =>
+		var nodes = _graph.GetOutputs().Select(node =>
 		{
-			var amountCredsToPresentTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
-			var vsizeCredsToPresentTasks = Graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
+			var amountCredsToPresentTasks = _graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
+			var vsizeCredsToPresentTasks = _graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
 
 			SmartRequestNode smartRequestNode = new(
 				amountCredsToPresentTasks,
@@ -211,7 +211,7 @@ public class DependencyGraphTaskScheduler
 
 		if (aliceClients.Count() != inputNodes.Count())
 		{
-			throw new InvalidOperationException("Graph vs Alice inputs mismatch");
+			throw new InvalidOperationException("_graph vs Alice inputs mismatch");
 		}
 
 		return aliceClients.Zip(inputNodes);

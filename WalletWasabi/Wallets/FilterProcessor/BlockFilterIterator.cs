@@ -16,16 +16,16 @@ public class BlockFilterIterator
 {
 	public BlockFilterIterator(IIndexStore indexStore, int maxNumberFiltersInMemory = 1000)
 	{
-		IndexStore = indexStore;
+		_indexStore = indexStore;
 		MaxNumberFiltersInMemory = maxNumberFiltersInMemory;
 	}
 
 	/// <remarks>Internal only to allow modifications in tests.</remarks>
 	internal Dictionary<uint, FilterModel> Cache { get; } = [];
 
-	/// <remarks>Lock object to guard <see cref="Cache"/>.</remarks>
-	private AsyncLock Lock { get; } = new();
-	private IIndexStore IndexStore { get; }
+	/// <remarks>_lock object to guard <see cref="Cache"/>.</remarks>
+	private readonly AsyncLock _lock = new();
+	private readonly IIndexStore _indexStore;
 	public int MaxNumberFiltersInMemory { get; }
 
 	/// <summary>
@@ -34,7 +34,7 @@ public class BlockFilterIterator
 	/// <remarks>Filter is immediately removed from the cache once the method returns. Repeated calls for single height are thus expensive.</remarks>
 	public async Task<FilterModel> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
 	{
-		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+		using IDisposable _ = await _lock.LockAsync(cancellationToken).ConfigureAwait(false);
 
 		// Each block filter is to needed just once, so we can remove the block right now and free the memory sooner.
 		if (Cache.Remove(height, out FilterModel? result))
@@ -45,7 +45,7 @@ public class BlockFilterIterator
 		// We don't have the next filter to process, so fetch another batch of filters from the database.
 		ClearNoLock();
 
-		FilterModel[] filtersBatch = await IndexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+		FilterModel[] filtersBatch = await _indexStore.FetchBatchAsync(height, MaxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
 		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
 		if (filtersBatch.Length == 0)
@@ -81,7 +81,7 @@ public class BlockFilterIterator
 
 	public async Task RemoveNewerThanAsync(uint height, CancellationToken cancellationToken)
 	{
-		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+		using IDisposable _ = await _lock.LockAsync(cancellationToken).ConfigureAwait(false);
 
 		List<uint> keysToRemove = Cache.Keys
 			.Where(key => key > height)
@@ -98,12 +98,12 @@ public class BlockFilterIterator
 
 	public async Task ClearAsync(CancellationToken cancellationToken)
 	{
-		using IDisposable _ = await Lock.LockAsync(cancellationToken).ConfigureAwait(false);
+		using IDisposable _ = await _lock.LockAsync(cancellationToken).ConfigureAwait(false);
 
 		ClearNoLock();
 	}
 
-	/// <remarks>Needs to be guarded by <see cref="Lock"/></remarks>
+	/// <remarks>Needs to be guarded by <see cref="_lock"/></remarks>
 	private void ClearNoLock()
 	{
 		Cache.Clear();

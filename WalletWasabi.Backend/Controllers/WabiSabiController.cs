@@ -21,63 +21,63 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
 	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
-		IdempotencyRequestCache = idempotencyRequestCache;
-		Arena = arena;
-		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
+		_idempotencyRequestCache = idempotencyRequestCache;
+		_arena = arena;
+		_coinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
-	private IdempotencyRequestCache IdempotencyRequestCache { get; }
-	private Arena Arena { get; }
-	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
+	private readonly IdempotencyRequestCache _idempotencyRequestCache;
+	private readonly Arena _arena;
+	private readonly CoinJoinFeeRateStatStore _coinJoinFeeRateStatStore;
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		var response = await Arena.GetStatusAsync(request, cancellationToken);
-		var medians = CoinJoinFeeRateStatStore.GetDefaultMedians();
+		var response = await _arena.GetStatusAsync(request, cancellationToken);
+		var medians = _coinJoinFeeRateStatStore.GetDefaultMedians();
 		return response with {CoinJoinFeeRateMedians = medians};
 	}
 
 	[HttpPost("connection-confirmation")]
 	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, cancellationToken);
+		return await _idempotencyRequestCache.GetCachedResponseAsync(request, action: _arena.ConfirmConnectionAsync, cancellationToken);
 	}
 
 	[HttpPost("input-registration")]
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, cancellationToken);
+		return await _idempotencyRequestCache.GetCachedResponseAsync(request, _arena.RegisterInputAsync, cancellationToken);
 	}
 
 	[HttpPost("output-registration")]
 	public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, cancellationToken);
+		await _idempotencyRequestCache.GetCachedResponseAsync(request, action: _arena.RegisterOutputCoreAsync, cancellationToken);
 	}
 
 	[HttpPost("credential-issuance")]
 	public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 	{
-		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, cancellationToken);
+		return await _idempotencyRequestCache.GetCachedResponseAsync(request, action: _arena.ReissuanceAsync, cancellationToken);
 	}
 
 	[HttpPost("input-unregistration")]
 	public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellableToken)
 	{
-		await Arena.RemoveInputAsync(request, cancellableToken);
+		await _arena.RemoveInputAsync(request, cancellableToken);
 	}
 
 	[HttpPost("transaction-signature")]
 	public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 	{
-		await Arena.SignTransactionAsync(request, cancellableToken);
+		await _arena.SignTransactionAsync(request, cancellableToken);
 	}
 
 	[HttpPost("ready-to-sign")]
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 	{
-		await Arena.ReadyToSignAsync(request, cancellableToken);
+		await _arena.ReadyToSignAsync(request, cancellableToken);
 	}
 
 	/// <summary>
@@ -86,7 +86,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpGet("human-monitor")]
 	public HumanMonitorResponse GetHumanMonitor()
 	{
-		var response = Arena.Rounds
+		var response = _arena.Rounds
 			.Where(r => r.Phase is not Phase.Ended)
 			.OrderByDescending(x => x.InputCount)
 			.Select(r =>

@@ -25,23 +25,23 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 	public SpecificNodeBlockProvider(Network network, ServiceConfiguration serviceConfiguration, EndPoint? torEndPoint)
 	{
-		Network = network;
-		BitcoinCoreEndPoint = serviceConfiguration.BitcoinCoreEndPoint;
-		TorEndPoint = torEndPoint;
+		_network = network;
+		_bitcoinCoreEndPoint = serviceConfiguration.BitcoinCoreEndPoint;
+		_torEndPoint = torEndPoint;
 
 		// Start the task now.
-		LoopTask = Task.Run(ReconnectingLoopAsync);
+		_loopTask = Task.Run(ReconnectingLoopAsync);
 	}
 
 	/// <summary>To stop the loop that keeps connecting to the specific Bitcoin node.</summary>
-	private CancellationTokenSource LoopCts { get; } = new();
+	private readonly CancellationTokenSource _loopCts = new();
 
-	private Task LoopTask { get; }
-	private Network Network { get; }
-	private EndPoint BitcoinCoreEndPoint { get; }
+	private readonly Task _loopTask;
+	private readonly Network _network;
+	private readonly EndPoint _bitcoinCoreEndPoint;
 
 	/// <summary>Tor endpoint to use or <c>null</c> if no Tor proxy should be used.</summary>
-	private EndPoint? TorEndPoint { get; }
+	private readonly EndPoint? _torEndPoint;
 
 	/// <inheritdoc/>
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
@@ -85,7 +85,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	/// </summary>
 	private async Task ReconnectingLoopAsync()
 	{
-		CancellationToken shutdownToken = LoopCts.Token;
+		CancellationToken shutdownToken = _loopCts.Token;
 		TimeSpan reconnectDelay = MinReconnectDelay;
 
 		bool logWarningOnConnectionEx = true;
@@ -125,16 +125,16 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 						if (ex is OperationCanceledException)
 						{
 							string message = $"""
-							                  Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
+							                  Wasabi could not complete the handshake with the node '{_bitcoinCoreEndPoint}'. Probably Wasabi is not whitelisted by the node.
 							                  Use "whitebind" in the node configuration. Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.
 							                  """;
 
 							Logger.LogWarning(message);
 							logWarningOnConnectionEx = false;
 						}
-						else if(!(ex is SocketException && IsDefaultP2pEndpoint(BitcoinCoreEndPoint, Network)))
+						else if(!(ex is SocketException && IsDefaultP2pEndpoint(_bitcoinCoreEndPoint, _network)))
 						{
-							Logger.LogWarning($"Failed to establish a connection to the node '{BitcoinCoreEndPoint}'. Exception: {ex}");
+							Logger.LogWarning($"Failed to establish a connection to the node '{_bitcoinCoreEndPoint}'. Exception: {ex}");
 							logWarningOnConnectionEx = false;
 						}
 					}
@@ -184,14 +184,14 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 		// If an onion was added must try to use Tor.
 		// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-		if (TorEndPoint is not null)
+		if (_torEndPoint is not null)
 		{
-			SocksSettingsBehavior behavior = new(TorEndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
+			SocksSettingsBehavior behavior = new(_torEndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false);
 			nodeConnectionParameters.TemplateBehaviors.Add(behavior);
 		}
 
 		// Connect to the node.
-		Node node = await Node.ConnectAsync(Network, BitcoinCoreEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+		Node node = await Node.ConnectAsync(_network, _bitcoinCoreEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 		Logger.LogInfo("TCP Connection succeeded, handshaking…");
 
 		node.VersionHandshake(Constants.LocalNodeRequirements, cancellationToken);
@@ -199,7 +199,7 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 
 		if (!node.IsConnected)
 		{
-			throw new InvalidOperationException($"Wasabi could not complete the handshake with the node '{BitcoinCoreEndPoint}' and dropped the connection.{Environment.NewLine}" +
+			throw new InvalidOperationException($"Wasabi could not complete the handshake with the node '{_bitcoinCoreEndPoint}' and dropped the connection.{Environment.NewLine}" +
 				"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 		}
 
@@ -220,11 +220,11 @@ public class SpecificNodeBlockProvider : IBlockProvider, IAsyncDisposable
 	/// <inheritdoc/>
 	public async ValueTask DisposeAsync()
 	{
-		LoopCts.Cancel();
+		_loopCts.Cancel();
 
 		Logger.LogDebug("Waiting for the loop task to finish.");
-		await LoopTask.ConfigureAwait(false);
+		await _loopTask.ConfigureAwait(false);
 
-		LoopCts.Dispose();
+		_loopCts.Dispose();
 	}
 }

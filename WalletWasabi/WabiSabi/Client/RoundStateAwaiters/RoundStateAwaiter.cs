@@ -21,19 +21,19 @@ public record RoundStateAwaiter
 			throw new ArgumentNullException(nameof(predicate));
 		}
 
-		TaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		Predicate = predicate;
-		RoundId = roundId;
-		Phase = phase;
+		_taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+		_predicate = predicate;
+		_roundId = roundId;
+		_phase = phase;
 		cancellationToken.Register(() => Cancel());
 	}
 
-	private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
-	private Predicate<RoundState>? Predicate { get; }
-	private uint256? RoundId { get; }
-	private Phase? Phase { get; }
+	private readonly TaskCompletionSource<RoundState> _taskCompletionSource;
+	private readonly Predicate<RoundState>? _predicate;
+	private readonly uint256? _roundId;
+	private readonly Phase? _phase;
 
-	public Task<RoundState> Task => TaskCompletionSource.Task;
+	public Task<RoundState> Task => _taskCompletionSource.Task;
 
 	public bool IsCompleted(IDictionary<uint256, RoundState> allRoundStates)
 	{
@@ -42,27 +42,27 @@ public record RoundStateAwaiter
 			return true;
 		}
 
-		if (RoundId is not null && !allRoundStates.ContainsKey(RoundId))
+		if (_roundId is not null && !allRoundStates.ContainsKey(_roundId))
 		{
-			TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} is not running anymore."));
+			_taskCompletionSource.TrySetException(new InvalidOperationException($"Round {_roundId} is not running anymore."));
 			return true;
 		}
 
 		foreach (var roundState in allRoundStates.Values.ToArray())
 		{
-			if (RoundId is { })
+			if (_roundId is { })
 			{
-				if (roundState.Id != RoundId)
+				if (roundState.Id != _roundId)
 				{
 					continue;
 				}
 			}
 
-			if (Phase is { } expectedPhase)
+			if (_phase is { } expectedPhase)
 			{
 				if (roundState.Phase > expectedPhase)
 				{
-					TaskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(RoundId ?? uint256.Zero, expectedPhase, roundState));
+					_taskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(_roundId ?? uint256.Zero, expectedPhase, roundState));
 					return true;
 				}
 
@@ -72,15 +72,15 @@ public record RoundStateAwaiter
 				}
 			}
 
-			if (Predicate is { })
+			if (_predicate is { })
 			{
-				if (!Predicate(roundState))
+				if (!_predicate(roundState))
 				{
 					continue;
 				}
 			}
 
-			TaskCompletionSource.SetResult(roundState);
+			_taskCompletionSource.SetResult(roundState);
 			return true;
 		}
 
@@ -89,6 +89,6 @@ public record RoundStateAwaiter
 
 	public void Cancel()
 	{
-		TaskCompletionSource.TrySetCanceled();
+		_taskCompletionSource.TrySetCanceled();
 	}
 }

@@ -19,12 +19,12 @@ public class OffchainController : ControllerBase
 {
 	public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
 	{
-		Cache = memoryCache;
-		ExchangeRateProvider = exchangeRateProvider;
+		_cache = memoryCache;
+		_exchangeRateProvider = exchangeRateProvider;
 	}
 
-	private IMemoryCache Cache { get; }
-	private IExchangeRateProvider ExchangeRateProvider { get; }
+	private readonly IMemoryCache _cache;
+	private readonly IExchangeRateProvider _exchangeRateProvider;
 
 	/// <summary>
 	/// Gets exchange rates for one Bitcoin.
@@ -52,16 +52,16 @@ public class OffchainController : ControllerBase
 	{
 		var cacheKey = nameof(GetExchangeRatesCollectionAsync);
 
-		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate>? exchangeRates))
+		if (!_cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate>? exchangeRates))
 		{
-			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
+			exchangeRates = await _exchangeRateProvider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
 
 			if (exchangeRates.Any())
 			{
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
+				_cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 			}
 		}
 

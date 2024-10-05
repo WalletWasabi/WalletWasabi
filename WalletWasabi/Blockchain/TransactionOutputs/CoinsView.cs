@@ -10,26 +10,26 @@ public class CoinsView : ICoinsView
 {
 	public CoinsView(IEnumerable<SmartCoin> coins)
 	{
-		Coins = coins;
+		_coins = coins;
 	}
 
-	private IEnumerable<SmartCoin> Coins { get; }
+	private readonly IEnumerable<SmartCoin> _coins;
 
-	public ICoinsView Unspent() => new CoinsView(Coins.Where(x => !x.IsSpent() && !x.SpentAccordingToBackend));
+	public ICoinsView Unspent() => new CoinsView(_coins.Where(x => !x.IsSpent() && !x.SpentAccordingToBackend));
 
-	public ICoinsView Available() => new CoinsView(Coins.Where(x => x.IsAvailable()));
+	public ICoinsView Available() => new CoinsView(_coins.Where(x => x.IsAvailable()));
 
-	public ICoinsView Confirmed() => new CoinsView(Coins.Where(x => x.Confirmed));
+	public ICoinsView Confirmed() => new CoinsView(_coins.Where(x => x.Confirmed));
 
-	public ICoinsView Unconfirmed() => new CoinsView(Coins.Where(x => !x.Confirmed));
+	public ICoinsView Unconfirmed() => new CoinsView(_coins.Where(x => !x.Confirmed));
 
-	public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
+	public ICoinsView CreatedBy(uint256 txid) => new CoinsView(_coins.Where(x => x.TransactionId == txid));
 
-	public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
+	public ICoinsView SpentBy(uint256 txid) => new CoinsView(_coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
-		coin = Coins.FirstOrDefault(x => x.Outpoint == outpoint);
+		coin = _coins.FirstOrDefault(x => x.Outpoint == outpoint);
 		if (coin is null)
 		{
 			return false;
@@ -40,9 +40,9 @@ public class CoinsView : ICoinsView
 		}
 	}
 
-	public Money TotalAmount() => Coins.Sum(x => x.Amount);
+	public Money TotalAmount() => _coins.Sum(x => x.Amount);
 
-	public IEnumerator<SmartCoin> GetEnumerator() => Coins.GetEnumerator();
+	public IEnumerator<SmartCoin> GetEnumerator() => _coins.GetEnumerator();
 
-	IEnumerator IEnumerable.GetEnumerator() => Coins.GetEnumerator();
+	IEnumerator IEnumerable.GetEnumerator() => _coins.GetEnumerator();
 }

@@ -13,15 +13,15 @@ public class LiquidityClueProvider
 	public LiquidityClueProvider()
 	{
 		LiquidityClue = null;
-		LiquidityClueLock = new object();
+		_liquidityClueLock = new object();
 	}
 
 	private Money? LiquidityClue { get; set; }
-	private object LiquidityClueLock { get; }
+	private readonly object _liquidityClueLock;
 
 	public void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
 	{
-		lock (LiquidityClueLock)
+		lock (_liquidityClueLock)
 		{
 			if (TryCalculateLiquidityClue(foreignOutputsValues, out var newLiquidityClue))
 			{
@@ -44,7 +44,7 @@ public class LiquidityClueProvider
 
 	public Money GetLiquidityClue(Money maxSuggestedAmount)
 	{
-		lock (LiquidityClueLock)
+		lock (_liquidityClueLock)
 		{
 			return Math.Min(
 				LiquidityClue ?? Constants.MaximumNumberOfBitcoinsMoney,
@@ -56,7 +56,7 @@ public class LiquidityClueProvider
 	{
 		// Dismiss pleb round.
 		// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
-		lock (LiquidityClueLock)
+		lock (_liquidityClueLock)
 		{
 			if (TryCalculateLiquidityClue(foreignOutputsValues, out var liquidityClue) && (maxSuggestedAmount / 2) > liquidityClue)
 			{

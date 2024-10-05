@@ -24,21 +24,21 @@ public class CoinJoinTracker : IDisposable
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
-		CoinJoinClient = coinJoinClient;
-		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
+		_coinJoinClient = coinJoinClient;
+		_coinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		OutputWallet = outputWallet;
-		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, stopWhenAllMixed, CancellationTokenSource.Token);
+		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, stopWhenAllMixed, _cancellationTokenSource.Token);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
 
-	public ImmutableList<SmartCoin> CoinsInCriticalPhase => CoinJoinClient.CoinsInCriticalPhase;
-	private CoinJoinClient CoinJoinClient { get; }
-	private CancellationTokenSource CancellationTokenSource { get; }
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase => _coinJoinClient.CoinsInCriticalPhase;
+	private readonly CoinJoinClient _coinJoinClient;
+	private readonly CancellationTokenSource _cancellationTokenSource;
 
 	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
@@ -56,7 +56,7 @@ public class CoinJoinTracker : IDisposable
 		IsStopped = true;
 		if (!InCriticalCoinJoinState)
 		{
-			CancellationTokenSource.Cancel();
+			_cancellationTokenSource.Cancel();
 		}
 	}
 
@@ -95,8 +95,8 @@ public class CoinJoinTracker : IDisposable
 		{
 			if (disposing)
 			{
-				CoinJoinClient.CoinJoinClientProgress -= CoinJoinClient_CoinJoinClientProgress;
-				CancellationTokenSource.Dispose();
+				_coinJoinClient.CoinJoinClientProgress -= CoinJoinClient_CoinJoinClientProgress;
+				_cancellationTokenSource.Dispose();
 			}
 
 			_disposedValue = true;

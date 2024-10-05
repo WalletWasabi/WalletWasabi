@@ -20,12 +20,12 @@ public class TorStatusChecker : PeriodicRunner
 		: base(period)
 	{
 		_parser = parser;
-		HttpClient = httpClient;
+		_httpClient = httpClient;
 	}
 
 	public event EventHandler<Issue[]>? StatusEvent;
 
-	private HttpClient HttpClient { get; }
+	private readonly HttpClient _httpClient;
 
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class TorStatusChecker : PeriodicRunner
 		try
 		{
 			using HttpRequestMessage request = new(HttpMethod.Get, TorStatusUri);
-			using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
 			string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			var issues = _parser.Parse(xml);

@@ -25,7 +25,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		catch (Exception ex) when (IsUserCheating(ex))
 		{
 			Logger.LogInfo($"{request.Input} is cheating: {ex.Message}");
-			Prison.CheatingDetected(request.Input, request.RoundId);
+			_prison.CheatingDetected(request.Input, request.RoundId);
 			throw;
 		}
 	}
@@ -34,7 +34,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		var (coin, confirmations) = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId);
 
@@ -53,7 +53,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			if (round.IsInputRegistrationEnded(_config.MaxInputCountByRound))
 			{
 				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
@@ -112,7 +112,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
@@ -122,7 +122,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
@@ -141,7 +141,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId);
 			var alice = GetAlice(request.AliceId, round);
 			Logger.LogInfo($"{alice.Coin.Outpoint} is cheating: {ex.Message}");
-			Prison.CheatingDetected(alice.Coin.Outpoint, request.RoundId);
+			_prison.CheatingDetected(alice.Coin.Outpoint, request.RoundId);
 			throw;
 		}
 	}
@@ -153,7 +153,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var realAmountCredentialRequests = request.RealAmountCredentialRequests;
 		var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
 
@@ -187,7 +187,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			vsizeRealCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 		}
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			alice = GetAlice(request.AliceId, round);
 
@@ -230,7 +230,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task<EmptyResponse> RegisterOutputCoreAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 
@@ -287,7 +287,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
@@ -301,7 +301,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 	{
 		Round round;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
 		}
@@ -359,7 +359,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		if (Config.IsCoordinationEnabled is false)
+		if (_config.IsCoordinationEnabled is false)
 		{
 			return Task.FromResult(new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
 		}
@@ -387,7 +387,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private void CheckCoinIsNotBanned(OutPoint input, Round round)
 	{
-		var banningTime = Prison.GetBanTimePeriod(input, Config.GetDoSConfiguration());
+		var banningTime = _prison.GetBanTimePeriod(input, _config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
 			round.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}");

@@ -15,16 +15,13 @@ public class CoinjoinAnalyzer
 
 	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
-		AnalyzedTransaction = transaction;
-		AnalyzedTransactionPrevOuts = AnalyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
+		_analyzedTransactionPrevOuts = transaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
 	}
 
 	public delegate double AggregationFunction(IEnumerable<AmountWithAnonymity> amountWithAnonymity);
 
-	private HashSet<OutPoint> AnalyzedTransactionPrevOuts { get; }
-	private Dictionary<SmartCoin, double> CachedInputSanctions { get; } = new();
-
-	public SmartTransaction AnalyzedTransaction { get; }
+	private readonly HashSet<OutPoint> _analyzedTransactionPrevOuts;
+	private readonly Dictionary<SmartCoin, double> _cachedInputSanctions = new();
 
 	public double ComputeInputSanction(WalletVirtualInput virtualInput, AggregationFunction aggregationFunction)
 		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, aggregationFunction)).Max();
@@ -39,7 +36,7 @@ public class CoinjoinAnalyzer
 			}
 
 			// If we already analyzed the sanction for this output, then return the cached result.
-			if (CachedInputSanctions.TryGetValue(transactionOutput, out double value))
+			if (_cachedInputSanctions.TryGetValue(transactionOutput, out double value))
 			{
 				return value;
 			}
@@ -48,14 +45,14 @@ public class CoinjoinAnalyzer
 			// We are searching for any transaction inputs of analyzedTransaction that might have come from this transaction.
 			// If we find such remixed outputs, then we determine how much they contributed to our anonymity set.
 			SmartTransaction transaction = transactionOutput.Transaction;
-			double sanction = -ComputeAnonymityContribution(transactionOutput, AnalyzedTransactionPrevOuts);
+			double sanction = -ComputeAnonymityContribution(transactionOutput, _analyzedTransactionPrevOuts);
 
 			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.
 			// Add the worst-case branch to the resulting sanction.
 			sanction += aggregationFunction(transaction.WalletInputs.Select(x => new AmountWithAnonymity(ComputeInputSanctionHelper(x, recursionDepth + 1), x.Amount)));
 
 			// Cache the computed sanction in case we need it later.
-			CachedInputSanctions[transactionOutput] = sanction;
+			_cachedInputSanctions[transactionOutput] = sanction;
 			return sanction;
 		}
 

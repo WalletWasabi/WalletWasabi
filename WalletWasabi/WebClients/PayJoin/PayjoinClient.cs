@@ -20,11 +20,11 @@ public class PayjoinClient : IPayjoinClient
 	public PayjoinClient(Uri paymentUrl, HttpClient httpClient)
 	{
 		PaymentUrl = paymentUrl;
-		HttpClient = httpClient;
+		_httpClient = httpClient;
 	}
 
 	public Uri PaymentUrl { get; }
-	private HttpClient HttpClient { get; }
+	private readonly HttpClient _httpClient;
 
 	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 	{
@@ -83,7 +83,7 @@ public class PayjoinClient : IPayjoinClient
 			Content = new StringContent(cloned.ToBase64(), Encoding.UTF8, "text/plain")
 		};
 
-		HttpResponseMessage bpuResponse = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+		HttpResponseMessage bpuResponse = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
 		if (!bpuResponse.IsSuccessStatusCode)
 		{
