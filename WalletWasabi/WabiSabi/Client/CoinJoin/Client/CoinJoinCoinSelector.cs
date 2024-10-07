@@ -31,14 +31,14 @@ public class CoinJoinCoinSelector
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
 
-		Generator = generator ?? new(MaxInputsRegistrableByWallet, SecureRandom.Instance);
+		_generator = generator ?? new(MaxInputsRegistrableByWallet, SecureRandom.Instance);
 	}
 
 	public bool ConsolidationMode { get; }
 	public int AnonScoreTarget { get; }
 	public int SemiPrivateThreshold { get; }
-	private WasabiRandom Rnd => Generator.Rnd;
-	private CoinJoinCoinSelectorRandomnessGenerator Generator { get; }
+	private WasabiRandom Rnd => _generator.Rnd;
+	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
 	public static CoinJoinCoinSelector FromWallet(IWallet wallet) =>
 		new(
@@ -104,7 +104,7 @@ public class CoinJoinCoinSelector
 
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			ConsolidationMode ? MaxInputsRegistrableByWallet : Generator.GetInputTarget());
+			ConsolidationMode ? MaxInputsRegistrableByWallet : _generator.GetInputTarget());
 		if (ConsolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
@@ -211,7 +211,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Let's remove some coins coming from the same tx in the final candidate, allow 2 on average.
-		int sameTxAllowance = Generator.GetRandomBiasedSameTxAllowance(67);
+		int sameTxAllowance = _generator.GetRandomBiasedSameTxAllowance(67);
 
 		List<TCoin> winner = new()
 		{

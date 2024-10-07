@@ -16,7 +16,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 
 	public Cluster(IEnumerable<HdPubKey> keys)
 	{
-		Lock = new object();
+		_lock = new object();
 		Keys = keys.ToList();
 		KeysSet = Keys.ToHashSet();
 		_labels = LabelsArray.Merge(Keys.Select(x => x.Labels));
@@ -28,7 +28,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 		private set => RaiseAndSetIfChanged(ref _labels, value);
 	}
 
-	private object Lock { get; }
+	private readonly object _lock;
 	private List<HdPubKey> Keys { get; set; }
 	private HashSet<HdPubKey> KeysSet { get; set; }
 
@@ -36,7 +36,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 
 	public void Merge(IEnumerable<HdPubKey> keys)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var insertPosition = 0;
 			foreach (var key in keys.ToList())
@@ -56,7 +56,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 
 	public void UpdateLabels()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			UpdateLabelsNoLock();
 		}
@@ -77,7 +77,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 
 	public override int GetHashCode()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			int hash = 0;
 			if (Keys is { })
@@ -103,9 +103,9 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 		}
 		else
 		{
-			lock (x.Lock)
+			lock (x._lock)
 			{
-				lock (y.Lock)
+				lock (y._lock)
 				{
 					// We lose the order here, which isn't great and may cause problems,
 					// but this is also a significant performance gain.

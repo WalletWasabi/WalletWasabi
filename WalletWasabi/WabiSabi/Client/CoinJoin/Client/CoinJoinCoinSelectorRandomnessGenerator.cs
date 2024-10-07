@@ -12,7 +12,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	public CoinJoinCoinSelectorRandomnessGenerator(int maxInputsCount, WasabiRandom rnd)
 	{
 		Rnd = rnd;
-		MaxInputsCount = maxInputsCount;
+		_maxInputsCount = maxInputsCount;
 
 		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
 		for (int i = 1; i <= maxInputsCount; i++)
@@ -22,7 +22,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	}
 
 	public WasabiRandom Rnd { get; }
-	private int MaxInputsCount { get; }
+	private readonly int _maxInputsCount;
 	private Dictionary<int, int> Distance { get; } = new();
 
 	public virtual int GetRandomBiasedSameTxAllowance(int percent)
@@ -53,6 +53,6 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 			}
 		}
 
-		return MaxInputsCount;
+		return _maxInputsCount;
 	}
 }

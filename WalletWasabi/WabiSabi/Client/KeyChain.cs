@@ -16,24 +16,24 @@ public class KeyChain : IKeyChain
 			throw new ArgumentException("A watch-only key manager cannot be used to initialize a key chain.");
 		}
 
-		KeyManager = keyManager;
-		Password = password;
+		_keyManager = keyManager;
+		_password = password;
 	}
 
-	private KeyManager KeyManager { get; }
-	private string Password { get; }
+	private readonly KeyManager _keyManager;
+	private readonly string _password;
 
 	private Key GetMasterKey()
 	{
-		return KeyManager.GetMasterExtKey(Password).PrivateKey;
+		return _keyManager.GetMasterExtKey(_password).PrivateKey;
 	}
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		ExtKey hdKey = KeyManager.GetSecrets(Password, destination.ScriptPubKey).SingleOrDefault()
+		ExtKey hdKey = _keyManager.GetSecrets(_password, destination.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
 		Key masterKey = GetMasterKey();
-		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), destination.ScriptPubKey);
+		BitcoinSecret secret = hdKey.GetBitcoinSecret(_keyManager.GetNetwork(), destination.ScriptPubKey);
 
 		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
 	}
@@ -49,9 +49,9 @@ public class KeyChain : IKeyChain
 
 		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint)
 			?? throw new InvalidOperationException("Missing input.");
-		ExtKey hdKey = KeyManager.GetSecrets(Password, coin.ScriptPubKey).SingleOrDefault()
+		ExtKey hdKey = _keyManager.GetSecrets(_password, coin.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
-		BitcoinSecret secret = hdKey.GetBitcoinSecret(KeyManager.GetNetwork(), coin.ScriptPubKey);
+		BitcoinSecret secret = hdKey.GetBitcoinSecret(_keyManager.GetNetwork(), coin.ScriptPubKey);
 
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);

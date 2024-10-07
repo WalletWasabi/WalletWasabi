@@ -8,28 +8,28 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 public class CoinJoinScriptStore
 {
 	public CoinJoinScriptStore()
-		: this(Enumerable.Empty<Script>())
+		: this([])
 	{
 	}
 
 	public CoinJoinScriptStore(IEnumerable<Script> scripts)
 	{
-		Scripts = new HashSet<Script>(scripts);
+		_scripts = new HashSet<Script>(scripts);
 	}
 
-	private HashSet<Script> Scripts { get; } = new();
+	private readonly HashSet<Script> _scripts = new();
 
 	public void AddRange(IEnumerable<Script> scripts)
 	{
 		foreach (var script in scripts)
 		{
-			Scripts.Add(script);
+			_scripts.Add(script);
 		}
 	}
 
 	public bool Contains(Script script)
 	{
-		return Scripts.Contains(script);
+		return _scripts.Contains(script);
 	}
 
 	public static CoinJoinScriptStore LoadFromFile(string filePath)

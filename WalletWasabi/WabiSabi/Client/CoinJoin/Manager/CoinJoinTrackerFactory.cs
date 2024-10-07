@@ -19,21 +19,21 @@ public class CoinJoinTrackerFactory
 		CancellationToken cancellationToken)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
-		RoundStatusUpdater = roundStatusUpdater;
-		CoinJoinConfiguration = coinJoinConfiguration;
-		CancellationToken = cancellationToken;
-		LiquidityClueProvider = new LiquidityClueProvider();
+		_roundStatusUpdater = roundStatusUpdater;
+		_coinJoinConfiguration = coinJoinConfiguration;
+		_cancellationToken = cancellationToken;
+		_liquidityClueProvider = new LiquidityClueProvider();
 	}
 
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
-	private RoundStateUpdater RoundStatusUpdater { get; }
-	private CoinJoinConfiguration CoinJoinConfiguration { get; }
-	private CancellationToken CancellationToken { get; }
-	private LiquidityClueProvider LiquidityClueProvider { get; }
+	private readonly RoundStateUpdater _roundStatusUpdater;
+	private readonly CoinJoinConfiguration _coinJoinConfiguration;
+	private readonly CancellationToken _cancellationToken;
+	private readonly LiquidityClueProvider _liquidityClueProvider;
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
+		await _liquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
 		if (wallet.KeyChain is null)
 		{
@@ -48,14 +48,14 @@ public class CoinJoinTrackerFactory
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
 			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
-			RoundStatusUpdater,
+			_roundStatusUpdater,
 			coinSelector,
-			CoinJoinConfiguration,
-			LiquidityClueProvider,
+			_coinJoinConfiguration,
+			_liquidityClueProvider,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			skipFactors: wallet.CoinjoinSkipFactors,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
-		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}
 }

@@ -32,52 +32,52 @@ public class IndexBuilderService
 
 	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
-		RpcClient = Guard.NotNull(nameof(rpc), rpc);
-		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
+		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
+		_blockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 
-		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
+		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
+		_startingHeight = SmartHeader.GetStartingHeader(_rpcClient.Network).Height;
 
 		_serviceStatus = NotStarted;
 
-		IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(_indexFilePath);
 
-		if (RpcClient.Network == Network.RegTest && File.Exists(IndexFilePath))
+		if (_rpcClient.Network == Network.RegTest && File.Exists(_indexFilePath))
 		{
-			File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
+			File.Delete(_indexFilePath); // RegTest is not a global ledger, better to delete it.
 		}
 
 		IndexStorage = CreateBlockFilterSqliteStorage();
-		BlockNotifier.OnBlock += BlockNotifier_OnBlock;
+		_blockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
 	public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-	private IRPCClient RpcClient { get; }
-	private BlockNotifier BlockNotifier { get; }
-	private string IndexFilePath { get; }
+	private readonly IRPCClient _rpcClient;
+	private readonly BlockNotifier _blockNotifier;
+	private readonly string _indexFilePath;
 	private BlockFilterSqliteStorage IndexStorage { get; set; }
 
 	/// <remarks>Guards <see cref="Index"/>.</remarks>
-	private object IndexLock { get; } = new();
-	private uint StartingHeight { get; }
+	private readonly object _indexLock = new();
+	private readonly uint _startingHeight;
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
 
-	private RpcPubkeyType[] PubKeyTypes { get; } = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
+	private readonly RpcPubkeyType[] _pubKeyTypes = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
 
 	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
 	{
 		try
 		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: IndexFilePath, startingFilter: StartingFilters.GetStartingFilter(RpcClient.Network));
+			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{IndexFilePath}'.");
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
 
-			File.Delete(IndexFilePath);
+			File.Delete(_indexFilePath);
 			throw;
 		}
 	}
@@ -126,7 +126,7 @@ public class IndexBuilderService
 
 							FilterModel? lastIndexFilter;
 
-							lock (IndexLock)
+							lock (_indexLock)
 							{
 								lastIndexFilter = GetLastFilter();
 							}
@@ -141,10 +141,10 @@ public class IndexBuilderService
 							}
 							else
 							{
-								currentHash = StartingHeight == 0
+								currentHash = _startingHeight == 0
 									? uint256.Zero
-									: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
-								currentHeight = StartingHeight - 1;
+									: await _rpcClient.GetBlockHashAsync((int)_startingHeight - 1).ConfigureAwait(false);
+								currentHeight = _startingHeight - 1;
 							}
 
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
@@ -175,8 +175,8 @@ public class IndexBuilderService
 							}
 
 							uint nextHeight = currentHeight + 1;
-							uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
-							VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
+							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
+							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
 							// Check if we are still on the best chain,
 							// if not rewind filters till we find the fork.
@@ -190,12 +190,12 @@ public class IndexBuilderService
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block, PubKeyTypes);
+							var filter = BuildFilterForBlock(block, _pubKeyTypes);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
 
-							lock (IndexLock)
+							lock (_indexLock)
 							{
 								IndexStorage.TryAppend(filterModel);
 							}
@@ -283,7 +283,7 @@ public class IndexBuilderService
 
 	private void ReorgOne()
 	{
-		lock (IndexLock)
+		lock (_indexLock)
 		{
 			if(IndexStorage.TryRemoveLast(out var removedFilter))
 			{
@@ -294,7 +294,7 @@ public class IndexBuilderService
 
 	private async Task<SyncInfo> GetSyncInfoAsync()
 	{
-		var bcinfo = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+		var bcinfo = await _rpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
 		var pbcinfo = new SyncInfo(bcinfo);
 		return pbcinfo;
 	}
@@ -314,7 +314,7 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
-		lock (IndexLock)
+		lock (_indexLock)
 		{
 			var filterModels = IndexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
 			uint bestHeight;
@@ -341,7 +341,7 @@ public class IndexBuilderService
 
 	public FilterModel? GetLastFilter()
 	{
-		lock (IndexLock)
+		lock (_indexLock)
 		{
 			var lastFilterList = IndexStorage.FetchLast(1).ToList();
 			return lastFilterList.Count == 0 ? null : lastFilterList[0];
@@ -350,9 +350,9 @@ public class IndexBuilderService
 
 	public async Task StopAsync()
 	{
-		if (BlockNotifier is { })
+		if (_blockNotifier is { })
 		{
-			BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
+			_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
 		}
 
 		Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.

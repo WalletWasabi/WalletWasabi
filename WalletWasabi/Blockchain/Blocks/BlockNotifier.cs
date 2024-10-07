@@ -17,7 +17,7 @@ public class BlockNotifier : PeriodicRunner
 	{
 		RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		P2pNode = p2pNode;
-		ProcessedBlocks = new List<uint256>();
+		_processedBlocks = new List<uint256>();
 
 		if (p2pNode is { })
 		{
@@ -32,17 +32,17 @@ public class BlockNotifier : PeriodicRunner
 	public IRPCClient RpcClient { get; set; }
 	public Network Network => RpcClient.Network;
 
-	private List<uint256> ProcessedBlocks { get; }
+	private readonly List<uint256> _processedBlocks;
 
 	public P2pNode? P2pNode { get; }
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
-	private object LastInvLock { get; } = new();
+	private readonly object _lastInvLock = new();
 
 	private void P2pNode_BlockInv(object? sender, uint256 blockHash)
 	{
-		lock (LastInvLock)
+		lock (_lastInvLock)
 		{
 			LastInv = blockHash;
 		}
@@ -53,14 +53,14 @@ public class BlockNotifier : PeriodicRunner
 	{
 		uint256 bestBlockHash;
 		uint256? lastInv;
-		lock (LastInvLock)
+		lock (_lastInvLock)
 		{
 			lastInv = LastInv;
 		}
 
 		// If we did not yet process our last inv, then we can take this as the best known block hash, so we don't need the RPC command.
 		// Otherwise make the RPC command.
-		if (lastInv is { } && !ProcessedBlocks.Contains(lastInv))
+		if (lastInv is { } && !_processedBlocks.Contains(lastInv))
 		{
 			bestBlockHash = lastInv;
 		}
@@ -84,7 +84,7 @@ public class BlockNotifier : PeriodicRunner
 		//   - That was the largest recorded reorg so far.
 		//   - Reorg in this point of time would be very unlikely anyway.
 		//   - 100 blocks would be the sure, but that'd be a huge performance overkill.
-		if (ProcessedBlocks.Count == 0)
+		if (_processedBlocks.Count == 0)
 		{
 			var reorgProtection7Headers = new List<BlockHeader>()
 				{
@@ -110,14 +110,14 @@ public class BlockNotifier : PeriodicRunner
 		}
 
 		// If block was already processed return.
-		if (ProcessedBlocks.Contains(arrivedHeader.GetHash()))
+		if (_processedBlocks.Contains(arrivedHeader.GetHash()))
 		{
 			BestBlockHash = bestBlockHash;
 			return;
 		}
 
 		// If this block follows the proper order then add.
-		if (ProcessedBlocks.Last() == arrivedHeader.HashPrevBlock)
+		if (_processedBlocks.Last() == arrivedHeader.HashPrevBlock)
 		{
 			AddBlock(arrivedBlock);
 			BestBlockHash = bestBlockHash;
@@ -125,7 +125,7 @@ public class BlockNotifier : PeriodicRunner
 		}
 
 		// Else let's sort out things.
-		var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
+		var foundPrevBlock = _processedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
 
 		// Missed notifications on some previous blocks.
 		if (foundPrevBlock is { })
@@ -165,9 +165,9 @@ public class BlockNotifier : PeriodicRunner
 
 			if (currentHeader.GetHash() == Network.GenesisHash)
 			{
-				var processedBlocksClone = ProcessedBlocks.ToArray();
+				var processedBlocksClone = _processedBlocks.ToArray();
 				var processedReversedBlocks = processedBlocksClone.Reverse();
-				ProcessedBlocks.Clear();
+				_processedBlocks.Clear();
 				foreach (var processedBlock in processedReversedBlocks)
 				{
 					OnReorg?.Invoke(this, processedBlock);
@@ -176,11 +176,11 @@ public class BlockNotifier : PeriodicRunner
 			}
 
 			// If we found the proper chain.
-			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == currentHeader.HashPrevBlock);
+			var foundPrevBlock = _processedBlocks.FirstOrDefault(x => x == currentHeader.HashPrevBlock);
 			if (foundPrevBlock is { })
 			{
 				// If the last block hash is not what we found, then we missed a reorg also.
-				if (foundPrevBlock != ProcessedBlocks.Last())
+				if (foundPrevBlock != _processedBlocks.Last())
 				{
 					ReorgToBlock(foundPrevBlock);
 				}
@@ -204,15 +204,15 @@ public class BlockNotifier : PeriodicRunner
 
 	private void AddHeader(BlockHeader block)
 	{
-		ProcessedBlocks.Add(block.GetHash());
+		_processedBlocks.Add(block.GetHash());
 	}
 
 	private void ReorgToBlock(uint256 correctBlock)
 	{
-		var index = ProcessedBlocks.IndexOf(correctBlock);
-		int countToRemove = ProcessedBlocks.Count - (index + 1);
-		var toRemoves = ProcessedBlocks.TakeLast(countToRemove).ToList();
-		ProcessedBlocks.RemoveRange(index + 1, countToRemove);
+		var index = _processedBlocks.IndexOf(correctBlock);
+		int countToRemove = _processedBlocks.Count - (index + 1);
+		var toRemoves = _processedBlocks.TakeLast(countToRemove).ToList();
+		_processedBlocks.RemoveRange(index + 1, countToRemove);
 		toRemoves.Reverse();
 		foreach (var toRemove in toRemoves)
 		{

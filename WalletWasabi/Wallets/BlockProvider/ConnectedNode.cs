@@ -11,34 +11,34 @@ public class ConnectedNode : IDisposable
 	public ConnectedNode(Node node)
 	{
 		Name = node.ToString();
-		Node = node;
+		_node = node;
 		node.StateChanged += Node_StateChanged;
-		DisconnectedCts = new();
+		_disconnectedCts = new();
 	}
 
 	/// <remarks>For testing purposes.</remarks>
 	internal ConnectedNode(CancellationTokenSource disconnectedCts)
 	{
 		Name = "Test node";
-		Node = null!;
-		DisconnectedCts = disconnectedCts;
+		_node = null!;
+		_disconnectedCts = disconnectedCts;
 	}
 
 	public string Name { get; }
-	private Node Node { get; }
-	private CancellationTokenSource DisconnectedCts { get; }
+	private readonly Node _node;
+	private readonly CancellationTokenSource _disconnectedCts;
 
 	private void Node_StateChanged(Node node, NodeState oldState)
 	{
 		if (!node.IsConnected)
 		{
-			DisconnectedCts.Cancel();
+			_disconnectedCts.Cancel();
 		}
 	}
 
 	public virtual Task<Block> DownloadBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
-		return Node.DownloadBlockAsync(hash, cancellationToken);
+		return _node.DownloadBlockAsync(hash, cancellationToken);
 	}
 
 	/// <summary>
@@ -49,7 +49,7 @@ public class ConnectedNode : IDisposable
 	{
 		try
 		{
-			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, DisconnectedCts.Token);
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disconnectedCts.Token);
 			await Task.Delay(Timeout.Infinite, linkedCts.Token).ConfigureAwait(false);
 
 			throw new InvalidOperationException("Unreachable code.");
@@ -69,12 +69,12 @@ public class ConnectedNode : IDisposable
 
 	public void Dispose()
 	{
-		if (Node is not null)
+		if (_node is not null)
 		{
-			Node.StateChanged -= Node_StateChanged;
-			Node.Dispose();
+			_node.StateChanged -= Node_StateChanged;
+			_node.Dispose();
 		}
 
-		DisconnectedCts.Dispose();
+		_disconnectedCts.Dispose();
 	}
 }

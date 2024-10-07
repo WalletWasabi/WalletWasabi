@@ -16,15 +16,15 @@ public class RoundStateUpdater : PeriodicRunner
 {
 	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 	{
-		ArenaRequestHandler = arenaRequestHandler;
+		_arenaRequestHandler = arenaRequestHandler;
 	}
 
-	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+	private readonly IWabiSabiApiRequestHandler _arenaRequestHandler;
 	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
-	private List<RoundStateAwaiter> Awaiters { get; } = new();
-	private object AwaitersLock { get; } = new();
+	private readonly List<RoundStateAwaiter> _awaiters = new();
+	private readonly object _awaitersLock = new();
 
 	public bool AnyRound => RoundStates.Any();
 
@@ -36,9 +36,9 @@ public class RoundStateUpdater : PeriodicRunner
 	{
 		if (SlowRequestsMode)
 		{
-			lock (AwaitersLock)
+			lock (_awaitersLock)
 			{
-				if (Awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
+				if (_awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
 				{
 					return;
 				}
@@ -51,7 +51,7 @@ public class RoundStateUpdater : PeriodicRunner
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-		var response = await ArenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
+		var response = await _arenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
 		RoundState[] roundStates = response.RoundStates;
 
 		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
@@ -69,12 +69,12 @@ public class RoundStateUpdater : PeriodicRunner
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
 		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
-		lock (AwaitersLock)
+		lock (_awaitersLock)
 		{
-			foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
+			foreach (var awaiter in _awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
 			{
 				// The predicate was fulfilled.
-				Awaiters.Remove(awaiter);
+				_awaiters.Remove(awaiter);
 				break;
 			}
 		}
@@ -86,17 +86,17 @@ public class RoundStateUpdater : PeriodicRunner
 	{
 		RoundStateAwaiter? roundStateAwaiter = null;
 
-		lock (AwaitersLock)
+		lock (_awaitersLock)
 		{
 			roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, phase, cancellationToken);
-			Awaiters.Add(roundStateAwaiter);
+			_awaiters.Add(roundStateAwaiter);
 		}
 
 		cancellationToken.Register(() =>
 		{
-			lock (AwaitersLock)
+			lock (_awaitersLock)
 			{
-				Awaiters.Remove(roundStateAwaiter);
+				_awaiters.Remove(roundStateAwaiter);
 			}
 		});
 
@@ -128,9 +128,9 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public override Task StopAsync(CancellationToken cancellationToken)
 	{
-		lock (AwaitersLock)
+		lock (_awaitersLock)
 		{
-			foreach (var awaiter in Awaiters)
+			foreach (var awaiter in _awaiters)
 			{
 				awaiter.Cancel();
 			}

@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Keys;
 public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 {
 	private Dictionary<Script, HdPubKey> HdPubKeyIndexedByScriptPubKey { get; } = new(1_000);
-	private List<HdPubKeyInfo> HdPubKeyInfos { get; } = new(1_000);
+	private readonly List<HdPubKeyInfo> _hdPubKeyInfos = new(1_000);
 	private List<HdPubKeyInfo>? HdPubKeyInfoSnapshot { get; set; }
 
 	public IEnumerable<HdPubKey> HdPubKeys =>
@@ -34,15 +34,15 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyInfo>
 	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
 	{
 		var info = new HdPubKeyInfo(hdPubKey, scriptPubKeyType);
-		HdPubKeyInfos.Add(info);
+		_hdPubKeyInfos.Add(info);
 		HdPubKeyIndexedByScriptPubKey[info.ScriptPubKey] = info.HdPubKey;
 	}
 
 	public IEnumerator<HdPubKeyInfo> GetEnumerator()
 	{
-		if (HdPubKeyInfoSnapshot is not { } snapshot || snapshot.Count != HdPubKeyInfos.Count)
+		if (HdPubKeyInfoSnapshot is not { } snapshot || snapshot.Count != _hdPubKeyInfos.Count)
 		{
-			HdPubKeyInfoSnapshot = HdPubKeyInfos.ToList();
+			HdPubKeyInfoSnapshot = _hdPubKeyInfos.ToList();
 		}
 		return HdPubKeyInfoSnapshot.GetEnumerator();
 	}

@@ -17,7 +17,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	/// <param name="dataSource">Work folder, or <see cref="SqliteStorageHelper.InMemoryDatabase"/> to use an empty in-memory database in tests.</param>
 	public AllTransactionStore(string dataSource, Network network)
 	{
-		WorkFolderPath = dataSource;
+		_workFolderPath = dataSource;
 
 		string mempoolStoreDataSource;
 		string confirmedStoreDataSource;
@@ -29,20 +29,20 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		}
 		else
 		{
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-			mempoolStoreDataSource = Path.Combine(WorkFolderPath, "Mempool");
-			confirmedStoreDataSource = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
+			IoHelpers.EnsureDirectoryExists(_workFolderPath);
+			mempoolStoreDataSource = Path.Combine(_workFolderPath, "Mempool");
+			confirmedStoreDataSource = Path.Combine(_workFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
 		}
 
 		MempoolStore = new TransactionStore(workFolderPath: mempoolStoreDataSource, network);
 		ConfirmedStore = new TransactionStore(workFolderPath: confirmedStoreDataSource, network);
 	}
 
-	private string WorkFolderPath { get; }
+	private readonly string _workFolderPath;
 
 	public TransactionStore MempoolStore { get; }
 	public TransactionStore ConfirmedStore { get; }
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 
 	public async Task InitializeAsync(CancellationToken cancellationToken = default)
 	{
@@ -58,7 +58,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public void AddOrUpdate(SmartTransaction tx)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var hash = tx.GetHash();
 
@@ -88,7 +88,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		uint256 hash = tx.GetHash();
 
-		lock (Lock)
+		lock (_lock)
 		{
 			// Do Contains first, because it's fast.
 			if (ConfirmedStore.TryUpdate(tx))
@@ -112,7 +112,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	private void EnsureConsistency()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			List<uint256> mempoolTransactions = MempoolStore.GetTransactionHashes();
 
@@ -130,7 +130,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public virtual bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			if (MempoolStore.TryGetTransaction(hash, out sameStx))
 			{
@@ -144,7 +144,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	/// <returns>Transactions ordered by blockchain.</returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions()).OrderByBlockchain().ToList();
 		}
@@ -152,7 +152,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	internal IEnumerable<uint256> GetTransactionHashes()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return ConfirmedStore.GetTransactionHashes().Concat(MempoolStore.GetTransactionHashes()).ToList();
 		}
@@ -160,7 +160,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	internal bool IsEmpty()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return ConfirmedStore.IsEmpty() && MempoolStore.IsEmpty();
 		}
@@ -169,7 +169,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	/// <remarks>Only used by tests.</remarks>
 	internal bool Contains(uint256 hash)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return ConfirmedStore.Contains(hash) || MempoolStore.Contains(hash);
 		}
@@ -177,7 +177,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			List<SmartTransaction> reorgedTxs = new();
 			foreach (var txHash in ConfirmedStore

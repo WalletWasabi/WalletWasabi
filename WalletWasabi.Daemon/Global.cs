@@ -38,14 +38,12 @@ using WalletWasabi.WebClients.BuyAnything;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Daemon;
 
 public class Global
 {
-	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
+	/// <remarks>Use this variable as a guard to prevent touching <see cref="_stoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
 	public Global(string dataDir, string configFilePath, Config config)
@@ -68,13 +66,13 @@ public class Global
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
-		IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		_indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "_indexStore"), Network, smartHeaderChain);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, smartHeaderChain, blocks);
+		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, blocks);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
@@ -119,17 +117,17 @@ public class Global
 
 		// Block providers.
 		var torEndpoint = TorSettings.TorMode != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
-		SpecificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, torEndpoint);
-		P2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
+		_specificNodeBlockProvider = new SpecificNodeBlockProvider(Network, Config.ServiceConfiguration, torEndpoint);
+		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
 
 		IBlockProvider[] trustedFullNodeBlockProviders = BitcoinCoreNode?.RpcClient is null
-			? [SpecificNodeBlockProvider]
-			: [new RpcBlockProvider(BitcoinCoreNode.RpcClient), SpecificNodeBlockProvider];
+			? [_specificNodeBlockProvider]
+			: [new RpcBlockProvider(BitcoinCoreNode.RpcClient), _specificNodeBlockProvider];
 
-		BlockDownloadService = new BlockDownloadService(
+		_blockDownloadService = new BlockDownloadService(
 			fileSystemBlockRepository: BitcoinStore.BlockRepository,
 			trustedFullNodeBlockProviders: trustedFullNodeBlockProviders,
-			new P2PBlockProvider(P2PNodesManager));
+			new P2PBlockProvider(_p2PNodesManager));
 
 		if (Network != Network.RegTest)
 		{
@@ -143,7 +141,7 @@ public class Global
 			wasabiSynchronizer,
 			config.ServiceConfiguration,
 			HostedServices.Get<HybridFeeProvider>(),
-			BlockDownloadService,
+			_blockDownloadService,
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
@@ -167,10 +165,10 @@ public class Global
 	public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
-	private AsyncLock InitializationAsyncLock { get; } = new();
+	private readonly AsyncLock _initializationAsyncLock = new();
 
 	/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
-	private CancellationTokenSource StoppingCts { get; } = new();
+	private readonly CancellationTokenSource _stoppingCts = new();
 
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
@@ -185,9 +183,9 @@ public class Global
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
-	private SpecificNodeBlockProvider SpecificNodeBlockProvider { get; }
-	private BlockDownloadService BlockDownloadService { get; }
-	private P2PNodesManager P2PNodesManager { get; }
+	private readonly SpecificNodeBlockProvider _specificNodeBlockProvider;
+	private readonly BlockDownloadService _blockDownloadService;
+	private readonly P2PNodesManager _p2PNodesManager;
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
@@ -202,8 +200,8 @@ public class Global
 
 	public Uri? OnionServiceUri { get; private set; }
 
-	private AllTransactionStore AllTransactionStore { get; }
-	private IndexStore IndexStore { get; }
+	private readonly AllTransactionStore _allTransactionStore;
+	private readonly IndexStore _indexStore;
 
 	private HttpClientFactory BuildHttpClientFactory() =>
 		Config.UseTor != TorMode.Disabled
@@ -211,11 +209,11 @@ public class Global
 			: new HttpClientFactory();
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, StoppingCts.Token);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
 
-		// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await InitializationAsyncLock.LockAsync(cancellationToken))
+		// _stoppingCts may be disposed at this point, so do not forward the cancellation token here.
+		using (await _initializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
 
@@ -251,7 +249,7 @@ public class Global
 
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-				await BlockDownloadService.StartAsync(cancel).ConfigureAwait(false);
+				await _blockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
@@ -440,14 +438,14 @@ public class Global
 		if (!_disposeRequested)
 		{
 			_disposeRequested = true;
-			StoppingCts.Cancel();
+			_stoppingCts.Cancel();
 		}
 		else
 		{
 			return;
 		}
 
-		using (await InitializationAsyncLock.LockAsync())
+		using (await _initializationAsyncLock.LockAsync())
 		{
 			Logger.LogWarning("Process is exiting.", nameof(Global));
 
@@ -477,16 +475,16 @@ public class Global
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				if (BlockDownloadService is { } blockDownloadService)
+				if (_blockDownloadService is { } blockDownloadService)
 				{
 					blockDownloadService.Dispose();
-					Logger.LogInfo($"{nameof(BlockDownloadService)} is disposed.");
+					Logger.LogInfo($"{nameof(_blockDownloadService)} is disposed.");
 				}
 
-				if (SpecificNodeBlockProvider is { } specificNodeBlockProvider)
+				if (_specificNodeBlockProvider is { } specificNodeBlockProvider)
 				{
 					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
+					Logger.LogInfo($"{nameof(_specificNodeBlockProvider)} is disposed.");
 				}
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)
@@ -554,15 +552,15 @@ public class Global
 
 				try
 				{
-					await IndexStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(IndexStore)} is disposed.");
+					await _indexStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(_indexStore)} is disposed.");
 
-					await AllTransactionStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
+					await _allTransactionStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(_allTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(IndexStore)} and {nameof(AllTransactionStore)}: {ex}");
+					Logger.LogError($"Error during the disposal of {nameof(_indexStore)} and {nameof(_allTransactionStore)}: {ex}");
 				}
 			}
 			catch (Exception ex)
@@ -571,7 +569,7 @@ public class Global
 			}
 			finally
 			{
-				StoppingCts.Dispose();
+				_stoppingCts.Dispose();
 				Logger.LogTrace("Dispose finished.");
 			}
 		}

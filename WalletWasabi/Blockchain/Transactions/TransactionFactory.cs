@@ -23,15 +23,15 @@ public class TransactionFactory
 		Network = network;
 		KeyManager = keyManager;
 		Coins = coins;
-		TransactionStore = transactionStore;
-		Password = password;
+		_transactionStore = transactionStore;
+		_password = password;
 	}
 
 	public Network Network { get; }
 	public KeyManager KeyManager { get; }
 	public ICoinsView Coins { get; }
-	private string Password { get; }
-	private ITransactionStore TransactionStore { get; }
+	private readonly string _password;
+	private readonly ITransactionStore _transactionStore;
 
 	public BuildTransactionResult BuildTransaction(
 		TransactionParameters parameters,
@@ -209,7 +209,7 @@ public class TransactionFactory
 
 		// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 		psbt.AddKeyPaths(KeyManager);
-		psbt.AddPrevTxs(TransactionStore);
+		psbt.AddPrevTxs(_transactionStore);
 
 		Transaction tx;
 		if (KeyManager.IsWatchOnly || !parameters.TryToSign)
@@ -218,7 +218,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);
 
@@ -227,7 +227,7 @@ public class TransactionFactory
 			{
 				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 				psbt.AddKeyPaths(KeyManager);
-				psbt.AddPrevTxs(TransactionStore);
+				psbt.AddPrevTxs(_transactionStore);
 			}
 
 			psbt.Finalize();

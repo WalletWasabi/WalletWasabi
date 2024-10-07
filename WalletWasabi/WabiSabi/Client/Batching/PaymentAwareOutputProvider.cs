@@ -6,7 +6,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
-// Represents an `OutputProvider` that has a reference to the `BatchedPayments` instance created by a `Wallet`.
+// Represents an `OutputProvider` that has a reference to the `_batchedPayments` instance created by a `Wallet`.
 // This class is then aware of the existence of payments for a `Wallet`, what allows it to provide outputs for
 // coinjoin round which include those outputs that are payments.
 public class PaymentAwareOutputProvider : OutputProvider
@@ -14,10 +14,10 @@ public class PaymentAwareOutputProvider : OutputProvider
 	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments)
 		: base(destinationProvider)
 	{
-		BatchedPayments = batchedPayments;
+		_batchedPayments = batchedPayments;
 	}
 
-	private PaymentBatch BatchedPayments { get; }
+	private readonly PaymentBatch _batchedPayments;
 
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
@@ -30,7 +30,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = BatchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
+		var bestPaymentSet = _batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
 
 		// Return the payments.
 		foreach (var payment in bestPaymentSet.Payments)
@@ -38,7 +38,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 			yield return payment.ToTxOut();
 		}
 
-		BatchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
+		_batchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
 		availableVsize -= bestPaymentSet.TotalVSize;
 		availableAmount -= bestPaymentSet.TotalAmount;
 

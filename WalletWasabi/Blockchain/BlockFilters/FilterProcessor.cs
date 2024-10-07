@@ -11,16 +11,16 @@ public class FilterProcessor
 {
 	public FilterProcessor(BitcoinStore bitcoinStore)
 	{
-		BitcoinStore = bitcoinStore;
+		_bitcoinStore = bitcoinStore;
 	}
 
-	private BitcoinStore BitcoinStore { get; }
+	private readonly BitcoinStore _bitcoinStore;
 
 	public async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
 	{
 		try
 		{
-			var hashChain = BitcoinStore.SmartHeaderChain;
+			var hashChain = _bitcoinStore.SmartHeaderChain;
 			hashChain.SetServerTipHeight(serverBestHeight);
 
 			if (filtersResponseState == FiltersResponseState.NewFilters)
@@ -39,11 +39,11 @@ public class FilterProcessor
 						$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
 						$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
-					await BitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					await _bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
 				}
 				else
 				{
-					await BitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+					await _bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
 
 					if (filters.Count() == 1)
 					{
@@ -59,7 +59,7 @@ public class FilterProcessor
 			{
 				// Reorg happened
 				// 1. Rollback index
-				FilterModel reorgedFilter = await BitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+				FilterModel reorgedFilter = await _bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
 					?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
@@ -71,7 +71,7 @@ public class FilterProcessor
 				if (serverBestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 				{
 					// If still bad delete filters and crash the software?
-					await BitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					await _bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
 				}
 			}
 		}
