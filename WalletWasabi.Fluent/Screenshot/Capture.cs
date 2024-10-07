@@ -38,7 +38,7 @@ public static class Capture
 			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
 		if (file is not null)
 		{
-			Save(root, root.Bounds.Size, file.Path.AbsolutePath);
+			Save(root, root.Bounds.Size, file.Path.LocalPath);
 		}
 	}
 
