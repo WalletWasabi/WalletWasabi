@@ -339,7 +339,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 			if (_smartHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(_smartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
 			}
 
 			_smartHeaderChain.RemoveTip();

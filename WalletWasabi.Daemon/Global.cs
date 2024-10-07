@@ -68,7 +68,7 @@ public class Global
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
-		_indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "_indexStore"), Network, smartHeaderChain);
+		_indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
@@ -478,13 +478,13 @@ public class Global
 				if (_blockDownloadService is { } blockDownloadService)
 				{
 					blockDownloadService.Dispose();
-					Logger.LogInfo($"{nameof(_blockDownloadService)} is disposed.");
+					Logger.LogInfo($"{nameof(BlockDownloadService)} is disposed.");
 				}
 
 				if (_specificNodeBlockProvider is { } specificNodeBlockProvider)
 				{
 					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(_specificNodeBlockProvider)} is disposed.");
+					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
 				}
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)
@@ -553,14 +553,14 @@ public class Global
 				try
 				{
 					await _indexStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(_indexStore)} is disposed.");
+					Logger.LogInfo($"{nameof(IndexStore)} is disposed.");
 
 					await _allTransactionStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(_allTransactionStore)} is disposed.");
+					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(_indexStore)} and {nameof(_allTransactionStore)}: {ex}");
+					Logger.LogError($"Error during the disposal of {nameof(IndexStore)} and {nameof(AllTransactionStore)}: {ex}");
 				}
 			}
 			catch (Exception ex)

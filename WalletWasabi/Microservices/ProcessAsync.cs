@@ -60,12 +60,12 @@ public class ProcessAsync : IDisposable
 		{
 			Logger.LogError(ex);
 
-			Logger.LogInfo($"{nameof(_process.StartInfo.FileName)}: {_process.StartInfo.FileName}.");
-			Logger.LogInfo($"{nameof(_process.StartInfo.Arguments)}: {_process.StartInfo.Arguments}.");
-			Logger.LogInfo($"{nameof(_process.StartInfo.RedirectStandardOutput)}: {_process.StartInfo.RedirectStandardOutput}.");
-			Logger.LogInfo($"{nameof(_process.StartInfo.UseShellExecute)}: {_process.StartInfo.UseShellExecute}.");
-			Logger.LogInfo($"{nameof(_process.StartInfo.CreateNoWindow)}: {_process.StartInfo.CreateNoWindow}.");
-			Logger.LogInfo($"{nameof(_process.StartInfo.WindowStyle)}: {_process.StartInfo.WindowStyle}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.FileName)}: {_process.StartInfo.FileName}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.Arguments)}: {_process.StartInfo.Arguments}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.RedirectStandardOutput)}: {_process.StartInfo.RedirectStandardOutput}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.UseShellExecute)}: {_process.StartInfo.UseShellExecute}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.CreateNoWindow)}: {_process.StartInfo.CreateNoWindow}.");
+			Logger.LogInfo($"{nameof(Process.StartInfo.WindowStyle)}: {_process.StartInfo.WindowStyle}.");
 			throw;
 		}
 	}
