@@ -169,7 +169,7 @@ public class KeyManager
 	[JsonProperty(PropertyName = "TaprootAccountKeyPath")]
 	public KeyPath TaprootAccountKeyPath { get; private set; }
 
-	[JsonProperty(PropertyName = "_blockchainState")]
+	[JsonProperty(PropertyName = "BlockchainState")]
 	private readonly BlockchainState _blockchainState;
 
 	[JsonProperty(PropertyName = "PreferPsbtWorkflow")]
@@ -203,7 +203,7 @@ public class KeyManager
 	[JsonProperty(PropertyName = "CoinjoinSkipFactors")]
 	public CoinjoinSkipFactors CoinjoinSkipFactors { get; set; } = CoinjoinSkipFactors.SpeedMaximizing;
 
-	[JsonProperty(Order = 999, PropertyName = "_hdPubKeys")]
+	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private readonly List<HdPubKey> _hdPubKeys = new();
 
 	[JsonProperty(ItemConverterType = typeof(OutPointJsonConverter), PropertyName = "ExcludedCoinsFromCoinJoin")]

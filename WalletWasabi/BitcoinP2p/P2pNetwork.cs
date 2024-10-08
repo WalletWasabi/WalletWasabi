@@ -31,7 +31,7 @@ public class P2pNetwork : BackgroundService
 		if (_network == Network.RegTest)
 		{
 			_addressManager = new AddressManager();
-			Logger.LogInfo($"Fake {nameof(_addressManager)} is initialized on the {Network.RegTest}.");
+			Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 
 			Nodes = new NodesGroup(_network, requirements: Constants.NodeRequirements);
 		}
@@ -52,17 +52,17 @@ public class P2pNetwork : BackgroundService
 				// On the other side, increasing this number forces users that do not need to discover more peers
 				// to spend resources (CPU/bandwidth) to discover new peers.
 				needsToDiscoverPeers = torSocks5EndPoint is not null || _addressManager.Count < 500;
-				Logger.LogInfo($"Loaded {nameof(_addressManager)} from `{_addressManagerFilePath}`.");
+				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{_addressManagerFilePath}`.");
 			}
 			catch (DirectoryNotFoundException ex)
 			{
-				Logger.LogInfo($"{nameof(_addressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace(ex);
 				_addressManager = new AddressManager();
 			}
 			catch (FileNotFoundException ex)
 			{
-				Logger.LogInfo($"{nameof(_addressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace(ex);
 				_addressManager = new AddressManager();
 			}
@@ -72,11 +72,11 @@ public class P2pNetwork : BackgroundService
 				// https://github.com/WalletWasabi/WalletWasabi/issues/880
 				// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
 				// https://github.com/WalletWasabi/WalletWasabi/issues/5255
-				Logger.LogInfo($"{nameof(_addressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
+				Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
 				File.Delete(_addressManagerFilePath);
 				Logger.LogTrace(ex);
 				_addressManager = new AddressManager();
-				Logger.LogInfo($"{nameof(_addressManager)} autocorrection is successful.");
+				Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 			}
 
 			var addressManagerBehavior = new AddressManagerBehavior(_addressManager)
@@ -157,7 +157,7 @@ public class P2pNetwork : BackgroundService
 		IoHelpers.EnsureContainingDirectoryExists(_addressManagerFilePath);
 
 		_addressManager.SavePeerFile(_addressManagerFilePath, _network);
-		Logger.LogInfo($"{nameof(_addressManager)} is saved to `{_addressManagerFilePath}`.");
+		Logger.LogInfo($"{nameof(AddressManager)} is saved to `{_addressManagerFilePath}`.");
 
 		cancellationToken.ThrowIfCancellationRequested();
 
