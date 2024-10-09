@@ -38,6 +38,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
+	[AutoNotify] private string _skipButtonText;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
@@ -74,12 +75,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
 
 			_nextButtonText = "Save PSBT file";
+			_skipButtonText = "Send Now";
 		}
 		else
 		{
+			SkipCommand = ReactiveCommand.CreateFromTask(OnCopyHexAsync);
 			NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
-			_nextButtonText = "Confirm";
+			_nextButtonText = "Send";
+			_skipButtonText = "Copy Hex";
 		}
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
@@ -405,6 +409,39 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
 				Navigate().To().SendSuccess(finalTransaction);
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync(
+				"Transaction",
+				ex.ToUserFriendlyString(),
+				"Wasabi was unable to send your transaction.");
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	private async Task OnCopyHexAsync()
+	{
+		try
+		{
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
+			{
+				IsBusy = true;
+
+				var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+				var oldClipboard = await UiContext.Clipboard.GetTextAsync();
+				var hex = finalTransaction.Transaction.ToHex();
+				await UiContext.Clipboard.SetTextAsync(hex);
+				_cancellationTokenSource.Cancel();
+				Navigate().To().TransactionHexCopied(_wallet, transaction.HdPubKeysWithNewLabels, oldClipboard, hex);
 			}
 		}
 		catch (Exception ex)

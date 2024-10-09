@@ -19,7 +19,7 @@ public static class RpcErrorTools
 		[SpentError2] = SpentErrorTranslation,
 		[SpentError3] = SpentErrorTranslation,
 		["bad-txns-inputs-duplicate"] = "The transaction contains duplicated inputs.",
-		["bad-txns-nonfinal"] = "The transaction is not final and cannot be broadcasted.",
+		["bad-txns-nonfinal"] = "The transaction is not final and cannot be broadcast.",
 		["bad-txns-oversize"] = "The transaction is too big.",
 
 		["invalid password"] = "Wrong passphrase.",

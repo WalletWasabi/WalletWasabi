@@ -13,6 +13,9 @@ public partial class TransactionModel : ReactiveObject
 
 	public required uint256 Id { get; init; }
 
+	public required Func<string> HexFunction { get; set; }
+	public Lazy<string> Hex => new(HexFunction());
+
 	public required LabelsArray Labels { get; init; }
 
 	public required DateTimeOffset Date { get; set; }
@@ -56,7 +59,7 @@ public partial class TransactionModel : ReactiveObject
 	public bool IsCancellation => Type == TransactionType.Cancellation;
 
 	public FeeRate? FeeRate { get; set; }
-	
+
 	public bool HasBeenSpedUp { get; set; }
 
 	private Money GetAmount()

@@ -150,7 +150,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 				return BroadcastingResult.Fail(new BroadcastError.Unknown($"Timed out to broadcast to {node.RemoteSocketEndpoint} node"));
 			}
 			node.DisconnectAsync("Thank you!");
-			Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {txId}.");
+			Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcast transaction: {txId}.");
 
 			var propagationTimeoutTask = Task.Delay(7000);
 			var propagationTask = entry.PropagationConfirmed.Task;
@@ -197,15 +197,15 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 			switch (ok)
 			{
 				case BroadcastOk.BroadcastedByBackend:
-					Logger.LogInfo($"Transaction is successfully broadcasted {tx.GetHash()} by backend.");
+					Logger.LogInfo($"Transaction is successfully broadcast {tx.GetHash()} by backend.");
 					break;
 				case BroadcastOk.BroadcastedByRpc:
-					Logger.LogInfo($"Transaction is successfully broadcasted {tx.GetHash()} by local node RPC interface.");
+					Logger.LogInfo($"Transaction is successfully broadcast {tx.GetHash()} by local node RPC interface.");
 					break;
 				case BroadcastOk.BroadcastedByNetwork n:
 					foreach (var confirmedPropagators in n.Nodes)
 					{
-						Logger.LogInfo($"Transaction is successfully broadcasted {tx.GetHash()} and propagated by {confirmedPropagators}.");
+						Logger.LogInfo($"Transaction is successfully broadcast {tx.GetHash()} and propagated by {confirmedPropagators}.");
 					}
 
 					break;

@@ -169,7 +169,7 @@ public class BlockchainController : ControllerBase
 			return BadRequest($"{ex.Message}");
 		}
 
-		return Ok("Transaction is successfully broadcasted.");
+		return Ok("Transaction is successfully broadcast.");
 	}
 
 	/// <summary>

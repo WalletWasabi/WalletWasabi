@@ -30,12 +30,15 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 		_transaction = transaction;
 
+		TransactionHex = transaction.Hex.Value;
+
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 	}
 
+	public string TransactionHex { get; }
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);

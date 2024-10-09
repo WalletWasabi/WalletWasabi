@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
+             mc:Ignorable="d"
+             x:DataType="vm:TransactionHexCopiedViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionHexCopiedView">
+  <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled"
+               MinWidth="500"
+               Title="{Binding Title}"
+               EnableBack="True"
+               EnableCancel="True" CancelContent="{Binding CancelButtonText}"
+               EnableNext="True" NextContent="{Binding NextButtonText}">
+    <DockPanel LastChildFill="True">
+      <TextBlock DockPanel.Dock="Bottom"
+                 Text="{Binding Caption}"
+                 TextAlignment="Center"
+                 HorizontalAlignment="Center"
+                 Margin="0 0 0 40 "/>
+      <views:SuccessAnimationView VerticalAlignment="Stretch"/>
+    </DockPanel>
+  </ContentArea>
+</UserControl>

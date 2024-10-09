@@ -67,6 +67,8 @@
         <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
       </PreviewItem>
 
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
+
       <!-- Confirmation Time -->
       <PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
@@ -77,7 +79,13 @@
         </PrivacyContentControl>
       </PreviewItem>
 
-      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
+      <Separator />
+      <!-- Hex -->
+      <PreviewItem Icon="{StaticResource binary_file}"
+                   Label="Hex"
+                   CopyableContent="{Binding TransactionHex}">
+        <TextBlock Text="Copy" />
+      </PreviewItem>
     </StackPanel>
   </ContentArea>
 </UserControl>
