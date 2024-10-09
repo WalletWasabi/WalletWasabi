@@ -6,7 +6,6 @@ using Avalonia.Controls.Templates;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;

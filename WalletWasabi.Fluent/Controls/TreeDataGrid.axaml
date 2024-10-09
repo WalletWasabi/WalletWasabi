@@ -17,6 +17,8 @@
       <TreeDataGridRow Theme="{StaticResource WalletCoinsViewTreeDataGridRow}" />
       <!-- ReceiveAddressesView -->
       <TreeDataGridRow Theme="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />
+      <!-- CoinjoinCoinListView -->
+      <TreeDataGridRow Theme="{StaticResource CoinjoinCoinListViewTreeDataGridRow}" />
     </StackPanel>
   </Design.PreviewWith>
 
@@ -313,6 +315,71 @@
           <i:Interaction.Behaviors>
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding NavigateCommand, Mode=OneWay}" />
           </i:Interaction.Behaviors>
+          <Panel>
+            <Border Name="BackgroundRectangle" />
+            <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
+                                        ElementFactory="{TemplateBinding ElementFactory}"
+                                        Items="{TemplateBinding Columns}"
+                                        Rows="{TemplateBinding Rows}"
+                                        Margin="0 0 -2 0" />
+          </Panel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- TreeDataGridRow: CoinjoinCoinsListView.axaml -->
+  <ControlTheme x:Key="CoinjoinCoinsListViewTreeDataGridExpanderCell" TargetType="TreeDataGridExpanderCell">
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}">
+          <DockPanel>
+            <Border DockPanel.Dock="Left"
+                    Margin="4 0 0 0"
+                    Width="12" Height="12">
+              <ToggleButton Theme="{StaticResource FluentTreeViewExpandCollapseChevron}"
+                            Focusable="False"
+                            IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+                            Cursor="Hand">
+                <ToggleButton.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="ShowExpander" RelativeSource="{RelativeSource TemplatedParent}" />
+                    <Binding Path="!IsChild" />
+                  </MultiBinding>
+                </ToggleButton.IsVisible>
+              </ToggleButton>
+            </Border>
+            <Decorator Name="PART_Content" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+  <ControlTheme x:Key="CoinjoinCoinsListViewTreeDataGridRow" TargetType="TreeDataGridRow" BasedOn="{StaticResource GenericTreeDataGridRow}">
+    <Setter Property="Focusable" Value="False" />
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_SelectionIndicator"
+                x:CompileBindings="True" x:DataType="treeDataGrid:ITreeDataGridExpanderItem"
+                Classes.isChild="{Binding IsChild}"
+                Classes.isLastChild="{Binding IsLastChild}"
+                Classes.isExpanded="{Binding IsExpanded}"
+                Classes.isParentPointerOver="{Binding IsParentPointerOver}"
+                Classes.isParentSelected="{Binding IsParentSelected}">
+          <Classes.lastChildIsParentPointerOver>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsParentPointerOver" />
+              <Binding Path="IsLastChild" />
+            </MultiBinding>
+          </Classes.lastChildIsParentPointerOver>
+          <Classes.lastChildIsParentSelected>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsParentSelected" />
+              <Binding Path="IsLastChild" />
+            </MultiBinding>
+          </Classes.lastChildIsParentSelected>
           <Panel>
             <Border Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"

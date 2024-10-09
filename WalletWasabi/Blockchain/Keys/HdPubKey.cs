@@ -56,7 +56,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		set => RaiseAndSetIfChanged(ref _cluster, value);
 	}
 
-	public HashSet<uint256> OutputAnonSetReasons { get; } = new();
+	public Dictionary<uint256, double> HistoricalAnonSet { get; } = new();
 
 	public double AnonymitySet
 	{
@@ -89,11 +89,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public int Index { get; }
 	public bool IsInternal { get; }
 
-	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReason = null)
+	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId = null)
 	{
-		if (outputAnonSetReason is not null)
+		if (outputAnonSetReasonTxId is not null)
 		{
-			OutputAnonSetReasons.Add(outputAnonSetReason);
+			HistoricalAnonSet[outputAnonSetReasonTxId] = anonset;
 		}
 
 		AnonymitySet = anonset;

@@ -8,7 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
