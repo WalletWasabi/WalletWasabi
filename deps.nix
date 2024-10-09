@@ -351,7 +351,7 @@
   (fetchNuGet { pname = "System.Text.Encoding.Extensions"; version = "4.3.0"; sha256 = "11q1y8hh5hrp5a3kw25cb6l00v5l5dvirkz8jr3sq00h1xgcgrxy"; })
   (fetchNuGet { pname = "System.Text.Encodings.Web"; version = "8.0.0"; sha256 = "1wbypkx0m8dgpsaqgyywz4z760xblnwalb241d5qv9kx8m128i11"; })
   (fetchNuGet { pname = "System.Text.Json"; version = "8.0.0"; sha256 = "134savxw0sq7s448jnzw17bxcijsi1v38mirpbb6zfxmqlf04msw"; })
-  (fetchNuGet { pname = "System.Text.Json"; version = "8.0.4"; sha256 = "18i1vdadrw1sr74mh4byd5mzyiaiz0m30rqxd940zifpyvni76l3"; })
+  (fetchNuGet { pname = "System.Text.Json"; version = "8.0.5"; sha256 = "1brzf0drzrzj3arh5yjyyjh7fzk9di2vksvkxa9xb89rikknib68"; })
   (fetchNuGet { pname = "System.Text.RegularExpressions"; version = "4.1.0"; sha256 = "1mw7vfkkyd04yn2fbhm38msk7dz2xwvib14ygjsb8dq2lcvr18y7"; })
   (fetchNuGet { pname = "System.Text.RegularExpressions"; version = "4.3.0"; sha256 = "1bgq51k7fwld0njylfn7qc5fmwrk2137gdq7djqdsw347paa9c2l"; })
   (fetchNuGet { pname = "System.Threading"; version = "4.0.11"; sha256 = "19x946h926bzvbsgj28csn46gak2crv2skpwsx80hbgazmkgb1ls"; })
