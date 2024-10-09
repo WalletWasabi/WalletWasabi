@@ -73,6 +73,16 @@ public record Result<TValue,TError>
 				(false, false) => acc._error!.Append(s._error!).ToArray()
 			});
 	}
+
+	public TValue Value =>
+		Match(
+			v => v,
+			_ => throw new InvalidOperationException("Failed result don't have value."));
+
+	public TError Error =>
+		Match(
+			_ => throw new InvalidOperationException("Successful result don't have error."),
+			e => e);
 }
 
 public record Result<TError> : Result<Unit, TError>

@@ -43,7 +43,7 @@ public class MempoolService
 	{
 		lock (_broadcastStoreLock)
 		{
-			if (_broadcastStore.Any(x => x.TransactionId == transaction.GetHash()))
+			if (_broadcastStore.Any(x => x.Is(transaction.Transaction.GetWitHash())))
 			{
 				return false;
 			}
@@ -58,7 +58,7 @@ public class MempoolService
 	{
 		lock (_broadcastStoreLock)
 		{
-			entry = _broadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+			entry = _broadcastStore.FirstOrDefault(x => x.Is(transactionHash));
 			return entry is not null;
 		}
 	}
