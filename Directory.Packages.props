@@ -25,7 +25,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <!-- Version 8.0.3 contains a vulnerability, manually bumped to 8.0.4. -->
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
