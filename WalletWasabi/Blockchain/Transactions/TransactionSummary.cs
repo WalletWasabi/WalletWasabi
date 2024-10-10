@@ -20,7 +20,7 @@ public class TransactionSummary
 	public Money Amount { get; set; }
 	public FeeRate? EffectiveFeeRate { get; }
 
-	public Func<IReadOnlyCollection<OutPoint>> ForeignInputs => () => Transaction.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
+	public Func<IReadOnlyCollection<OutPoint>> ForeignInputs => () => Transaction.ForeignInputs.Select(x => x.PrevOut).ToArray();
 	public IReadOnlyCollection<SmartCoin> WalletInputs => Transaction.WalletInputs;
 	public Func<IReadOnlyCollection<OutPoint>> ForeignOutputs => () => Transaction.ForeignOutputs.Select(x => new OutPoint(GetHash(), x.N)).ToArray();
 	public IReadOnlyCollection<SmartCoin> WalletOutputs => Transaction.WalletOutputs;

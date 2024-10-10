@@ -6,11 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 public class CoinjoinCoinViewModel : CoinjoinCoinListItem
 {
-    public CoinjoinCoinViewModel(SmartCoin coin, uint256 txId)
+    public CoinjoinCoinViewModel(SmartCoin coin)
 	{
 		Coin = coin;
 		Amount = coin.Amount;
-		if(coin.HdPubKey.HistoricalAnonSet.TryGetValue(txId, out var anonSetWhenTxProcessed))
+		if(coin.HdPubKey.HistoricalAnonSet.TryGetValue(coin.Outpoint.Hash, out var anonSetWhenTxProcessed))
 		{
 			AnonymityScore = (int)anonSetWhenTxProcessed;
 		}

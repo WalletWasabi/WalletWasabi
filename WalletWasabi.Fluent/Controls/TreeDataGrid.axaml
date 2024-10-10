@@ -346,6 +346,7 @@
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="ShowExpander" RelativeSource="{RelativeSource TemplatedParent}" />
                     <Binding Path="!IsChild" />
+                    <Binding Path="HasChildren" />
                   </MultiBinding>
                 </ToggleButton.IsVisible>
               </ToggleButton>

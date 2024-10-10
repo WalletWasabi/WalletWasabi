@@ -43,6 +43,7 @@ public abstract partial class CoinjoinCoinListItem : ViewModelBase, ITreeDataGri
 	public int? AnonymityScore { get; protected set; }
 
 	public IReadOnlyCollection<CoinjoinCoinViewModel> Children { get; protected set; } = new List<CoinjoinCoinViewModel>();
+	public bool HasChildren => Children.Count > 0;
 
 	public int? TotalCoinsOnSideCount { get; set; }
 	public bool IsChild { get; set; }

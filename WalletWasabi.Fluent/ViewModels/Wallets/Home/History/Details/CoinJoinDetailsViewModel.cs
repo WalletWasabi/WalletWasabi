@@ -28,8 +28,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
-		InputList = new CoinjoinCoinListViewModel(transaction.WalletInputs, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count, transaction.Id);
-		OutputList = new CoinjoinCoinListViewModel(transaction.WalletOutputs, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count, transaction.Id);
+		InputList = new CoinjoinCoinListViewModel(transaction.WalletInputs, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count);
+		OutputList = new CoinjoinCoinListViewModel(transaction.WalletOutputs, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count);
 
 		_wallet = wallet;
 		_transaction = transaction;

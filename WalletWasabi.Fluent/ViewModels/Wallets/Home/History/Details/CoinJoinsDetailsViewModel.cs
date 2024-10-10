@@ -41,8 +41,8 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		var freshInputs = allInputs.Where(x => !allOutputs.Contains(x));
 		var finalOutputs = allOutputs.Where(x => !allInputs.Contains(x));
 
-		InputList = new CoinjoinCoinListViewModel(freshWalletInputs, freshWalletInputs.Count + freshInputs.Count(), transaction.Id);
-		OutputList = new CoinjoinCoinListViewModel(finalWalletOutputs, finalWalletOutputs.Count + finalOutputs.Count(), transaction.Id);
+		InputList = new CoinjoinCoinListViewModel(freshWalletInputs, freshWalletInputs.Count + freshInputs.Count());
+		OutputList = new CoinjoinCoinListViewModel(finalWalletOutputs, finalWalletOutputs.Count + finalOutputs.Count());
 
 		UiContext = uiContext;
 
