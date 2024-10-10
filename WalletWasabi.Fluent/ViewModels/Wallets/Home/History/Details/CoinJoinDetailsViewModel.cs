@@ -6,6 +6,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -27,6 +28,9 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
+		InputList = new CoinjoinCoinListViewModel(transaction.WalletInputs, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count);
+		OutputList = new CoinjoinCoinListViewModel(transaction.WalletOutputs, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count);
+
 		_wallet = wallet;
 		_transaction = transaction;
 
@@ -35,6 +39,9 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 	}
+
+	public CoinjoinCoinListViewModel InputList { get; }
+	public CoinjoinCoinListViewModel OutputList { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

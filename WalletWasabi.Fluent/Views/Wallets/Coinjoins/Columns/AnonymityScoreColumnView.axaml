@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:coins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coins"
+             xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="coins:CoinListItem"
+             x:DataType="coinjoins:CoinjoinCoinListItem"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.AnonymityScoreCellView">
-  <InvalidatingStackPanel IsVisible="{Binding !!AnonymityScore}" Orientation="Horizontal" Margin="20 0" Spacing="2" HorizontalAlignment="Left" ToolTip.Tip="Anonymity Score">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.Columns.AnonymityScoreColumnView">
+  <InvalidatingStackPanel IsVisible="{Binding !!AnonymityScore}" Orientation="Horizontal" Margin="10 0" Spacing="2" HorizontalAlignment="Left" ToolTip.Tip="Anonymity Score">
     <PathIcon Data="{StaticResource anonscore}" VerticalAlignment="Center" Opacity="0.6" Height="15" />
     <TextBlock Text="{Binding AnonymityScore}" VerticalAlignment="Center" FontWeight="Bold" />
   </InvalidatingStackPanel>

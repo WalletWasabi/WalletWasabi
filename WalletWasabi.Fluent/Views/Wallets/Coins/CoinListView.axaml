@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
-             xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coins"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -25,7 +24,7 @@
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridExpanderCell}" />
         </Style>
-        <Style Selector="TreeDataGridRow" x:DataType="core:CoinListItem">
+        <Style Selector="TreeDataGridRow" x:DataType="coins:CoinListItem">
           <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridRow}" />
           <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />
           <Setter Property="IsSelected" Value="{Binding IsSelectedProxy, Mode=OneWayToSource}" />

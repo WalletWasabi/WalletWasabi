@@ -6,10 +6,9 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
-using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpanderItem, IDisposable
 {
