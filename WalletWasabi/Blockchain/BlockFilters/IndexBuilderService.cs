@@ -262,10 +262,23 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				var prevOut = input.PrevOutput;
-				if (prevOut is not null && pubKeyTypes.Contains(prevOut.PubkeyType))
+				switch (input)
 				{
-					scripts.Add(prevOut.ScriptPubKey);
+					case VerboseInputInfo.Coinbase:
+						break;
+					case VerboseInputInfo.Full inputInfo:
+						if (pubKeyTypes.Contains(inputInfo.PrevOut.PubkeyType))
+						{
+							scripts.Add(inputInfo.PrevOut.ScriptPubKey);
+						}
+						break;
+					case VerboseInputInfo.None inputInfo:
+						// This happens when the block containing the prevOut can't be found (pruned)
+						// If the block is previous to segwit activation then everything is okay because the scriptPubKey
+						// is not segwit or taproot. However, if the block is after segwit activation, that means that
+						// the scriptPubKey could be segwit or taproot and the filter can be incomplete/broken.
+						Logger.LogWarning($"{inputInfo.Outpoint} script information is not available.");
+						break;
 				}
 			}
 

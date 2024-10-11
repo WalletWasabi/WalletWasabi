@@ -19,11 +19,4 @@ public class VerboseTransactionInfo
 	public IEnumerable<VerboseInputInfo> Inputs { get; }
 
 	public IEnumerable<VerboseOutputInfo> Outputs { get; }
-
-	public bool IsCoinbase => Inputs.Any(x => x.IsCoinbase);
-
-	/// <summary>
-	/// Note it can be negative if the transaction is coinbase.
-	/// </summary>
-	public Money NetworkFee => Inputs.Sum(x => x.PrevOutput?.Value ?? Money.Zero) - Outputs.Sum(x => x.Value);
 }
