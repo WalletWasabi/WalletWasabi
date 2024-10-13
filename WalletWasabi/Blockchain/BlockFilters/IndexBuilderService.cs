@@ -213,7 +213,7 @@ public class IndexBuilderService
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug(ex);
+							Logger.LogError(ex);
 
 							// Pause the while loop for a while to not flood logs in case of permanent error.
 							await Task.Delay(1000).ConfigureAwait(false);
@@ -277,8 +277,7 @@ public class IndexBuilderService
 						// If the block is previous to segwit activation then everything is okay because the scriptPubKey
 						// is not segwit or taproot. However, if the block is after segwit activation, that means that
 						// the scriptPubKey could be segwit or taproot and the filter can be incomplete/broken.
-						Logger.LogWarning($"{inputInfo.Outpoint} script information is not available.");
-						break;
+						throw new InvalidOperationException($"{inputInfo.Outpoint} script information is not available.");
 				}
 			}
 
