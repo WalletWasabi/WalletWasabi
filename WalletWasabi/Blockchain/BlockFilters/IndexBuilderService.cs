@@ -213,7 +213,7 @@ public class IndexBuilderService
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug(ex);
+							Logger.LogError(ex);
 
 							// Pause the while loop for a while to not flood logs in case of permanent error.
 							await Task.Delay(1000).ConfigureAwait(false);
@@ -262,10 +262,22 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				var prevOut = input.PrevOutput;
-				if (prevOut is not null && pubKeyTypes.Contains(prevOut.PubkeyType))
+				switch (input)
 				{
-					scripts.Add(prevOut.ScriptPubKey);
+					case VerboseInputInfo.Coinbase:
+						break;
+					case VerboseInputInfo.Full inputInfo:
+						if (pubKeyTypes.Contains(inputInfo.PrevOut.PubkeyType))
+						{
+							scripts.Add(inputInfo.PrevOut.ScriptPubKey);
+						}
+						break;
+					case VerboseInputInfo.None inputInfo:
+						// This happens when the block containing the prevOut can't be found (pruned)
+						// If the block is previous to segwit activation then everything is okay because the scriptPubKey
+						// is not segwit or taproot. However, if the block is after segwit activation, that means that
+						// the scriptPubKey could be segwit or taproot and the filter can be incomplete/broken.
+						throw new InvalidOperationException($"{inputInfo.Outpoint} script information is not available.");
 				}
 			}
 
