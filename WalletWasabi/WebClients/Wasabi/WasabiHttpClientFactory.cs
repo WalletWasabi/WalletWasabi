@@ -112,7 +112,7 @@ public class CoordinatorHttpClientFactory : IHttpClientFactory
 		var identity = name.Split('-', StringSplitOptions.RemoveEmptyEntries).First();
 		var lifetime = TimeSpan.FromSeconds(identity switch
 		{
-			"bob" => 10,
+			"bob" => 40,
 			"alice" => 1.5 * 3_600,
 			"satoshi" => int.MaxValue,
 			_ => int.MaxValue,
