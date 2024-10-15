@@ -12,9 +12,7 @@
           version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${gitRev}";
           nugetDeps = ./deps.nix; # nix build .#packages.x86_64-linux.all.passthru.fetch-deps
           dotnetFlags = [ "-p:CommitHash=${gitRev}" ];
-          runtimeDeps = [ pkgs.openssl pkgs.zlib ];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
-          selfContainedBuild = true;
 
           src = ./.;
         };
@@ -24,6 +22,7 @@
           pname = "WalletWasabi.Backend";
           projectFile = "WalletWasabi.Backend/WalletWasabi.Backend.csproj";
           executables = [ "WalletWasabi.Backend" ];
+          runtimeDeps = [ pkgs.openssl pkgs.zlib ];
           postInstall = ''
             ln -s ${deployScript}/bin/deploy $out
           '';
@@ -34,10 +33,11 @@
           pname = "WalletWasabi";
           projectFile = ["WalletWasabi.Backend/WalletWasabi.Backend.csproj" "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
           executables = [ "WalletWasabi.Backend" "WalletWasabi.Fluent.Desktop" ];
-          runtimeDeps = oldAttrs.runtimeDeps ++ (with pkgs; [
+          runtimeDeps = with pkgs; [
+             pkgs.openssl pkgs.zlib
              # for client
              tor hwi bitcoind-knots
-             xorg.libX11 xorg.libXrandr xorg.libX11.dev xorg.libICE xorg.libSM fontconfig.lib ]);
+             xorg.libX11 xorg.libXrandr xorg.libX11.dev xorg.libICE xorg.libSM fontconfig.lib ];
           # Testing
           doCheck = true;
           testProjectFile = "WalletWasabi.Tests/WalletWasabi.Tests.csproj";
