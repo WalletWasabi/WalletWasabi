@@ -490,7 +490,7 @@ public partial class Arena : PeriodicRunner
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
 				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * _config.WW200CompatibleLoadBalancingInputSplit)).First();
-				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
+				var largeSuggestion = round.Parameters.AllowedInputAmounts.Max;
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
