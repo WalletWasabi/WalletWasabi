@@ -32,7 +32,7 @@ public static class CoinjoinCoinListDataGridSource
 			null,
 			new FuncDataTemplate<CoinjoinCoinListItem>((item, _) => item is { IsChild: true } ? new AmountCellView() : new TextCellView()),
 			null,
-			new GridLength(16, GridUnitType.Star),
+			new GridLength(8, GridUnitType.Star),
 			new TemplateColumnOptions<CoinjoinCoinListItem>
 			{
 				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(x => x.Amount),
@@ -47,7 +47,7 @@ public static class CoinjoinCoinListDataGridSource
 			null,
 			new FuncDataTemplate<CoinjoinCoinListItem>((_, _) => new AnonymityScoreColumnView(), true),
 			null,
-			new GridLength(5, GridUnitType.Star),
+			new GridLength(3, GridUnitType.Star),
 			new TemplateColumnOptions<CoinjoinCoinListItem>
 			{
 				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(b => b.AnonymityScore),

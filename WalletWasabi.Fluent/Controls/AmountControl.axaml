@@ -6,7 +6,7 @@
   <ControlTheme x:Key="{x:Type AmountControl}" TargetType="AmountControl">
     <Setter Property="Template">
       <ControlTemplate>
-        <TextBlock FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="" TextWrapping="Wrap"
+        <TextBlock MinWidth="{TemplateBinding MinWidth}" FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="" TextWrapping="Wrap"
                    IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
           <TextBlock.Inlines>
             <!-- It is important not to add line breaks here as line breaks add a whitespace -->
