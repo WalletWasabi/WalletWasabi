@@ -47,7 +47,7 @@
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
-        <CopyableItem ContentToCopy="{Binding BalancePrivate}">
+        <CopyableItem ContentToCopy="{Binding BalancePrivate.Btc}">
           <PrivacyContentControl VerticalAlignment="Center">
             <AmountControl Amount="{Binding BalancePrivate}"/>
           </PrivacyContentControl>
