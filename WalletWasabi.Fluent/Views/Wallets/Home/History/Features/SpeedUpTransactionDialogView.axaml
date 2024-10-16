@@ -38,7 +38,7 @@
         <StackPanel Spacing="10" HorizontalAlignment="Center">
           <StackPanel Spacing="10">
             <TextBlock Text="Speeding up this transaction will deduct from the recipient's amount" />
-            <AmountControl Classes="Fee h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
+            <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
           </StackPanel>
         </StackPanel>
       </DockPanel>

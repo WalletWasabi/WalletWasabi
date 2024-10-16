@@ -46,7 +46,7 @@
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount.Btc}">
         <StackPanel Orientation="Horizontal">
-          <AmountControl Amount="{Binding Amount}" />
+          <AmountControl Classes="WithUsd" Amount="{Binding Amount}" />
           <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource NeutralDiffConverter}}" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
         </StackPanel>
 
