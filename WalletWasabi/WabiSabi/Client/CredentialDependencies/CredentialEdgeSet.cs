@@ -1,27 +1,23 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
-public record AmountCredentialEdgeSet : CredentialEdgeSet
+public record AmountCredentialEdgeSet(long MaxCredentialValue) : CredentialEdgeSet(MaxCredentialValue)
 {
-	public override long MaxCredentialValue => ProtocolConstants.MaxAmountPerAlice;
 	public override long Balance(RequestNode node) => node.Amount + EdgeBalances[node];
 }
 
-public record VsizeCredentialEdgeSet : CredentialEdgeSet
+public record VsizeCredentialEdgeSet(long MaxCredentialValue) : CredentialEdgeSet(MaxCredentialValue)
 {
-	public override long MaxCredentialValue => ProtocolConstants.MaxVsizeCredentialValue;
 	public override long Balance(RequestNode node) => node.Vsize + EdgeBalances[node];
 }
 
-public abstract record CredentialEdgeSet
+public abstract record CredentialEdgeSet(long MaxCredentialValue)
 {
-
-	public abstract long MaxCredentialValue { get; }
+	public long MaxCredentialValue { get; } = MaxCredentialValue;
 	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> InEdges { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
 	public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> OutEdges { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
 	public ImmutableDictionary<RequestNode, long> EdgeBalances { get; init; } = ImmutableDictionary.Create<RequestNode, long>();
