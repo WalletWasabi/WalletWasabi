@@ -17,21 +17,21 @@
       </PreviewItem>
       <Separator />
       <PreviewItem Label="Unconfirmed balance"
-                   CopyableContent="{Binding Model.UnconfirmedBalance.FormattedBtc}">
+                   CopyableContent="{Binding Model.UnconfirmedBalance.Btc}">
         <PrivacyContentControl>
           <AmountControl Classes="WithUsd" Amount="{Binding Model.UnconfirmedBalance}" />
         </PrivacyContentControl>
       </PreviewItem>
       <Separator />
       <PreviewItem Label="Confirmed balance"
-                   CopyableContent="{Binding Model.ConfirmedBalance.FormattedBtc}">
+                   CopyableContent="{Binding Model.ConfirmedBalance.Btc}">
         <PrivacyContentControl>
           <AmountControl Amount="{Binding Model.ConfirmedBalance}" />
         </PrivacyContentControl>
       </PreviewItem>
       <Separator />
       <PreviewItem Label="Total balance"
-                   CopyableContent="{Binding Model.Balance.FormattedBtc}">
+                   CopyableContent="{Binding Model.Balance.Btc}">
         <PrivacyContentControl>
           <AmountControl Amount="{Binding Model.Balance}" />
         </PrivacyContentControl>
