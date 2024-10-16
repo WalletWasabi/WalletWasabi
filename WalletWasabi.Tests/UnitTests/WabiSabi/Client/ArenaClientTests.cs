@@ -107,7 +107,7 @@ public class ArenaClientTests
 		var emptyState = round.Assert<ConstructionState>();
 		var commitmentData = WabiSabiFactory.CreateCommitmentData(round.Id);
 
-		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
+		// We can't use `emptyState.Finalize()` because this is not a valid transaction so we fake it
 		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
 
 		// No inputs in the coinjoin.
