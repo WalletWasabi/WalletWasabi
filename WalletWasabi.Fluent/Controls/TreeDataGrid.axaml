@@ -335,10 +335,9 @@
       <ControlTemplate>
         <Border Background="{TemplateBinding Background}">
           <DockPanel>
-            <Border DockPanel.Dock="Left"
-                    Margin="4 0 0 0"
-                    Width="12" Height="12">
-              <ToggleButton Theme="{StaticResource FluentTreeViewExpandCollapseChevron}"
+              <ToggleButton DockPanel.Dock="Left"
+                            Margin="20 0 0 0"
+                            Theme="{StaticResource FluentTreeViewExpandCollapseChevron}"
                             Focusable="False"
                             IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
                             Cursor="Hand">
@@ -350,7 +349,6 @@
                   </MultiBinding>
                 </ToggleButton.IsVisible>
               </ToggleButton>
-            </Border>
             <Decorator Name="PART_Content" />
           </DockPanel>
         </Border>

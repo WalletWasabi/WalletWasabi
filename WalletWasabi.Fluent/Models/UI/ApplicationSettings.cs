@@ -59,7 +59,6 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
-	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
 	[AutoNotify] private TorMode _useTor;
@@ -107,9 +106,6 @@ public partial class ApplicationSettings : ReactiveObject
 		_autoCopy = _uiConfig.Autocopy;
 		_autoPaste = _uiConfig.AutoPaste;
 		_customChangeAddress = _uiConfig.IsCustomChangeAddress;
-		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), _uiConfig.FeeDisplayUnit)
-			? (FeeDisplayUnit)_uiConfig.FeeDisplayUnit
-			: FeeDisplayUnit.Satoshis;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
 		_hideOnClose = _uiConfig.HideOnClose;
 		_useTor = Config.ObjectToTorMode(_config.UseTor);
@@ -163,7 +159,6 @@ public partial class ApplicationSettings : ReactiveObject
 				x => x.AutoCopy,
 				x => x.AutoPaste,
 				x => x.CustomChangeAddress,
-				x => x.SelectedFeeDisplayUnit,
 				x => x.RunOnSystemStartup,
 				x => x.HideOnClose,
 				x => x.Oobe,
@@ -387,7 +382,6 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.Autocopy = AutoCopy;
 		_uiConfig.AutoPaste = AutoPaste;
 		_uiConfig.IsCustomChangeAddress = CustomChangeAddress;
-		_uiConfig.FeeDisplayUnit = (int)SelectedFeeDisplayUnit;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.Oobe = Oobe;

@@ -34,10 +34,9 @@
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
-        <PrivacyContentControl Classes="bold"
-                                        VerticalAlignment="Center" HorizontalAlignment="Center"
-                                        VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                                        Content="{Binding BalancePrivate, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+        <PrivacyContentControl VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+            <AmountControl Amount="{Binding BalancePrivate}"/>
+        </PrivacyContentControl>
       </StackPanel>
     </StackPanel>
 

@@ -31,8 +31,8 @@
       </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding Transaction.DisplayAmount, StringFormat={}{0}}"
-                IsVisible="{Binding Transaction.DisplayAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                CommandParameter="{Binding Transaction.Amount, StringFormat={}{0}}"
+                IsVisible="{Binding Transaction.Amount, Converter={x:Static ObjectConverters.IsNotNull}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource btc_logo}" />
         </MenuItem.Icon>

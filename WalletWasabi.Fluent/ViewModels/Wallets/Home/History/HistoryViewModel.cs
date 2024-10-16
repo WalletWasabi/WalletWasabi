@@ -97,19 +97,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	private static IColumn<HistoryItemViewModelBase> AmountColumn()
 	{
-		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Amount (BTC)",
-			x => $"{(x.Transaction.DisplayAmount == Money.Zero ? " " : "")}{x.Transaction.DisplayAmount.ToBtcWithUnit(true)}",
-			type: PrivacyCellType.Amount,
-			options: new ColumnOptions<HistoryItemViewModelBase>
+		return new TemplateColumn<HistoryItemViewModelBase>(
+			null,
+			new FuncDataTemplate<HistoryItemViewModelBase>((x, _) => new AmountColumnView(), true),
+			null,
+			new GridLength(170, GridUnitType.Pixel),
+			new TemplateColumnOptions<HistoryItemViewModelBase>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
-				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.DisplayAmount),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.DisplayAmount),
-			},
-			width: new GridLength(0, GridUnitType.Auto),
-			numberOfPrivacyChars: 9);
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Amount),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Amount),
+			});
 	}
 
 	private IColumn<HistoryItemViewModelBase> ActionsColumn()

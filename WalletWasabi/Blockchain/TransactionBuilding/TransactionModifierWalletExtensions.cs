@@ -301,7 +301,7 @@ public static class TransactionModifierWalletExtensions
 		if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
 		{
 			throw new InvalidOperationException(
-				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} s/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
+				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} sat/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
 		}
 
 		// mempool.space gives a more precise value for VSize in an effective fee rate context as it's adjusted with sigops.

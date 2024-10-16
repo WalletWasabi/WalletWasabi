@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -23,26 +24,10 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 		EnableAutoBusyOn(NextCommand);
 
-		var broadcastInfo = UiContext.TransactionBroadcaster.GetBroadcastInfo(transaction);
-		TransactionId = broadcastInfo.TransactionId;
-		OutputAmountString = broadcastInfo.OutputAmountString;
-		InputAmountString = broadcastInfo.InputAmoutString;
-		FeeString = broadcastInfo.FeeString;
-		InputCount = broadcastInfo.InputCount;
-		OutputCount = broadcastInfo.OutputCount;
+		BroadcastInfo = UiContext.TransactionBroadcaster.GetBroadcastInfo(transaction);
 	}
 
-	public string? TransactionId { get; set; }
-
-	public string? OutputAmountString { get; set; }
-
-	public string? InputAmountString { get; set; }
-
-	public string FeeString { get; set; } = "Unknown";
-
-	public int InputCount { get; set; }
-
-	public int OutputCount { get; set; }
+	public TransactionBroadcastInfo BroadcastInfo { get; }
 
 	private async Task OnNextAsync(SmartTransaction transaction)
 	{

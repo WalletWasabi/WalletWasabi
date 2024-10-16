@@ -45,7 +45,7 @@ public partial class TransactionModel : ReactiveObject
 	public required IReadOnlyCollection<SmartCoin> WalletOutputs { get; set; }
 	public required Money Amount { get; set; }
 
-	public Money DisplayAmount => GetAmount();
+	public Amount AmountAmount => new (Amount);
 
 	public Money? Fee { get; set; }
 
@@ -64,15 +64,8 @@ public partial class TransactionModel : ReactiveObject
 	public bool IsCancellation => Type == TransactionType.Cancellation;
 
 	public FeeRate? FeeRate { get; set; }
-	
-	public bool HasBeenSpedUp { get; set; }
 
-	private Money GetAmount()
-	{
-		return Amount < Money.Zero
-			? Amount + (Fee ?? Money.Zero)
-			: Amount;
-	}
+	public bool HasBeenSpedUp { get; set; }
 
 	public void Add(TransactionModel child)
 	{

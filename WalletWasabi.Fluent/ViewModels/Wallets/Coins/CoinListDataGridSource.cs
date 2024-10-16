@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public static class CoinListDataGridSource
 {
-	public static HierarchicalTreeDataGridSource<CoinListItem> Create(IEnumerable<CoinListItem> source, bool ignorePrivacyMode, bool allowSelection)
+	public static HierarchicalTreeDataGridSource<CoinListItem> Create(IEnumerable<CoinListItem> source, bool allowSelection)
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
@@ -26,7 +26,7 @@ public static class CoinListDataGridSource
 			{
 				IndicatorsColumn(),
 				AnonymityScoreColumn(),
-				AmountColumn(ignorePrivacyMode),
+				AmountColumn(),
 				LabelsColumn(),
 			}
 		};
@@ -93,20 +93,18 @@ public static class CoinListDataGridSource
 			GridLength.Auto);
 	}
 
-	private static IColumn<CoinListItem> AmountColumn(bool ignorePrivacyMode)
+	private static IColumn<CoinListItem> AmountColumn()
 	{
-		return new PrivacyTextColumn<CoinListItem>(
+		return new TemplateColumn<CoinListItem>(
 			null,
-			node => $"{node.Amount.ToFormattedString()} BTC",
-			GridLength.Auto,
-			new ColumnOptions<CoinListItem>
+			new FuncDataTemplate<CoinListItem>((_, _) => new AmountCellView(), true),
+			null,
+			GridLength.Star,
+			new TemplateColumnOptions<CoinListItem>
 			{
 				CompareAscending = Sort<CoinListItem>.Ascending(x => x.Amount),
 				CompareDescending = Sort<CoinListItem>.Descending(x => x.Amount)
-			},
-			PrivacyCellType.Amount,
-			9,
-			ignorePrivacyMode);
+			});
 	}
 
 	private static IColumn<CoinListItem> AnonymityScoreColumn()

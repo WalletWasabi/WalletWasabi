@@ -60,7 +60,7 @@
                      Label="Fee"
                      CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <PrivacyContentControl>
-          <AmountControl Classes="Fee" Amount="{Binding Fee}" />
+          <AmountControl Classes="WithUsd" Amount="{Binding Fee}" />
         </PrivacyContentControl>
       </PreviewItem>
 

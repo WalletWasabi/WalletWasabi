@@ -17,7 +17,6 @@ public class UiConfig : ConfigBase
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
-	private int _feeDisplayUnit;
 	private bool _darkModeEnabled;
 	private string? _lastSelectedWallet;
 	private string _windowState = "Normal";
@@ -41,7 +40,6 @@ public class UiConfig : ConfigBase
 				x => x.AutoPaste,
 				x => x.IsCustomChangeAddress,
 				x => x.DarkModeEnabled,
-				x => x.FeeDisplayUnit,
 				x => x.LastSelectedWallet,
 				x => x.WindowState,
 				x => x.Oobe,
@@ -49,7 +47,7 @@ public class UiConfig : ConfigBase
 				x => x.PrivacyMode,
 				x => x.HideOnClose,
 				x => x.FeeTarget,
-				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+				(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -92,14 +90,6 @@ public class UiConfig : ConfigBase
 	{
 		get => _feeTarget;
 		internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
-	}
-
-	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int FeeDisplayUnit
-	{
-		get => _feeDisplayUnit;
-		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
 	}
 
 	[DefaultValue(true)]

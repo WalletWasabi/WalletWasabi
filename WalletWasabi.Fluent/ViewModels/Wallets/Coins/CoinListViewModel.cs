@@ -88,7 +88,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode, allowSelection);
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, allowSelection);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 
