@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -84,7 +85,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 
 	public string ConfirmationStatus { get; protected set; } = "";
 
-	public Money Amount { get; protected set; } = Money.Zero;
+	public Amount Amount { get; protected set; } = new(Money.Zero);
 
 	public string? BannedUntilUtcToolTip { get; protected set; }
 

@@ -2,54 +2,67 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
 
+  <!-- Default -->
   <ControlTheme x:Key="{x:Type AmountControl}" TargetType="AmountControl">
-
     <Setter Property="Template">
       <ControlTemplate>
-        <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+        <TextBlock MinWidth="{TemplateBinding MinWidth}" FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="" TextWrapping="Wrap"
                    IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
-          <TextBlock.Text>
-            <MultiBinding StringFormat="{}{0} {1}">
-              <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
-              <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
-            </MultiBinding>
-          </TextBlock.Text>
+          <TextBlock.Inlines>
+            <!-- It is important not to add line breaks here as line breaks add a whitespace -->
+            <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}" />
+          </TextBlock.Inlines>
         </TextBlock>
       </ControlTemplate>
     </Setter>
 
-    <Style Selector="^.Fee">
+    <!-- Same as default but with USD value if available -->
+    <Style Selector="^.WithUsd">
       <Setter Property="Template">
         <ControlTemplate>
-          <TextBlock DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Classes="monoSpaced" TextWrapping="Wrap"
+          <TextBlock FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" TextWrapping="Wrap"
                      IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <TextBlock.Text>
-              <MultiBinding StringFormat="{}{0} {1}">
-                <Binding Path="Btc" Converter="{x:Static converters:MoneyConverters.ToFeeWithUnit}" />
-                <Binding Path="Usd^" Converter="{x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}" />
-              </MultiBinding>
-            </TextBlock.Text>
+            <TextBlock.Inlines>
+              <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}" />
+              <Run FontWeight="Bold" Text="{Binding Path=Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
+            </TextBlock.Inlines>
           </TextBlock>
         </ControlTemplate>
       </Setter>
     </Style>
 
-    <Style Selector="^.Material">
+    <!-- Same as default but with the sign colored and relevant amount in Regular -->
+    <Style Selector="^.WithSign">
       <Setter Property="Template">
         <ControlTemplate>
-          <Border Background="{DynamicResource TileRegionColor}"
-                  Padding="10 5 10 5" CornerRadius="10"
-                  DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}"
-                  IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
-                         Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToBtc}}"/>
-              <TextBlock Classes="monoSpaced" TextWrapping="Wrap"
-                         Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdFormatted}}"
-                         IsVisible="{Binding HasUsdBalance^}"
-                         Opacity="0.6"/>
+          <StackPanel>
+
+            <!-- Positive -->
+            <StackPanel Orientation="Horizontal"
+                        IsVisible="{Binding Path=IsPositive, RelativeSource={RelativeSource TemplatedParent}}">
+              <TextBlock MinWidth="160"
+                         FontFamily="{StaticResource AmountsFont}"
+                         DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}">
+                <TextBlock.Inlines>
+                  <Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToSign}}" Foreground="#A058A553"/>
+                  <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}" />
+                </TextBlock.Inlines>
+              </TextBlock>
             </StackPanel>
-          </Border>
+
+            <!-- Negative -->
+            <StackPanel Orientation="Horizontal"
+                        IsVisible="{Binding Path=IsNegative, RelativeSource={RelativeSource TemplatedParent}}">
+              <TextBlock MinWidth="160"
+                         FontFamily="{StaticResource AmountsFont}"
+                         DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}">
+                <TextBlock.Inlines>
+                  <Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToSign}}" Foreground="#A0B43434"/>
+                  <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}"/>
+                </TextBlock.Inlines>
+              </TextBlock>
+            </StackPanel>
+          </StackPanel>
         </ControlTemplate>
       </Setter>
     </Style>

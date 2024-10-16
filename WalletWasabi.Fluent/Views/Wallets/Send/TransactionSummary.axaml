@@ -46,7 +46,7 @@
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount.Btc}">
         <StackPanel Orientation="Horizontal">
-          <AmountControl Amount="{Binding Amount}" />
+          <AmountControl Classes="WithUsd" Amount="{Binding Amount}" />
           <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource NeutralDiffConverter}}" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
         </StackPanel>
 
@@ -106,7 +106,7 @@
                        Label="Fee"
                        CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
           <StackPanel Orientation="Horizontal">
-            <AmountControl Classes="Fee" Amount="{Binding Fee}" />
+            <AmountControl Classes="WithUsd" Amount="{Binding Fee}" />
             <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
           </StackPanel>
 

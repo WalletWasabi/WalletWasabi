@@ -53,20 +53,21 @@ public static partial class TextHelpers
 		return result;
 	}
 
-	public static string ToBtcWithUnit(this Money money, bool fplus = false)
+	public static string ToBtcWithUnit(this Money money)
 	{
-		return money.ToFormattedString(fplus) + " BTC";
+		return money.ToFormattedString();
 	}
 
-	public static string ToFormattedString(this Money money, bool fplus = false)
+	public static string ToFormattedString(this Money money)
 	{
 		const int WholeGroupSize = 3;
 
-		var moneyString = money.ToString(fplus: fplus, false);
+		var moneyString = money.ToString(fplus: false, false);
 
-		moneyString = moneyString.Insert(moneyString.Length - 4, " ");
+		moneyString = moneyString.Insert(moneyString.Length - 3, " ");
+		moneyString = moneyString.Insert(moneyString.Length - 7, " ");
 
-		var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
+		var startIndex = moneyString.IndexOf('.') - WholeGroupSize;
 
 		if (startIndex > 0)
 		{
@@ -88,11 +89,6 @@ public static partial class TextHelpers
 			.Replace("\n", "")
 			.Replace("\t", "")
 			.Replace(" ", "");
-	}
-
-	public static string GetPrivacyMask(int repeatCount)
-	{
-		return new string(UiConstants.PrivacyChar, repeatCount);
 	}
 
 	public static string GetConfirmationText(int confirmations)

@@ -53,9 +53,6 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 
 	public ICommand StartupCommand { get; }
 
-	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
-		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
-
 	public IEnumerable<TorMode> TorModes =>
 		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
 }

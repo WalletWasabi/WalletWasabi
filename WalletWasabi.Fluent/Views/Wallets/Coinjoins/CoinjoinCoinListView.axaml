@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.CoinjoinCoinListView"
              x:DataType="coinjoins:CoinjoinCoinListViewModel"
@@ -12,18 +11,16 @@
   <Panel>
     <TreeDataGrid x:Name="TreeDataGrid" Source="{Binding TreeDataGridSource}">
       <TreeDataGrid.Styles>
-        <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell" x:DataType="coinjoins:CoinjoinCoinListItem">
+        <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontWeight" Value="Bold" />
           <Setter Property="Opacity" Value="1" />
           <Setter Property="FontSize" Value="14" />
-          <Setter Property="Margin" Value="{Binding !IsChild, Converter={x:Static converters:ThicknessConverters.ApplyCoinjoinAmountMargins}}"/>
           <Setter Property="Background" Value="Transparent" />
           <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
         </Style>
-        <Style Selector="TreeDataGridExpanderCell" x:DataType="coinjoins:CoinjoinCoinListItem">
+        <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Theme" Value="{StaticResource CoinjoinCoinsListViewTreeDataGridExpanderCell}" />
-          <Setter Property="Margin" Value="{Binding !IsChild, Converter={x:Static converters:ThicknessConverters.ApplyCoinjoinAnonScoreMargins}}"/>
         </Style>
         <Style Selector="TreeDataGridRow" x:DataType="coinjoins:CoinjoinCoinListItem">
           <Setter Property="Theme" Value="{StaticResource CoinjoinCoinsListViewTreeDataGridRow}" />

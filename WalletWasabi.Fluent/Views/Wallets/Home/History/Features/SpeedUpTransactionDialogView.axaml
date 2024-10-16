@@ -9,25 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Features.SpeedUpTransactionDialogView">
 
-  <UserControl.Styles>
-    <Style Selector="AmountControl" x:CompileBindings="False">
-      <Setter Property="Template">
-        <ControlTemplate TargetType="AmountControl">
-          <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-            <TextBlock TextAlignment="Center"
-                       FontWeight="Bold"
-                       Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
-                       Classes="h5" VerticalAlignment="Bottom" />
-            <TextBlock
-              FontWeight="Bold"
-              Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
-              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
-          </StackPanel>
-        </ControlTemplate>
-      </Setter>
-    </Style>
-  </UserControl.Styles>
-
   <ContentArea Title="Speed Up Transaction"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -41,7 +22,7 @@
         </Viewbox>
         <StackPanel Spacing="10" HorizontalAlignment="Center">
           <TextBlock Text="Speeding up this transaction will cost you" />
-          <AmountControl Amount="{Binding Fee}" />
+          <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center"  Amount="{Binding Fee}" />
         </StackPanel>
       </DockPanel>
 
@@ -57,7 +38,7 @@
         <StackPanel Spacing="10" HorizontalAlignment="Center">
           <StackPanel Spacing="10">
             <TextBlock Text="Speeding up this transaction will deduct from the recipient's amount" />
-            <AmountControl Amount="{Binding Fee}" />
+            <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
           </StackPanel>
         </StackPanel>
       </DockPanel>

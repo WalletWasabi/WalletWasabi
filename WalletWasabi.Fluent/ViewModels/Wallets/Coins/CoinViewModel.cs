@@ -13,7 +13,7 @@ public class CoinViewModel : CoinListItem
 	{
 		Labels = labels;
 		Coin = coin;
-		Amount = coin.Amount;
+		Amount = new Amount(coin.Amount);
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
 		var confirmationCount = coin.Confirmations;

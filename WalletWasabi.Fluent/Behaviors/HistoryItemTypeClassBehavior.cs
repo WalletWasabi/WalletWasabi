@@ -48,7 +48,7 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<Avaloni
 	{
 		if (row.DataContext is HistoryItemViewModelBase historyItemViewModelBase)
 		{
-			if (historyItemViewModelBase.Transaction.DisplayAmount > Money.Zero)
+			if (historyItemViewModelBase.Transaction.Amount > Money.Zero)
 			{
 				row.Classes.Add(PositiveAmountClass);
 			}

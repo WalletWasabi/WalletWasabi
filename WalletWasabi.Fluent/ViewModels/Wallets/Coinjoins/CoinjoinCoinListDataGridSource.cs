@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.Views.Wallets.Coinjoins.Cells;
 using WalletWasabi.Fluent.Views.Wallets.Coinjoins.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
@@ -28,17 +28,16 @@ public static class CoinjoinCoinListDataGridSource
 
 	private static IColumn<CoinjoinCoinListItem> AmountColumn()
 	{
-		return new PrivacyTextColumn<CoinjoinCoinListItem>(
+		return new TemplateColumn<CoinjoinCoinListItem>(
 			null,
-			node => node.IsChild ? $"{node.Amount.ToFormattedString()} BTC" : $"{node.Children.Count} out of {node.TotalCoinsOnSideCount} ",
-			GridLength.Star,
-			new ColumnOptions<CoinjoinCoinListItem>
+			new FuncDataTemplate<CoinjoinCoinListItem>((item, _) => item is { IsChild: true } ? new AmountCellView() : new TextCellView()),
+			null,
+			new GridLength(8, GridUnitType.Star),
+			new TemplateColumnOptions<CoinjoinCoinListItem>
 			{
 				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(x => x.Amount),
 				CompareDescending = Sort<CoinjoinCoinListItem>.Descending(x => x.Amount)
-			},
-			PrivacyCellType.Amount,
-			9);
+			});
 	}
 
 	private static IColumn<CoinjoinCoinListItem> AnonymityScoreColumn()
@@ -48,7 +47,7 @@ public static class CoinjoinCoinListDataGridSource
 			null,
 			new FuncDataTemplate<CoinjoinCoinListItem>((_, _) => new AnonymityScoreColumnView(), true),
 			null,
-			GridLength.Star,
+			new GridLength(3, GridUnitType.Star),
 			new TemplateColumnOptions<CoinjoinCoinListItem>
 			{
 				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(b => b.AnonymityScore),

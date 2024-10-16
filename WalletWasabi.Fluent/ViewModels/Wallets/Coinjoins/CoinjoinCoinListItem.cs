@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
@@ -38,7 +39,7 @@ public abstract partial class CoinjoinCoinListItem : ViewModelBase, ITreeDataGri
 			.Subscribe();
 	}
 
-	public Money Amount { get; protected set; } = Money.Zero;
+	public Amount Amount { get; protected set; } = new(Money.Zero);
 
 	public int? AnonymityScore { get; protected set; }
 
@@ -49,6 +50,8 @@ public abstract partial class CoinjoinCoinListItem : ViewModelBase, ITreeDataGri
 	public bool IsChild { get; set; }
 	public bool IsLastChild { get; set; }
 	public bool IsParentSelected { get; set; } = false;
+
+	public string TitleText { get; set; }
 
 	public void Dispose() => _disposables.Dispose();
 }
