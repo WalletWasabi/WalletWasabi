@@ -11,8 +11,9 @@
           pname = "wasabi";
           version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${gitRev}";
           nugetDeps = ./deps.nix; # nix build .#packages.x86_64-linux.all.passthru.fetch-deps
-          dotnetFlags = [ "-p:CommitHash=${gitRev}" ];
+          dotnetFlags = [ "-p:CommitHash=${gitRev}"];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
+          dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_8_0;
 
           src = ./.;
         };
