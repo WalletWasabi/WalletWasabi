@@ -10,7 +10,8 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Discoverability;
 
-public class CoordinatorAnnouncer(TimeSpan period, AnnouncerConfig config, Network network) : PeriodicRunner(period)
+public class CoordinatorAnnouncer(AnnouncerConfig config, Network network, TimeSpan? time = null)
+	: PeriodicRunner(time ?? TimeSpan.FromMinutes(15))
 {
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
