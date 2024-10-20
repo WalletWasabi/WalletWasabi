@@ -8,5 +8,5 @@
              x:DataType="coinjoins:CoinjoinCoinViewModel"
              x:CompileBindings="True">
 
-    <TextBlock Margin="-57 0 0 0" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="bold" Text="{Binding TitleText}"/>
+    <TextBlock Margin="-52 0 0 0" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="bold" Text="{Binding TitleText}"/>
 </UserControl>

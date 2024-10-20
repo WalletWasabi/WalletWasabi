@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
+             xmlns:outputs="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.Cells.AmountCellView"
-             x:DataType="coinjoins:CoinjoinCoinListItem"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Cells.AmountCellView"
+             x:DataType="outputs:OutputsCoinListItem"
              x:CompileBindings="True">
 
   <PrivacyContentControl PrivacyReplacementMode="Text"
@@ -13,7 +13,7 @@
                          HorizontalAlignment="Center"
                          UseOpacity="True"
                          MaxPrivacyChars="14"
-                         Margin="10 0 0 0">
+                         Margin="5 0 0 0">
     <AmountControl MinWidth="140" Amount="{Binding Amount}"/>
   </PrivacyContentControl>
 </UserControl>

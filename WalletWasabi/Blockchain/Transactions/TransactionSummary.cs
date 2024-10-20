@@ -22,7 +22,7 @@ public class TransactionSummary
 
 	public Func<IReadOnlyCollection<OutPoint>> ForeignInputs => () => Transaction.ForeignInputs.Select(x => x.PrevOut).ToArray();
 	public IReadOnlyCollection<SmartCoin> WalletInputs => Transaction.WalletInputs;
-	public Func<IReadOnlyCollection<OutPoint>> ForeignOutputs => () => Transaction.ForeignOutputs.Select(x => new OutPoint(GetHash(), x.N)).ToArray();
+	public Func<IReadOnlyCollection<IndexedTxOut>> ForeignOutputs => () => Transaction.ForeignOutputs;
 	public IReadOnlyCollection<SmartCoin> WalletOutputs => Transaction.WalletOutputs;
 	public DateTimeOffset FirstSeen => Transaction.FirstSeen;
 	public LabelsArray Labels => Transaction.Labels;

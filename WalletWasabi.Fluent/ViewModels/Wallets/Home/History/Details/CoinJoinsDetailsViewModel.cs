@@ -36,8 +36,16 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		var freshWalletInputs = allWalletInputs.Where(x => !allWalletOutputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
 		var finalWalletOutputs = allWalletOutputs.Where(x => !allWalletInputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
 
-		var allInputs = transaction.ForeignInputs.Value.Union(transaction.Children.SelectMany(x => x.ForeignInputs.Value)).ToList();
-		var allOutputs = transaction.ForeignOutputs.Value.Union(transaction.Children.SelectMany(x => x.ForeignOutputs.Value)).ToList();
+		var allInputs = transaction.ForeignInputs.Value
+			.Union(transaction.Children.SelectMany(x => x.ForeignInputs.Value))
+			.Union(allWalletInputs.Select(x => x.Outpoint))
+			.ToList();
+
+		var allOutputs = transaction.ForeignOutputs.Value.Select(x => new OutPoint(x.Transaction.GetHash(), x.N))
+			.Union(transaction.Children.SelectMany(x => x.ForeignOutputs.Value.Select(y => new OutPoint(y.Transaction.GetHash(), y.N))))
+			.Union(allWalletOutputs.Select(x => x.Outpoint))
+			.ToList();
+
 		var freshInputs = allInputs.Where(x => !allOutputs.Contains(x));
 		var finalOutputs = allOutputs.Where(x => !allInputs.Contains(x));
 
