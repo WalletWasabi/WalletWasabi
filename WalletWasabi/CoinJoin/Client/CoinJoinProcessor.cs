@@ -81,7 +81,7 @@ public class CoinJoinProcessor : IDisposable
 				throw new InvalidOperationException("RpcClient is not available");
 			}
 			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
-			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
+			Logger.LogInfo($"Transaction is successfully broadcast with RPC: {transaction.GetHash()}.");
 
 			return true;
 		}

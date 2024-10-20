@@ -22,6 +22,13 @@
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
       </MenuItem>
+      <MenuItem Header="Copy Transaction Hex"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding Transaction.Hex.Value, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource binary_file}" />
+        </MenuItem.Icon>
+      </MenuItem>
       <MenuItem Header="Copy Label"
                 Command="{Binding ClipboardCopyCommand}"
                 CommandParameter="{Binding Transaction.Labels, StringFormat={}{0}}">
@@ -76,6 +83,13 @@
                 CommandParameter="{Binding Transaction.Id, StringFormat={}{0}}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource transaction_id}" />
+        </MenuItem.Icon>
+      </MenuItem>
+      <MenuItem Header="Copy Transaction Hex"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding Transaction.Hex.Value, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource binary_file}" />
         </MenuItem.Icon>
       </MenuItem>
       <Separator />

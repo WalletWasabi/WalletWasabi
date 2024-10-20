@@ -36,6 +36,9 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsChild { get; set; }
 
+	public required Func<string> HexFunction { get; set; }
+	public Lazy<string> Hex => new(HexFunction());
+
 	public required Func<IReadOnlyCollection<OutPoint>> ForeignInputsFunction{ get; set; }
 	public Lazy<IReadOnlyCollection<OutPoint>> ForeignInputs => new(ForeignInputsFunction());
 	public required IReadOnlyCollection<SmartCoin> WalletInputs { get; set; }

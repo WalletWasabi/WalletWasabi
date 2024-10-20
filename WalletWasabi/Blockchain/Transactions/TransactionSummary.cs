@@ -19,7 +19,7 @@ public class TransactionSummary
 	public SmartTransaction Transaction { get; }
 	public Money Amount { get; set; }
 	public FeeRate? EffectiveFeeRate { get; }
-
+	public Func<string> Hex => () => Transaction.Transaction.ToHex();
 	public Func<IReadOnlyCollection<OutPoint>> ForeignInputs => () => Transaction.ForeignInputs.Select(x => x.PrevOut).ToArray();
 	public IReadOnlyCollection<SmartCoin> WalletInputs => Transaction.WalletInputs;
 	public Func<IReadOnlyCollection<IndexedTxOut>> ForeignOutputs => () => Transaction.ForeignOutputs;

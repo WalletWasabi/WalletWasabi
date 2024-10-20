@@ -34,6 +34,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 		_transaction = transaction;
 
+		TransactionHex = transaction.Hex.Value;
+
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -42,6 +44,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	public CoinjoinCoinListViewModel InputList { get; }
 	public CoinjoinCoinListViewModel OutputList { get; }
+	public string TransactionHex { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
