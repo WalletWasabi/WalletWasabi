@@ -11,12 +11,21 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public OutputsCoinListViewModel(List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Money? amount, bool? isExpanded = null, int? oldOutputCount = null)
+	public OutputsCoinListViewModel(List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Script? destinationScript = null, bool? isExpanded = null, int? oldOutputCount = null)
 	{
 
 		var outputCount = ownOutputs.Count + foreignOutputs.Count;
 
-		var coinItems = ownOutputs.Union(foreignOutputs).OrderByDescending(x => x.Value).Select(x => new OutputsCoinViewModel(x, ownOutputs.Contains(x))).ToList();
+		var coinItems = ownOutputs
+			.Union(foreignOutputs)
+			.OrderByDescending(x => x.Value)
+			.Select(x =>
+				new OutputsCoinViewModel(
+					x,
+					ownOutputs.Contains(x),
+					destinationScript is not null && x.ScriptPubKey != destinationScript))
+			.ToList();
+
 		foreach (var coin in coinItems)
 		{
 			coin.IsChild = true;

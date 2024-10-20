@@ -1,17 +1,17 @@
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 public class OutputsCoinViewModel : OutputsCoinListItem
 {
-    public OutputsCoinViewModel(TxOut txOut, bool isOwn)
+    public OutputsCoinViewModel(TxOut txOut, bool isOwn, bool isChange)
 	{
 		TxOut = txOut;
 		Amount = new Amount(txOut.Value);
-		IsOwn = isOwn;
+		ShowChange = isChange;
+		ShowOwn = !isChange && isOwn;
 	}
 
 	public OutputsCoinViewModel(OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? nbDiff)

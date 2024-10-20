@@ -52,7 +52,6 @@ public abstract partial class InputsCoinListItem : ViewModelBase, ITreeDataGridE
 
 	public string TitleText { get; set; }
 	public int? NbDiff { get; set; }
-	public Thickness? Margin { get; set; }
 	public string? Tip { get; set; }
 
 	public void Dispose() => _disposables.Dispose();

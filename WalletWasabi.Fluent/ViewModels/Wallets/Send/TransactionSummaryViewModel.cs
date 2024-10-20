@@ -57,6 +57,10 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
+		var destinationIndexedTxOut =
+			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+				.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
+				.FirstOrDefault(x => x.ScriptPubKey == info.Destination.ScriptPubKey);
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
@@ -69,7 +73,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		OutputList = new OutputsCoinListViewModel(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
-			Amount?.Btc,
+			destinationIndexedTxOut?.ScriptPubKey,
 			Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().Children.Count);
 

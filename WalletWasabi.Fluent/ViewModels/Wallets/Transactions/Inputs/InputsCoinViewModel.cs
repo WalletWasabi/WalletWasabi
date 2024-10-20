@@ -37,17 +37,11 @@ public class InputsCoinViewModel : InputsCoinListItem
 			}
 		}
 
-		if (Children.Count == TotalInputs)
-		{
-			TitleText = $"{Children.Count} input{(Children.Count == 1 ? "" : "s")}";
-			Margin = new Thickness(45, 0, 0, 0);
-		}
-		else
-		{
-			TitleText = $"{Children.Count} own out of {TotalInputs} input{(TotalInputs == 1 ? "" : "s")}";
-			Tip = "Only own inputs are known.";
-			Margin = new Thickness(15, 0, 0, 0);
-		}
+		TitleText = $"{TotalInputs} input{(TotalInputs == 1 ? "" : "s")}";
+
+		Tip = Children.Count == TotalInputs ?
+			"All inputs belong to one of your opened wallets" :
+			"Only inputs belonging to one of your opened wallets can be shown.";
 	}
 	public SmartCoin? Coin { get; }
 }

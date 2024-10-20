@@ -19,7 +19,7 @@
 
     <TextBlock IsVisible="{Binding !!NbDiff}"
                FontWeight="Bold"
-               Margin="{Binding Margin}"
+               Margin="45 0 0 0"
                HorizontalAlignment="Center"
                VerticalAlignment="Center">
       <TextBlock.Inlines>
@@ -30,7 +30,7 @@
       </TextBlock.Inlines>
     </TextBlock>
     <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNullOrZero}}"
-               Margin="{Binding Margin}"
+               Margin="45 0 0 0"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"
                Classes="bold"

@@ -93,17 +93,9 @@
     <PreviewItem Icon="{StaticResource input_count}" />
     <DockPanel Margin="30 -30 0 0" LastChildFill="True">
       <Grid ColumnDefinitions="*,30,*">
-        <inputs:InputsCoinListView Grid.Column="0" Margin="10 -15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-          <Classes.Dimmed>
-            <Binding Path="NbDiff" Converter="{x:Static converters:IntConverter.IsZero}" />
-          </Classes.Dimmed>
-        </inputs:InputsCoinListView>
+        <inputs:InputsCoinListView Grid.Column="0" Margin="10 -15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
         <PathIcon Grid.Column="1" Opacity="0.6" Margin="0 2 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
-        <outputs:OutputsCoinListView Grid.Column="2" Margin="10 -15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-          <Classes.Dimmed>
-            <Binding Path="NbDiff" Converter="{x:Static converters:IntConverter.IsZero}" />
-          </Classes.Dimmed>
-        </outputs:OutputsCoinListView>
+        <outputs:OutputsCoinListView Grid.Column="2" Margin="10 -15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
       </Grid>
     </DockPanel>
 

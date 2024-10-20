@@ -7,7 +7,7 @@
              x:DataType="inputs:InputsCoinListItem"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Inputs.Columns.AnonymityScoreColumnView">
-  <StackPanel Margin="10 0 0 0" ToolTip.Tip="Anonymity Score" IsVisible="{Binding !!AnonymityScore}" Orientation="Horizontal" HorizontalAlignment="Center">
+  <StackPanel Margin="10 0 0 0" ToolTip.Tip="Anonymity Score" IsVisible="{Binding !!AnonymityScore}" Orientation="Horizontal" HorizontalAlignment="Right">
     <PathIcon Data="{StaticResource anonscore}" VerticalAlignment="Center" Opacity="0.6" Height="15"/>
     <TextBlock Text="{Binding AnonymityScore}" VerticalAlignment="Center" FontWeight="Bold" />
   </StackPanel>
