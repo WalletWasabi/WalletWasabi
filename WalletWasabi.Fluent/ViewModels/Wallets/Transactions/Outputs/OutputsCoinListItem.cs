@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -18,6 +19,8 @@ public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGrid
 
 	protected OutputsCoinListItem()
 	{
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
+
 		this.WhenAnyValue(x => x.IsControlPointerOver)
 			.Do(x =>
 			{
@@ -39,7 +42,11 @@ public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGrid
 			.Subscribe();
 	}
 
+	public ICommand? ClipboardCopyCommand { get; protected set; }
+
 	public Amount Amount { get; protected set; } = new(Money.Zero);
+	public string? BtcAddress { get; set; }
+
 	public bool ShowOwn { get; protected set; }
 	public bool ShowChange { get; protected set; }
 	public int? TotalOutputs { get; set; }

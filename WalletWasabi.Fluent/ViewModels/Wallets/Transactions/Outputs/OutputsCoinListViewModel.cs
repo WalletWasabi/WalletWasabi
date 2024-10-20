@@ -11,7 +11,7 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public OutputsCoinListViewModel(List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Script? destinationScript = null, bool? isExpanded = null, int? oldOutputCount = null)
+	public OutputsCoinListViewModel(List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Network network, Script? destinationScript = null, bool? isExpanded = null, int? oldOutputCount = null)
 	{
 
 		var outputCount = ownOutputs.Count + foreignOutputs.Count;
@@ -22,6 +22,7 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 			.Select(x =>
 				new OutputsCoinViewModel(
 					x,
+					network,
 					ownOutputs.Contains(x),
 					destinationScript is not null && x.ScriptPubKey != destinationScript))
 			.ToList();

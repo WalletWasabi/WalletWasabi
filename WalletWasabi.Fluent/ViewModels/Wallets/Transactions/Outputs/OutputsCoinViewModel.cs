@@ -6,10 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 public class OutputsCoinViewModel : OutputsCoinListItem
 {
-    public OutputsCoinViewModel(TxOut txOut, bool isOwn, bool isChange)
+    public OutputsCoinViewModel(TxOut txOut, Network network, bool isOwn, bool isChange)
 	{
 		TxOut = txOut;
 		Amount = new Amount(txOut.Value);
+		BtcAddress = txOut.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 		ShowChange = isChange;
 		ShowOwn = !isChange && isOwn;
 	}

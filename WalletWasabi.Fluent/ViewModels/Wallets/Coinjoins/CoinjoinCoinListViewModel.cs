@@ -11,9 +11,9 @@ public class CoinjoinCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinjoinCoinListViewModel(IEnumerable<SmartCoin> availableCoins, int totalCoinsOnSideCount)
+	public CoinjoinCoinListViewModel(IEnumerable<SmartCoin> availableCoins, Network network, int totalCoinsOnSideCount)
 	{
-		var coinItems = availableCoins.Select(x => new CoinjoinCoinViewModel(x)).ToList();
+		var coinItems = availableCoins.Select(x => new CoinjoinCoinViewModel(x, network)).ToList();
 		foreach (var coin in coinItems)
 		{
 			coin.IsChild = true;

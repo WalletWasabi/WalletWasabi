@@ -8,6 +8,19 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Inputs.InputsCoinListView"
              x:DataType="inputs:InputsCoinListViewModel"
              x:CompileBindings="True">
+
+  <UserControl.Resources>
+    <ContextMenu IsVisible="{Binding BtcAddress, Converter={x:Static ObjectConverters.IsNotNull}}" x:Key="AddressContextMenu" x:DataType="inputs:InputsCoinListItem">
+      <MenuItem Header="Copy Bitcoin Address"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding BtcAddress, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource btc_logo}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+  </UserControl.Resources>
+
   <Panel>
     <TreeDataGrid x:Name="TreeDataGrid" Source="{Binding TreeDataGridSource}">
       <TreeDataGrid.Styles>
@@ -24,6 +37,7 @@
         </Style>
         <Style Selector="TreeDataGridRow" x:DataType="inputs:InputsCoinListItem">
           <Setter Property="Theme" Value="{StaticResource CoinjoinCoinsListViewTreeDataGridRow}" />
+          <Setter Property="ContextMenu" Value="{StaticResource AddressContextMenu}" />
         </Style>
       </TreeDataGrid.Styles>
       <Interaction.Behaviors>
