@@ -43,20 +43,15 @@
       <Separator />
       <PreviewItem Icon="{StaticResource input_count}" />
       <DockPanel Margin="0 -35 0 0" LastChildFill="True">
-        <Grid >
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-
+        <Grid ColumnDefinitions="*,30,*">
           <StackPanel Grid.Column="0">
-            <TextBlock Margin="-5 0 0 0" Text="Inputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <coinjoins:CoinjoinCoinListView Margin="15 15 25 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+            <TextBlock Margin="35 0 25 0" Text="Inputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
           </StackPanel>
-
-          <StackPanel Grid.Column="1">
-            <TextBlock Margin="-5 0 0 0" Text="Outputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <coinjoins:CoinjoinCoinListView Margin="15 15 25 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+          <PathIcon Grid.Column="1" Opacity="0.6" Margin="0 48 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
+          <StackPanel Grid.Column="2">
+            <TextBlock Margin="35 0 25 0" Text="Outputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
           </StackPanel>
         </Grid>
       </DockPanel>

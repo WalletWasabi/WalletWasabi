@@ -13,8 +13,8 @@ public static class CoinjoinCoinListDataGridSource
 	public static HierarchicalTreeDataGridSource<CoinjoinCoinListItem> Create(IEnumerable<CoinjoinCoinListItem> source)
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
-		// Amount			AmountColumnView		Amount		Auto		-				-			true
+		// AnonymityScore	AnonymityColumnView		<custom>	3 Star		-				-			true
+		// Amount			AmountColumnView		Amount		8 Star		-				-			true
 		var result = new HierarchicalTreeDataGridSource<CoinjoinCoinListItem>(source)
 		{
 			Columns =

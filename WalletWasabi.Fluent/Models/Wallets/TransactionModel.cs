@@ -40,8 +40,8 @@ public partial class TransactionModel : ReactiveObject
 	public Lazy<IReadOnlyCollection<OutPoint>> ForeignInputs => new(ForeignInputsFunction());
 	public required IReadOnlyCollection<SmartCoin> WalletInputs { get; set; }
 
-	public required Func<IReadOnlyCollection<OutPoint>> ForeignOutputsFunction{ get; set; }
-	public Lazy<IReadOnlyCollection<OutPoint>> ForeignOutputs => new(ForeignOutputsFunction());
+	public required Func<IReadOnlyCollection<IndexedTxOut>> ForeignOutputsFunction{ get; set; }
+	public Lazy<IReadOnlyCollection<IndexedTxOut>> ForeignOutputs => new(ForeignOutputsFunction());
 	public required IReadOnlyCollection<SmartCoin> WalletOutputs { get; set; }
 	public required Money Amount { get; set; }
 
