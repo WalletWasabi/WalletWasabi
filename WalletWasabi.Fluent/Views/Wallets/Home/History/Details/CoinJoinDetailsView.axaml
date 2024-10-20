@@ -96,6 +96,14 @@
         </PrivacyContentControl>
       </PreviewItem>
 
+      <Separator />
+      <!-- Hex -->
+      <PreviewItem Icon="{StaticResource binary_file}"
+                   Label="Hex"
+                   CopyableContent="{Binding TransactionHex}">
+        <TextBlock Text="Copy" />
+      </PreviewItem>
+
       <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
     </StackPanel>
   </ContentArea>
