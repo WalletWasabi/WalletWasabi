@@ -14,7 +14,7 @@ public static class InputsCoinListDataGridSource
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// AnonymityScore	AnonymityColumnView		<custom>	3 Star		-				-			true
-		// Amount			AmountColumnView		Amount		8 Star		-				-			true
+		// Amount			AmountColumnView		Amount		10 Star		-				-			true
 		var result = new HierarchicalTreeDataGridSource<InputsCoinListItem>(source)
 		{
 			Columns =

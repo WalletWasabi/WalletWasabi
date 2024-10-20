@@ -14,7 +14,7 @@ public static class OutputsCoinListDataGridSource
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// ChangeIndicator	ChangeIndicatorView		<custom>	3 Star		-				-			false
-		// Amount			AmountColumnView		Amount		8 Star		-				-			true
+		// Amount			AmountColumnView		Amount		10 Star		-				-			true
 		var result = new HierarchicalTreeDataGridSource<OutputsCoinListItem>(source)
 		{
 			Columns =

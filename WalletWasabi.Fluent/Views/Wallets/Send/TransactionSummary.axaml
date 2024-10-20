@@ -25,12 +25,6 @@
     <Style Selector="PreviewItem.Dimmed">
       <Setter Property="Opacity" Value="0.2" />
     </Style>
-    <Style Selector="inputs|InputsCoinListView.Dimmed">
-      <Setter Property="Opacity" Value="0.2" />
-    </Style>
-    <Style Selector="outputs|OutputsCoinListView.Dimmed">
-      <Setter Property="Opacity" Value="0.2" />
-    </Style>
   </UserControl.Styles>
 
   <StackPanel Spacing="15">
