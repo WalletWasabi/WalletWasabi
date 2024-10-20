@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Columns;
 
-public class ChangeIndicatorView : UserControl
+public class IsOwnIndicatorView : UserControl
 {
-	public ChangeIndicatorView()
+	public IsOwnIndicatorView()
 	{
 		InitializeComponent();
 	}

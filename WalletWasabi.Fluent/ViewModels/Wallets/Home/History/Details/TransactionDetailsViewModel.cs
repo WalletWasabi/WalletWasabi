@@ -41,7 +41,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 
 		InputList = new InputsCoinListViewModel(model.WalletInputs, model.WalletInputs.Count + model.ForeignInputs.Value.Count);
-		OutputList = new OutputsCoinListViewModel(model.WalletOutputs.Select(x => x.TxOut).ToList(), model.ForeignOutputs.Value.Select(x => x.TxOut).ToList());
+		OutputList = new OutputsCoinListViewModel(
+			model.WalletOutputs.Select(x => x.TxOut).ToList(),
+			model.ForeignOutputs.Value.Select(x => x.TxOut).ToList(),
+			model.Amount);
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = wallet.AmountProvider.Create(model.Fee);

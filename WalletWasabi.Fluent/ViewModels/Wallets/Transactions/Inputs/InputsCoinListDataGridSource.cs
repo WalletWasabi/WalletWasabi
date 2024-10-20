@@ -32,7 +32,7 @@ public static class InputsCoinListDataGridSource
 			null,
 			new FuncDataTemplate<InputsCoinListItem>((item, _) => item is { IsChild: true } ? new AmountCellView() : new TextCellView()),
 			null,
-			new GridLength(8, GridUnitType.Star),
+			new GridLength(10, GridUnitType.Star),
 			new TemplateColumnOptions<InputsCoinListItem>
 			{
 				CompareAscending = Sort<InputsCoinListItem>.Ascending(x => x.Amount),

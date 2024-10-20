@@ -6,15 +6,15 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="outputs:OutputsCoinListItem"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Columns.ChangeIndicatorView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Columns.IsOwnIndicatorView">
 
-  <InvalidatingStackPanel Orientation="Horizontal" Margin="0 0 0 0" Spacing="2" HorizontalAlignment="Right" ToolTip.Tip="This output goes back one of your wallets">
+  <InvalidatingStackPanel Orientation="Horizontal" Margin="0 0 0 0" Spacing="2" HorizontalAlignment="Right" ToolTip.Tip="This output belongs to one of your opened wallets">
     <Border BorderThickness="1"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            IsVisible="{Binding IsChange}"
+            IsVisible="{Binding IsOwn}"
             BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
-      <TextBlock Classes="h10" Text="CHANGE"/>
+      <TextBlock Classes="h10" Text="OWN"/>
     </Border>
   </InvalidatingStackPanel>
 </UserControl>

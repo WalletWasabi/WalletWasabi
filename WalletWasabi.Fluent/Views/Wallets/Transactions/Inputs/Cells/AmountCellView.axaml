@@ -13,7 +13,7 @@
                          HorizontalAlignment="Center"
                          UseOpacity="True"
                          MaxPrivacyChars="14"
-                         Margin="10 0 0 0">
+                         Margin="5 0 0 0">
     <AmountControl MinWidth="140" Amount="{Binding Amount}"/>
   </PrivacyContentControl>
 </UserControl>

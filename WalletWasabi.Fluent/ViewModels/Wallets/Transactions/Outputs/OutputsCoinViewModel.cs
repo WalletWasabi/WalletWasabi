@@ -11,10 +11,10 @@ public class OutputsCoinViewModel : OutputsCoinListItem
 	{
 		TxOut = txOut;
 		Amount = new Amount(txOut.Value);
-		IsChange = isOwn;
+		IsOwn = isOwn;
 	}
 
-	public OutputsCoinViewModel(OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? oldOutputCount)
+	public OutputsCoinViewModel(OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? nbDiff)
 	{
 		Amount = new Amount(coins.Sum(x => x.Amount.Btc));
 		Children = coins;
@@ -28,11 +28,7 @@ public class OutputsCoinViewModel : OutputsCoinListItem
 			}
 		}
 		TitleText = $"{Children.Count} output{(Children.Count == 1 ? "" : "s")}";
-
-		if (oldOutputCount is not null)
-		{
-			NbDiff = outputCount - oldOutputCount;
-		}
+		NbDiff = nbDiff;
 	}
 	public TxOut? TxOut { get; }
 }

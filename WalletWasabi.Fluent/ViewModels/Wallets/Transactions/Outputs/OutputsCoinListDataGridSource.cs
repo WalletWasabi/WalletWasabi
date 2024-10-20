@@ -32,7 +32,7 @@ public static class OutputsCoinListDataGridSource
 			null,
 			new FuncDataTemplate<OutputsCoinListItem>((item, _) => item is { IsChild: true } ? new AmountCellView() : new TextCellView()),
 			null,
-			new GridLength(8, GridUnitType.Star),
+			new GridLength(10, GridUnitType.Star),
 			new TemplateColumnOptions<OutputsCoinListItem>
 			{
 				CompareAscending = Sort<OutputsCoinListItem>.Ascending(x => x.Amount),
@@ -45,7 +45,7 @@ public static class OutputsCoinListDataGridSource
 		return new HierarchicalExpanderColumn<OutputsCoinListItem>(
 			new TemplateColumn<OutputsCoinListItem>(
 				null,
-				new FuncDataTemplate<OutputsCoinListItem>((_, _) => new ChangeIndicatorView(), true),
+				new FuncDataTemplate<OutputsCoinListItem>((_, _) => new IsOwnIndicatorView(), true),
 				null,
 				new GridLength(3, GridUnitType.Star)),
 			group => group.Children,

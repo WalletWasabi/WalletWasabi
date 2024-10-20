@@ -15,10 +15,11 @@
                                      ZeroBrush="{StaticResource UncertainBrush}" />
   </UserControl.Resources>
 
-  <StackPanel Orientation="Horizontal">
+  <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Tip, FallbackValue=''}">
+
     <TextBlock IsVisible="{Binding !!NbDiff}"
                FontWeight="Bold"
-               Margin="45 0 0 0"
+               Margin="{Binding Margin}"
                HorizontalAlignment="Center"
                VerticalAlignment="Center">
       <TextBlock.Inlines>
@@ -28,16 +29,8 @@
              Text="{Binding NbDiff, Converter={x:Static converters:IntConverter.FPlusConverter}}" />
       </TextBlock.Inlines>
     </TextBlock>
-    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsZero}}"
-               Margin="45 0 0 0"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               Classes="bold"
-               Opacity="0.2"
-               Text="{Binding TitleText}">
-    </TextBlock>
-    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNull}}"
-               Margin="45 0 0 0"
+    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNullOrZero}}"
+               Margin="{Binding Margin}"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"
                Classes="bold"

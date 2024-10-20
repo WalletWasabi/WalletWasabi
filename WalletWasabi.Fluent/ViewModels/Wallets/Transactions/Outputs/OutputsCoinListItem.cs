@@ -40,7 +40,7 @@ public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGrid
 	}
 
 	public Amount Amount { get; protected set; } = new(Money.Zero);
-	public bool IsChange { get; protected set; }
+	public bool IsOwn { get; protected set; }
 	public int? TotalOutputs { get; set; }
 	public IReadOnlyCollection<OutputsCoinViewModel> Children { get; protected set; } = new List<OutputsCoinViewModel>();
 	public bool HasChildren => Children.Count > 0;

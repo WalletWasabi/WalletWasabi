@@ -28,15 +28,7 @@
              Text="{Binding NbDiff, Converter={x:Static converters:IntConverter.FPlusConverter}}" />
       </TextBlock.Inlines>
     </TextBlock>
-    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsZero}}"
-               Margin="45 0 0 0"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               Classes="bold"
-               Opacity="0.2"
-               Text="{Binding TitleText}">
-    </TextBlock>
-    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNull}}"
+    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNullOrZero}}"
                Margin="45 0 0 0"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"

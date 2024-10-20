@@ -1,4 +1,6 @@
 using System.Linq;
+using Avalonia;
+using Avalonia.Controls;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Wallets;
 
@@ -20,12 +22,13 @@ public class InputsCoinViewModel : InputsCoinListItem
 		}
 	}
 
-	public InputsCoinViewModel(InputsCoinViewModel[] coins, int inputCount, bool isExpanded, int? oldInputCount)
+	public InputsCoinViewModel(InputsCoinViewModel[] coins, int inputCount, bool isExpanded, int? nbDiff)
 	{
 		Amount = new Amount(coins.Sum(x => x.Amount.Btc));
 		Children = coins;
 		TotalInputs = inputCount;
 		IsExpanded = isExpanded;
+		NbDiff = nbDiff;
 		if (IsExpanded)
 		{
 			foreach (var coin in Children)
@@ -33,13 +36,17 @@ public class InputsCoinViewModel : InputsCoinListItem
 				coin.IsExpanded = true;
 			}
 		}
-		TitleText = Children.Count == TotalInputs ?
-			$"{Children.Count} input{(Children.Count == 1 ? "" : "s")}" :
-			$"{Children.Count} out of {TotalInputs} input{(Children.Count == 1 ? "" : "s")}";
 
-		if (oldInputCount is not null)
+		if (Children.Count == TotalInputs)
 		{
-			NbDiff = inputCount - oldInputCount;
+			TitleText = $"{Children.Count} input{(Children.Count == 1 ? "" : "s")}";
+			Margin = new Thickness(45, 0, 0, 0);
+		}
+		else
+		{
+			TitleText = $"{Children.Count} own out of {TotalInputs} input{(TotalInputs == 1 ? "" : "s")}";
+			Tip = "Only own inputs are known.";
+			Margin = new Thickness(15, 0, 0, 0);
 		}
 	}
 	public SmartCoin? Coin { get; }
