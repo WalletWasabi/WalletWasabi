@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
@@ -12,9 +13,9 @@ public class InputsCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public InputsCoinListViewModel(IEnumerable<SmartCoin> availableCoins, int inputCount, bool? isExpanded = null, int? oldInputCount = null)
+	public InputsCoinListViewModel(IEnumerable<SmartCoin> availableCoins, Network network, int inputCount, bool? isExpanded = null, int? oldInputCount = null)
 	{
-		var coinItems = availableCoins.OrderByDescending(x => x.Amount).Select(x => new InputsCoinViewModel(x)).ToList();
+		var coinItems = availableCoins.OrderByDescending(x => x.Amount).Select(x => new InputsCoinViewModel(x, network)).ToList();
 		foreach (var coin in coinItems)
 		{
 			coin.IsChild = true;

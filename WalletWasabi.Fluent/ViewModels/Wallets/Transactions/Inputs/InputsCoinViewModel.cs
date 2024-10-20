@@ -1,6 +1,5 @@
 using System.Linq;
-using Avalonia;
-using Avalonia.Controls;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Wallets;
 
@@ -8,10 +7,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
 
 public class InputsCoinViewModel : InputsCoinListItem
 {
-    public InputsCoinViewModel(SmartCoin coin)
+    public InputsCoinViewModel(SmartCoin coin, Network network)
 	{
 		Coin = coin;
 		Amount = new Amount(coin.Amount);
+		BtcAddress = coin.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 		if(coin.HdPubKey.HistoricalAnonSet.TryGetValue(coin.Outpoint.Hash, out var anonSetWhenTxProcessed))
 		{
 			AnonymityScore = (int)anonSetWhenTxProcessed;

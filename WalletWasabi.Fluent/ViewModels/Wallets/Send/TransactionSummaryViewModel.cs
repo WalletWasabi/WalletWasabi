@@ -67,12 +67,14 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeRate = info.FeeRate;
 
 		InputList = new InputsCoinListViewModel(transactionResult.Transaction.WalletInputs,
+			_wallet.Network,
 			transactionResult.Transaction.WalletInputs.Count + transactionResult.Transaction.ForeignInputs.Count,
 			Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().Children.Count);
 
 		OutputList = new OutputsCoinListViewModel(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
+			_wallet.Network,
 			destinationIndexedTxOut?.ScriptPubKey,
 			Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().Children.Count);
