@@ -65,6 +65,12 @@ public class RoundStateUpdater : PeriodicRunner
 		var newRoundStates = roundStates
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
+		if (newRoundStates.Any(r => !r.IsRoundIdMatching()))
+		{
+			throw new InvalidOperationException(
+				"Coordinator is cheating by creating rounds that do not match the parameters.");
+		}
+
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
 		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
