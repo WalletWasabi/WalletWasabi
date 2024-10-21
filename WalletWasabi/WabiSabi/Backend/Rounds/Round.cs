@@ -30,6 +30,7 @@ public enum EndRoundState
 
 public class Round
 {
+	private Lazy<uint256> _id;
 	public Round(RoundParameters parameters, WasabiRandom random)
 	{
 		Parameters = parameters;
@@ -46,11 +47,10 @@ public class Round
 		OutputRegistrationTimeFrame = TimeFrame.Create(Parameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
 
-		Id = CalculateHash();
-		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
+		_id = new Lazy<uint256>(CalculateHash);
 	}
 
-	public uint256 Id { get; }
+	public uint256 Id => _id.Value;
 	public MultipartyTransactionState CoinjoinState { get; set; }
 
 	public CredentialIssuer AmountCredentialIssuer { get; }
@@ -75,7 +75,7 @@ public class Round
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
 
-	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData { get; init; }
+	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
