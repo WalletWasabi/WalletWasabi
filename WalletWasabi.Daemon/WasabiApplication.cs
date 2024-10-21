@@ -41,7 +41,7 @@ public class WasabiApplication
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
 			return ExitCode.Ok;
 		}
-		if (AppConfig.Arguments.Contains("--help"))
+		if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
 		{
 			ShowHelp();
 			return ExitCode.Ok;
