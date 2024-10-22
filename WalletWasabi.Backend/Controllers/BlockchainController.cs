@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -24,24 +25,18 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BlockchainController : ControllerBase
 {
-	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
-	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
-	private static readonly MemoryCacheEntryOptions UnconfirmedTransactionChainItemCacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) };
-	private static readonly MemoryCacheEntryOptions TransactionCacheOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) };
 
-	public BlockchainController(IMemoryCache memoryCache, Global global)
+	public BlockchainController(IMemoryCache memoryCache, IRPCClient rpc, IndexBuilderService indexBuilderService)
 	{
 		Cache = new(memoryCache);
-		Global = global;
+		RpcClient = rpc;
+		IndexBuilderService = indexBuilderService;
 	}
 
-	private IRPCClient RpcClient => Global.RpcClient;
-	private Network Network => Global.Config.Network;
-
-	public IdempotencyRequestCache Cache { get; }
-
-	public Global Global { get; }
+	private IRPCClient RpcClient { get; }
+	private IdempotencyRequestCache Cache { get; }
+	private IndexBuilderService IndexBuilderService { get; }
 
 	/// <summary>
 	/// Get all fees.
@@ -121,7 +116,7 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync(CancellationToken cancellationToken = default)
 	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
+		uint256[] transactionHashes = await RpcClient.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
 		return transactionHashes.Select(x => x.ToString());
 	}
 
@@ -147,7 +142,7 @@ public class BlockchainController : ControllerBase
 		Transaction transaction;
 		try
 		{
-			transaction = Transaction.Parse(hex, Network);
+			transaction = Transaction.Parse(hex, RpcClient.Network);
 		}
 		catch (Exception ex)
 		{
@@ -205,7 +200,7 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		var (bestHeight, filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		var (bestHeight, filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{
