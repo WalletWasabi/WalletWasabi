@@ -87,7 +87,6 @@ public class P2pNetwork : BackgroundService
 			var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
-			connectionParameters.TemplateBehaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 
