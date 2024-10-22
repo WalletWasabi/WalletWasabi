@@ -67,7 +67,7 @@ public class MultipartyTransactionStateTests
 		var diff21 = state2.GetStateFrom(1);
 		var diff32 = state3.GetStateFrom(2);
 		var clientState1 = state1;
-		var clientState3 = state3.GetStateFrom(2).AddPreviousStates(clientState1, round.Id);
+		var clientState3 = state3.GetStateFrom(2).AddPreviousStates(clientState1);
 		Assert.Equal(state3.Inputs, clientState3.Inputs);
 		Assert.Equal(state3.Outputs, clientState3.Outputs);
 		Assert.Equal(clientState3.Inputs, state3.Inputs);
