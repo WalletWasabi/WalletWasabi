@@ -32,8 +32,8 @@ public class RoundStateUpdaterTests
 		// Each line represents a response for each request.
 		var mockHttpClientFactory = CreateMockHttpClientFactory([
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.InputRegistration }),
-			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(1)}),
-			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(2)}, roundState2 with { Phase = Phase.InputRegistration }),
+			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }),
+			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration }),
 			RoundStateResponseBuilder(roundState2 with { Phase = Phase.OutputRegistration }),
 			RoundStateResponseBuilder()
 		]);

@@ -66,25 +66,9 @@ public abstract record MultipartyTransactionState
 			Events = Events.AddRange(diff.Events)
 		};
 
-	public MultipartyTransactionState AddPreviousStates(MultipartyTransactionState origin, uint256 roundId)
-	{
-		VerifyOwnershipProofs(origin, Events, roundId);
-		return this with
+	public MultipartyTransactionState AddPreviousStates(MultipartyTransactionState origin) =>
+		this with
 		{
 			Events = origin.Events.AddRange(Events)
 		};
-	}
-
-	private void VerifyOwnershipProofs(MultipartyTransactionState state, ImmutableList<IEvent> events, uint256 roundId)
-	{
-		var coinJoinInputCommitData = new CoinJoinInputCommitmentData(state.Parameters.CoordinationIdentifier, roundId);
-		var anyInvalidInput =
-			events.OfType<InputAdded>().Any(x => !OwnershipProof.VerifyCoinJoinInputProof(x.OwnershipProof, x.Coin.ScriptPubKey, coinJoinInputCommitData));
-
-		if (anyInvalidInput)
-		{
-			throw new InvalidOperationException(
-				"The coordinator is cheating by adding inputs to rounds that were created to be registered in different rounds.");
-		}
-	}
 }
