@@ -300,7 +300,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
 ## Debugging code with unit tests
 
 Because `dotnet test` will run the test code in a child process, it isn't possible to configure a "unit test debugging" configuration in `launch.json`.
-You can tweak debugging options for unit tests by addind the following setting to your local `.vscode/settings.json` file (if it doesn't exists then create it):
+You can tweak debugging options for unit tests by adding the following setting to your local `.vscode/settings.json` file (if it doesn't exist then create it):
 
 ```json
    "csharp.unitTestDebuggingOptions": {
