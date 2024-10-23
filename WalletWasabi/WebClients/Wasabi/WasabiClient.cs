@@ -136,10 +136,10 @@ public class WasabiClient
 		return allTxs.ToDependencyGraph().OrderByDependency();
 	}
 
-	public async Task BroadcastAsync(string hex)
+	public async Task BroadcastAsync(string hex, CancellationToken cancellationToken)
 	{
 		using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
-		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content).ConfigureAwait(false);
+		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -147,14 +147,14 @@ public class WasabiClient
 		}
 	}
 
-	public async Task BroadcastAsync(Transaction transaction)
+	public async Task BroadcastAsync(Transaction transaction, CancellationToken cancellationToken)
 	{
-		await BroadcastAsync(transaction.ToHex()).ConfigureAwait(false);
+		await BroadcastAsync(transaction.ToHex(), cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task BroadcastAsync(SmartTransaction transaction)
+	public async Task BroadcastAsync(SmartTransaction transaction, CancellationToken cancellationToken)
 	{
-		await BroadcastAsync(transaction.Transaction).ConfigureAwait(false);
+		await BroadcastAsync(transaction.Transaction, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
