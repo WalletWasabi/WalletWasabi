@@ -25,7 +25,7 @@ A few examples:
 ### Values precedence
 
 * **Values passed by command line arguments** have the highest precedence and override values in environment variables and those specified in config files.
-* **Values stored in environment variables** have higher precedence than those in config file and lower precedence than the ones pass by command line.
+* **Values stored in environment variables** have higher precedence than those in config file and lower precedence than the ones passed by command line.
 * **Values stored in config file** have the lower precedence.
 
 ### Special values
