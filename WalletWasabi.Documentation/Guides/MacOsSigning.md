@@ -45,7 +45,7 @@
 
 ## Changing the icon
 
-- Wild specificaiton for the icon:
+- Wild specification for the icon:
   - 1024x1024 size
   - 98px padding
   - BoxShadow params: x:0, y:5, Blur:25, Spread:0, Color:000000, Transparency:50%
