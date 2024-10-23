@@ -167,13 +167,13 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 	private	async Task<BroadcastingResult> ConfirmPropagationAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		var entry = mempoolService.GetOrAdd(tx);
-		var propagationTimeoutTask = Task.Delay(TimeSpan.FromSeconds(12), cancellationToken);
+		var propagationTimeoutTask = Task.Delay(TimeSpan.FromSeconds(21), cancellationToken);
 		var propagationTask = entry.PropagationConfirmed.Task;
 		var propagationFinishedTask = await Task.WhenAny([propagationTimeoutTask, propagationTask]).ConfigureAwait(false);
 
 		if (propagationFinishedTask == propagationTimeoutTask)
 		{
-			BroadcastingResult.Fail(new BroadcastError.Timeout("Timed out to verify propagation"));
+			return BroadcastingResult.Fail(new BroadcastError.Timeout("Timed out to verify propagation"));
 		}
 
 		var propagators = await propagationTask.ConfigureAwait(false);
