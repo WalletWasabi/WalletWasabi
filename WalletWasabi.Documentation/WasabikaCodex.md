@@ -196,7 +196,7 @@ $ git worktree add kiminuo/pr-1234 origin/pr/1234
 $ git worktree add yahia/pr-2534 origin/pr/2534
 ```
 
-Bellow you can see what you got after the previous commands. In this way it is possible to simply switch from PR to PR and from branch to branch as easy as simply `cd`.
+Below you can see what you got after the previous commands. In this way it is possible to simply switch from PR to PR and from branch to branch as easy as simply `cd`.
 
 We can go to the Kiminuo's tor-exceptions branch and work there, add files, review the changes, compile it and test it and we can immediately jump to the Yahia's bitcoind-tor-hashes branch, perform a `git pull` to have the latest changes and review it.
 
