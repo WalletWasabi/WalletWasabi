@@ -145,7 +145,11 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   # Hack! *.deps.json files contains this SHA516 that depends on the absolute path of
   # the nuget packages. This means that these files are different in different computers
   # and for different users. (End goal: reproducibility)
-  sed -i 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
+    sed -i '' 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  else
+    sed -i 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  fi
 
   # Adjust platform name for macOS
   ALTER_PLATFORM=$PLATFORM
