@@ -58,7 +58,7 @@ public abstract partial class CoinListModel : IDisposable
 
 	protected ICoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
-		return new CoinModel(smartCoin, WalletModel.Settings.AnonScoreTarget);
+		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget);
 	}
 
 	protected abstract Pocket[] GetPockets();

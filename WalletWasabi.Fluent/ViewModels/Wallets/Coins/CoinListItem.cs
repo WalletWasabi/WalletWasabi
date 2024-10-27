@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -33,6 +34,8 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 		// Should be again restricted once https://github.com/WalletWasabi/WalletWasabi/issues/9972 is implemented.
 		// CanBeSelected = !IsCoinjoining;
 		CanBeSelected = true;
+
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 
 		this.WhenAnyValue(x => x.IsControlPointerOver)
 			.Do(x =>
@@ -70,6 +73,9 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 		get => IsControlSelected;
 		set => IsControlSelected = value;
 	}
+
+	public ICommand? ClipboardCopyCommand { get; protected set; }
+	public string? BtcAddress { get; protected set; }
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
 
