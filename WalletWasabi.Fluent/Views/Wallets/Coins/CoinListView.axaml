@@ -9,6 +9,19 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Coins.CoinListView"
              x:DataType="coins:CoinListViewModel"
              x:CompileBindings="True">
+
+  <UserControl.Resources>
+    <ContextMenu IsVisible="{Binding BtcAddress, Converter={x:Static ObjectConverters.IsNotNull}}" x:Key="AddressContextMenu" x:DataType="coins:CoinListItem">
+      <MenuItem Header="Copy Bitcoin Address"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding BtcAddress, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource btc_logo}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+  </UserControl.Resources>
+
   <Panel>
     <TreeDataGrid x:Name="TreeDataGrid" Source="{Binding TreeDataGridSource}" IsVisible="{Binding !!CoinItems.Count}">
       <TreeDataGrid.Styles>
@@ -28,6 +41,7 @@
           <Setter Property="Theme" Value="{StaticResource SelectCoinsDialogViewTreeDataGridRow}" />
           <Setter Property="IsPointerOver" Value="{Binding IsPointerOverProxy, Mode=OneWayToSource}" />
           <Setter Property="IsSelected" Value="{Binding IsSelectedProxy, Mode=OneWayToSource}" />
+          <Setter Property="ContextMenu" Value="{StaticResource AddressContextMenu}" />
         </Style>
       </TreeDataGrid.Styles>
       <Interaction.Behaviors>
