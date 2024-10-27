@@ -35,8 +35,8 @@ public static class OutputsCoinListDataGridSource
 			new GridLength(10, GridUnitType.Star),
 			new TemplateColumnOptions<OutputsCoinListItem>
 			{
-				CompareAscending = Sort<OutputsCoinListItem>.Ascending(x => x.Amount),
-				CompareDescending = Sort<OutputsCoinListItem>.Descending(x => x.Amount)
+				CompareAscending = Sort<OutputsCoinListItem>.Ascending(x => x.Amount.Btc),
+				CompareDescending = Sort<OutputsCoinListItem>.Descending(x => x.Amount.Btc)
 			});
 	}
 

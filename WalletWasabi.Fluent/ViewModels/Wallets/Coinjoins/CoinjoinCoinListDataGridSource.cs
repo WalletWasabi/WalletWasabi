@@ -35,8 +35,8 @@ public static class CoinjoinCoinListDataGridSource
 			new GridLength(8, GridUnitType.Star),
 			new TemplateColumnOptions<CoinjoinCoinListItem>
 			{
-				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(x => x.Amount),
-				CompareDescending = Sort<CoinjoinCoinListItem>.Descending(x => x.Amount)
+				CompareAscending = Sort<CoinjoinCoinListItem>.Ascending(x => x.Amount.Btc),
+				CompareDescending = Sort<CoinjoinCoinListItem>.Descending(x => x.Amount.Btc)
 			});
 	}
 
