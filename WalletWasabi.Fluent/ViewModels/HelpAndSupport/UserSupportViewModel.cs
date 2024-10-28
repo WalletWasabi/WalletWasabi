@@ -1,18 +1,14 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	Title = "User Support",
-	Caption = "Open Wasabi's user support website",
 	Order = 0,
-	Category = "Help & Support",
-	Keywords = new[]
-	{
-		"User", "Support", "Website"
-	},
-	IconName = "person_support_regular")]
+	Category = SearchCategory.HelpAndSupport,
+	IconName = "person_support_regular",
+	IsLocalized = true)]
 public partial class UserSupportViewModel : TriggerCommandViewModel
 {
 	private UserSupportViewModel()

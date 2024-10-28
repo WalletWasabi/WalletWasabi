@@ -1,18 +1,14 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 [NavigationMetaData(
-	Title = "Wallet Folder",
-	Caption = "",
 	Order = 1,
-	Category = "Open",
-	Keywords = new[]
-	{
-			"Browse", "Open", "Wallet", "Folder"
-	},
-	IconName = "folder_regular")]
+	Category = SearchCategory.Open,
+	IconName = "folder_regular",
+	IsLocalized = true)]
 public partial class OpenWalletsFolderViewModel : TriggerCommandViewModel
 {
 	private OpenWalletsFolderViewModel()

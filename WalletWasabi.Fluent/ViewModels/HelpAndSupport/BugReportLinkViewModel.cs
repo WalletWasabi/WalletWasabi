@@ -1,18 +1,14 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	Title = "Report a Bug",
-	Caption = "Open Wasabi's GitHub issues website",
 	Order = 1,
-	Category = "Help & Support",
-	Keywords = new[]
-	{
-		"Support", "Website", "Bug", "Report"
-	},
-	IconName = "bug_regular")]
+	Category = SearchCategory.HelpAndSupport,
+	IconName = "bug_regular",
+	IsLocalized = true)]
 public partial class BugReportLinkViewModel : TriggerCommandViewModel
 {
 	private BugReportLinkViewModel()

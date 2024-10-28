@@ -13,13 +13,14 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
-[NavigationMetaData(Title = "Receive Address")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
+		Title = Lang.Resources.ReceiveAddressViewModel_Title;
+
 		_wallet = wallet;
 		UiContext = uiContext;
 		Model = model;
@@ -95,7 +96,10 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		}
 		catch (Exception ex)
 		{
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
+			await ShowErrorAsync(
+				Lang.Resources.ReceiveAddressViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.ReceiveAddressViewModel_Error_UnableToSendAddressToDevice_Caption);
 		}
 	}
 }

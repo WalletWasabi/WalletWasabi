@@ -1,0 +1,13 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="ListBox">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="10" />
+  </Style>
+
+  <Style Selector="ListBoxItem">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="{DynamicResource MenuFlyoutItemThemePaddingNarrow}" />
+  </Style>
+
+</Styles>

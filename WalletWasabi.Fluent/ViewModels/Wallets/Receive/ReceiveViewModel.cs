@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
@@ -15,15 +15,13 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
-	Title = "Receive",
-	Caption = "Display wallet receive dialog",
 	IconName = "wallet_action_receive",
 	Order = 6,
-	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Receive", "Action", },
+	Category = SearchCategory.Wallet,
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	Searchable = false)]
+	Searchable = false,
+	IsLocalized = true)]
 public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 {
 	private readonly IWalletModel _wallet;

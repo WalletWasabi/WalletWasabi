@@ -16,7 +16,6 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
-[NavigationMetaData(Title = "Verify Recovery Words")]
 public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -24,6 +23,8 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 
 	private WalletVerifyRecoveryWordsViewModel(IWalletModel wallet)
 	{
+		Title = Lang.Resources.WalletVerifyRecoveryWordsViewModel_Title;
+
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()

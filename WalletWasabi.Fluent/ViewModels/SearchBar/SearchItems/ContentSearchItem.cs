@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ContentSearchItem : IContentSearchItem
 {
-	public ContentSearchItem(object content, string name, string category, IEnumerable<string> keywords, string? icon, bool isEnabled = true)
+	public ContentSearchItem(object content, string name, SearchCategory category, IEnumerable<string> keywords, string? icon, bool isEnabled = true)
 	{
 		Name = name;
 		Content = content;
@@ -20,7 +21,7 @@ public class ContentSearchItem : IContentSearchItem
 	public ComposedKey Key => new(Name);
 	public string Description => "";
 	public string? Icon { get; set; }
-	public string Category { get; }
+	public SearchCategory Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; set; }
 	public int Priority { get; set; }

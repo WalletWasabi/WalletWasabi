@@ -12,7 +12,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Speed Up Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly SpeedupTransaction _speedupTransaction;
@@ -20,6 +20,8 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 	private SpeedUpTransactionDialogViewModel(IWalletModel wallet, SpeedupTransaction speedupTransaction)
 	{
+		Title = Lang.Resources.SpeedUpTransactionDialogViewModel_Title;
+
 		_wallet = wallet;
 		_speedupTransaction = speedupTransaction;
 
@@ -60,7 +62,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 			if (isAuthorized)
 			{
 				await _wallet.Transactions.SendAsync(speedupTransaction);
-				var (title, caption) = ("Success", "Your transaction has been successfully accelerated.");
+				var (title, caption) = (Lang.Resources.Words_Success, Lang.Resources.SpeedUpTransactionDialogViewModel_Success_Caption);
 
 				UiContext.Navigate().To().SendSuccess(speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
 			}
@@ -68,8 +70,12 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			var msg = speedupTransaction.TargetTransaction.Confirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Speed Up Failed", "Wasabi was unable to speed up your transaction.", NavigationTarget.CompactDialogScreen);
+			var msg = speedupTransaction.TargetTransaction.Confirmed ?  Lang.Resources.SpeedUpTransactionDialogViewModel_Error_AlreadyConfirmed_Message : ex.ToUserFriendlyString();
+			UiContext.Navigate().To().ShowErrorDialog(
+				msg,
+				Lang.Resources.SpeedUpTransactionDialogViewModel_Error_Generic_Title,
+				Lang.Resources.SpeedUpTransactionDialogViewModel_Error_Generic_Caption,
+				NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
@@ -79,7 +85,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	{
 		if (_wallet.Auth.HasPassword)
 		{
-			return await Navigate().To().PasswordAuthDialog(_wallet, "Send").GetResultAsync();
+			return await Navigate().To().PasswordAuthDialog(_wallet, Lang.Resources.Words_Send).GetResultAsync();
 		}
 
 		return true;

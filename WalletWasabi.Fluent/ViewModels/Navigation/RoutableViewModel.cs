@@ -11,6 +11,9 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
 	private CompositeDisposable? _currentDisposable;
 
+	[AutoNotify] private string? _title;
+	[AutoNotify] private string? _caption;
+	[AutoNotify] private string[]? _keywords;
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _enableCancelOnPressed;
 	[AutoNotify] private bool _enableCancelOnEscape;
@@ -23,8 +26,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), this.WhenAnyValue(model => model.IsBusy, b => !b));
 		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 	}
-
-	public abstract string Title { get; protected set; }
 
 	public NavigationTarget CurrentTarget { get; internal set; }
 

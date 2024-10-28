@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
 	private readonly WalletCreationOptions _options;
@@ -20,6 +19,8 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 	public WalletNamePageViewModel(UiContext uiContext, WalletCreationOptions options)
 	{
+		Title = Lang.Resources.WalletNamePageViewModel_Title;
+
 		UiContext = uiContext;
 
 		_options = options;
@@ -79,7 +80,10 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 		catch (Exception ex)
 		{
-			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
+			await ShowErrorAsync(
+				Lang.Resources.WalletNamePageViewModel_Error_UnableImport_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.WalletNamePageViewModel_Error_UnableImport_Caption);
 			BackCommand.Execute(null);
 		}
 	}

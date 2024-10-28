@@ -10,42 +10,42 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.Lang;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 [AppLifetime]
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
-	private const string WaitingMessage = "Awaiting coinjoin";
-	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
-	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
-	private const string CoinjoinMiningFeeRateTooHighMessage = "Mining fee rate was too high";
-	private const string MinInputCountTooLowMessage = "Min input count was too low";
-	private const string PauseMessage = "Coinjoin is paused";
-	private const string StoppedMessage = "Coinjoin has stopped";
-	private const string PressPlayToStartMessage = "Press Play to start";
-	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
-	private const string RoundFinishedMessage = "Round ended, awaiting next round";
-	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
-	private const string CoinJoinInProgress = "Coinjoin in progress";
-	private const string InputRegistrationMessage = "Awaiting other participants";
-	private const string WaitingForBlameRoundMessage = "Awaiting the blame round";
-	private const string WaitingRoundMessage = "Awaiting a round";
-	private const string PlebStopMessage = "Coinjoin may be uneconomical";
-	private const string PlebStopMessageBelow = "Add more funds or press Play to bypass";
-	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
-	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
-	private const string AllPrivateMessage = "Hurray! All your funds are private!";
-	private const string BackendNotConnected = "Awaiting connection";
-	private const string GeneralErrorMessage = "Awaiting valid conditions";
-	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
-	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
-	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
-	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
+	private static string CountDownMessage = Resources.MusicBox_CountDownMessage;
+	private static string WaitingMessage = Resources.MusicBox_WaitingMessage;
+	private static string UneconomicalRoundMessage = Resources.MusicBox_UneconomicalRoundMessage;
+	private static string RandomlySkippedRoundMessage = Resources.MusicBox_RandomlySkippedRoundMessage;
+	private static string CoinjoinMiningFeeRateTooHighMessage = Resources.MusicBox_CoinjoinMiningFeeRateTooHighMessage;
+	private static string MinInputCountTooLowMessage = Resources.MusicBox_MinInputCountTooLowMessage;
+	private static string PauseMessage = Resources.MusicBox_PauseMessage;
+	private static string StoppedMessage = Resources.MusicBox_StoppedMessage;
+	private static string PressPlayToStartMessage = Resources.MusicBox_PressPlayToStartMessage;
+	private static string RoundSucceedMessage = Resources.MusicBox_RoundSucceedMessage;
+	private static string RoundFinishedMessage = Resources.MusicBox_RoundFinishedMessage;
+	private static string AbortedNotEnoughAlicesMessage = Resources.MusicBox_AbortedNotEnoughAlicesMessage;
+	private static string CoinJoinInProgress = Resources.MusicBox_CoinJoinInProgress;
+	private static string InputRegistrationMessage = Resources.MusicBox_InputRegistrationMessage;
+	private static string WaitingForBlameRoundMessage = Resources.MusicBox_WaitingForBlameRoundMessage;
+	private static string WaitingRoundMessage = Resources.MusicBox_WaitingRoundMessage;
+	private static string PlebStopMessage = Resources.MusicBox_PlebStopMessage;
+	private static string PlebStopMessageBelow = Resources.MusicBox_PlebStopMessageBelow;
+	private static string NoCoinsEligibleToMixMessage = Resources.MusicBox_NoCoinsEligibleToMixMessage;
+	private static string UserInSendWorkflowMessage = Resources.MusicBox_UserInSendWorkflowMessage;
+	private static string AllPrivateMessage = Resources.MusicBox_AllPrivateMessage;
+	private static string BackendNotConnected = Resources.MusicBox_BackendNotConnected;
+	private static string GeneralErrorMessage = Resources.MusicBox_GeneralErrorMessage;
+	private static string WaitingForConfirmedFunds = Resources.MusicBox_WaitingForConfirmedFunds;
+	private static string CoinsRejectedMessage = Resources.MusicBox_CoinsRejectedMessage;
+	private static string OnlyImmatureCoinsAvailableMessage = Resources.MusicBox_OnlyImmatureCoinsAvailableMessage;
+	private static string OnlyExcludedCoinsAvailableMessage = Resources.MusicBox_OnlyExcludedCoinsAvailableMessage;
 
 	private readonly IWalletModel _wallet;
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -336,7 +336,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// and the countdown has finished but the client hasn't received any new phase changed message.
 		if (IsCountDownDelayHappening)
 		{
-			LeftText = "Waiting for response";
+			LeftText = Resources.MusicBox_WaitingForResponse;
 			RightText = "";
 			return;
 		}

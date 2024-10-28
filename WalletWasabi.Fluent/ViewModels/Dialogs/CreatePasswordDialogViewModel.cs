@@ -55,10 +55,6 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 	}
 
-	public override sealed string Title { get; protected set; }
-
-	public string Caption { get; }
-
 	protected override void OnDialogClosed()
 	{
 		Password = "";

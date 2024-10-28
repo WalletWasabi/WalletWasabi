@@ -18,7 +18,6 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -27,6 +26,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
+		Title = Lang.Resources.RecoverWalletViewModel_Title;
+
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
@@ -60,7 +61,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		var (walletName, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
-		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", "If you used a passphrase when you created your wallet you must type it below, otherwise leave this empty.").GetResultAsync();
+		var password = await Navigate().To().CreatePasswordDialog(
+		Lang.Resources.RecoverWalletViewModel_CreatePassword_Title,
+		Lang.Resources.RecoverWalletViewModel_CreatePassword_Caption).GetResultAsync();
 		if (password is not { } || CurrentMnemonics is not { IsValidChecksum: true } currentMnemonics)
 		{
 			return;
@@ -77,7 +80,10 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Wasabi was unable to recover the wallet.");
+			await ShowErrorAsync(
+				Lang.Resources.RecoverWalletViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.RecoverWalletViewModel_Error_NotAbleRecover_Caption);
 		}
 
 		IsBusy = false;
@@ -110,7 +116,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
+		errors.Add(ErrorSeverity.Error, Lang.Resources.RecoverWalletViewModel_Error_InvalidSet_Message);
 	}
 
 	private string GetTagsAsConcatString()

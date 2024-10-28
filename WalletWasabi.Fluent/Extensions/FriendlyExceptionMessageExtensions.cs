@@ -14,7 +14,7 @@ public static class FriendlyExceptionMessageExtensions
 
 		if (exceptionMessage.Length == 0)
 		{
-			return "An unexpected error occurred. Please try again or contact support.";
+			return Lang.Resources.Exception_Generic_Friendly;
 		}
 
 		if (TryFindRpcErrorMessage(exceptionMessage, out var friendlyMessage))
@@ -25,8 +25,8 @@ public static class FriendlyExceptionMessageExtensions
 		return ex switch
 		{
 			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
-			HttpRequestException => "Something went wrong. Please try again.",
-			UnauthorizedAccessException => "Wasabi was unable to perform this action due to a lack of permission.",
+			HttpRequestException => Lang.Resources.Exception_HttpRequest_Friendly,
+			UnauthorizedAccessException => Lang.Resources.Exception_UnauthorizedAccess_Friendly,
 			_ => ex.Message
 		};
 	}
@@ -35,9 +35,9 @@ public static class FriendlyExceptionMessageExtensions
 	{
 		return hwiEx.ErrorCode switch
 		{
-			HwiErrorCode.DeviceConnError => "Could not find the hardware wallet. Make sure it is connected.",
-			HwiErrorCode.ActionCanceled => "The transaction was canceled on the device.",
-			HwiErrorCode.UnknownError => "Unknown error. Make sure the device is connected and isn't busy, then try again.",
+			HwiErrorCode.DeviceConnError => Lang.Resources.HWI_Error_DeviceConn,
+			HwiErrorCode.ActionCanceled => Lang.Resources.HWI_Error_ActionCanceled,
+			HwiErrorCode.UnknownError => Lang.Resources.HWI_Error_Unknown,
 			_ => hwiEx.Message
 		};
 	}

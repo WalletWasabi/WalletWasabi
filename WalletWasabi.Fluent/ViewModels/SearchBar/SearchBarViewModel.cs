@@ -23,7 +23,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		searchSource.Changes
             .DisposeMany()
 			.Group(s => s.Category)
-			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
+			.Transform(group => new SearchItemGroup(NavigationMetaData.GetCategoryString(group.Key), group.Cache.Connect()))
 			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.Bind(out _groups)
 			.DisposeMany()
@@ -39,7 +39,7 @@ public partial class SearchBarViewModel : ReactiveObject
 					SearchText = "";
 				}
 			});
-		
+
 		ActivateFirstItemCommand = activateFirstItemCommand;
 		CommandActivated = activateFirstItemCommand.ToSignal();
 		ResetCommand = ReactiveCommand.Create(() => SearchText = "");

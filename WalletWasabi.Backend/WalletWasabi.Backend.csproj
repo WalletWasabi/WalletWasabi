@@ -34,10 +34,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Swashbuckle.AspNetCore" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 	</ItemGroup>

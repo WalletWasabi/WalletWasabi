@@ -12,6 +12,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -22,7 +23,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -52,7 +52,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		set => IsMusicBoxFlyoutDisplayed = value;
 	}
 
-	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
 
 	private UiConfig _uiConfig { get; }
@@ -249,12 +248,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
 
-	public override string Title
-	{
-		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
-	}
-
 	public IObservable<bool> HasUnreadConversations { get; }
 
 	public void SelectTransaction(uint256 txid)
@@ -305,19 +298,19 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		return new ISearchItem[]
 		{
-			new ActionableItem("Receive", "Display wallet receive dialog", () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Receive", "Action", }) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
-			new ActionableItem("Coinjoin Settings", "Display wallet coinjoin settings", () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
-			new ActionableItem("Wallet Settings", "Display wallet settings", () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Settings", }) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
-			new ActionableItem("Exclude Coins", "Display exclude coins", () => { NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Exclude", "Coins", "Coinjoin", "Freeze", "UTXO", }) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
-			new ActionableItem("Wallet Coins", "Display wallet coins", () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coins", "UTXO", }) { Icon = "wallet_coins", IsDefault = true, Priority = 6 },
-			new ActionableItem("Wallet Stats", "Display wallet stats", () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Stats", }) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 7 },
-			new ActionableItem("Wallet Info", "Display wallet info", () => { WalletInfoCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Info", }) { Icon = "info_regular", IsDefault = true, Priority = 8 },
+			new ActionableItem(Lang.Resources.ReceiveViewModel_Title, Lang.Resources.ReceiveViewModel_Caption, () => { SegwitReceiveCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("ReceiveViewModel_Keywords")) { Icon = "wallet_action_receive", IsDefault = true, Priority = 2 },
+			new ActionableItem(Lang.Resources.WalletCoinJoinSettingsViewModel_Title, Lang.Resources.WalletCoinJoinSettingsViewModel_Caption, () => { CoinJoinSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("WalletCoinJoinSettingsViewModel_Keywords")) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 3 },
+			new ActionableItem(Lang.Resources.WalletSettingsViewModel_Title, Lang.Resources.WalletSettingsViewModel_Caption, () => { WalletSettingsCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("WalletSettingsViewModel_Keywords")) { Icon = "settings_wallet_regular", IsDefault = true, Priority = 4 },
+			new ActionableItem(Lang.Resources.ExcludedCoinsViewModel_Title, Lang.Resources.ExcludedCoinsViewModel_Caption, () => { NavigateToExcludedCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("ExcludedCoinsViewModel_Keywords")) { Icon = "exclude_coins", IsDefault = true, Priority = 5 },
+			new ActionableItem(Lang.Resources.WalletCoinsViewModel_Title, Lang.Resources.WalletCoinsViewModel_Caption, () => { WalletCoinsCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet,Lang.Keywords.ConstructKeywords("WalletCoinsViewModel_Keywords")) { Icon = "wallet_coins", IsDefault = true, Priority = 6 },
+			new ActionableItem(Lang.Resources.WalletStatsViewModel_Title, Lang.Resources.WalletStatsViewModel_Caption, () => { WalletStatsCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("WalletStatsViewModel_Keywords")) { Icon = "stats_wallet_regular", IsDefault = true, Priority = 7 },
+			new ActionableItem(Lang.Resources.WalletInfoViewModel_Title, Lang.Resources.WalletInfoViewModel_Caption, () => { WalletInfoCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("WalletInfoViewModel_Keywords")) { Icon = "info_regular", IsDefault = true, Priority = 8 },
 		};
 	}
 
 	private ISearchItem CreateSendItem()
 	{
-		return new ActionableItem("Send", "Display wallet send dialog", () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", }) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
+		return new ActionableItem(Lang.Resources.SendViewModel_Title, Lang.Resources.SendViewModel_Caption, () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("SendViewModel_Keywords")) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()

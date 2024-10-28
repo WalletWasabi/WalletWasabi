@@ -16,7 +16,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
-[NavigationMetaData(Title = "Transaction Details")]
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -37,6 +36,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
+		Title = Lang.Resources.TransactionDetailsViewModel_Title;
+
 		UiContext = uiContext;
 		_wallet = wallet;
 
@@ -92,12 +93,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		if (model.Amount < Money.Zero)
 		{
 			Amount = _wallet.AmountProvider.Create(-model.Amount - (model.Fee ?? Money.Zero));
-			AmountText = "Amount sent";
+			AmountText = Lang.Resources.Sentences_Amount_sent;
 		}
 		else
 		{
 			Amount = _wallet.AmountProvider.Create(model.Amount);
-			AmountText = "Amount received";
+			AmountText =  Lang.Resources.Sentences_Amount_received;
 		}
 
 		BlockHash = model.BlockHash?.ToString();

@@ -1,14 +1,13 @@
 using ReactiveUI;
+using System.Reactive.Disposables;
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
-using System.Reactive.Disposables;
-using WalletWasabi.Fluent.Models;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Success")]
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly IWalletSettingsModel _walletSettings;
@@ -16,6 +15,8 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions options)
 	{
+		Title = Lang.Resources.AddedWalletPageViewModel_Title;
+
 		_walletSettings = walletSettings;
 
 		WalletName = options.WalletName!;

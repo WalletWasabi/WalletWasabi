@@ -13,17 +13,14 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(
-	Title = "Add Wallet",
-	Caption = "Create, connect, import or recover",
 	Order = 2,
-	Category = "General",
-	Keywords = new[]
-		{ "Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
+	Category = SearchCategory.General,
 	IconName = "nav_add_circle_24_regular",
 	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarPosition = NavBarPosition.Bottom,
-	NavBarSelectionMode = NavBarSelectionMode.Button)]
+	NavBarSelectionMode = NavBarSelectionMode.Button,
+	IsLocalized = true)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	private AddWalletPageViewModel()
@@ -60,7 +57,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	{
 		try
 		{
-			var file = await FileDialogHelper.OpenFileAsync("Import wallet file", new[] { "json" });
+			var file = await FileDialogHelper.OpenFileAsync(Lang.Resources.AddWalletPageViewModel_OpenFiles_Title, new[] { "json" });
 
 			if (file is null)
 			{
@@ -86,7 +83,10 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
+			await ShowErrorAsync(
+				Lang.Resources.AddWalletPageViewModel_Error_UnableImport_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.AddWalletPageViewModel_Error_UnableImport_Caption);
 		}
 	}
 

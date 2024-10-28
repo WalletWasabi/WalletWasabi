@@ -6,13 +6,15 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
-[NavigationMetaData(Title = "Rename Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class WalletRenameViewModel : DialogViewModelBase<Unit>
 {
 	[AutoNotify] private string _newWalletName;
 
 	private WalletRenameViewModel(IWalletModel wallet)
 	{
+		Title = Lang.Resources.WalletRenameViewModel_Title;
+
 		_newWalletName = wallet.Name;
 
 		this.ValidateProperty(

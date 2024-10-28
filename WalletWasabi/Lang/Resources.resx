@@ -1,0 +1,1425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!--......................................................-->
+  <!--.........................Utils........................-->
+  <!--......................................................-->
+  <data name="Utils_Plural" xml:space="preserve">
+    <value>s</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.....................Single Words.....................-->
+  <!-- This is the reference to ensure consistency of usage -->
+  <!--......................................................-->
+  <data name="Words_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Words_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Words_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Words_Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="Words_Addresses" xml:space="preserve">
+    <value>Addresses</value>
+  </data>
+  <data name="Words_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="Words_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Words_Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="Words_and" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="Words_Backend" xml:space="preserve">
+    <value>Backend</value>
+  </data>
+  <data name="Words_Background" xml:space="preserve">
+    <value>Background</value>
+  </data>
+  <data name="Words_Bitcoin" xml:space="preserve">
+    <value>Bitcoin</value>
+  </data>
+  <data name="Words_Broadcast" xml:space="preserve">
+    <value>Broadcast</value>
+  </data>
+  <data name="Words_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Words_BTC" xml:space="preserve">
+    <value>BTC</value>
+  </data>
+  <data name="Words_Bug" xml:space="preserve">
+    <value>Bug</value>
+  </data>
+  <data name="Words_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Words_Change" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Words_Clearnet" xml:space="preserve">
+    <value>Clearnet</value>
+  </data>
+  <data name="Words_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Words_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Words_Coins" xml:space="preserve">
+    <value>Coins</value>
+  </data>
+  <data name="Words_ColdCard" xml:space="preserve">
+    <value>ColdCard</value>
+  </data>
+  <data name="Words_Computer" xml:space="preserve">
+    <value>Computer</value>
+  </data>
+  <data name="Words_Config" xml:space="preserve">
+    <value>Config</value>
+  </data>
+  <data name="Words_confirmation" xml:space="preserve">
+    <value>confirmation</value>
+  </data>
+  <data name="Words_Confirmed" xml:space="preserve">
+    <value>Confirmed</value>
+  </data>
+  <data name="Words_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Words_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Words_Coordinator" xml:space="preserve">
+    <value>Coordinator</value>
+  </data>
+  <data name="Words_Coordination" xml:space="preserve">
+    <value>Coordination</value>
+  </data>
+  <data name="Words_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Words_Core" xml:space="preserve">
+    <value>Core</value>
+  </data>
+  <data name="Words_Count" xml:space="preserve">
+    <value>Count</value>
+  </data>
+  <data name="Words_Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Words_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Words_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Words_Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Words_day" xml:space="preserve">
+    <value>day</value>
+  </data>
+  <data name="Words_Days" xml:space="preserve">
+    <value>Days</value>
+  </data>
+  <data name="Words_Display" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="Words_Docs" xml:space="preserve">
+    <value>Docs</value>
+  </data>
+  <data name="Words_Documentation" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Words_Dust" xml:space="preserve">
+    <value>Dust</value>
+  </data>
+  <data name="Words_Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Words_Endpoint" xml:space="preserve">
+    <value>Endpoint</value>
+  </data>
+  <data name="Words_Exclude" xml:space="preserve">
+    <value>Exclude</value>
+  </data>
+  <data name="Words_FAQ" xml:space="preserve">
+    <value>FAQ</value>
+  </data>
+  <data name="Words_Fee" xml:space="preserve">
+    <value>Fee</value>
+  </data>
+  <data name="Words_File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Words_Find" xml:space="preserve">
+    <value>Find</value>
+  </data>
+  <data name="Words_Folder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="Words_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Words_Freeze" xml:space="preserve">
+    <value>Freeze</value>
+  </data>
+  <data name="Words_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Words_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Words_GPU" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="Words_Guide" xml:space="preserve">
+    <value>Guide</value>
+  </data>
+  <data name="Words_Hardware" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Words_hour" xml:space="preserve">
+    <value>hour</value>
+  </data>
+  <data name="Words_Hours" xml:space="preserve">
+    <value>Hours</value>
+  </data>
+  <data name="Words_Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="Words_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Words_Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Words_Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Words_Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Words_Interface" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="Words_Knots" xml:space="preserve">
+    <value>Knots</value>
+  </data>
+  <data name="Words_Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="Words_Labels" xml:space="preserve">
+    <value>Labels</value>
+  </data>
+  <data name="Words_Ledger" xml:space="preserve">
+    <value>Ledger</value>
+  </data>
+  <data name="Words_License" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="Words_Logs" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Words_Main" xml:space="preserve">
+    <value>Main</value>
+  </data>
+  <data name="Words_minute" xml:space="preserve">
+    <value>minute</value>
+  </data>
+  <data name="Words_Mining" xml:space="preserve">
+    <value>Mining</value>
+  </data>
+  <data name="Words_Mode" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="Words_Months" xml:space="preserve">
+    <value>Months</value>
+  </data>
+  <data name="Words_Network" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="Words_New" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Words_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Words_Node" xml:space="preserve">
+    <value>Node</value>
+  </data>
+  <data name="Words_Onion" xml:space="preserve">
+    <value>Onion</value>
+  </data>
+  <data name="Words_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Words_Output" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Words_P2P" xml:space="preserve">
+    <value>P2P</value>
+  </data>
+  <data name="Words_Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Words_Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Words_Questions" xml:space="preserve">
+    <value>Questions</value>
+  </data>
+  <data name="Words_Recover" xml:space="preserve">
+    <value>Recover</value>
+  </data>
+  <data name="Words_Rate" xml:space="preserve">
+    <value>Rate</value>
+  </data>
+  <data name="Words_RegTest" xml:space="preserve">
+    <value>RegTest</value>
+  </data>
+  <data name="Words_Report" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="Words_Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="Words_sats" xml:space="preserve">
+    <value>sats</value>
+  </data>
+  <data name="Words_second" xml:space="preserve">
+    <value>second</value>
+  </data>
+  <data name="Words_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Words_Send" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="Words_Signed" xml:space="preserve">
+    <value>Signed</value>
+  </data>
+  <data name="Words_Skip" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="Words_Software" xml:space="preserve">
+    <value>Software</value>
+  </data>
+  <data name="Words_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Words_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Words_Startup" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="Words_Stats" xml:space="preserve">
+    <value>Stats</value>
+  </data>
+  <data name="Words_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Words_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Words_Support" xml:space="preserve">
+    <value>Support</value>
+  </data>
+  <data name="Words_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Words_TestNet" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Words_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Words_Threshold" xml:space="preserve">
+    <value>Threshold</value>
+  </data>
+  <data name="Words_Tor" xml:space="preserve">
+    <value>Tor</value>
+  </data>
+  <data name="Words_Transaction" xml:space="preserve">
+    <value>Transaction</value>
+  </data>
+  <data name="Words_Trezor" xml:space="preserve">
+    <value>Trezor</value>
+  </data>
+  <data name="Words_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Words_TXID" xml:space="preserve">
+    <value>TXID</value>
+  </data>
+  <data name="Words_URI" xml:space="preserve">
+    <value>URI</value>
+  </data>
+  <data name="Words_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Words_Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Words_Wallet" xml:space="preserve">
+    <value>Wallet</value>
+  </data>
+  <data name="Words_Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="Words_Weeks" xml:space="preserve">
+    <value>Weeks</value>
+  </data>
+  <data name="Words_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+
+  <!--......................................................-->
+  <!--................Common Short Sentences................-->
+  <!--......................................................-->
+  <data name="Sentences_Amount_sent" xml:space="preserve">
+    <value>Amount sent</value>
+  </data>
+  <data name="Sentences_Amount_received" xml:space="preserve">
+    <value>Amount received</value>
+  </data>
+  <data name="Sentences_BackendStatus" xml:space="preserve">
+    <value>Backend Status Page</value>
+  </data>
+  <data name="Sentences_BugReport" xml:space="preserve">
+    <value>Bug Report</value>
+  </data>
+  <data name="Sentences_GetStarted" xml:space="preserve">
+    <value>Get Started</value>
+  </data>
+  <data name="Sentences_Hide_sensitive_data" xml:space="preserve">
+    <value>Hide sensitive data</value>
+  </data>
+  <data name="Sentences_InvalidURI" xml:space="preserve">
+    <value>Invalid URI.</value>
+  </data>
+  <data name="Sentences_less_than" xml:space="preserve">
+    <value>less than</value>
+  </data>
+  <data name="Sentences_MITLicense" xml:space="preserve">
+    <value>MIT License</value>
+  </data>
+  <data name="Sentences_MustBeANumberBetween" xml:space="preserve">
+    <value>Must be a number between</value>
+  </data>
+  <data name="Sentences_Show_sensitive_data" xml:space="preserve">
+    <value>Show sensitive data</value>
+  </data>
+  <data name="Sentences_SourceCode" xml:space="preserve">
+    <value>Source Code</value>
+  </data>
+  <data name="Sentences_UserSupport" xml:space="preserve">
+    <value>User Support</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.................Localized View Models................-->
+  <!--.........Must have Title, Caption and Keywords........-->
+  <!--......................................................-->
+  <data name="AboutViewModel_Title" xml:space="preserve">
+    <value>About Wasabi</value>
+  </data>
+  <data name="AboutViewModel_Caption" xml:space="preserve">
+    <value>Display Wasabi's current info</value>
+  </data>
+  <data name="AboutViewModel_Keywords" xml:space="preserve">
+    <value>About, Software, Version, Source, Code, Github, Website, Coordinator, Status, Stats, Tor, Onion,
+			User, Support, Bug, Report, FAQ, Questions, Docs, Documentation, License, Advanced, Information,
+			Hardware, Wallet</value>
+  </data>
+
+  <data name="AddWalletPageViewModel_Title" xml:space="preserve">
+    <value>Add Wallet</value>
+  </data>
+  <data name="AddWalletPageViewModel_Caption" xml:space="preserve">
+    <value>Create, connect, import or recover</value>
+  </data>
+  <data name="AddWalletPageViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Add, Create, New, Recover, Import, Connect, Hardware, ColdCard, Trezor, Ledger</value>
+  </data>
+  <data name="AddWalletPageViewModel_OpenFiles_Title" xml:space="preserve">
+    <value>Import wallet file</value>
+  </data>
+  <data name="AddWalletPageViewModel_Error_UnableImport_Title" xml:space="preserve">
+    <value>Import wallet</value>
+  </data>
+  <data name="AddWalletPageViewModel_Error_UnableImport_Caption" xml:space="preserve">
+    <value>Wasabi was unable to import your wallet.</value>
+  </data>
+
+  <data name="AdvancedSettingsTabViewModel_Title" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="AdvancedSettingsTabViewModel_Caption" xml:space="preserve">
+    <value>Manage advanced settings</value>
+  </data>
+  <data name="AdvancedSettingsTabViewModel_Keywords" xml:space="preserve">
+    <value>Settings, Advanced, Enable, GPU, Backend, URI</value>
+  </data>
+
+  <data name="BitcoinTabSettingsViewModel_Title" xml:space="preserve">
+    <value>Bitcoin</value>
+  </data>
+  <data name="BitcoinTabSettingsViewModel_Caption" xml:space="preserve">
+    <value>Manage Bitcoin settings</value>
+  </data>
+  <data name="BitcoinTabSettingsViewModel_Keywords" xml:space="preserve">
+    <value>Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Node, Core, Knots, Version, Startup,
+		P2P, Endpoint, Dust, Threshold, BTC</value>
+  </data>
+  <data name="BitcoinTabSettingsViewModel_Error_InvalidEndpoint" xml:space="preserve">
+    <value>Invalid endpoint.</value>
+  </data>
+  <data name="BitcoinTabSettingsViewModel_Error_InvalidSeparator" xml:space="preserve">
+    <value>Use decimal point instead of comma.</value>
+  </data>
+  <data name="BitcoinTabSettingsViewModel_Error_InvalidDustThreahold" xml:space="preserve">
+    <value>Invalid dust threshold.</value>
+  </data>
+
+  <data name="BroadcasterViewModel_Title" xml:space="preserve">
+    <value>Broadcaster</value>
+  </data>
+  <data name="BroadcasterViewModel_Caption" xml:space="preserve">
+    <value>Broadcast your transaction here</value>
+  </data>
+  <data name="BroadcasterViewModel_Keywords" xml:space="preserve">
+    <value>Id, Input, Output, Amount, Network, Fee, Count, BTC, Signed, Paste, Import, Broadcast, Transaction</value>
+  </data>
+
+  <data name="BugReportLinkViewModel_Title" xml:space="preserve">
+    <value>Report a Bug</value>
+  </data>
+  <data name="BugReportLinkViewModel_Caption" xml:space="preserve">
+    <value>Open Wasabi's GitHub issues website</value>
+  </data>
+  <data name="BugReportLinkViewModel_Keywords" xml:space="preserve">
+    <value>Support, Website, Bug, Report</value>
+  </data>
+
+  <data name="BuyViewModel_Title" xml:space="preserve">
+    <value>Buy Anything</value>
+  </data>
+  <data name="BuyViewModel_Caption" xml:space="preserve">
+    <value>Display wallet buy dialog</value>
+  </data>
+  <data name="BuyViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Buy, Action</value>
+  </data>
+
+  <data name="DocsLinkViewModel_Title" xml:space="preserve">
+    <value>User Guide/Docs</value>
+  </data>
+  <data name="DocsLinkViewModel_Caption" xml:space="preserve">
+    <value>Open Wasabi's documentation website</value>
+  </data>
+  <data name="DocsLinkViewModel_Keywords" xml:space="preserve">
+    <value>User, Support, Website, Docs, Documentation, Guide</value>
+  </data>
+
+  <data name="GeneralSettingsTabViewModel_Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GeneralSettingsTabViewModel_Caption" xml:space="preserve">
+    <value>Manage general settings</value>
+  </data>
+  <data name="GeneralSettingsTabViewModel_Keywords" xml:space="preserve">
+    <value>Settings, General, Bitcoin, Dark, Mode, Run, Wasabi, Computer, System, Start, Background, Close,
+    Auto, Copy, Paste, Addresses, Custom, Change, Address, Fee, Display, Format, BTC, sats</value>
+  </data>
+  <data name="GeneralSettingsTabViewModel_Error_CouldntSaveChanges_Message" xml:space="preserve">
+    <value>Couldn't save your change, please see the logs for further information.</value>
+  </data>
+  <data name="GeneralSettingsTabViewModel_Error_CouldntSaveChanges_Caption" xml:space="preserve">
+    <value>"Error occurred.</value>
+  </data>
+
+  <data name="OpenConfigFileViewModel_Title" xml:space="preserve">
+    <value>Config File</value>
+  </data>
+  <data name="OpenConfigFileViewModel_Keywords" xml:space="preserve">
+    <value>Browse, Open, Config, File</value>
+  </data>
+
+  <data name="OpenDataFolderViewModel_Title" xml:space="preserve">
+    <value>Data Folder</value>
+  </data>
+  <data name="OpenDataFolderViewModel_Keywords" xml:space="preserve">
+    <value>Browse, Open, Data, Folder</value>
+  </data>
+
+  <data name="OpenLogsViewModel_Title" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="OpenLogsViewModel_Keywords" xml:space="preserve">
+    <value>Browse, Open, Logs</value>
+  </data>
+
+  <data name="OpenTorLogsViewModel_Title" xml:space="preserve">
+    <value>Tor Logs</value>
+  </data>
+  <data name="OpenTorLogsViewModel_Keywords" xml:space="preserve">
+    <value>Browse, Open, Tor, Logs</value>
+  </data>
+
+  <data name="OpenWalletsFolderViewModel_Title" xml:space="preserve">
+    <value>Wallet Folder</value>
+  </data>
+  <data name="OpenWalletsFolderViewModel_Keywords" xml:space="preserve">
+    <value>Browse, Open, Wallet, Folder</value>
+  </data>
+
+  <data name="ReceiveViewModel_Title" xml:space="preserve">
+    <value>Receive</value>
+  </data>
+  <data name="ReceiveViewModel_Caption" xml:space="preserve">
+    <value>Display wallet receive dialog</value>
+  </data>
+  <data name="ReceiveViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Receive, Action</value>
+  </data>
+
+  <data name="SendViewModel_Title" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="SendViewModel_Caption" xml:space="preserve">
+    <value>Display wallet send dialog</value>
+  </data>
+  <data name="SendViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Send, Action</value>
+  </data>
+  <data name="SendViewModel_Error_Amount_LessThanSupply_Message" xml:space="preserve">
+    <value>Amount must be less than the total supply of BTC.</value>
+  </data>
+  <data name="SendViewModel_Error_Amount_InsufficientFunds_Message" xml:space="preserve">
+    <value>Insufficient funds to cover the amount requested.</value>
+  </data>
+  <data name="SendViewModel_Error_Amount_Negative_Message" xml:space="preserve">
+    <value>Amount must be more than 0 BTC</value>
+  </data>
+  <data name="SendViewModel_Error_Address_Invalid_Message" xml:space="preserve">
+    <value>Input a valid BTC address or URL.</value>
+  </data>
+  <data name="SendViewModel_Error_Payjoin_HardwareWalletNotPossible_Message" xml:space="preserve">
+    <value>Payjoin is not possible with hardware wallets.</value>
+  </data>
+
+  <data name="SettingsPageViewModel_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsPageViewModel_Caption" xml:space="preserve">
+    <value>Manage appearance, privacy and other settings</value>
+  </data>
+  <data name="SettingsPageViewModel_Keywords" xml:space="preserve">
+    <value>Settings, General, User, Interface, Advanced</value>
+  </data>
+  <data name="SettingsPageViewModel_Restart" xml:space="preserve">
+    <value>To apply the new setting, Wasabi Wallet needs to be restarted</value>
+  </data>
+
+  <data name="UserSupportViewModel_Title" xml:space="preserve">
+    <value>User Support</value>
+  </data>
+  <data name="UserSupportViewModel_Caption" xml:space="preserve">
+    <value>Open Wasabi's user support website</value>
+  </data>
+  <data name="UserSupportViewModel_Keywords" xml:space="preserve">
+    <value>User, Support, Website</value>
+  </data>
+
+  <data name="WalletCoinJoinSettingsViewModel_Title" xml:space="preserve">
+    <value>Coinjoin Settings</value>
+  </data>
+  <data name="WalletCoinJoinSettingsViewModel_Caption" xml:space="preserve">
+    <value>Display wallet coinjoin settings</value>
+  </data>
+  <data name="WalletCoinJoinSettingsViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Settings</value>
+  </data>
+
+  <data name="WalletCoinsViewModel_Title" xml:space="preserve">
+    <value>Wallet Coins</value>
+  </data>
+  <data name="WalletCoinsViewModel_Caption" xml:space="preserve">
+    <value>Display wallet coins</value>
+  </data>
+  <data name="WalletCoinsViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Coins, UTXO</value>
+  </data>
+
+  <data name="WalletInfoViewModel_Title" xml:space="preserve">
+    <value>Wallet Info</value>
+  </data>
+  <data name="WalletInfoViewModel_Caption" xml:space="preserve">
+    <value>Display wallet info</value>
+  </data>
+  <data name="WalletInfoViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Info</value>
+  </data>
+
+  <data name="WalletSettingsViewModel_Title" xml:space="preserve">
+    <value>Wallet Settings</value>
+  </data>
+  <data name="WalletSettingsViewModel_Caption" xml:space="preserve">
+    <value>Display wallet settings</value>
+  </data>
+  <data name="WalletSettingsViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Settings</value>
+  </data>
+
+  <data name="WalletStatsViewModel_Title" xml:space="preserve">
+    <value>Wallet Stats</value>
+  </data>
+  <data name="WalletStatsViewModel_Caption" xml:space="preserve">
+    <value>Display wallet stats</value>
+  </data>
+  <data name="WalletStatsViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Stats</value>
+  </data>
+
+  <data name="FindCoordinatorLinkViewModel_Title" xml:space="preserve">
+    <value>Find a Coordinator</value>
+  </data>
+  <data name="FindCoordinatorLinkViewModel_Caption" xml:space="preserve">
+    <value>Open Wasabi's documentation website</value>
+  </data>
+  <data name="FindCoordinatorLinkViewModel_Keywords" xml:space="preserve">
+    <value>Find, Coordinator, Coinjoin, Docs, Documentation, Guide</value>
+  </data>
+
+  <data name="CoordinatorTabSettingsViewModel_Title" xml:space="preserve">
+    <value>Coordinator</value>
+  </data>
+  <data name="CoordinatorTabSettingsViewModel_Caption" xml:space="preserve">
+    <value>Manage Coordinator settings</value>
+  </data>
+  <data name="CoordinatorTabSettingsViewModel_Keywords" xml:space="preserve">
+    <value>Settings, Bitcoin, BTC, Coordinator, Coordination, Fee, Coinjoin, Rate, Mining</value>
+  </data>
+
+  <!--......................................................-->
+  <!--...............Non Localized View Models..............-->
+  <!--......................................................-->
+  <data name="AddedWalletPageViewModel_Title" xml:space="preserve">
+    <value>Success</value>
+  </data>
+
+  <data name="AddressLabelEditViewModel_Title" xml:space="preserve">
+    <value>Edit Labels</value>
+  </data>
+
+  <data name="AuthorizationDialogBase_AuthorizationFailed_Message" xml:space="preserve">
+    <value>The Authorization has failed, please try again.</value>
+  </data>
+
+  <data name="AdvancedRecoveryOptionsViewModel_Title" xml:space="preserve">
+    <value>Advanced Recovery Options</value>
+  </data>
+
+  <data name="BroadcastTransactionViewModel_Title" xml:space="preserve">
+    <value>Broadcast Transaction</value>
+  </data>
+  <data name="BroadcastTransactionViewModel_Error_Generic_Caption" xml:space="preserve">
+    <value>It was not possible to broadcast the transaction.</value>
+  </data>
+
+  <data name="CancelTransactionDialogViewModel_Title" xml:space="preserve">
+    <value>Cancel Transaction</value>
+  </data>
+  <data name="CancelTransactionDialogViewModel_Success" xml:space="preserve">
+    <value>Your transaction has been successfully canceled.</value>
+  </data>
+  <data name="CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Title" xml:space="preserve">
+    <value>Cancellation Failed</value>
+  </data>
+  <data name="CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Caption" xml:space="preserve">
+    <value>Wasabi was unable to cancel your transaction.</value>
+  </data>
+  <data name="CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Message" xml:space="preserve">
+    <value>The transaction is already confirmed.</value>
+  </data>
+
+  <data name="CoinJoinDetailsViewModel_Title" xml:space="preserve">
+    <value>Coinjoin Details</value>
+  </data>
+
+  <data name="CoinJoinProfilesViewModel_Title" xml:space="preserve">
+    <value>Coinjoin Strategy</value>
+  </data>
+
+  <data name="CoinJoinsDetailsViewModel_Title" xml:space="preserve">
+    <value>Coinjoins</value>
+  </data>
+
+  <data name="ConfirmDeleteOrderDialogViewModel_Title" xml:space="preserve">
+    <value>Delete Order</value>
+  </data>
+
+  <data name="ConfirmHideAddressViewModel_Title" xml:space="preserve">
+    <value>Hide Address</value>
+  </data>
+
+  <data name="ConfirmRecoveryWordsViewModel_Title" xml:space="preserve">
+    <value>Confirm Recovery Words</value>
+  </data>
+  <data name="ConfirmRecoveryWordsViewModel_AddPassphrase_Title" xml:space="preserve">
+    <value>Add Passphrase</value>
+  </data>
+  <data name="ConfirmRecoveryWordsViewModel_AddPassphrase_Caption" xml:space="preserve">
+    <value>Store your passphrase safely, it cannot be reset if lost.\n
+      It's needed to open and to recover your wallet.\n
+      It's a recovery words extension for more security.</value>
+  </data>
+
+  <data name="ConnectHardwareWalletViewModel_Title" xml:space="preserve">
+    <value>Hardware Wallet</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_ConnectPcEnterPin" xml:space="preserve">
+    <value>Connect the hardware wallet to the PC / Enter the PIN on the device.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_MakeSureOnlyOne" xml:space="preserve">
+    <value>Make sure you have only one hardware wallet connected to the PC.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_AlreadyAdded" xml:space="preserve">
+    <value>The connected hardware wallet is already added to the software, click below to open it or click Rescan to search again.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_ColdcardNotInitialized" xml:space="preserve">
+    <value>Initialize your device first.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_OtherNotInitialized" xml:space="preserve">
+    <value>Check your device and finish the initialization.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_CodeRequested" xml:space="preserve">
+    <value>Something happened with your device, unlock it with your PIN/Passphrase or reconnect to the PC.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_PassphraseRequested" xml:space="preserve">
+    <value>Enter your passphrase on your device.</value>
+  </data>
+  <data name="ConnectHardwareWalletViewModel_EvaluateDetection_PinRequested" xml:space="preserve">
+    <value>Enter your PIN on your device.</value>
+  </data>
+
+  <data name="CustomFeeRateDialogViewModel_Title" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="CustomFeeRateDialogViewModel_Error_FeeEntered_Invalid" xml:space="preserve">
+    <value>The entered fee is not valid.</value>
+  </data>
+  <data name="CustomFeeRateDialogViewModel_Error_FeeEntered_TooLow" xml:space="preserve">
+    <value>Cannot be less than 1 sat/vByte.</value>
+  </data>
+  <data name="CustomFeeRateDialogViewModel_Error_FeeEntered_TooHigh" xml:space="preserve">
+    <value>The entered fee is too high.</value>
+  </data>
+
+  <data name="DetectedHardwareWalletViewModel_Title" xml:space="preserve">
+    <value>Hardware Wallet</value>
+  </data>
+  <data name="DetectedHardwareWalletViewModel_Error_AddingWallet_Caption" xml:space="preserve">
+    <value>Error occurred while adding your wallet.</value>
+  </data>
+
+  <data name="EconomicCoinJoinProfileViewModel_Title" xml:space="preserve">
+    <value>Minimize Costs</value>
+  </data>
+  <data name="EconomicCoinJoinProfileViewModel_Description" xml:space="preserve">
+    <value>For savers. Only participates in coinjoins during the cheapest parts of the week.</value>
+  </data>
+
+  <data name="ExcludedCoinsViewModel_Title" xml:space="preserve">
+    <value>Exclude Coins</value>
+  </data>
+  <data name="ExcludedCoinsViewModel_Caption" xml:space="preserve">
+    <value>Display exclude coins</value>
+  </data>
+  <data name="ExcludedCoinsViewModel_Keywords" xml:space="preserve">
+    <value>Wallet, Exclude, Coins, Coinjoin, Freeze, UTXO</value>
+  </data>
+
+  <data name="HardwareWalletAuthDialogViewModel_Title" xml:space="preserve">
+    <value>Authorize with Hardware Wallet</value>
+  </data>
+  <data name="HardwareWalletAuthDialogViewModel_Error_AuthorizationFailed" xml:space="preserve">
+    <value>Authorization failed.\nPlease, check your device and try again.</value>
+  </data>
+
+  <data name="LabelSelectionViewModel_NoInformation_Tip" xml:space="preserve">
+    <value>There is no information about these people, only use it when necessary!</value>
+  </data>
+
+  <data name="LoadingViewModel_PercentCompleted" xml:space="preserve">
+    <value>{0}% completed</value>
+  </data>
+  <data name="LoadingViewModel_TimeRemaining" xml:space="preserve">
+    <value>- {0} remaining</value>
+  </data>
+
+  <data name="LoadTransactionViewModel_Title" xml:space="preserve">
+    <value>Transaction Broadcaster</value>
+  </data>
+  <data name="LoadTransactionViewModel_ImportTransaction_Title" xml:space="preserve">
+    <value>Import Transaction</value>
+  </data>
+  <data name="LoadTransactionViewModel_Error_LoadTransaction_Caption" xml:space="preserve">
+    <value>It was not possible to load the transaction.</value>
+  </data>
+  <data name="LoadTransactionViewModel_Error_PasteTransaction_Caption" xml:space="preserve">
+    <value>It was not possible to paste the transaction.</value>
+  </data>
+
+  <data name="LoginViewModel_Error_PassphraseIncorrect_Message" xml:space="preserve">
+    <value>The passphrase is incorrect! Please try again.</value>
+  </data>
+  <data name="LoginViewModel_Error_CompatibilityPasswordUsed_Caption" xml:space="preserve">
+    <value>Compatibility password was used</value>
+  </data>
+
+  <data name="ManualCoinJoinProfileDialogViewModel_Title" xml:space="preserve">
+    <value>Coinjoin Strategy Settings</value>
+  </data>
+
+  <data name="ManualCoinJoinProfileViewModel_Title" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+
+  <data name="ManualControlDialogViewModel_Title" xml:space="preserve">
+    <value>Manual Control</value>
+  </data>
+
+  <data name="NewCoordinatorConfirmationDialogViewModel_Title" xml:space="preserve">
+    <value>Coordinator Detected</value>
+  </data>
+
+  <data name="NewWalletAdvancedOptionsDialogViewModel_Title" xml:space="preserve">
+    <value>Advanced options</value>
+  </data>
+
+  <data name="PasswordAuthDialogViewModel_Title" xml:space="preserve">
+    <value>Advanced options</value>
+  </data>
+  <data name="PasswordAuthDialogViewModel_Error_AuthorizationFailed_Message" xml:space="preserve">
+    <value>The passphrase is incorrect.\nPlease try again.</value>
+  </data>
+
+  <data name="PrivacyControlViewModel_Title" xml:space="preserve">
+    <value>Privacy Control</value>
+  </data>
+
+  <data name="PrivacyModeViewModel_Title" xml:space="preserve">
+    <value>Discreet Mode</value>
+  </data>
+
+  <data name="PrivacyRingViewModel_Title" xml:space="preserve">
+    <value>Privacy Progress</value>
+  </data>
+
+  <data name="PrivateCoinJoinProfileViewModel_Title" xml:space="preserve">
+    <value>Maximize Privacy</value>
+  </data>
+  <data name="PrivateCoinJoinProfileViewModel_Description" xml:space="preserve">
+    <value>Choice of the paranoid. Optimizes for privacy at all costs.</value>
+  </data>
+
+  <data name="ReceiveAddressesViewModel_Title" xml:space="preserve">
+    <value>Addresses Awaiting Payment</value>
+  </data>
+
+  <data name="ReceiveAddressViewModel_Title" xml:space="preserve">
+    <value>Receive Address</value>
+  </data>
+  <data name="ReceiveAddressViewModel_Error_UnableToSendAddressToDevice_Caption" xml:space="preserve">
+    <value>Unable to send the address to the device</value>
+  </data>
+
+  <data name="RecoverWalletViewModel_Title" xml:space="preserve">
+    <value>Recovery Words</value>
+  </data>
+  <data name="RecoverWalletViewModel_CreatePassword_Title" xml:space="preserve">
+    <value>Add Passphrase</value>
+  </data>
+  <data name="RecoverWalletViewModel_CreatePassword_Caption" xml:space="preserve">
+    <value>If you used a passphrase when you created your wallet you must type it below, otherwise leave this empty.</value>
+  </data>
+  <data name="RecoverWalletViewModel_Error_NotAbleRecover_Caption" xml:space="preserve">
+    <value>Wasabi was unable to recover the wallet.</value>
+  </data>
+  <data name="RecoverWalletViewModel_Error_InvalidSet_Message" xml:space="preserve">
+    <value>Invalid set. Make sure you typed all your recovery words in the correct order.</value>
+  </data>
+
+  <data name="RecoveryWordsViewModel_Title" xml:space="preserve">
+    <value>Recovery Words</value>
+  </data>
+
+  <data name="OpenFileViewModel_Error_Generic_Title" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="OpenFileViewModel_Error_Generic_Caption" xml:space="preserve">
+    <value>Wasabi was unable to open the file.</value>
+  </data>
+
+  <data name="SelectCoinsDialogViewModel_Title" xml:space="preserve">
+    <value>Coin Control</value>
+  </data>
+
+  <data name="SendFeeViewModel_Title" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="SendFeeViewModel_Error_TransactionFee_Title" xml:space="preserve">
+    <value>Transaction fee</value>
+  </data>
+  <data name="SendFeeViewModel_Error_TransactionFee_Message" xml:space="preserve">
+    <value>Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.</value>
+  </data>
+
+  <data name="SendSuccessViewModel_Title" xml:space="preserve">
+    <value>Payment successful</value>
+  </data>
+  <data name="SendSuccessViewModel_Caption" xml:space="preserve">
+    <value>Your transaction has been successfully sent.</value>
+  </data>
+
+  <data name="ShowQrCameraDialogViewModel_Title" xml:space="preserve">
+    <value>Camera</value>
+  </data>
+  <data name="ShowQrCameraDialogViewModel_Error_Generic_Caption" xml:space="preserve">
+    <value>Something went wrong</value>
+  </data>
+
+  <data name="ShuttingDownViewModel_Title" xml:space="preserve">
+    <value>Please wait to shut down...</value>
+  </data>
+
+  <data name="SpeedUpTransactionDialogViewModel_Title" xml:space="preserve">
+    <value>Speed Up Transaction</value>
+  </data>
+  <data name="SpeedUpTransactionDialogViewModel_Success_Caption" xml:space="preserve">
+    <value>Your transaction has been successfully accelerated.</value>
+  </data>
+  <data name="SpeedUpTransactionDialogViewModel_Error_Generic_Title" xml:space="preserve">
+    <value>Speed Up Failed</value>
+  </data>
+  <data name="SpeedUpTransactionDialogViewModel_Error_Generic_Caption" xml:space="preserve">
+    <value>Wasabi was unable to speed up your transaction.</value>
+  </data>
+  <data name="SpeedUpTransactionDialogViewModel_Error_AlreadyConfirmed_Message" xml:space="preserve">
+    <value>The transaction is already confirmed.</value>
+  </data>
+
+  <data name="SpeedyCoinJoinProfile_Title" xml:space="preserve">
+    <value>Maximize Speed</value>
+  </data>
+  <data name="SpeedyCoinJoinProfile_Description" xml:space="preserve">
+    <value>Getting things done. Geared towards speed and convenience.</value>
+  </data>
+
+  <data name="SuccessViewModel_Title" xml:space="preserve">
+    <value>Success</value>
+  </data>
+
+  <data name="StatusIconViewModel_NewVersion_ReadyToInstall" xml:space="preserve">
+    <value>Version {0} is now ready to install</value>
+  </data>
+  <data name="StatusIconViewModel_NewVersion_Available" xml:space="preserve">
+    <value>Version {0} is now available</value>
+  </data>
+
+  <data name="TransactionDetailsViewModel_Title" xml:space="preserve">
+    <value>Transaction Details</value>
+  </data>
+
+  <data name="TransactionPreviewViewModel_Title" xml:space="preserve">
+    <value>Transaction Preview</value>
+  </data>
+  <data name="TransactionPreviewViewModel_PSBT_Next" xml:space="preserve">
+    <value>Save PSBT file</value>
+  </data>
+  <data name="TransactionPreviewViewModel_PSBT_Error_UnableExport_Title" xml:space="preserve">
+    <value>Transaction Export</value>
+  </data>
+  <data name="TransactionPreviewViewModel_PSBT_Error_UnableExport_Caption" xml:space="preserve">
+    <value>Wasabi was unable to export the PSBT.</value>
+  </data>
+  <data name="TransactionPreviewViewModel_Standard_Next" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="TransactionPreviewViewModel_Standard_Error_Generic_Title" xml:space="preserve">
+    <value>Transaction Building</value>
+  </data>
+  <data name="TransactionPreviewViewModel_Standard_Error_Generic_Caption" xml:space="preserve">
+    <value>Wasabi was unable to create your transaction.</value>
+  </data>
+  <data name="TransactionPreviewViewModel_Standard_Error_FeeExceedsPayment_Message" xml:space="preserve">
+    <value>The transaction cannot be sent because its fee is more than the payment amount.</value>
+  </data>
+  <data name="TransactionPreviewViewModel_Standard_Error_InsufficientFundsForFee_Message" xml:space="preserve">
+    <value>There are not enough funds to cover the transaction fee.</value>
+  </data>
+
+  <data name="WalletNamePageViewModel_Title" xml:space="preserve">
+    <value>Wallet Name</value>
+  </data>
+  <data name="WalletNamePageViewModel_Error_UnableImport_Title" xml:space="preserve">
+    <value>"Import wallet</value>
+  </data>
+  <data name="WalletNamePageViewModel_Error_UnableImport_Caption" xml:space="preserve">
+    <value>"Wasabi was unable to import your wallet.</value>
+  </data>
+
+  <data name="WalletRenameViewModel_Title" xml:space="preserve">
+    <value>Rename Wallet</value>
+  </data>
+
+  <data name="WalletVerifyRecoveryWordsViewModel_Title" xml:space="preserve">
+    <value>Verify Recovery Words</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.......................Music Box......................-->
+  <!--......................................................-->
+  <data name="MusicBox_CountDownMessage" xml:space="preserve">
+    <value>Awaiting auto-start of coinjoin</value>
+  </data>
+  <data name="MusicBox_WaitingMessage" xml:space="preserve">
+    <value>Awaiting coinjoin</value>
+  </data>
+  <data name="MusicBox_UneconomicalRoundMessage" xml:space="preserve">
+    <value>Awaiting cheaper coinjoins</value>
+  </data>
+  <data name="MusicBox_RandomlySkippedRoundMessage" xml:space="preserve">
+    <value>Skipping a round for better privacy</value>
+  </data>
+  <data name="MusicBox_CoinjoinMiningFeeRateTooHighMessage" xml:space="preserve">
+    <value>Mining fee rate was too high</value>
+  </data>
+  <data name="MusicBox_MinInputCountTooLowMessage" xml:space="preserve">
+    <value>Min input count was too low</value>
+  </data>
+  <data name="MusicBox_PauseMessage" xml:space="preserve">
+    <value>Coinjoin is paused</value>
+  </data>
+  <data name="MusicBox_StoppedMessage" xml:space="preserve">
+    <value>Coinjoin has stopped</value>
+  </data>
+  <data name="MusicBox_PressPlayToStartMessage" xml:space="preserve">
+    <value>Press Play to start</value>
+  </data>
+  <data name="MusicBox_RoundSucceedMessage" xml:space="preserve">
+    <value>Coinjoin successful! Continuing...</value>
+  </data>
+  <data name="MusicBox_RoundFinishedMessage" xml:space="preserve">
+    <value>Round ended, awaiting next round</value>
+  </data>
+  <data name="MusicBox_AbortedNotEnoughAlicesMessage" xml:space="preserve">
+    <value>Insufficient participants, retrying...</value>
+  </data>
+  <data name="MusicBox_CoinJoinInProgress" xml:space="preserve">
+    <value>Coinjoin in progress</value>
+  </data>
+  <data name="MusicBox_InputRegistrationMessage" xml:space="preserve">
+    <value>Awaiting other participants</value>
+  </data>
+  <data name="MusicBox_WaitingForBlameRoundMessage" xml:space="preserve">
+    <value>Awaiting the blame round</value>
+  </data>
+  <data name="MusicBox_WaitingRoundMessage" xml:space="preserve">
+    <value>Awaiting a round</value>
+  </data>
+  <data name="MusicBox_PlebStopMessage" xml:space="preserve">
+    <value>Coinjoin may be uneconomical</value>
+  </data>
+  <data name="MusicBox_PlebStopMessageBelow" xml:space="preserve">
+    <value>Add more funds or press Play to bypass"</value>
+  </data>
+  <data name="MusicBox_NoCoinsEligibleToMixMessage" xml:space="preserve">
+    <value>Insufficient funds eligible for coinjoin</value>
+  </data>
+  <data name="MusicBox_UserInSendWorkflowMessage" xml:space="preserve">
+    <value>Awaiting closure of send dialog</value>
+  </data>
+  <data name="MusicBox_AllPrivateMessage" xml:space="preserve">
+    <value>Hurray! All your funds are private!</value>
+  </data>
+  <data name="MusicBox_BackendNotConnected" xml:space="preserve">
+    <value>Awaiting connection</value>
+  </data>
+  <data name="MusicBox_GeneralErrorMessage" xml:space="preserve">
+    <value>Awaiting valid conditions</value>
+  </data>
+  <data name="MusicBox_WaitingForConfirmedFunds" xml:space="preserve">
+    <value>Awaiting confirmed funds</value>
+  </data>
+  <data name="MusicBox_CoinsRejectedMessage" xml:space="preserve">
+    <value>Some funds are rejected from coinjoining</value>
+  </data>
+  <data name="MusicBox_OnlyImmatureCoinsAvailableMessage" xml:space="preserve">
+    <value>Only immature funds are available</value>
+  </data>
+  <data name="MusicBox_OnlyExcludedCoinsAvailableMessage" xml:space="preserve">
+    <value>Only excluded funds are available</value>
+  </data>
+  <data name="MusicBox_WaitingForResponse" xml:space="preserve">
+    <value>Waiting for response</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.......................CLI Help.......................-->
+  <!--......................................................-->
+  <data name="CLI_NetworkSettingsHint" xml:space="preserve">
+    <value>The Bitcoin network to use: main, testnet, or regtest</value>
+  </data>
+  <data name="CLI_MainNetBackendUriSettingsHint" xml:space="preserve">
+    <value>The backend server's URL to connect to when the Bitcoin network is Main</value>
+  </data>
+  <data name="CLI_TestNetBackendUriSettingsHint" xml:space="preserve">
+    <value>The backend server's URL to connect to when the Bitcoin network is TestNet</value>
+  </data>
+  <data name="CLI_RegTestBackendUriSettingsHint" xml:space="preserve">
+    <value>The backend server's URL to connect to when the Bitcoin network is RegTest</value>
+  </data>
+  <data name="CLI_MainNetCoordinatorUriSettingsHint" xml:space="preserve">
+    <value>The coordinator server's URL to connect to when the Bitcoin network is Main</value>
+  </data>
+  <data name="CLI_TestNetCoordinatorUriSettingsHint" xml:space="preserve">
+    <value>The coordinator server's URL to connect to when the Bitcoin network is TestNet</value>
+  </data>
+  <data name="CLI_RegTestCoordinatorUriSettingsHint" xml:space="preserve">
+    <value>The coordinator server's URL to connect to when the Bitcoin network is RegTest</value>
+  </data>
+  <data name="CLI_UseTorSettingsHint" xml:space="preserve">
+    <value>All the communications go through the Tor network</value>
+  </data>
+  <data name="CLI_TorFolderSettingsHint" xml:space="preserve">
+    <value>Folder where Tor binary is located</value>
+  </data>
+  <data name="CLI_TorSocksPortSettingsHint" xml:space="preserve">
+    <value>Tor is started to listen with the specified SOCKS5 port</value>
+  </data>
+  <data name="CLI_TorControlPortSettingsHint" xml:space="preserve">
+    <value>Tor is started to listen with the specified control port</value>
+  </data>
+  <data name="CLI_TorBridgesSettingsHint" xml:space="preserve">
+    <value>Tor is started with the set of specified bridges</value>
+  </data>
+  <data name="CLI_TerminateTorOnExitSettingsHint" xml:space="preserve">
+    <value>Stop the Tor process when Wasabi is closed</value>
+  </data>
+  <data name="CLI_DownloadNewVersionSettingsHint" xml:space="preserve">
+    <value>Automatically download any new released version of Wasabi</value>
+  </data>
+  <data name="CLI_StartLocalBitcoinCoreOnStartupSettingsHint" xml:space="preserve">
+    <value>Start a local bitcoin node when Wasabi starts</value>
+  </data>
+  <data name="CLI_StopLocalBitcoinCoreOnShutdownSettingsHint" xml:space="preserve">
+    <value>Stop the local bitcoin node when Wasabi is closed</value>
+  </data>
+  <data name="CLI_LocalBitcoinCoreDataDirSettingsHint" xml:space="preserve">
+    <value>The path of the data directory to be used by the local bitcoin node</value>
+  </data>
+  <data name="CLI_JsonRpcServerEnabledSettingsHint" xml:space="preserve">
+    <value>Start the Json RPC Server and accept requests</value>
+  </data>
+  <data name="CLI_JsonRpcUserSettingsHint" xml:space="preserve">
+    <value>The user name that is authorized to make requests to the Json RPC server</value>
+  </data>
+  <data name="CLI_JsonRpcPasswordSettingsHint" xml:space="preserve">
+    <value>The user password that is authorized to make requests to the Json RPC server</value>
+  </data>
+  <data name="CLI_JsonRpcServerPrefixesSettingsHint" xml:space="preserve">
+    <value>The Json RPC server prefixes</value>
+  </data>
+  <data name="CLI_RpcOnionEnabledSettingsHint" xml:space="preserve">
+    <value>Publish the Json RPC Server as a Tor Onion service</value>
+  </data>
+  <data name="CLI_DustThresholdSettingsHint" xml:space="preserve">
+    <value>The amount threshold under which coins received from others to already used addresses are considered a dust attack</value>
+  </data>
+  <data name="CLI_BlockOnlyModeSettingsHint" xml:space="preserve">
+    <value>Wasabi listens only for blocks and not for transactions</value>
+  </data>
+  <data name="CLI_LogLevelSettingsHint" xml:space="preserve">
+    <value>The level of detail in the logs: trace, debug, info, warning, error, or critical</value>
+  </data>
+  <data name="CLI_LogModesSettingsHint" xml:space="preserve">
+    <value>The logging modes: console, and file (for multiple values use comma as a separator)</value>
+  </data>
+  <data name="CLI_EnableGpuSettingsHint" xml:space="preserve">
+    <value>Use a GPU to render the user interface</value>
+  </data>
+  <data name="CLI_MaxCoinjoinMiningFeeRateSettingsHint" xml:space="preserve">
+    <value>Max mining fee rate in sat/vb the client is willing to pay to participate into a round</value>
+  </data>
+  <data name="CLI_AbsoluteMinInputCountSettingsHint" xml:space="preserve">
+    <value>Minimum number of inputs the client is willing to accept to participate into a round</value>
+  </data>
+  <data name="CLI_LanguageSettingsHint" xml:space="preserve">
+    <value>The display language of all texts in the graphical interface</value>
+  </data>
+
+  <!--......................................................-->
+  <!--......................Exceptions......................-->
+  <!--......................................................-->
+  <data name="Exception_Generic_Friendly" xml:space="preserve">
+    <value>An unexpected error occurred. Please try again or contact support.</value>
+  </data>
+  <data name="Exception_HttpRequest_Friendly" xml:space="preserve">
+    <value>Something went wrong. Please try again.</value>
+  </data>
+  <data name="Exception_UnauthorizedAccess_Friendly" xml:space="preserve">
+    <value>Wasabi was unable to perform this action due to a lack of permission.</value>
+  </data>
+
+  <!--......................................................-->
+  <!--..........................HWI.........................-->
+  <!--......................................................-->
+  <data name="HWI_Error_DeviceConn" xml:space="preserve">
+    <value>Could not find the hardware wallet. Make sure it is connected.</value>
+  </data>
+  <data name="HWI_Error_ActionCanceled" xml:space="preserve">
+    <value>The transaction was canceled on the device.</value>
+  </data>
+  <data name="HWI_Error_Unknown" xml:space="preserve">
+    <value>Unknown Error. Make sure the device is connected and isn't busy, then try again.</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.......................Password.......................-->
+  <!--......................................................-->
+  <data name="Password_Message_CompatibilityPasswordWarn" xml:space="preserve">
+    <value>Compatibility passphrase was used! Please consider generating a new wallet to ensure recoverability!</value>
+  </data>
+  <data name="Password_Message_TrimWarn" xml:space="preserve">
+    <value>Leading and trailing white spaces will be removed!</value>
+  </data>
+  <data name="Password_Message_Matching" xml:space="preserve">
+    <value>Passphrases don't match.</value>
+  </data>
+  <data name="Password_Message_Whitespace" xml:space="preserve">
+    <value>Leading and trailing white spaces are not allowed!</value>
+  </data>
+  <data name="Password_Message_TooLong" xml:space="preserve">
+    <value>Passphrase is too long.</value>
+  </data>
+
+  <!--......................................................-->
+  <!--........................Status........................-->
+  <!--......................................................-->
+  <data name="Status_Tor_Running" xml:space="preserve">
+    <value>is running</value>
+  </data>
+  <data name="Status_Tor_NotRunning" xml:space="preserve">
+    <value>is not running</value>
+  </data>
+  <data name="Status_Tor_TurnedOff" xml:space="preserve">
+    <value>is turned off</value>
+  </data>
+
+  <data name="Status_Backend_Connected" xml:space="preserve">
+    <value>is connected</value>
+  </data>
+  <data name="Status_Backend_NotConnected" xml:space="preserve">
+    <value>is not connected</value>
+  </data>
+
+  <data name="Status_Peers_ConnectedCount" xml:space="preserve">
+    <value>{0} connected</value>
+  </data>
+  <!--......................................................-->
+  <!--....................Search Category....................-->
+  <!--......................................................-->
+  <data name="SearchCategory_NoCategory" xml:space="preserve">
+    <value>No Category</value>
+  </data>
+  <data name="SearchCategory_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="SearchCategory_Wallet" xml:space="preserve">
+    <value>Wallet</value>
+  </data>
+  <data name="SearchCategory_HelpAndSupport" xml:space="preserve">
+    <value>Help &amp; Support</value>
+  </data>
+  <data name="SearchCategory_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="SearchCategory_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SearchCategory_Transactions" xml:space="preserve">
+    <value>Transactions</value>
+  </data>
+</root>

@@ -1,18 +1,17 @@
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	Title = "Wallet Info",
-	Caption = "Display wallet info",
 	IconName = "nav_wallet_24_regular",
 	Order = 4,
-	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Info", },
+	Category = SearchCategory.Wallet,
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
+	IsLocalized = true,
 	Searchable = false)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
@@ -36,7 +35,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 		CancelCommand = ReactiveCommand.Create(() =>
 		{
 			ShowSensitiveData = !ShowSensitiveData;
-			ShowButtonText = ShowSensitiveData ? "Hide sensitive data" : "Show sensitive data";
+			ShowButtonText = ShowSensitiveData ? Lang.Resources.Sentences_Hide_sensitive_data : Lang.Resources.Sentences_Show_sensitive_data;
 			LockIconString = ShowSensitiveData ? "eye_hide_regular" : "eye_show_regular";
 		});
 	}

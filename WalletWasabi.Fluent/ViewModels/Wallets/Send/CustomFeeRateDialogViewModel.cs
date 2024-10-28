@@ -8,9 +8,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(
-	Title = "Advanced",
-	NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
@@ -19,6 +17,8 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
+		Title = Lang.Resources.CustomFeeRateDialogViewModel_Title;
+
 		_transactionInfo = transactionInfo;
 
 		_customFee = transactionInfo.IsCustomFeeUsed
@@ -68,13 +68,13 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 		if (!decimal.TryParse(customFeeString, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value))
 		{
-			errors.Add(ErrorSeverity.Error, "The entered fee is not valid.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.CustomFeeRateDialogViewModel_Error_FeeEntered_Invalid);
 			return;
 		}
 
 		if (value < decimal.One)
 		{
-			errors.Add(ErrorSeverity.Error, "Cannot be less than 1 sat/vByte.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.CustomFeeRateDialogViewModel_Error_FeeEntered_TooLow);
 			return;
 		}
 
@@ -84,7 +84,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 		}
 		catch (OverflowException)
 		{
-			errors.Add(ErrorSeverity.Error, "The entered fee is too high.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.CustomFeeRateDialogViewModel_Error_FeeEntered_TooHigh);
 			return;
 		}
 	}

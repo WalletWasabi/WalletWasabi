@@ -9,11 +9,12 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
-[NavigationMetaData(Title = "Broadcast Transaction")]
 public partial class BroadcastTransactionViewModel : RoutableViewModel
 {
 	public BroadcastTransactionViewModel(UiContext uiContext, SmartTransaction transaction)
 	{
+		Title = Lang.Resources.BroadcastTransactionViewModel_Title;
+
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -39,7 +40,10 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync("Broadcast Transaction", ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
+			await ShowErrorAsync(
+				Lang.Resources.BroadcastTransactionViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.BroadcastTransactionViewModel_Error_Generic_Caption);
 		}
 	}
 }

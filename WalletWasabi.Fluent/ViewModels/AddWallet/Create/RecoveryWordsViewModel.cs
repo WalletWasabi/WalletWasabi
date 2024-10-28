@@ -11,11 +11,12 @@ using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
 	private RecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options)
 	{
+		Title = Lang.Resources.RecoveryWordsViewModel_Title;
+
 		var (_, _, mnemonic) = options;
 
 		ArgumentNullException.ThrowIfNull(mnemonic);

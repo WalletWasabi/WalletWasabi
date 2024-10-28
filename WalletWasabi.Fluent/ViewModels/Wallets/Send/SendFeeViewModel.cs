@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,16 +6,15 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-	Title = "Send",
 	Caption = "",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
@@ -30,6 +28,8 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
+		Title = Lang.Resources.SendFeeViewModel_Title;
+
 		_isSilent = isSilent;
 		IsBusy = isSilent;
 		_wallet = wallet;
@@ -75,8 +75,8 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	private async Task FeeEstimationsAreNotAvailableAsync()
 	{
 		await ShowErrorAsync(
-			"Transaction fee",
-			"Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.",
+			Lang.Resources.SendFeeViewModel_Error_TransactionFee_Title,
+			Lang.Resources.SendFeeViewModel_Error_TransactionFee_Message,
 			"",
 			NavigationTarget.CompactDialogScreen);
 

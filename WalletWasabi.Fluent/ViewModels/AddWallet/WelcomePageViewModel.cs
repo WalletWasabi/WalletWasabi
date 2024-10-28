@@ -1,17 +1,23 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Welcome")]
 public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 {
 	private const int NumberOfPages = 1;
 	[AutoNotify] private int _selectedIndex;
 	[AutoNotify] private string? _nextLabel;
 	[AutoNotify] private bool _enableNextKey = true;
+	[AutoNotify] private bool _isRestartNeeded;
 
 	private WelcomePageViewModel()
 	{
@@ -26,7 +32,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Subscribe(
 				x =>
 				{
-					NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
+					NextLabel = x < NumberOfPages - 1 ? Lang.Resources.Words_Continue : Lang.Resources.Sentences_GetStarted;
 					EnableNextKey = x < NumberOfPages - 1;
 				});
 
@@ -38,9 +44,17 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 
 	public IObservable<bool> CanGoBack { get; }
 
+	public IEnumerable<DisplayLanguage> DisplayLanguagesList => Enum.GetValues(typeof(DisplayLanguage)).Cast<DisplayLanguage>();
+
+	public IApplicationSettings Settings => UiContext.ApplicationSettings;
+
 	private void OnNext()
 	{
-		if (SelectedIndex < NumberOfPages - 1)
+		if (IsRestartNeeded)
+		{
+			AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true);
+		}
+		else if (SelectedIndex < NumberOfPages - 1)
 		{
 			SelectedIndex++;
 		}
@@ -52,5 +66,14 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		{
 			Close();
 		}
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		UiContext.ApplicationSettings.IsRestartNeeded
+			.BindTo(this, x => x.IsRestartNeeded)
+			.DisposeWith(disposables);
 	}
 }

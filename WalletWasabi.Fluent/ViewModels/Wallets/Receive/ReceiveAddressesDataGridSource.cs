@@ -45,7 +45,7 @@ public static class ReceiveAddressesDataGridSource
 	private static IColumn<AddressViewModel> AddressColumn()
 	{
 		return new TemplateColumn<AddressViewModel>(
-			"Address",
+			Lang.Resources.Words_Address,
 			new FuncDataTemplate<AddressViewModel>((_, _) => new AddressColumnView(), true),
 			null,
 			options: new TemplateColumnOptions<AddressViewModel>
@@ -61,7 +61,7 @@ public static class ReceiveAddressesDataGridSource
 	private static IColumn<AddressViewModel> LabelsColumn()
 	{
 		return new TemplateColumn<AddressViewModel>(
-			"Labels",
+			Lang.Resources.Words_Labels,
 			new FuncDataTemplate<AddressViewModel>((_, _) => new LabelsColumnView(), true),
 			null,
 			options: new TemplateColumnOptions<AddressViewModel>
@@ -77,7 +77,7 @@ public static class ReceiveAddressesDataGridSource
 	private static IColumn<AddressViewModel> ScriptTypeColumn()
 	{
 		return new TemplateColumn<AddressViewModel>(
-			"Type",
+			Lang.Resources.Words_Type,
 			new FuncDataTemplate<AddressViewModel>((_, _) => new ScriptTypeView(), true),
 			null,
 			options: new TemplateColumnOptions<AddressViewModel>

@@ -35,55 +35,55 @@ public class Config
 		Data = new()
 		{
 			[ nameof(Network)] = (
-				"The Bitcoin network to use: main, testnet, or regtest",
+				Lang.Resources.CLI_NetworkSettingsHint,
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
 			[ nameof(MainNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is main",
+				Lang.Resources.CLI_MainNetBackendUriSettingsHint,
 				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs)),
 			[ nameof(TestNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is testnet",
+				Lang.Resources.CLI_TestNetBackendUriSettingsHint,
 				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs)),
 			[ nameof(RegTestBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is regtest",
+				Lang.Resources.CLI_RegTestBackendUriSettingsHint,
 				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is main",
+				Lang.Resources.CLI_MainNetCoordinatorUriSettingsHint,
 				GetStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
 			[ nameof(TestNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
+				Lang.Resources.CLI_TestNetCoordinatorUriSettingsHint,
 				GetStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
 			[ nameof(RegTestCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
+				Lang.Resources.CLI_RegTestCoordinatorUriSettingsHint,
 				GetStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
-				"All the communications go through the Tor network",
+				Lang.Resources.CLI_UseTorSettingsHint,
 				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
 			[ nameof(TorFolder)] = (
-				"Folder where Tor binary is located",
+				Lang.Resources.CLI_TorFolderSettingsHint,
 				GetNullableStringValue("TorFolder", null, cliArgs)),
 			[ nameof(TorSocksPort)] = (
-				"Tor is started to listen with the specified SOCKS5 port",
+				Lang.Resources.CLI_TorSocksPortSettingsHint,
 				GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs)),
 			[ nameof(TorControlPort)] = (
-				"Tor is started to listen with the specified control port",
+				Lang.Resources.CLI_TorControlPortSettingsHint,
 				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
 			[nameof(TorBridges)] = (
-				"Tor is started with the set of specified bridges",
+				Lang.Resources.CLI_TorBridgesSettingsHint,
 				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges, cliArgs)),
 			[nameof(TerminateTorOnExit)] = (
-				"Stop the Tor process when Wasabi is closed",
+				Lang.Resources.CLI_TerminateTorOnExitSettingsHint,
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
 			[ nameof(DownloadNewVersion)] = (
-				"Automatically download any new released version of Wasabi",
+				Lang.Resources.CLI_DownloadNewVersionSettingsHint,
 				GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs)),
 			[ nameof(StartLocalBitcoinCoreOnStartup)] = (
-				"Start a local bitcoin node when Wasabi starts",
+				Lang.Resources.CLI_StartLocalBitcoinCoreOnStartupSettingsHint,
 				GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs)),
 			[ nameof(StopLocalBitcoinCoreOnShutdown)] = (
-				"Stop the local bitcoin node when Wasabi is closed",
+				Lang.Resources.CLI_StopLocalBitcoinCoreOnShutdownSettingsHint,
 				GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs)),
 			[ nameof(LocalBitcoinCoreDataDir)] = (
-				"The path of the data directory to be used by the local bitcoin node",
+				Lang.Resources.CLI_LocalBitcoinCoreDataDirSettingsHint,
 				GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs)),
 			[ nameof(MainNetBitcoinP2pEndPoint)] = (
 				"-",
@@ -95,44 +95,47 @@ public class Config
 				"-",
 				GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs)),
 			[ nameof(JsonRpcServerEnabled)] = (
-				"Start the Json RPC Server and accept requests",
+				Lang.Resources.CLI_JsonRpcServerEnabledSettingsHint,
 				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
 			[ nameof(JsonRpcUser)] = (
-				"The user name that is authorized to make requests to the Json RPC server",
+				Lang.Resources.CLI_JsonRpcUserSettingsHint,
 				GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs)),
 			[ nameof(JsonRpcPassword)] = (
-				"The user password that is authorized to make requests to the Json RPC server",
+				Lang.Resources.CLI_JsonRpcPasswordSettingsHint,
 				GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs)),
 			[ nameof(JsonRpcServerPrefixes)] = (
-				"The Json RPC server prefixes",
+				Lang.Resources.CLI_JsonRpcServerPrefixesSettingsHint,
 				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs)),
 			[ nameof(RpcOnionEnabled)] = (
-				"Publish the Json RPC Server as a Tor Onion service",
+				Lang.Resources.CLI_RpcOnionEnabledSettingsHint,
 				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),
 			[ nameof(DustThreshold)] = (
-				"The amount threshold under which coins received from others to already used addresses are considered a dust attack",
+				Lang.Resources.CLI_DustThresholdSettingsHint,
 				GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs)),
 			[ nameof(BlockOnlyMode)] = (
-				"Wasabi listens only for blocks and not for transactions",
+				Lang.Resources.CLI_BlockOnlyModeSettingsHint,
 				GetBoolValue("BlockOnly", value: false, cliArgs)),
 			[ nameof(LogLevel)] = (
-				"The level of detail in the logs: trace, debug, info, warning, error, or critical",
+				Lang.Resources.CLI_LogLevelSettingsHint,
 				GetStringValue("LogLevel", value: "", cliArgs)),
 			[ nameof(LogModes)] = (
-				"The logging modes: console, and file (for multiple values use comma as a separator)",
+				Lang.Resources.CLI_LogModesSettingsHint,
 				GetLogModeArrayValue("LogModes", arrayValues: defaultLogModes, cliArgs)),
 			[ nameof(EnableGpu)] = (
-				"Use a GPU to render the user interface",
+				Lang.Resources.CLI_EnableGpuSettingsHint,
 				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
 			[ nameof(CoordinatorIdentifier)] = (
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
 			[ nameof(MaxCoinjoinMiningFeeRate)] = (
-				"Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
+				Lang.Resources.CLI_MaxCoinjoinMiningFeeRateSettingsHint,
 				GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs)),
 			[ nameof(AbsoluteMinInputCount)] = (
-				"Minimum number of inputs the client is willing to accept to participate into a round",
+				Lang.Resources.CLI_AbsoluteMinInputCountSettingsHint,
 				GetLongValue("AbsoluteMinInputCount", PersistentConfig.AbsoluteMinInputCount, cliArgs)),
+			[nameof(Language)] = (
+				Lang.Resources.CLI_LanguageSettingsHint,
+				GetLongValue("Language", PersistentConfig.DisplayLanguage, cliArgs)),
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -194,6 +197,7 @@ public class Config
 	public int AbsoluteMinInputCount => int.Max(
 		GetEffectiveValue<IntValue, int>(nameof(AbsoluteMinInputCount)),
 		Constants.AbsoluteMinInputCount);
+	public int Language => GetEffectiveValue<IntValue, int>(nameof(Language));
 
 	public ServiceConfiguration ServiceConfiguration { get; }
 

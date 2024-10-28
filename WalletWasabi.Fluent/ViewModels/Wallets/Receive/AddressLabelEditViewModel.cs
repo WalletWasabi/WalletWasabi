@@ -9,13 +9,15 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
-[NavigationMetaData(Title = "Edit Labels", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class AddressLabelEditViewModel : DialogViewModelBase<LabelsArray?>
 {
 	[AutoNotify] private bool _isCurrentTextValid;
 
 	public AddressLabelEditViewModel(UiContext uiContext, IWalletModel wallet, IAddress address)
 	{
+		Title = Lang.Resources.AddressLabelEditViewModel_Title;
+
 		UiContext = uiContext;
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3, address.Labels);
 

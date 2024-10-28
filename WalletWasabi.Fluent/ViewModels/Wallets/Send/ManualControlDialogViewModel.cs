@@ -16,7 +16,6 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-	Title = "Manual Control",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
@@ -30,6 +29,8 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 
 	private ManualControlDialogViewModel(IWalletModel walletModel, Wallet wallet)
 	{
+		Title = Lang.Resources.ManualControlDialogViewModel_Title;
+
 		CoinList = new CoinListViewModel(walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
 		var nextCommandCanExecute =

@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static partial class TextHelpers
 {
-	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
+	public static string AddSIfPlural(int n) => n > 1 ? Lang.Resources.Utils_Plural : "";
 
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
@@ -31,10 +31,10 @@ public static partial class TextHelpers
 		var textMembers = new List<string>();
 		string result = "";
 
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, "day"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, "hour"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, "minute"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, "second"));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, Lang.Resources.Words_day));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, Lang.Resources.Words_hour));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, Lang.Resources.Words_minute));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, Lang.Resources.Words_second));
 
 		for (int i = 0; i < textMembers.Count; i++)
 		{
@@ -46,7 +46,7 @@ public static partial class TextHelpers
 			}
 			else if (textMembers.Count > 1 && i == textMembers.Count - 2)
 			{
-				result += " and ";
+				result += $" {Lang.Resources.Words_and} ";
 			}
 		}
 
@@ -93,7 +93,7 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Resources.Words_confirmation}{AddSIfPlural(confirmations)})";
 	}
 
 	public static string FormatPercentageDiff(double n)
@@ -104,11 +104,11 @@ public static partial class TextHelpers
 		if (Math.Abs(withFriendlyDecimals) < precision)
 		{
 			var threshold = n > 0 ? "+" + precision : "-" + precision;
-			return "less than " + threshold.ToString(CultureInfo.InvariantCulture) + "%";
+			return $"{Lang.Resources.Sentences_less_than} " + threshold.ToString(CultureInfo.InvariantCulture) + "%";
 		}
 		else
 		{
-			var diffPart = withFriendlyDecimals.ToString();
+			var diffPart = withFriendlyDecimals.ToString(CultureInfo.InvariantCulture);
 			var numericPart = n > 0 ? "+" + diffPart : diffPart;
 			return numericPart + "%";
 		}

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -16,7 +17,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	private readonly Setting<TObject, TProperty> _setting;
 	private readonly CompositeDisposable _disposables = new();
 
-	public SearchItemNode(IEditableSearchSource editableSearchSource, Setting<TObject, TProperty> setting, string name, string category, IEnumerable<string> keywords, string? icon, bool isDefault, bool isEnabled, params NestedItemConfiguration<TProperty>[] nestedItems)
+	public SearchItemNode(IEditableSearchSource editableSearchSource, Setting<TObject, TProperty> setting, string name, SearchCategory category, IEnumerable<string> keywords, string? icon, bool isDefault, bool isEnabled, params NestedItemConfiguration<TProperty>[] nestedItems)
 	{
 		_editableSearchSource = editableSearchSource;
 		_setting = setting;
@@ -39,7 +40,7 @@ public class SearchItemNode<TObject, TProperty> : ReactiveObject, IContentSearch
 	public ComposedKey Key => new(Name);
 	public string Description => "";
 	public string? Icon { get; set; }
-	public string Category { get; }
+	public SearchCategory Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; }
 	public int Priority { get; set; }

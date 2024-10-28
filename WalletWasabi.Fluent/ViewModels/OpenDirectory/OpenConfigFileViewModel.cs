@@ -1,17 +1,13 @@
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 [NavigationMetaData(
-	Title = "Config File",
-	Caption = "",
 	Order = 4,
-	Category = "Open",
-	Keywords = new[]
-	{
-			"Browse", "Open", "Config", "File"
-	},
-	IconName = "document_regular")]
+	Category = SearchCategory.Open,
+	IconName = "document_regular",
+	IsLocalized = true)]
 public partial class OpenConfigFileViewModel : OpenFileViewModel
 {
 	public OpenConfigFileViewModel(UiContext uiContext) : base(uiContext)

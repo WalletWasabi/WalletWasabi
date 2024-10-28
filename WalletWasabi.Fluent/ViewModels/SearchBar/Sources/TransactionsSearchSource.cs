@@ -7,6 +7,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -89,7 +90,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 			item.Transaction.Id.ToString(),
 			@$"Found in ""{wallet.WalletModel.Name}""",
 			() => NavigateTo(wallet, item),
-			"Transactions",
+			SearchCategory.Transactions,
 			new List<string>())
 		{
 			Icon = GetIcon(item)

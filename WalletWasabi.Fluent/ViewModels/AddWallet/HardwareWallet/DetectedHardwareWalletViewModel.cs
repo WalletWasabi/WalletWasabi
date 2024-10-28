@@ -12,11 +12,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 
-[NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
 	private DetectedHardwareWalletViewModel(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
+		Title = Lang.Resources.DetectedHardwareWalletViewModel_Title;
+
 		var (walletName, device) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
@@ -60,7 +61,10 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occurred during adding your wallet.");
+			await ShowErrorAsync(
+				Lang.Resources.DetectedHardwareWalletViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.DetectedHardwareWalletViewModel_Error_AddingWallet_Caption);
 			Navigate().Back();
 		}
 	}
