@@ -9,11 +9,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static partial class TextHelpers
 {
-	public static string AddSIfPlural(int n) => n > 1 ? Lang.Resources.Utils_Plural : "";
+	public static string AddGenericPlural(int n) => n > 1 ? Lang.Resources.Utils_Plural : "";
 
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
-	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddSIfPlural(n)}" : "";
+	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddGenericPlural(n)}" : "";
 
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex ParseLabelRegex();
@@ -93,7 +93,7 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Resources.Words_confirmation}{AddSIfPlural(confirmations)})";
+		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Resources.Words_confirmation}{AddGenericPlural(confirmations)})";
 	}
 
 	public static string FormatPercentageDiff(double n)
