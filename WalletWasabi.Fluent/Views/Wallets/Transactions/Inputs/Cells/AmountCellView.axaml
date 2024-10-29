@@ -13,7 +13,8 @@
                          HorizontalAlignment="Center"
                          UseOpacity="True"
                          MaxPrivacyChars="14"
-                         Margin="5 0 0 0">
+                         Margin="5 0 0 0"
+                         ToolTip.Tip="{Binding BtcAddress}">
     <AmountControl MinWidth="140" Amount="{Binding Amount}"/>
   </PrivacyContentControl>
 </UserControl>

@@ -12,7 +12,8 @@
                          VerticalAlignment="Center"
                          UseOpacity="True"
                          MaxPrivacyChars="14"
-                         ForceShow="{Binding IgnorePrivacyMode}">
+                         ForceShow="{Binding IgnorePrivacyMode}"
+                         ToolTip.Tip="{Binding BtcAddress}">
     <AmountControl Amount="{Binding Amount}"/>
   </PrivacyContentControl>
 </UserControl>
