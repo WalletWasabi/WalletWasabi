@@ -15,6 +15,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
+[NavigationMetaData(Title = "PrivacyControlViewModel_Title")]
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly Wallet _wallet;
@@ -25,8 +26,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	public PrivacyControlViewModel(Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
-		Title = Lang.Resources.PrivacyControlViewModel_Title;
-
 		_wallet = wallet;
 		_sendFlow = sendFlow;
 		_transactionInfo = transactionInfo;

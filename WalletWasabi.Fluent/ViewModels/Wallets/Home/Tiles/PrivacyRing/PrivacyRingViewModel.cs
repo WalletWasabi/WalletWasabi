@@ -15,8 +15,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-[NavigationMetaData(
-	NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "PrivacyRingViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -29,8 +28,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	public PrivacyRingViewModel(UiContext uiContext, IWalletModel wallet)
 	{
-		Title = Lang.Resources.PrivacyRingViewModel_Title;
-
 		UiContext = uiContext;
 		_wallet = wallet;
 

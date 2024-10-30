@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "ShuttingDownViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ShuttingDownViewModel : RoutableViewModel
 {
 	private readonly ApplicationViewModel _applicationViewModel;
@@ -14,8 +14,6 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 
 	private ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
 	{
-		Title = Lang.Resources.ShuttingDownViewModel_Title;
-
 		_applicationViewModel = applicationViewModel;
 		_restart = restart;
 

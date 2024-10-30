@@ -62,10 +62,12 @@
   <!--......................................................-->
   <!--.........................Utils........................-->
   <!--......................................................-->
-  <data name="Utils_Plural" xml:space="preserve">
+  <data name="Utils_Empty" xml:space="preserve">
+    <value/>
+  </data>
+  <data name="Utils_GenericPlural" xml:space="preserve">
     <value>s</value>
   </data>
-
   <!--......................................................-->
   <!--.....................Single Words.....................-->
   <!-- This is the reference to ensure consistency of usage -->
@@ -75,6 +77,9 @@
   </data>
   <data name="Words_Action" xml:space="preserve">
     <value>Action</value>
+  </data>
+  <data name="Words_Actions" xml:space="preserve">
+    <value>Actions</value>
   </data>
   <data name="Words_Add" xml:space="preserve">
     <value>Add</value>
@@ -94,8 +99,8 @@
   <data name="Words_Auto" xml:space="preserve">
     <value>Auto</value>
   </data>
-  <data name="Words_and" xml:space="preserve">
-    <value>and</value>
+  <data name="Words_And" xml:space="preserve">
+    <value>And</value>
   </data>
   <data name="Words_Backend" xml:space="preserve">
     <value>Backend</value>
@@ -145,8 +150,8 @@
   <data name="Words_Config" xml:space="preserve">
     <value>Config</value>
   </data>
-  <data name="Words_confirmation" xml:space="preserve">
-    <value>confirmation</value>
+  <data name="Words_Confirmation" xml:space="preserve">
+    <value>Confirmation</value>
   </data>
   <data name="Words_Confirmed" xml:space="preserve">
     <value>Confirmed</value>
@@ -184,11 +189,11 @@
   <data name="Words_Data" xml:space="preserve">
     <value>Data</value>
   </data>
-  <data name="Words_day" xml:space="preserve">
-    <value>day</value>
+  <data name="Words_Date" xml:space="preserve">
+    <value>Date</value>
   </data>
-  <data name="Words_Days" xml:space="preserve">
-    <value>Days</value>
+  <data name="Words_Day" xml:space="preserve">
+    <value>Day</value>
   </data>
   <data name="Words_Display" xml:space="preserve">
     <value>Display</value>
@@ -213,6 +218,9 @@
   </data>
   <data name="Words_FAQ" xml:space="preserve">
     <value>FAQ</value>
+  </data>
+  <data name="Words_Fastest" xml:space="preserve">
+    <value>Fastest</value>
   </data>
   <data name="Words_Fee" xml:space="preserve">
     <value>Fee</value>
@@ -247,11 +255,8 @@
   <data name="Words_Hardware" xml:space="preserve">
     <value>Hardware</value>
   </data>
-  <data name="Words_hour" xml:space="preserve">
-    <value>hour</value>
-  </data>
-  <data name="Words_Hours" xml:space="preserve">
-    <value>Hours</value>
+  <data name="Words_Hour" xml:space="preserve">
+    <value>Hour</value>
   </data>
   <data name="Words_Id" xml:space="preserve">
     <value>Id</value>
@@ -277,9 +282,6 @@
   <data name="Words_Label" xml:space="preserve">
     <value>Label</value>
   </data>
-  <data name="Words_Labels" xml:space="preserve">
-    <value>Labels</value>
-  </data>
   <data name="Words_Ledger" xml:space="preserve">
     <value>Ledger</value>
   </data>
@@ -292,8 +294,8 @@
   <data name="Words_Main" xml:space="preserve">
     <value>Main</value>
   </data>
-  <data name="Words_minute" xml:space="preserve">
-    <value>minute</value>
+  <data name="Words_Minute" xml:space="preserve">
+    <value>Minute</value>
   </data>
   <data name="Words_Mining" xml:space="preserve">
     <value>Mining</value>
@@ -301,8 +303,8 @@
   <data name="Words_Mode" xml:space="preserve">
     <value>Mode</value>
   </data>
-  <data name="Words_Months" xml:space="preserve">
-    <value>Months</value>
+  <data name="Words_Month" xml:space="preserve">
+    <value>Month</value>
   </data>
   <data name="Words_Network" xml:space="preserve">
     <value>Network</value>
@@ -315,6 +317,18 @@
   </data>
   <data name="Words_Node" xml:space="preserve">
     <value>Node</value>
+  </data>
+  <data name="Words_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Words_NonPrivate" xml:space="preserve">
+    <value>Non-private</value>
+  </data>
+  <data name="NotApplicable_Short" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Words_On" xml:space="preserve">
+    <value>On</value>
   </data>
   <data name="Words_Onion" xml:space="preserve">
     <value>Onion</value>
@@ -334,6 +348,9 @@
   <data name="Words_Pending" xml:space="preserve">
     <value>Pending</value>
   </data>
+  <data name="Words_Private" xml:space="preserve">
+    <value>Private</value>
+  </data>
   <data name="Words_Questions" xml:space="preserve">
     <value>Questions</value>
   </data>
@@ -352,11 +369,17 @@
   <data name="Words_Run" xml:space="preserve">
     <value>Run</value>
   </data>
-  <data name="Words_sats" xml:space="preserve">
-    <value>sats</value>
+  <data name="Words_Sat" xml:space="preserve">
+    <value>sat</value>
   </data>
-  <data name="Words_second" xml:space="preserve">
-    <value>second</value>
+  <data name="Words_Second" xml:space="preserve">
+    <value>Second</value>
+  </data>
+  <data name="Words_SemiPrivate" xml:space="preserve">
+    <value>Semi-private</value>
+  </data>
+  <data name="Words_Setting" xml:space="preserve">
+    <value>Setting</value>
   </data>
   <data name="Words_Settings" xml:space="preserve">
     <value>Settings</value>
@@ -424,6 +447,9 @@
   <data name="Words_URI" xml:space="preserve">
     <value>URI</value>
   </data>
+  <data name="Words_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
   <data name="Words_User" xml:space="preserve">
     <value>User</value>
   </data>
@@ -436,8 +462,8 @@
   <data name="Words_Website" xml:space="preserve">
     <value>Website</value>
   </data>
-  <data name="Words_Weeks" xml:space="preserve">
-    <value>Weeks</value>
+  <data name="Words_Week" xml:space="preserve">
+    <value>Week</value>
   </data>
   <data name="Words_Yes" xml:space="preserve">
     <value>Yes</value>
@@ -458,6 +484,12 @@
   <data name="Sentences_BugReport" xml:space="preserve">
     <value>Bug Report</value>
   </data>
+  <data name="Sentences_DateTime" xml:space="preserve">
+    <value>Date / Time</value>
+  </data>
+  <data name="Sentences_Found_in" xml:space="preserve">
+    <value>Bug Report</value>
+  </data>
   <data name="Sentences_GetStarted" xml:space="preserve">
     <value>Get Started</value>
   </data>
@@ -466,6 +498,9 @@
   </data>
   <data name="Sentences_InvalidURI" xml:space="preserve">
     <value>Invalid URI.</value>
+  </data>
+  <data name="Sentences_Invalid_number" xml:space="preserve">
+    <value>Invalid number.</value>
   </data>
   <data name="Sentences_less_than" xml:space="preserve">
     <value>less than</value>
@@ -476,14 +511,26 @@
   <data name="Sentences_MustBeANumberBetween" xml:space="preserve">
     <value>Must be a number between</value>
   </data>
+  <data name="Sentences_Not_found" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="Sentences_out_of" xml:space="preserve">
+    <value>ouf of</value>
+  </data>
   <data name="Sentences_Show_sensitive_data" xml:space="preserve">
     <value>Show sensitive data</value>
   </data>
   <data name="Sentences_SourceCode" xml:space="preserve">
     <value>Source Code</value>
   </data>
+  <data name="Sentences_Today_at" xml:space="preserve">
+    <value>Today at</value>
+  </data>
   <data name="Sentences_UserSupport" xml:space="preserve">
     <value>User Support</value>
+  </data>
+  <data name="Sentences_Yesterday_at" xml:space="preserve">
+    <value>Yesterday at</value>
   </data>
 
   <!--......................................................-->
@@ -588,7 +635,7 @@
     <value>Open Wasabi's documentation website</value>
   </data>
   <data name="DocsLinkViewModel_Keywords" xml:space="preserve">
-    <value>User, Support, Website, Docs, Documentation, Guide</value>
+    <value>User, Support, WebsitGeneralSettingsTabViewModel_Keywordse, Docs, Documentation, Guide</value>
   </data>
 
   <data name="GeneralSettingsTabViewModel_Title" xml:space="preserve">
@@ -770,10 +817,20 @@
   <data name="CoordinatorTabSettingsViewModel_Keywords" xml:space="preserve">
     <value>Settings, Bitcoin, BTC, Coordinator, Coordination, Fee, Coinjoin, Rate, Mining</value>
   </data>
+  <data name="CoordinatorTabSettingsViewModel_Error_MiningFeeRateInvalid" xml:space="preserve">
+    <value>Mining fee rate must be at least 1 sat/vb</value>
+  </data>
+  <data name="CoordinatorTabSettingsViewModel_Error_AbsoluteMinInputCountTooLow" xml:space="preserve">
+    <value>Absolute min input count should be at least {0}</value>
+  </data>
 
   <!--......................................................-->
   <!--...............Non Localized View Models..............-->
   <!--......................................................-->
+  <data name="AboutAdvancedInfoViewModel_Title" xml:space="preserve">
+    <value>About</value>
+  </data>
+
   <data name="AddedWalletPageViewModel_Title" xml:space="preserve">
     <value>Success</value>
   </data>
@@ -910,6 +967,21 @@
     <value>Wallet, Exclude, Coins, Coinjoin, Freeze, UTXO</value>
   </data>
 
+  <data name="InputsCoinViewModel_Tip_AllInputs" xml:space="preserve">
+    <value>All inputs belong to one of your opened wallets.</value>
+  </data>
+  <data name="InputsCoinViewModel_Tip_SubsetInputs" xml:space="preserve">
+    <value>Only inputs belonging to one of your opened wallets can be shown.</value>
+  </data>
+
+
+  <data name="HardwareWalletViewModel_ImportTransaction_Title" xml:space="preserve">
+    <value>Import Transaction</value>
+  </data>
+  <data name="HardwareWalletViewModel_Error_LoadTransaction_Caption" xml:space="preserve">
+    <value>It was not possible to load the transaction.</value>
+  </data>
+
   <data name="HardwareWalletAuthDialogViewModel_Title" xml:space="preserve">
     <value>Authorize with Hardware Wallet</value>
   </data>
@@ -1032,6 +1104,16 @@
     <value>Wasabi was unable to open the file.</value>
   </data>
 
+  <data name="PocketViewModel_Confirmed_Yes" xml:space="preserve">
+    <value>All coins are confirmed</value>
+  </data>
+  <data name="PocketViewModel_Confirmed_No" xml:space="preserve">
+    <value>{0} coins are waiting for confirmation</value>
+  </data>
+  <data name="PocketViewModel_Banned_Yes" xml:space="preserve">
+    <value>Some coins can't participate in coinjoin</value>
+  </data>
+
   <data name="SelectCoinsDialogViewModel_Title" xml:space="preserve">
     <value>Coin Control</value>
   </data>
@@ -1102,6 +1184,19 @@
     <value>Transaction Details</value>
   </data>
 
+  <data name="TransactionHistoryItemViewModel_Error_SpeedUp_Title" xml:space="preserve">
+    <value>Speed Up failed</value>
+  </data>
+  <data name="TransactionHistoryItemViewModel_Error_SpeedUp_Caption" xml:space="preserve">
+    <value>Wasabi could not initiate the transaction speed up process.</value>
+  </data>
+  <data name="TransactionHistoryItemViewModel_Error_Cancel_Title" xml:space="preserve">
+    <value>Cancel failed</value>
+  </data>
+  <data name="TransactionHistoryItemViewModel_Error_Cancel_Caption" xml:space="preserve">
+    <value>Wasabi could not initiate the cancelling process.</value>
+  </data>
+
   <data name="TransactionPreviewViewModel_Title" xml:space="preserve">
     <value>Transaction Preview</value>
   </data>
@@ -1140,12 +1235,33 @@
     <value>"Wasabi was unable to import your wallet.</value>
   </data>
 
-  <data name="WalletRenameViewModel_Title" xml:space="preserve">
-    <value>Rename Wallet</value>
+  <data name="WalletRenameViewModel_Error_InvalidName_Title" xml:space="preserve">
+    <value>Invalid name</value>
+  </data>
+  <data name="WalletRenameViewModel_Error_InvalidName_Message" xml:space="preserve">
+    <value>The wallet cannot be renamed to {0}</value>
+  </data>
+  <data name="WalletRenameViewModel_Error_InvalidName_Caption" xml:space="preserve">
+    <value>Cannot rename the wallet</value>
   </data>
 
   <data name="WalletVerifyRecoveryWordsViewModel_Title" xml:space="preserve">
     <value>Verify Recovery Words</value>
+  </data>
+  <data name="WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Title" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Message" xml:space="preserve">
+    <value>Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.</value>
+  </data>
+  <data name="WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Caption" xml:space="preserve">
+    <value>The Recovery Words you entered were incorrect.</value>
+  </data>
+  <data name="WalletVerifyRecoveryWordsViewModel_Error_Generic_Caption" xml:space="preserve">
+    <value>Wasabi was unable to verify the recovery words."</value>
+  </data>
+  <data name="WalletVerifyRecoveryWordsViewModel_Error_Invalid" xml:space="preserve">
+    <value>Recovery Words are not valid."</value>
   </data>
 
   <!--......................................................-->
@@ -1398,6 +1514,7 @@
   <data name="Status_Peers_ConnectedCount" xml:space="preserve">
     <value>{0} connected</value>
   </data>
+
   <!--......................................................-->
   <!--....................Search Category....................-->
   <!--......................................................-->
@@ -1421,5 +1538,51 @@
   </data>
   <data name="SearchCategory_Transactions" xml:space="preserve">
     <value>Transactions</value>
+  </data>
+
+  <!--......................................................-->
+  <!--.......................Settings.......................-->
+  <!--......................................................-->
+  <data name="Settings_DarkModeEnabled_Name" xml:space="preserve">
+    <value>Dark mode</value>
+  </data>
+  <data name="Settings_DarkModeEnabled_Keywords" xml:space="preserve">
+    <value>Black, White, Theme, Dark, Light</value>
+  </data>
+
+  <data name="Settings_AutoCopy_Name" xml:space="preserve">
+    <value>Auto copy addresses</value>
+  </data>
+
+  <data name="Settings_AutoPaste_Name" xml:space="preserve">
+    <value>Auto paste addresses</value>
+  </data>
+
+  <data name="Settings_HideOnClose_Name" xml:space="preserve">
+    <value>Run in background when closed</value>
+  </data>
+
+  <data name="Settings_RunOnSystemStartup_Name" xml:space="preserve">
+    <value>Run Wasabi when computer starts</value>
+  </data>
+
+  <data name="Settings_EnableGpu_Name" xml:space="preserve">
+    <value>Enable GPU</value>
+  </data>
+
+  <data name="Settings_UseTor_Name" xml:space="preserve">
+    <value>Network anonymization (Tor)</value>
+  </data>
+
+  <data name="Settings_TerminateTorOnExit_Name" xml:space="preserve">
+    <value>Terminate Tor when Wasabi shuts down</value>
+  </data>
+
+  <data name="Settings_StartLocalBitcoinCoreOnStartup_Name" xml:space="preserve">
+    <value>Run Bitcoin Knots on startup</value>
+  </data>
+
+  <data name="Settings_StopLocalBitcoinCoreOnShutdown_Name" xml:space="preserve">
+    <value>Stop Bitcoin Knots on shutdown</value>
   </data>
 </root>

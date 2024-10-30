@@ -45,9 +45,15 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Utils_Plural {
+        public static string Utils_Empty {
             get {
-                return ResourceManager.GetString("Utils_Plural", resourceCulture);
+                return ResourceManager.GetString("Utils_Empty", resourceCulture);
+            }
+        }
+        
+        public static string Utils_GenericPlural {
+            get {
+                return ResourceManager.GetString("Utils_GenericPlural", resourceCulture);
             }
         }
         
@@ -60,6 +66,12 @@ namespace WalletWasabi.Lang {
         public static string Words_Action {
             get {
                 return ResourceManager.GetString("Words_Action", resourceCulture);
+            }
+        }
+        
+        public static string Words_Actions {
+            get {
+                return ResourceManager.GetString("Words_Actions", resourceCulture);
             }
         }
         
@@ -99,9 +111,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_and {
+        public static string Words_And {
             get {
-                return ResourceManager.GetString("Words_and", resourceCulture);
+                return ResourceManager.GetString("Words_And", resourceCulture);
             }
         }
         
@@ -201,9 +213,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_confirmation {
+        public static string Words_Confirmation {
             get {
-                return ResourceManager.GetString("Words_confirmation", resourceCulture);
+                return ResourceManager.GetString("Words_Confirmation", resourceCulture);
             }
         }
         
@@ -279,15 +291,15 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_day {
+        public static string Words_Date {
             get {
-                return ResourceManager.GetString("Words_day", resourceCulture);
+                return ResourceManager.GetString("Words_Date", resourceCulture);
             }
         }
         
-        public static string Words_Days {
+        public static string Words_Day {
             get {
-                return ResourceManager.GetString("Words_Days", resourceCulture);
+                return ResourceManager.GetString("Words_Day", resourceCulture);
             }
         }
         
@@ -336,6 +348,12 @@ namespace WalletWasabi.Lang {
         public static string Words_FAQ {
             get {
                 return ResourceManager.GetString("Words_FAQ", resourceCulture);
+            }
+        }
+        
+        public static string Words_Fastest {
+            get {
+                return ResourceManager.GetString("Words_Fastest", resourceCulture);
             }
         }
         
@@ -405,15 +423,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_hour {
+        public static string Words_Hour {
             get {
-                return ResourceManager.GetString("Words_hour", resourceCulture);
-            }
-        }
-        
-        public static string Words_Hours {
-            get {
-                return ResourceManager.GetString("Words_Hours", resourceCulture);
+                return ResourceManager.GetString("Words_Hour", resourceCulture);
             }
         }
         
@@ -465,12 +477,6 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_Labels {
-            get {
-                return ResourceManager.GetString("Words_Labels", resourceCulture);
-            }
-        }
-        
         public static string Words_Ledger {
             get {
                 return ResourceManager.GetString("Words_Ledger", resourceCulture);
@@ -495,9 +501,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_minute {
+        public static string Words_Minute {
             get {
-                return ResourceManager.GetString("Words_minute", resourceCulture);
+                return ResourceManager.GetString("Words_Minute", resourceCulture);
             }
         }
         
@@ -513,9 +519,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_Months {
+        public static string Words_Month {
             get {
-                return ResourceManager.GetString("Words_Months", resourceCulture);
+                return ResourceManager.GetString("Words_Month", resourceCulture);
             }
         }
         
@@ -540,6 +546,30 @@ namespace WalletWasabi.Lang {
         public static string Words_Node {
             get {
                 return ResourceManager.GetString("Words_Node", resourceCulture);
+            }
+        }
+        
+        public static string Words_None {
+            get {
+                return ResourceManager.GetString("Words_None", resourceCulture);
+            }
+        }
+        
+        public static string Words_NonPrivate {
+            get {
+                return ResourceManager.GetString("Words_NonPrivate", resourceCulture);
+            }
+        }
+        
+        public static string NotApplicable_Short {
+            get {
+                return ResourceManager.GetString("NotApplicable_Short", resourceCulture);
+            }
+        }
+        
+        public static string Words_On {
+            get {
+                return ResourceManager.GetString("Words_On", resourceCulture);
             }
         }
         
@@ -579,6 +609,12 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string Words_Private {
+            get {
+                return ResourceManager.GetString("Words_Private", resourceCulture);
+            }
+        }
+        
         public static string Words_Questions {
             get {
                 return ResourceManager.GetString("Words_Questions", resourceCulture);
@@ -615,15 +651,27 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_sats {
+        public static string Words_Sat {
             get {
-                return ResourceManager.GetString("Words_sats", resourceCulture);
+                return ResourceManager.GetString("Words_Sat", resourceCulture);
             }
         }
         
-        public static string Words_second {
+        public static string Words_Second {
             get {
-                return ResourceManager.GetString("Words_second", resourceCulture);
+                return ResourceManager.GetString("Words_Second", resourceCulture);
+            }
+        }
+        
+        public static string Words_SemiPrivate {
+            get {
+                return ResourceManager.GetString("Words_SemiPrivate", resourceCulture);
+            }
+        }
+        
+        public static string Words_Setting {
+            get {
+                return ResourceManager.GetString("Words_Setting", resourceCulture);
             }
         }
         
@@ -759,6 +807,12 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string Words_Unknown {
+            get {
+                return ResourceManager.GetString("Words_Unknown", resourceCulture);
+            }
+        }
+        
         public static string Words_User {
             get {
                 return ResourceManager.GetString("Words_User", resourceCulture);
@@ -783,9 +837,9 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string Words_Weeks {
+        public static string Words_Week {
             get {
-                return ResourceManager.GetString("Words_Weeks", resourceCulture);
+                return ResourceManager.GetString("Words_Week", resourceCulture);
             }
         }
         
@@ -819,6 +873,18 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string Sentences_DateTime {
+            get {
+                return ResourceManager.GetString("Sentences_DateTime", resourceCulture);
+            }
+        }
+        
+        public static string Sentences_Found_in {
+            get {
+                return ResourceManager.GetString("Sentences_Found_in", resourceCulture);
+            }
+        }
+        
         public static string Sentences_GetStarted {
             get {
                 return ResourceManager.GetString("Sentences_GetStarted", resourceCulture);
@@ -834,6 +900,12 @@ namespace WalletWasabi.Lang {
         public static string Sentences_InvalidURI {
             get {
                 return ResourceManager.GetString("Sentences_InvalidURI", resourceCulture);
+            }
+        }
+        
+        public static string Sentences_Invalid_number {
+            get {
+                return ResourceManager.GetString("Sentences_Invalid_number", resourceCulture);
             }
         }
         
@@ -855,6 +927,18 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string Sentences_Not_found {
+            get {
+                return ResourceManager.GetString("Sentences_Not_found", resourceCulture);
+            }
+        }
+        
+        public static string Sentences_out_of {
+            get {
+                return ResourceManager.GetString("Sentences_out_of", resourceCulture);
+            }
+        }
+        
         public static string Sentences_Show_sensitive_data {
             get {
                 return ResourceManager.GetString("Sentences_Show_sensitive_data", resourceCulture);
@@ -867,9 +951,21 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string Sentences_Today_at {
+            get {
+                return ResourceManager.GetString("Sentences_Today_at", resourceCulture);
+            }
+        }
+        
         public static string Sentences_UserSupport {
             get {
                 return ResourceManager.GetString("Sentences_UserSupport", resourceCulture);
+            }
+        }
+        
+        public static string Sentences_Yesterday_at {
+            get {
+                return ResourceManager.GetString("Sentences_Yesterday_at", resourceCulture);
             }
         }
         
@@ -1377,6 +1473,24 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string CoordinatorTabSettingsViewModel_Error_MiningFeeRateInvalid {
+            get {
+                return ResourceManager.GetString("CoordinatorTabSettingsViewModel_Error_MiningFeeRateInvalid", resourceCulture);
+            }
+        }
+        
+        public static string CoordinatorTabSettingsViewModel_Error_AbsoluteMinInputCountTooLow {
+            get {
+                return ResourceManager.GetString("CoordinatorTabSettingsViewModel_Error_AbsoluteMinInputCountTooLow", resourceCulture);
+            }
+        }
+        
+        public static string AboutAdvancedInfoViewModel_Title {
+            get {
+                return ResourceManager.GetString("AboutAdvancedInfoViewModel_Title", resourceCulture);
+            }
+        }
+        
         public static string AddedWalletPageViewModel_Title {
             get {
                 return ResourceManager.GetString("AddedWalletPageViewModel_Title", resourceCulture);
@@ -1611,6 +1725,30 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string InputsCoinViewModel_Tip_AllInputs {
+            get {
+                return ResourceManager.GetString("InputsCoinViewModel_Tip_AllInputs", resourceCulture);
+            }
+        }
+        
+        public static string InputsCoinViewModel_Tip_SubsetInputs {
+            get {
+                return ResourceManager.GetString("InputsCoinViewModel_Tip_SubsetInputs", resourceCulture);
+            }
+        }
+        
+        public static string HardwareWalletViewModel_ImportTransaction_Title {
+            get {
+                return ResourceManager.GetString("HardwareWalletViewModel_ImportTransaction_Title", resourceCulture);
+            }
+        }
+        
+        public static string HardwareWalletViewModel_Error_LoadTransaction_Caption {
+            get {
+                return ResourceManager.GetString("HardwareWalletViewModel_Error_LoadTransaction_Caption", resourceCulture);
+            }
+        }
+        
         public static string HardwareWalletAuthDialogViewModel_Title {
             get {
                 return ResourceManager.GetString("HardwareWalletAuthDialogViewModel_Title", resourceCulture);
@@ -1815,6 +1953,24 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string PocketViewModel_Confirmed_Yes {
+            get {
+                return ResourceManager.GetString("PocketViewModel_Confirmed_Yes", resourceCulture);
+            }
+        }
+        
+        public static string PocketViewModel_Confirmed_No {
+            get {
+                return ResourceManager.GetString("PocketViewModel_Confirmed_No", resourceCulture);
+            }
+        }
+        
+        public static string PocketViewModel_Banned_Yes {
+            get {
+                return ResourceManager.GetString("PocketViewModel_Banned_Yes", resourceCulture);
+            }
+        }
+        
         public static string SelectCoinsDialogViewModel_Title {
             get {
                 return ResourceManager.GetString("SelectCoinsDialogViewModel_Title", resourceCulture);
@@ -1935,6 +2091,30 @@ namespace WalletWasabi.Lang {
             }
         }
         
+        public static string TransactionHistoryItemViewModel_Error_SpeedUp_Title {
+            get {
+                return ResourceManager.GetString("TransactionHistoryItemViewModel_Error_SpeedUp_Title", resourceCulture);
+            }
+        }
+        
+        public static string TransactionHistoryItemViewModel_Error_SpeedUp_Caption {
+            get {
+                return ResourceManager.GetString("TransactionHistoryItemViewModel_Error_SpeedUp_Caption", resourceCulture);
+            }
+        }
+        
+        public static string TransactionHistoryItemViewModel_Error_Cancel_Title {
+            get {
+                return ResourceManager.GetString("TransactionHistoryItemViewModel_Error_Cancel_Title", resourceCulture);
+            }
+        }
+        
+        public static string TransactionHistoryItemViewModel_Error_Cancel_Caption {
+            get {
+                return ResourceManager.GetString("TransactionHistoryItemViewModel_Error_Cancel_Caption", resourceCulture);
+            }
+        }
+        
         public static string TransactionPreviewViewModel_Title {
             get {
                 return ResourceManager.GetString("TransactionPreviewViewModel_Title", resourceCulture);
@@ -2007,15 +2187,57 @@ namespace WalletWasabi.Lang {
             }
         }
         
-        public static string WalletRenameViewModel_Title {
+        public static string WalletRenameViewModel_Error_InvalidName_Title {
             get {
-                return ResourceManager.GetString("WalletRenameViewModel_Title", resourceCulture);
+                return ResourceManager.GetString("WalletRenameViewModel_Error_InvalidName_Title", resourceCulture);
+            }
+        }
+        
+        public static string WalletRenameViewModel_Error_InvalidName_Message {
+            get {
+                return ResourceManager.GetString("WalletRenameViewModel_Error_InvalidName_Message", resourceCulture);
+            }
+        }
+        
+        public static string WalletRenameViewModel_Error_InvalidName_Caption {
+            get {
+                return ResourceManager.GetString("WalletRenameViewModel_Error_InvalidName_Caption", resourceCulture);
             }
         }
         
         public static string WalletVerifyRecoveryWordsViewModel_Title {
             get {
                 return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Title", resourceCulture);
+            }
+        }
+        
+        public static string WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Title {
+            get {
+                return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Title", resourceCulture);
+            }
+        }
+        
+        public static string WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Message {
+            get {
+                return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Message", resourceCulture);
+            }
+        }
+        
+        public static string WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Caption {
+            get {
+                return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Caption", resourceCulture);
+            }
+        }
+        
+        public static string WalletVerifyRecoveryWordsViewModel_Error_Generic_Caption {
+            get {
+                return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Error_Generic_Caption", resourceCulture);
+            }
+        }
+        
+        public static string WalletVerifyRecoveryWordsViewModel_Error_Invalid {
+            get {
+                return ResourceManager.GetString("WalletVerifyRecoveryWordsViewModel_Error_Invalid", resourceCulture);
             }
         }
         
@@ -2508,6 +2730,72 @@ namespace WalletWasabi.Lang {
         public static string SearchCategory_Transactions {
             get {
                 return ResourceManager.GetString("SearchCategory_Transactions", resourceCulture);
+            }
+        }
+        
+        public static string Settings_DarkModeEnabled_Name {
+            get {
+                return ResourceManager.GetString("Settings_DarkModeEnabled_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_DarkModeEnabled_Keywords {
+            get {
+                return ResourceManager.GetString("Settings_DarkModeEnabled_Keywords", resourceCulture);
+            }
+        }
+        
+        public static string Settings_AutoCopy_Name {
+            get {
+                return ResourceManager.GetString("Settings_AutoCopy_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_AutoPaste_Name {
+            get {
+                return ResourceManager.GetString("Settings_AutoPaste_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_HideOnClose_Name {
+            get {
+                return ResourceManager.GetString("Settings_HideOnClose_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_RunOnSystemStartup_Name {
+            get {
+                return ResourceManager.GetString("Settings_RunOnSystemStartup_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_EnableGpu_Name {
+            get {
+                return ResourceManager.GetString("Settings_EnableGpu_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_UseTor_Name {
+            get {
+                return ResourceManager.GetString("Settings_UseTor_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_TerminateTorOnExit_Name {
+            get {
+                return ResourceManager.GetString("Settings_TerminateTorOnExit_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_StartLocalBitcoinCoreOnStartup_Name {
+            get {
+                return ResourceManager.GetString("Settings_StartLocalBitcoinCoreOnStartup_Name", resourceCulture);
+            }
+        }
+        
+        public static string Settings_StopLocalBitcoinCoreOnShutdown_Name {
+            get {
+                return ResourceManager.GetString("Settings_StopLocalBitcoinCoreOnShutdown_Name", resourceCulture);
             }
         }
     }

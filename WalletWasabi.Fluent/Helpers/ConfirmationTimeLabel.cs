@@ -6,19 +6,19 @@ public static class ConfirmationTimeLabel
 	{
 		if (timeSpan <= TransactionFeeHelper.CalculateConfirmationTime(WalletWasabi.Helpers.Constants.FastestConfirmationTarget))
 		{
-			return "fastest";
+			return Lang.Utils.LowerCaseFirst("Words_Fastest");
 		}
 
-		return TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration("day", "hour", "min"));
+		return TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration(false));
 	}
 
 	public static string SliderLabel(TimeSpan timeSpan)
 	{
 		if (timeSpan <= TransactionFeeHelper.CalculateConfirmationTime(WalletWasabi.Helpers.Constants.FastestConfirmationTarget))
 		{
-			return "fastest";
+			return Lang.Utils.LowerCaseFirst("Words_Fastest");
 		}
 
-		return "~" + TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration(" day", " hour", " min"));
+		return "~" + TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration(true));
 	}
 }

@@ -15,8 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Order = 0,
 	Category = SearchCategory.Settings,
-	IconName = "settings_general_regular",
-	IsLocalized = true)]
+	Title = "GeneralSettingsTabViewModel_Title",
+	Caption = "GeneralSettingsTabViewModel_Caption",
+	Keywords = "GeneralSettingsTabViewModel_Keywords",
+	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _runOnSystemStartup;

@@ -11,7 +11,7 @@ using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "ShowQrCameraDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
 	private readonly Network _network;
@@ -21,8 +21,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 	public ShowQrCameraDialogViewModel(UiContext context, Network network)
 	{
-		Title = Lang.Resources.ShowQrCameraDialogViewModel_Title;
-
 		_network = network;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

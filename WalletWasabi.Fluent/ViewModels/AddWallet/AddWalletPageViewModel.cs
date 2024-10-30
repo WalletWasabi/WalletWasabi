@@ -15,12 +15,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(
 	Order = 2,
 	Category = SearchCategory.General,
+	Title = "AddWalletPageViewModel_Title",
+	Caption = "AddWalletPageViewModel_Caption",
+	Keywords = "AddWalletPageViewModel_Keywords",
 	IconName = "nav_add_circle_24_regular",
 	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarPosition = NavBarPosition.Bottom,
-	NavBarSelectionMode = NavBarSelectionMode.Button,
-	IsLocalized = true)]
+	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	private AddWalletPageViewModel()

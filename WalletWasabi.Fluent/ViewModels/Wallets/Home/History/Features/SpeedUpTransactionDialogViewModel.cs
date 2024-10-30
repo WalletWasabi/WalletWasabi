@@ -5,14 +5,13 @@ using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "SpeedUpTransactionDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly SpeedupTransaction _speedupTransaction;
@@ -20,8 +19,6 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 	private SpeedUpTransactionDialogViewModel(IWalletModel wallet, SpeedupTransaction speedupTransaction)
 	{
-		Title = Lang.Resources.SpeedUpTransactionDialogViewModel_Title;
-
 		_wallet = wallet;
 		_speedupTransaction = speedupTransaction;
 

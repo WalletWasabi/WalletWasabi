@@ -15,13 +15,15 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
-	IconName = "wallet_action_receive",
 	Order = 6,
 	Category = SearchCategory.Wallet,
+	Title = "ReceiveViewModel_Title",
+	Caption = "ReceiveViewModel_Caption",
+	Keywords = "ReceiveViewModel_Keywords",
+	IconName = "wallet_action_receive",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	Searchable = false,
-	IsLocalized = true)]
+	Searchable = false)]
 public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 {
 	private readonly IWalletModel _wallet;

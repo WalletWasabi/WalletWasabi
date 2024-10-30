@@ -33,11 +33,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 [NavigationMetaData(
 	IconName = "wallet_action_send",
 	Order = 5,
+	Title = "SendViewModel_Title",
+	Caption = "SendViewModel_Caption",
+	Keywords = "SendViewModel_Keywords",
 	Category = SearchCategory.Wallet,
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	Searchable = false,
-	IsLocalized = true)]
+	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
 	private readonly object _parsingLock = new();

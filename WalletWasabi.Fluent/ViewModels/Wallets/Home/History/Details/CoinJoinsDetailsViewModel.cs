@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "CoinJoinsDetailsViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -29,8 +29,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
 	{
-		Title = Lang.Resources.CoinJoinsDetailsViewModel_Title;
-
 		_wallet = wallet;
 		_transaction = transaction;
 		var allWalletInputs = transaction.WalletInputs.Union(transaction.Children.SelectMany(x => x.WalletInputs)).ToList();

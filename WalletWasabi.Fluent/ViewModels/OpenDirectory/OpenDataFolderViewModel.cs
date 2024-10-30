@@ -7,8 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 [NavigationMetaData(
 	Order = 0,
 	Category = SearchCategory.Open,
-	IconName = "folder_regular",
-	IsLocalized = true)]
+	Title = "OpenDataFolderViewModel_Title",
+	Keywords = "OpenDataFolderViewModel_Keywords",
+	IconName = "folder_regular")]
 public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 {
 	private OpenDataFolderViewModel()

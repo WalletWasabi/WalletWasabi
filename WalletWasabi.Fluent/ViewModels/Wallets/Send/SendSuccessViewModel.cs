@@ -22,6 +22,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
+	public override string Title { get; protected set; }
 	public string? Caption { get; }
 
 	private async Task OnNextAsync()

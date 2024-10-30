@@ -7,8 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 [NavigationMetaData(
 	Order = 0,
 	Category = SearchCategory.HelpAndSupport,
-	IconName = "person_support_regular",
-	IsLocalized = true)]
+	Title = "UserSupportViewModel_Title",
+	Caption = "UserSupportViewModel_Caption",
+	Keywords = "UserSupportViewModel_Keywords",
+	IconName = "person_support_regular")]
 public partial class UserSupportViewModel : TriggerCommandViewModel
 {
 	private UserSupportViewModel()

@@ -61,7 +61,7 @@ public static class ReceiveAddressesDataGridSource
 	private static IColumn<AddressViewModel> LabelsColumn()
 	{
 		return new TemplateColumn<AddressViewModel>(
-			Lang.Resources.Words_Labels,
+			Lang.Utils.Plural("Words_Label"),
 			new FuncDataTemplate<AddressViewModel>((_, _) => new LabelsColumnView(), true),
 			null,
 			options: new TemplateColumnOptions<AddressViewModel>

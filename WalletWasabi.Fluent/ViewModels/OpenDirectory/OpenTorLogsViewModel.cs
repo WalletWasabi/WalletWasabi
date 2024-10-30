@@ -6,8 +6,9 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 [NavigationMetaData(
 	Order = 3,
 	Category = SearchCategory.Open,
-	IconName = "document_regular",
-	IsLocalized = true)]
+	Title = "OpenTorLogsViewModel_Title",
+	Keywords = "OpenTorLogsViewModel_Keywords",
+	IconName = "document_regular")]
 public partial class OpenTorLogsViewModel : OpenFileViewModel
 {
 	public OpenTorLogsViewModel(UiContext uiContext) : base(uiContext)

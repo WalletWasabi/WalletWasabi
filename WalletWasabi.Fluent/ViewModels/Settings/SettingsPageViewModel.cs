@@ -17,13 +17,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Order = 1,
 	Category = SearchCategory.General,
+	Title = "SettingsPageViewModel_Title",
+	Caption = "SettingsPageViewModel_Caption",
+	Keywords = "SettingsPageViewModel_Keywords",
 	IconName = "nav_settings_24_regular",
 	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	NavBarSelectionMode = NavBarSelectionMode.Button,
-	IsLocalized = true)]
+	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 {
 	[AutoNotify] private bool _isModified;
@@ -53,10 +55,10 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 									 .BindTo(this, x => x.IsModified);
 
 		// Show restart notification when needed only if this page is not active.
-		// TODO: VERIFY
 		UiContext.ApplicationSettings.IsRestartNeeded
-			.Where(x => x && !IsActive && !UiContext.ApplicationSettings.Oobe)
-			.Do(_ => NotificationHelpers.Show(new RestartViewModel(Lang.Resources.SettingsPageViewModel_Restart)));
+			.Where(x => x && !IsActive)
+			.Do(_ => NotificationHelpers.Show(new RestartViewModel(Lang.Resources.SettingsPageViewModel_Restart)))
+			.Subscribe();
 	}
 
 	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;

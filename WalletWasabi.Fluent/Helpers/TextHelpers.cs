@@ -9,11 +9,9 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static partial class TextHelpers
 {
-	public static string AddGenericPlural(int n) => n > 1 ? Lang.Resources.Utils_Plural : "";
-
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
-	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddGenericPlural(n)}" : "";
+	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}" : "";
 
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex ParseLabelRegex();
@@ -31,10 +29,10 @@ public static partial class TextHelpers
 		var textMembers = new List<string>();
 		string result = "";
 
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, Lang.Resources.Words_day));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, Lang.Resources.Words_hour));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, Lang.Resources.Words_minute));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, Lang.Resources.Words_second));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Days, "Words_Day")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Hours, "Words_Hour")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Minutes, "Words_Minute")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Seconds, "Words_Second")!)));
 
 		for (int i = 0; i < textMembers.Count; i++)
 		{
@@ -46,7 +44,7 @@ public static partial class TextHelpers
 			}
 			else if (textMembers.Count > 1 && i == textMembers.Count - 2)
 			{
-				result += $" {Lang.Resources.Words_and} ";
+				result += $" {Lang.Utils.LowerCaseFirst(Lang.Resources.Words_And)} ";
 			}
 		}
 
@@ -93,7 +91,7 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Resources.Words_confirmation}{AddGenericPlural(confirmations)})";
+		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(confirmations, "Words_confirmation")!)})";
 	}
 
 	public static string FormatPercentageDiff(double n)

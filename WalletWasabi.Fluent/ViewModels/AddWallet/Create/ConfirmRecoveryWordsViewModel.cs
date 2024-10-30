@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
+[NavigationMetaData(Title = "ConfirmRecoveryWordsViewModel_Title")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly List<RecoveryWordViewModel> _words;
@@ -22,8 +23,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
 	{
-		Title = Lang.Resources.ConfirmRecoveryWordsViewModel_Title;
-
 		_options = options;
 		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words.OrderBy(x => x.Index).ToList();

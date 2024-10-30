@@ -23,7 +23,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Days > 0)
 		{
-			return $"{timeSpan.Days} {configuration.DaysLabel}{TextHelpers.AddGenericPlural(timeSpan.Days)}";
+			return $"{timeSpan.Days} {(configuration.AddSpace ? " " : "")}{Lang.Utils.PluralIfNeeded(timeSpan.Days, "Words_Day")}";
 		}
 
 		return null;
@@ -33,7 +33,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Hours > 0)
 		{
-			return $"{timeSpan.Hours} {configuration.HoursLabel}{TextHelpers.AddGenericPlural(timeSpan.Hours)}";
+			return $"{timeSpan.Hours} {(configuration.AddSpace ? " " : "")}{Lang.Utils.PluralIfNeeded(timeSpan.Hours, "Words_Hour")}";
 		}
 
 		return null;
@@ -43,23 +43,11 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Minutes > 0)
 		{
-			return $"{timeSpan.Minutes} {configuration.MinutesLabel}{TextHelpers.AddGenericPlural(timeSpan.Minutes)}";
+			return $"{timeSpan.Minutes} {(configuration.AddSpace ? " " : "")}{Lang.Utils.PluralIfNeeded(timeSpan.Minutes, "Words_Minute")}";
 		}
 
 		return default;
 	}
 
-	public class Configuration
-	{
-		public Configuration(string daysLabel, string hoursLabel, string minutesLabel)
-		{
-			DaysLabel = daysLabel;
-			HoursLabel = hoursLabel;
-			MinutesLabel = minutesLabel;
-		}
-
-		public string DaysLabel { get; }
-		public string HoursLabel { get; }
-		public string MinutesLabel { get; }
-	}
+	public record Configuration(bool AddSpace);
 }

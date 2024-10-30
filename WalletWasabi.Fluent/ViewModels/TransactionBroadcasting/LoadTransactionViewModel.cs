@@ -12,14 +12,14 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
+[NavigationMetaData(Title = "LoadTransactionViewModel_Title")]
+
 public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 {
 	[AutoNotify] private SmartTransaction? _finalTransaction;
 
 	public LoadTransactionViewModel(UiContext uiContext)
 	{
-		Title = Lang.Resources.LoadTransactionViewModel_Title;
-
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

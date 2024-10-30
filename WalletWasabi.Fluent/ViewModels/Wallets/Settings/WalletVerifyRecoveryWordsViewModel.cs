@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
+[NavigationMetaData(Title = "WalletVerifyRecoveryWordsViewModel_Title")]
 public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -23,8 +24,6 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 
 	private WalletVerifyRecoveryWordsViewModel(IWalletModel wallet)
 	{
-		Title = Lang.Resources.WalletVerifyRecoveryWordsViewModel_Title;
-
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
@@ -52,9 +51,9 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 	private async Task ShowErrorAsync()
 	{
 		await ShowErrorAsync(
-			"Error",
-			"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.",
-			"The Recovery Words you entered were incorrect.");
+			Lang.Resources.WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Title,
+			Lang.Resources.WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Message,
+			Lang.Resources.WalletVerifyRecoveryWordsViewModel_Error_Incorrect_Caption);
 	}
 
 	private async Task OnNextAsync(IWalletModel wallet)
@@ -83,7 +82,10 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Wasabi was unable to verify the recovery words.");
+			await ShowErrorAsync(
+				Lang.Resources.WalletVerifyRecoveryWordsViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.WalletVerifyRecoveryWordsViewModel_Error_Generic_Caption);
 		}
 	}
 
@@ -99,7 +101,7 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Recovery Words are not valid.");
+		errors.Add(ErrorSeverity.Error, Lang.Resources.WalletVerifyRecoveryWordsViewModel_Error_Invalid);
 	}
 
 	private string GetTagsAsConcatString()

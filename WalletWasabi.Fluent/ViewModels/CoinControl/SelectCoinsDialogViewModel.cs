@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 [NavigationMetaData(
-	Caption = "",
+	Title = "SelectCoinsDialogViewModel_Title",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,

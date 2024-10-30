@@ -8,15 +8,13 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "AdvancedRecoveryOptionsViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?>
 {
 	[AutoNotify] private string _minGapLimit;
 
 	public AdvancedRecoveryOptionsViewModel(int minGapLimit)
 	{
-		Title = Lang.Resources.AdvancedRecoveryOptionsViewModel_Title;
-
 		_minGapLimit = minGapLimit.ToString(CultureInfo.InvariantCulture);
 
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
@@ -36,7 +34,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 		{
 			errors.Add(
 				ErrorSeverity.Error,
-				$"{Lang.Resources.Sentences_MustBeANumberBetween} {KeyManager.AbsoluteMinGapLimit} {Lang.Resources.Words_and} {KeyManager.MaxGapLimit}.");
+				$"{Lang.Resources.Sentences_MustBeANumberBetween} {KeyManager.AbsoluteMinGapLimit} {Lang.Utils.LowerCaseFirst(Lang.Resources.Words_And)} {KeyManager.MaxGapLimit}.");
 		}
 	}
 }

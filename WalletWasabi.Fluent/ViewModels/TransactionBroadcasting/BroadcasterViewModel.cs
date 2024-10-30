@@ -6,12 +6,14 @@ using WalletWasabi.Fluent.Models.UI;
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
 [NavigationMetaData(
-	IconName = "live_regular",
 	Order = 5,
 	Category = SearchCategory.General,
+	Title = "BroadcasterViewModel_Title",
+	Caption = "BroadcasterViewModel_Caption",
+	Keywords = "BroadcasterViewModel_Keywords",
+	IconName = "live_regular",
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen,
-	IsLocalized = true)]
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class BroadcasterViewModel : TriggerCommandViewModel
 {
 	public BroadcasterViewModel(UiContext uiContext)

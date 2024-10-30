@@ -16,12 +16,14 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(
-	IconName = "nav_wallet_24_regular",
 	Order = 1,
 	Category = SearchCategory.Wallet,
+	Title = "WalletCoinJoinSettingsViewModel_Title",
+	Caption = "WalletCoinJoinSettingsViewModel_Caption",
+	Keywords = "WalletCoinJoinSettingsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	IsLocalized = true,
 	Searchable = false)]
 public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
@@ -134,8 +136,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
 			{
 				(true, CoinJoinProfileViewModelBase x) => x.Title,
-				(false, _) => "None",
-				_ => "Unknown"
+				(false, _) => Lang.Resources.Words_None,
+				_ => Lang.Resources.Words_Unknown
 			};
 	}
 

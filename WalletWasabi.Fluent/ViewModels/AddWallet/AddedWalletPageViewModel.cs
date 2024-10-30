@@ -8,6 +8,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
+[NavigationMetaData(Title = "AddedWalletPageViewModel_Title")]
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
 	private readonly IWalletSettingsModel _walletSettings;
@@ -15,8 +16,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions options)
 	{
-		Title = Lang.Resources.AddedWalletPageViewModel_Title;
-
 		_walletSettings = walletSettings;
 
 		WalletName = options.WalletName!;

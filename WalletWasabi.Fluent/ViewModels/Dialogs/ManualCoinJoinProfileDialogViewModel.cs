@@ -4,13 +4,11 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "ManualCoinJoinProfileDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
-		Title = Lang.Resources.ManualCoinJoinProfileDialogViewModel_Title;
-
 		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(current);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

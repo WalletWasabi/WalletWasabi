@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "ExcludedCoinsViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 {
 	private readonly IWalletModel _wallet;
@@ -22,8 +22,6 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 
 	public ExcludedCoinsViewModel(IWalletModel wallet)
 	{
-		Title = Lang.Resources.ExcludedCoinsViewModel_Title;
-
 		_wallet = wallet;
 		var initialCoins = wallet.Coins.List.Items.Where(x => x.IsExcludedFromCoinJoin);
 		CoinList = new CoinListViewModel(wallet.Coins, initialCoins.ToList(), allowCoinjoiningCoinSelection: false, ignorePrivacyMode: true);

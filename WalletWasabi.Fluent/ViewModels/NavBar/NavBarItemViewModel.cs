@@ -8,6 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarItemViewModel : RoutableViewModel
 {
 	private readonly INavBarItem _item;
+	private string? _title;
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
 
@@ -25,6 +26,12 @@ public partial class NavBarItemViewModel : RoutableViewModel
 			.BindTo(this, x => x.IconNameFocused);
 
 		OpenCommand = ReactiveCommand.CreateFromTask(ActivateAsync);
+	}
+
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
 	public ICommand OpenCommand { get; }

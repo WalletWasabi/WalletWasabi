@@ -6,12 +6,14 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	IconName = "nav_wallet_24_regular",
 	Order = 4,
 	Category = SearchCategory.Wallet,
+	Title = "WalletInfoViewModel_Title",
+	Caption = "WalletInfoViewModel_Caption",
+	Keywords = "WalletInfoViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	IsLocalized = true,
 	Searchable = false)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {

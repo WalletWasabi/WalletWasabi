@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
+[NavigationMetaData(Title = "TransactionDetailsViewModel_Title")]
 public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -36,8 +37,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
 	{
-		Title = Lang.Resources.TransactionDetailsViewModel_Title;
-
 		UiContext = uiContext;
 		_wallet = wallet;
 

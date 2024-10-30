@@ -7,8 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 [NavigationMetaData(
 	Order = 2,
 	Category = SearchCategory.HelpAndSupport,
-	IconName = "book_question_mark_regular",
-	IsLocalized = true)]
+	Title = "DocsLinkViewModel_Title",
+	Caption = "DocsLinkViewModel_Caption",
+	Keywords = "DocsLinkViewModel_Keywords",
+	IconName = "book_question_mark_regular")]
 public partial class DocsLinkViewModel : TriggerCommandViewModel
 {
 	private DocsLinkViewModel()

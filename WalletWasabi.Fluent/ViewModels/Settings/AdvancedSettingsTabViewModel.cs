@@ -13,8 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Order = 3,
 	Category = SearchCategory.Settings,
-	IconName = "settings_general_regular",
-	IsLocalized = true)]
+	Title = "AdvancedSettingsTabViewModel_Title",
+	Caption = "AdvancedSettingsTabViewModel_Caption",
+	Keywords = "AdvancedSettingsTabViewModel_Keywords",
+	IconName = "settings_general_regular")]
 public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _backendUri;

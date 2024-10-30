@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
+[NavigationMetaData(Title = "ReceiveAddressesViewModel_Title")]
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -22,8 +23,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	private ReceiveAddressesViewModel(IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType)
 	{
-		Title = Lang.Resources.ReceiveAddressesViewModel_Title;
-
 		_wallet = wallet;
 		_scriptType = scriptType;
 

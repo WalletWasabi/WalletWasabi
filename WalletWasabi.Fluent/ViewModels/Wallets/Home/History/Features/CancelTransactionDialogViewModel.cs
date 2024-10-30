@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "CancelTransactionDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -18,8 +18,6 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 
 	private CancelTransactionDialogViewModel(IWalletModel wallet, CancellingTransaction cancellingTransaction)
 	{
-		Title = Lang.Resources.CancelTransactionDialogViewModel_Title;
-
 		_wallet = wallet;
 		_cancellingTransaction = cancellingTransaction;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

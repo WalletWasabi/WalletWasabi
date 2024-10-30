@@ -8,6 +8,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login;
 
+[NavigationMetaData(Title = "Utils_Empty")]
 public partial class LoginViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _password;

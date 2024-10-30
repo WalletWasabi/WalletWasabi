@@ -13,12 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	IconName = "nav_wallet_24_regular",
 	Order = 2,
 	Category = SearchCategory.Wallet,
+	Title = "WalletSettingsViewModel_Title",
+	Caption = "WalletSettingsViewModel_Caption",
+	Keywords = "WalletSettingsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	IsLocalized = true,
 	Searchable = false)]
 public partial class WalletSettingsViewModel : RoutableViewModel
 {

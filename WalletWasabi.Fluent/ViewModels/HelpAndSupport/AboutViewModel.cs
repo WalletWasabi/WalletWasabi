@@ -9,12 +9,14 @@ using WalletWasabi.Helpers;
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	IconName = "info_regular",
 	Order = 4,
 	Category = SearchCategory.HelpAndSupport,
+	Title = "AboutViewModel_Title",
+	Caption = "AboutViewModel_Caption",
+	Keywords = "AboutViewModel_Keywords",
+	IconName = "info_regular",
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen,
-	IsLocalized = true)]
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AboutViewModel : RoutableViewModel
 {
 	public AboutViewModel(UiContext uiContext, bool navigateBack = false)

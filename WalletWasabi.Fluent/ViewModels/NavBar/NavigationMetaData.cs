@@ -6,7 +6,6 @@ namespace WalletWasabi.Fluent;
 
 public sealed record NavigationMetaData(
 	bool Searchable = true,
-	bool IsLocalized = false,
 	string? Title = null,
 	string? Caption = null,
 	string? IconName = null,
@@ -19,7 +18,7 @@ public sealed record NavigationMetaData(
 	NavigationTarget NavigationTarget = default
 )
 {
-	public string[]? GetKeywords() => Keywords?.Replace(" ","").Split(',');
+	public string[]? GetKeywords() => Keywords is null ? null : Lang.Keywords.ConstructKeywords(Keywords);
 
 	public static string GetCategoryString(SearchCategory category)
 	{

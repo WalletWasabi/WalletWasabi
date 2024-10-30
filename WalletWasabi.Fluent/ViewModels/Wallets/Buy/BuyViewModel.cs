@@ -18,13 +18,14 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 
 [NavigationMetaData(
-	IconName = "wallet_action_buy",
 	Order = 7,
 	Category = SearchCategory.Wallet,
+	Title = "BuyViewModel_Title",
+	Caption = "BuyViewModel_Caption",
+	Keywords = "BuyViewModel_Keywords",
+	IconName = "wallet_action_buy",
 	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen,
-	Searchable = false,
-	IsLocalized = true)]
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class BuyViewModel : RoutableViewModel, IOrderManager
 {
 	private readonly CancellationTokenSource _cts;

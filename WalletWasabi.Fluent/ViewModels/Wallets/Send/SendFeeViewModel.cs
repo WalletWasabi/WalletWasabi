@@ -15,7 +15,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-	Caption = "",
+	Title = "SendFeeViewModel_Title",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
@@ -28,8 +28,6 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
-		Title = Lang.Resources.SendFeeViewModel_Title;
-
 		_isSilent = isSilent;
 		IsBusy = isSilent;
 		_wallet = wallet;

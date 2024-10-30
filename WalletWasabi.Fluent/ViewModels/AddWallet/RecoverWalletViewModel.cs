@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
+[NavigationMetaData(Title = "RecoverWalletViewModel_Title")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -26,8 +27,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
-		Title = Lang.Resources.RecoverWalletViewModel_Title;
-
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()

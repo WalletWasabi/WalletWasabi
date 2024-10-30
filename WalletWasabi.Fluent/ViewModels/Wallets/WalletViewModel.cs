@@ -29,6 +29,7 @@ using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 [AppLifetime]
+[NavigationMetaData(Title = "Utils_Empty")]
 public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 {
 	public static string FindCoordinatorLink { get; } = "https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator";
@@ -169,7 +170,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			}
 		});
 
-		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#how-do-i-find-a-coordinator"));
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(FindCoordinatorLink));
 
 		NavigateToExcludedCoinsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().ExcludedCoins(WalletModel));
 

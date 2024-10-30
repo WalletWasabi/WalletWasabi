@@ -11,6 +11,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
+[NavigationMetaData(Title = "Utils_Empty")]
 public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 {
 	private const int NumberOfPages = 1;

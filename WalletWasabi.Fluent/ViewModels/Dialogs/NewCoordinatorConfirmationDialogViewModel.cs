@@ -5,13 +5,11 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "NewCoordinatorConfirmationDialogViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class NewCoordinatorConfirmationDialogViewModel : DialogViewModelBase<bool>
 {
 	private NewCoordinatorConfirmationDialogViewModel(CoordinatorConnectionString coordinatorConnection)
 	{
-		Title = Lang.Resources.NewCoordinatorConfirmationDialogViewModel_Title;
-
 		CoordinatorConnection = coordinatorConnection;
 		EnableBack = false;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);

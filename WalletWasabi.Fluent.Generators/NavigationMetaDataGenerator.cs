@@ -17,8 +17,6 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 
 	private const string RoutableViewModelDisplayString = "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel";
 
-	private const string LangResourceDisplayString = "WalletWasabi.Lang.Resources";
-
 	public void Initialize(GeneratorInitializationContext context)
 	{
 		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -63,8 +61,8 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 		string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
 		var format = new SymbolDisplayFormat(
-			typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-			genericsOptions: SymbolDisplayGenericsOptions.None);
+			typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+			genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
 
 		var attributeData = classSymbol
 			.GetAttributes()
@@ -104,7 +102,6 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 			using System;
 			using System.Threading.Tasks;
 			using WalletWasabi.Fluent.ViewModels.Navigation;
-			using WalletWasabi.Lang;
 
 			namespace {{namespaceName}};
 
@@ -126,34 +123,14 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 
 			source.AppendLine($"\t\t{namedArgument.Key} = " +
 							  $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new[] " : "")}" +
-							  $"{namedArgument.Value.ToCSharpString()},");
+							  $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
 		}
 
-		var isLocalized = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "IsLocalized").Value.Value;
-		if (isLocalized is true)
-		{
-			source.AppendLine($"\t\tTitle = {LangResourceDisplayString}.ResourceManager.GetSafeValue(\"{classSymbol.ToDisplayString(format)}_Title\"),");
-			source.AppendLine($"\t\tCaption = {LangResourceDisplayString}.ResourceManager.GetSafeValue(\"{classSymbol.ToDisplayString(format)}_Caption\"),");
-			source.AppendLine($"\t\tKeywords = {LangResourceDisplayString}.ResourceManager.GetSafeValue(\"{classSymbol.ToDisplayString(format)}_Keywords\"),");
+		source.Append(
+			"""
+				};
 
-			source.Append(
-				"""
-					};
-
-				""");
-
-			source.AppendLine($"\npublic new string Title => MetaData.Title ?? \"\";");
-			source.AppendLine($"public new string Caption => MetaData.Caption ?? \"\";");
-			source.AppendLine($"public new string[] Keywords => MetaData.GetKeywords() ?? [];\n");
-		}
-		else
-		{
-			source.Append(
-				"""
-					};
-
-				""");
-		}
+			""");
 
 		source.AppendLine(
 			"""
@@ -204,7 +181,7 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 				{
 					source.AppendLine(
 						"""
-							public override string Title { get => MetaData.Title!; protected set {} }
+							public override string Title { get => Lang.Utils.GetString(MetaData.Title!); protected set {} }
 						""");
 				}
 			}

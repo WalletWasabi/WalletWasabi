@@ -13,14 +13,13 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
+[NavigationMetaData(Title = "ReceiveAddressViewModel_Title")]
 public partial class ReceiveAddressViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
 	public ReceiveAddressViewModel(UiContext uiContext, IWalletModel wallet, IAddress model, bool isAutoCopyEnabled)
 	{
-		Title = Lang.Resources.ReceiveAddressViewModel_Title;
-
 		_wallet = wallet;
 		UiContext = uiContext;
 		Model = model;

@@ -17,7 +17,7 @@ public class CoinViewModel : CoinListItem
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
 		var confirmationCount = coin.Confirmations;
-		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddGenericPlural(confirmationCount)}";
+		ConfirmationStatus = $"{confirmationCount} {Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(confirmationCount, "Words_Confirmation")!)}";
 		BannedUntilUtcToolTip = coin.BannedUntilUtcToolTip;
 		AnonymityScore = coin.AnonScore;
 		BannedUntilUtc = coin.BannedUntilUtc;

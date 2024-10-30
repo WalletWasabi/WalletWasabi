@@ -9,12 +9,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
+[NavigationMetaData(Title = "BroadcastTransactionViewModel_Title")]
 public partial class BroadcastTransactionViewModel : RoutableViewModel
 {
 	public BroadcastTransactionViewModel(UiContext uiContext, SmartTransaction transaction)
 	{
-		Title = Lang.Resources.BroadcastTransactionViewModel_Title;
-
 		UiContext = uiContext;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

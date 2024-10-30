@@ -16,8 +16,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Order = 1,
 	Category = SearchCategory.Settings,
-	IconName = "settings_bitcoin_regular",
-	IsLocalized = true)]
+	Title = "BitcoinTabSettingsViewModel_Title",
+	Caption = "BitcoinTabSettingsViewModel_Caption",
+	Keywords = "BitcoinTabSettingsViewModel_Keywords",
+	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinP2PEndPoint;

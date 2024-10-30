@@ -20,13 +20,13 @@ public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
-		_timeFrames = new[]
-		{
-			new TimeFrameItem(Lang.Resources.Words_Hours, TimeSpan.Zero),
-			new TimeFrameItem(Lang.Resources.Words_Days, TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
-			new TimeFrameItem(Lang.Resources.Words_Weeks, TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
-			new TimeFrameItem(Lang.Resources.Words_Months, TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
-		};
+		_timeFrames =
+		[
+			new TimeFrameItem(Lang.Utils.Plural("Words_Hour"), TimeSpan.Zero),
+			new TimeFrameItem(Lang.Utils.Plural("Words_Day"), TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
+			new TimeFrameItem(Lang.Utils.Plural("Words_Week"), TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
+			new TimeFrameItem(Lang.Utils.Plural("Words_Month"), TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
+		];
 
 		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
 	}

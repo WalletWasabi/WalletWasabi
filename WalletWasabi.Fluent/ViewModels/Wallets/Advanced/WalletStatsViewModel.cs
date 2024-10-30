@@ -7,13 +7,15 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	IconName = "nav_wallet_24_regular",
 	Order = 3,
 	Category = SearchCategory.Wallet,
+	Title = "WalletStatsViewModel_Title",
+	Caption = "WalletStatsViewModel_Caption",
+	Keywords = "WalletStatsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
-	Searchable = false,
-	IsLocalized = true)]
+	Searchable = false)]
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;

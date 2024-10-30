@@ -35,7 +35,12 @@ public class ActionsSearchSource : ISearchSource
 			.Select(m =>
 			{
 				var onActivate = CreateOnActivateFunction(m);
-				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category, m.GetKeywords())
+				var searchItem = new ActionableItem(
+					m.Title is null ? "" : Lang.Utils.GetString(m.Title)!,
+					m.Caption is null ? "" : Lang.Utils.GetString(m.Caption)!,
+					onActivate,
+					m.Category,
+					m.GetKeywords())
 				{
 					Icon = m.IconName,
 					IsDefault = true,

@@ -8,7 +8,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "CustomFeeRateDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
@@ -17,8 +17,6 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
-		Title = Lang.Resources.CustomFeeRateDialogViewModel_Title;
-
 		_transactionInfo = transactionInfo;
 
 		_customFee = transactionInfo.IsCustomFeeUsed

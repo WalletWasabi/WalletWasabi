@@ -28,5 +28,5 @@ public static class StatusConverters
 		new FuncValueConverter<RpcStatus?, string>(status => status is null ? RpcStatus.Unresponsive.ToString() : status.ToString());
 
 	public static readonly IValueConverter PeerStatusStringConverter =
-		new FuncValueConverter<int, string>(peerCount => string.Format(CultureInfo.InvariantCulture, Lang.Resources.Status_Peers_ConnectedCount, peerCount));
+		new FuncValueConverter<int, string>(peerCount => string.Format(Lang.Resources.Culture, Lang.Resources.Status_Peers_ConnectedCount, peerCount));
 }

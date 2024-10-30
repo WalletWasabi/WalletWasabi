@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[NavigationMetaData(Title = "Utils_Empty")]
 public partial class LoadingViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
