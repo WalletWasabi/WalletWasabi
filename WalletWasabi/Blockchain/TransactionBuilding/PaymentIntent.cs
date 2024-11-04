@@ -44,8 +44,8 @@ public class PaymentIntent
 			throw new ArgumentException($"Only one request can specify fee subtraction.");
 		}
 
-		var allRemainingCount = requests.Count(x => x.Amount.Type == MoneyRequestType.AllRemaining);
-		var changeCount = requests.Count(x => x.Amount.Type == MoneyRequestType.Change);
+		var allRemainingCount = requests.Count(x => x.Amount is MoneyRequest.AllRemaining);
+		var changeCount = requests.Count(x => x.Amount is MoneyRequest.Change);
 		int specialCount = allRemainingCount + changeCount;
 		if (specialCount == 0)
 		{
@@ -78,7 +78,7 @@ public class PaymentIntent
 
 		Requests = requests;
 
-		TotalAmount = requests.Where(x => x.Amount.Type == MoneyRequestType.Value).Sum(x => x.Amount.Amount);
+		TotalAmount = requests.Select(x => x.Amount).OfType<MoneyRequest.Value>().Sum(x => x.Amount);
 	}
 
 	public IEnumerable<DestinationRequest> Requests { get; }
@@ -87,7 +87,7 @@ public class PaymentIntent
 
 	public bool TryGetCustomRequest([NotNullWhen(true)] out DestinationRequest? request)
 	{
-		request = Requests.SingleOrDefault(x => x.Amount.Type is MoneyRequestType.Change or MoneyRequestType.AllRemaining);
+		request = Requests.SingleOrDefault(x => x.Amount is MoneyRequest.Change or MoneyRequest.AllRemaining);
 
 		return request is not null;
 	}

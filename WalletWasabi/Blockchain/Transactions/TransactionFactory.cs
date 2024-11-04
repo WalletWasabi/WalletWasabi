@@ -103,12 +103,10 @@ public class TransactionFactory
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 		builder.SetLockTime(lockTimeSelector());
 
-		foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
+		foreach (var request in payments.Requests.Where(x => x.Amount is MoneyRequest.Value).Select(x => (x.Destination, Amount: (MoneyRequest.Value)x.Amount, x.Amount.SubtractFee)))
 		{
-			var amountRequest = request.Amount;
-
-			builder.Send(request.Destination, amountRequest.Amount);
-			if (amountRequest.SubtractFee)
+			builder.Send(request.Destination, request.Amount.Amount);
+			if (request.SubtractFee)
 			{
 				builder.SubtractFees();
 			}
