@@ -14,12 +14,12 @@ public record SilentPaymentAddress(int Version, ECPubKey ScanKey, ECPubKey Spend
 		var version = result[0];
 		if (version != 0)
 		{
-			throw new Exception("Unexpected version of silent payment code");
+			throw new FormatException("Unexpected version of silent payment code");
 		}
 
 		if (result.Length != 107)
 		{
-			throw new Exception("Wrong lenght");
+			throw new FormatException("Wrong lenght");
 		}
 
 		var data = spEncoder.FromBase32(result[1..]);

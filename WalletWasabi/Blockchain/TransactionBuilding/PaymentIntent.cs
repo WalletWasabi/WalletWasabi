@@ -4,28 +4,44 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
+using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class PaymentIntent
 {
-	public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, LabelsArray? label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
+	public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, LabelsArray? label = null)
+		: this(new DestinationRequest(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label))
 	{
 	}
 
-	public PaymentIntent(Script scriptPubKey, MoneyRequest amount, LabelsArray? label = null) : this(scriptPubKey.GetDestination(), amount, label)
+	public PaymentIntent(Script scriptPubKey, MoneyRequest amount, LabelsArray? label = null)
+		: this(new DestinationRequest(scriptPubKey, amount, label))
 	{
 	}
 
-	public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, LabelsArray? label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
+	public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, LabelsArray? label = null)
+		: this(new DestinationRequest(destination.ScriptPubKey, MoneyRequest.Create(amount, subtractFee), label))
 	{
 	}
 
-	public PaymentIntent(IDestination destination, MoneyRequest amount, LabelsArray? label = null) : this(new DestinationRequest(destination, amount, label))
+	public PaymentIntent(IDestination destination, MoneyRequest amount, LabelsArray? label = null)
+		: this(new DestinationRequest(destination.ScriptPubKey, amount, label))
 	{
 	}
 
-	public PaymentIntent(params DestinationRequest[] requests) : this(requests as IEnumerable<DestinationRequest>)
+	public PaymentIntent(SilentPaymentAddress address, Money amount, bool subtractFee = false, LabelsArray? label = null)
+		: this(new DestinationRequest(address, MoneyRequest.Create(amount, subtractFee), label))
+	{
+	}
+
+	public PaymentIntent(SilentPaymentAddress address, MoneyRequest amount, LabelsArray? label = null)
+		: this(new DestinationRequest(address, amount, label))
+	{
+	}
+
+	public PaymentIntent(params DestinationRequest[] requests)
+		: this(requests as IEnumerable<DestinationRequest>)
 	{
 	}
 
