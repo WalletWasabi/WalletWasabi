@@ -45,20 +45,24 @@ public class SilentPayment
 
 	public static ECPrivKey ComputePrivKey(SilentPaymentAddress addr, ECPrivKey spendKey, ECPrivKey partialSecret, int i)
 	{
-		var sharedPubkey = addr.ScanKey.GetSharedPubkey(partialSecret);
-		using var k = ECPrivKey.Create(TaggedHash("BIP0352/SharedSecret", ByteHelpers.Combine(sharedPubkey.ToBytes(), Serialize32(i))));
-		return ECPrivKey.Create((k.sec + spendKey.sec).ToBytes());
+		using var tk = TweakKey(addr.ScanKey, partialSecret, i);
+		return ECPrivKey.Create((tk.sec + spendKey.sec).ToBytes());
 	}
 
 	private static ECPubKey ComputePubKey(SilentPaymentAddress addr, ECPrivKey partialSecret, int i)
 	{
-		var sharedPubkey = addr.ScanKey.GetSharedPubkey(partialSecret);
-		using var k = ECPrivKey.Create(TaggedHash("BIP0352/SharedSecret", ByteHelpers.Combine(sharedPubkey.ToBytes(), Serialize32(i))));
+		using var tk = TweakKey(addr.ScanKey, partialSecret, i);
 
 		// Let Pmk = k·G + Bm
-		var pmk = k.CreatePubKey().Q.ToGroupElementJacobian() + addr.SpendKey.Q;
+		var pmk = tk.CreatePubKey().Q.ToGroupElementJacobian() + addr.SpendKey.Q;
 		return new ECPubKey(pmk.ToGroupElement(), null);
 	}
+
+	private static ECPrivKey TweakKey(ECPubKey scanKey, ECPrivKey partialSecret, int i) =>
+		ECPrivKey.Create(
+			TaggedHash(
+				"BIP0352/SharedSecret",
+				ByteHelpers.Combine(scanKey.GetSharedPubkey(partialSecret).ToBytes(), Serialize32(i))));
 
 	private static ECPrivKey SumPrivkeys(IEnumerable<Utxo> utxos)
 	{
