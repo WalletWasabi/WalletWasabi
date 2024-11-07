@@ -145,7 +145,10 @@ public class TransactionFactory
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
 
-		builder.OptInRBF = true;
+		// The RBF is used by Wasabi speedup feature to know whether an unconfirmed transaction can be
+		// replaced. Here we mark tx containing silent payments as non-replaceable because that would
+		// require to remember the destination silent payment address in order to recompute the scriptPubKey.
+		builder.OptInRBF = payments.Requests.All(x => x.Destination is Destination.Loudly);
 
 		builder.SendEstimatedFees(parameters.FeeRate);
 
@@ -223,6 +226,7 @@ public class TransactionFactory
 			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			psbt = builder.SolveSilentPayment(psbt);
+			psbt.AddKeyPaths(KeyManager);
 			psbt.AddPrevTxs(_transactionStore);
 			builder.SignPSBT(psbt);
 
