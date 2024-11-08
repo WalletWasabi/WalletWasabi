@@ -44,19 +44,16 @@ internal enum ServerEvent
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
 {
-	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client, bool useTestApi) : base(period)
+	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client) : base(period)
 	{
 		_client = client;
-		_filePath = Path.Combine(dataDir, "Conversations", useTestApi ? "TestConversations.json" : "Conversations.json");
+		_filePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
 
 		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 		string fileContent = File.ReadAllText(countriesFilePath);
 		Country[] countries = [];
-		if (!useTestApi)
-		{
-			countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-								  ?? throw new InvalidOperationException("Couldn't read the countries list.");
-		}
+		countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
 		Countries = countries;
 	}
 

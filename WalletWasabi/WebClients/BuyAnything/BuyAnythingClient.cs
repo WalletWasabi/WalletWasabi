@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Nito.AsyncEx;
 using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.WebClients.ShopWare.Models;
+using WalletWasabi.WebClients.Wasabi;
 using Country = WalletWasabi.BuyAnything.Country;
 
 namespace WalletWasabi.WebClients.BuyAnything;
@@ -21,19 +22,10 @@ public class BuyAnythingClient
 		[Product.TravelConcierge] = "018c0cf0e5fc70bc9255b0cdb4510dbd"
 	};
 
-	// Product Id mapping for Concierge services
-	private static readonly Dictionary<Product, string> ProductIdsTesting = new()
-	{
-		[Product.ConciergeRequest] = "018d313972cf7c45b5fe2af5bce6e55d",
-		[Product.FastTravelBooking] = "018d313a605e7beb9ea605542267d8f8",
-		[Product.TravelConcierge] = "018d313bc5c4744281ec5ed837cee1c5"
-	};
 
 	private static readonly string SalutationIdProduction = "018b6635785b70679f479eadf50330f3";
-	private static readonly string SalutationIdTesting = "018d18f29d347170b6cfd6466cab3c71";
 
 	private static readonly string StorefrontUrlProduction = "https://wasabi.shopinbit.com";
-	private static readonly string StorefrontUrlTesting = "https://shopinbit.solution360.dev/wasabi";
 
 	// Customer information. We need this values to update the messages
 	// we have three options:
@@ -44,12 +36,12 @@ public class BuyAnythingClient
 
 	private static readonly string LastName = "Sabimoto";
 
-	public BuyAnythingClient(IShopWareApiClient apiClient, bool useTestApi = false)
+	public BuyAnythingClient(IShopWareApiClient apiClient)
 	{
 		_apiClient = apiClient;
-		ProductIds = useTestApi ? ProductIdsTesting : ProductIdsProduction;
-		_salutationId = useTestApi ? SalutationIdTesting : SalutationIdProduction;
-		_storefrontUrl = useTestApi ? StorefrontUrlTesting : StorefrontUrlProduction;
+		ProductIds = ProductIdsProduction;
+		_salutationId = SalutationIdProduction;
+		_storefrontUrl = StorefrontUrlProduction;
 	}
 
 	// Services provided by Concierge
@@ -72,6 +64,7 @@ public class BuyAnythingClient
 	private readonly string _storefrontUrl;
 
 	private readonly IShopWareApiClient _apiClient;
+	private readonly HttpClientFactory _httpClientFactory;
 	private readonly AsyncLock _contextTokenCacheLock = new();
 
 	private Dictionary<string, (string, DateTime)> ContextTokenCache { get; } = new();

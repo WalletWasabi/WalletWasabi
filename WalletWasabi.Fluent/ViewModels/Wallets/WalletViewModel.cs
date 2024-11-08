@@ -176,10 +176,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
-		CanBuy =
-			walletModel.HasBalance
-				.CombineLatest(BuyViewModel.HasNonEmptyOrder)
-				.Select(x => GetIsBuyButtonVisible(x.First, x.Second));
+		CanBuy = BuyViewModel.HasRelevantOrder;
 
 		HasUnreadConversations = BuyViewModel.Orders
 			.ToObservableChangeSet(x => x.OrderNumber)
@@ -285,20 +282,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletModel.State
 			.BindTo(this, x => x.WalletState)
 			.DisposeWith(disposables);
-	}
-
-	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)
-	{
-#if DEBUG
-		return true;
-#endif
-
-		if (hasBalance || hasNonEmptyOrder)
-		{
-			return true;
-		}
-
-		return false;
 	}
 
 	private ISearchItem[] CreateSearchItems()

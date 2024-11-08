@@ -28,12 +28,6 @@
       <Setter Property="Opacity" Value="0.6" />
       <Setter Property="ToolTip.Tip" Value="Remove order" />
     </Style>
-    <Style Selector="PathIcon.ResetOrderIcon">
-      <Setter Property="Data" Value="{StaticResource arrow_reset}" />
-      <Setter Property="Height" Value="16" />
-      <Setter Property="Opacity" Value="0.6" />
-      <Setter Property="ToolTip.Tip" Value="Reset order" />
-    </Style>
   </UserControl.Styles>
 
   <DockPanel>
@@ -63,17 +57,6 @@
                   </MultiBinding>
                 </Button.IsVisible>
                 <PathIcon Classes="RemoveOrderIcon" />
-              </Button>
-              <Button Classes="plain"
-                      ToolTip.Tip="Reset order"
-                      Command="{Binding ResetOrderCommand}">
-                <Button.IsVisible>
-                  <MultiBinding Converter="{x:Static BoolConverters.And}">
-                    <Binding Path="CanResetObs^" />
-                    <Binding Path="!IsBusy" />
-                  </MultiBinding>
-                </Button.IsVisible>
-                <PathIcon Classes="ResetOrderIcon" />
               </Button>
             </StackPanel>
             <TextBlock Text="{Binding Title}"
