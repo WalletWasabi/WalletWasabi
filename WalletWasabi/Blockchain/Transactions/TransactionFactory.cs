@@ -459,14 +459,13 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			}
 		}
 
-		var r = tx.CreatePSBT(network);
+		var newPsbt = tx.CreatePSBT(network);
 
-		foreach (var (newInput, oldInput) in r.Inputs.Zip(psbt.Inputs))
+		foreach (var (newInput, oldInput) in newPsbt.Inputs.Zip(psbt.Inputs))
 		{
 			newInput.UpdateFrom(oldInput);
 		}
-		return r;
+		return newPsbt;
 	}
-
 }
 
