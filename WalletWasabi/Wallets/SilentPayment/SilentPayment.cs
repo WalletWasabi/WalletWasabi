@@ -8,7 +8,7 @@ using WabiSabi.Helpers;
 
 namespace WalletWasabi.Wallets.SilentPayment;
 
-public class SilentPayment
+public static class SilentPayment
 {
 	public static ECPrivKey ComputePartialSecret(IEnumerable<Utxo> utxos)
 	{

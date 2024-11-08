@@ -226,8 +226,6 @@ public class TransactionFactory
 			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			psbt = builder.SolveSilentPayment(psbt);
-			psbt.AddKeyPaths(KeyManager);
-			psbt.AddPrevTxs(_transactionStore);
 			builder.SignPSBT(psbt);
 
 			// Try to pay using payjoin
@@ -452,17 +450,22 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.XOnlyPubKey.ToBytes())))
 			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
 
-		var tx = psbt.GetGlobalTransaction();
-		for(var i = 0; i< tx.Outputs.Count; i++)
+		var tx = psbt.GetOriginalTransaction();
+		foreach (var output in tx.Outputs)
 		{
-			var output = tx.Outputs[i];
 			if (_silentPayments.TryGetValue(output.ScriptPubKey, out var silentPaymentAddress))
 			{
 				output.ScriptPubKey = scriptPubKeys[silentPaymentAddress];
 			}
 		}
 
-		return tx.CreatePSBT(network);
+		var r = tx.CreatePSBT(network);
+
+		foreach (var (newInput, oldInput) in r.Inputs.Zip(psbt.Inputs))
+		{
+			newInput.UpdateFrom(oldInput);
+		}
+		return r;
 	}
 
 }
