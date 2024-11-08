@@ -261,13 +261,12 @@ public class Global
 					}
 				}
 
-				bool useTestApi = Network != Network.Main;
-				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
-				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
+				var apiKey = "SWSCU3LIYWVHVXRVYJJNDLJZBG";
+				var uri = new Uri("https://shopinbit.com/store-api/");
 				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("long-live-shopinbit"), uri, apiKey);
 
-				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
+				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
+				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
 				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
 				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 				await buyAnythingManager.EnsureCountriesAreLoadedAsync(cancel).ConfigureAwait(false);

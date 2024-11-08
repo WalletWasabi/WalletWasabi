@@ -33,8 +33,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	private readonly SourceCache<OrderViewModel, int> _ordersCache;
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private OrderViewModel? _emptyOrder; // Used to track the "Empty" order (with empty ConversationId)
-
 	[AutoNotify] private OrderViewModel? _selectedOrder;
 
 	public BuyViewModel(UiContext uiContext, IWalletModel wallet)
@@ -58,19 +56,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 
 		_cts = new CancellationTokenSource();
 
-		// When the Empty Order stops being empty, create a new Empty Order
-		this.WhenAnyValue(x => x.EmptyOrder.Workflow.Conversation)
-			.Where(x => x.Id != ConversationId.Empty)
-			.Do(_ => EmptyOrder = NewEmptyOrder())
-			.Subscribe();
-
-		HasNonEmptyOrder = this.WhenAnyValue(x => x.Orders.Count)
-			.Select(_ => Orders.Any(x => x.ConversationId != ConversationId.Empty));
+		HasRelevantOrder = this.WhenAnyValue(x => x.Orders.Count)
+			.Select(_ => Orders.Any(x => x.Workflow.Conversation.OrderStatus is not OrderStatus.Cancelled));
 
 		Activate();
+
 	}
 
-	public IObservable<bool> HasNonEmptyOrder { get; }
+	public IObservable<bool> HasRelevantOrder { get; }
 
 	public ReadOnlyObservableCollection<OrderViewModel> Orders => _orders;
 
@@ -82,7 +75,14 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		}
 
 		_ordersCache.RemoveKey(id);
-		SelectedOrder = _orders.FirstOrDefault();
+		if (_orders.Count > 0)
+		{
+			SelectedOrder = _orders.First();
+		}
+		else
+		{
+			CancelCommand.ExecuteIfCan();
+		}
 	}
 
 	public async Task OnError(Exception ex)
@@ -108,6 +108,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 	{
 		base.OnNavigatedTo(inHistory, disposables);
 
+		SelectedOrder = Orders.FirstOrDefault();
+
 		// Mark Conversation as read for selected order
 		this.WhenAnyValue(x => x.SelectedOrder, x => x.SelectedOrder.Workflow.Conversation, (order, _) => order)
 			.WhereNotNull()
@@ -116,22 +118,6 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 			.DisposeWith(disposables);
 
 		MarkNewMessagesFromSelectedOrderAsRead().DisposeWith(disposables);
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		base.OnNavigatedFrom(isInHistory);
-
-		SelectNewOrderIfAny();
-	}
-
-	private void SelectNewOrderIfAny()
-	{
-		// We should always have an empty order, but this condition is for safety, just in case we change this axiom.
-		if (EmptyOrder is { } emptyOrder)
-		{
-			SelectedOrder = emptyOrder;
-		}
 	}
 
 	private IDisposable MarkNewMessagesFromSelectedOrderAsRead()
@@ -155,14 +141,8 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 				currentConversations.Select((conversation, index) => new OrderViewModel(UiContext, _wallet, conversation, this, index))
 								    .ToArray();
 
+
 			_ordersCache.AddOrUpdate(orders);
-
-			if (_orders.Count == 0 || _orders.All(x => x.ConversationId != ConversationId.Empty))
-			{
-				EmptyOrder = NewEmptyOrder();
-			}
-
-			SelectNewOrderIfAny();
 		}
 		catch (Exception exception)
 		{
@@ -172,18 +152,5 @@ public partial class BuyViewModel : RoutableViewModel, IOrderManager
 		{
 			IsBusy = false;
 		}
-	}
-
-	private OrderViewModel NewEmptyOrder()
-	{
-		var nextOrderNumber = Orders.Count > 0 ? Orders.Max(x => x.OrderNumber) + 1 : 1;
-
-		var conversation = _wallet.BuyAnything.NewConversation();
-
-		var order = new OrderViewModel(UiContext, _wallet, conversation, this, nextOrderNumber);
-
-		_ordersCache.AddOrUpdate(order);
-
-		return order;
 	}
 }
