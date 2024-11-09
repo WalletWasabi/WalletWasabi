@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
-[NavigationMetaData(Title = "Coinjoins", NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "CoinJoinsDetailsViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -84,7 +84,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
 			Date = transaction.DateToolTipString;
-			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
+			Status = transaction.IsConfirmed ? Lang.Resources.Words_Confirmed : Lang.Resources.Words_Pending;
 			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));

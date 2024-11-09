@@ -3,13 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ActionableItem : IActionableItem
 {
-	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null, IObservable<bool> isVisible = null)
+	public ActionableItem(string name, string description, Func<Task> onExecution, SearchCategory category, IEnumerable<string>? keywords = null, IObservable<bool> isVisible = null)
 	{
 		Name = name;
 		Description = description;
@@ -25,7 +26,7 @@ public class ActionableItem : IActionableItem
 	public string Description { get; }
 	public ComposedKey Key => new(Name);
 	public string? Icon { get; set; }
-	public string Category { get; }
+	public SearchCategory Category { get; }
 	public IEnumerable<string> Keywords { get; }
 	public bool IsDefault { get; set; }
 	public int Priority { get; set; }

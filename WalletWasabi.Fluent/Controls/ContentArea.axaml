@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:lang="clr-namespace:WalletWasabi.Lang;assembly=WalletWasabi">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
       <ContentArea Width="500" Height="300"
@@ -7,8 +8,8 @@
                      Title="Add a Wallet"
                      TopContent="This is the top content"
                      EnableBack="True"
-                     EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
-                     EnableNext="True" NextContent="Continue" FocusNext="True"
+                     EnableCancel="True" CancelContent="{x:Static lang:Resources.Words_Cancel}" FocusCancel="False"
+                     EnableNext="True" NextContent="{x:Static lang:Resources.Words_Continue}" FocusNext="True"
                      Caption="Type in your Wallet's name and select an option below:">
         This is the content.
       </ContentArea>
@@ -38,7 +39,7 @@
                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                 </Interaction.Behaviors>
               </Button>
-              
+
                 <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Right">
                   <Button Name="PART_SkipButton"
                           IsVisible="{TemplateBinding EnableSkip}"
@@ -123,7 +124,7 @@
     <Style Selector="^/template/ Button#PART_BackButton">
       <Setter Property="Margin" Value="-31,0,0,0"/>
     </Style>
-    
+
     <Style Selector="^/template/ ContentPresenter#PART_TitlePresenter">
       <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
       <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />

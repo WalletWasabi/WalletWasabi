@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -207,7 +208,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			},
 			["onionService"] = Global.OnionServiceUri?.ToString() ?? "Unavailable",
 			["backendStatus"] = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
-			["bestBlockchainHeight"] = smartHeaderChain.TipHeight.ToString(),
+			["bestBlockchainHeight"] = smartHeaderChain.TipHeight.ToString(CultureInfo.InvariantCulture),
 			["bestBlockchainHash"] = smartHeaderChain.TipHash?.ToString() ?? "",
 			["filtersCount"] = smartHeaderChain.HashCount,
 			["filtersLeft"] = smartHeaderChain.HashesLeft,

@@ -34,7 +34,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 		Reference = PrivacyLevelText;
 		if (Unconfirmed)
 		{
-			Reference += " (pending)";
+			Reference += $" ({Lang.Utils.LowerCaseFirst(Lang.Resources.Words_Pending)})";
 		}
 	}
 
@@ -131,9 +131,9 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	private string GetPrivacyLevelDescription() =>
 		this switch
 		{
-			{ IsPrivate: true } => "Private",
-			{ IsSemiPrivate: true } => "Semi-private",
-			{ IsNonPrivate: true } => "Non-private",
-			_ => "[Unknown]"
+			{ IsPrivate: true } => Lang.Resources.Words_Private,
+			{ IsSemiPrivate: true } => Lang.Resources.Words_SemiPrivate,
+			{ IsNonPrivate: true } => Lang.Resources.Words_NonPrivate,
+			_ => $"[{Lang.Resources.Words_Unknown}]"
 		};
 }

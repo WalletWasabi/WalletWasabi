@@ -20,9 +20,11 @@ public class PocketViewModel : CoinListItem
 		var unconfirmedCount = pocketCoins.Count(x => !x.Confirmed);
 		IsConfirmed = unconfirmedCount == 0;
 		IgnorePrivacyMode = ignorePrivacyMode;
-		ConfirmationStatus = IsConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
+		ConfirmationStatus = IsConfirmed ?
+			Lang.Resources.PocketViewModel_Confirmed_Yes :
+			string.Format(Lang.Resources.Culture, Lang.Resources.PocketViewModel_Confirmed_No, unconfirmedCount);
 		IsBanned = pocketCoins.Any(x => x.IsBanned);
-		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
+		BannedUntilUtcToolTip = IsBanned ? Lang.Resources.PocketViewModel_Banned_Yes : null;
 		Amount = new Amount(pocket.Amount);
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = GetAnonScore(pocketCoins);

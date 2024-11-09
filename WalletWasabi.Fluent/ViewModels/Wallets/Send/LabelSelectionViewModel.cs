@@ -199,7 +199,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		if (AllLabelsViewModel.FirstOrDefault(x => x.Value == CoinPocketHelper.UnlabelledFundsText) is { } unlabelledViewModel)
 		{
 			unlabelledViewModel.IsDangerous = true;
-			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
+			unlabelledViewModel.ToolTip = Lang.Resources.LabelSelectionViewModel_NoInformation_Tip;
 		}
 
 		if (!_isSilent)

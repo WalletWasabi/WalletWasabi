@@ -13,15 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "General",
-	Caption = "Manage general settings",
 	Order = 0,
-	Category = "Settings",
-	Keywords = new[]
-	{
-			"Settings", "General", "Bitcoin", "Dark", "Mode", "Run", "Wasabi", "Computer", "System", "Start", "Background", "Close",
-			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats"
-	},
+	Category = SearchCategory.Settings,
+	Title = "GeneralSettingsTabViewModel_Title",
+	Caption = "GeneralSettingsTabViewModel_Caption",
+	Keywords = "GeneralSettingsTabViewModel_Keywords",
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : RoutableViewModel
 {
@@ -42,7 +38,10 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 			{
 				Logger.LogError(ex);
 				RunOnSystemStartup = !RunOnSystemStartup;
-				await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occurred.");
+				await ShowErrorAsync(
+					Lang.Resources.GeneralSettingsTabViewModel_Title,
+					Lang.Resources.GeneralSettingsTabViewModel_Error_CouldntSaveChanges_Message,
+					Lang.Resources.GeneralSettingsTabViewModel_Error_CouldntSaveChanges_Caption);
 			}
 		});
 	}
@@ -55,4 +54,6 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 
 	public IEnumerable<TorMode> TorModes =>
 		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
+
+	public IEnumerable<DisplayLanguage> DisplayLanguagesList => Enum.GetValues(typeof(DisplayLanguage)).Cast<DisplayLanguage>();
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -57,11 +58,18 @@ public partial class StatusIconViewModel : ViewModelBase
 	{
 		if (HealthMonitor.IsReadyToInstall)
 		{
-			return $"Version {HealthMonitor.ClientVersion} is now ready to install";
+			return string.Format(
+				CultureInfo.CurrentCulture,
+				Lang.Resources.StatusIconViewModel_NewVersion_ReadyToInstall,
+				HealthMonitor.ClientVersion);
 		}
-		else if (HealthMonitor.UpdateAvailable)
+
+		if (HealthMonitor.UpdateAvailable)
 		{
-			return $"Version {HealthMonitor.ClientVersion} is now available";
+			return string.Format(
+				CultureInfo.CurrentCulture,
+				Lang.Resources.StatusIconViewModel_NewVersion_Available,
+				HealthMonitor.ClientVersion);
 		}
 
 		return string.Empty;

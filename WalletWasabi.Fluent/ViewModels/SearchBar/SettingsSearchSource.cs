@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -36,18 +37,18 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 	{
 		var isEnabled = !_applicationSettings.IsOverridden;
 
-		yield return new ContentSearchItem(content: Setting(selector: x => x.DarkModeEnabled), name: "Dark mode", category: "Appearance", keywords: new List<string> { "Black", "White", "Theme", "Dark", "Light" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 1 };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoCopy), name: "Auto copy addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 2 };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoPaste), name: "Auto paste addresses", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 3 };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: "Run in background when closed", category: "Settings", keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 4 };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 5 };
-		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.DarkModeEnabled), name: Lang.Resources.Settings_DarkModeEnabled_Name, category: SearchCategory.Settings, keywords: Lang.Keywords.ConstructKeywords("Settings_DarkModeEnabled_Keywords"), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 1 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoCopy), name: Lang.Resources.Settings_AutoCopy_Name, category: SearchCategory.Settings, keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 2 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.AutoPaste), name: Lang.Resources.Settings_AutoPaste_Name, category: SearchCategory.Settings, keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 3 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: Lang.Resources.Settings_HideOnClose_Name, category: SearchCategory.Settings, keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 4 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: Lang.Resources.Settings_RunOnSystemStartup_Name, category: SearchCategory.Settings, keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 5 };
+		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: Lang.Resources.Settings_EnableGpu_Name, category: SearchCategory.Settings, keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
 
 		yield return ContentSearchItemNode.Create(
 			searchSource: _uiContext.EditableSearchSource,
 			setting: Setting(selector: x => x.UseTor),
-			name: "Network anonymization (Tor)",
-			category: "Settings",
+			name: Lang.Resources.Settings_UseTor_Name,
+			category: SearchCategory.Settings,
 			isDefault: false,
 			keywords: new List<string>(),
 			icon: "nav_settings_regular",
@@ -57,8 +58,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 				isDisplayed: mode => mode != TorMode.Disabled,
 				item: new ContentSearchItem(
 					content: Setting(selector: x => x.TerminateTorOnExit),
-					name: "Terminate Tor when Wasabi shuts down",
-					category: "Settings",
+					name: Lang.Resources.Settings_TerminateTorOnExit_Name,
+					category: SearchCategory.Settings,
 					keywords: new List<string>(),
 					icon: "nav_settings_regular",
 					isEnabled)
@@ -70,8 +71,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 		yield return ContentSearchItemNode.Create(
 			searchSource: _uiContext.EditableSearchSource,
 			setting: Setting(selector: x => x.StartLocalBitcoinCoreOnStartup),
-			name: "Run Bitcoin Knots on startup",
-			category: "Settings",
+			name: Lang.Resources.Settings_StartLocalBitcoinCoreOnStartup_Name,
+			category: SearchCategory.Settings,
 			isDefault: false,
 			keywords: new List<string>(),
 			icon: "nav_settings_regular",
@@ -81,8 +82,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 				isDisplayed: isVisible => isVisible,
 				item: new ContentSearchItem(
 					content: Setting(selector: x => x.StopLocalBitcoinCoreOnShutdown),
-					name: "Stop Bitcoin Knots on shutdown",
-					category: "Settings",
+					name: Lang.Resources.Settings_StopLocalBitcoinCoreOnShutdown_Name,
+					category: SearchCategory.Settings,
 					keywords: new List<string>(),
 					icon: "nav_settings_regular",
 					isEnabled)

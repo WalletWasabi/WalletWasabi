@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -53,7 +54,7 @@ public static class NavigationManager
 
 	public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel?>> generator)
 	{
-		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+		if (metaData.Searchable && (metaData.Category is SearchCategory.Default || metaData.Title is null))
 		{
 			throw new Exception("Searchable entries must have both a Category and a Title");
 		}
@@ -66,7 +67,7 @@ public static class NavigationManager
 
 	public static void RegisterLazy(NavigationMetaData metaData, Func<RoutableViewModel?> generator)
 	{
-		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+		if (metaData.Searchable && (metaData.Category is SearchCategory.Default || metaData.Title is null))
 		{
 			throw new Exception("Searchable entries must have both a Category and a Title");
 		}
@@ -79,7 +80,7 @@ public static class NavigationManager
 
 	public static void Register(NavigationMetaData metaData, RoutableViewModel instance)
 	{
-		if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+		if (metaData.Searchable && (metaData.Category is SearchCategory.Default || metaData.Title is null))
 		{
 			throw new Exception("Searchable entries must have both a Category and a Title");
 		}

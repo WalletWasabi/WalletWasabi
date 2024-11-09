@@ -9,11 +9,9 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static partial class TextHelpers
 {
-	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
-
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
-	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddSIfPlural(n)}" : "";
+	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}" : "";
 
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex ParseLabelRegex();
@@ -31,10 +29,10 @@ public static partial class TextHelpers
 		var textMembers = new List<string>();
 		string result = "";
 
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, "day"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, "hour"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, "minute"));
-		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, "second"));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Days, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Days, "Words_Day")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Hours, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Hours, "Words_Hour")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Minutes, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Minutes, "Words_Minute")!)));
+		AddIfNotEmpty(textMembers, ConcatNumberAndUnit(time.Seconds, Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(time.Seconds, "Words_Second")!)));
 
 		for (int i = 0; i < textMembers.Count; i++)
 		{
@@ -46,7 +44,7 @@ public static partial class TextHelpers
 			}
 			else if (textMembers.Count > 1 && i == textMembers.Count - 2)
 			{
-				result += " and ";
+				result += $" {Lang.Utils.LowerCaseFirst(Lang.Resources.Words_And)} ";
 			}
 		}
 
@@ -93,7 +91,7 @@ public static partial class TextHelpers
 
 	public static string GetConfirmationText(int confirmations)
 	{
-		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+		return $"{Lang.Resources.Words_Confirmed} ({confirmations} {Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(confirmations, "Words_confirmation")!)})";
 	}
 
 	public static string FormatPercentageDiff(double n)
@@ -104,11 +102,11 @@ public static partial class TextHelpers
 		if (Math.Abs(withFriendlyDecimals) < precision)
 		{
 			var threshold = n > 0 ? "+" + precision : "-" + precision;
-			return "less than " + threshold.ToString(CultureInfo.InvariantCulture) + "%";
+			return $"{Lang.Resources.Sentences_less_than} " + threshold.ToString(CultureInfo.InvariantCulture) + "%";
 		}
 		else
 		{
-			var diffPart = withFriendlyDecimals.ToString();
+			var diffPart = withFriendlyDecimals.ToString(CultureInfo.InvariantCulture);
 			var numericPart = n > 0 ? "+" + diffPart : diffPart;
 			return numericPart + "%";
 		}

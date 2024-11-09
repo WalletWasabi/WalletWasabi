@@ -1,17 +1,18 @@
 using System.Reactive.Disposables;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	Title = "Wallet Stats",
-	Caption = "Display wallet stats",
-	IconName = "nav_wallet_24_regular",
 	Order = 3,
-	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Stats", },
+	Category = SearchCategory.Wallet,
+	Title = "WalletStatsViewModel_Title",
+	Caption = "WalletStatsViewModel_Caption",
+	Keywords = "WalletStatsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]

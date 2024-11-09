@@ -1,18 +1,16 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	Title = "Find a Coordinator",
-	Caption = "Open Wasabi's documentation website",
 	Order = 3,
-	Category = "Help & Support",
-	Keywords =
-	[
-		"Find", "Coordinator", "Coinjoin", "Docs", "Documentation", "Guide"
-	],
+	Category = SearchCategory.HelpAndSupport,
+	Title = "FindCoordinatorLinkViewModel_Title",
+	Caption = "FindCoordinatorLinkViewModel_Caption",
+	Keywords = "FindCoordinatorLinkViewModel_Keywords",
 	IconName = "book_question_mark_regular")]
 public partial class FindCoordinatorLinkViewModel : TriggerCommandViewModel
 {

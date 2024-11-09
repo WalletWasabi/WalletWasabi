@@ -99,7 +99,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		PercentText =
 			coins.TotalAmount() > Money.Zero
 			? $"{privacyProgress} %"
-			: "N/A";
+			: Lang.Resources.NotApplicable_Short;
 
 		FullyMixed = isWalletPrivate;
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
@@ -23,6 +24,7 @@ public class JsonRpcRequestHandler<TService>
 	{
 		NullValueHandling = NullValueHandling.Ignore,
 		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+		Culture = CultureInfo.InvariantCulture,
 		Converters = new JsonConverter[]
 		{
 			new Uint256JsonConverter(),

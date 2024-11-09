@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Coinjoin Strategy Settings", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "ManualCoinJoinProfileDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
