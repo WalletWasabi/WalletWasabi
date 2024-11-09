@@ -140,12 +140,22 @@
     <DockPanel>
 
       <!-- Advanced -->
-      <Button Classes="h8 plain activeHyperLink" Margin="0 15 0 0"
-              Command="{Binding AdvancedOptionsCommand}"
-              DockPanel.Dock="Bottom"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Bottom"
-              Content="Advanced" />
+      <StackPanel Orientation="Horizontal"
+                  DockPanel.Dock="Bottom"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  Margin="0 15 0 0">
+
+        <Label Content="Fee Rate:"
+               VerticalAlignment="Center"
+               Margin="0 0 25 0"/>
+
+        <CurrencyEntryBox Text="{Binding FeeChart.CurrentSatoshiPerByte}"
+                        VerticalAlignment="Center"
+                        IsFiat="True"
+                        Classes="standalone"
+                        CurrencyCode="sats/vb" />
+      </StackPanel>
       <DockPanel MinHeight="80" DataContext="{Binding FeeChart}">
         <DockPanel.Resources>
           <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
@@ -220,7 +230,6 @@
                 <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
               </Style>
             </StackPanel.Styles>
-            <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
             <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: \{0\}'}" />
           </StackPanel>
         </Panel>
