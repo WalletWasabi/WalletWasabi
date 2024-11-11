@@ -46,7 +46,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		}
 		else
 		{
-			throw new ArgumentException(nameof(FullKeyPath));
+			IsInternal = false;
 		}
 	}
 

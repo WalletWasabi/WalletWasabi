@@ -13,11 +13,23 @@ public static class SilentPayment
 	public static ECPrivKey ComputePartialSecret(IEnumerable<Utxo> utxos)
 	{
 		using var a = SumPrivkeys(utxos);
-		var outpoints = utxos.Select(x => x.OutPoint);
+		var outpointHash = OutPointHash(utxos.Select(x => x.OutPoint), a.CreatePubKey());
+		return ECPrivKey.Create((a.sec * outpointHash).ToBytes());
+	}
 
+	public static ECPubKey TweakData(IEnumerable<(OutPoint PrevOut, ECXOnlyPubKey PubKey)> inputs)
+	{
+		var A = inputs.Select(x => x.PubKey.Q).Aggregate(GEJ.Infinity, (acc, key) => acc + key).ToGroupElement();
+		var outpointHash = OutPointHash(inputs.Select(x => x.PrevOut), new ECPubKey(A, null));
+		return new ECPubKey((outpointHash * A).ToGroupElement(), null);
+	}
+
+	private static Scalar OutPointHash(IEnumerable<OutPoint> outpoints, ECPubKey A)
+	{
+		// Let input_hash = hash(outpoint || A)
 		var firstInput = outpoints.Select(x => x.ToBytes()).Order(BytesComparer.Instance).First();
-		var outpointHash = TaggedHash("BIP0352/Inputs", ByteHelpers.Combine(firstInput, a.CreatePubKey().ToBytes()));
-		return ECPrivKey.Create((a.sec * new Scalar(outpointHash)).ToBytes());
+		var hash = TaggedHash("BIP0352/Inputs", ByteHelpers.Combine(firstInput, A.ToBytes()));
+		return new Scalar(hash);
 	}
 
 	public static Dictionary<SilentPaymentAddress, SilentPaymentPubKey[]> GetPubKeys(IEnumerable<string> recipients, ECPrivKey partialSecret, Network network)

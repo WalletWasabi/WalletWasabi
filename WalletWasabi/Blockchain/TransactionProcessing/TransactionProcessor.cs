@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -201,6 +203,7 @@ public class TransactionProcessor
 
 		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
 
+		// Process silent payment
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
