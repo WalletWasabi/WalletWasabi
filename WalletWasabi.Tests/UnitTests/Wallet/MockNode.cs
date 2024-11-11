@@ -90,7 +90,7 @@ public class MockNode
 
 			var smartHeader = new SmartHeader(block.GetHash(), tipFilter.Header.BlockHash, tipFilter.Header.Height + 1, DateTimeOffset.UtcNow);
 
-			filters.Add(new FilterModel(smartHeader, filter));
+			filters.Add(new FilterModel(smartHeader, filter, []));
 		}
 
 		return filters;

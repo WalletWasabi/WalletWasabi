@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -228,10 +229,15 @@ public class WalletFilterProcessor : BackgroundService
 		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
 	}
 
+	private IEnumerable<byte[]> GetSilentPaymentScriptPubKeysToTest(byte[][] tweakData) =>
+		tweakData
+			.Select(x => ECPubKey.Create(x))
+			.SelectMany(x => _keyManager.GetSilentPaymentSynchronizationScripts(x));
+
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
+		var toTestKeys = GetScriptPubKeysToTest(height, syncType).Concat(GetSilentPaymentScriptPubKeysToTest(filter.TweakData));
 
 		var matchFound = false;
 		if (toTestKeys.Any())

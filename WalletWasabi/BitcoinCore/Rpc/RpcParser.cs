@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
@@ -72,11 +73,20 @@ public static class RpcParser
 						uint256.Parse(txInJson.GetProperty("txid").GetString()),
 						txInJson.GetProperty("vout").GetUInt32());
 
+					var witness = txInJson.TryGetProperty("txinwitness", out var element)
+						? new WitScript(element.EnumerateArray().Select(x => Encoders.Hex.DecodeData(x.ToString())).ToArray())
+						: WitScript.Empty;
+					var scriptSig = txInJson.TryGetProperty("scriptsig", out var scriptSigElement)
+						? Script.FromHex(scriptSigElement.ToString())
+						: Script.Empty;
+
 					if (txInJson.TryGetProperty("prevout", out var prevOut))
 					{
 						var scriptPubKey = prevOut.GetProperty("scriptPubKey");
 						input = new VerboseInputInfo.Full(
 							outPoint,
+							witness,
+							scriptSig,
 							new VerboseOutputInfo(
 								value: Money.Coins(prevOut.GetProperty("value").GetDecimal()),
 								scriptPubKey: Script.FromHex(scriptPubKey.GetProperty("hex").GetString()!),

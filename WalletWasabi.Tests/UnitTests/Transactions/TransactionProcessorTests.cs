@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -14,6 +16,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -1461,6 +1464,59 @@ public class TransactionProcessorTests
 		var actualPockets = pockets.Select(tuple => tuple.Labels).ToHashSet(comparer: LabelsComparer.Instance);
 
 		Assert.True(expectedPockets.SetEquals(actualPockets));
+	}
+
+	[Fact]
+	public async Task CanReceiveSilentPaymentAsync()
+	{
+		// ARRANGE
+		await using var txStore = await CreateTransactionStoreAsync();
+		var txProcessor = CreateTransactionProcessor(txStore);
+		var km = txProcessor.KeyManager;
+		txProcessor.Process(CreateCreditingTransaction(txProcessor.NewKey("A").P2wpkhScript, Money.Coins(0.0003_0000m)));
+		txProcessor.Process(CreateCreditingTransaction(txProcessor.NewKey("B").P2wpkhScript, Money.Coins(0.0000_6700m)));
+
+		var txFactory = new TransactionFactory(Network.Main, km, txProcessor.Coins, txStore, "password");
+
+		var scanKey = km.GetNextReceiveKey(new LabelsArray("donations"), KeyPurpose.Scan);
+		var spendKey = km.GetNextReceiveKey(new LabelsArray("donations"), KeyPurpose.Spend);
+		var donationAddress = new SilentPaymentAddress(0, ECPubKey.Create(scanKey.PubKey.ToBytes()), ECPubKey.Create(spendKey.PubKey.ToBytes()));
+
+		// ACT
+		var paymentAmount = Money.Coins(0.0001_0000m);
+		var payment = new PaymentIntent(donationAddress, paymentAmount , false, new LabelsArray("wasabi"));
+		var tx0 = txFactory.BuildTransaction(new TransactionParameters(payment, new FeeRate(13.0m),
+			AllowUnconfirmed: true, AllowDoubleSpend: false, AllowedInputs: null, TryToSign: true,
+			OverrideFeeOverpaymentProtection: false));
+
+		Script GetScriptPubKey(OutPoint prevOut) =>
+			txProcessor.Coins.AsAllCoinsView().TryGetByOutPoint(prevOut, out var smartCoin)
+				? smartCoin.ScriptPubKey
+				: throw new Exception("wtf");
+
+		var inputs = tx0.Transaction.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
+		var pubKeys = tx0.Transaction.Transaction.Inputs
+			.Select(x => SilentPayment.ExtractPubKey(x.ScriptSig, x.WitScript, GetScriptPubKey(x.PrevOut)))
+			.DropNulls().ToArray();
+
+		var tweakData = SilentPayment.TweakData(inputs, pubKeys);
+		tx0.Transaction.SetTweakData(tweakData);
+		var processedResult0 = txProcessor.Process(tx0.Transaction);
+
+		// ASSERT
+		var silentPaymentCoin = Assert.Single(processedResult0.ReceivedCoins, x => x.Amount == paymentAmount);
+		Assert.Equal(ScriptType.Taproot, silentPaymentCoin.ScriptType);
+		Assert.Equal(KeyPath.Parse("m/352'/0'/0'/1'/0"), silentPaymentCoin.HdPubKey.FullKeyPath);
+		Assert.Equal("A, donations", silentPaymentCoin.HdPubKey.Cluster.ToString());
+
+		// Spend
+		using Key key = new();
+		var spendPayment = new PaymentIntent(key.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(0.0000_9000m) , false, new LabelsArray("Someone"));
+		var tx1 = txFactory.BuildTransaction(new TransactionParameters(spendPayment, new FeeRate(2.0m),
+			AllowUnconfirmed: true, AllowDoubleSpend: false, AllowedInputs: null, TryToSign: true,
+			OverrideFeeOverpaymentProtection: false));
+
+		var processedResult1 = txProcessor.Process(tx1.Transaction);
 	}
 
 	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)

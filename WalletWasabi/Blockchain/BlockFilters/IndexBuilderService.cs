@@ -9,10 +9,12 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
@@ -190,10 +192,15 @@ public class IndexBuilderService
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block, _pubKeyTypes);
+							var filterTask = Task.Run(() => BuildFilterForBlock(block, _pubKeyTypes));
+							var tweakDataTask = Task.Run(() => BuildSilentPaymentTweakData(block).ToArray());
+
+							await Task.WhenAll(filterTask, tweakDataTask).ConfigureAwait(false);
+							var filter = await filterTask.ConfigureAwait(false);
+							var tweakData = await tweakDataTask.ConfigureAwait(false);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
-							var filterModel = new FilterModel(smartHeader, filter);
+							var filterModel = new FilterModel(smartHeader, filter, tweakData);
 
 							lock (_indexLock)
 							{
@@ -231,6 +238,30 @@ public class IndexBuilderService
 				Logger.LogError($"Synchronization attempt failed to start: {ex}");
 			}
 		});
+	}
+
+	private IEnumerable<byte[]> BuildSilentPaymentTweakData(VerboseBlockInfo block)
+	{
+		foreach (var tx in block.Transactions)
+		{
+			var inputs = tx.Inputs.OfType<VerboseInputInfo.Full>().ToList();
+			if (inputs.Count < tx.Inputs.Count())
+			{
+				continue;
+			}
+
+			var hasAtLeastOneTaprootOutput = tx.Outputs.Any(x => x.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+			var pubKeys = inputs
+				.Select(i => SilentPayment.ExtractPubKey(i.ScriptSig, i.WitScript, i.PrevOut.ScriptPubKey))
+				.DropNulls()
+				.ToArray();
+
+			if (hasAtLeastOneTaprootOutput && pubKeys.Length > 0)
+			{
+				var prevOuts = inputs.Select(x => x.OutPoint).ToArray();
+				yield return SilentPayment.TweakData(prevOuts, pubKeys).ToBytes();
+			}
+		}
 	}
 
 	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)

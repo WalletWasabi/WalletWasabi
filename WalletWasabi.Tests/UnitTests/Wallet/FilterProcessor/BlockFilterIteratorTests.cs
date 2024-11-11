@@ -24,10 +24,10 @@ public class BlockFilterIteratorTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
-		FilterModel filter1 = FilterModel.Create(blockHeight: 610_001, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
-		FilterModel filter2 = FilterModel.Create(blockHeight: 610_002, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
-		FilterModel filter3 = FilterModel.Create(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006506);
-		FilterModel filter4 = FilterModel.Create(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006506);
+		FilterModel filter1 = FilterModel.Create(blockHeight: 610_001, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505, []);
+		FilterModel filter2 = FilterModel.Create(blockHeight: 610_002, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506, []);
+		FilterModel filter3 = FilterModel.Create(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006506, []);
+		FilterModel filter4 = FilterModel.Create(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006506, []);
 
 		Mock<IIndexStore> mockIndexStore = new(MockBehavior.Strict);
 		mockIndexStore.Setup(c => c.FetchBatchAsync(610_001, 3, It.IsAny<CancellationToken>()))

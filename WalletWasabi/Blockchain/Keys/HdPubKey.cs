@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -20,6 +21,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
+	public ECPubKey? TweakData { get; set; }
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
@@ -46,7 +48,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		}
 		else
 		{
-			throw new ArgumentException(nameof(FullKeyPath));
+			IsInternal = false;
 		}
 	}
 
