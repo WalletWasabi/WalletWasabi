@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Daemon.Rpc;
 using WalletWasabi.Rpc;
 using Xunit;
@@ -94,7 +95,7 @@ public class RpcTests
 	[MemberData(nameof(RequestResponse))]
 	public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
 	{
-		var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
+		var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService(), Network.Main);
 
 		var response = await handler.HandleAsync("", request, CancellationToken.None);
 		Assert.Equal(expectedResponse, response);
@@ -107,7 +108,7 @@ public class RpcTests
 		var paymentInfo = new PaymentInfo
 		{
 			Amount = Money.Coins(1),
-			Sendto = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main),
+			Sendto = new Destination.Loudly(BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main).ScriptPubKey),
 			Label = "Cesar"
 		};
 
