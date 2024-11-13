@@ -1,8 +1,12 @@
+using System.Linq;
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
+using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -20,8 +24,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private LabelsArray _recipient = LabelsArray.Empty;
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
+	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private double? _amountDiff;
 	[AutoNotify] private double? _feeDiff;
+	[AutoNotify] private InputsCoinListViewModel? _inputList;
+	[AutoNotify] private OutputsCoinListViewModel? _outputList;
 
 	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, IWalletModel wallet, TransactionInfo info, bool isPreview = false)
 	{
@@ -50,9 +57,27 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
+		var destinationIndexedTxOut =
+			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+				.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
+				.FirstOrDefault(x => x.ScriptPubKey == info.Destination.ScriptPubKey);
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
+		FeeRate = info.FeeRate;
+
+		InputList = new InputsCoinListViewModel(transactionResult.Transaction.WalletInputs,
+			_wallet.Network,
+			transactionResult.Transaction.WalletInputs.Count + transactionResult.Transaction.ForeignInputs.Count,
+			Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().IsExpanded,
+			!IsPreview ? null : Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().Children.Count);
+
+		OutputList = new OutputsCoinListViewModel(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
+			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
+			_wallet.Network,
+			destinationIndexedTxOut?.ScriptPubKey,
+			Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().IsExpanded,
+			!IsPreview ? null : Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().Children.Count);
 
 		Recipient = info.Recipient;
 		IsCustomFeeUsed = info.IsCustomFeeUsed;

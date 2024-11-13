@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
@@ -19,15 +20,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 internal class Participant
 {
-	public Participant(string name, IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
+	public Participant(string name, IRPCClient rpc, Func<string, IWabiSabiApiRequestHandler> apiClientFactory)
 	{
-		HttpClientFactory = httpClientFactory;
+		HttpClientFactory = apiClientFactory;
 
 		Wallet = new TestWallet(name, rpc);
 	}
 
 	private TestWallet Wallet { get; }
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
+	public Func<string, IWabiSabiApiRequestHandler> HttpClientFactory { get; }
 	private SmartTransaction? SplitTransaction { get; set; }
 
 	public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
@@ -73,8 +74,8 @@ internal class Participant
 			throw new InvalidOperationException($"{nameof(GenerateCoinsAsync)} has to be called first.");
 		}
 
-		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
+		var apiClient = HttpClientFactory;
+		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient("satoshi"));
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
 		var outputProvider = new OutputProvider(Wallet);

@@ -52,6 +52,9 @@ public enum HardwareWalletModels
 	[FriendlyName("Trezor Safe 3")]
 	Trezor_Safe_3,
 
+	[FriendlyName("Trezor Safe 5")]
+	Trezor_Safe_5,
+
 	[FriendlyName("BitBox")]
 	BitBox02_BTCOnly,
 

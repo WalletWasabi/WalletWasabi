@@ -8,7 +8,7 @@ public class LiveServerTestsFixture
 {
 	public Dictionary<Network, Uri> UriMappings { get; } = new Dictionary<Network, Uri>
 	{
-		{ Network.Main, new Uri(Constants.DefaultBackendUri) },
-		{ Network.TestNet, new Uri(Constants.DefaultTestnetBackendUri) }
+		{ Network.Main, new Uri(Constants.BackendUri) },
+		{ Network.TestNet, new Uri(Constants.TestnetBackendUri) }
 	};
 }

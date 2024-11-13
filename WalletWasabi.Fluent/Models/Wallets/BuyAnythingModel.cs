@@ -23,11 +23,6 @@ public partial class BuyAnythingModel(Wallet wallet)
 		return workflow;
 	}
 
-	public Conversation NewConversation()
-	{
-		return new Conversation(ConversationId.Empty, Chat.Empty, OrderStatus.Open, ConversationStatus.Started, new ConversationMetaData(NewOrderTitle));
-	}
-
 	public async Task<Conversation[]> GetConversationsAsync(CancellationToken cancellationToken)
 	{
 		return await BuyAnythingManager.GetConversationsAsync(wallet, cancellationToken);

@@ -10,30 +10,30 @@ public class P2pReconnector : PeriodicRunner
 {
 	public P2pReconnector(TimeSpan period, P2pNode p2pNode) : base(period)
 	{
-		P2pNode = Guard.NotNull(nameof(p2pNode), p2pNode);
-		Success = new TaskCompletionSource<bool>();
+		__p2pNode = Guard.NotNull(nameof(p2pNode), p2pNode);
+		_success = new TaskCompletionSource<bool>();
 	}
 
-	public P2pNode P2pNode { get; }
-	private TaskCompletionSource<bool> Success { get; }
+	private readonly P2pNode __p2pNode;
+	private readonly TaskCompletionSource<bool> _success;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		Logger.LogInfo("Trying to reconnect to P2P...");
-		if (await P2pNode.TryDisconnectAsync(cancel).ConfigureAwait(false))
+		if (await __p2pNode.TryDisconnectAsync(cancel).ConfigureAwait(false))
 		{
-			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+			await __p2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
 			Logger.LogInfo("Successfully reconnected to P2P.");
-			Success.TrySetResult(true);
+			_success.TrySetResult(true);
 		}
 	}
 
 	public async Task StartAndAwaitReconnectionAsync(CancellationToken cancel)
 	{
 		await StartAsync(cancel).ConfigureAwait(false);
-		using var ctr = cancel.Register(() => Success.SetResult(false));
-		await Success.Task.ConfigureAwait(false);
+		using var ctr = cancel.Register(() => _success.SetResult(false));
+		await _success.Task.ConfigureAwait(false);
 
 		try
 		{

@@ -28,13 +28,14 @@ public class IndexBuilderServiceTests
 			}),
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 	}
 
 	[Fact]
@@ -55,13 +56,14 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
 	}
 
@@ -86,7 +88,7 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 		indexer.Synchronize();
 
@@ -94,7 +96,7 @@ public class IndexBuilderServiceTests
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter.Header.Height);
+		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 	}
 
@@ -107,7 +109,7 @@ public class IndexBuilderServiceTests
 		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
 
 		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
 		var allOutputs = txOutputs.Concat(prevTxOutputs);
 
 		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
@@ -128,7 +130,7 @@ public class IndexBuilderServiceTests
 		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV1Taproot });
 
 		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
 		var allOutputs = txOutputs.Concat(prevTxOutputs);
 
 		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV1Taproot);
@@ -156,7 +158,7 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 		indexer.Synchronize();
 
@@ -182,13 +184,14 @@ public class IndexBuilderServiceTests
 			}),
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 	}
 
 	[Fact]
@@ -209,13 +212,14 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		// There is only starting filter
+		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
 	}
 
@@ -240,7 +244,7 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 		indexer.Synchronize();
 
@@ -248,7 +252,7 @@ public class IndexBuilderServiceTests
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter.Header.Height);
+		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 	}
 
@@ -268,7 +272,7 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier);
+		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 		indexer.Synchronize();
 

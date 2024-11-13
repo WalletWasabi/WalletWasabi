@@ -27,7 +27,7 @@ public class Global : IDisposable
 		Config = config;
 		HostedServices = new();
 
-		CoordinatorParameters = new(DataDir);
+		_coordinatorParameters = new(DataDir);
 
 		// Add Nostr publisher if enabled
 		if (Config.AnnouncerConfig.IsEnabled && config.Network != Network.RegTest)
@@ -42,8 +42,8 @@ public class Global : IDisposable
 
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>());
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.sqlite");
+		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 	}
 
 	public string DataDir { get; }
@@ -58,7 +58,7 @@ public class Global : IDisposable
 
 	public Config Config { get; }
 
-	private CoordinatorParameters CoordinatorParameters { get; }
+	private readonly CoordinatorParameters _coordinatorParameters;
 
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 
@@ -72,9 +72,9 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
+		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(_coordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, coinJoinScriptStore);
+		WabiSabiCoordinator = new WabiSabiCoordinator(_coordinatorParameters, RpcClient, coinJoinScriptStore);
 		blockNotifier.OnBlock += WabiSabiCoordinator.BanDescendant;
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		P2pNode.OnTransactionArrived += WabiSabiCoordinator.BanDoubleSpenders;

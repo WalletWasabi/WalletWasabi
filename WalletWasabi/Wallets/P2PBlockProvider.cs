@@ -15,16 +15,16 @@ public class P2PBlockProvider : IP2PBlockProvider
 {
 	public P2PBlockProvider(P2PNodesManager p2PNodesManager)
 	{
-		P2PNodesManager = p2PNodesManager;
+		_p2PNodesManager = p2PNodesManager;
 	}
 
 	/// <remarks>For tests only.</remarks>
 	internal P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
-		: this(new P2PNodesManager(network, nodes, isTorEnabled))
+		: this(new P2PNodesManager(network, nodes))
 	{
 	}
 
-	private P2PNodesManager P2PNodesManager { get; }
+	private readonly P2PNodesManager _p2PNodesManager;
 
 	/// <summary>
 	/// Gets the given block from a single, automatically selected, P2P node using the P2P bitcoin protocol.
@@ -45,17 +45,17 @@ public class P2PBlockProvider : IP2PBlockProvider
 
 		if (node is null)
 		{
-			node = await P2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
+			node = await _p2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
 
 			if (node is null || !node.IsConnected)
 			{
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.NoPeerAvailable, Node: null, P2PNodesManager.ConnectedNodesCount));
+				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.NoPeerAvailable, Node: null, _p2PNodesManager.ConnectedNodesCount));
 			}
 		}
 
-		double timeout = sourceRequest.Timeout ?? P2PNodesManager.GetCurrentTimeout();
+		double timeout = sourceRequest.Timeout ?? _p2PNodesManager.GetCurrentTimeout();
 
-		uint connectedNodes = P2PNodesManager.ConnectedNodesCount;
+		uint connectedNodes = _p2PNodesManager.ConnectedNodesCount;
 
 		// Download block from the selected node.
 		try
@@ -71,14 +71,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 			// Validate block
 			if (!block.Check())
 			{
-				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
+				_p2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 
 				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.InvalidBlockProvided, node, connectedNodes));
 			}
 
-			P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+			_p2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
-			await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
+			await _p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
 			return new P2pBlockResponse(block, new P2pSourceData(P2pSourceDataStatusCode.Success, node, connectedNodes));
 		}
@@ -86,15 +86,15 @@ public class P2PBlockProvider : IP2PBlockProvider
 		{
 			if (ex is OperationCanceledException or TimeoutException)
 			{
-				await P2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
-				P2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+				await _p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
+				_p2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 
 				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Cancelled, node, connectedNodes));
 			}
 			else
 			{
 				Logger.LogDebug(ex);
-				P2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
+				_p2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
 
 				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Failure, node, connectedNodes));
 			}

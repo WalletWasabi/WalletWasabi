@@ -18,33 +18,33 @@ public class TransactionStore : IAsyncDisposable
 {
 	public TransactionStore(string workFolderPath, Network network)
 	{
-		DataSource = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		_dataSource = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
-		bool useInMemoryDatabase = DataSource == SqliteStorageHelper.InMemoryDatabase;
+		bool useInMemoryDatabase = _dataSource == SqliteStorageHelper.InMemoryDatabase;
 
 		if (!useInMemoryDatabase)
 		{
-			IoHelpers.EnsureDirectoryExists(DataSource);
-			DataSource = Path.Combine(DataSource, "Transactions.sqlite");
+			IoHelpers.EnsureDirectoryExists(_dataSource);
+			_dataSource = Path.Combine(_dataSource, "Transactions.sqlite");
 		}
 
-		SqliteStorage = TransactionSqliteStorage.FromFile(dataSource: DataSource, network);
+		_sqliteStorage = TransactionSqliteStorage.FromFile(dataSource: _dataSource, network);
 
 		// Migrate data.
 		if (!useInMemoryDatabase)
 		{
-			string oldPath = Path.Combine(Path.GetDirectoryName(DataSource)!, "Transactions.dat");
+			string oldPath = Path.Combine(Path.GetDirectoryName(_dataSource)!, "Transactions.dat");
 			Import(oldPath, network);
 		}
 	}
 
-	private string DataSource { get; }
-	private object SqliteStorageLock { get; } = new();
+	private readonly string _dataSource;
+	private readonly object _sqliteStorageLock = new();
 
-	/// <remarks>Guarded by <see cref="SqliteStorageLock"/>.</remarks>
-	private TransactionSqliteStorage SqliteStorage { get; }
+	/// <remarks>Guarded by <see cref="_sqliteStorageLock"/>.</remarks>
+	private readonly TransactionSqliteStorage _sqliteStorage;
 
-	/// <remarks>Guarded by <see cref="SqliteStorageLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_sqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
 
 	private void Import(string oldPath, Network network)
@@ -57,7 +57,7 @@ public class TransactionStore : IAsyncDisposable
 			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
 			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
 
-			SqliteStorage.BulkInsert(allTransactions);
+			_sqliteStorage.BulkInsert(allTransactions);
 
 			File.Delete(oldPath);
 			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed.TotalSeconds} seconds.");
@@ -66,7 +66,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public Task InitializeAsync(string operationName, CancellationToken cancellationToken)
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			InitializeTransactionsNoLock(cancellationToken);
 		}
@@ -78,10 +78,10 @@ public class TransactionStore : IAsyncDisposable
 	{
 		try
 		{
-			lock (SqliteStorageLock)
+			lock (_sqliteStorageLock)
 			{
 				int i = 0;
-				foreach (SmartTransaction tx in SqliteStorage.GetAll(cancellationToken).OrderByBlockchain())
+				foreach (SmartTransaction tx in _sqliteStorage.GetAll(cancellationToken).OrderByBlockchain())
 				{
 					i++;
 
@@ -98,8 +98,8 @@ public class TransactionStore : IAsyncDisposable
 		{
 			// We found a corrupted entry. Stop here.
 			// Do not try to automatically correct the data, because the internal data structures are throwing events that may confuse the consumers of those events.
-			Logger.LogError($"'{DataSource}' database got corrupted. Clearing it...");
-			SqliteStorage.Clear();
+			Logger.LogError($"'{_dataSource}' database got corrupted. Clearing it...");
+			_sqliteStorage.Clear();
 			throw;
 		}
 	}
@@ -125,11 +125,11 @@ public class TransactionStore : IAsyncDisposable
 
 	public bool TryAdd(SmartTransaction tx)
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			if (Transactions.TryAdd(tx.GetHash(), tx))
 			{
-				if (SqliteStorage.BulkInsert(tx) == 0)
+				if (_sqliteStorage.BulkInsert(tx) == 0)
 				{
 					throw new UnreachableException($"Transaction '{tx.GetHash()}' was added in memory but not in database.");
 				}
@@ -143,13 +143,13 @@ public class TransactionStore : IAsyncDisposable
 
 	public bool TryAddOrUpdate(SmartTransaction tx)
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			bool result = TryAddOrUpdateNoLockNoSerialization(tx);
 
 			if (result)
 			{
-				if (SqliteStorage.BulkInsert(new SmartTransaction[] { tx }, upsert: true) == 0)
+				if (_sqliteStorage.BulkInsert(new SmartTransaction[] { tx }, upsert: true) == 0)
 				{
 					throw new UnreachableException($"Transaction '{tx.GetHash()}' was update in memory but not in database.");
 				}
@@ -163,7 +163,7 @@ public class TransactionStore : IAsyncDisposable
 	{
 		bool updated = false;
 
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			if (Transactions.TryGetValue(tx.GetHash(), out var foundTx))
 			{
@@ -171,7 +171,7 @@ public class TransactionStore : IAsyncDisposable
 				{
 					updated = true;
 
-					if (SqliteStorage.BulkUpdate(tx) == 0)
+					if (_sqliteStorage.BulkUpdate(tx) == 0)
 					{
 						throw new UnreachableException($"Transaction '{tx.GetHash()}' was update in memory but not in database.");
 					}
@@ -186,13 +186,13 @@ public class TransactionStore : IAsyncDisposable
 	{
 		bool isRemoved = false;
 
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			if (Transactions.Remove(hash, out tx))
 			{
 				isRemoved = true;
 
-				if (!SqliteStorage.TryRemove(hash, out _))
+				if (!_sqliteStorage.TryRemove(hash, out _))
 				{
 					throw new UnreachableException($"Transaction '{tx.GetHash()}' was removed from memory but not from database.");
 				}
@@ -204,7 +204,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? tx)
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			return Transactions.TryGetValue(hash, out tx);
 		}
@@ -212,7 +212,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public List<SmartTransaction> GetTransactions()
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			return Transactions.Values.OrderByBlockchain().ToList();
 		}
@@ -220,7 +220,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public List<uint256> GetTransactionHashes()
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			return Transactions.Values.OrderByBlockchain().Select(x => x.GetHash()).ToList();
 		}
@@ -228,7 +228,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public bool IsEmpty()
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			return Transactions.Count == 0;
 		}
@@ -236,7 +236,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public bool Contains(uint256 hash)
 	{
-		lock (SqliteStorageLock)
+		lock (_sqliteStorageLock)
 		{
 			return Transactions.ContainsKey(hash);
 		}
@@ -244,7 +244,7 @@ public class TransactionStore : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		SqliteStorage.Dispose();
+		_sqliteStorage.Dispose();
 
 		return ValueTask.CompletedTask;
 	}

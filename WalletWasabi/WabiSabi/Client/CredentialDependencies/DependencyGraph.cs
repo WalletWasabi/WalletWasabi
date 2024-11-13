@@ -20,8 +20,12 @@ public record DependencyGraph
 	public ImmutableList<RequestNode> Vertices { get; init; } = [];
 
 	// Internal properties used to keep track of effective values and edges
-	public ImmutableList<CredentialEdgeSet> EdgeSets { get; init; } = [ new AmountCredentialEdgeSet(), new VsizeCredentialEdgeSet() ];
+	public ImmutableList<CredentialEdgeSet> EdgeSets { get; init; }
 
+	private DependencyGraph(long maxAmountCredential, long maxVsizeCredential)
+	{
+		EdgeSets  = [ new AmountCredentialEdgeSet(maxAmountCredential), new VsizeCredentialEdgeSet(maxVsizeCredential) ];
+	}
 
 	/// <summary>Construct a graph from amounts, and resolve the
 	/// credential dependencies.</summary>
@@ -31,29 +35,29 @@ public record DependencyGraph
 	/// and may contain additional nodes if reissuance requests are
 	/// required.</remarks>
 	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feeRate, long vsizeAllocationPerInput)
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Money> effectiveValues, IEnumerable<TxOut> outputs, FeeRate feeRate, IEnumerable<long> availableVSizes, long maxAmountCredential, long maxVsizeCredential)
 	{
-		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue.Satoshi);
-		var inputSizes = effectiveValuesAndSizes.Select(x => vsizeAllocationPerInput - x.InputSize);
+		var effectiveValuesInSats = effectiveValues.Select(x => x.Satoshi);
 
 		if (effectiveValues.Any(x => x <= Money.Zero))
 		{
-			throw new InvalidOperationException($"Not enough funds to pay for the fees.");
+			throw new InvalidOperationException("Not enough funds to pay for the fees.");
 		}
 
 		var outputSizes = outputs.Select(x => (long)x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCosts = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
-
+		var effectiveCostsInSats = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
 		return ResolveCredentialDependencies(
-			effectiveValues.Zip(inputSizes).ToArray(),
-			effectiveCosts.Zip(outputSizes).ToArray()
+			effectiveValuesInSats.Zip(availableVSizes).ToArray(),
+			effectiveCostsInSats.Zip(outputSizes).ToArray(),
+			maxAmountCredential,
+			maxVsizeCredential
 		);
 	}
 
-	public static DependencyGraph ResolveCredentialDependencies(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues)
-		=> FromValues(inputValues, outputValues).ResolveCredentials();
+	public static DependencyGraph ResolveCredentialDependencies(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues, long maxAmountCredential, long maxVsizeCredential)
+		=> FromValues(inputValues, outputValues, maxAmountCredential, maxVsizeCredential).ResolveCredentials();
 
-	public static DependencyGraph FromValues(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues)
+	public static DependencyGraph FromValues(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues, long maxAmountCredential, long maxVsizeCredential)
 	{
 		var allValues = Enumerable.Concat(inputValues, outputValues);
 		if (allValues.Any(x => x.Amount < 0 || x.Vsize < 0))
@@ -72,7 +76,7 @@ public record DependencyGraph
 			}
 		}
 
-		return new DependencyGraph()
+		return new DependencyGraph(maxAmountCredential, maxVsizeCredential)
 			.AddNodes(inputValues, v => new InputNode(v.Amount, v.Vsize))
 			.AddNodes(outputValues, v => new OutputNode(-v.Amount, -v.Vsize));
 	}

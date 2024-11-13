@@ -10,14 +10,14 @@ public class HwiProcessBridge : IHwiProcessInvoker
 {
 	public HwiProcessBridge()
 	{
-		ProcessPath = MicroserviceHelpers.GetBinaryPath("hwi");
+		_processPath = MicroserviceHelpers.GetBinaryPath("hwi");
 	}
 
-	private string ProcessPath { get; }
+	private readonly string _processPath;
 
 	public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
 	{
-		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
+		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(_processPath, arguments, openConsole);
 
 		(string rawResponse, int exitCode) = await SendCommandAsync(startInfo, cancel, standardInputWriter).ConfigureAwait(false);
 

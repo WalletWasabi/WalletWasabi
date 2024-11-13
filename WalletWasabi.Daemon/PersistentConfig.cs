@@ -11,17 +11,17 @@ public record PersistentConfig
 {
 	public Network Network { get; init; } = Network.Main;
 
-	public string MainNetBackendUri { get; init; } = Constants.DefaultBackendUri;
+	public string MainNetBackendUri { get; init; } = Constants.BackendUri;
 
-	public string TestNetBackendUri { get; init; } = Constants.DefaultTestnetBackendUri;
+	public string TestNetBackendUri { get; init; } = Constants.TestnetBackendUri;
 
-	public string RegTestBackendUri { get; init; } = Constants.DefaultRegtestBackendUri;
+	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
 
-	public string MainNetCoordinatorUri { get; init; } = Constants.DefaultCoordinatorUri;
+	public string MainNetCoordinatorUri { get; init; } = "";
 
-	public string TestNetCoordinatorUri { get; init; } = Constants.DefaultTestnetCoordinatorUri;
+	public string TestNetCoordinatorUri { get; init; } = "";
 
-	public string RegTestCoordinatorUri { get; init; } = Constants.DefaultRegtestCoordinatorUri;
+	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37127/";
 
 	/// <remarks>
 	/// For backward compatibility this was changed to an object.

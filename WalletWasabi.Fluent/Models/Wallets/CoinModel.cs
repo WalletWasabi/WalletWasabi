@@ -22,11 +22,12 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
-	public CoinModel(SmartCoin coin, int anonScoreTarget)
+	public CoinModel(SmartCoin coin, Network network, int anonScoreTarget)
 	{
 		Coin = coin;
 		PrivacyLevel = coin.GetPrivacyLevel(anonScoreTarget);
 		Amount = coin.Amount;
+		BtcAddress = coin.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 
 		Labels = coin.GetLabels(anonScoreTarget);
 		Key = coin.Outpoint.GetHashCode();
@@ -48,6 +49,8 @@ public partial class CoinModel : ReactiveObject
 	private SmartCoin Coin { get; }
 
 	public Money Amount { get; }
+
+	public string? BtcAddress { get; }
 
 	public int Key { get; }
 

@@ -18,13 +18,13 @@ public class P2pNode
 
 	public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService)
 	{
-		Network = Guard.NotNull(nameof(network), network);
-		EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
+		_network = Guard.NotNull(nameof(network), network);
+		_endPoint = Guard.NotNull(nameof(endPoint), endPoint);
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 
-		Stop = new CancellationTokenSource();
+		_stop = new CancellationTokenSource();
 		NodeEventsSubscribed = false;
-		SubscriptionLock = new object();
+		_subscriptionLock = new object();
 		P2pReconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
 	}
 
@@ -34,19 +34,19 @@ public class P2pNode
 
 	private Node? Node { get; set; }
 	private TrustedP2pBehavior? TrustedP2pBehavior { get; set; }
-	private Network Network { get; }
-	private EndPoint EndPoint { get; }
+	private readonly Network _network;
+	private readonly EndPoint _endPoint;
 	public MempoolService MempoolService { get; }
 
 	private bool NodeEventsSubscribed { get; set; }
-	private object SubscriptionLock { get; }
-	private CancellationTokenSource Stop { get; }
+	private readonly object _subscriptionLock;
+	private readonly CancellationTokenSource _stop;
 	private P2pReconnector P2pReconnector { get; set; }
 
 	public async Task ConnectAsync(CancellationToken cancel)
 	{
 		using var handshakeTimeout = new CancellationTokenSource();
-		using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel, Stop.Token);
+		using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel, _stop.Token);
 		handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
 		var parameters = new NodeConnectionParameters()
 		{
@@ -56,7 +56,7 @@ public class P2pNode
 
 		parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
 
-		Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
+		Node = await Node.ConnectAsync(_network, _endPoint, parameters).ConfigureAwait(false);
 		Node.VersionHandshake(cancel);
 
 		if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
@@ -71,7 +71,7 @@ public class P2pNode
 				"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 		}
 
-		lock (SubscriptionLock)
+		lock (_subscriptionLock)
 		{
 			TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
 			Node.UncaughtException += Node_UncaughtException;
@@ -93,7 +93,7 @@ public class P2pNode
 	{
 		try
 		{
-			await P2pReconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
+			await P2pReconnector.StartAndAwaitReconnectionAsync(_stop.Token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -130,13 +130,13 @@ public class P2pNode
 		}
 		_disposed = true;
 
-		Stop.Cancel();
+		_stop.Cancel();
 
 		await P2pReconnector.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		P2pReconnector.Dispose();
 
 		await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
-		Stop.Dispose();
+		_stop.Dispose();
 	}
 
 	/// <summary>
@@ -152,7 +152,7 @@ public class P2pNode
 
 		try
 		{
-			lock (SubscriptionLock)
+			lock (_subscriptionLock)
 			{
 				MempoolService.TrustedNodeMode = false;
 				if (NodeEventsSubscribed)

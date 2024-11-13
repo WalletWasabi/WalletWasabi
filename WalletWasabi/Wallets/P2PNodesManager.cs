@@ -11,33 +11,31 @@ namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	public P2PNodesManager(Network network, NodesGroup nodes, bool isTorEnabled)
+	public P2PNodesManager(Network network, NodesGroup nodes)
 	{
-		Network = network;
-		Nodes = nodes;
-		IsTorEnabled = isTorEnabled;
+		_network = network;
+		_nodes = nodes;
 	}
 
-	private Network Network { get; }
-	private NodesGroup Nodes { get; }
-	private bool IsTorEnabled { get; }
+	private readonly Network _network;
+	private readonly NodesGroup _nodes;
 	private int NodeTimeouts { get; set; }
-	public uint ConnectedNodesCount => (uint)Nodes.ConnectedNodes.Count;
+	public uint ConnectedNodesCount => (uint)_nodes.ConnectedNodes.Count;
 
 	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
 	{
-		while (Nodes.ConnectedNodes.Count == 0)
+		while (_nodes.ConnectedNodes.Count == 0)
 		{
 			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 		}
 
 		// Select a random node we are connected to.
-		return Nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
+		return _nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
 	}
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (Nodes.ConnectedNodes.Count > 3)
+		if (_nodes.ConnectedNodes.Count > 3)
 		{
 			DisconnectNode(node, reason);
 		}
@@ -52,7 +50,7 @@ public class P2PNodesManager
 	public double GetCurrentTimeout()
 	{
 		// More permissive timeout if few nodes are connected to avoid exhaustion.
-		return Nodes.ConnectedNodes.Count < 3
+		return _nodes.ConnectedNodes.Count < 3
 			? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 			: RuntimeParams.Instance.NetworkNodeTimeout;
 	}
@@ -86,8 +84,7 @@ public class P2PNodesManager
 		}
 
 		// Sanity check
-		var minTimeout = Network == Network.Main ? 3 : 2;
-		minTimeout = IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
+		var minTimeout = _network == Network.Main ? 3 : 2;
 
 		if (timeout < minTimeout)
 		{

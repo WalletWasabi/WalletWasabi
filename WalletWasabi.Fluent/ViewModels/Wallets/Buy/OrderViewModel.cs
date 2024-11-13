@@ -74,8 +74,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 				 .Select(id => id == ConversationId.Empty)
 				 .CombineLatest(hasUserMessages, (a, b) => a && b);
 
-		ResetOrderCommand = ReactiveCommand.Create(ResetOrder, CanResetObs);
-
 		// TODO: Remove this once we use newer version of DynamicData
 		HasUnreadMessagesObs
 			.BindTo(this, x => x.HasUnreadMessages)
@@ -126,8 +124,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 
 	public ICommand RemoveOrderCommand { get; }
 
-	public ICommand ResetOrderCommand { get; }
-
 	public int OrderNumber { get; }
 
 	public async Task MarkAsReadAsync()
@@ -160,17 +156,6 @@ public partial class OrderViewModel : ViewModelBase, IDisposable
 	private async Task ShowErrorAsync(string message)
 	{
 		await UiContext.Navigate().To().ShowErrorDialog(message, "Send Failed", "Wasabi was unable to send your message", NavigationTarget.CompactDialogScreen).GetResultAsync();
-	}
-
-	private void ResetOrder()
-	{
-		_cts.Cancel();
-		_cts.Dispose();
-		_cts = new CancellationTokenSource();
-		ClearMessageList();
-
-		Workflow.Conversation = new Conversation(ConversationId.Empty, Chat.Empty, OrderStatus.Open, ConversationStatus.Started, new ConversationMetaData("New Order"));
-		StartWorkflow(_cts.Token);
 	}
 
 	private void RefreshMessageList(Conversation conversation)

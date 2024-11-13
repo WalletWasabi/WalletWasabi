@@ -4,9 +4,9 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.CoinGecko;
 

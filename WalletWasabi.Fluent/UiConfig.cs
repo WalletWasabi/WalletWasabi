@@ -17,7 +17,6 @@ public class UiConfig : ConfigBase
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
-	private int _feeDisplayUnit;
 	private bool _darkModeEnabled;
 	private string? _lastSelectedWallet;
 	private string _windowState = "Normal";
@@ -41,7 +40,6 @@ public class UiConfig : ConfigBase
 				x => x.AutoPaste,
 				x => x.IsCustomChangeAddress,
 				x => x.DarkModeEnabled,
-				x => x.FeeDisplayUnit,
 				x => x.LastSelectedWallet,
 				x => x.WindowState,
 				x => x.Oobe,
@@ -49,7 +47,7 @@ public class UiConfig : ConfigBase
 				x => x.PrivacyMode,
 				x => x.HideOnClose,
 				x => x.FeeTarget,
-				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+				(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -92,14 +90,6 @@ public class UiConfig : ConfigBase
 	{
 		get => _feeTarget;
 		internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
-	}
-
-	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int FeeDisplayUnit
-	{
-		get => _feeDisplayUnit;
-		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
 	}
 
 	[DefaultValue(true)]
@@ -151,7 +141,7 @@ public class UiConfig : ConfigBase
 	}
 
 	// OnDeserialized changes this default on Linux.
-	[DefaultValue(true)]
+	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool RunOnSystemStartup
 	{
@@ -159,7 +149,7 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 	}
 
-	[DefaultValue(true)]
+	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool HideOnClose
 	{
@@ -187,24 +177,5 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
-	}
-
-	[OnDeserialized]
-	internal void OnDeserialized(StreamingContext context)
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // On win this works perfectly. By default Wasabi will run after startup.
-		{
-			return;
-		}
-
-		if (!Oobe) // We do not touch anything if it is not the first run.
-		{
-			return;
-		}
-
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // On Linux we do not start Wasabi with OS by default - because Linux users knows better.
-		{
-			RunOnSystemStartup = false;
-		}
 	}
 }

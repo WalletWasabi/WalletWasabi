@@ -4,7 +4,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
@@ -14,7 +13,8 @@ public class CoinViewModel : CoinListItem
 	{
 		Labels = labels;
 		Coin = coin;
-		Amount = coin.Amount;
+		BtcAddress = coin.BtcAddress;
+		Amount = new Amount(coin.Amount);
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
 		var confirmationCount = coin.Confirmations;

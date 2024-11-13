@@ -140,7 +140,7 @@ public static class TransactionHelpers
 			return false;
 		}
 
-		var filePath = file.Path.AbsolutePath;
+		var filePath = file.Path.LocalPath;
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{

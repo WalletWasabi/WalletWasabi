@@ -2,31 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:features="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Features.CancelTransactionDialogView"
              x:DataType="features:CancelTransactionDialogViewModel"
              x:CompileBindings="True">
-
-  <UserControl.Styles>
-    <Style Selector="AmountControl" x:CompileBindings="False">
-      <Setter Property="Template">
-        <ControlTemplate TargetType="AmountControl">
-          <StackPanel DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-            <TextBlock TextAlignment="Center"
-                       FontWeight="Bold"
-                       Text="{Binding Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithUnit}, FallbackValue='0.0000 0232 BTC'}"
-                       Classes="h5" VerticalAlignment="Bottom" />
-            <TextBlock
-              FontWeight="Bold"
-              Text="{Binding Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}, FallbackValue='≈3.5 USD'}"
-              Opacity="0.6" VerticalAlignment="Bottom" Margin="0 0 0 3" Classes="h8" />
-          </StackPanel>
-        </ControlTemplate>
-      </Setter>
-    </Style>
-  </UserControl.Styles>
 
   <ContentArea Title="Cancel Transaction"
                  EnableCancel="{Binding EnableCancel}"
@@ -40,8 +20,8 @@
         <PathIcon Data="{StaticResource cancel_regular}" Opacity="0.6" />
       </Viewbox>
       <StackPanel Spacing="10" HorizontalAlignment="Center">
-        <TextBlock Text="Cancelling this transaction will cost you" />
-        <AmountControl Amount="{Binding Fee}" />
+        <TextBlock HorizontalAlignment="Center" Text="Cancelling this transaction will cost you" />
+        <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
       </StackPanel>
     </DockPanel>
   </ContentArea>

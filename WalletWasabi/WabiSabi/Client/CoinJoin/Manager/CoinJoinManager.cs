@@ -13,7 +13,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.Banning;
@@ -30,43 +29,31 @@ public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(
 		IWalletProvider walletProvider,
-		WasabiHttpClientFactory? coordinatorHttpClientFactory,
+		RoundStateUpdater roundStatusUpdater,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
-		CoinPrison coinPrison,
-		bool hasCoordinatorConfigured = true)
+		CoinPrison coinPrison)
 	{
-		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
-		WalletProvider = walletProvider;
-		HttpClientFactory = coordinatorHttpClientFactory;
-		RoundStateUpdaterCircuit = new PersonCircuit();
-
-		IWabiSabiStatusApiRequestHandler handler = hasCoordinatorConfigured ?
-			new WabiSabiHttpApiClient(coordinatorHttpClientFactory!.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit)) :
-			new NullWabiSabiStatusApiRequestHandler();
-
-		RoundStatusUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(10), handler);
-		CoinJoinConfiguration = coinJoinConfiguration;
-		CoinPrison = coinPrison;
-		HasCoordinatorConfigured = hasCoordinatorConfigured;
+		_wasabiBackendStatusProvide = wasabiBackendStatusProvider;
+		_walletProvider = walletProvider;
+		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
+		_roundStatusUpdater = roundStatusUpdater;
+		_coinJoinConfiguration = coinJoinConfiguration;
+		_coinPrison = coinPrison;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
-	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
+	private readonly IWasabiBackendStatusProvider _wasabiBackendStatusProvide;
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
-	private IWalletProvider WalletProvider { get; }
-	private WasabiHttpClientFactory? HttpClientFactory { get; }
-	private RoundStateUpdater RoundStatusUpdater { get; }
-	private PersonCircuit RoundStateUpdaterCircuit { get; }
-	private CoinPrison CoinPrison { get; }
-
-	// A coordinator is configured if the backend URI is set to something other than the deprecated zkSNACKs' API endpoints.
-	public bool HasCoordinatorConfigured { get; }
-
-	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private CoinJoinConfiguration CoinJoinConfiguration { get; }
+	private readonly IWalletProvider _walletProvider;
+	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
+	private readonly RoundStateUpdater _roundStatusUpdater;
+	private readonly CoinPrison _coinPrison;
+	private readonly CoinRefrigerator _coinRefrigerator = new();
+	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
@@ -82,7 +69,7 @@ public class CoinJoinManager : BackgroundService
 
 	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<WalletId, CoinJoinClientStateHolder>.Empty;
 
-	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
+	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
 
 	#region Public API (Start | Stop | TryGetWalletStatus)
 
@@ -95,14 +82,12 @@ public class CoinJoinManager : BackgroundService
 			wallet.LogDebug("Do not override PlebStop anymore we are above the threshold.");
 		}
 
-		await RoundStatusUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
-
-		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
+		await _commandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
+		await _commandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
 	public CoinJoinClientState GetCoinjoinClientState(WalletId walletId)
@@ -135,7 +120,7 @@ public class CoinJoinManager : BackgroundService
 		var trackedWallets = new Dictionary<WalletId, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			var mixableWallets = RoundStatusUpdater.AnyRound
+			var mixableWallets = _roundStatusUpdater.AnyRound
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
 				: ImmutableDictionary<WalletId, IWallet>.Empty;
 
@@ -176,20 +161,11 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		CoinJoinTrackerFactory coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoinJoinConfiguration, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusUpdater, _coinJoinConfiguration, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
-
-			if (!HasCoordinatorConfigured)
-			{
-				// Scheduling the restart is useless but it improves the UX without having to refactor the MusicBox.
-				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, stoppingToken);
-
-				NotifyCoinJoinStartError(walletToStart, new CoinJoinClientException(CoinjoinError.NoCoordinatorConfigured).CoinjoinError);
-				return;
-			}
 
 			if (trackedCoinJoins.TryGetValue(walletToStart.WalletId, out var tracker))
 			{
@@ -223,7 +199,7 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
 				}
 
-				if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
+				if (_wasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
 				{
 					throw new CoinJoinClientException(CoinjoinError.BackendNotSynchronized);
 				}
@@ -254,7 +230,7 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory!.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
 			{
@@ -299,7 +275,7 @@ public class CoinJoinManager : BackgroundService
 
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			var command = await CommandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
+			var command = await _commandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
 
 			switch (command)
 			{
@@ -326,7 +302,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinCandidates = new CoinsView(await walletToStart.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
-			.Where(x => !CoinRefrigerator.IsFrozen(x))
+			.Where(x => !_coinRefrigerator.IsFrozen(x))
 			.ToArray();
 
 		// If there is no available coin candidates, then don't mix.
@@ -335,7 +311,7 @@ public class CoinJoinManager : BackgroundService
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 		}
 
-		var bannedCoins = coinCandidates.Where(x => CoinPrison.IsBanned(x.Outpoint)).ToArray();
+		var bannedCoins = coinCandidates.Where(x => _coinPrison.IsBanned(x.Outpoint)).ToArray();
 		var immatureCoins = coinCandidates.Where(x => x.Transaction.IsImmature(bestHeight)).ToArray();
 		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
 		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
@@ -465,11 +441,11 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			// Updates coinjoin client states.
-			var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
+			var wallets = await _walletProvider.GetWalletsAsync().ConfigureAwait(false);
 
 			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets, trackedCoinJoins);
-			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
+			_roundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
@@ -531,7 +507,7 @@ public class CoinJoinManager : BackgroundService
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
-				CoinRefrigerator.Freeze(successfulCoinjoin.Coins);
+				_coinRefrigerator.Freeze(successfulCoinjoin.Coins);
 				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
 				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
@@ -544,7 +520,7 @@ public class CoinJoinManager : BackgroundService
 		catch (UnknownRoundEndingException ex)
 		{
 			// Assuming that the round might be broadcast but our client was not able to get the ending status.
-			CoinRefrigerator.Freeze(ex.Coins);
+			_coinRefrigerator.Freeze(ex.Coins);
 			MarkDestinationsUsed(destinationProvider, ex.OutputScripts);
 			Logger.LogDebug(ex);
 		}
@@ -595,7 +571,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			foreach (var info in finishedCoinJoin.BannedCoins)
 			{
-				CoinPrison.Ban(info.Coin, info.BanUntilUtc);
+				_coinPrison.Ban(info.Coin, info.BanUntilUtc);
 			}
 		}
 
@@ -694,7 +670,7 @@ public class CoinJoinManager : BackgroundService
 			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
 
 	private async Task<ImmutableDictionary<WalletId, IWallet>> GetMixableWalletsAsync() =>
-		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		(await _walletProvider.GetWalletsAsync().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletId, x => x);
 
@@ -765,7 +741,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task SignalToStopCoinjoinsAsync()
 	{
-		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		foreach (var wallet in await _walletProvider.GetWalletsAsync().ConfigureAwait(false))
 		{
 			if (CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 			{
@@ -780,7 +756,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task RestartAbortedCoinjoinsAsync()
 	{
-		foreach (var wallet in await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
+		foreach (var wallet in await _walletProvider.GetWalletsAsync().ConfigureAwait(false))
 		{
 			if (WalletsBlockedByUi.TryRemove(wallet.WalletId, out var stateHolder) && stateHolder.NeedRestart)
 			{
@@ -797,24 +773,6 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		NotifyCoinJoinStatusChanged(wallet, e);
-	}
-
-	private RoundStateUpdater? CreateRoundStateUpdater()
-	{
-		if (HttpClientFactory is null)
-		{
-			return null;
-		}
-
-		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
-		return new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient));
-	}
-
-	public override void Dispose()
-	{
-		RoundStateUpdaterCircuit.Dispose();
-		RoundStatusUpdater.Dispose();
-		base.Dispose();
 	}
 
 	private record CoinJoinCommand(IWallet Wallet);

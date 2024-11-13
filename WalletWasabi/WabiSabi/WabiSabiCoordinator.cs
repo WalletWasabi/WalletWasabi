@@ -22,7 +22,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc,  CoinJoinScriptStore coinJoinScriptStore)
 	{
 		Parameters = parameters;
-		RpcClient = rpc;
+		_rpcClient = rpc;
 		Warden = new(Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
@@ -55,7 +55,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
-	private IRPCClient RpcClient { get; }
+	private readonly IRPCClient _rpcClient;
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
@@ -157,9 +157,9 @@ public class WabiSabiCoordinator : BackgroundService
 	{
 		try
 		{
-			var batch = RpcClient.PrepareBatch();
+			var batch = _rpcClient.PrepareBatch();
 			var getTxOutRequests = spendingOutPoints
-				.Select(x => RpcClient.GetTxOutAsync(x.Hash, (int) x.N, includeMempool: true, cancellationToken))
+				.Select(x => _rpcClient.GetTxOutAsync(x.Hash, (int) x.N, includeMempool: true, cancellationToken))
 				.ToList();
 			await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 			var txOutResponses = await Task.WhenAll(getTxOutRequests).ConfigureAwait(false);

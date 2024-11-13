@@ -128,7 +128,7 @@ public class Config
 				"-",
 				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
 			[ nameof(MaxCoinjoinMiningFeeRate)] = (
-				"Max mining fee rate in s/vb the client is willing to pay to participate into a round",
+				"Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
 				GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs)),
 			[ nameof(AbsoluteMinInputCount)] = (
 				"Minimum number of inputs the client is willing to accept to participate into a round",
@@ -250,7 +250,7 @@ public class Config
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public Uri? GetCoordinatorUri()
+	private Uri GetCoordinatorUri()
 	{
 		var result = Network switch
 		{
@@ -260,7 +260,21 @@ public class Config
 			_ => throw new NotSupportedNetworkException(Network)
 		};
 
-		return result is "" ? null : new Uri(result);
+		return new Uri(result);
+	}
+
+	public bool TryGetCoordinatorUri([NotNullWhen(true)] out Uri? coordinatorUri)
+	{
+		try
+		{
+			coordinatorUri = GetCoordinatorUri();
+			return coordinatorUri.Host != "api.wasabiwallet.io";
+		}
+		catch (Exception e) when (e is UriFormatException or ArgumentException or NotSupportedNetworkException)
+		{
+			coordinatorUri = null;
+			return false;
+		}
 	}
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>

@@ -21,11 +21,11 @@ public class TransactionProcessor
 		Money dustThreshold)
 	{
 		TransactionStore = transactionStore;
-		MempoolService = mempoolService;
+		_mempoolService = mempoolService;
 		KeyManager = keyManager;
 		DustThreshold = dustThreshold;
 		Coins = new();
-		BlockchainAnalyzer = new();
+		_blockchainAnalyzer = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -34,14 +34,14 @@ public class TransactionProcessor
 	public static object Lock { get; } = new();
 
 	public AllTransactionStore TransactionStore { get; }
-	private HashSet<uint256> Aware { get; } = new();
+	private readonly HashSet<uint256> _aware = new();
 
 	public KeyManager KeyManager { get; }
 
 	public CoinsRegistry Coins { get; }
-	private BlockchainAnalyzer BlockchainAnalyzer { get; }
+	private readonly BlockchainAnalyzer _blockchainAnalyzer;
 	public Money DustThreshold { get; }
-	private MempoolService? MempoolService { get; }
+	private readonly MempoolService? _mempoolService;
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -73,7 +73,7 @@ public class TransactionProcessor
 	{
 		lock (Lock)
 		{
-			return Aware.Contains(tx);
+			return _aware.Contains(tx);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class TransactionProcessor
 		ProcessedResult ret;
 		lock (Lock)
 		{
-			Aware.Add(tx.GetHash());
+			_aware.Add(tx.GetHash());
 			ret = ProcessNoLock(tx);
 		}
 		if (ret.IsNews)
@@ -105,7 +105,7 @@ public class TransactionProcessor
 		uint256 txId = tx.GetHash();
 
 		// If we already have the transaction, then let's work on that.
-		if (MempoolService?.TryGetFromBroadcastStore(txId, null, out var foundEntry) is true)
+		if (_mempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
 		{
 			// If we already have the transaction in the broadcast store, then let's work on that.
 			foundEntry.Transaction.TryUpdate(tx);
@@ -249,7 +249,7 @@ public class TransactionProcessor
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
-			MempoolService?.TrySpend(coin, tx);
+			_mempoolService?.TrySpend(coin, tx);
 			result.RestoredCoins.Remove(coin);
 
 			if (!alreadyKnown)
@@ -274,7 +274,7 @@ public class TransactionProcessor
 			TransactionStore.AddOrUpdate(tx);
 		}
 
-		BlockchainAnalyzer.Analyze(result.Transaction);
+		_blockchainAnalyzer.Analyze(result.Transaction);
 
 		return result;
 	}

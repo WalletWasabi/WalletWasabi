@@ -17,7 +17,6 @@ public class MaxSuggestedAmountProvider
 	private WabiSabiConfig Config { get; init; }
 	private int Counter { get; set; }
 	public Money MaxSuggestedAmount { get; private set; }
-	public Money AbsoluteMaximumInput { get; } = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
 
 	private void CheckOrGenerateRoundCounterDividerAndMaxAmounts()
 	{
@@ -36,9 +35,9 @@ public class MaxSuggestedAmountProvider
 		{
 			var roundDivider = (int)Math.Pow(2, level);
 			var maxValue = maxSuggestedAmountBase * (long)Math.Pow(10, level);
-			if (maxValue >= AbsoluteMaximumInput)
+			if (maxValue >= Config.MaxRegistrableAmount)
 			{
-				maxValue = AbsoluteMaximumInput;
+				maxValue = Config.MaxRegistrableAmount;
 				end = true;
 			}
 			roundCounterDividerAndMaxAmounts.Insert(0, new(roundDivider, maxValue));
@@ -81,7 +80,7 @@ public class MaxSuggestedAmountProvider
 		if (!isInputRegistrationSuccessful)
 		{
 			// We will keep this on the maximum - let everyone join.
-			MaxSuggestedAmount = AbsoluteMaximumInput;
+			MaxSuggestedAmount = Config.MaxRegistrableAmount;
 			return;
 		}
 

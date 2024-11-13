@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -175,6 +176,9 @@ public class SuggestionLabelsViewModelTests
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 
+		public IObservable<bool> IsCoinjoinRunning { get; } = Observable.Return(true);
+		public IObservable<bool> IsCoinjoinStarted { get; } = Observable.Return(true);
+		public bool IsCoinJoinEnabled { get; } = true;
 		public IAddressesModel Addresses => throw new NotSupportedException();
 
 		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
@@ -203,6 +207,7 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
 		public IBuyAnythingModel BuyAnything => throw new NotSupportedException();
+
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
 		public bool IsLoaded { get; set; }

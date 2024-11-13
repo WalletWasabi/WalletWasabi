@@ -14,19 +14,19 @@ public class Warden : BackgroundService
 {
 	public Warden(WabiSabiConfig config)
 	{
-		PrisonFilePath = "Prison.txt";
-		Config = config;
-		OffendersToSaveChannel = Channel.CreateUnbounded<Offender>();
+		_prisonFilePath = "Prison.txt";
+		_config = config;
+		_offendersToSaveChannel = Channel.CreateUnbounded<Offender>();
 
-		Prison = DeserializePrison(PrisonFilePath, OffendersToSaveChannel.Writer);
+		Prison = DeserializePrison(_prisonFilePath, _offendersToSaveChannel.Writer);
 	}
 
 	public Prison Prison { get; }
 
-	public string PrisonFilePath { get; }
-	private WabiSabiConfig Config { get; }
+	private readonly string _prisonFilePath;
+	private readonly WabiSabiConfig _config;
 
-	private Channel<Offender> OffendersToSaveChannel { get; }
+	private readonly Channel<Offender> _offendersToSaveChannel;
 
 	private static Prison DeserializePrison( string prisonFilePath, ChannelWriter<Offender> channelWriter)
 	{
@@ -58,10 +58,10 @@ public class Warden : BackgroundService
 		{
 			while (!cancel.IsCancellationRequested)
 			{
-				await foreach (var inmate in OffendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+				await foreach (var inmate in _offendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
 				{
 					var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
-					await File.AppendAllLinesAsync(PrisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+					await File.AppendAllLinesAsync(_prisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 		}
@@ -78,7 +78,7 @@ public class Warden : BackgroundService
 
 	public override Task StopAsync(CancellationToken cancellationToken)
 	{
-		OffendersToSaveChannel.Writer.Complete();
+		_offendersToSaveChannel.Writer.Complete();
 		return base.StopAsync(cancellationToken);
 	}
 }

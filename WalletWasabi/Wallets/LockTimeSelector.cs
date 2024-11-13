@@ -15,12 +15,12 @@ public class LockTimeSelector
 
 	public LockTimeSelector(Random random)
 	{
-		Random = random;
+		_random = random;
 	}
 
 	public static LockTimeSelector Instance { get; }
 
-	private Random Random { get; }
+	private readonly Random _random;
 
 	public LockTime GetLockTimeBasedOnDistribution(uint tipHeight)
 	{
@@ -36,13 +36,13 @@ public class LockTimeSelector
 		//  0.65% uses an uniform random from -1 to -99
 
 		// sometimes pick LockTime a bit further back, to help privacy.
-		var randomValue = Random.NextDouble();
+		var randomValue = _random.NextDouble();
 		return randomValue switch
 		{
 			var r when r < (0.9) => LockTime.Zero,
 			var r when r < (0.9 + 0.075) => tipHeight,
 			var r when r < (0.9 + 0.075 + 0.0065) => tipHeight + 1,
-			_ => (uint)(tipHeight - Random.Next(1, 100))
+			_ => (uint)(tipHeight - _random.Next(1, 100))
 		};
 	}
 }

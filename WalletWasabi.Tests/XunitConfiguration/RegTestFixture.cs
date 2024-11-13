@@ -14,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.WebClients.Wasabi;
 using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Tests.XunitConfiguration;
@@ -72,8 +73,7 @@ public class RegTestFixture : IDisposable
 		var hostInitializationTask = BackendHost.RunWithTasksAsync();
 		Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
-		HttpClient = new HttpClient();
-		BackendHttpClient = new ClearnetHttpClient(HttpClient, () => BackendEndPointUri);
+		BackendHttpClientFactory = new BackendHttpClientFactory(BackendEndPointUri, new HttpClientFactory());
 
 		// Wait for server to initialize
 		var delayTask = Task.Delay(3000);
@@ -93,11 +93,7 @@ public class RegTestFixture : IDisposable
 	public CoreNode BackendRegTestNode { get; }
 	public Global Global { get; }
 
-	/// <summary>Underlying HTTP client to be used by <see cref="ClearnetHttpClient"/>.</summary>
-	public HttpClient HttpClient { get; }
-
-	/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
-	public ClearnetHttpClient BackendHttpClient { get; }
+	public IHttpClientFactory BackendHttpClientFactory { get; }
 
 	protected virtual void Dispose(bool disposing)
 	{
@@ -108,7 +104,6 @@ public class RegTestFixture : IDisposable
 				BackendHost.StopAsync().GetAwaiter().GetResult();
 				BackendHost.Dispose();
 				BackendRegTestNode.TryStopAsync().GetAwaiter().GetResult();
-				HttpClient.Dispose();
 			}
 
 			_disposedValue = true;

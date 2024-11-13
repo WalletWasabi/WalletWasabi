@@ -20,10 +20,7 @@
   </UserControl.Styles>
   <StackPanel VerticalAlignment="Center">
     <Viewbox Height="27" VerticalAlignment="Center" HorizontalAlignment="Center">
-      <TextBlock
-        VerticalAlignment="Center" HorizontalAlignment="Center"
-        TextAlignment="Center"
-        Text="{Binding AmountText}" Classes="h3" />
+      <AmountControl Amount="{Binding Amount}"/>
     </Viewbox>
 
     <StackPanel Spacing="8">

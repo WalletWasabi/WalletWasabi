@@ -237,7 +237,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
-				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var result = ActiveWallet!.BuildTransaction(
 			password,
 			payment,
@@ -266,7 +266,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
-				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var result = ActiveWallet!.BuildTransactionWithoutOverpaymentProtection(
 			password,
 			payment,
@@ -469,7 +469,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("startcoinjoin")]
 	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
 	{
-		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var coinJoinManager = GetCoinJoinManager();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
@@ -481,6 +481,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public void StartCoinjoinSweeping(string? password = null, string? outputWalletName = null)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		var coinJoinManager = GetCoinJoinManager();
 
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
@@ -492,10 +493,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		var outputWallet = Global.WalletManager.GetWalletByName(outputWalletName);
 
-		StartCoinjoinSweepAsync(activeWallet, outputWallet).ConfigureAwait(false);
+		StartCoinjoinSweepAsync(coinJoinManager, activeWallet, outputWallet).ConfigureAwait(false);
 	}
 
-	private async Task StartCoinjoinSweepAsync(Wallet activeWallet, Wallet outputWallet)
+	private async Task StartCoinjoinSweepAsync(CoinJoinManager coinJoinManager, Wallet activeWallet, Wallet outputWallet)
 	{
 		// If output wallet isn't initialized, then load it.
 		if (outputWallet.State == WalletState.Uninitialized)
@@ -503,14 +504,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
 
-		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
 		await coinJoinManager.StartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
 	public void StopCoinJoining()
 	{
-		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var coinJoinManager = GetCoinJoinManager();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
@@ -548,9 +548,20 @@ public class WasabiJsonRpcService : IJsonRpcService
 		throw new InvalidOperationException("This RPC method is special and the handling method should not be called.");
 	}
 
+	private CoinJoinManager GetCoinJoinManager()
+	{
+		var coinJoinManager = Global.HostedServices.GetOrDefault<CoinJoinManager>();
+		if (coinJoinManager is null)
+		{
+			throw new InvalidOperationException("No coordinator configured.");
+		}
+
+		return coinJoinManager;
+	}
+
 	private string GetCoinjoinStatus(Wallet wallet)
 	{
-		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var coinJoinManager = GetCoinJoinManager();
 		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletId);
 		return walletCoinjoinClientState switch
 		{

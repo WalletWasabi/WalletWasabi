@@ -1,5 +1,5 @@
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 

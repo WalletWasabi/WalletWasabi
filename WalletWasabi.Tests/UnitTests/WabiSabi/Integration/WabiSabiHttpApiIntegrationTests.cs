@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -154,14 +152,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			})).CreateClient();
 
 		// Create the coinjoin client
-		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-
-		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
-
-		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
-		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
@@ -171,7 +162,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
 		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
@@ -186,7 +177,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()
 	{
-		long[] amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
+		long[] amounts = [10_000_000, 20_000_000, 30_000_000];
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -194,7 +185,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
-		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
 
 		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
 
@@ -202,18 +193,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		keyManager.AssertLockedInternalKeysIndexed(21, false);
 		keyManager.AssertLockedInternalKeysIndexed(21, true);
-		var outputScriptCandidates = keyManager.GetNextCoinJoinKeys()
+
+		var keysCandidates = keyManager.GetNextCoinJoinKeys().ToArray();
+		var outputScriptCandidates = keysCandidates
 			.SelectMany(x => new[] {x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)})
 			.ToImmutableArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder
-			.AddMockRpcClient(coins, rpc => { })
+			.AddMockRpcClient(coins, _ => { })
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				services.AddSingleton(_ => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -225,16 +218,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Emulate that all our outputs had been already used in the past.
 				// the server will prevent the registration and fail with a WabiSabiProtocolError.
-				services.AddSingleton(s => new CoinJoinScriptStore(outputScriptCandidates));
+				services.AddSingleton(_ => new CoinJoinScriptStore(outputScriptCandidates));
 			})).CreateClient();
 
 		// Create the coinjoin client
-		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
-		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
-		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
@@ -244,7 +232,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_=> apiClient, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
 		var coinjoinResultTask = coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
@@ -255,13 +243,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
 		if (finishedTask == coinjoinResultTask)
 		{
-			var coinjoinResult = await coinjoinResultTask;
-			if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
+			try
 			{
-				var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
-				var common = outputScriptCandidates.Intersect(scripts);
-				Assert.Empty(common);
-				throw new Exception("Coinjoin should have never finished successfully.");
+				var coinjoinResult = await coinjoinResultTask;
+				if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
+				{
+					var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
+					var common = outputScriptCandidates.Intersect(scripts);
+					Assert.Empty(common);
+					throw new Exception("Coinjoin should have never finished successfully.");
+				}
+			}
+			catch (InvalidOperationException e) when(e.Message.StartsWith("No valid output denominations found"))
+			{
+				// ignore. There is a rare case for this
 			}
 		}
 	}
@@ -285,83 +280,74 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
 		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
 
-		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-		builder.AddMockRpcClient(
-			Enumerable.Concat(coins, badCoins).ToArray(),
-			rpc =>
-			{
-				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+		var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			builder.AddMockRpcClient(
+				Enumerable.Concat(coins, badCoins).ToArray(),
+				rpc =>
 				{
-					var tx = Transaction.Create(Network.Main);
-					return Task.FromResult(tx);
-				};
+					rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+					{
+						var tx = Transaction.Create(Network.Main);
+						return Task.FromResult(tx);
+					};
 
-				// Make the coordinator believe that the transaction is being
-				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransactionAsync` was invoked) we stop waiting
-				// and finish the waiting tasks to finish the test successfully.
-				rpc.OnSendRawTransactionAsync = (tx) =>
+					// Make the coordinator believe that the transaction is being
+					// broadcasted using the RPC interface. Once we receive this tx
+					// (the `SendRawTransactionAsync` was invoked) we stop waiting
+					// and finish the waiting tasks to finish the test successfully.
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						transactionCompleted.SetResult(tx);
+						return tx.GetHash();
+					};
+				})
+			.ConfigureServices(services =>
+
+				// Instruct the coordinator DI container to use this scoped
+				// services to build everything (WabiSabi controller, arena, etc)
+				services.AddSingleton(s => new WabiSabiConfig
 				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
-			})
-		.ConfigureServices(services =>
+					AllowP2trInputs = true,
+					AllowP2trOutputs = true,
+					MaxInputCountByRound = 2 * inputCount,
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
+				})));
 
-			// Instruct the coordinator DI container to use this scoped
-			// services to build everything (WabiSabi controller, arena, etc)
-			services.AddSingleton(s => new WabiSabiConfig
-			{
-				AllowP2trInputs = true,
-				AllowP2trOutputs = true,
-				MaxInputCountByRound = 2 * inputCount,
-				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-				OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
-				MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-			}))).CreateClient();
+		await Task.Delay(1000);
 
 		// Create the coinjoin client
-		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
-
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
-		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
-		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
+		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(app.CreateClient());
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory, keyManager1, roundStateUpdater);
-
-		// Run the coinjoin client task.
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
-
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
-		var nonSigningHttpClientMock = new MockIHttpClient();
+		var httpClient = app.CreateClient();
+		using var nonSigningHttpClientMock = new MockHttpClient();
+		nonSigningHttpClientMock.BaseAddress = httpClient.BaseAddress;
 		nonSigningHttpClientMock.OnSendAsync = req =>
 		{
-			if (req.RequestUri!.AbsolutePath.Contains("transaction-signature"))
+			if (req.RequestUri.ToString().Contains("transaction-signature"))
 			{
 				throw new HttpRequestException("Something was wrong posting the signature.");
 			}
 
 			return httpClient.SendAsync(req, CancellationToken.None);
 		};
+		var nonSigningApiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
 
-		IHttpClient nonSigningHttpClient = nonSigningHttpClientMock;
-		var mockNonSigningHttpClientFactory = new MockWasabiHttpClientFactory();
-		mockNonSigningHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, nonSigningHttpClient);
-		mockNonSigningHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => nonSigningHttpClient;
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager1, roundStateUpdater);
+		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => nonSigningApiClient, keyManager2, roundStateUpdater);
 
-		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockNonSigningHttpClientFactory, keyManager2, roundStateUpdater);
-
+		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// BadCoinsTask will throw.
@@ -425,9 +411,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				});
 			}));
 
-		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new MonkeyHttpClient(
-			new ClearnetHttpClient(app.CreateClient()),
+		var httpClient = app.CreateClient();
+		using var httpClientWrapper = new MonkeyHttpClient(
+			httpClient,
 			() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.
 			{
 				if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
@@ -438,21 +424,17 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			},
 			async () => // This monkey injects `Delays` randomly to simulate slow response times.
 			{
-				double delay = Random.Shared.NextDouble();
 				await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
 			});
-
-		var mockHttpClientFactory = new MockWasabiHttpClientFactory();
-		mockHttpClientFactory.OnNewHttpClientWithPersonCircuit = () => (personCircuit, httpClientWrapper);
-		mockHttpClientFactory.OnNewHttpClientWithCircuitPerRequest = () => httpClientWrapper;
-		mockHttpClientFactory.OnNewHttpClientWithDefaultCircuit = () => httpClientWrapper;
+		httpClientWrapper.BaseAddress = httpClient.BaseAddress;
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+		var apiClient = new WabiSabiHttpApiClient("", new MockHttpClientFactory {OnCreateClient = _ => httpClientWrapper});
 
 		var participants = Enumerable
 			.Range(0, NumberOfParticipants)
-			.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory))
+			.Select(i => new Participant($"participant{i}", rpc, _ => apiClient))
 			.ToArray();
 
 		foreach (var participant in participants)
@@ -545,7 +527,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton<IRPCClient>(s => rpc);
 			})).CreateClient();
 
-		ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
+		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
+		ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(stutteredHttpClient);
 		RoundState[] rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 

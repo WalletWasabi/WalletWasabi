@@ -13,10 +13,10 @@ public class SmartCoinSelector : ICoinSelector
 {
 	public SmartCoinSelector(List<SmartCoin> unspentCoins)
 	{
-		UnspentCoins = unspentCoins.Distinct().ToList();
+		_unspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private List<SmartCoin> UnspentCoins { get; }
+	private readonly List<SmartCoin> _unspentCoins;
 	private int IterationCount { get; set; }
 	private Exception? LastTransactionSizeException { get; set; }
 
@@ -27,7 +27,7 @@ public class SmartCoinSelector : ICoinSelector
 	{
 		var targetMoney = (Money)target;
 
-		long available = UnspentCoins.Sum(x => x.Amount);
+		long available = _unspentCoins.Sum(x => x.Amount);
 		if (available < targetMoney)
 		{
 			throw new InsufficientBalanceException(targetMoney, available);
@@ -54,7 +54,7 @@ public class SmartCoinSelector : ICoinSelector
 		}
 
 		// Get unique clusters.
-		IEnumerable<Cluster> uniqueClusters = UnspentCoins
+		IEnumerable<Cluster> uniqueClusters = _unspentCoins
 			.Select(coin => coin.HdPubKey.Cluster)
 			.Distinct();
 
@@ -62,13 +62,13 @@ public class SmartCoinSelector : ICoinSelector
 		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins
+				.Select(clusterCombination => _unspentCoins
 					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
 					.ToList())
 				.ToList()
 			: new List<List<SmartCoin>>();
 
-		coinClusters.Add(UnspentCoins);
+		coinClusters.Add(_unspentCoins);
 
 		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 		var sayajinCoinClusters = coinClusters

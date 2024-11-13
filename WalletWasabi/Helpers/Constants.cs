@@ -9,14 +9,8 @@ public static class Constants
 	public const string ClientSupportBackendVersionMin = "4";
 	public const string ClientSupportBackendVersionMax = "4";
 
-	public const string DefaultBackendUri = "https://api.wasabiwallet.io/";
-	public const string DefaultTestnetBackendUri = "https://api.wasabiwallet.co/";
-	public const string DefaultRegtestBackendUri = "http://localhost:37127/";
-
-	public const string DefaultCoordinatorUri = "";
-	public const string DefaultTestnetCoordinatorUri = "";
-	public const string DefaultRegtestCoordinatorUri = "http://localhost:37127/";
-
+	public const string BackendUri = "https://api.wasabiwallet.io/";
+	public const string TestnetBackendUri = "https://api.wasabiwallet.co/";
 	public const string BackendMajorVersion = "4";
 
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
@@ -100,9 +94,9 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 1, 0, 0);
+	public static readonly Version ClientVersion = new(2, 3, 0, 0);
 
-	public static readonly Version HwiVersion = new("3.0.0");
+	public static readonly Version HwiVersion = new("3.1.0");
 	public static readonly Version BitcoinCoreVersion = new("23.0");
 	public static readonly Version Ww1LegalDocumentsVersion = new(3, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(2, 0);

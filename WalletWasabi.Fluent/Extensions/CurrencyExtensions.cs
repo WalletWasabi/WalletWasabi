@@ -35,12 +35,12 @@ public static class CurrencyExtensions
 
 	public static string FormattedBtc(this decimal amount)
 	{
-		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
+		return string.Format(FormatInfo, "{0:### ### ### ##0.## ### ###}", amount).Trim();
 	}
 
 	public static string FormattedBtcFixedFractional(this decimal amount)
 	{
-		return string.Format(FormatInfo, "{0:### ### ### ##0.0000 0000}", amount).Trim();
+		return string.Format(FormatInfo, "{0:### ### ### ##0.00 000 000}", amount).Trim();
 	}
 
 	public static string FormattedBtcExactFractional(this decimal amount, int fractionalDigits)
@@ -116,49 +116,7 @@ public static class CurrencyExtensions
 		};
 	}
 
-	public static string ToFeeDisplayUnitRawString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
+	public static string ToFeeDisplayUnitRawString(this Money? fee) =>
+		fee is null ? "Unknown" : fee.ToString();
 
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-
-		return displayUnit switch
-		{
-			FeeDisplayUnit.Satoshis => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-	}
-
-	public static string ToFeeDisplayUnitFormattedString(this Money? fee)
-	{
-		if (fee is null)
-		{
-			return "Unknown";
-		}
-
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
-		var moneyUnit = displayUnit.ToMoneyUnit();
-
-		var feePartText = moneyUnit switch
-		{
-			MoneyUnit.BTC => fee.ToFormattedString(),
-			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
-			_ => fee.ToString()
-		};
-
-		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
-
-		return feeText;
-	}
-
-	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
-		feeDisplayUnit switch
-		{
-			FeeDisplayUnit.BTC => MoneyUnit.BTC,
-			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
-			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
-		};
 }

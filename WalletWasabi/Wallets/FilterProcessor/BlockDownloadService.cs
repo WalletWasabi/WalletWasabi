@@ -25,9 +25,9 @@ public class BlockDownloadService : BackgroundService
 		IP2PBlockProvider? p2pBlockProvider,
 		int maximumParallelTasks = MaxParallelTasks)
 	{
-		FileSystemBlockRepository = fileSystemBlockRepository;
-		TrustedFullNodeBlockProviders = trustedFullNodeBlockProviders;
-		P2PBlockProvider = p2pBlockProvider;
+		_fileSystemBlockRepository = fileSystemBlockRepository;
+		_trustedFullNodeBlockProviders = trustedFullNodeBlockProviders;
+		_p2PBlockProvider = p2pBlockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
 	}
 
@@ -37,25 +37,25 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>Denotes a failure of getting a block.</summary>
 	public interface IFailureResult : IResult;
 
-	private IFileSystemBlockRepository FileSystemBlockRepository { get; }
-	private IBlockProvider[] TrustedFullNodeBlockProviders { get; }
+	private readonly IFileSystemBlockRepository _fileSystemBlockRepository;
+	private readonly IBlockProvider[] _trustedFullNodeBlockProviders;
 
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
-	private IP2PBlockProvider? P2PBlockProvider { get; }
+	private readonly IP2PBlockProvider? _p2PBlockProvider;
 	public int MaximumParallelTasks { get; }
 
 	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
-	private SemaphoreSlim RequestAvailableSemaphore { get; } = new(initialCount: 0, maxCount: 1);
+	private readonly SemaphoreSlim _requestAvailableSemaphore = new(initialCount: 0, maxCount: 1);
 
 	/// <summary>Block hashes that are to be downloaded. Block height represents priority of the priority queue.</summary>
 	/// <remarks>
-	/// Guarded by <see cref="Lock"/>.
+	/// Guarded by <see cref="_lock"/>.
 	/// <para>Internal for testing purposes.</para>
 	/// </remarks>
 	internal PriorityQueue<Request, Priority> BlocksToDownloadRequests { get; } = new(Priority.Comparer);
 
 	/// <remarks>Guards <see cref="BlocksToDownloadRequests"/>.</remarks>
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 
 	/// <summary>
 	/// Attempts to get given block from the given source. It can take a long time to get the result because priority of block download is taken into account.
@@ -89,14 +89,14 @@ public class BlockDownloadService : BackgroundService
 
 	private void Enqueue(Request request)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			int count = BlocksToDownloadRequests.Count;
 			BlocksToDownloadRequests.Enqueue(request, request.Priority);
 
-			if (count == 0 && RequestAvailableSemaphore.CurrentCount == 0)
+			if (count == 0 && _requestAvailableSemaphore.CurrentCount == 0)
 			{
-				RequestAvailableSemaphore.Release();
+				_requestAvailableSemaphore.Release();
 			}
 		}
 	}
@@ -114,7 +114,7 @@ public class BlockDownloadService : BackgroundService
 
 		List<uint256> toRemoveFromCache = [];
 
-		lock (Lock)
+		lock (_lock)
 		{
 			List<(Request Element, Priority Priority)> items = BlocksToDownloadRequests.UnorderedItems.ToList();
 
@@ -138,7 +138,7 @@ public class BlockDownloadService : BackgroundService
 
 		foreach (uint256 blockHash in toRemoveFromCache)
 		{
-			await FileSystemBlockRepository.RemoveAsync(blockHash, CancellationToken.None).ConfigureAwait(false);
+			await _fileSystemBlockRepository.RemoveAsync(blockHash, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
@@ -155,7 +155,7 @@ public class BlockDownloadService : BackgroundService
 			{
 				bool wait;
 
-				lock (Lock)
+				lock (_lock)
 				{
 					// Wait until at least one block-downloading request is here; otherwise, consume requests so that there is at most MAX parallel tasks.
 					wait = BlocksToDownloadRequests.Count == 0;
@@ -163,10 +163,10 @@ public class BlockDownloadService : BackgroundService
 
 				if (wait)
 				{
-					await RequestAvailableSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+					await _requestAvailableSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-				lock (Lock)
+				lock (_lock)
 				{
 					int toStart = Math.Min(BlocksToDownloadRequests.Count, MaximumParallelTasks - activeTasks.Count);
 
@@ -209,7 +209,7 @@ public class BlockDownloadService : BackgroundService
 		finally
 		{
 			// Mark everything as cancelled because the service is shutting down (either gracefully or forcibly).
-			lock (Lock)
+			lock (_lock)
 			{
 				while (BlocksToDownloadRequests.TryDequeue(out Request? request, out _))
 				{
@@ -250,7 +250,7 @@ public class BlockDownloadService : BackgroundService
 		try
 		{
 			// Try to get the block from the file-system storage.
-			Block? block = await FileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+			Block? block = await _fileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
 				return new RequestResponse(request, new SuccessResult(block, EmptySourceData.FileSystemCache));
@@ -262,12 +262,12 @@ public class BlockDownloadService : BackgroundService
 			if (request.SourceRequest is TrustedFullNodeSourceRequest)
 			{
 				// Try to get the block from a trusted node, whether it's integrated or distant.
-				if (TrustedFullNodeBlockProviders.Length == 0)
+				if (_trustedFullNodeBlockProviders.Length == 0)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);
 				}
 
-				foreach (IBlockProvider blockProvider in TrustedFullNodeBlockProviders)
+				foreach (IBlockProvider blockProvider in _trustedFullNodeBlockProviders)
 				{
 					block = await blockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 
@@ -286,12 +286,12 @@ public class BlockDownloadService : BackgroundService
 			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
 			{
 				// Try to get the block from the P2P Network.
-				if (P2PBlockProvider is null)
+				if (_p2PBlockProvider is null)
 				{
 					return new RequestResponse(request, NoSuchProviderResult.Instance);
 				}
 
-				P2pBlockResponse response = await P2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
+				P2pBlockResponse response = await _p2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
 
 				if (response.Block is not null)
 				{
@@ -309,7 +309,7 @@ public class BlockDownloadService : BackgroundService
 			{
 				try
 				{
-					await FileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+					await _fileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{

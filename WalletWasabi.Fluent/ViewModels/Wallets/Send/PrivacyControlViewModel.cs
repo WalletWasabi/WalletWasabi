@@ -58,8 +58,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		var cjManager = Services.HostedServices.Get<CoinJoinManager>();
-		var coinsToExclude = cjManager.CoinsInCriticalPhase[_wallet.WalletId].ToList();
+		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		var coinsToExclude = cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? [];
 
 		var pockets = _sendFlow.GetPockets();
 

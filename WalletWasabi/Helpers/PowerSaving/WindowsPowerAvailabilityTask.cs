@@ -19,7 +19,7 @@ public class WindowsPowerAvailabilityTask : IPowerSavingInhibitorTask
 	/// <summary>Handle.</summary>
 	private readonly IntPtr _request;
 
-	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_stateLock"/>.</remarks>
 	private bool _isDone;
 
 	internal WindowsPowerAvailabilityTask(PowerRequestType requestType, string reason)
@@ -61,7 +61,7 @@ public class WindowsPowerAvailabilityTask : IPowerSavingInhibitorTask
 	}
 
 	/// <remarks>Guards <see cref="_isDone"/>.</remarks>
-	private object StateLock { get; } = new();
+	private readonly object _stateLock = new();
 
 	public PowerRequestType RequestType { get; }
 
@@ -70,7 +70,7 @@ public class WindowsPowerAvailabilityTask : IPowerSavingInhibitorTask
 	{
 		get
 		{
-			lock (StateLock)
+			lock (_stateLock)
 			{
 				return _isDone;
 			}
@@ -149,7 +149,7 @@ public class WindowsPowerAvailabilityTask : IPowerSavingInhibitorTask
 	public Task StopAsync()
 	{
 		bool isDone;
-		lock (StateLock)
+		lock (_stateLock)
 		{
 			isDone = _isDone;
 			_isDone = true;

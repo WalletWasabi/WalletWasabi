@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models;
@@ -67,35 +67,22 @@ public partial class TransactionBroadcasterModel
 		var transactionId = psbtTxn.GetHash().ToString();
 
 		var inputCount = inputAddressAmount.Length;
-		var totalInputValue =
+		var inputAmount =
 			inputAddressAmount.Any(x => x.Value == nullMoney)
 			? null
-			: inputAddressAmount.Select(x => x.Value).Sum();
-
-		var inputAmountString =
-			totalInputValue is null
-			? "Unknown"
-			: $"{totalInputValue.ToFormattedString()} BTC";
+			: new Amount(inputAddressAmount.Select(x => x.Value).Sum());
 
 		var outputCount = outputAddressAmount.Length;
-
-		var totalOutputValue =
+		var outputAmount =
 			outputAddressAmount.Any(x => x.Value == nullMoney)
 			? null
-			: outputAddressAmount.Select(x => x.Value).Sum();
+			: new Amount(outputAddressAmount.Select(x => x.Value).Sum());
 
-		var outputAmountString =
-			totalOutputValue is null
-			? "Unknown"
-			: $"{totalOutputValue.ToFormattedString()} BTC";
-
-		var networkFee = totalInputValue is null || totalOutputValue is null
+		var networkFee = inputAmount is null || outputAmount is null
 			? null
-			: totalInputValue - totalOutputValue;
+			: new Amount(inputAmount.Btc - outputAmount.Btc);
 
-		var feeString = networkFee.ToFeeDisplayUnitFormattedString();
-
-		return new TransactionBroadcastInfo(transactionId, inputCount, outputCount, inputAmountString, outputAmountString, feeString);
+		return new TransactionBroadcastInfo(transactionId, inputCount, outputCount, inputAmount, outputAmount, networkFee);
 	}
 
 	public Task SendAsync(SmartTransaction transaction)

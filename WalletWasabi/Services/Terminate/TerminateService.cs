@@ -23,7 +23,7 @@ public class TerminateService
 		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		IsSystemEventsSubscribed = false;
-		CancellationToken = TerminationCts.Token;
+		CancellationToken = _terminationCts.Token;
 		Instance = this;
 	}
 
@@ -31,16 +31,16 @@ public class TerminateService
 
 	/// <summary>Completion source that is completed once we receive a request to terminate the application in a graceful way.</summary>
 	/// <remarks>Currently, we handle CTRL+C this way. However, for example, an RPC command might use this API too.</remarks>
-	private TaskCompletionSource ForcefulTerminationRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private readonly TaskCompletionSource _forcefulTerminationRequested = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 	/// <summary>Task is set, if user requested the application to stop in a "forceful" way (e.g. CTRL+C or by the stop RPC request).</summary>
-	public Task ForcefulTerminationRequestedTask => ForcefulTerminationRequested.Task;
+	public Task ForcefulTerminationRequestedTask => _forcefulTerminationRequested.Task;
 
-	/// <summary>Cancellation token source cancelled once <see cref="ForcefulTerminationRequested"/> is assigned a result.</summary>
-	private CancellationTokenSource TerminationCts { get; } = new();
+	/// <summary>Cancellation token source cancelled once <see cref="_forcefulTerminationRequested"/> is assigned a result.</summary>
+	private readonly CancellationTokenSource _terminationCts = new();
 
 	/// <summary>Cancellation token that denotes that user requested to stop the application.</summary>
-	/// <remarks>Assigned once so that there are no issues with <see cref="TerminationCts"/> being disposed.</remarks>
+	/// <remarks>Assigned once so that there are no issues with <see cref="_terminationCts"/> being disposed.</remarks>
 	public CancellationToken CancellationToken { get; }
 
 	private bool IsSystemEventsSubscribed { get; set; }
@@ -80,7 +80,7 @@ public class TerminateService
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			// This event will only be triggered if you run Wasabi from the published package. Use the packager with the --OnlyBinaries option.
+			// This event will only be triggered if you run Wasabi from the published package.
 			Logger.LogInfo($"Process termination was requested by the OS, reason '{e.Reason}'.");
 			e.Cancel = true;
 		}
@@ -100,7 +100,7 @@ public class TerminateService
 
 	private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 	{
-		if (ForcefulTerminationRequested.Task.IsCompleted)
+		if (_forcefulTerminationRequested.Task.IsCompleted)
 		{
 			Logger.LogWarning("Multiple requests to terminate registered. Stopping the application non-gracefully.");
 			e.Cancel = false;
@@ -125,10 +125,10 @@ public class TerminateService
 
 	public void SignalForceTerminate()
 	{
-		if (ForcefulTerminationRequested.TrySetResult())
+		if (_forcefulTerminationRequested.TrySetResult())
 		{
-			TerminationCts.Cancel();
-			TerminationCts.Dispose();
+			_terminationCts.Cancel();
+			_terminationCts.Dispose();
 
 			// Run this callback just once.
 			_terminateApplication();
@@ -157,7 +157,7 @@ public class TerminateService
 		Logger.LogDebug("Start shutting down the application.");
 
 		// We want to call the callback once. Not multiple times.
-		if (!ForcefulTerminationRequested.Task.IsCompleted)
+		if (!_forcefulTerminationRequested.Task.IsCompleted)
 		{
 			_terminateApplication();
 		}

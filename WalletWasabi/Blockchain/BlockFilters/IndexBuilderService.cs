@@ -1,10 +1,10 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
@@ -29,63 +30,57 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier)
+	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
-		RpcClient = Guard.NotNull(nameof(rpc), rpc);
-		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
-		var indexBuilderServiceDir = Path.Combine(".", "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
+		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
+		_blockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 
-		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
+		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
+		_startingHeight = SmartHeader.GetStartingHeader(_rpcClient.Network).Height;
 
 		_serviceStatus = NotStarted;
 
-		IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(_indexFilePath);
 
-		// Testing permissions.
-		using (var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+		if (_rpcClient.Network == Network.RegTest && File.Exists(_indexFilePath))
 		{
+			File.Delete(_indexFilePath); // RegTest is not a global ledger, better to delete it.
 		}
 
-		if (File.Exists(IndexFilePath))
-		{
-			if (RpcClient.Network == Network.RegTest)
-			{
-				File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
-			}
-			else
-			{
-				ImmutableList<FilterModel>.Builder builder = ImmutableList.CreateBuilder<FilterModel>();
-
-				foreach (var line in File.ReadAllLines(IndexFilePath))
-				{
-					var filter = FilterModel.FromLine(line);
-					builder.Add(filter);
-				}
-
-				Index = builder.ToImmutableList();
-			}
-		}
-
-		BlockNotifier.OnBlock += BlockNotifier_OnBlock;
+		IndexStorage = CreateBlockFilterSqliteStorage();
+		_blockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
 	public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-	private IRPCClient RpcClient { get; }
-	private BlockNotifier BlockNotifier { get; }
-	private string IndexFilePath { get; }
-	private ImmutableList<FilterModel> Index { get; set; } = ImmutableList<FilterModel>.Empty;
+	private readonly IRPCClient _rpcClient;
+	private readonly BlockNotifier _blockNotifier;
+	private readonly string _indexFilePath;
+	private BlockFilterSqliteStorage IndexStorage { get; set; }
 
 	/// <remarks>Guards <see cref="Index"/>.</remarks>
-	private object IndexLock { get; } = new();
-	private uint StartingHeight { get; }
+	private readonly object _indexLock = new();
+	private readonly uint _startingHeight;
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
 
-	private RpcPubkeyType[] PubKeyTypes { get; } = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
+	private readonly RpcPubkeyType[] _pubKeyTypes = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
+
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
+	{
+		try
+		{
+			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
+
+			File.Delete(_indexFilePath);
+			throw;
+		}
+	}
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -129,14 +124,11 @@ public class IndexBuilderService
 						{
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-							FilterModel? lastIndexFilter = null;
+							FilterModel? lastIndexFilter;
 
-							lock (IndexLock)
+							lock (_indexLock)
 							{
-								if (Index.Count != 0)
-								{
-									lastIndexFilter = Index[^1];
-								}
+								lastIndexFilter = GetLastFilter();
 							}
 
 							uint currentHeight;
@@ -149,10 +141,10 @@ public class IndexBuilderService
 							}
 							else
 							{
-								currentHash = StartingHeight == 0
+								currentHash = _startingHeight == 0
 									? uint256.Zero
-									: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
-								currentHeight = StartingHeight - 1;
+									: await _rpcClient.GetBlockHashAsync((int)_startingHeight - 1).ConfigureAwait(false);
+								currentHeight = _startingHeight - 1;
 							}
 
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
@@ -183,8 +175,8 @@ public class IndexBuilderService
 							}
 
 							uint nextHeight = currentHeight + 1;
-							uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
-							VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
+							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
+							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
 							// Check if we are still on the best chain,
 							// if not rewind filters till we find the fork.
@@ -192,22 +184,20 @@ public class IndexBuilderService
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
-								await ReorgOneAsync().ConfigureAwait(false);
+								ReorgOne();
 
 								// Skip the current block.
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block, PubKeyTypes);
+							var filter = BuildFilterForBlock(block, _pubKeyTypes);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
 
-							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
-
-							lock (IndexLock)
+							lock (_indexLock)
 							{
-								Index = Index.Add(filterModel);
+								IndexStorage.TryAppend(filterModel);
 							}
 
 							// If not close to the tip, just log debug.
@@ -223,7 +213,7 @@ public class IndexBuilderService
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug(ex);
+							Logger.LogError(ex);
 
 							// Pause the while loop for a while to not flood logs in case of permanent error.
 							await Task.Delay(1000).ConfigureAwait(false);
@@ -272,10 +262,22 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				var prevOut = input.PrevOutput;
-				if (prevOut is not null && pubKeyTypes.Contains(prevOut.PubkeyType))
+				switch (input)
 				{
-					scripts.Add(prevOut.ScriptPubKey);
+					case VerboseInputInfo.Coinbase:
+						break;
+					case VerboseInputInfo.Full inputInfo:
+						if (pubKeyTypes.Contains(inputInfo.PrevOut.PubkeyType))
+						{
+							scripts.Add(inputInfo.PrevOut.ScriptPubKey);
+						}
+						break;
+					case VerboseInputInfo.None inputInfo:
+						// This happens when the block containing the prevOut can't be found (pruned)
+						// If the block is previous to segwit activation then everything is okay because the scriptPubKey
+						// is not segwit or taproot. However, if the block is after segwit activation, that means that
+						// the scriptPubKey could be segwit or taproot and the filter can be incomplete/broken.
+						throw new InvalidOperationException($"{inputInfo.Outpoint} script information is not available.");
 				}
 			}
 
@@ -291,27 +293,20 @@ public class IndexBuilderService
 		return scripts;
 	}
 
-	private async Task ReorgOneAsync()
+	private void ReorgOne()
 	{
-		// 1. Rollback index.
-		uint256 blockHash;
-
-		lock (IndexLock)
+		lock (_indexLock)
 		{
-			blockHash = Index[^1].Header.BlockHash;
-			Index = Index.RemoveAt(Index.Count - 1);
+			if(IndexStorage.TryRemoveLast(out var removedFilter))
+			{
+				Logger.LogInfo($"REORG invalid block: {removedFilter.Header.BlockHash}");
+			}
 		}
-
-		Logger.LogInfo($"REORG invalid block: {blockHash}");
-
-		// 2. Serialize Index. (Remove last line.)
-		var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
-		await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task<SyncInfo> GetSyncInfoAsync()
 	{
-		var bcinfo = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+		var bcinfo = await _rpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
 		var pbcinfo = new SyncInfo(bcinfo);
 		return pbcinfo;
 	}
@@ -331,58 +326,45 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
-		found = false; // Only build the filter list from when the known hash is found.
-		var filters = new List<FilterModel>();
-
-		ImmutableList<FilterModel> currentIndex;
-
-		lock (IndexLock)
+		lock (_indexLock)
 		{
-			currentIndex = Index;
-		}
-
-		foreach (var filter in currentIndex)
-		{
-			if (found)
+			var filterModels = IndexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
+			uint bestHeight;
+			if (filterModels.Count > 0)
 			{
-				filters.Add(filter);
-				if (filters.Count >= count)
-				{
-					break;
-				}
+				bestHeight = (uint)IndexStorage.GetBestHeight();
+				found = true;
 			}
 			else
 			{
-				if (filter.Header.BlockHash == bestKnownBlockHash)
+				var lastFilter = GetLastFilter();
+				if (lastFilter is null)
 				{
-					found = true;
+					found = false;
+					return (new Height(HeightType.Unknown), []);
 				}
-			}
-		}
 
-		if (currentIndex.Count == 0)
-		{
-			return (Height.Unknown, Enumerable.Empty<FilterModel>());
-		}
-		else
-		{
-			return ((int)currentIndex[^1].Header.Height, filters);
+				found = lastFilter.Header.BlockHash == bestKnownBlockHash;
+				bestHeight = lastFilter.Header.Height;
+			}
+			return (new Height(bestHeight), filterModels);
 		}
 	}
 
-	public FilterModel GetLastFilter()
+	public FilterModel? GetLastFilter()
 	{
-		lock (IndexLock)
+		lock (_indexLock)
 		{
-			return Index[^1];
+			var lastFilterList = IndexStorage.FetchLast(1).ToList();
+			return lastFilterList.Count == 0 ? null : lastFilterList[0];
 		}
 	}
 
 	public async Task StopAsync()
 	{
-		if (BlockNotifier is { })
+		if (_blockNotifier is { })
 		{
-			BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
+			_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
 		}
 
 		Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.

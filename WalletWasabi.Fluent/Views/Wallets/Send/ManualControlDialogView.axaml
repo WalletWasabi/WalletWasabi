@@ -32,7 +32,7 @@
     </ContentArea.TopContent>
     <ContentArea.BottomContent>
       <!-- Selected Amount -->
-      <AmountControl Amount="{Binding SelectedAmount^}" Classes="Material" HorizontalAlignment="Center"/>
+      <AmountControl Classes="WithUsd" Amount="{Binding SelectedAmount^}" HorizontalAlignment="Center"/>
     </ContentArea.BottomContent>
     <coins:CoinListView DataContext="{Binding CoinList}" />
   </ContentArea>

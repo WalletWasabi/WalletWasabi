@@ -21,6 +21,13 @@ public class Amount
 		HasUsdBalance = Observable.Return(false);
 	}
 
+	public Amount(Money money)
+	{
+		Btc = money;
+		Usd = Observable.Return(0m);
+		HasUsdBalance = Observable.Return(false);
+	}
+
 	public Amount(Money money, IAmountProvider exchangeRateProvider)
 	{
 		Btc = money;

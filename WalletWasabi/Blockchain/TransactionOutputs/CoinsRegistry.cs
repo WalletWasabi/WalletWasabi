@@ -13,39 +13,39 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class CoinsRegistry : ICoinsView
 {
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> Coins { get; } = new();
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
+	private readonly HashSet<SmartCoin> _coins = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private Dictionary<OutPoint, SmartCoin> OutpointCoinCache { get; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
 
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private HashSet<SmartCoin> SpentCoins { get; } = new();
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
+	private readonly HashSet<SmartCoin> _spentCoins = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; } = new();
 
 	/// <summary>Maps each outpoint to transaction IDs (i.e. txids) that exist thanks to the outpoint.</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private Dictionary<OutPoint, uint256> TxidsByInputPrevOuts { get; } = new();
 
 	/// <summary>Maps each txid to smart coins (i.e. UTXOs).</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private Dictionary<uint256, HashSet<SmartCoin>> CoinsByTransactionId { get; } = new();
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private Dictionary<HdPubKey, HashSet<SmartCoin>> CoinsByPubKeys { get; } = new();
 
 	/// <summary>Maps each TXIDs to a balance change that is caused by the corresponding wallet transaction.</summary>
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private Dictionary<uint256, Money> TransactionAmountsByTxid { get; } = new();
 
 	private CoinsView AsCoinsViewNoLock()
@@ -62,7 +62,7 @@ public class CoinsRegistry : ICoinsView
 
 	private CoinsView AsCoinsView()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return AsCoinsViewNoLock();
 		}
@@ -70,7 +70,7 @@ public class CoinsRegistry : ICoinsView
 
 	private CoinsView AsSpentCoinsView()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return AsSpentCoinsViewNoLock();
 		}
@@ -83,14 +83,14 @@ public class CoinsRegistry : ICoinsView
 			return;
 		}
 
-		LatestCoinsSnapshot = Coins.ToHashSet();
-		LatestSpentCoinsSnapshot = SpentCoins.ToHashSet();
+		LatestCoinsSnapshot = _coins.ToHashSet();
+		LatestSpentCoinsSnapshot = _spentCoins.ToHashSet();
 		InvalidateSnapshot = false;
 	}
 
 	public bool TryAdd(SmartCoin coin)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return TryAddNoLock(coin);
 		}
@@ -98,12 +98,12 @@ public class CoinsRegistry : ICoinsView
 
 	private bool TryAddNoLock(SmartCoin coin)
 	{
-		if (SpentCoins.Contains(coin))
+		if (_spentCoins.Contains(coin))
 		{
 			return false;
 		}
 
-		bool added = Coins.Add(coin);
+		bool added = _coins.Add(coin);
 		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
@@ -151,9 +151,9 @@ public class CoinsRegistry : ICoinsView
 		var coinsToRemove = DescendantOfNoLock(coin, includeSelf: true);
 		foreach (var toRemove in coinsToRemove)
 		{
-			if (!Coins.Remove(toRemove))
+			if (!_coins.Remove(toRemove))
 			{
-				SpentCoins.Remove(toRemove);
+				_spentCoins.Remove(toRemove);
 			}
 
 			var removedCoinOutPoint = toRemove.Outpoint;
@@ -211,12 +211,12 @@ public class CoinsRegistry : ICoinsView
 		tx.TryAddWalletInput(spentCoin);
 		spentCoin.SpenderTransaction = tx;
 
-		lock (Lock)
+		lock (_lock)
 		{
-			if (Coins.Remove(spentCoin))
+			if (_coins.Remove(spentCoin))
 			{
 				InvalidateSnapshot = true;
-				SpentCoins.Add(spentCoin);
+				_spentCoins.Add(spentCoin);
 				UpdateTransactionAmountNoLock(tx.GetHash(), Money.Zero - spentCoin.Amount);
 			}
 		}
@@ -229,9 +229,9 @@ public class CoinsRegistry : ICoinsView
 
 	public void SwitchToUnconfirmFromBlock(Height blockHeight)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			foreach (SmartCoin coin in Coins)
+			foreach (SmartCoin coin in _coins)
 			{
 				if (coin.Height != blockHeight)
 				{
@@ -250,7 +250,7 @@ public class CoinsRegistry : ICoinsView
 	/// <returns><c>true</c> if the transaction given by the txid contains at least one of our coins (either spent or unspent), <c>false</c> otherwise.</returns>
 	public bool IsKnown(uint256 txid)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return CoinsByTransactionId.ContainsKey(txid);
 		}
@@ -258,7 +258,7 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return OutpointCoinCache.TryGetValue(outpoint, out coin);
 		}
@@ -266,7 +266,7 @@ public class CoinsRegistry : ICoinsView
 
 	public bool TryGetCoinsByInputPrevOut(OutPoint prevOut, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return TryGetCoinsByInputPrevOutNoLock(prevOut, out coins);
 		}
@@ -285,7 +285,7 @@ public class CoinsRegistry : ICoinsView
 
 	internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			var allCoins = AsAllCoinsViewNoLock();
 			var toRemove = new List<SmartCoin>();
@@ -300,10 +300,10 @@ public class CoinsRegistry : ICoinsView
 			// destroyed (spent) coins are now (unspent)
 			foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
 			{
-				if (SpentCoins.Remove(destroyedCoin))
+				if (_spentCoins.Remove(destroyedCoin))
 				{
 					destroyedCoin.SpenderTransaction = null;
-					Coins.Add(destroyedCoin);
+					_coins.Add(destroyedCoin);
 					toAdd.Add(destroyedCoin);
 				}
 			}
@@ -318,7 +318,7 @@ public class CoinsRegistry : ICoinsView
 	{
 		var myInputs = new List<SmartCoin>();
 
-		lock (Lock)
+		lock (_lock)
 		{
 			foreach (TxIn input in transaction.Transaction.Inputs)
 			{
@@ -335,7 +335,7 @@ public class CoinsRegistry : ICoinsView
 	/// <returns><c>true</c> if the coin registry contains at least one unspent coin with <paramref name="hdPubKey"/>, <c>false</c> otherwise.</returns>
 	public bool HasUnspentCoin(HdPubKey hdPubKey)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			if (CoinsByPubKeys.TryGetValue(hdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
 			{
@@ -348,7 +348,7 @@ public class CoinsRegistry : ICoinsView
 
 	public bool IsUsed(HdPubKey hdPubKey)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return CoinsByPubKeys.TryGetValue(hdPubKey, out _);
 		}
@@ -358,7 +358,7 @@ public class CoinsRegistry : ICoinsView
 	/// <returns>The same value as <see cref="TransactionSummary.Amount"/>.</returns>
 	public bool TryGetTxAmount(uint256 txid, [NotNullWhen(true)] out Money? amount)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return TransactionAmountsByTxid.TryGetValue(txid, out amount);
 		}
@@ -367,7 +367,7 @@ public class CoinsRegistry : ICoinsView
 	/// <summary>Gets total balance as a sum of unspent coins.</summary>
 	public Money GetTotalBalance()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			// Amount can be hold as a variable that is updated every time to avoid summing it.
 			return TransactionAmountsByTxid.Values.Sum();
@@ -376,7 +376,7 @@ public class CoinsRegistry : ICoinsView
 
 	public ICoinsView AsAllCoinsView()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return new CoinsView(AsAllCoinsViewNoLock().ToList());
 		}
@@ -391,13 +391,13 @@ public class CoinsRegistry : ICoinsView
 	/// <summary>Gets descendant coins of the given coin - i.e. all coins that spent the input coin, all coins that spent those coins, etc.</summary>
 	public ICoinsView DescendantOf(SmartCoin coin, bool includeSelf)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			return new CoinsView(DescendantOfNoLock(coin, includeSelf));
 		}
 	}
 
-	/// <remarks>Callers must acquire <see cref="Lock"/> before calling this method.</remarks>
+	/// <remarks>Callers must acquire <see cref="_lock"/> before calling this method.</remarks>
 	private ImmutableArray<SmartCoin> DescendantOfNoLock(SmartCoin coin, bool includeSelf)
 	{
 		ICoinsView allCoins = AsAllCoinsViewNoLock();

@@ -16,16 +16,16 @@ public class TorStatusChecker : PeriodicRunner
 	private readonly XmlIssueListParser _parser;
 	private static readonly Uri TorStatusUri = new("https://status.torproject.org/index.xml");
 
-	public TorStatusChecker(TimeSpan period, IHttpClient httpClient, XmlIssueListParser parser)
+	public TorStatusChecker(TimeSpan period, HttpClient httpClient, XmlIssueListParser parser)
 		: base(period)
 	{
 		_parser = parser;
-		HttpClient = httpClient;
+		_httpClient = httpClient;
 	}
 
 	public event EventHandler<Issue[]>? StatusEvent;
 
-	private IHttpClient HttpClient { get; }
+	private readonly HttpClient _httpClient;
 
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class TorStatusChecker : PeriodicRunner
 		try
 		{
 			using HttpRequestMessage request = new(HttpMethod.Get, TorStatusUri);
-			using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
 			string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			var issues = _parser.Parse(xml);

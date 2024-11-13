@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class PrivacyModeHelper
 {
-	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.75);
+	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.25);
 	private static readonly TimeSpan HideDelay = TimeSpan.FromSeconds(10);
 
 	public static IObservable<bool> DelayedRevealAndHide(

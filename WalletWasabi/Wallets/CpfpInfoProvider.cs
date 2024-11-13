@@ -16,7 +16,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -24,31 +23,28 @@ namespace WalletWasabi.Wallets;
 
 public class CpfpInfoProvider : BackgroundService
 {
+	private readonly IHttpClientFactory _httpClientFactory;
 	private const int MaximumDelayInSeconds = 120;
 	private const int MaximumScheduledRequestsInParallel = 15;
 	private static readonly TimeSpan MinimumBetweenUpdateRequests = TimeSpan.FromSeconds(MaximumDelayInSeconds);
 
-	public CpfpInfoProvider(WasabiHttpClientFactory httpClientFactory, Network network)
+
+	public CpfpInfoProvider(IHttpClientFactory httpClientFactory, Network network)
 	{
-		if (network == Network.Main)
-		{
-			_httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
-		}
-		else if(network == Network.TestNet)
-		{
-			_httpClient = httpClientFactory.NewHttpClient(() => new Uri("https://mempool.space/testnet/api/"), Tor.Socks5.Pool.Circuits.Mode.NewCircuitPerRequest);
-		}
-		else
-		{
-			throw new InvalidOperationException("CpfpInfoProvider is only operational on Main or TestNet");
-		}
+		_httpClientFactory = httpClientFactory;
+
+		_uri = network == Network.Main
+			? new Uri("https://mempool.space/api/")
+			: network == Network.TestNet
+				? new Uri("https://mempool.space/testnet/api/")
+				: throw new InvalidOperationException("CpfpInfoProvider is only operational on Main or TestNet");
 	}
 
-	private readonly IHttpClient _httpClient;
+	private readonly Uri _uri;
 
 	private readonly Channel<SmartTransaction> _transactionsChannel = Channel.CreateUnbounded<SmartTransaction>();
 	private readonly Dictionary<uint256, CachedCpfpInfo> _cpfpInfoCache = new();
-	private AsyncLock AsyncLock { get; } = new();
+	private readonly AsyncLock _asyncLock = new();
 
 	private DateTimeOffset _lastUpdateCacheLoop = DateTimeOffset.MinValue;
 
@@ -72,7 +68,7 @@ public class CpfpInfoProvider : BackgroundService
 			var txToFetch = await _transactionsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 			var txid = txToFetch.GetHash();
 
-			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				if (scheduledRequests.Contains(txid) ||
 				    !ShouldRequest(txToFetch) ||
@@ -156,7 +152,7 @@ public class CpfpInfoProvider : BackgroundService
 
 		List<uint256> toRemoveFromCache = [];
 
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			foreach (var cachedCpfpInfo in _cpfpInfoCache)
 			{
@@ -178,7 +174,7 @@ public class CpfpInfoProvider : BackgroundService
 
 	public async Task<CpfpInfo?> GetCachedCpfpInfoAsync(uint256 txid, CancellationToken cancel)
 	{
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			return _cpfpInfoCache.TryGetValue(txid, out var cached) ? cached.CpfpInfo : null;
 		}
@@ -198,11 +194,9 @@ public class CpfpInfoProvider : BackgroundService
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(20));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-		var response = await _httpClient.SendAsync(
-			HttpMethod.Get,
-			$"v1/cpfp/{txid}",
-			null,
-			linkedCts.Token).ConfigureAwait(false);
+		var httpClient = _httpClientFactory.CreateClient($"mempool.space-{txid}");
+		httpClient.BaseAddress = _uri;
+		var response = await httpClient.GetAsync( $"v1/cpfp/{txid}", linkedCts.Token).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{

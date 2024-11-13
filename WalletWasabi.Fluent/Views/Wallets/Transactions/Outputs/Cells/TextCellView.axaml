@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:outputs="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Cells.TextCellView"
+             x:DataType="outputs:OutputsCoinViewModel"
+             x:CompileBindings="True">
+  <UserControl.Resources>
+    <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
+                                     PositiveBrush="{StaticResource UncertainBrush}"
+                                     NegativeBrush="{StaticResource PositiveBrush}"
+                                     ZeroBrush="{StaticResource UncertainBrush}" />
+  </UserControl.Resources>
+
+  <StackPanel Orientation="Horizontal">
+    <TextBlock IsVisible="{Binding !!NbDiff}"
+               FontWeight="Bold"
+               Margin="45 0 0 0"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+      <TextBlock.Inlines>
+        <Run Text="{Binding TitleText}" />
+        <Run Text="  " />
+        <Run Foreground="{Binding NbDiff, Converter={StaticResource InvertedDiffConverter}}"
+             Text="{Binding NbDiff, Converter={x:Static converters:IntConverter.FPlusConverter}}" />
+      </TextBlock.Inlines>
+    </TextBlock>
+    <TextBlock IsVisible="{Binding NbDiff, Converter={x:Static converters:IntConverter.IsNullOrZero}}"
+               Margin="45 0 0 0"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Classes="bold"
+               Text="{Binding TitleText}">
+    </TextBlock>
+  </StackPanel>
+</UserControl>

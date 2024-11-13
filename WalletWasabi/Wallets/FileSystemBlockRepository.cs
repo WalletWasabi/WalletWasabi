@@ -21,14 +21,14 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 	{
 		BlocksFolderPath = blocksFolderPath;
-		Network = network;
+		_network = network;
 		CreateFolders();
 		Prune(targetBlocksFolderSizeMb);
 	}
 
 	public string BlocksFolderPath { get; }
-	private Network Network { get; }
-	private AsyncLock BlockFolderLock { get; } = new();
+	private readonly Network _network;
+	private readonly AsyncLock _blockFolderLock = new();
 
 	/// <summary>
 	/// Prunes <see cref="BlocksFolderPath"/> so that its size is at most <paramref name="maxFolderSizeMb"/> MB.
@@ -96,7 +96,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 	{
 		// Try get the block.
 		Block? block = null;
-		using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _blockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var encoder = new HexEncoder();
 			var filePath = Path.Combine(BlocksFolderPath, hash.ToString());
@@ -105,7 +105,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 				try
 				{
 					byte[] blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
-					block = Block.Load(blockBytes, Network);
+					block = Block.Load(blockBytes, _network);
 
 					_ = new FileInfo(filePath)
 					{
@@ -135,7 +135,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 		var path = Path.Combine(BlocksFolderPath, block.GetHash().ToString());
 		if (!File.Exists(path))
 		{
-			using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await _blockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (!File.Exists(path))
 				{
@@ -150,7 +150,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 	{
 		try
 		{
-			using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			using (await _blockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 				var fileNames = filePaths.Select(Path.GetFileName);
@@ -175,7 +175,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 	/// <returns>Number of stored blocks.</returns>
 	public async Task<int> CountAsync(CancellationToken cancellationToken)
 	{
-		using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _blockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			return Directory.EnumerateFiles(BlocksFolderPath).Count();
 		}
@@ -185,7 +185,7 @@ public class FileSystemBlockRepository : IFileSystemBlockRepository
 	{
 		try
 		{
-			if (Directory.Exists(BlocksFolderPath) && Network == Network.RegTest)
+			if (Directory.Exists(BlocksFolderPath) && _network == Network.RegTest)
 			{
 				Directory.Delete(BlocksFolderPath, true);
 			}

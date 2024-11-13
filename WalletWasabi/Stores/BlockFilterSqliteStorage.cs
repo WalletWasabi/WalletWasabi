@@ -19,11 +19,11 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	private BlockFilterSqliteStorage(SqliteConnection connection)
 	{
-		Connection = connection;
+		_connection = connection;
 	}
 
-	/// <remarks>Connection cannot be accessed from multiple threads at the same time.</remarks>
-	private SqliteConnection Connection { get; }
+	/// <remarks>_connection cannot be accessed from multiple threads at the same time.</remarks>
+	private readonly SqliteConnection _connection;
 
 	/// <summary>
 	/// Opens a new SQLite connection to the given database file.
@@ -51,14 +51,16 @@ public class BlockFilterSqliteStorage : IDisposable
 			using (SqliteCommand createCommand = connection.CreateCommand())
 			{
 				createCommand.CommandText = """
-					CREATE TABLE IF NOT EXISTS filter (
-						block_height INTEGER NOT NULL PRIMARY KEY,
-						block_hash BLOB NOT NULL,
-						filter_data BLOB NOT NULL,
-						previous_block_hash BLOB NOT NULL,
-						epoch_block_time INTEGER NOT NULL
-					)
-					""";
+				                            CREATE TABLE IF NOT EXISTS filter (
+				                               block_height INTEGER NOT NULL PRIMARY KEY,
+				                               block_hash BLOB NOT NULL,
+				                               filter_data BLOB NOT NULL,
+				                               previous_block_hash BLOB NOT NULL,
+				                               epoch_block_time INTEGER NOT NULL
+				                            );
+				                            CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
+				                            CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
+				                            """;
 				createCommand.ExecuteNonQuery();
 			}
 
@@ -111,7 +113,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/transactions"/>
 	public SqliteTransaction BeginTransaction()
 	{
-		return Connection.BeginTransaction();
+		return _connection.BeginTransaction();
 	}
 
 	/// <summary>
@@ -120,7 +122,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
 	public IEnumerable<FilterModel> Fetch(uint fromHeight, int limit = -1)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 
 		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
 		command.Parameters.AddWithValue("$block_height", fromHeight);
@@ -136,12 +138,25 @@ public class BlockFilterSqliteStorage : IDisposable
 	}
 
 	/// <summary>
-	/// Returns last <paramref name="n"/> filters from the database table.
+	/// Returns <paramref name="n"/> filters after <paramref name="blockHash"/> in height.
+	/// Returns empty enumerable if <paramref name="blockHash"/> is not found
 	/// </summary>
-	public IEnumerable<FilterModel> FetchLast(int n)
+	public IEnumerable<FilterModel> FetchNewerThanBlockHash(uint256 blockHash, int n)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
-		command.CommandText = "SELECT * FROM filter WHERE block_height > (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = """
+		                      WITH target_block AS (
+		                          SELECT block_height
+		                          FROM filter
+		                          WHERE block_hash = $blockHash
+		                      )
+		                      SELECT *
+		                      FROM filter
+		                      WHERE block_height > (SELECT block_height FROM target_block)
+		                      ORDER BY block_height ASC
+		                      LIMIT $n;
+		                      """;
+		command.Parameters.AddWithValue("$blockHash", blockHash.ToBytes(lendian: true));
 		command.Parameters.AddWithValue("$n", n);
 
 		using SqliteDataReader reader = command.ExecuteReader();
@@ -154,11 +169,42 @@ public class BlockFilterSqliteStorage : IDisposable
 	}
 
 	/// <summary>
+	/// Returns last <paramref name="n"/> filters from the database table.
+	/// </summary>
+	public IEnumerable<FilterModel> FetchLast(int n)
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "SELECT * FROM filter WHERE block_height > (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
+		command.Parameters.AddWithValue("$n", n);
+
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		while (reader.Read())
+		{
+			FilterModel filter = ReadRow(reader);
+			yield return filter;
+		}
+	}
+
+
+	public int GetBestHeight()
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "SELECT MAX(block_height) FROM filter";
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		return reader.Read() ?
+			reader.GetInt32(0) :
+			0;
+	}
+
+
+	/// <summary>
 	/// Removes the filter with the highest height from the database table.
 	/// </summary>
 	public bool TryRemoveLast([NotNullWhen(true)] out FilterModel? filter)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = "DELETE FROM filter WHERE block_height = (SELECT MAX(block_height) FROM filter) returning *";
 
 		using SqliteDataReader reader = command.ExecuteReader();
@@ -180,7 +226,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="height">Minimum block height of the last block to remove (exclusive).</param>
 	public bool TryRemoveLastIfNewerThan(uint height, [NotNullWhen(true)] out FilterModel? filter)
 	{
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = "DELETE FROM filter WHERE block_height > $block_height AND block_height = (SELECT MAX(block_height) FROM filter) returning *";
 		command.Parameters.AddWithValue("$block_height", height);
 
@@ -195,6 +241,28 @@ public class BlockFilterSqliteStorage : IDisposable
 		// Stored filters are considered to be valid.
 		filter = ReadRow(reader);
 		return true;
+	}
+
+	/// <summary>
+	/// Removes the filters with higher height than <paramref name="height"/>.
+	/// </summary>
+	/// <param name="height">Minimum block height of the last block to remove (exclusive).</param>
+	public IEnumerable<FilterModel> RemoveNewerThan(uint height)
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "DELETE FROM filter WHERE block_height > $block_height RETURNING *";
+		command.Parameters.AddWithValue("$block_height", height);
+
+		using SqliteDataReader reader = command.ExecuteReader();
+
+		List<FilterModel> removedFilters = [];
+
+		while (reader.Read())
+		{
+			removedFilters.Add(ReadRow(reader));
+		}
+
+		return removedFilters;
 	}
 
 	private FilterModel ReadRow(SqliteDataReader reader)
@@ -216,7 +284,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	{
 		try
 		{
-			using SqliteCommand insertCommand = Connection.CreateCommand();
+			using SqliteCommand insertCommand = _connection.CreateCommand();
 			insertCommand.CommandText = """
 				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
 				VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
@@ -242,9 +310,9 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
 	public void BulkAppend(IReadOnlyList<FilterModel> filters)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
 
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = """
 			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
 			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
@@ -292,9 +360,9 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
 	public void BulkAppend(IReadOnlyList<string> filters)
 	{
-		using SqliteTransaction transaction = Connection.BeginTransaction();
+		using SqliteTransaction transaction = _connection.BeginTransaction();
 
-		using SqliteCommand command = Connection.CreateCommand();
+		using SqliteCommand command = _connection.CreateCommand();
 		command.CommandText = """
 			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
 			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
@@ -354,13 +422,28 @@ public class BlockFilterSqliteStorage : IDisposable
 		transaction.Commit();
 	}
 
+	public void SetPragmaUserVersion(int newUserVersion)
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = $"PRAGMA user_version = {newUserVersion};";
+		command.ExecuteNonQuery();
+	}
+
+	public int GetPragmaUserVersion()
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "PRAGMA user_version";
+		var tmp = Convert.ToInt32(command.ExecuteScalar());
+		return tmp;
+	}
+
 	/// <summary>
 	/// Clears the filter table.
 	/// </summary>
 	/// <returns><c>true</c> if at least one row was deleted, <c>false</c> otherwise.</returns>
 	public bool Clear()
 	{
-		using SqliteCommand createCommand = Connection.CreateCommand();
+		using SqliteCommand createCommand = _connection.CreateCommand();
 		createCommand.CommandText = "DELETE FROM filter";
 		int affectedLines = createCommand.ExecuteNonQuery();
 
@@ -373,8 +456,8 @@ public class BlockFilterSqliteStorage : IDisposable
 		{
 			if (disposing)
 			{
-				Connection.Close();
-				Connection.Dispose();
+				_connection.Close();
+				_connection.Dispose();
 			}
 
 			_disposedValue = true;

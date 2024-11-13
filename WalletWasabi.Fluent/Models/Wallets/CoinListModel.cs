@@ -22,7 +22,7 @@ public abstract partial class CoinListModel : IDisposable
 		WalletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
 		var anonScoreTargetChanged = this.WhenAnyValue(x => x.WalletModel.Settings.AnonScoreTarget).Skip(1).ToSignal();
-		var isCoinjoinRunningChanged = walletModel.Coinjoin.IsRunning.ToSignal();
+		var isCoinjoinRunningChanged = walletModel.IsCoinjoinRunning.ToSignal();
 		var isSelected = this.WhenAnyValue(x => x.WalletModel.IsSelected).Skip(1).ToSignal();
 
 		var signals =
@@ -58,7 +58,7 @@ public abstract partial class CoinListModel : IDisposable
 
 	protected ICoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
-		return new CoinModel(smartCoin, WalletModel.Settings.AnonScoreTarget);
+		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget);
 	}
 
 	protected abstract Pocket[] GetPockets();

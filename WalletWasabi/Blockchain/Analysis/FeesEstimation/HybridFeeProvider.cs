@@ -24,9 +24,9 @@ public class HybridFeeProvider : IHostedService
 
 	public RpcFeeProvider? RpcFeeProvider { get; }
 	public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 	public AllFeeEstimate? AllFeeEstimate { get; private set; }
-	private AbandonedTasks ProcessingEvents { get; } = new();
+	private readonly AbandonedTasks _processingEvents = new();
 
 	public Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -50,12 +50,12 @@ public class HybridFeeProvider : IHostedService
 			RpcFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 		}
 
-		await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
+		await _processingEvents.WhenAllAsync().ConfigureAwait(false);
 	}
 
 	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
 	{
-		using (RunningTasks.RememberWith(ProcessingEvents))
+		using (RunningTasks.RememberWith(_processingEvents))
 		{
 			// Only go further if we have estimations.
 			if (fees.Estimations.Count == 0)
@@ -64,7 +64,7 @@ public class HybridFeeProvider : IHostedService
 			}
 
 			var notify = false;
-			lock (Lock)
+			lock (_lock)
 			{
 				if (AllFeeEstimate is null)
 				{

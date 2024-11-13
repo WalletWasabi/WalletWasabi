@@ -49,8 +49,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = isReplacement;
 		IsSpeedup = isSpeedup;
 		IsCancellation = isCancellation;
-		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
-		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+		_walletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+		_walletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
 		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
 		_isWasabi2Cj = new Lazy<bool>(
@@ -69,10 +69,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
-	private HashSet<SmartCoin> WalletInputsInternal { get; }
+	private readonly HashSet<SmartCoin> _walletInputsInternal;
 
 	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
-	private HashSet<SmartCoin> WalletOutputsInternal { get; }
+	private readonly HashSet<SmartCoin> _walletOutputsInternal;
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
@@ -89,9 +89,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; } = null;
 
-	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
+	public IReadOnlyCollection<SmartCoin> WalletInputs => _walletInputsInternal;
 
-	public IReadOnlyCollection<SmartCoin> WalletOutputs => WalletOutputsInternal;
+	public IReadOnlyCollection<SmartCoin> WalletOutputs => _walletOutputsInternal;
 
 	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
 	{
@@ -287,7 +287,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
-		if (WalletInputsInternal.Add(input))
+		if (_walletInputsInternal.Add(input))
 		{
 			ForeignInputsCache = null;
 			WalletVirtualInputsCache = null;
@@ -298,7 +298,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryAddWalletOutput(SmartCoin output)
 	{
-		if (WalletOutputsInternal.Add(output))
+		if (_walletOutputsInternal.Add(output))
 		{
 			ForeignOutputsCache = null;
 			WalletVirtualOutputsCache = null;
@@ -310,7 +310,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryRemoveWalletInput(SmartCoin input)
 	{
-		if (WalletInputsInternal.Remove(input))
+		if (_walletInputsInternal.Remove(input))
 		{
 			ForeignInputsCache = null;
 			WalletVirtualInputsCache = null;
@@ -321,7 +321,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryRemoveWalletOutput(SmartCoin output)
 	{
-		if (WalletOutputsInternal.Remove(output))
+		if (_walletOutputsInternal.Remove(output))
 		{
 			ForeignOutputsCache = null;
 			WalletVirtualOutputsCache = null;

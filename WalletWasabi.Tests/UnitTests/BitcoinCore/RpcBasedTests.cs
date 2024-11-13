@@ -235,7 +235,7 @@ public class RpcBasedTests
 		{
 			var rpc = coreNode.RpcClient;
 			var blockInfo = await rpc.GetVerboseBlockAsync(coreNode.Network.GenesisHash);
-			Assert.NotNull(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+			Assert.IsType<VerboseInputInfo.Coinbase>(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0));
 		}
 		finally
 		{
@@ -253,13 +253,14 @@ public class RpcBasedTests
 		Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
 		Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
 
-		Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+		var coinbase = Assert.IsType<VerboseInputInfo.Coinbase>(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0));
+		Assert.Equal("01660101", coinbase.Message);
 		Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(0).PubkeyType);
 		Assert.Equal(RpcPubkeyType.TxNullData, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(1).PubkeyType);
 
 		var in0 = blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0);
-		Assert.False(in0.IsCoinbase);
-		var prevOut0 = in0.PrevOutput;
+		var inputInfo = Assert.IsType<VerboseInputInfo.Full>(in0);
+		var prevOut0 = inputInfo.PrevOut;
 		Assert.Equal(Money.Coins(50), prevOut0?.Value);
 		Assert.Equal(RpcPubkeyType.TxPubkeyhash, prevOut0?.PubkeyType);
 

@@ -11,15 +11,15 @@ public class BobClient
 	public BobClient(uint256 roundId, ArenaClient arenaClient)
 	{
 		RoundId = roundId;
-		ArenaClient = arenaClient;
+		_arenaClient = arenaClient;
 	}
 
 	public uint256 RoundId { get; }
-	private ArenaClient ArenaClient { get; }
+	private readonly ArenaClient _arenaClient;
 
 	public async Task RegisterOutputAsync(Script scriptPubKey, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials, CancellationToken cancellationToken)
 	{
-		await ArenaClient.RegisterOutputAsync(
+		await _arenaClient.RegisterOutputAsync(
 			RoundId,
 			scriptPubKey,
 			amountCredentials,
@@ -34,7 +34,7 @@ public class BobClient
 		IEnumerable<Credential> vsizeCredential,
 		CancellationToken cancellationToken)
 	{
-		var response = await ArenaClient.ReissueCredentialAsync(
+		var response = await _arenaClient.ReissueCredentialAsync(
 			RoundId,
 			amountsToRequest,
 			vsizesToRequest,

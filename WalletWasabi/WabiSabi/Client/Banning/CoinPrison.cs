@@ -19,9 +19,6 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		NonBanned
 	}
 
-	// Coins with banning time longer than this will be reduced to a random value between 2 and 4 days.
-	private static readonly TimeSpan MaxDaysToTrustLocalPrison = TimeSpan.FromDays(4);
-
 	private readonly object _lock = new();
 
 	public void Ban(SmartCoin coin, DateTimeOffset until)
@@ -33,9 +30,8 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 				return;
 			}
 
-			var effectiveBanningTime = EffectiveBanningTime(until);
-			bannedCoins.Add(coin.Outpoint, new PrisonedCoinRecord(coin.Outpoint, effectiveBanningTime));
-			coin.BannedUntilUtc = effectiveBanningTime;
+			bannedCoins.Add(coin.Outpoint, new PrisonedCoinRecord(coin.Outpoint, until));
+			coin.BannedUntilUtc = until;
 			ToFile();
 		}
 	}
@@ -46,11 +42,6 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		{
 			return GetBanningStatus(outpoint) == BanningStatus.Banned;
 		}
-	}
-
-	public static CoinPrison CreateDummyPrison()
-	{
-		return new(null, []);
 	}
 
 	public static CoinPrison CreateOrLoadFromFile(string containingDirectory)
@@ -122,12 +113,5 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		IoHelpers.EnsureFileExists(filePath);
 		string json = JsonConvert.SerializeObject(bannedCoins.Values, Formatting.Indented);
 		File.WriteAllText(filePath, json);
-	}
-
-	private static DateTimeOffset EffectiveBanningTime(DateTimeOffset bannedUntil)
-	{
-		var maxBanDateTime = DateTimeOffset.UtcNow + MaxDaysToTrustLocalPrison;
-		var maxBanUnixDateTime = long.Min(maxBanDateTime.ToUnixTimeSeconds(), bannedUntil.ToUnixTimeSeconds());
-		return DateTimeOffset.FromUnixTimeSeconds(maxBanUnixDateTime);
 	}
 }

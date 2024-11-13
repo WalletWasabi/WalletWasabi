@@ -20,11 +20,11 @@ public class SleepInhibitor : PeriodicRunner
 
 	private SleepInhibitor(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
 	{
-		CoinJoinManager = coinJoinManager;
+		_coinJoinManager = coinJoinManager;
 		TaskFactory = taskFactory;
 	}
 
-	private CoinJoinManager CoinJoinManager { get; }
+	private readonly CoinJoinManager _coinJoinManager;
 	public Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
 
 	/// <summary>Checks whether we support awake state prolonging for the current platform.</summary>
@@ -75,7 +75,7 @@ public class SleepInhibitor : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var highestCoinJoinClientState = CoinJoinManager.HighestCoinJoinClientState;
+		var highestCoinJoinClientState = _coinJoinManager.HighestCoinJoinClientState;
 		switch (highestCoinJoinClientState)
 		{
 			case CoinJoinClientState.Idle:

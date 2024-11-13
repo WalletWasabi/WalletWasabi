@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using System.Net;
 using Newtonsoft.Json;
+using SQLitePCL;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
@@ -29,13 +30,14 @@ public class RoundStateUpdaterTests
 
 		// The coordinator creates two rounds.
 		// Each line represents a response for each request.
-		var mockHttpClient = CreateMockHttpClient(
+		var mockHttpClientFactory = CreateMockHttpClientFactory([
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.InputRegistration }),
-			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }),
-			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration }),
+			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(1)}),
+			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(2)}, roundState2 with { Phase = Phase.InputRegistration }),
 			RoundStateResponseBuilder(roundState2 with { Phase = Phase.OutputRegistration }),
-			RoundStateResponseBuilder());
-		var apiClient = new WabiSabiHttpApiClient(mockHttpClient);
+			RoundStateResponseBuilder()
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), apiClient);
 
@@ -105,15 +107,16 @@ public class RoundStateUpdaterTests
 
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
-		var mockHttpClient = CreateMockHttpClient(
-			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		var mockHttpClientFactory = CreateMockHttpClientFactory([
+			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration}),
 			() => throw new Exception(),
 			() => throw new OperationCanceledException(),
 			() => throw new InvalidOperationException(),
 			() => throw new HttpRequestException(),
-			RoundStateResponseBuilder(roundState with { Phase = Phase.OutputRegistration }),
-			RoundStateResponseBuilder());
-		var apiClient = new WabiSabiHttpApiClient(mockHttpClient);
+			RoundStateResponseBuilder(roundState with {Phase = Phase.OutputRegistration}),
+			RoundStateResponseBuilder()
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), apiClient);
 
@@ -153,15 +156,16 @@ public class RoundStateUpdaterTests
 
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
-		var mockHttpClient = CreateMockHttpClient(
-			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		var mockHttpClientFactory = CreateMockHttpClientFactory([
+			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration}),
 			() => throw new Exception(),
 			() => throw new OperationCanceledException(),
 			() => throw new InvalidOperationException(),
 			() => throw new HttpRequestException(),
-			RoundStateResponseBuilder(roundState with { Phase = Phase.Ended }),
-			RoundStateResponseBuilder());
-		var apiClient = new WabiSabiHttpApiClient(mockHttpClient);
+			RoundStateResponseBuilder(roundState with {Phase = Phase.Ended}),
+			RoundStateResponseBuilder()
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), apiClient);
 
@@ -194,9 +198,10 @@ public class RoundStateUpdaterTests
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
-		var mockHttpClient = CreateMockHttpClient(
-			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }));
-		var apiClient = new WabiSabiHttpApiClient(mockHttpClient);
+		var mockHttpClientFactory = CreateMockHttpClientFactory([
+			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration})
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), apiClient);
 		try
@@ -223,17 +228,20 @@ public class RoundStateUpdaterTests
 		return response;
 	}
 
-	private MockIHttpClient CreateMockHttpClient(params Func<HttpResponseMessage>[] responses)
+
+	private MockHttpClientFactory CreateMockHttpClientFactory(params Func<HttpResponseMessage>[] responses)
 	{
-		var mockHttpClient = new MockIHttpClient();
+		var mockHttpClientHandler = new MockHttpClientHandler();
+		var mockHttpClient = new MockHttpClient();
+		var mockHttpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
 
 		var callCounter = 0;
-		mockHttpClient.OnSendAsync = req =>
+		mockHttpClient.OnSendAsync = _ =>
 		{
 			var responseFn = responses[callCounter];
 			callCounter++;
 			return Task.FromResult(responseFn());
 		};
-		return mockHttpClient;
+		return mockHttpClientFactory;
 	}
 }
